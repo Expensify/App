@@ -145,7 +145,8 @@ describe('Auth nonmember policy Onyx updates', () => {
     });
 
     it('replaces a cached full policy on page one and in SearchForTodos', async () => {
-        // SearchForTodos and a to-do Search merge the public response into policy_ before Auth sets the key.
+        // Given a full policy cached in both policy_ and a Search snapshot.
+        // When SearchForTodos or Search merges public data, then Auth replaces the snapshot and top-level policy with its redacted response.
         await Onyx.update([
             {
                 onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
@@ -163,6 +164,7 @@ describe('Auth nonmember policy Onyx updates', () => {
             {onyxMethod: Onyx.METHOD.SET, key: policyKey, value: publicPolicy},
         ]);
 
+        // Then neither cache retains private settings or report-rendering fields absent from this response.
         await expectPrivateSettingsRemoved();
         expect((await getOnyxValue(snapshotKey))?.data?.[policyKey]).not.toHaveProperty('customUnits');
         expect((await getOnyxValue(snapshotKey))?.data?.[policyKey]).not.toHaveProperty('units');
@@ -173,6 +175,7 @@ describe('Auth nonmember policy Onyx updates', () => {
     });
 
     it('clears a cached full policy when a later Search page merges into the snapshot', async () => {
+        // Given a full policy cached in both policy_ and a Search snapshot before a later page arrives.
         const laterPagePolicy = {
             ...nonmemberSearchPolicy,
             customUnits: null,
@@ -182,6 +185,7 @@ describe('Auth nonmember policy Onyx updates', () => {
             tagLists: null,
             requiresTag: null,
         };
+        // When Auth merges the later page, its nulls remove private and stale rendering fields from the snapshot.
         await Onyx.update([
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -196,6 +200,7 @@ describe('Auth nonmember policy Onyx updates', () => {
             {onyxMethod: Onyx.METHOD.SET, key: policyKey, value: publicPolicy},
         ]);
 
+        // Then the snapshot and top-level policy contain no private settings.
         await expectPrivateSettingsRemoved();
         const snapshotPolicy = (await getOnyxValue(snapshotKey))?.data?.[policyKey];
         expect(snapshotPolicy).not.toHaveProperty('customUnits');
@@ -207,6 +212,7 @@ describe('Auth nonmember policy Onyx updates', () => {
     });
 
     it('keeps fields OpenReport supplies when the visible result needs report rendering', async () => {
+        // Given a visible report whose OpenReport response supplies public policy identity and rendering fields.
         const renderPolicy = createMock<Policy>({
             ...publicPolicy,
             customUnits: formattedCustomUnits,
@@ -215,6 +221,7 @@ describe('Auth nonmember policy Onyx updates', () => {
             areReportFieldsEnabled: true,
             requiresTag: false,
         });
+        // When Auth sets that policy and Search snapshot after the full policy was cached.
         await Onyx.update([
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -227,6 +234,7 @@ describe('Auth nonmember policy Onyx updates', () => {
             {onyxMethod: Onyx.METHOD.SET, key: policyKey, value: renderPolicy},
         ]);
 
+        // Then private settings are gone while the time and mileage fields needed to render the report remain usable.
         await expectPrivateSettingsRemoved();
         const policy = await getOnyxValue(policyKey);
         expect(policy?.customUnits?.['distance-697049']?.rates?.['rate-697049']?.rate).toBe(100);

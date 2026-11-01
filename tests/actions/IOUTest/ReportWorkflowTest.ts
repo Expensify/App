@@ -3945,6 +3945,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
     describe('canIOUBePaid', () => {
         it('offers Pay and Pay Elsewhere for a business invoice when the sender policy has reimburseNo or only public data', () => {
+            // Given a submitted business invoice, an admin receiver, and either a reimburseNo or redacted sender policy.
             const {policy, convertedInvoiceChat: chatReport}: InvoiceTestData = InvoiceData;
             const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
             if (!invoiceReceiverPolicyID) {
@@ -3975,10 +3976,13 @@ describe('actions/IOU/ReportWorkflow', () => {
                 role: senderPolicyWithNoReimbursement.role,
             });
 
+            // When the receiver requests Pay or Pay Elsewhere for either sender policy shape.
             for (const senderPolicy of [senderPolicyWithNoReimbursement, publicSenderPolicy]) {
+                // Then both actions remain available because the sender's reimbursement choice does not govern invoice payment.
                 expect(canIOUBePaid(invoiceReport, chatReport, senderPolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false, receiverPolicy)).toBe(true);
                 expect(canIOUBePaid(invoiceReport, chatReport, senderPolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], true, false, receiverPolicy)).toBe(true);
             }
+            // Then a non-admin receiver cannot pay, even when the sender policy is redacted.
             expect(canIOUBePaid(invoiceReport, chatReport, publicSenderPolicy, {}, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, false, {...receiverPolicy, role: CONST.POLICY.ROLE.USER})).toBe(
                 false,
             );

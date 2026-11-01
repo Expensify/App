@@ -3452,6 +3452,7 @@ function canIOUBePaid(
         return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN;
     }
 
+    // Invoice payment depends on the receiver policy above, so the sender's reimbursement choice only gates non-invoice reports.
     if (getReimbursementChoice(policy) === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
         if (!onlyShowPayElsewhere) {
             return false;
