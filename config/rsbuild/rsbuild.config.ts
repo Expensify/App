@@ -59,8 +59,7 @@ export default defineConfig(async ({command}) => {
 
     const {isWorkerEnabled, publicPort, port, strictPort, open} = await getDevServerSettings(process.env, () => portfinder.getPortPromise({port: BASE_PORT}));
     // Check if the USE_WEB_PROXY variable has been provided and rewrite any requests to the local proxy server
-    const proxyTarget = process.env.LOCAL_WEB_PROXY_TARGET ?? `http://[::1]:${API_PROXY_PORT}`;
-    const proxy = process.env.USE_WEB_PROXY === 'false' ? undefined : [{pathFilter: API_PROXY_PATHS, target: proxyTarget}];
+    const proxy = process.env.USE_WEB_PROXY === 'false' ? undefined : [{pathFilter: API_PROXY_PATHS, target: `http://[::1]:${API_PROXY_PORT}`}];
 
     const commonRspackTool = common.tools?.rspack;
 
