@@ -10263,6 +10263,21 @@ describe('setDraftSplitTransaction', () => {
             });
         });
     });
+
+    it('clears the draft when there is no split draft to start from', async () => {
+        // Given a split draft that already exists for the transaction
+        const transactionID = 'no-draft-base';
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, createRandomTransaction(1));
+        await waitForBatchedUpdates();
+
+        // When a caller passes no transaction to start from
+        setDraftSplitTransaction(transactionID, undefined, {category: 'Advertising'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal);
+
+        await waitForBatchedUpdates();
+
+        // Then the action no longer falls back by itself, so the null merge clears the draft
+        expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`)).toBeFalsy();
+    });
 });
 
 describe('initSplitExpenseItemData', () => {
