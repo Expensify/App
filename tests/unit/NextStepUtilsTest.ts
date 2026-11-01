@@ -753,6 +753,31 @@ describe('libs/NextStepUtils', () => {
                 expect(result).toMatchObject(expectedResult);
             });
 
+            test('a bill on a workspace with manual reimbursements still waits for the payer', () => {
+                // Given a bill on a workspace that reimburses expense reports outside Expensify (Indirect)
+                const manualPolicy = {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL};
+                const bill = {...report, type: CONST.REPORT.TYPE.BILL};
+
+                // When the bill is approved, or its payment is canceled
+                const result = buildOptimisticNextStep({
+                    rules: undefined,
+                    report: bill,
+                    policy: manualPolicy,
+                    currentUserAccountIDParam: currentUserAccountID,
+                    currentUserEmailParam: currentUserEmail,
+                    hasViolations: false,
+                    isASAPSubmitBetaEnabled: false,
+                    predictedNextStatus: CONST.REPORT.STATUS_NUM.APPROVED,
+                    shouldFixViolations: false,
+                    isUnapprove: false,
+                    isReopen: false,
+                    isTrackIntentUser: false,
+                });
+
+                // Then the bill waits for the payer, as the server says, because manual reimbursement only skips expense reports
+                expect(result).toMatchObject({messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY, icon: CONST.NEXT_STEP.ICONS.HOURGLASS});
+            });
+
             test('non-payer still waits for an admin to pay', () => {
                 return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
                     reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
