@@ -197,11 +197,13 @@ describe('DatePicker typing', () => {
         expect(onPickerVisibilityChange).toHaveBeenCalledWith(true);
     });
 
-    it('reports a typed date the calendar would never have offered', async () => {
+    it('reports a typed date the calendar would never have offered, and keeps it to itself', async () => {
         // Given a field bounded to a range, which the calendar enforces by only drawing the days inside it
         const onValidationErrorChange = jest.fn();
+        const onInputChange = jest.fn();
         await renderDatePicker({
             onValidationErrorChange,
+            onInputChange,
             minDate: new Date('2024-01-01'),
             maxDate: new Date('2024-12-31'),
         });
@@ -214,6 +216,9 @@ describe('DatePicker typing', () => {
 
         // Then the field reports an error naming the range, which is what the page's submit guard reads
         expect(onValidationErrorChange).toHaveBeenLastCalledWith(expect.stringContaining('2024'));
+
+        // And it never hands the date over, since a field that saves on every change would already have stored it
+        expect(onInputChange).not.toHaveBeenCalledWith('2030-05-09');
     });
 
     it('restores a year taken apart by hand when the calendar is asked for the same year back', async () => {

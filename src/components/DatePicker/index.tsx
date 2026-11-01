@@ -113,15 +113,22 @@ function DatePicker({
     // Updates the field without ending the selection, so the calendar stays open for whatever the user does next
     const commitDate = (newDate: string) => {
         setSelectedDate(newDate);
+        const rangeError = getRangeError(newDate);
 
         // The form validates from inside onInputChange, which runs before this render's effects, so the error has to
         // be recorded here as well for it to clear in the same keystroke that fixes the date.
-        setInputValidationError(inputID, getRangeError(newDate));
+        setInputValidationError(inputID, rangeError);
 
         // A date being typed reads as empty until it is finished. Marking the field touched then would show a
         // required error over a date the user is part way through.
         if (newDate) {
             onTouched?.();
+        }
+
+        // Only typing can reach a date the calendar would never have offered, and a consumer that saves on every
+        // change would have stored it before anything could object. It stays on screen under its error to be corrected.
+        if (rangeError) {
+            return;
         }
 
         onInputChange?.(newDate);
