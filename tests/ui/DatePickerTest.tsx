@@ -13,7 +13,7 @@ jest.mock('@hooks/useAutoFocusInput', () => jest.fn(() => ({inputCallbackRef: je
 jest.mock('@components/PopoverWithMeasuredContent', () => jest.fn(({isVisible, children}: PropsWithChildren<{isVisible: boolean}>) => (isVisible ? children : null)));
 jest.mock('@components/DatePicker/CalendarPicker/MonthPickerModal', () => jest.fn(() => null));
 jest.mock('@components/DatePicker/CalendarPicker/YearPickerModal', () => jest.fn(() => null));
-jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
+jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string, ...params: string[]) => [key, ...params].join('|')})));
 
 const LABEL = 'Date';
 
@@ -36,7 +36,7 @@ describe('DatePicker', () => {
         openCalendar();
 
         // Then today is shown but not selected, because the field has no date yet
-        expect(screen.getByLabelText(DateUtils.formatToLongDateWithWeekday(new Date(), undefined))).not.toBeSelected();
+        expect(screen.getByLabelText(`common.todayDateLabel|${DateUtils.formatToLongDateWithWeekday(new Date(), undefined)}`)).not.toBeSelected();
     });
 
     it('opens an empty field on the month of its defaultValue without selecting it', () => {
