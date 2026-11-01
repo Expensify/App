@@ -8,6 +8,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useCreateAndApplyCategory from '@hooks/useCreateAndApplyCategory';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyData from '@hooks/usePolicyData';
 import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
 
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -60,7 +61,8 @@ function ExpenseCategoryPicker() {
         isEditing: false,
         isEditingSplit: false,
     });
-    const createAndApplyCategory = useCreateAndApplyCategory({policyID: POLICY_ID, updateCategory});
+    const policyData = usePolicyData(POLICY_ID);
+    const createAndApplyCategory = useCreateAndApplyCategory({policyID: POLICY_ID, policyData, updateCategory});
 
     return (
         <CategoryPicker

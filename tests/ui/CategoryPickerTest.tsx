@@ -292,6 +292,25 @@ describe('CategoryPicker', () => {
             expect(findCreateRow()?.searchText).toBe('Training');
         });
 
+        it('does not offer the row for a category that is being deleted', () => {
+            // Given a workspace where `Training` was just deleted offline, which stores it disabled with a pending delete
+            mockedUseOnyx.mockImplementation((key) => {
+                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
+                    return [
+                        {Meals: makeCategory('Meals', ''), Training: {...makeCategory('Training', ''), enabled: false, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                        {status: 'loaded'},
+                    ];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+
+            // When the admin searches for it
+            renderSearch('Training');
+
+            // Then the row is not offered, since tapping it would bring back a category the admin is deleting
+            expect(findCreateRow()).toBeUndefined();
+        });
+
         it('shows the matches instead of the row when the search matches a category, even partially', () => {
             // Given a search that partly matches `Meals`
             // When the picker renders

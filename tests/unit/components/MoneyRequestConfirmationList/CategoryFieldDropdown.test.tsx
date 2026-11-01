@@ -5,6 +5,8 @@ import CategoryFieldDropdown from '@components/MoneyRequestConfirmationList/sect
 import type PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type TextComponent from '@components/Text';
 
+import usePolicyData from '@hooks/usePolicyData';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type TransitionTracker from '@libs/Navigation/TransitionTracker';
 
@@ -37,6 +39,8 @@ jest.mock('@hooks/useUpdateTransactionCategory', () => () => ({updateCategory: j
 
 const mockCreateAndApplyCategory = jest.fn();
 jest.mock('@hooks/useCreateAndApplyCategory', () => () => mockCreateAndApplyCategory);
+
+jest.mock('@hooks/usePolicyData', () => jest.fn(() => ({})));
 
 jest.mock('@components/CategoryPicker/CategoryPickerModal', () => {
     const {default: Pressable} = jest.requireActual<{default: typeof PressableWithoutFeedback}>('@components/Pressable/PressableWithoutFeedback');
@@ -158,5 +162,8 @@ describe('CategoryFieldDropdown', () => {
 
         // Then a search with no results offers no create row, matching the missing add button
         expect(screen.queryByLabelText('createCategory')).toBeNull();
+
+        // And the workspace's reports aren't scanned, since only the create row's re-enable path needs them
+        expect(usePolicyData).toHaveBeenCalledWith(undefined);
     });
 });

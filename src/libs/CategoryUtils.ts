@@ -219,10 +219,13 @@ function getCategoryNameErrorMessage(translate: LocaleContextProps['translate'],
 
 /**
  * Finds the stored key of a disabled category whose decoded name is `name`. Pickers hide disabled categories, so a
- * search can come up empty even though creating the name would fail as a duplicate.
+ * search can come up empty even though creating the name would fail as a duplicate. A category being deleted is also
+ * stored as disabled until the server confirms, so it is skipped rather than offered back.
  */
 function getDisabledCategoryKey(policyCategories: PolicyCategories | undefined, name: string): string | undefined {
-    return Object.keys(policyCategories ?? {}).find((categoryKey) => !policyCategories?.[categoryKey]?.enabled && getDecodedCategoryName(categoryKey) === name);
+    return Object.entries(policyCategories ?? {}).find(
+        ([categoryKey, category]) => !category?.enabled && category?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && getDecodedCategoryName(categoryKey) === name,
+    )?.[0];
 }
 
 /**

@@ -11,24 +11,34 @@ import {hasTags} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type PolicyData from './usePolicyData/types';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnboardingTaskInformation from './useOnboardingTaskInformation';
+import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
-import usePolicyData from './usePolicyData';
 import useReviewWorkspaceSettingsTaskCompletion from './useReviewWorkspaceSettingsTaskCompletion';
 
 type UseCreateAndApplyCategoryParams = {
     /** Workspace the category is created on or re-enabled in */
     policyID: string | undefined;
 
+    /**
+     * The caller's `usePolicyData` result, needed only to turn a disabled category back on. Callers that never hit a
+     * disabled match (the add-category form rejects existing names) leave it out, so they don't subscribe to every report.
+     */
+    policyData?: PolicyData;
+
     /** Writes the category onto the expense. The second argument is the workspace's categories including the new one. */
     updateCategory: (category: string, updatedPolicyCategories?: OnyxTypes.PolicyCategories) => void;
 };
 
-function useCreateAndApplyCategory({policyID, updateCategory}: UseCreateAndApplyCategoryParams) {
-    const policyData = usePolicyData(policyID);
+function useCreateAndApplyCategory({policyID, policyData, updateCategory}: UseCreateAndApplyCategoryParams) {
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyHasTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {selector: hasTags});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
@@ -55,7 +65,7 @@ function useCreateAndApplyCategory({policyID, updateCategory}: UseCreateAndApply
         }
 
         const categoryName = StringUtils.sanitizeName(name);
-        const disabledCategoryKey = getDisabledCategoryKey(policyData.categories, categoryName);
+        const disabledCategoryKey = policyData ? getDisabledCategoryKey(policyCategories, categoryName) : undefined;
         const onboardingTaskData = {
             isSetupCategoriesTaskParentReportArchived,
             setupCategoryTaskReport,
@@ -68,11 +78,11 @@ function useCreateAndApplyCategory({policyID, updateCategory}: UseCreateAndApply
             isSetupCategoriesAndTagsTaskParentReportArchived,
             setupCategoriesAndTagsHasOutstandingChildTask,
             setupCategoriesAndTagsParentReportAction,
-            policyHasTags: hasTags(policyData.tags),
+            policyHasTags: !!policyHasTags,
             reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
         };
 
-        if (disabledCategoryKey) {
+        if (policyData && disabledCategoryKey) {
             setWorkspaceCategoryEnabled({
                 ...onboardingTaskData,
                 policyData,
@@ -86,9 +96,9 @@ function useCreateAndApplyCategory({policyID, updateCategory}: UseCreateAndApply
         // A re-enabled category keeps its stored (possibly HTML-encoded) key, which is what a normal pick writes too.
         const categoryKey = disabledCategoryKey ?? categoryName;
         updateCategory(categoryKey, {
-            ...policyData.categories,
+            ...policyCategories,
             [categoryKey]: {
-                ...policyData.categories[categoryKey],
+                ...policyCategories?.[categoryKey],
                 name: categoryKey,
                 enabled: true,
                 errors: null,

@@ -152,7 +152,7 @@ function DynamicIOURequestStepCategory({
         isEditing,
         isEditingSplit,
     });
-    const createAndApplyCategory = useCreateAndApplyCategory({policyID, updateCategory: updateTransactionCategory});
+    const createAndApplyCategory = useCreateAndApplyCategory({policyID, policyData, updateCategory: updateTransactionCategory});
 
     const navigateBack = () => {
         Navigation.goBack(backPath);
