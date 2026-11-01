@@ -265,6 +265,11 @@ platforms:
         icon: /assets/images/hand-card.svg
         description: Explore the perks and benefits of the Expensify Card.
 
+      - href: expensify-partner-program
+        title: Expensify Partner Program
+        icon: /assets/images/handshake.svg
+        description: Discover the benefits of becoming an Expensify Partner.
+
       - href: connections
         title: Connections
         icon: /assets/images/simple-illustration__monitor-remotesync.svg
