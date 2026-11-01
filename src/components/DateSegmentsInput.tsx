@@ -205,6 +205,9 @@ function DateSegmentsInput({
                     }
                 }}
                 onPress={focusFirstUnfilledSegment}
+                // The field hands its own press down as `onPressOut`, which is what opens the calendar. Focus alone
+                // cannot stand in for it here, since a segment that already holds focus announces nothing on arrival.
+                onPressOut={onPressOut}
                 sentryLabel="DateSegmentsInput-EmptySpace"
                 style={[styles.flex1, styles.cursorText]}
             />
