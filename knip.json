@@ -76,6 +76,7 @@
         "html-entities",
         "@fullstory/babel-plugin-react-native",
         "@fullstory/babel-plugin-annotate-react",
+        "eslint-plugin-react-hooks",
         "eslint-plugin-jsdoc",
         "eslint-plugin-storybook",
         "@dword-design/eslint-plugin-import-alias",
