@@ -853,6 +853,29 @@ function queryHasViolationFilter(queryJSON: SearchQueryJSON | undefined): boolea
     );
 }
 
+function isHasFilterValue(value: string): value is HasFilterValue {
+    return Object.values<string>(CONST.SEARCH.HAS_VALUES).includes(value);
+}
+
+/**
+ * Returns the `has` values the query includes, leaving out negated ones such as `-has:submitted-violation`.
+ */
+function getPositiveHasFilterValues(queryJSON: SearchQueryJSON | undefined): HasFilterValues {
+    const hasValues: HasFilterValues = [];
+    for (const filterGroup of queryJSON?.flatFilters ?? []) {
+        if (filterGroup.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS) {
+            continue;
+        }
+        for (const filter of filterGroup.filters) {
+            const value = filter.value.toString();
+            if (filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && isHasFilterValue(value)) {
+                hasValues.push(value);
+            }
+        }
+    }
+    return hasValues;
+}
+
 /**
  * Same meaning as queryHasViolationFilter, for the advanced-filters form `has` array rather than parsed query JSON.
  */
@@ -3327,6 +3350,7 @@ export {
     getValidLastQuery,
     doesQueryMatchDefaultFilterKeysAndType,
     queryHasViolationFilter,
+    getPositiveHasFilterValues,
     hasValuesIncludeViolationFilter,
 };
 
