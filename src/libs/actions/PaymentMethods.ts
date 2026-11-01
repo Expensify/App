@@ -12,7 +12,7 @@ import type {
     UpdateBillingCurrencyParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getLastFourDigits} from '@libs/BankAccountUtils';
+import {getLastFourDigits, hasBrokenPlaidConnectionBankAccount} from '@libs/BankAccountUtils';
 import * as CardUtils from '@libs/CardUtils';
 import GoogleTagManager from '@libs/GoogleTagManager';
 import Log from '@libs/Log';
@@ -430,7 +430,8 @@ function hasPaymentMethodError(
     session?: OnyxEntry<Session>,
     policies?: OnyxCollection<Policy>,
 ): boolean {
-    const hasBankOrFundError = Object.values({...(bankList ?? {}), ...(fundList ?? {})}).some((item) => Object.keys(item?.errors ?? {}).length > 0);
+    const hasBankOrFundError =
+        Object.values({...(bankList ?? {}), ...(fundList ?? {})}).some((item) => Object.keys(item?.errors ?? {}).length > 0) || hasBrokenPlaidConnectionBankAccount(bankList);
     const currentUserLogin = session?.email;
     const cardsWithErrors = Object.values(cardList ?? {}).filter((card) => Object.keys(card?.errors ?? {}).length > 0);
 
