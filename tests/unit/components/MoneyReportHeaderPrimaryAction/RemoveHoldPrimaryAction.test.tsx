@@ -14,7 +14,7 @@ import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Report, ReportAction, Session, Transaction} from '@src/types/onyx';
 
 import type {UseOnyxResult} from 'react-native-onyx';
 
@@ -113,7 +113,7 @@ const transaction: Transaction = {
     comment: {hold: HOLD_ACTION_ID},
 };
 
-function buildIOUAction(reportActionID: string, transactionID: string, childReportID: string): ReportAction {
+function buildIOUAction(reportActionID: string, transactionID: string, childReportID: string): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return {
         ...buildOptimisticIOUReportAction({
             type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -199,7 +199,7 @@ describe('RemoveHoldPrimaryAction', () => {
         );
     });
 
-    it('unholds every held expense with its own transaction thread report', async () => {
+    it('removes the hold from every held expense with its own transaction thread report', async () => {
         // Given a report with two held expenses, each with its own IOU action and transaction thread
         const secondThreadReportID = '1003';
         const secondActionID = 'iou-action-2';
@@ -257,9 +257,9 @@ describe('RemoveHoldPrimaryAction', () => {
             created: '2024-01-01 00:00:00.000',
         });
         await Onyx.multiSet({
-            [ONYXKEYS.SESSION]: {accountID: TEST_ACCOUNT_ID, email: TEST_EMAIL},
-            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}`]: {[HOLD_ACTION_ID]: buildHoldAction(HOLD_ACTION_ID)},
-            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${secondThreadReportID}`]: {[secondHoldActionID]: buildHoldAction(secondHoldActionID)},
+            [ONYXKEYS.SESSION]: {accountID: TEST_ACCOUNT_ID, email: TEST_EMAIL} as Session,
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}` as const]: {[HOLD_ACTION_ID]: buildHoldAction(HOLD_ACTION_ID)},
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${secondThreadReportID}` as const]: {[secondHoldActionID]: buildHoldAction(secondHoldActionID)},
         });
         await waitForBatchedUpdates();
 
