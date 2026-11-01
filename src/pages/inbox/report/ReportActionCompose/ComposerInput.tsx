@@ -1,5 +1,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import useIsConciergeInboxDM from '@hooks/useIsConciergeInboxDM';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -22,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {MeasureInWindowOnSuccessCallback} from 'react-native';
 
-import React from 'react';
+import React, {useState} from 'react';
 
 import {useComposerActions, useComposerEditState, useComposerMeta, useComposerSendState, useComposerState} from './ComposerContext';
 import ComposerWithSuggestions from './ComposerWithSuggestions';
@@ -31,6 +32,24 @@ import useComposerSubmit from './useComposerSubmit';
 import useShouldSkipComposerAutoFocus from './useShouldSkipComposerAutoFocus';
 
 const AI_PLACEHOLDER_KEYS = ['reportActionCompose.askConciergeToUpdate', 'reportActionCompose.askConciergeToCorrect', 'reportActionCompose.askConciergeForHelp'] as const;
+
+const ASK_CONCIERGE_PLACEHOLDER_KEYS = [
+    'common.concierge.composerPlaceholders.spendLastMonth',
+    'common.concierge.composerPlaceholders.topExpenses',
+    'common.concierge.composerPlaceholders.spendDrivers',
+    'common.concierge.composerPlaceholders.travelSpendChange',
+    'common.concierge.composerPlaceholders.topSpender',
+    'common.concierge.composerPlaceholders.missingCategory',
+    'common.concierge.composerPlaceholders.awaitingApproval',
+    'common.concierge.composerPlaceholders.notReimbursed',
+    'common.concierge.composerPlaceholders.unsubmitted',
+    'common.concierge.composerPlaceholders.leftToPay',
+    'common.concierge.composerPlaceholders.createExpense',
+    'common.concierge.composerPlaceholders.combineExpenses',
+    'common.concierge.composerPlaceholders.exportPdf',
+    'common.concierge.composerPlaceholders.exportCsv',
+    'reportActionCompose.askConciergeForHelp',
+] as const;
 
 function getRandomPlaceholder(translate: LocalizedTranslate): string {
     const randomIndex = Math.floor(Math.random() * AI_PLACEHOLDER_KEYS.length);
@@ -67,6 +86,8 @@ function ComposerInput() {
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const isReportArchived = useReportIsArchived(report?.reportID);
+    const isConciergeInboxDM = useIsConciergeInboxDM(reportID);
+    const [askConciergePlaceholderKey] = useState(() => ASK_CONCIERGE_PLACEHOLDER_KEYS[Math.floor(Math.random() * ASK_CONCIERGE_PLACEHOLDER_KEYS.length)]);
     const shouldSkipAutoFocus = useShouldSkipComposerAutoFocus(report);
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
@@ -78,6 +99,8 @@ function ComposerInput() {
     let inputPlaceholder = translate('reportActionCompose.writeSomething');
     if (includesConcierge && userBlockedFromConcierge) {
         inputPlaceholder = translate('reportActionCompose.blockedFromConcierge');
+    } else if (isConciergeInboxDM) {
+        inputPlaceholder = translate(askConciergePlaceholderKey);
     } else if (isExpenseRelatedReport && canUserPerformWriteAction && isEnglishLocale) {
         inputPlaceholder = getRandomPlaceholder(translate);
     }

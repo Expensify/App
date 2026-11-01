@@ -2,53 +2,82 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import AmountField from '@components/MoneyRequestConfirmationList/sections/AmountField';
+import type {NumberWithSymbolFormProps} from '@components/NumberWithSymbolForm';
 
 import {setMoneyRequestAmount, setMoneyRequestCurrency} from '@libs/actions/IOU/MoneyRequest';
+
+import type IOURequestStepCurrencyModal from '@pages/iou/request/step/IOURequestStepCurrencyModal';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
 
+let mockCurrencyButtonRef: NumberWithSymbolFormProps['currencyButtonRef'];
+let mockLauncherRef: React.ComponentProps<typeof IOURequestStepCurrencyModal>['launcherRef'];
 jest.mock('@components/NumberWithSymbolForm', () => {
     const {Pressable, Text} =
         jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: 'button'}>>>('react-native');
-    return ({onInputChange, errorText}: {onInputChange: (amount: string) => void; errorText?: string}) => (
-        <>
-            {!!errorText && <Text>{errorText}</Text>}
-            <Pressable
-                accessibilityRole="button"
-                onPress={() => onInputChange('0')}
-            >
-                <Text>Enter zero</Text>
-            </Pressable>
-            <Pressable
-                accessibilityRole="button"
-                onPress={() => onInputChange('1')}
-            >
-                <Text>Enter one</Text>
-            </Pressable>
-        </>
-    );
+    return ({
+        onInputChange,
+        errorText,
+        currencyButtonRef,
+    }: {
+        onInputChange: (amount: string) => void;
+        errorText?: string;
+        currencyButtonRef?: NumberWithSymbolFormProps['currencyButtonRef'];
+    }) => {
+        mockCurrencyButtonRef = currencyButtonRef;
+        return (
+            <>
+                {!!errorText && <Text>{errorText}</Text>}
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onInputChange('0')}
+                >
+                    <Text>Enter zero</Text>
+                </Pressable>
+                <Pressable
+                    accessibilityRole="button"
+                    onPress={() => onInputChange('1')}
+                >
+                    <Text>Enter one</Text>
+                </Pressable>
+            </>
+        );
+    };
 });
 jest.mock('@pages/iou/request/step/IOURequestStepCurrencyModal', () => {
     const {Pressable, Text} =
         jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: 'button'}>>>('react-native');
-    return ({onInputChange}: {onInputChange: (currency: string) => void}) => (
-        <Pressable
-            accessibilityRole="button"
-            onPress={() => onInputChange('EUR')}
-        >
-            <Text>Pick EUR</Text>
-        </Pressable>
-    );
+    return ({onInputChange, launcherRef}: {onInputChange: (currency: string) => void; launcherRef?: React.ComponentProps<typeof IOURequestStepCurrencyModal>['launcherRef']}) => {
+        mockLauncherRef = launcherRef;
+        return (
+            <Pressable
+                accessibilityRole="button"
+                onPress={() => onInputChange('EUR')}
+            >
+                <Text>Pick EUR</Text>
+            </Pressable>
+        );
+    };
 });
 jest.mock('@components/MenuItemWithTopDescription', () => {
     const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
-    return ({title}: {title?: string}) => <Text>{`Read-only amount: ${title ?? ''}`}</Text>;
+    return ({title, interactive = true}: {title?: string; interactive?: boolean}) => (
+        <>
+            <Text>{`Read-only amount: ${title ?? ''}`}</Text>
+            {interactive && <Text>Opens amount page</Text>}
+        </>
+    );
 });
 jest.mock('@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow', () => {
     const {Text} = jest.requireActual<Record<'Text', React.ComponentType<{children?: React.ReactNode}>>>('react-native');
-    return ({value}: {value?: string}) => <Text>{`Read-only amount: ${value ?? ''}`}</Text>;
+    return ({value, isInteractive = true}: {value?: string; isInteractive?: boolean}) => (
+        <>
+            <Text>{`Read-only amount: ${value ?? ''}`}</Text>
+            {isInteractive && <Text>Opens amount page</Text>}
+        </>
+    );
 });
 let mockTransactionSlice: {transactionID: string; amount: number; currency: string; isAmountMissing: boolean; isAmountSet?: boolean; isScanning?: boolean} = {
     transactionID: '1',
@@ -252,6 +281,34 @@ describe('AmountField currency change', () => {
     });
 });
 
+describe('AmountField currency picker focus return', () => {
+    beforeEach(() => {
+        mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false};
+        mockCurrencyButtonRef = undefined;
+        mockLauncherRef = undefined;
+    });
+
+    it('hands the currency button ref to the picker so focus returns to the button on close', () => {
+        // Given a manual expense whose amount field shows the currency button
+        // When the amount field renders
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.CREATE}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+            >
+                <AmountField {...amountFieldProps} />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // Then the picker gets the same ref the currency button is attached to, so closing the picker returns keyboard
+        // focus to that button instead of dropping the user at the top of the form
+        expect(mockLauncherRef).toBeDefined();
+        expect(mockLauncherRef).toBe(mockCurrencyButtonRef);
+    });
+});
+
 describe('AmountField while the receipt is scanning', () => {
     beforeEach(() => {
         mockTransactionSlice = {transactionID: '1', amount: 0, currency: 'USD', isAmountMissing: false, isAmountSet: true, isScanning: true};
@@ -277,6 +334,28 @@ describe('AmountField while the receipt is scanning', () => {
         // Then the amount shows as the read-only row with the scanning status, since the editable input would show the receipt's placeholder zero amount
         expect(screen.getByText('Read-only amount: Scanning…')).toBeOnTheScreen();
         expect(screen.queryByText('Enter zero')).not.toBeOnTheScreen();
+    });
+
+    it('does not offer the scanning amount row as a control when a tracked scan is moved to someone', () => {
+        // Given a tracked scan expense moved to someone, whose receipt is still scanning and whose scan fields can't be entered inline
+        // When the confirmation page renders its amount field
+        render(
+            <ConfirmationFieldsProvider
+                transactionID="1"
+                reportID="2"
+                action={CONST.IOU.ACTION.SUBMIT}
+                iouType={CONST.IOU.TYPE.SUBMIT}
+            >
+                <AmountField
+                    {...amountFieldProps}
+                    formattedAmount="Scanning…"
+                />
+            </ConfirmationFieldsProvider>,
+        );
+
+        // Then the row has no caret and no press, since SmartScan sets the amount and the user can't edit it until the scan finishes
+        expect(screen.getByText('Read-only amount: Scanning…')).toBeOnTheScreen();
+        expect(screen.queryByText('Opens amount page')).not.toBeOnTheScreen();
     });
 
     it('keeps the editable input on a fresh scan where the user can enter the amount instead of waiting for SmartScan', () => {
