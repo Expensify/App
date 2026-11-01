@@ -55,7 +55,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {PersonalDetails, Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Participant} from '@src/types/onyx/IOU';
 import type Login from '@src/types/onyx/Login';
@@ -63,6 +63,7 @@ import type {OriginalMessageReimbursed} from '@src/types/onyx/OriginalMessage';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {pendingDeleteMemberAccountIDsByReportIDSelector} from '@selectors/ReportMetaData';
 import {View} from 'react-native';
 import Onyx from 'react-native-onyx';
 
@@ -2699,6 +2700,43 @@ describe('OptionsListUtils', () => {
                     undefined,
                 ).personalDetails.length,
             ).toBeGreaterThan(0);
+        });
+
+        it('keeps hitting the cache when each Search Router mount reads its own pending member deletions', () => {
+            // Given the SearchRouter config and no member pending removal in any report
+            const {maxRecentReports, includeP2P, deferContactsUntilSearch} = SEARCH_ROUTER_OPTIONS_CONFIG;
+            const buildWithPendingDeletions = (pendingDeleteMemberAccountIDsByReportID: Record<string, string[]>) =>
+                createFilteredOptionList(
+                    PERSONAL_DETAILS,
+                    REPORTS,
+                    MOCK_REPORT_ATTRIBUTES_DERIVED,
+                    EMPTY_PRIVATE_IS_ARCHIVED_MAP,
+                    allPolicies,
+                    {
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                        dateFnsLocale: undefined,
+                        convertToDisplayString,
+                        conciergeReportID: undefined,
+                        maxRecentReports,
+                        includeP2P,
+                        deferContactsUntilSearch,
+                        isSearching: false,
+                        pendingDeleteMemberAccountIDsByReportID,
+                        formatPhoneNumber,
+                    },
+                    undefined,
+                );
+            clearFilteredOptionListCache();
+
+            // When two Router mounts build the list, each with the result of its own selector run, as useOnyx selects per hook instance
+            const reportMetadata: OnyxCollection<ReportMetadata> = {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}1`]: {pendingChatMembers: []}};
+            const firstOpen = buildWithPendingDeletions(pendingDeleteMemberAccountIDsByReportIDSelector(reportMetadata));
+            const secondOpen = buildWithPendingDeletions(pendingDeleteMemberAccountIDsByReportIDSelector({...reportMetadata}));
+
+            // Then the second open is served from the cache, sharing the icons built by the first one
+            expect(firstOpen.reports.at(0)?.icons).toBeDefined();
+            expect(secondOpen.reports.at(0)).not.toBe(firstOpen.reports.at(0));
+            expect(secondOpen.reports.at(0)?.icons).toBe(firstOpen.reports.at(0)?.icons);
         });
 
         it('should hydrate with the build-time inputs, keeping brickRoadIndicator without any caller-provided data', () => {

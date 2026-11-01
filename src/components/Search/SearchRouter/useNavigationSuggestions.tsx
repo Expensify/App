@@ -61,7 +61,7 @@ import {View} from 'react-native';
 
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
-import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
+import {buildNavigationSuggestions, canQueryMatchNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
 import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 
 type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'PieChart' | 'Building' | 'Globe' | 'Gear', IconAsset>;
@@ -410,8 +410,15 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
-    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals);
+    const canQueryMatch = canQueryMatchNavigationSuggestions(query);
+    const typeMenuSections = useSearchTypeMenuSectionsForNavigation(shouldWatchForApprovals, canQueryMatch);
     const {accountMenuItemsData, generalMenuItemsData} = useSettingsNavigationMenuData();
+
+    // An empty query matches no destination, so the sources (the Spend sections and the settings menu of every
+    // workspace) are not built while the query is empty.
+    if (!canQueryMatch) {
+        return [];
+    }
 
     const topLevelItems = buildTopLevelNavigationItems({
         labels: {
