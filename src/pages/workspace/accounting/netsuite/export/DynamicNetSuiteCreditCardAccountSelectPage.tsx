@@ -24,7 +24,7 @@ import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 function DynamicNetSuiteCreditCardAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -38,39 +38,30 @@ function DynamicNetSuiteCreditCardAccountSelectPage({policy}: WithPolicyConnecti
     const config = policy?.connections?.netsuite?.options.config;
     const currentSettingName = CONST.NETSUITE_CONFIG.CREDIT_CARD_ACCOUNT;
     const currentCreditCardAccountID = config?.creditCardAccount ?? CONST.NETSUITE_PAYABLE_ACCOUNT_DEFAULT_VALUE;
-    const creditCardAccountOptions = useMemo<SelectorType[]>(
-        () => getNetSuiteCreditCardAccountOptions(policy ?? undefined, currentCreditCardAccountID),
-        [currentCreditCardAccountID, policy],
-    );
+    const creditCardAccountOptions: SelectorType[] = getNetSuiteCreditCardAccountOptions(policy ?? undefined, currentCreditCardAccountID);
 
-    const initiallyFocusedOptionKey = useMemo(() => creditCardAccountOptions.find((mode) => mode.isSelected)?.keyForList, [creditCardAccountOptions]);
+    const initiallyFocusedOptionKey = creditCardAccountOptions?.find((mode) => mode.isSelected)?.keyForList;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const updateCreditCardAccount = useCallback(
-        ({value}: SelectorType) => {
-            if (currentCreditCardAccountID !== value && policyID) {
-                updateNetSuiteCreditCardAccount(policyID, value, currentCreditCardAccountID);
-            }
-            goBack();
-        },
-        [currentCreditCardAccountID, policyID, goBack],
-    );
+    const updateCreditCardAccount = ({value}: SelectorType) => {
+        if (currentCreditCardAccountID !== value && policyID) {
+            updateNetSuiteCreditCardAccount(policyID, value, currentCreditCardAccountID);
+        }
+        goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.netsuite.noAccountsFound')}
-                subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.netsuite.noAccountsFound')}
+            subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (
