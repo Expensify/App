@@ -463,13 +463,12 @@ function BasePopoverMenu({
         }
     };
     const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
-    const showFocusedRow = useCallback(() => setHasKeyBeenPressed(true), []);
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: currentMenuItemsFocusedIndex,
         maxIndex: currentMenuItems.length - 1,
         isActive: isVisible,
         onFocusedIndexChange: handleFocusedIndexChange,
-        setHasKeyBeenPressed: isSearchEnabled ? showFocusedRow : undefined,
+        setHasKeyBeenPressed: isSearchEnabled ? () => setHasKeyBeenPressed(true) : undefined,
     });
     useAccessibilityAnnouncement(arrowFocusedItemAnnouncement.message, isWeb && isVisible && isSearchInputFocused && !!arrowFocusedItemAnnouncement.message, {
         shouldAnnounceOnNative: false,

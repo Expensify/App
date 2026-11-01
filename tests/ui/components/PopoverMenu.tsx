@@ -4,6 +4,7 @@ import type {PopoverMenuItem, PopoverMenuProps} from '@components/PopoverMenu';
 import PopoverMenu, {buildKeyPathFromIndexPath, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenu';
 import useNoopPopoverMenuFocusManagement from '@components/PopoverMenu/usePopoverMenuFocusManagement/noop';
 import ScrollView from '@components/ScrollView';
+import type {ScrollViewProps} from '@components/ScrollView';
 
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useActiveElementRole from '@hooks/useActiveElementRole';
@@ -14,9 +15,12 @@ import {getShouldSuppressBackgroundInputFocus} from '@libs/ModalFocusManager';
 import CONST from '@src/CONST';
 
 import type {ComponentRef, PropsWithChildren} from 'react';
+import type ReactNative from 'react-native';
 import type {GestureResponderEvent, View} from 'react-native';
 
 import React from 'react';
+
+import mockCreateMock from '../../utils/createMock';
 
 type MockMeasuredPopoverProps = PropsWithChildren<{
     isVisible?: boolean;
@@ -45,12 +49,35 @@ const mockUseAccessibilityAnnouncement = jest.mocked(useAccessibilityAnnouncemen
 const mockUseActiveElementRole = jest.mocked(useActiveElementRole);
 const mockKeyboardShortcuts = new Map<string, {callback: () => void; isActive: boolean}>();
 const mockFocusableMenuItem = jest.fn<void, [MockFocusableMenuItemProps]>();
+const mockScrollTo = jest.fn();
+
+function getRowLayoutContainer(testID: string) {
+    let instance = screen.getByTestId(testID).parent;
+    while (instance && typeof (instance.props as {onLayout?: unknown}).onLayout !== 'function') {
+        instance = instance.parent;
+    }
+    if (!instance) {
+        throw new Error(`Could not find the layout container for ${testID}`);
+    }
+    return instance;
+}
 
 jest.mock('@libs/getPlatform');
 jest.mock('@hooks/useAccessibilityAnnouncement');
 jest.mock('@hooks/useActiveElementRole');
 jest.mock('@hooks/useKeyboardShortcut', () => (shortcut: {shortcutKey: string}, callback: () => void, config: {isActive?: boolean} = {}) => {
     mockKeyboardShortcuts.set(shortcut.shortcutKey, {callback, isActive: config.isActive ?? true});
+});
+jest.mock('@components/ScrollView', () => {
+    const ReactLocal = jest.requireActual<typeof React>('react');
+    const RN = jest.requireActual<typeof ReactNative>('react-native');
+
+    const MockScrollView = ReactLocal.forwardRef<ComponentRef<typeof RN.ScrollView>, Omit<ScrollViewProps, 'ref'>>((props, ref) => {
+        ReactLocal.useImperativeHandle(ref, () => mockCreateMock<ComponentRef<typeof RN.ScrollView>>({scrollTo: mockScrollTo}));
+        return <RN.ScrollView {...props} />;
+    });
+
+    return MockScrollView;
 });
 
 describe('PopoverMenu utils', () => {
@@ -396,6 +423,7 @@ describe('PopoverMenu integration — optional search', () => {
         mockGetPlatform.mockReturnValue(CONST.PLATFORM.IOS);
         mockKeyboardShortcuts.clear();
         mockFocusableMenuItem.mockClear();
+        mockScrollTo.mockClear();
     });
 
     it('keeps existing popovers keyboard-neutral when search is disabled', () => {
@@ -435,6 +463,7 @@ describe('PopoverMenu integration — optional search', () => {
     });
 
     it('shows the visually focused row while keeping focus synchronized to the search input', () => {
+        // Given a searchable radio-button popover whose search input has focus
         render(
             <PopoverMenu
                 isVisible
@@ -448,13 +477,55 @@ describe('PopoverMenu integration — optional search', () => {
             />,
         );
 
+        // When Arrow Down moves the logical focus to the first result
         fireEvent(screen.getByLabelText('Find a member'), 'focus');
         const arrowDownShortcut = mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
         expect(arrowDownShortcut?.isActive).toBe(true);
         act(() => arrowDownShortcut?.callback());
 
+        // Then the result is visibly focused without moving actual focus away from the input
         const focusedItemProps = mockFocusableMenuItem.mock.calls.find(([props]) => props.focused)?.[0];
         expect(focusedItemProps).toEqual(expect.objectContaining({title: 'Item 1', shouldSyncFocus: false}));
+    });
+
+    it('scrolls a filtered result with preserved variable-height row measurements into view', () => {
+        const initialMenuItems = [{text: 'Item 1'}, {text: 'Item 2'}, {text: 'Item 3'}, {text: 'Item 4'}];
+
+        // Given measured rows of different heights in a searchable popover
+        const renderResult = render(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={initialMenuItems}
+                searchInputOptions={{label: 'Find a member', value: '', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+        fireEvent(renderResult.UNSAFE_getByType(ScrollView), 'layout', {nativeEvent: {layout: {height: 100, width: 300, x: 0, y: 0}}});
+        fireEvent(getRowLayoutContainer('PopoverMenuItem-Item 1'), 'layout', {nativeEvent: {layout: {height: 40, width: 300, x: 0, y: 0}}});
+        fireEvent(getRowLayoutContainer('PopoverMenuItem-Item 2'), 'layout', {nativeEvent: {layout: {height: 60, width: 300, x: 0, y: 40}}});
+        fireEvent(getRowLayoutContainer('PopoverMenuItem-Item 3'), 'layout', {nativeEvent: {layout: {height: 70, width: 300, x: 0, y: 100}}});
+
+        // When filtering keeps the measured rows and Arrow Down reaches the first off-screen result
+        renderResult.rerender(
+            <PopoverMenu
+                isVisible
+                shouldUseScrollView
+                menuItems={initialMenuItems.slice(0, 3)}
+                searchInputOptions={{label: 'Find a member', value: 'Item', onChangeText: () => {}}}
+                onClose={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+        mockScrollTo.mockClear();
+        act(() => mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey)?.callback());
+        act(() => mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey)?.callback());
+
+        // Then the list scrolls far enough to reveal the complete focused row
+        expect(mockScrollTo).toHaveBeenLastCalledWith({y: 70, animated: false});
     });
 
     it('announces an arrow-focused row while the search input retains focus', () => {
@@ -557,25 +628,34 @@ describe('PopoverMenu integration — optional search', () => {
         expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey)?.isActive).toBe(true);
     });
 
-    it('lets a focused row handle Enter when its non-searchable popover does not synchronize the focused index', () => {
+    it('lets the activated row handle Enter when its non-searchable popover does not synchronize the focused index', () => {
+        const selectFirstItem = jest.fn();
+        const selectSecondItem = jest.fn();
+
         // Given an account-switcher-style popover where actual row focus does not update the logical focused index
         mockUseActiveElementRole.mockReturnValue(CONST.ROLE.BUTTON);
 
-        // When the popover registers its Enter shortcut
+        // When a different row receives the activation while the global Enter shortcut is disabled
         render(
             <PopoverMenu
                 isVisible
                 shouldUseScrollView
                 shouldUpdateFocusedIndex={false}
-                menuItems={[{text: 'Item'}]}
+                menuItems={[
+                    {text: 'Item 1', isSelected: true, onSelected: selectFirstItem},
+                    {text: 'Item 2', onSelected: selectSecondItem},
+                ]}
                 onClose={() => {}}
                 anchorPosition={anchorPosition}
                 anchorRef={anchorRef}
             />,
         );
-
-        // Then the popover shortcut is inactive so Enter selects the row that has actual focus
         expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey)?.isActive).toBe(false);
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Item 2'));
+
+        // Then the activated row selects itself instead of the stale logically focused row
+        expect(selectFirstItem).not.toHaveBeenCalled();
+        expect(selectSecondItem).toHaveBeenCalledTimes(1);
     });
 });
 
