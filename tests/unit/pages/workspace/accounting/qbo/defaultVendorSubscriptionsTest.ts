@@ -33,13 +33,9 @@ function buildPolicy(nonReimbursableExpensesExportDestination: NonReimbursableDe
 }
 
 function getIntegrationData(nonReimbursableExpensesExportDestination: NonReimbursableDestination, autoCreateVendor = false) {
-    return getAccountingIntegrationData(
-        CONST.POLICY.CONNECTIONS.NAME.QBO,
-        POLICY_ID,
-        mockTranslate,
-        EXISTING_CONNECTIONS,
-        buildPolicy(nonReimbursableExpensesExportDestination, autoCreateVendor),
-    );
+    return getAccountingIntegrationData(CONST.POLICY.CONNECTIONS.NAME.QBO, POLICY_ID, mockTranslate, EXISTING_CONNECTIONS, {
+        policy: buildPolicy(nonReimbursableExpensesExportDestination, autoCreateVendor),
+    });
 }
 
 describe('QBO default vendor export subscriptions', () => {

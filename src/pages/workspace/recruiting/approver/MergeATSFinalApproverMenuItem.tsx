@@ -1,14 +1,18 @@
 import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import UserPills from '@components/UserPills';
 
+import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 
 import Navigation from '@libs/Navigation/Navigation';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import {useMergeATSApprovalDraftState} from './MergeATSApprovalDraftContext';
@@ -22,32 +26,27 @@ type MergeATSFinalApproverMenuItemProps = {
 };
 
 function MergeATSFinalApproverMenuItem({policyID, description}: MergeATSFinalApproverMenuItemProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {finalApprover} = useMergeATSApprovalDraftState(policyID);
     const finalApproverDetails = usePersonalDetailByLogin(finalApprover);
-    const finalApproverDisplayName = finalApproverDetails?.displayName ?? finalApprover ?? '';
 
     return (
-        <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER.getRoute(policyID)))}>
+        <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_FINAL_APPROVER.getRoute(policyID)), false, session)}>
             <MenuItem.Row>
-                <MenuItem.Content>
-                    {finalApprover ? (
-                        <>
-                            <MenuItem.FieldName>{description}</MenuItem.FieldName>
-                            <UserPills
-                                users={[
-                                    {
-                                        avatar: finalApproverDetails?.avatar,
-                                        displayName: finalApproverDisplayName,
-                                        accountID: finalApproverDetails?.accountID,
-                                        email: finalApprover,
-                                    },
-                                ]}
-                            />
-                        </>
-                    ) : (
-                        <MenuItem.FieldNamePlaceholder>{description}</MenuItem.FieldNamePlaceholder>
+                <MenuItemField.Content name={description}>
+                    {!!finalApprover && (
+                        <UserPills
+                            users={[
+                                {
+                                    avatar: finalApproverDetails?.avatar,
+                                    displayName: finalApproverDetails?.displayName ?? finalApprover,
+                                    accountID: finalApproverDetails?.accountID,
+                                    email: finalApprover,
+                                },
+                            ]}
+                        />
                     )}
-                </MenuItem.Content>
+                </MenuItemField.Content>
                 <MenuItem.Trailing>
                     <MenuItem.Chevron />
                 </MenuItem.Trailing>

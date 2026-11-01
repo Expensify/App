@@ -43,7 +43,6 @@ jest.mock('@components/ScreenWrapper', () => {
 });
 
 jest.mock('@components/Navigation/TopBarWithLoadingBar', () => () => null);
-jest.mock('@components/Navigation/TabBarBottomContent', () => () => null);
 jest.mock('@pages/inbox/sidebar/InboxTabSelector', () => () => null);
 jest.mock('@components/OptionsListSkeletonView', () => {
     const ReactModule = jest.requireActual<typeof React>('react');

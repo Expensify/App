@@ -26,7 +26,7 @@ import {
 } from '@userActions/connections/FinancialForce';
 
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import React from 'react';
 
@@ -39,7 +39,6 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const advancedConfig = config?.advanced;
     const isPSA = !!config?.hasPSA;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.path);
-    const advancedPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_ADVANCED.path}` : undefined;
     const selectedFxExpenseAccountName = data?.expenseAccounts?.find(({id}) => id === config?.fxExpenseAccount)?.name;
 
     return (
@@ -134,7 +133,7 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         title={selectedFxExpenseAccountName}
                         description={translate('workspace.certinia.fxExpenseAccount')}
                         wrapperStyle={[styles.ph5, styles.pv3]}
-                        onPress={!advancedPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT.path, advancedPath))}
+                        onPress={!policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT.path))}
                         brickRoadIndicator={areSettingsInErrorFields([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>

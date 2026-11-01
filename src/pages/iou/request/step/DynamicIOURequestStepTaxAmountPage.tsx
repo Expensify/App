@@ -161,7 +161,6 @@ function DynamicIOURequestStepTaxAmountPage({
 
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
 
         navigateBack();

@@ -1,11 +1,10 @@
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
-import type {TextSelection} from '@components/Composer/types';
+import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useDragAndDropState} from '@components/DragAndDrop/Provider';
 
 import usePrevious from '@hooks/usePrevious';
 
 import type {ForwardedRef} from 'react';
-import type {TextInputSelectionChangeEvent} from 'react-native';
 
 import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import {View} from 'react-native';
@@ -102,7 +101,7 @@ function Suggestions({
         return emojiHandler ?? mentionHandler;
     };
 
-    const onSelectionChange = (e: TextInputSelectionChangeEvent) => {
+    const onSelectionChange = (e: CustomSelectionChangeEvent) => {
         const emojiHandler = suggestionEmojiRef.current?.onSelectionChange?.(e);
         suggestionMentionRef.current?.onSelectionChange?.(e);
         return emojiHandler;

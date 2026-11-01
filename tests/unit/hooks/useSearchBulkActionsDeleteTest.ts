@@ -8,6 +8,7 @@ import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import {deleteAppReport} from '@libs/actions/Report';
 import type * as SearchActions from '@libs/actions/Search';
+import type * as SearchUIUtilsModule from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -46,6 +47,7 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    openSearchCardFiltersPage: jest.fn(),
     getReportFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportFromSearchSnapshot,
     getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
@@ -172,6 +174,8 @@ jest.mock('@libs/SearchUIUtils', () => ({
     getValidGroupBy: jest.fn(),
     getColumnsToShow: jest.fn(() => []),
     getSearchColumnTranslationKey: jest.fn(),
+    // The bulk pay check reads each report's expenses from the search snapshot, so keep the real lookup
+    getTransactionsByReportID: jest.requireActual<typeof SearchUIUtilsModule>('@libs/SearchUIUtils').getTransactionsByReportID,
 }));
 
 jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({

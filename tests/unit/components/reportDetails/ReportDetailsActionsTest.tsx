@@ -45,11 +45,7 @@ function renderActions(reportID: string) {
     return render(
         <OnyxListItemProvider>
             <LocaleContextProvider>
-                <ReportDetailsActions
-                    reportID={reportID}
-                    showDeleteModal={jest.fn(() => Promise.resolve())}
-                    deleteTransaction={jest.fn()}
-                />
+                <ReportDetailsActions reportID={reportID} />
             </LocaleContextProvider>
         </OnyxListItemProvider>,
     );

@@ -76,7 +76,7 @@ function findURLInReportOrAncestorAttachments(currentReport: OnyxEntry<Report>, 
 
     const reportActions = getAllReportActions(reportID);
     const hasUrlInAttachments = Object.values(reportActions).some((action) => {
-        const {sourceURL, previewSourceURL} = getAttachmentDetails(getReportActionHtml(action));
+        const {sourceURL, previewSourceURL} = getAttachmentDetails(getReportActionHtml(action), action?.reportActionID);
         return sourceURL === url || previewSourceURL === url;
     });
 

@@ -9,7 +9,7 @@ They help customers understand concepts before they perform related tasks.
 Topic articles answer questions such as:
 
 * How does billing work?
-* What is a Workspace?
+* What is a workspace?
 * How do approvals work?
 * How do reimbursements work?
 * How do subscription plans work?
@@ -25,7 +25,7 @@ Every Topic article must:
 * Explain one product concept or product area.
 * Match a specific customer question.
 * Use exact product terminology.
-* Follow the official naming conventions.
+* Follow the official naming conventions in docs/HELPSITE_NAMING_CONVENTIONS.md.
 * Be optimized for semantic retrieval.
 * Be concise, organized, and easy to scan.
 
@@ -94,7 +94,7 @@ Every Topic article must include:
 
 ```yaml
 ---
-title: Clear concept-based title using the feature name
+title: Clear Concept-Based Title Using the Feature Name (title case)
 description: Short summary of the concept
 keywords: [primary concept, feature name, related search terms]
 internalScope: Audience is [target role]. Covers [concept]. Does not cover [excluded workflows or concepts].
@@ -110,6 +110,8 @@ Metadata should reflect realistic customer search behavior.
 # 5. Heading Requirements
 
 Topic headings should answer customer questions about the concept.
+
+Use title case for the article title and sentence case for every `##` heading.
 
 Prefer headings beginning with:
 
@@ -267,6 +269,8 @@ Before publishing, confirm:
 * Common scenarios receive the most attention.
 * Important terminology is used consistently.
 * UI terminology matches the product.
+* The article title uses title case and every `##` heading uses sentence case.
+* UI references, navigation, and capitalization follow docs/HELPSITE_NAMING_CONVENTIONS.md.
 * Metadata reflects customer search intent.
 * Cross-links are minimal and purposeful.
 * Every suggested screenshot has a clear purpose that prevents or resolves a specific member confusion.

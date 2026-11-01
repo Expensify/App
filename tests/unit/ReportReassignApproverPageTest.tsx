@@ -1,6 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 
 import ApproverSelectionList from '@components/ApproverSelectionList';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import {isAllowedToApproveExpenseReport} from '@libs/ReportUtils';
 
@@ -83,13 +84,15 @@ function buildPolicy(role: Policy['role'] = CONST.POLICY.ROLE.ADMIN): Policy {
 
 function renderPage(policy: Policy, reportOverride = report) {
     return render(
-        <ReportReassignApproverPage
-            // @ts-expect-error Only the report, policy, and loading state are read by the unwrapped page.
-            route={{params: {reportID: report.reportID}}}
-            report={reportOverride}
-            policy={policy}
-            isLoadingReportData={false}
-        />,
+        <PersonalDetailsByLoginProvider>
+            <ReportReassignApproverPage
+                // @ts-expect-error Only the report, policy, and loading state are read by the unwrapped page.
+                route={{params: {reportID: report.reportID}}}
+                report={reportOverride}
+                policy={policy}
+                isLoadingReportData={false}
+            />
+        </PersonalDetailsByLoginProvider>,
     );
 }
 

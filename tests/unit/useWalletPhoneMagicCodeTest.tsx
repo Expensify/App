@@ -5,10 +5,12 @@ import type {UpdatePersonalDetailsForWalletParams} from '@libs/API/parameters';
 import useWalletPhoneValidateCode from '@pages/EnablePayments/shared/useWalletPhoneValidateCode';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
 import Onyx from 'react-native-onyx';
 
+import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockUpdatePersonalDetails = jest.fn();
@@ -107,6 +109,56 @@ describe('useWalletPhoneValidateCode', () => {
 
         expect(mockUpdatePersonalDetails).not.toHaveBeenCalled();
         expect(mockNavigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ENABLE_PAYMENTS_CONFIRM_VALIDATE_CODE.getRoute());
+    });
+
+    it('saves every submitted detail to the form draft before routing to the validateCode screen', async () => {
+        // Given a stored phone number and a form draft that only holds the field the user edited, since pre-filled
+        // values (e.g. the legal name) are never drafted
+        await act(async () => {
+            await setStoredPhoneNumber(STORED_PHONE_NUMBER_WITH_COUNTRY_CODE);
+            await Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, {phoneNumber: CHANGED_PHONE_NUMBER});
+            await waitForBatchedUpdates();
+        });
+        const {result} = await renderWalletPhoneValidateCode();
+
+        // When the phone number is changed, which holds the submission until the validateCode is entered
+        await act(async () => {
+            result.current.submitPersonalDetails(buildParams({phoneNumber: CHANGED_PHONE_NUMBER}));
+            await waitForBatchedUpdates();
+        });
+
+        // Then the draft holds every submitted detail, so the validateCode screen sends the complete request
+        const draft = await getOnyxValue(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT);
+        expect(draft).toEqual({
+            legalFirstName: 'Alberta',
+            legalLastName: 'Charleson',
+            addressStreet: '123 Main St',
+            addressCity: 'City',
+            addressState: 'CA',
+            addressZipCode: '90001',
+            dob: '2000-08-08',
+            ssn: '123456789',
+            phoneNumber: CHANGED_PHONE_NUMBER,
+        });
+        expect(mockUpdatePersonalDetails).not.toHaveBeenCalled();
+    });
+
+    it('routes to the validateCode screen of the calling flow when it provides its own route', async () => {
+        // Given the IOU pay flow, which must open the validateCode screen on top of itself rather than the Settings wallet one
+        const payFlowRoute: Route = ROUTES.ENABLE_PAYMENTS;
+        const {result} = renderHook(() => useWalletPhoneValidateCode(() => payFlowRoute));
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // When a phone number is set
+        act(() => {
+            result.current.submitPersonalDetails(buildParams());
+        });
+
+        // Then the submission is held and the user is sent to the flow's own validateCode route
+        expect(mockUpdatePersonalDetails).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(payFlowRoute);
     });
 
     it('submits directly without routing to the validateCode screen when no phone number is provided', async () => {

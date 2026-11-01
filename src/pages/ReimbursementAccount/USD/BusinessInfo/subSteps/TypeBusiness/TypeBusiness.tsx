@@ -68,7 +68,7 @@ function TypeBusiness({onNext, isEditing}: SubPageProps) {
                 label={translate('businessInfoStep.companyType')}
                 defaultValue={defaultIncorporationType}
                 shouldSaveDraft={!isEditing}
-                wrapperStyle={[styles.ph5, styles.mt3]}
+                wrapperStyle={styles.mt3}
             />
         </FormProvider>
     );

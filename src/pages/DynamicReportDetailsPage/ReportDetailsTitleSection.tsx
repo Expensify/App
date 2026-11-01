@@ -1,3 +1,5 @@
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -6,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -14,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {
     canEditReportTitle,
     getAvailableReportFields,
+    getInvoiceReceiverPolicyID,
     getParentNavigationSubtitle,
     getReportFieldKey,
     isInvoiceReport as isInvoiceReportUtil,
@@ -50,7 +54,7 @@ type ReportDetailsTitleSectionContentProps = {
 
 function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionContentProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails?.accountID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`);
@@ -71,7 +75,17 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
         isMoneyRequest,
         isTrackExpenseReport: isTrackExpenseReportUtil(report, parentReport, parentReportAction),
     });
-    const parentNavigationSubtitleData = getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived);
+    const invoiceReceiverPolicy = usePolicy(getInvoiceReceiverPolicyID(parentReport));
+    const parentNavigationSubtitleData = getParentNavigationSubtitle(
+        report,
+        policy,
+        invoiceReceiverPolicy,
+        conciergeReportID,
+        translate,
+        formatPhoneNumber,
+        derivedParentReportName,
+        isParentReportArchived,
+    );
 
     const titleField: OnyxTypes.PolicyReportField | undefined = (() => {
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
@@ -117,26 +131,23 @@ function ReportDetailsTitleSectionContent({report}: ReportDetailsTitleSectionCon
                 </View>
             </OfflineWithFeedback>
             {shouldShowFurtherDetailsContent && (
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon={false}
-                    interactive={false}
-                    titleComponent={
-                        <ParentNavigationSubtitle
-                            parentNavigationSubtitleData={parentNavigationSubtitleData}
-                            reportID={report.reportID}
-                            parentReportID={report.parentReportID}
-                            parentReportActionID={report.parentReportActionID}
-                            pressableStyles={[styles.mt1, styles.mw100]}
-                            textStyles={[styles.popoverMenuText, styles.flexShrink1, styles.preWrap, styles.mw100]}
-                            subtitleNumberOfLines={2}
-                            shouldShowFromPrefix={false}
-                            openParentReportInCurrentTab
-                        />
-                    }
-                    description={translate('threads.from')}
-                    descriptionTextStyle={[styles.mutedNormalTextLabel, styles.mb1]}
-                    shouldCheckActionAllowedOnPress={false}
-                />
+                <MenuItem.Root accessibilityLabel={translate('threads.from')}>
+                    <MenuItem.Row>
+                        <MenuItemField.Content name={translate('threads.from')}>
+                            <ParentNavigationSubtitle
+                                parentNavigationSubtitleData={parentNavigationSubtitleData}
+                                reportID={report.reportID}
+                                parentReportID={report.parentReportID}
+                                parentReportActionID={report.parentReportActionID}
+                                pressableStyles={[styles.mt1, styles.mw100]}
+                                textStyles={[styles.popoverMenuText, styles.flexShrink1, styles.preWrap, styles.mw100]}
+                                subtitleNumberOfLines={2}
+                                shouldShowFromPrefix={false}
+                                openParentReportInCurrentTab
+                            />
+                        </MenuItemField.Content>
+                    </MenuItem.Row>
+                </MenuItem.Root>
             )}
         </>
     );

@@ -42,6 +42,7 @@ import MenuItemTitle from './leaves/content/MenuItemTitle';
 import MenuItemHelpText from './leaves/helpText/MenuItemHelpText';
 import MenuItemHelpTextHTML from './leaves/helpText/MenuItemHelpTextHTML';
 import MenuItemIcon from './leaves/leading/MenuItemIcon';
+import MenuItemIconNarrow from './leaves/leading/MenuItemIconNarrow';
 import MenuItemBrickRoadIndicator from './leaves/trailing/icons/MenuItemBrickRoadIndicator';
 import MenuItemChevron from './leaves/trailing/icons/MenuItemChevron';
 import MenuItemDownCaret from './leaves/trailing/icons/MenuItemDownCaret';
@@ -51,6 +52,7 @@ import MenuItemExternalLink from './leaves/trailing/MenuItemExternalLink';
 import MenuItemRightLabel from './leaves/trailing/MenuItemRightLabel';
 import LegacyMenuItem from './MenuItem';
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- The barrel attaches the compound API to the legacy component. This is not a usage.
 const MenuItem = Object.assign(LegacyMenuItem, {
     Root: MenuItemRoot,
     Row: MenuItemRow,
@@ -58,6 +60,7 @@ const MenuItem = Object.assign(LegacyMenuItem, {
     Content: MenuItemContent,
     Trailing: MenuItemTrailing,
     Icon: MenuItemIcon,
+    IconNarrow: MenuItemIconNarrow,
     Label: MenuItemLabel,
     Title: MenuItemTitle,
     Description: MenuItemDescription,

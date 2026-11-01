@@ -10,6 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PaymentHistoryRow} from '@libs/PaymentHistoryUtils';
 import {getBadgeAppearance, getPaymentHistoryRows, getStateTranslationKey} from '@libs/PaymentHistoryUtils';
 
@@ -17,6 +18,7 @@ import {lineHeightScale} from '@styles/typography';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -25,15 +27,12 @@ const SKELETON_ROWS = [0, 1, 2, 3];
 const SKELETON_TITLE_WIDTH = 180;
 const SKELETON_SUBTITLE_WIDTH = 120;
 
-// The payment details page is a later change, so pressing a row does nothing yet.
-function ignorePaymentRowPress() {}
-
 function PaymentHistoryTable() {
     const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
-    const [purchaseList] = useOnyx(ONYXKEYS.PURCHASE_LIST);
-    const isLoading = purchaseList === undefined;
-    const rows = getPaymentHistoryRows(purchaseList);
+    const [purchases] = useOnyx(ONYXKEYS.PURCHASES);
+    const isLoading = purchases === undefined;
+    const rows = getPaymentHistoryRows(purchases);
 
     return (
         <Section
@@ -80,13 +79,15 @@ function PaymentHistoryTableRow({row, dateLabel, shouldShowDivider}: PaymentHist
     const styles = useThemeStyles();
     const stateLabel = translate(getStateTranslationKey(row.state));
     const amountLabel = convertAmountToDisplayString(row.amount, row.currency);
-    const activeUserLabel = row.activeUserCount ? translate('subscription.paymentHistory.activeUsers', {count: row.activeUserCount}) : undefined;
+    const activeUserLabel = row.activeUserCount
+        ? translate(row.countsMembers ? 'subscription.paymentHistory.members' : 'subscription.paymentHistory.activeUsers', {count: row.activeUserCount})
+        : undefined;
     const taxLabel = row.showsTax ? translate('subscription.paymentHistory.inclTax') : undefined;
     const {success, error} = getBadgeAppearance(row.state);
 
     return (
         <MenuItem.Root
-            onPress={ignorePaymentRowPress}
+            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_PAYMENT_DETAILS.getRoute(row.purchaseID))}
             sentryLabel={CONST.SENTRY_LABEL.SETTINGS_SUBSCRIPTION.PAYMENT_HISTORY_ROW}
             accessibilityLabel={[dateLabel, stateLabel, activeUserLabel, amountLabel, taxLabel].filter(Boolean).join(', ')}
             style={[styles.ph4, styles.pv4, shouldShowDivider && styles.borderBottom]}
