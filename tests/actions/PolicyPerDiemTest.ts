@@ -1,5 +1,12 @@
 /* eslint-disable rulesdir/no-multiple-api-calls -- Each test invokes one action; the rule's ancestor scan combines otherwise independent tests. */
-import {clearPerDiemRateError, editPerDiemRateAmount, editPerDiemRateCurrency, editPerDiemRateDestination, editPerDiemRateSubrate} from '@libs/actions/Policy/PerDiem';
+import {
+    clearPerDiemRateError,
+    deleteWorkspacePerDiemRates,
+    editPerDiemRateAmount,
+    editPerDiemRateCurrency,
+    editPerDiemRateDestination,
+    editPerDiemRateSubrate,
+} from '@libs/actions/Policy/PerDiem';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 
@@ -96,7 +103,9 @@ describe('actions/Policy/PerDiem', () => {
                             customUnits: {
                                 [customUnitID]: {
                                     rates: {
-                                        [rateID]: expect.objectContaining({name: 'Updated Destination'}),
+                                        [rateID]: expect.objectContaining({
+                                            name: 'Updated Destination',
+                                        }),
                                     },
                                 },
                             },
@@ -124,7 +133,11 @@ describe('actions/Policy/PerDiem', () => {
         };
         expect(writeSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT,
-            {policyID: 'policy', customUnitID, customUnitRate: JSON.stringify(updatedRate)},
+            {
+                policyID: 'policy',
+                customUnitID,
+                customUnitRate: JSON.stringify(updatedRate),
+            },
             expect.any(Object),
         );
     });
@@ -146,7 +159,11 @@ describe('actions/Policy/PerDiem', () => {
         };
         expect(writeSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT,
-            {policyID: 'policy', customUnitID, customUnitRate: JSON.stringify(updatedRate)},
+            {
+                policyID: 'policy',
+                customUnitID,
+                customUnitRate: JSON.stringify(updatedRate),
+            },
             expect.any(Object),
         );
     });
@@ -162,7 +179,11 @@ describe('actions/Policy/PerDiem', () => {
         const updatedRate = {...currentRate, currency: 'EUR'};
         expect(writeSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT,
-            {policyID: 'policy', customUnitID, customUnitRate: JSON.stringify(updatedRate)},
+            {
+                policyID: 'policy',
+                customUnitID,
+                customUnitRate: JSON.stringify(updatedRate),
+            },
             expect.any(Object),
         );
     });
@@ -194,5 +215,142 @@ describe('actions/Policy/PerDiem', () => {
         await waitForBatchedUpdates();
         policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
         expect(policy?.customUnits?.[customUnitID]?.rates?.[rateID]?.errorFields?.breakfast).toBeFalsy();
+    });
+
+    it('sends compact updates and IDs for a mixed Per Diem deletion', () => {
+        // Given selected subrates that partially update one destination and remove another.
+        const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+        // When the selected subrates are deleted.
+        deleteWorkspacePerDiemRates('policy', customUnit, [
+            {
+                destination: 'Destination One',
+                subRateName: 'Breakfast',
+                rate: 1700,
+                currency: 'USD',
+                rateID,
+                subRateID: 'breakfast',
+            },
+            {
+                destination: 'Destination Two',
+                subRateName: 'Breakfast',
+                rate: 2000,
+                currency: 'USD',
+                rateID: unchangedRateID,
+                subRateID: 'breakfast-two',
+            },
+        ]);
+
+        // Then the request contains only the remaining parent and deleted destination ID.
+        const updatedRate = {
+            ...currentRate,
+            subRates: [{id: 'lunch', name: 'Lunch', rate: 1904}],
+        };
+        expect(writeSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT,
+            {
+                policyID: 'policy',
+                customUnitID,
+                customUnitRateIDs: JSON.stringify([unchangedRateID]),
+                customUnitRateUpdates: JSON.stringify([updatedRate]),
+            },
+            expect.objectContaining({
+                optimisticData: [
+                    expect.objectContaining({
+                        value: {
+                            customUnits: {
+                                [customUnitID]: {
+                                    rates: {
+                                        [rateID]: updatedRate,
+                                        [unchangedRateID]: null,
+                                    },
+                                },
+                            },
+                        },
+                    }),
+                ],
+            }),
+        );
+    });
+
+    it('uses the compact clear-all mode only when every Per Diem row is selected', () => {
+        // Given every subrate in the custom unit is selected.
+        const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+        // When all rows are deleted.
+        deleteWorkspacePerDiemRates('policy', customUnit, [
+            {
+                destination: 'Destination One',
+                subRateName: 'Breakfast',
+                rate: 1700,
+                currency: 'USD',
+                rateID,
+                subRateID: 'breakfast',
+            },
+            {
+                destination: 'Destination One',
+                subRateName: 'Lunch',
+                rate: 1904,
+                currency: 'USD',
+                rateID,
+                subRateID: 'lunch',
+            },
+            {
+                destination: 'Destination Two',
+                subRateName: 'Breakfast',
+                rate: 2000,
+                currency: 'USD',
+                rateID: unchangedRateID,
+                subRateID: 'breakfast-two',
+            },
+        ]);
+
+        // Then the request uses the constant-size clear-all flag and omits rate data.
+        expect(writeSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT,
+            {policyID: 'policy', customUnitID, deleteAllRates: true},
+            expect.objectContaining({
+                optimisticData: [
+                    expect.objectContaining({
+                        value: {customUnits: {[customUnitID]: {rates: null}}},
+                    }),
+                ],
+            }),
+        );
+    });
+
+    it('restores deleted Per Diem rows with dismissible errors when deletion fails', async () => {
+        // Given one complete destination selected for deletion and a paused API request.
+        mockFetch.pause();
+
+        // When the deletion is rejected.
+        deleteWorkspacePerDiemRates('policy', customUnit, [
+            {
+                destination: 'Destination Two',
+                subRateName: 'Breakfast',
+                rate: 2000,
+                currency: 'USD',
+                rateID: unchangedRateID,
+                subRateID: 'breakfast-two',
+            },
+        ]);
+        await waitForBatchedUpdates();
+        let policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]).toBeFalsy();
+
+        mockFetch.fail();
+        await mockFetch.resume();
+        await waitForBatchedUpdates();
+
+        // Then the original destination returns and its selected row owns the error.
+        policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        const restoredRate = policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID];
+        expect(restoredRate?.subRates).toEqual(customUnit.rates[unchangedRateID].subRates);
+        expect(restoredRate?.errorFields?.['breakfast-two']).toBeTruthy();
+
+        clearPerDiemRateError('policy', customUnitID, unchangedRateID, 'breakfast-two');
+        await waitForBatchedUpdates();
+        policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}policy`);
+        expect(policy?.customUnits?.[customUnitID]?.rates?.[unchangedRateID]?.errorFields?.['breakfast-two']).toBeFalsy();
     });
 });

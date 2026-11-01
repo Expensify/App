@@ -2,6 +2,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {getImportFailedFinalModal} from '@libs/actions/ImportSpreadsheet';
 import * as API from '@libs/API';
+import type {UpdateWorkspaceCustomUnitParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -206,11 +207,36 @@ function clearPerDiemRateError(policyID: string, customUnitID: string, rateID: s
     });
 }
 
-type DeletePerDiemCustomUnitOnyxType = Omit<CustomUnit, 'rates'> & {
-    rates: Record<string, NullishDeep<Rate> | null>;
-};
+function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[]) {
+    const selectedSubRateKeys = new Set(subRatesToBeDeleted.map((subRate) => `${subRate.rateID}:${subRate.subRateID}`));
+    let subRateCount = 0;
+    let selectedSubRateCount = 0;
+    for (const rate of Object.values(customUnit.rates)) {
+        for (const subRate of rate.subRates ?? []) {
+            subRateCount++;
+            if (selectedSubRateKeys.has(`${rate.customUnitRateID}:${subRate.id}`)) {
+                selectedSubRateCount++;
+            }
+        }
+    }
+    // Auth clears every destination when deleteAllRates is set, so filtered selections must use targeted mutations instead.
+    const shouldDeleteAllRates = subRateCount > 0 && selectedSubRateCount === subRateCount;
+    if (shouldDeleteAllRates) {
+        const firstSelectedSubRate = subRatesToBeDeleted.at(0);
+        const firstSelectedRate = firstSelectedSubRate ? customUnit.rates[firstSelectedSubRate.rateID] : undefined;
+        // Restore every rate on failure, but attach one row error to avoid duplicating the same error across the full selection.
+        const failureRates = {...customUnit.rates};
+        if (firstSelectedSubRate && firstSelectedRate) {
+            failureRates[firstSelectedSubRate.rateID] = {
+                ...firstSelectedRate,
+                errors: undefined,
+                errorFields: {[firstSelectedSubRate.subRateID]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                pendingAction: null,
+            };
+        }
+        return {optimisticRates: {}, failureRates, customUnitRateUpdates: {}, customUnitRateIDs: [], shouldDeleteAllRates};
+    }
 
-function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRateData[]) {
     const mappedDeletedSubRatesToRate = subRatesToBeDeleted.reduce(
         (acc, subRate) => {
             if (subRate.rateID in acc) {
@@ -223,31 +249,66 @@ function prepareNewCustomUnit(customUnit: CustomUnit, subRatesToBeDeleted: SubRa
         {} as Record<string, SubRateData[]>,
     );
 
-    // Copy the custom unit and remove the sub rates that are to be deleted
-    const newCustomUnit: CustomUnit = lodashDeepClone(customUnit);
-    const customUnitOnyxUpdate: DeletePerDiemCustomUnitOnyxType = lodashDeepClone(customUnit);
-    for (const rateID in mappedDeletedSubRatesToRate) {
-        if (!(rateID in newCustomUnit.rates)) {
+    const optimisticRates: Record<string, NullishDeep<Rate> | null> = {};
+    const failureRates: Record<string, NullishDeep<Rate>> = {};
+    const customUnitRateUpdates: Record<string, Rate> = {};
+    const customUnitRateIDs: string[] = [];
+    const error = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
+    for (const [rateID, subRates] of Object.entries(mappedDeletedSubRatesToRate)) {
+        const currentRate = customUnit.rates[rateID];
+        if (!currentRate) {
             continue;
         }
-        const subRates = mappedDeletedSubRatesToRate[rateID];
-        if (subRates.length === newCustomUnit.rates[rateID].subRates?.length) {
-            delete newCustomUnit.rates[rateID];
-            customUnitOnyxUpdate.rates[rateID] = null;
+        const selectedSubRateIDs = new Set(subRates.map((subRate) => subRate.subRateID));
+        const currentSubRates = currentRate.subRates ?? [];
+        const affectedSubRateIDs = currentSubRates.filter((subRate) => selectedSubRateIDs.has(subRate.id)).map((subRate) => subRate.id);
+        if (!affectedSubRateIDs.length) {
+            continue;
+        }
+
+        failureRates[rateID] = {
+            ...currentRate,
+            errors: null,
+            errorFields: Object.fromEntries(affectedSubRateIDs.map((subRateID) => [subRateID, error])),
+            pendingAction: null,
+        };
+        if (affectedSubRateIDs.length === currentSubRates.length) {
+            customUnitRateIDs.push(rateID);
+            optimisticRates[rateID] = null;
         } else {
-            const newSubRates = newCustomUnit.rates[rateID].subRates?.filter((subRate) => !subRates.some((subRateToBeDeleted) => subRateToBeDeleted.subRateID === subRate.id));
-            newCustomUnit.rates[rateID].subRates = newSubRates;
-            customUnitOnyxUpdate.rates[rateID] = {...customUnitOnyxUpdate.rates[rateID], subRates: newSubRates};
+            const updatedRate = lodashDeepClone(currentRate);
+            updatedRate.subRates = currentSubRates.filter((subRate) => !selectedSubRateIDs.has(subRate.id));
+            customUnitRateUpdates[rateID] = updatedRate;
+            optimisticRates[rateID] = updatedRate;
         }
     }
-    return {newCustomUnit, customUnitOnyxUpdate};
+
+    return {
+        optimisticRates,
+        failureRates,
+        customUnitRateUpdates,
+        customUnitRateIDs,
+        shouldDeleteAllRates,
+    };
+}
+
+function prepareCustomUnitRate(rate: Rate): Rate {
+    const customUnitRate = lodashDeepClone(rate);
+    delete customUnitRate.pendingAction;
+    delete customUnitRate.pendingFields;
+    delete customUnitRate.errors;
+    delete customUnitRate.errorFields;
+    return customUnitRate;
 }
 
 function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | undefined, subRatesToBeDeleted: SubRateData[]) {
     if (!policyID || isEmptyObject(customUnit) || !subRatesToBeDeleted.length) {
         return;
     }
-    const {newCustomUnit, customUnitOnyxUpdate} = prepareNewCustomUnit(customUnit, subRatesToBeDeleted);
+    const {optimisticRates, failureRates, customUnitRateUpdates, customUnitRateIDs, shouldDeleteAllRates} = prepareCustomUnitRateUpdates(customUnit, subRatesToBeDeleted);
+    if (!shouldDeleteAllRates && !Object.keys(optimisticRates).length) {
+        return;
+    }
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -255,17 +316,42 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     customUnits: {
-                        [customUnit.customUnitID]: customUnitOnyxUpdate,
+                        [customUnit.customUnitID]: {
+                            rates: shouldDeleteAllRates ? null : optimisticRates,
+                        },
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    customUnits: {
+                        [customUnit.customUnitID]: {
+                            rates: failureRates,
+                        },
                     },
                 },
             },
         ],
     };
 
-    const parameters = {
-        policyID,
-        customUnit: JSON.stringify(newCustomUnit),
-    };
+    const sanitizedRateUpdates = Object.values(customUnitRateUpdates).map(prepareCustomUnitRate);
+    let parameters: UpdateWorkspaceCustomUnitParams;
+    if (shouldDeleteAllRates) {
+        parameters = {policyID, customUnitID: customUnit.customUnitID, deleteAllRates: true};
+    } else if (customUnitRateIDs.length) {
+        parameters = {
+            policyID,
+            customUnitID: customUnit.customUnitID,
+            customUnitRateIDs: JSON.stringify(customUnitRateIDs),
+            ...(sanitizedRateUpdates.length ? {customUnitRateUpdates: JSON.stringify(sanitizedRateUpdates)} : {}),
+        };
+    } else {
+        parameters = {policyID, customUnitID: customUnit.customUnitID, customUnitRateUpdates: JSON.stringify(sanitizedRateUpdates)};
+    }
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
 }
@@ -335,16 +421,10 @@ function updateWorkspacePerDiemRate(policyID: string, customUnitID: string, curr
         ],
     };
 
-    const customUnitRate = lodashDeepClone(updatedRate);
-    delete customUnitRate.pendingAction;
-    delete customUnitRate.pendingFields;
-    delete customUnitRate.errors;
-    delete customUnitRate.errorFields;
-
     const parameters = {
         policyID,
         customUnitID,
-        customUnitRate: JSON.stringify(customUnitRate),
+        customUnitRate: JSON.stringify(prepareCustomUnitRate(updatedRate)),
     };
 
     API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT, parameters, onyxData);
