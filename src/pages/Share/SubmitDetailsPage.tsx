@@ -35,7 +35,6 @@ import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
-import {snapshotUserLocation} from '@libs/actions/UserLocation';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
@@ -74,6 +73,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+import Onyx from 'react-native-onyx';
 
 import {showErrorAlert} from './ShareRootPage';
 import useShareFileSizeValidation from './useShareFileSizeValidation';
@@ -143,7 +143,6 @@ function SubmitDetailsPage({
     const hasStartedPendingNavigation = useRef(false);
     const formHasBeenSubmitted = useRef(false);
     const hasCalledReveal = useRef(false);
-    const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
@@ -174,10 +173,6 @@ function SubmitDetailsPage({
         },
         [],
     );
-
-    useEffect(() => {
-        snapshotUserLocation();
-    }, []);
 
     useEffect(() => {
         if (!errorTitle || !errorMessage) {
@@ -575,7 +570,7 @@ function SubmitDetailsPage({
         runExpenseCreateAndCleanup(true);
     };
 
-    const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
+    const onSuccess = async (file: File, locationPermissionGranted?: boolean) => {
         const receipt: Receipt = file;
         receipt.state = hasAllManuallyEnteredScanFields(transaction, !!isPolicyExpenseChat) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
         // The share flow builds the receipt here by hand and skips buildReceiptFiles, so this is the only place to stamp
@@ -587,6 +582,7 @@ function SubmitDetailsPage({
             return;
         }
         // Use cached userLocation when available — avoids an extra getCurrentPosition round-trip.
+        const userLocation = await Onyx.get(ONYXKEYS.USER_LOCATION);
         if (userLocation) {
             finishRequestAndNavigate(receipt, {
                 lat: userLocation.latitude,
@@ -623,7 +619,9 @@ function SubmitDetailsPage({
                 readFileAsync(
                     uri,
                     currentReceiptName,
-                    (file) => onSuccess(file, locationPermissionGranted),
+                    (file) => {
+                        onSuccess(file, locationPermissionGranted);
+                    },
                     () => {
                         formHasBeenSubmitted.current = false;
                         setIsConfirming(false);
