@@ -2017,32 +2017,6 @@ var require_API = __commonJS({
           return performPOSTRequest(commandName, parameters);
         },
         /**
-         * Resets the password for an account
-         * @param {Object} parameters
-         * @param {String} parameters.email
-         * @returns {ExpensifyAPIDeferred}
-         */
-        resetPassword(parameters) {
-          const commandName = "ResetPassword";
-          requireParameters(["email"], parameters, commandName);
-          const newParameters = Object.assign(Object.assign({}, parameters), { api_setCookie: false });
-          return performPOSTRequest(commandName, newParameters);
-        },
-        /**
-         * Sets the password for an account
-         *
-         * @param {Object} parameters
-         * @param {String} parameters.email
-         * @param {String} parameters.password
-         * @param {String} parameters.validateCode
-         * @returns {ExpensifyAPIDeferred}
-         */
-        setPassword(parameters) {
-          const commandName = "SetPassword";
-          requireParameters(["email", "password", "validateCode"], parameters, commandName);
-          return performPOSTRequest(commandName, parameters);
-        },
-        /**
          * Validate a user
          *
          * @param {Object} parameters Must contain validateCode and accountID
@@ -23403,7 +23377,6 @@ var require_ExpensiMark = __commonJS({
       }
       let labelStart = hostnameStart;
       let validHostnamePrefixEnd;
-      let validKnownTldPrefixEnd;
       for (let index = hostnameStart; index <= hostnameContentEnd; index++) {
         if (index !== hostnameContentEnd && text[index] !== ".") {
           continue;
@@ -23417,7 +23390,7 @@ var require_ExpensiMark = __commonJS({
           labelContentEnd--;
         }
         if (labelContentEnd - labelStart > Constants.MAX_URL_HOSTNAME_LABEL_LENGTH || labelContentEnd - hostnameStart > Constants.MAX_URL_HOSTNAME_LENGTH) {
-          return { isValid: false, validHostnamePrefixEnd: validKnownTldPrefixEnd };
+          return { isValid: false };
         }
         if (hasProtocol) {
           validHostnamePrefixEnd = validLabelEnd;
@@ -23425,13 +23398,10 @@ var require_ExpensiMark = __commonJS({
         if (validLabelEnd !== index) {
           return { isValid: false, validHostnamePrefixEnd };
         }
-        if (index !== hostnameContentEnd) {
+        if (!hasProtocol && index !== hostnameContentEnd) {
           const tldEnd = findKnownTldEnd(text, index);
           if (tldEnd !== void 0 && tldEnd <= hostnameContentEnd && tldEnd - hostnameStart <= Constants.MAX_URL_HOSTNAME_LENGTH) {
-            validKnownTldPrefixEnd = tldEnd;
-            if (!hasProtocol) {
-              validHostnamePrefixEnd = tldEnd;
-            }
+            validHostnamePrefixEnd = tldEnd;
           }
         }
         labelStart = index + 1;
@@ -24700,20 +24670,19 @@ ${g2}
         const invalidUrlRanges = shouldRejectPartialHostnameMatches ? findInvalidUrlRanges(textWithContext) : [];
         const maskedText = invalidUrlRanges.length > 0 ? maskInvalidUrlRanges(textWithContext, invalidUrlRanges) : textWithContext;
         const textToMatch = maskedText.slice(0, textToCheck.length);
-        const contextRegex = followingText ? new RegExp(regex2.source, regex2.flags.replace("g", "y")) : void 0;
+        const contextRegex = followingText || invalidUrlRanges.length > 0 ? new RegExp(regex2.source, regex2.flags.replace("g", "y")) : void 0;
         let match = matchingRegex.exec(textToMatch);
         let replacedText = "";
         let startIndex = 0;
         while (match !== null) {
-          if (contextRegex && match.index + match[0].length === textToCheck.length) {
+          const matchEnd = match.index + match[0].length;
+          if (contextRegex && (textWithContext[matchEnd] === "@" || followingText.length > 0 && matchEnd === textToCheck.length)) {
             contextRegex.lastIndex = match.index;
-            const contextMatch = contextRegex.exec(maskedText);
-            if (contextMatch === null) {
+            const contextMatch = contextRegex.exec(textWithContext);
+            if (contextMatch === null || contextMatch[0].length < match[0].length) {
               match = matchingRegex.exec(textToMatch);
               continue;
             }
-            match = contextMatch;
-            matchingRegex.lastIndex = contextRegex.lastIndex;
           }
           let url = match[2];
           const urlEnd = findUrlEndBeforeUnmatchedParenthesis(url, 0, url.length);
