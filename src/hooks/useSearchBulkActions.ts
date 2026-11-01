@@ -10,6 +10,7 @@ import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
 import type {BulkPaySelectionData, PaymentData, QueryFilterKey, SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
+import payBill from '@libs/actions/BillPay';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
@@ -44,6 +45,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import {isBillReport} from '@libs/BillPayUtils';
 import {canResolveTransactionCard} from '@libs/CardUtils';
 import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
@@ -1809,6 +1811,29 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 const isItemInvoice = isInvoiceReport(iouReport);
+                const rawPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
+                const resolvedPayment = resolveSearchPayPaymentMethod(rawPaymentMethod, searchData, policies);
+                if (!resolvedPayment) {
+                    Log.info('[BulkPay] Skipping report: could not resolve a payment method', false, {reportID: item.reportID, policyID: item.policyID, rawPaymentMethod});
+                    continue;
+                }
+
+                const {paymentType: resolvedPaymentType, paymentPolicyID, payPolicy: workspacePayPolicy, methodID: workspaceMethodID} = resolvedPayment;
+                const reportPolicy = workspacePayPolicy ?? getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
+
+                // Bills have no parent chat, so they are paid before the chat report lookup that money requests and invoices need
+                if (isBillReport(iouReport)) {
+                    // ReimburseReport pays bills by ACH only in USD, which is why BillPaymentButton disables ACH for other currencies
+                    if (resolvedPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && iouReport.currency !== CONST.CURRENCY.USD) {
+                        Log.info('[BulkPay] Skipping bill: ACH pays only USD bills', false, {reportID: item.reportID, currency: iouReport.currency});
+                        continue;
+                    }
+                    const bankAccountID = additionalData?.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID;
+                    payBill(iouReport, resolvedPaymentType, bankAccountID, hash, currentSearchKey);
+                    paidReportCount += 1;
+                    continue;
+                }
+
                 const iouReportTransactions = Object.values(allReportsTransactionsAndViolations?.[item.reportID]?.transactions ?? {});
                 const fallbackChatReportID = item.chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID;
                 const fallbackPolicyID = iouReport.policyID ?? item.policyID;
@@ -1817,6 +1842,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     fallbackChatReportID,
                     fallbackPolicyID,
                 );
+
                 // The fallback covers money requests only. Invoices genuinely need the invoice room data such as
                 // receiver type and pay-as-business, so skip them when the chat isn't loaded.
                 if (!chatReport || (isItemInvoice && isFallbackChatReport)) {
@@ -1828,14 +1854,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     continue;
                 }
 
-                const rawPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
-                const resolvedPayment = resolveSearchPayPaymentMethod(rawPaymentMethod, searchData, policies);
-                if (!resolvedPayment) {
-                    Log.info('[BulkPay] Skipping report: could not resolve a payment method', false, {reportID: item.reportID, policyID: item.policyID, rawPaymentMethod});
-                    continue;
-                }
-
-                const {paymentType: resolvedPaymentType, paymentPolicyID, payPolicy: workspacePayPolicy, methodID: workspaceMethodID} = resolvedPayment;
                 const paymentItem = {
                     reportID: item.reportID,
                     amount: item.amount,
@@ -1854,7 +1872,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 } as PaymentData;
 
                 const chatReportPolicy = getPolicyFromSearchSnapshot(chatReport.policyID, searchData, policies);
-                const reportPolicy = workspacePayPolicy ?? getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
                 const additionalOnyxData = getSearchPayOnyxData(hash, item.reportID, currentSearchKey);
 
                 if (isItemInvoice) {

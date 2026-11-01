@@ -7,6 +7,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 
+import payBill from '@libs/actions/BillPay';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {getLastPolicyPaymentMethod, queueBulkPayReports} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
@@ -25,6 +26,11 @@ jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
     payMoneyRequest: jest.fn(),
     payInvoice: jest.fn(),
     getBankAccountToSetUpBeforePaying: jest.fn(),
+}));
+
+jest.mock('@libs/actions/BillPay', () => ({
+    __esModule: true,
+    default: jest.fn(),
 }));
 
 // On iOS the offline modal is deferred until the payment popover finishes dismissing (via TransitionTracker),
@@ -592,6 +598,35 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
             false,
             expect.objectContaining({reportID: '1', isItemInvoice: true}),
         );
+    });
+
+    it('marks a bill as paid without a parent chat when paying in bulk', async () => {
+        // Given a payable bill, which has no parent chat report
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.BILL, policyID: 'policy1'});
+        mockSelectedReports = [makeSelectedReport({chatReportID: undefined})];
+
+        // When the user selects Mark as paid from the bulk Pay menu
+        await selectBulkPay();
+
+        // Then the bill should use the bill payment action instead of the money request action
+        expect(payBill).toHaveBeenCalledWith(expect.objectContaining({reportID: '1', type: CONST.REPORT.TYPE.BILL}), CONST.IOU.PAYMENT_TYPE.ELSEWHERE, undefined, 12345, undefined);
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+    });
+
+    it('does not pay a bill in another currency by ACH when paying in bulk', async () => {
+        // Given a EUR bill on a workspace with a business bank account, paid with that account
+        const BANK_ACCOUNT_ID = 1;
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {achAccount: {bankAccountID: BANK_ACCOUNT_ID, state: CONST.BANK_ACCOUNT.STATE.OPEN}});
+        await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: {accountData: {bankAccountID: BANK_ACCOUNT_ID}}});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.BILL, policyID: 'policy1', currency: 'EUR'});
+        mockSelectedReports = [makeSelectedReport({chatReportID: undefined})];
+        jest.mocked(getLastPolicyPaymentMethod).mockReturnValue(CONST.IOU.PAYMENT_TYPE.VBBA);
+
+        // When the user pays the selection in bulk
+        await selectBulkPay();
+
+        // Then the bill is skipped, because ReimburseReport pays bills by ACH only in USD
+        expect(payBill).not.toHaveBeenCalled();
     });
 
     it('pays only the payable reports when the selection also contains one the viewer cannot settle', async () => {
