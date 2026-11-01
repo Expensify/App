@@ -11,7 +11,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
-import type {TupleToUnion, ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import mimeDb from 'mime-db';
@@ -630,7 +630,11 @@ const getImageDimensionsFromFileHeader = (blob: Blob): Promise<{width: number; h
     return new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => {
-            const arr = new Uint8Array(reader.result as ArrayBuffer);
+            if (!(reader.result instanceof ArrayBuffer)) {
+                resolve(null);
+                return;
+            }
+            const arr = new Uint8Array(reader.result);
 
             // Check for JPEG (starts with 0xFF 0xD8)
             if (arr[0] === 0xff && arr[1] === 0xd8) {
@@ -741,11 +745,8 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
     return validateImageForCorruption(file)
         .then(() => {
             const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-            if (
-                !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-                    fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-                )
-            ) {
+            const normalizedExtension = fileExtension.toLowerCase();
+            if (!CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.some((extension) => extension === normalizedExtension)) {
                 setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
                 return false;
             }
@@ -769,9 +770,8 @@ const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: bo
 
 const isValidReceiptExtension = (file: FileObject) => {
     const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
-    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
-        fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
-    );
+    const normalizedExtension = fileExtension.toLowerCase();
+    return CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.some((extension) => extension === normalizedExtension);
 };
 
 const hasHeicOrHeifExtension = (file: FileObject) => {
@@ -997,7 +997,7 @@ const canvasFallback = (blob: Blob, fileName: string): Promise<File> => {
 function getFileWithUri(file: File) {
     const newFile = file;
     newFile.uri = URL.createObjectURL(newFile);
-    return newFile as FileObject;
+    return newFile;
 }
 
 function getFilesFromClipboardEvent(event: DragEvent) {
@@ -1009,15 +1009,18 @@ function getFilesFromClipboardEvent(event: DragEvent) {
     return Array.from(files).map((file) => getFileWithUri(file));
 }
 
-function cleanFileObject(fileObject: FileObject): FileObject {
+function cleanFileObject(fileObject: FileObject): FileObject | null {
     if ('getAsFile' in fileObject && typeof fileObject.getAsFile === 'function') {
-        return fileObject.getAsFile() as FileObject;
+        return fileObject.getAsFile();
     }
 
     return fileObject;
 }
 
-function cleanFileObjectName(fileObject: FileObject): FileObject {
+function cleanFileObjectName(fileObject: FileObject): FileObject;
+function cleanFileObjectName(fileObject: null): null;
+function cleanFileObjectName(fileObject: FileObject | null): FileObject | null;
+function cleanFileObjectName(fileObject: FileObject | null): FileObject | null {
     if (fileObject instanceof File) {
         const cleanName = cleanFileName(fileObject.name);
         if (fileObject.name !== cleanName) {

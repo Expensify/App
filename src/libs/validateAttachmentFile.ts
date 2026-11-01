@@ -31,7 +31,10 @@ type ValidateAttachmentInvalidResult = {
 
 type ValidateAttachmentResult = ValidateAttachmentValidResult | ValidateAttachmentInvalidResult;
 
-async function validateAttachmentFile(file: FileObject, item?: DataTransferItem, isValidatingReceipts = false): Promise<ValidateAttachmentResult> {
+async function validateAttachmentFile(file: FileObject | null, item?: DataTransferItem, isValidatingReceipts = false): Promise<ValidateAttachmentResult> {
+    if (file === null) {
+        throw new TypeError('Cannot validate a null attachment');
+    }
     if (!file.name || file.size == null) {
         return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
     }
