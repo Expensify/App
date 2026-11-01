@@ -396,6 +396,8 @@ type ContextMenuActionPayload = {
     encryptedAuthToken: string;
     iouTransaction: OnyxEntry<Transaction>;
     iouTransactionViolations: OnyxEntry<TransactionViolations>;
+    iouTransactionReport: OnyxEntry<ReportType>;
+    moneyRequestActionChildReport: OnyxEntry<ReportType>;
     bankAccountList: OnyxEntry<BankAccountList>;
     isOffline: boolean;
     conciergeReportID: string | undefined;
@@ -747,6 +749,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 iouTransaction,
                 moneyRequestPolicy,
                 iouTransactionViolations,
+                iouTransactionReport,
+                moneyRequestActionChildReport,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
                 isOffline,
@@ -763,35 +767,39 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (closePopover) {
                 hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(
-                        moneyRequestAction,
+                    changeMoneyRequestHoldStatus({
+                        reportAction: moneyRequestAction,
                         iouTransaction,
-                        moneyRequestPolicy,
+                        iouTransactionReport,
+                        reportActionChildReport: moneyRequestActionChildReport,
+                        policy: moneyRequestPolicy,
                         isOffline,
-                        currentUserPersonalDetails?.login ?? '',
-                        currentUserPersonalDetails.accountID,
-                        iouTransactionViolations,
+                        currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        transactionViolations: iouTransactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
                         rules,
-                    ),
+                    }),
                 );
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(
-                moneyRequestAction,
+            changeMoneyRequestHoldStatus({
+                reportAction: moneyRequestAction,
                 iouTransaction,
-                moneyRequestPolicy,
+                iouTransactionReport,
+                reportActionChildReport: moneyRequestActionChildReport,
+                policy: moneyRequestPolicy,
                 isOffline,
-                currentUserPersonalDetails?.login ?? '',
-                currentUserPersonalDetails.accountID,
-                iouTransactionViolations,
+                currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                transactionViolations: iouTransactionViolations,
                 isTrackIntentUser,
                 delegateAccountID,
                 rules,
-            );
+            });
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.UNHOLD,
@@ -814,6 +822,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                 iouTransaction,
                 moneyRequestPolicy,
                 iouTransactionViolations,
+                iouTransactionReport,
+                moneyRequestActionChildReport,
                 isDelegateAccessRestricted,
                 showDelegateNoAccessModal,
                 isOffline,
@@ -830,35 +840,39 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             if (closePopover) {
                 hideContextMenu(false, () =>
-                    changeMoneyRequestHoldStatus(
-                        moneyRequestAction,
+                    changeMoneyRequestHoldStatus({
+                        reportAction: moneyRequestAction,
                         iouTransaction,
-                        moneyRequestPolicy,
+                        iouTransactionReport,
+                        reportActionChildReport: moneyRequestActionChildReport,
+                        policy: moneyRequestPolicy,
                         isOffline,
-                        currentUserPersonalDetails?.login ?? '',
-                        currentUserPersonalDetails.accountID,
-                        iouTransactionViolations,
+                        currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                        currentUserAccountID: currentUserPersonalDetails.accountID,
+                        transactionViolations: iouTransactionViolations,
                         isTrackIntentUser,
                         delegateAccountID,
                         rules,
-                    ),
+                    }),
                 );
                 return;
             }
 
             // No popover to hide, call changeMoneyRequestHoldStatus immediately
-            changeMoneyRequestHoldStatus(
-                moneyRequestAction,
+            changeMoneyRequestHoldStatus({
+                reportAction: moneyRequestAction,
                 iouTransaction,
-                moneyRequestPolicy,
+                iouTransactionReport,
+                reportActionChildReport: moneyRequestActionChildReport,
+                policy: moneyRequestPolicy,
                 isOffline,
-                currentUserPersonalDetails?.login ?? '',
-                currentUserPersonalDetails.accountID,
-                iouTransactionViolations,
+                currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                currentUserAccountID: currentUserPersonalDetails.accountID,
+                transactionViolations: iouTransactionViolations,
                 isTrackIntentUser,
                 delegateAccountID,
                 rules,
-            );
+            });
         },
         getDescription: () => {},
         sentryLabel: CONST.SENTRY_LABEL.CONTEXT_MENU.HOLD,

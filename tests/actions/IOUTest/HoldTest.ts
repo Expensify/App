@@ -5,6 +5,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+// eslint-disable-next-line no-restricted-imports -- namespace import only types jest.requireActual for the PolicyUtils mock, so there is no runtime use of the billing helper
 import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionMessage, getSortedReportActions} from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
@@ -773,7 +774,20 @@ describe('actions/IOU/Hold', () => {
             await waitForBatchedUpdates();
 
             // When the hold status is changed
-            changeMoneyRequestHoldStatus(iouAction, transaction, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, undefined);
+            changeMoneyRequestHoldStatus({
+                reportAction: iouAction,
+                iouTransaction: transaction,
+                iouTransactionReport: undefined,
+                reportActionChildReport: undefined,
+                policy,
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
 
             // Then the user is sent to the hold reason page instead of the expense being touched
             expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transaction.transactionID, transactionThread.reportID)));
@@ -802,16 +816,34 @@ describe('actions/IOU/Hold', () => {
             await waitForBatchedUpdates();
             jest.mocked(Navigation.navigate).mockClear();
             const heldTransaction = {...transaction, comment: {...transaction.comment, hold: 'holdActionID'}};
+            const heldIOUReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
 
             // When the hold status is changed
-            changeMoneyRequestHoldStatus(iouAction, heldTransaction, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined, undefined);
+            changeMoneyRequestHoldStatus({
+                reportAction: iouAction,
+                iouTransaction: heldTransaction,
+                iouTransactionReport: iouReport,
+                reportActionChildReport: transactionThread,
+                policy,
+                isOffline: false,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                transactionViolations: undefined,
+                isTrackIntentUser: false,
+                delegateAccountID: undefined,
+                rules: undefined,
+            });
             await waitForBatchedUpdates();
 
-            // Then an unhold action is added to the transaction thread and no navigation happens
+            // Then an unhold action is added to the transaction thread report the IOU action points at, and no navigation happens
             const threadActions = await getReportActions(transactionThread.reportID);
             const unholdAction = Object.values(threadActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD);
             expect(unholdAction).toBeDefined();
             expect(Navigation.navigate).not.toHaveBeenCalled();
+
+            // And the IOU report totals are refunded on the transaction report, so swapping the two reports fails the test
+            const unheldIOUReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+            expect(unheldIOUReport?.unheldTotal).not.toBe(heldIOUReport?.unheldTotal);
         });
     });
 
@@ -879,8 +911,10 @@ describe('actions/IOU/Hold', () => {
                     // When an expense is unhold
                     unholdRequest({
                         transactionID: transaction.transactionID,
-                        transaction,
                         reportID: transactionThread.reportID,
+                        transactionReport: iouReport,
+                        report: transactionThread,
+                        transaction,
                         policy,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
@@ -981,8 +1015,10 @@ describe('actions/IOU/Hold', () => {
                     const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
                     unholdRequest({
                         transactionID: transaction.transactionID,
-                        transaction: updatedTransaction,
                         reportID: transactionThread.reportID,
+                        transaction: updatedTransaction,
+                        transactionReport: iouReport,
+                        report: transactionThread,
                         policy,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
@@ -1069,6 +1105,8 @@ describe('actions/IOU/Hold', () => {
                 transactionID: transaction.transactionID,
                 transaction: heldTransaction,
                 reportID: transactionThread.reportID,
+                transactionReport: iouReport,
+                report: transactionThread,
                 policy,
                 isOffline: true,
                 currentUserLogin: RORY_EMAIL,

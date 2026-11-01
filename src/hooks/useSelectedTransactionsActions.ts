@@ -390,6 +390,8 @@ function useSelectedTransactionsActions({
                             transactionID,
                             transaction,
                             reportID: action.childReportID,
+                            transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                            report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${action.childReportID}`],
                             policy,
                             isOffline,
                             currentUserLogin: login ?? '',
