@@ -43,7 +43,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {CompanyCardFeed} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {format} from 'date-fns';
@@ -156,7 +155,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         : translate('workspace.moreFeatures.companyCards.neverUpdated');
 
     const getCardIconSource = () => {
-        return getCardFeedIcon(cardBank as CompanyCardFeed, illustrations, companyCardFeedIcons);
+        return getCardFeedIcon(card?.bank, illustrations, companyCardFeedIcons);
     };
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
@@ -171,7 +170,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
         return <NotFoundPage />;
     }
 
-    const plaidUrl = getPlaidInstitutionIconUrl(cardBank as CompanyCardFeed);
+    const plaidUrl = getPlaidInstitutionIconUrl(card?.bank);
 
     return (
         <ScreenWrapper

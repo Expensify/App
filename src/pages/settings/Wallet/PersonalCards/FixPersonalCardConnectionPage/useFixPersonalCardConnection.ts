@@ -11,7 +11,6 @@ import {getPersonalCardBankConnection} from '@userActions/getCompanyCardBankConn
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {CompanyCardFeed} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useEffect, useRef} from 'react';
@@ -22,8 +21,8 @@ function useFixPersonalCardConnection(cardID: string) {
 
     const [cardList, cardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
     const card = cardList?.[cardID];
-    const bankDisplayName = card ? getBankName(card.bank as CompanyCardFeed) : '';
-    const isPlaid = !!(card?.bank && getPlaidInstitutionId(card.bank as CompanyCardFeed));
+    const bankDisplayName = card ? getBankName(card.bank) : '';
+    const isPlaid = !!(card?.bank && getPlaidInstitutionId(card.bank));
     const url = isPlaid ? null : getPersonalCardBankConnection(bankDisplayName);
     const country = card?.nameValuePairs?.country ?? CONST.COUNTRY.US;
     // Matches the wallet row and the card details page, so a card they offer a fix for takes the reconnect flow here
