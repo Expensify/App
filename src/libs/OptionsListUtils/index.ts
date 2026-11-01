@@ -211,6 +211,8 @@ function uniqFast(items: string[]): string[] {
 }
 
 type GetAlternateTextConfig = {
+    /** The report the option was built from. Passed in instead of being looked up from the module-level Onyx.connect() reports cache. */
+    report: OnyxEntry<Report>;
     dateFnsLocale: DateFnsLocale | undefined;
     isReportArchived: boolean | undefined;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -256,6 +258,7 @@ function getAlternateText(
     option: OptionData,
     {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig,
     {
+        report,
         isReportArchived,
         personalDetails,
         policy,
@@ -278,7 +281,6 @@ function getAlternateText(
         rules,
     }: GetAlternateTextConfig,
 ) {
-    const report = getReportOrDraftReport(option.reportID);
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
     const isGroupChat = reportUtilsIsGroupChat(report);
@@ -526,6 +528,7 @@ function createOption({
                       result,
                       {showChatPreviewLine, forcePolicyNamePreview},
                       {
+                          report,
                           dateFnsLocale,
                           isReportArchived: !!result.private_isArchived,
                           personalDetails,
@@ -2257,6 +2260,7 @@ function prepareReportOptionsForDisplay(
                 option,
                 {showChatPreviewLine, forcePolicyNamePreview},
                 {
+                    report,
                     dateFnsLocale: config.dateFnsLocale,
                     isReportArchived: !!option.private_isArchived,
                     personalDetails,
