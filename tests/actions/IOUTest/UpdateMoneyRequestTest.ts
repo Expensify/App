@@ -691,7 +691,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             const {onyxData} = getUpdateTrackExpenseParams({
                 transactionID,
-                transactionThreadReportID: transactionThreadReport.reportID,
+                transactionThread: transactionThreadReport,
+                transactionThreadParentReport: selfDMReport,
                 transactionChanges: {amount: 20000},
                 policy: createRandomPolicy(1),
                 delegateAccountID: undefined,
@@ -2297,6 +2298,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const transactionID = 'track_distance_precision';
             const transactionThreadReportID = 'thread_precision';
             const policyID = 'policy_precision';
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'self-dm-report',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
 
             const fakeTransaction: Transaction = {
                 transactionID,
@@ -2315,10 +2321,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     waypoints: {},
                 },
             };
-            const fakeThreadReport = createMock<Report>({reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.CHAT});
+            const fakeThreadReport = createMock<Report>({reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.CHAT, parentReportID: selfDMReport.reportID});
             const fakePolicy = createRandomPolicy(Number(1));
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, fakeThreadReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
@@ -2326,7 +2333,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When the caller passes a higher-precision distance than what `customUnit.quantity` would round to
             const {params} = getUpdateTrackExpenseParams({
                 transactionID,
-                transactionThreadReportID,
+                transactionThread: fakeThreadReport,
+                transactionThreadParentReport: selfDMReport,
                 transactionChanges: {distance: 5.555},
                 policy: fakePolicy,
                 delegateAccountID: undefined,
@@ -2343,6 +2351,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const snapshotHash = 1122334455;
             const customUnitRateID = 'rate_id';
             const policyID = 'policy_date_violation';
+            const selfDMReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),
+                reportID: 'self-dm-report',
+                type: CONST.REPORT.TYPE.CHAT,
+            };
 
             const fakeTransaction: Transaction = {
                 transactionID,
@@ -2394,6 +2407,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, fakeThreadReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
@@ -2401,7 +2415,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             const {onyxData} = getUpdateTrackExpenseParams({
                 transactionID,
-                transactionThreadReportID,
+                transactionThread: fakeThreadReport,
+                transactionThreadParentReport: selfDMReport,
                 transactionChanges: {created: '2026-06-15'},
                 policy: fakePolicy,
                 delegateAccountID: undefined,

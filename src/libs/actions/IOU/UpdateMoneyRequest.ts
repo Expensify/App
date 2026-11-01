@@ -64,7 +64,7 @@ import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxKey, OnyxUpdate} from '
 import lodashUnionBy from 'lodash/unionBy';
 import Onyx from 'react-native-onyx';
 
-import {getAllReports, getAllTransactions, getAllTransactionViolations, getRecentAttendees} from '.';
+import {getAllTransactions, getAllTransactionViolations, getRecentAttendees} from '.';
 import {getUpdatedMoneyRequestReportData, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
 
 type UpdateMoneyRequestData<TKey extends OnyxKey> = {
@@ -316,7 +316,8 @@ function updateMoneyRequestDate({
         data = getUpdateTrackExpenseParams({
             transactionID,
             transaction,
-            transactionThreadReportID: transactionThreadReport?.reportID,
+            transactionThread: transactionThreadReport,
+            transactionThreadParentReport: parentReport,
             transactionChanges,
             policy: effectivePolicy,
             delegateAccountID,
@@ -601,7 +602,8 @@ function updateMoneyRequestMerchant({
         data = getUpdateTrackExpenseParams({
             transactionID,
             transaction,
-            transactionThreadReportID: transactionThreadReport?.reportID,
+            transactionThread: transactionThreadReport,
+            transactionThreadParentReport: parentReport,
             transactionChanges,
             policy,
             delegateAccountID,
@@ -1243,7 +1245,8 @@ function updateMoneyRequestDistance({
         data = getUpdateTrackExpenseParams({
             transactionID: transaction?.transactionID,
             transaction,
-            transactionThreadReportID: transactionThreadReport?.reportID,
+            transactionThread: transactionThreadReport,
+            transactionThreadParentReport: parentReport,
             transactionChanges,
             policy,
             delegateAccountID,
@@ -1493,7 +1496,8 @@ function updateMoneyRequestDescription({
         data = getUpdateTrackExpenseParams({
             transactionID,
             transaction,
-            transactionThreadReportID: transactionThreadReport?.reportID,
+            transactionThread: transactionThreadReport,
+            transactionThreadParentReport: parentReport,
             transactionChanges,
             policy,
             delegateAccountID,
@@ -1636,7 +1640,8 @@ function updateMoneyRequestDistanceRate({
         data = getUpdateTrackExpenseParams({
             transactionID: transaction?.transactionID,
             transaction,
-            transactionThreadReportID: transactionThreadReport?.reportID,
+            transactionThread: transactionThreadReport,
+            transactionThreadParentReport: parentReport,
             transactionChanges,
             policy,
             delegateAccountID,
@@ -1760,7 +1765,8 @@ function updateMoneyRequestAmountAndCurrency({
         data = getUpdateTrackExpenseParams({
             transactionID,
             transaction,
-            transactionThreadReportID: transactionThreadReport?.reportID,
+            transactionThread: transactionThreadReport,
+            transactionThreadParentReport: parentReport,
             transactionChanges,
             policy,
             delegateAccountID,
@@ -2534,7 +2540,8 @@ type TrackExpenseCurrencyContext = {
 type GetUpdateTrackExpenseParamsType = {
     transactionID: string | undefined;
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
-    transactionThreadReportID: string | undefined;
+    transactionThread: OnyxEntry<OnyxTypes.Report>;
+    transactionThreadParentReport: OnyxEntry<OnyxTypes.Report>;
     transactionChanges: TransactionChanges;
     policy: OnyxEntry<OnyxTypes.Policy>;
     delegateAccountID: number | undefined;
@@ -2558,7 +2565,8 @@ function getUpdateTrackExpenseParams(
     const {
         transactionID,
         transaction: transactionParam,
-        transactionThreadReportID,
+        transactionThread,
+        transactionThreadParentReport: chatReport,
         transactionChanges,
         policy,
         delegateAccountID,
@@ -2597,9 +2605,7 @@ function getUpdateTrackExpenseParams(
     const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage')]));
 
     // Step 2: Get all the collections being updated
-    const transactionThread = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const transaction = transactionParam ?? getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const chatReport = getAllReports()?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
     const policyForTransaction = distanceOriginalPolicy ?? policy;
     const updatedTransaction = transaction
         ? getUpdatedTransaction({
@@ -2752,10 +2758,10 @@ function getUpdateTrackExpenseParams(
         failureData.push(...snapshotUpdates.failureData);
     }
 
-    if (updatedReportAction) {
+    if (updatedReportAction && transactionThread?.reportID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
             value: {
                 lastActorAccountID: updatedReportAction.actorAccountID,
             },
@@ -2793,12 +2799,14 @@ function getUpdateTrackExpenseParams(
         },
     });
 
-    // Reset the transaction thread to its original state
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-        value: transactionThread,
-    });
+    if (transactionThread?.reportID) {
+        // Reset the transaction thread to its original state
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
+            value: transactionThread,
+        });
+    }
 
     if (syncedOptimisticViolations !== undefined && transactionID && currentTransactionViolationsForFailure !== undefined) {
         const violationsOnyxData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
