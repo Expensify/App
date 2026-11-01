@@ -365,7 +365,6 @@ function navigate(route: Route, options?: LinkToOptions) {
 const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'policyID', 'pop'];
 
 /**
- * @private
  * If we use destructuring, we will get an error if any of the ignored properties are not present in the object.
  * Empty-string params are dropped because they produce the same URL as a missing param, e.g. a cleared `reportActionID`.
  */
