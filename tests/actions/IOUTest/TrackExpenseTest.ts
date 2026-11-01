@@ -350,7 +350,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (transactions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const trackedExpenseTransaction = Object.values(transactions ?? {}).at(0);
 
                         // Then the transaction must remain a distance request
@@ -366,7 +366,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (reportActions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reportActions);
                     },
                 });
@@ -461,7 +461,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (transactions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         const categorizedTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
 
                         // Then the transaction must remain a distance request, ensuring that the optimistic data is correctly built and the transaction type remains accurate.
@@ -482,7 +482,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
                     callback: (quickAction) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve();
 
                         // Then the quickAction.action should be set to REQUEST_DISTANCE
@@ -555,7 +555,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -616,7 +616,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -625,7 +625,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -703,7 +703,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -764,7 +764,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -773,7 +773,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -855,7 +855,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -916,7 +916,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1000,7 +1000,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1065,7 +1065,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -1172,7 +1172,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReport.reportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1234,7 +1234,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${accountantExpenseChatID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1243,7 +1243,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedExpenseReportID}`,
                     callback: (value) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(value);
                     },
                 });
@@ -1898,7 +1898,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -1921,7 +1921,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (val) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(val);
                     },
                 });
@@ -2534,7 +2534,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (reports) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(reports);
                     },
                 });
@@ -2562,7 +2562,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -2581,7 +2581,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (transactions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(transactions);
                     },
                 });
@@ -2636,7 +2636,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeTruthy();
                         resolve();
                     },
@@ -2675,7 +2675,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -2753,7 +2753,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: `${ONYXKEYS.COLLECTION.REPORT}${thread.reportID}`,
                     callback: (report) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         expect(report).toBeTruthy();
                         resolve();
                     },
@@ -2915,7 +2915,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -2925,7 +2925,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });
@@ -2935,7 +2935,7 @@ describe('actions/IOU/TrackExpense', () => {
                 const connection = Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
                     callback: (actions) => {
-                        Onyx.disconnect(connection);
+                        connection.unsubscribe();
                         resolve(actions);
                     },
                 });

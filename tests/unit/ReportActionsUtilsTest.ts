@@ -1379,7 +1379,7 @@ describe('ReportActionsUtils', () => {
                                 const connection = Onyx.connect({
                                     key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`,
                                     callback: () => {
-                                        Onyx.disconnect(connection);
+                                        connection.unsubscribe();
                                         const res = ReportActionsUtils.getLastVisibleAction(report.reportID);
                                         expect(res).toEqual(action2);
                                         resolve();
