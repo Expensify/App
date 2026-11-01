@@ -14,8 +14,6 @@ import {useActionListContext} from '@pages/inbox/ActionListContext';
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
-import {openReport} from '@userActions/Report';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,11 +25,8 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useEffectEvent, useState} from 'react';
 
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
@@ -40,9 +35,6 @@ import useScrollToEndOnNewMessageReceived from './useScrollToEndOnNewMessageRece
 import useWindowDimensions from './useWindowDimensions';
 
 type UseReportActionsScrollParams = {
-    /** The Concierge chat report */
-    conciergeChat: OnyxEntry<OnyxTypes.Report>;
-
     /** The ID of the report currently being looked at */
     reportID: string;
 
@@ -143,7 +135,6 @@ type UseReportActionsScrollResult = {
 };
 
 function useReportActionsScroll({
-    conciergeChat,
     reportID,
     report,
     transactionThreadReport,
@@ -171,15 +162,8 @@ function useReportActionsScroll({
     const linkedReportActionID = route?.params?.reportActionID;
     const backTo = route?.params?.backTo;
     const {isOffline} = useNetworkWithOfflineStatus();
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
-    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(report?.policyID)}`, {
-        selector: fullPolicySnapshotLastModifiedSelector,
-    });
-    const fullPolicySnapshot = report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const prevIsLoadingInitialReportActions = usePrevious(reportLoadingState?.isLoadingInitialReportActions);
 
@@ -272,12 +256,9 @@ function useReportActionsScroll({
         syncPillAfterComposerCollapse();
     }, [isComposerFullSize]);
 
-    const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
-        conciergeChat,
+    const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom, openReportAtLiveTail} = useReportActionsNewActionLiveTail({
         reportID,
-        introSelected,
-        isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-        hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        policyID: report?.policyID,
         isOffline,
         reportScrollManager,
         setIsFloatingMessageCounterVisible,
@@ -293,7 +274,6 @@ function useReportActionsScroll({
         treatAsNoPaginationAnchor,
         prevIsLoadingInitialReportActions,
         reportLoadingState,
-        fullPolicySnapshot,
     });
 
     useScrollToEndOnNewMessageReceived({
@@ -420,16 +400,7 @@ function useReportActionsScroll({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
-            openReport({
-                reportID,
-                introSelected,
-                conciergeChat,
-                hasReportActions: true,
-                currentUserAccountID,
-                isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                fullPolicySnapshot,
-            });
+            openReportAtLiveTail();
             reportScrollManager.scrollToBottom();
             return;
         }

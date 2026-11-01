@@ -43,13 +43,13 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {ColorValue} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
-import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
+import Onyx, {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import type {SearchListActionProps, TransactionReportGroupListItemType} from './types';
 
@@ -95,7 +95,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     canSelectMultiple: boolean | undefined;
 
     /** Callback passed as goToItem in actionCell, triggered by clicking actionButton */
-    handleOnButtonPress?: (event?: ModifiedMouseEvent) => void;
+    handleOnButtonPress?: (event?: ModifiedMouseEvent) => void | Promise<void>;
 
     /** Color of the secondary avatar border, usually should match the container background */
     avatarBorderColor?: ColorValue;
@@ -298,23 +298,10 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
 
-    const {
-        currentUserAccountID,
-        currentUserLogin,
-        introSelected,
-        isASAPSubmitBetaEnabled,
-        isWiseReimbursementsBetaEnabled,
-        isSelfTourViewed,
-        activePolicy,
-        chatReportPolicy,
-        amountOwed,
-        delegateEmail,
-        delegateAccountID,
-        conciergeChat,
-        bankAccountList,
-    } = useReportPaymentContext({
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID} =
+        useReportPaymentContext({
+            chatReportPolicyID: chatReport?.policyID,
+        });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
@@ -325,9 +312,21 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {shouldDisableSearchSubmitPress, consumeIgnoreNextSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress, shouldIgnoreSearchSubmitPress} = useSearchSubmitPopoverGuard();
 
-    const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
+    const handleOnButtonPress = async (event?: ModifiedMouseEvent) => {
+        if (shouldIgnoreSearchSubmitPress(reportItem.action)) {
+            return;
+        }
+        const [conciergeReportID, introSelected, onboarding, amountOwed, bankAccountList] = await Onyx.multiGet([
+            ONYXKEYS.CONCIERGE_REPORT_ID,
+            ONYXKEYS.NVP_INTRO_SELECTED,
+            ONYXKEYS.NVP_ONBOARDING,
+            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+            ONYXKEYS.BANK_ACCOUNT_LIST,
+        ]);
+        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+        const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,
@@ -349,8 +348,6 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             amountOwed,
             confirmSubmitReportViolations,
             openReportSubmitToPopover,
-            shouldDisableSearchSubmitPress,
-            consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
@@ -372,6 +369,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             bankAccountList,
         });
     };
+
     return !isLargeScreenWidth ? (
         <View style={[styles.pv1Half]}>
             <UserInfoAndActionButtonRow

@@ -14,7 +14,7 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     action?: SearchTransactionAction;
 
     /** Function passed to the action button, triggered when the button is pressed */
-    onButtonPress?: (event?: ModifiedMouseEvent) => void;
+    onButtonPress?: (event?: ModifiedMouseEvent) => void | Promise<void>;
 
     /** The personal details of the user requesting money */
     from?: PersonalDetails;
@@ -90,7 +90,7 @@ type TransactionItemRowProps = {
     onCheckboxPress?: (transactionID: string, shiftKey?: boolean) => void;
     shouldShowCheckbox?: boolean;
     columns?: SearchColumnType[];
-    onButtonPress?: (event?: ModifiedMouseEvent) => void;
+    onButtonPress?: (event?: ModifiedMouseEvent) => void | Promise<void>;
     style?: StyleProp<ViewStyle>;
     dataSet?: Record<string, unknown>;
     isReportItemChild?: boolean;

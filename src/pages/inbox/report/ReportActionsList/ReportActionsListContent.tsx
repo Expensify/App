@@ -55,7 +55,7 @@ import useReportActionsListTelemetry from './useReportActionsListTelemetry';
  * UI-close hooks (`useUnreadMarker` / `useMarkAsRead` / `useReportActionsScroll`). `ReportActionsSkeletonGuard`
  * mounts it only once content is ready, so those hooks never run while a skeleton shows.
  */
-function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportActionsListProps) {
+function ReportActionsListContent({reportID, onLayout}: ReportActionsListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
@@ -149,7 +149,6 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
     const {listID, listProps, shouldBeAlignedToTop, isFloatingMessageCounterVisible, isActionBadgeAboveViewport, scrollToBottomAndMarkReportAsRead, scrollToActionBadgeTarget} =
         useReportActionsListScroll({
             reportID,
-            conciergeChat,
             sortedVisibleReportActions,
             renderedVisibleReportActions: listData,
             reportActionIDToDisplayIndex,

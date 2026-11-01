@@ -138,8 +138,9 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 /* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useEffect, useMemo, useRef} from 'react';
+import Onyx from 'react-native-onyx';
 
 import type {RejectModalAction} from './useHoldRejectEducationalModal';
 
@@ -640,18 +641,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
     const delegateAccountID = useDelegateAccountID();
-    const {
-        introSelected,
-        isSelfTourViewed,
-        activePolicyID,
-        activePolicy,
-        conciergeChat,
-        defaultWorkspaceName,
-        userBillingGracePeriodEnds,
-        amountOwed,
-        ownerBillingGracePeriodEnd,
-        delegateEmail,
-    } = usePaymentContext();
+    const {activePolicyID, activePolicy, defaultWorkspaceName, delegateEmail} = usePaymentContext();
+    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const allTransactions = useAllTransactions();
     const allReportsTransactionsAndViolations = useAllReportsTransactionsAndViolations();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
@@ -1655,7 +1648,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     ]);
 
     const onBulkPaySelected = useCallback(
-        (paymentMethod?: PaymentMethodType, additionalData?: BulkPaySelectionData) => {
+        async (paymentMethod?: PaymentMethodType, additionalData?: BulkPaySelectionData) => {
             if (!hash) {
                 Log.info('[BulkPay] Dropping bulk pay: no search hash');
                 return;
@@ -1795,6 +1788,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                           };
                       });
 
+            const [conciergeReportID, introSelected, onboarding] = await Onyx.multiGet([ONYXKEYS.CONCIERGE_REPORT_ID, ONYXKEYS.NVP_INTRO_SELECTED, ONYXKEYS.NVP_ONBOARDING]);
+            const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+            const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
             let paidReportCount = 0;
             for (const item of itemsToPay) {
                 if (!item.reportID) {
@@ -1990,8 +1986,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             localCurrencyCode,
             defaultWorkspaceName,
             personalDetails,
-            introSelected,
-            isSelfTourViewed,
             activePolicy,
             activePolicyID,
             allReportNameValuePairs,
@@ -1999,7 +1993,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             searchResults?.data,
             delegateAccountID,
             isTrackIntentUser,
-            conciergeChat,
             getCurrencyDecimals,
             rules,
         ],
