@@ -46,8 +46,10 @@ const displayAddress = (street: string, city: string, state: string, zipCode: st
 };
 
 const displayIncorporationLocation = (country: string, state: string) => {
-    const countryFullName = CONST.ALL_COUNTRIES[country as keyof typeof CONST.COUNTRY];
-    const stateFullName = COMMON_CONST.STATES[state as keyof typeof COMMON_CONST.STATES]?.stateName ?? COMMON_CONST.PROVINCES[state as keyof typeof COMMON_CONST.PROVINCES]?.provinceName;
+    const countryFullName = Object.entries(CONST.ALL_COUNTRIES).find(([countryCode]) => countryCode === country)?.[1];
+    const stateFullName =
+        Object.entries(COMMON_CONST.STATES).find(([stateCode]) => stateCode === state)?.[1].stateName ??
+        Object.entries(COMMON_CONST.PROVINCES).find(([provinceCode]) => provinceCode === state)?.[1].provinceName;
 
     return country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA ? `${stateFullName}, ${countryFullName}` : `${countryFullName}`;
 };
