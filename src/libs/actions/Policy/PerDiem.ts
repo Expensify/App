@@ -338,7 +338,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
         ],
     };
 
-    const sanitizedRateUpdates = Object.fromEntries(Object.entries(customUnitRateUpdates).map(([rateID, customUnitRate]) => [rateID, prepareCustomUnitRate(customUnitRate)]));
+    const sanitizedRateUpdates = Object.values(customUnitRateUpdates).map(prepareCustomUnitRate);
     let parameters: UpdateWorkspaceCustomUnitParams;
     if (shouldDeleteAllRates) {
         parameters = {policyID, customUnitID: customUnit.customUnitID, deleteAllRates: true};
@@ -347,7 +347,7 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
             policyID,
             customUnitID: customUnit.customUnitID,
             customUnitRateIDs: JSON.stringify(customUnitRateIDs),
-            ...(Object.keys(sanitizedRateUpdates).length ? {customUnitRateUpdates: JSON.stringify(sanitizedRateUpdates)} : {}),
+            ...(sanitizedRateUpdates.length ? {customUnitRateUpdates: JSON.stringify(sanitizedRateUpdates)} : {}),
         };
     } else {
         parameters = {policyID, customUnitID: customUnit.customUnitID, customUnitRateUpdates: JSON.stringify(sanitizedRateUpdates)};

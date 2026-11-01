@@ -252,7 +252,7 @@ describe('actions/Policy/PerDiem', () => {
                 policyID: 'policy',
                 customUnitID,
                 customUnitRateIDs: JSON.stringify([unchangedRateID]),
-                customUnitRateUpdates: JSON.stringify({[rateID]: updatedRate}),
+                customUnitRateUpdates: JSON.stringify([updatedRate]),
             },
             expect.objectContaining({
                 optimisticData: [
