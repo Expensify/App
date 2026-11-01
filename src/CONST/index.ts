@@ -5728,6 +5728,8 @@ const CONST = {
             SEK: 'SE',
             ZAR: 'ZA',
         },
+        // The country that publishes fuel-band rates, which replace its standard rate on workspaces tracking distance tax
+        GOVERNMENT_RATE_FUEL_BAND_COUNTRY: 'GB',
         // EUR is shared by several supported countries, so an EUR workspace picks the country itself
         GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES: ['AT', 'BE', 'FI', 'DE', 'NL', 'PT', 'ES'] as const,
         // Unit each country publishes its rates in

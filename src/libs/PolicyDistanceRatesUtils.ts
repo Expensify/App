@@ -20,6 +20,7 @@ import getPermittedDecimalSeparator from './getPermittedDecimalSeparator';
 import Log from './Log';
 import {replaceAllDigits} from './MoneyRequestUtils';
 import {generateHexadecimalValue, parseFloatAnyLocale} from './NumberUtils';
+import {getDistanceRateCustomUnit, isTaxTrackingEnabled} from './PolicyUtils';
 import StringUtils from './StringUtils';
 import {containsHtmlTag, isRequiredFulfilled} from './ValidationUtils';
 
@@ -291,10 +292,31 @@ function getGovernmentRateAmountForUnit(governmentRateAmount: number, sourceRate
 }
 
 /**
+ * The series a government rate belongs to: its sourceRateID without the trailing "_<startDate>", e.g. "GB" for the
+ * standard UK rate or "GB_<fuelBand>" for a UK fuel band. Fuel band names contain underscores, so only the last one is cut.
+ */
+function getGovernmentRateSeries(sourceRateID: string): string {
+    const dateSeparatorIndex = sourceRateID.lastIndexOf('_');
+    return dateSeparatorIndex === -1 ? sourceRateID : sourceRateID.slice(0, dateSeparatorIndex);
+}
+
+/** Whether a government rate is a UK fuel band, whose sourceRateID carries the band between the country code and the date. */
+function isFuelBandGovernmentRate(sourceRateID: string): boolean {
+    return sourceRateID.split('_').length > 2;
+}
+
+/** The tax reclaimable amount, in currency units, as the distance rate tax reclaimable page shows it. */
+function getTaxClaimableDisplayAmount(taxClaimablePercentage: number, rate: number): string {
+    return ((taxClaimablePercentage * rate) / 100).toFixed(CONST.MAX_TAX_RATE_DECIMAL_PLACES);
+}
+
+/**
  * Whether a government-managed rate still matches the government-published snapshot it was copied from.
  * Returns true only when the rate amount, start date, and end date each match the snapshot in attributes.governmentRate.
  * The amount is compared within a small tolerance to absorb floating-point noise from the stored cents value.
  * A date omitted on both sides counts as a match; a date omitted on only one side does not.
+ * When the snapshot has a tax reclaimable fraction, the reclaimable amount must also match at the precision the edit page
+ * shows it, so re-entering the shown value counts as unmodified. Snapshots without one ignore the reclaimable amount.
  */
 function isGovernmentRateUnmodified(rate: Rate, currentUnit?: Unit): boolean {
     const governmentRate = rate.attributes?.governmentRate;
@@ -308,8 +330,11 @@ function isGovernmentRateUnmodified(rate: Rate, currentUnit?: Unit): boolean {
     // 0.29 yields 28.999999999999996), so compare amounts within a tolerance rather than requiring strict equality.
     const governmentRateAmount = getGovernmentRateAmountForUnit(governmentRate.rate, governmentRate.sourceRateID, currentUnit);
     const isRateAmountMatching = Math.abs(rate.rate - governmentRateAmount) < CONST.CUSTOM_UNITS.GOVERNMENT_RATE_MATCH_TOLERANCE;
+    const isTaxClaimableAmountMatching =
+        governmentRate.taxClaimablePercentage === undefined ||
+        getTaxClaimableDisplayAmount(rate.attributes?.taxClaimablePercentage ?? 0, rate.rate) === getTaxClaimableDisplayAmount(governmentRate.taxClaimablePercentage, governmentRateAmount);
 
-    return isRateAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
+    return isRateAmountMatching && isTaxClaimableAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
 }
 
 /** The country publishing government mileage rates for a currency, or undefined when the currency alone cannot pick one. */
@@ -389,24 +414,27 @@ function getGovernmentRateCountryOptions(translate: LocalizedTranslate, localeCo
  * including the optimistic copy of the country's reference rates and the distance unit correction. Shared by the
  * SetWorkspaceDistanceAutoUpdate command and the merged currency change in updateGeneralSettings.
  *
- * `customUnit` can be missing when the server-created custom unit isn't in Onyx yet. The rate copying and unit correction
- * are skipped then, and the server response fills them in.
+ * The distance custom unit can be missing when the server-created custom unit isn't in Onyx yet. The rate copying and unit
+ * correction are skipped then, and the server response fills them in.
  *
- * The previous enabled state and country describe the policy before the change, so a failed request restores exactly
- * what the server still has.
+ * A UK workspace tracking distance tax gets the fuel-band rates instead of the standard rate when the reference list has
+ * fuel bands, and the standard rate otherwise. Every copied rate keeps the enabled state of the previous rate in its series
+ * (ordered by the snapshot's start date) when that rate is an unmodified government rate, and is enabled otherwise.
+ *
+ * A failed request restores the policy's current auto-update flag and country, which is what the server still has.
  */
 function buildOnyxDataForGovernmentRateAutoUpdate(
-    policyID: string,
-    customUnit: CustomUnit | undefined,
+    policy: Policy,
     shouldAutoUpdateGovernmentDistanceRates: boolean,
     governmentMileageRates: GovernmentMileageRate[],
     outputCurrency: string | undefined,
     countryCode?: string,
-    previousAutoUpdateEnabled?: boolean,
-    previousCountryCode?: string,
 ): {optimisticRateIDs: Record<string, string>; onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY>} {
+    const policyID = policy.id;
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+    const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = customUnit?.customUnitID;
+    const currentUnit = customUnit?.attributes?.unit;
 
     const optimisticRates: Record<string, Rate> = {};
     const clearedRatePendingActions: Record<string, NullishDeep<Rate>> = {};
@@ -415,8 +443,45 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
 
     if (shouldAutoUpdateGovernmentDistanceRates && customUnit) {
         const copiedSourceRateIDs = new Set(Object.values(customUnit.rates ?? {}).map((rate) => rate.attributes?.governmentRate?.sourceRateID));
+        // Until the server publishes fuel bands, it copies the standard UK rate to every workspace, so only use bands when there are some
+        const shouldUseFuelBandRates = isTaxTrackingEnabled(true, policy, true) && governmentMileageRates.some((rate) => isFuelBandGovernmentRate(rate.sourceRateID));
 
-        for (const governmentMileageRate of governmentMileageRates) {
+        // Rates already in each series, so a copied rate can take the enabled state of the one before it. Rates copied in
+        // this request are added as they go, so a second rate of the same series inherits from the first. Rates are ordered
+        // by the snapshot's start date, since the admin can edit the rate's own dates.
+        const seriesRates = new Map<string, Array<{startDate: string; enabled: boolean}>>();
+        const addSeriesRate = (sourceRateID: string, startDate: string | undefined, enabled: boolean | undefined) => {
+            if (!startDate) {
+                return;
+            }
+            const series = getGovernmentRateSeries(sourceRateID);
+            seriesRates.set(series, [...(seriesRates.get(series) ?? []), {startDate, enabled: enabled ?? true}]);
+        };
+        for (const rate of Object.values(customUnit.rates ?? {})) {
+            const sourceRateID = rate.attributes?.governmentRate?.sourceRateID;
+            if (sourceRateID) {
+                // A rate the admin edited is their own, so its enabled state doesn't decide the next government rate
+                addSeriesRate(sourceRateID, rate.attributes?.governmentRate?.startDate, isGovernmentRateUnmodified(rate, currentUnit) ? rate.enabled : true);
+            }
+        }
+        const getPreviousSeriesRateEnabled = (sourceRateID: string, startDate: string): boolean | undefined => {
+            let previousRate: {startDate: string; enabled: boolean} | undefined;
+            for (const seriesRate of seriesRates.get(getGovernmentRateSeries(sourceRateID)) ?? []) {
+                if (seriesRate.startDate < startDate && (!previousRate || seriesRate.startDate > previousRate.startDate)) {
+                    previousRate = seriesRate;
+                }
+            }
+            return previousRate?.enabled;
+        };
+
+        // ISO 8601 dates sort chronologically as plain strings
+        const sortedGovernmentMileageRates = [...governmentMileageRates].sort((a, b) => {
+            if (a.startDate === b.startDate) {
+                return 0;
+            }
+            return a.startDate < b.startDate ? -1 : 1;
+        });
+        for (const governmentMileageRate of sortedGovernmentMileageRates) {
             // GOVERNMENT_MILEAGE_RATES is one key shared by every policy, so it can still hold another policy's rates
             if (governmentMileageRate.currency !== outputCurrency) {
                 Log.warn('[buildOnyxDataForGovernmentRateAutoUpdate] Skipping a government reference rate loaded for another currency', {
@@ -429,7 +494,14 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
             }
 
             // Several countries share the EUR currency, so also match the selected country from the sourceRateID prefix
-            if (countryCode && governmentMileageRate.sourceRateID.split('_').at(0) !== countryCode) {
+            const rateCountry = governmentMileageRate.sourceRateID.split('_').at(0);
+            if (countryCode && rateCountry !== countryCode) {
+                continue;
+            }
+
+            // The UK publishes fuel-band rates alongside its standard rate. Workspaces using fuel bands get only the bands,
+            // and every other workspace gets only the standard rate.
+            if (rateCountry === CONST.CUSTOM_UNITS.GOVERNMENT_RATE_FUEL_BAND_COUNTRY && isFuelBandGovernmentRate(governmentMileageRate.sourceRateID) !== shouldUseFuelBandRates) {
                 continue;
             }
 
@@ -438,22 +510,31 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
                 continue;
             }
 
+            copiedSourceRateIDs.add(governmentMileageRate.sourceRateID);
+
+            const enabled = getPreviousSeriesRateEnabled(governmentMileageRate.sourceRateID, governmentMileageRate.startDate) ?? true;
+            addSeriesRate(governmentMileageRate.sourceRateID, governmentMileageRate.startDate, enabled);
+
+            const taxClaimablePercentage = governmentMileageRate.taxClaimablePercentage;
             const customUnitRateID = generateHexadecimalValue(13);
             optimisticRateIDs[governmentMileageRate.sourceRateID] = customUnitRateID;
+            // The server links the tax rate, so taxRateExternalID comes back in its response
             optimisticRates[customUnitRateID] = {
                 customUnitRateID,
                 name: governmentMileageRate.name,
                 rate: governmentMileageRate.rate,
                 currency: governmentMileageRate.currency,
-                enabled: governmentMileageRate.enabled ?? true,
+                enabled,
                 startDate: governmentMileageRate.startDate,
                 ...(governmentMileageRate.endDate ? {endDate: governmentMileageRate.endDate} : {}),
                 attributes: {
+                    ...(taxClaimablePercentage !== undefined ? {taxClaimablePercentage} : {}),
                     governmentRate: {
                         sourceRateID: governmentMileageRate.sourceRateID,
                         rate: governmentMileageRate.rate,
                         startDate: governmentMileageRate.startDate,
                         ...(governmentMileageRate.endDate ? {endDate: governmentMileageRate.endDate} : {}),
+                        ...(taxClaimablePercentage !== undefined ? {taxClaimablePercentage} : {}),
                     },
                 },
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -463,12 +544,11 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
         }
     }
 
-    const currentUnit = customUnit?.attributes?.unit;
     const expectedUnit = countryCode ? getExpectedUnitForCountry(countryCode) : getExpectedUnitForCurrency(outputCurrency);
     const shouldCorrectUnit = shouldAutoUpdateGovernmentDistanceRates && !!expectedUnit && !!currentUnit && currentUnit !== expectedUnit;
 
     // The failure data restores the state the server still has, so the previous values decide what to write back
-    const failureAutoUpdateValue = previousAutoUpdateEnabled ? true : null;
+    const failureAutoUpdateValue = policy.shouldAutoUpdateGovernmentDistanceRates ? true : null;
 
     const optimisticCustomUnit: NullishDeep<CustomUnit> = {
         ...(Object.keys(optimisticRates).length > 0 ? {rates: optimisticRates} : {}),
@@ -520,7 +600,7 @@ function buildOnyxDataForGovernmentRateAutoUpdate(
                 key: policyKey,
                 value: {
                     shouldAutoUpdateGovernmentDistanceRates: failureAutoUpdateValue,
-                    ...(countryCode ? {autoUpdateGovernmentRateCountry: previousCountryCode ?? null} : {}),
+                    ...(countryCode ? {autoUpdateGovernmentRateCountry: policy.autoUpdateGovernmentRateCountry ?? null} : {}),
                     pendingFields: {
                         shouldAutoUpdateGovernmentDistanceRates: null,
                         ...(countryCode ? {autoUpdateGovernmentRateCountry: null} : {}),
@@ -595,6 +675,8 @@ export {
     isMapOrGPSRequired,
     getDistanceExpenseTypeForPolicy,
     isGovernmentRateUnmodified,
+    getGovernmentRateSeries,
+    getTaxClaimableDisplayAmount,
     getDistanceRateNameError,
     getDistanceRateNameErrorMessage,
     getDistanceRateValueError,

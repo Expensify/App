@@ -35,22 +35,13 @@ function PolicyDistanceRateGovernmentRateCountryPage({route}: PolicyDistanceRate
     const goBackToSettings = () => Navigation.goBack(ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID));
 
     const saveCountry = (selectedCountry: string) => {
-        if (!customUnit || selectedCountry === currentCountry) {
+        if (!policy || !customUnit || selectedCountry === currentCountry) {
             goBackToSettings();
             return;
         }
 
         // Saving a country turns the auto-update on with that country, or moves an enabled workspace to the new country
-        setWorkspaceDistanceAutoUpdate(
-            policyID,
-            customUnit,
-            true,
-            governmentMileageRates ?? [],
-            policy?.outputCurrency,
-            selectedCountry,
-            !!policy?.shouldAutoUpdateGovernmentDistanceRates,
-            currentCountry,
-        );
+        setWorkspaceDistanceAutoUpdate(policy, true, governmentMileageRates ?? [], selectedCountry);
         goBackToSettings();
     };
 
