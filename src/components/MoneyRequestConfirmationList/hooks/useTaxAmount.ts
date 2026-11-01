@@ -1,4 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useOnyx from '@hooks/useOnyx';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -6,6 +7,7 @@ import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {calculateTaxAmount, getCategoryTaxCode, getDefaultTaxCode, getTaxValue, hasTaxRateWithMatchingValue} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 
@@ -60,6 +62,7 @@ function useTaxAmount({
     previousTransactionCurrency,
 }: UseTaxAmountParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const workspaceDefaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
@@ -73,13 +76,13 @@ function useTaxAmount({
     // default while a rule is active reads as "no selection" and the rule's rate is written straight back over it.
     const previousDefaultTaxCode = hasCurrencyChanged
         ? previousWorkspaceDefaultTaxCode
-        : (getCategoryTaxCode(category, transaction, policy, previousTransactionCurrency) ?? previousWorkspaceDefaultTaxCode);
+        : (getCategoryTaxCode(category, transaction, policy, rules, previousTransactionCurrency) ?? previousWorkspaceDefaultTaxCode);
     // A tax that was the old currency's workspace default keeps following that default, so it moves to the new
     // currency's one instead of being taken over by the category rule.
     const isFollowingWorkspaceDefault = hasCurrencyChanged && !!transaction?.taxCode && transaction.taxCode === previousWorkspaceDefaultTaxCode;
     // A category tax rule outranks the workspace default, so resolve it here as well. Otherwise this default overwrites
     // the rule's tax rate on the first render of the confirmation page.
-    const defaultTaxCode = isFollowingWorkspaceDefault ? workspaceDefaultTaxCode : (getCategoryTaxCode(category, transaction, policy) ?? workspaceDefaultTaxCode);
+    const defaultTaxCode = isFollowingWorkspaceDefault ? workspaceDefaultTaxCode : (getCategoryTaxCode(category, transaction, policy, rules) ?? workspaceDefaultTaxCode);
     const defaultTaxValue = getTaxValue(policy, transaction, defaultTaxCode) ?? null;
     const shouldKeepCurrentTaxSelection = hasTaxRateWithMatchingValue(policy, transaction) && transaction?.taxCode !== previousDefaultTaxCode;
 

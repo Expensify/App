@@ -580,6 +580,38 @@ function getCategoryExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | 
     return getPolicyExpenseDefaultRules(rulesCollection, policyID).filter(({rule}) => getExpenseDefaultConditionSummary(rule.filters).categories.includes(categoryName));
 }
 
+/**
+ * The tax rate a category's own expense default applies, or undefined when the category has none.
+ *
+ * Only a rule matching on the category alone counts. A rule that also matches on a merchant or a tag is narrower
+ * than the category, so taking its tax here would put that rate on expenses the rule never meant to reach.
+ *
+ * A rule pending delete is skipped, so an expense does not pick up a rate that is on its way out.
+ */
+function getCategoryOnlyExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): string | undefined {
+    if (!categoryName) {
+        return undefined;
+    }
+
+    for (const {rule} of getPolicyExpenseDefaultRules(rulesCollection, policyID)) {
+        if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+
+        const {merchants, categories, tags} = getExpenseDefaultConditionSummary(rule.filters);
+        if (merchants.length > 0 || tags.length > 0 || categories.length !== 1 || categories.at(0) !== categoryName) {
+            continue;
+        }
+
+        const taxID = getExpenseDefaultTaxID(rule);
+        if (taxID) {
+            return taxID;
+        }
+    }
+
+    return undefined;
+}
+
 /** The tax rate a rule applies, if it sets one. */
 function getExpenseDefaultTaxID(rule: Rule | ExpenseDefaultRule | undefined): string | undefined {
     for (const action of getRuleActions(rule)) {
@@ -692,6 +724,7 @@ export {
     canEditExpenseDefaultRule,
     getExpenseDefaultTaxID,
     getCategoryExpenseDefaultRules,
+    getCategoryOnlyExpenseDefaultTaxID,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,

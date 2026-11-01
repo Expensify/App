@@ -270,7 +270,7 @@ function updateMoneyRequestDate({
     if (shouldRecalculateRate) {
         const distanceRateTaxUpdates =
             !isTrackExpense && isTaxTrackingEnabled(true, effectivePolicy, true) && transaction
-                ? getDistanceRateTaxUpdates(effectivePolicy, transaction, newRateID, getCurrencyDecimals)
+                ? getDistanceRateTaxUpdates(effectivePolicy, transaction, newRateID, rules, getCurrencyDecimals)
                 : undefined;
 
         updateMoneyRequestDistanceRate({
