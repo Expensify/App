@@ -3222,11 +3222,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.border,
         },
 
-        borderTopHairline: {
-            borderTopWidth: 0.5,
-            borderColor: theme.border,
-        },
-
         borderBottomHovered: {
             borderBottomWidth: 1,
             borderColor: theme.buttonHoveredBG,
@@ -4674,13 +4669,6 @@ const staticStyles = (theme: ThemeColors) =>
             overflow: 'hidden',
             marginBottom: 20,
             marginHorizontal: layoutSpacing.pageGutter.wide,
-        },
-
-        // Tucked into the card's top right corner, where the composer below overlaps its lower edge.
-        conciergePromptBoxWideIllustration: {
-            position: 'absolute',
-            top: -12,
-            right: 20,
         },
 
         widgetContainer: {
@@ -7126,8 +7114,7 @@ const staticStyles = (theme: ThemeColors) =>
             zIndex: 10,
         },
 
-        // The flat navigation bar's rows are compact, so the dot's colored core drops from 8px to 6px. The stroke
-        // keeps its width, and the dot shrinks toward the icon's top-right corner rather than its own center.
+        // The dot sits on the icon's top-right corner, inset far enough that its stroke clears the row's edge.
         flatNavigationBarStatusIndicator: {
             right: -2,
             top: -3,

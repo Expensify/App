@@ -47,8 +47,8 @@ function getSearchSidebarWidth(progress: number) {
 }
 
 /**
- * The flat navigation bar shares this collapsed state, because it replaced the Spend sidebar that owned it.
- * Keeping one store means one peek state and one persisted flag, rather than two that can disagree.
+ * The flat navigation bar and the Search page share this collapsed state. One store means one peek state and one
+ * persisted flag, rather than two that can disagree.
  */
 function getFlatNavigationBarWidth(progress: number) {
     return variables.flatNavigationBarWidth + (variables.flatNavigationBarCollapsedWidth - variables.flatNavigationBarWidth) * progress;

@@ -449,8 +449,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         throw SyntaxError('debug.missingValue');
     }
     switch (key) {
-        case 'billID':
-        case 'invoiceID':
         case 'avatarUrl':
         case 'created':
         case 'submitted':
@@ -490,8 +488,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'withdrawalIDs':
             return validateString(value);
         case 'hasOutstandingChildRequest':
-        case 'isBillPayReport':
-        case 'isHiddenForBillReceiver':
         case 'hasOutstandingChildTask':
         case 'isOwnPolicyExpenseChat':
         case 'isPinned':
@@ -509,7 +505,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'exportFailedTime':
         case 'lastReadSequenceNumber':
         case 'managerID':
-        case 'billSenderAccountID':
         case 'lastActorAccountID':
         case 'ownerAccountID':
         case 'total':
@@ -632,11 +627,6 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
             return validateConstantEnum(value, CONST.RED_BRICK_ROAD_PENDING_ACTION);
         case 'pendingFields':
             return validateObject<ObjectElement<Report | ReportNameValuePairs, 'pendingFields'>>(value, {
-                billID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                invoiceID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                billSenderAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                isBillPayReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
-                isHiddenForBillReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 description: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 privateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,

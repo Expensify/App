@@ -43,21 +43,6 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 
 const translations = {
-    billPay: {
-        bills: 'Bills',
-        createBill: 'Create bill',
-        vendorEmail: 'Vendor email',
-        domain: 'Receiving domain',
-        invoiceDetails: 'Invoice details',
-        attachPDF: 'Attach PDF',
-        payByACH: 'Pay by ACH',
-        markAsPaid: 'Mark as paid',
-        paymentFailed: 'We couldn’t pay this bill. Please try again.',
-        createFailed: 'We couldn’t create this bill. Please try again.',
-        payBills: ({count}: {count: number}) => ({one: 'Pay 1 bill', other: `Pay ${count} bills`}),
-        primaryContactHint: (domain: string) =>
-            `The primary contact is the main point of contact for ${domain} and will receive bills sent to this domain's bill pay address ${domain}@expensify.cash`,
-    },
     bulkActionBar: {
         label: 'Bulk actions',
         clearSelection: 'Clear selection',
@@ -1282,6 +1267,8 @@ const translations = {
                 broomDescription: 'Tasks are clean, though stay tuned for more to-dos.',
                 houseTitle: 'All caught up',
                 houseDescription: 'This is your home base for upcoming to-dos.',
+                conciergeBotTitle: 'Nothing to show',
+                conciergeBotDescription: 'Beep boop beep boop, check back for more tasks!',
                 checkboxTextTitle: 'All caught up',
                 checkboxTextDescription: 'Check off your upcoming to-dos here.',
                 flashTitle: "You're done!",
@@ -1769,7 +1756,6 @@ const translations = {
         forwarded: (memo?: string) => `approved${memo ? `, saying ${memo}` : ''}`,
         rejectedThisReport: 'rejected',
         waitingOnBankAccount: (submitterDisplayName: string) => `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`,
-        waitingOnVendorBankAccount: (vendorDisplayName: string) => `started payment, but is waiting for ${vendorDisplayName} to add a bank account.`,
         adminCanceledRequest: 'canceled the payment',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `canceled the ${amount} payment, because ${submitterDisplayName} did not enable their Expensify Wallet within 30 days`,
@@ -10888,7 +10874,6 @@ const translations = {
             reports: 'Reports',
             allExpenses: 'All expenses',
             allReports: 'All reports',
-            allBills: 'All bills',
             myReports: 'My reports',
             myExpenses: 'My expenses',
             expenses: 'Expenses',

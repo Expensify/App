@@ -1,6 +1,5 @@
 import {act, render} from '@testing-library/react-native';
 
-import BillPaymentButton from '@components/BillPaymentButton';
 import PayActionCell from '@components/Search/SearchList/ListItem/ActionCell/PayActionCell';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
@@ -44,7 +43,6 @@ function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T
 // Capture the onPress (confirmPayment) handler PayActionCell passes to the settlement button so the payment can be
 // confirmed directly, mirroring a user picking "Pay as an individual > Mark as paid".
 const mockOnPressHolder: {current?: (params: PaymentActionParams) => void} = {current: undefined};
-jest.mock('@components/BillPaymentButton', () => ({__esModule: true, default: jest.fn(() => null)}));
 jest.mock('@components/SettlementButton', () => ({
     __esModule: true,
     default: (props: {onPress?: (params: PaymentActionParams) => void}) => {
@@ -148,7 +146,8 @@ describe('PayActionCell', () => {
         mockedUseOnyx.mockImplementation(() => createOnyxResult(undefined));
     });
 
-    it('offers the bill payment flow for an invoice with a parent room', () => {
+    it('calls payInvoice with the chatReport supplied as a prop (the flat `type:invoice columns:...` transaction row now resolves and passes it)', () => {
+        // Given an invoice report row whose invoice chat is resolved and passed down as a prop
         render(
             <PayActionCell
                 isLoading={false}
@@ -160,11 +159,26 @@ describe('PayActionCell', () => {
             />,
         );
 
-        expect(jest.mocked(BillPaymentButton)).toHaveBeenCalledWith(expect.objectContaining({report: invoiceReport, searchHash: TEST_HASH}), undefined);
-        expect(mockedPayInvoice).not.toHaveBeenCalled();
+        // When the user confirms the payment from the cell's settlement button
+        act(() => {
+            mockOnPressHolder.current?.({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                payAsBusiness: false,
+            });
+        });
+
+        // Then the invoice payment should use the supplied chat report because paying an invoice needs the real invoice chat data
+        expect(mockedPayInvoice).toHaveBeenCalledWith(
+            expect.objectContaining({
+                paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                chatReport,
+                invoiceReport,
+            }),
+        );
     });
 
-    it('offers the same bill payment flow without a parent room', () => {
+    it('does not call payInvoice when no chatReport prop is supplied', () => {
+        // Given an invoice report row whose invoice chat is not loaded (no chatReport prop)
         render(
             <PayActionCell
                 isLoading={false}
@@ -176,8 +190,17 @@ describe('PayActionCell', () => {
             />,
         );
 
-        expect(jest.mocked(BillPaymentButton)).toHaveBeenCalledWith(expect.objectContaining({report: invoiceReport, searchHash: TEST_HASH}), undefined);
+        // When the user confirms the payment from the cell's settlement button
+        act(() => {
+            mockOnPressHolder.current?.({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                payAsBusiness: false,
+            });
+        });
+
+        // Then no invoice payment should happen and the drop should be logged because a fallback chat report is not safe for invoices
         expect(mockedPayInvoice).not.toHaveBeenCalled();
+        expect(mockLogInfo).toHaveBeenCalledWith('[SearchPay] Dropping invoice row pay: chat report is not loaded', false, {reportID: TEST_INVOICE_REPORT_ID});
     });
 
     it('pays a money request with a fallback chat report when no chatReport prop is supplied', () => {

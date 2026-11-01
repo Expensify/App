@@ -207,7 +207,7 @@ function Search({
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [nonPersonalAndWorkspaceCards] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST);
 
-    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || type === CONST.SEARCH.DATA_TYPES.BILL;
+    const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const shouldReturnTripRooms = useShouldReturnTripRooms(type);
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
@@ -1560,14 +1560,9 @@ function Search({
     }
 
     // Transaction lists (expense, invoice, and trip without the TravelApproval beta) render through the flat or grouped view
-    // depending on groupBy; chat, expense-report, bill, task and trip rooms each have their own dedicated view. Every view
-    // composes BaseSearchList directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
-    const isTransactionListView =
-        type !== CONST.SEARCH.DATA_TYPES.CHAT &&
-        type !== CONST.SEARCH.DATA_TYPES.TASK &&
-        type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
-        type !== CONST.SEARCH.DATA_TYPES.BILL &&
-        !shouldReturnTripRooms;
+    // depending on groupBy; chat, expense-report, task and trip rooms each have their own dedicated view. Every view composes
+    // BaseSearchList directly, and the snapshot, lifecycle and selection providers stay here so the data layer runs once.
+    const isTransactionListView = type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && type !== CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT && !shouldReturnTripRooms;
 
     let searchTablePaddingRightStyle;
     if (!isTask) {

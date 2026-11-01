@@ -1,7 +1,6 @@
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
-import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -55,7 +54,6 @@ function DomainAdminsSettingsPage({route}: DomainAdminsSettingsPageProps) {
                     value={technicalContactSettings?.technicalContactEmail}
                 />
             </OfflineWithFeedback>
-            <Text style={[styles.ph5, styles.textSupporting]}>{translate('billPay.primaryContactHint', domainName ?? '')}</Text>
             <ToggleSettingOptionRow
                 wrapperStyle={[styles.mv3, styles.ph5]}
                 switchAccessibilityLabel={translate('domain.admins.consolidatedDomainBilling')}

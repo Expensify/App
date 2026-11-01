@@ -35,21 +35,6 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
-    billPay: {
-        bills: 'Factures à payer',
-        createBill: 'Créer une facture à payer',
-        vendorEmail: 'E-mail du fournisseur',
-        domain: 'Domaine destinataire',
-        invoiceDetails: 'Détails de la facture',
-        attachPDF: 'Joindre un PDF',
-        payByACH: 'Payer par ACH',
-        markAsPaid: 'Marquer comme payée',
-        paymentFailed: 'Nous n’avons pas pu payer cette facture. Veuillez réessayer.',
-        createFailed: 'Nous n’avons pas pu créer cette facture. Veuillez réessayer.',
-        payBills: ({count}) => ({one: 'Payer 1 facture', other: `Payer ${count} factures`}),
-        primaryContactHint: (domain) =>
-            `Le contact principal est l’interlocuteur de ${domain} et recevra les factures envoyées à l’adresse de paiement des factures du domaine ${domain}@expensify.cash.`,
-    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `${count} jour`,
@@ -1115,6 +1100,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Les tâches sont terminées, mais restez à l’affût de nouvelles tâches.',
                 houseTitle: 'Tout est à jour',
                 houseDescription: 'Voici votre base pour les prochaines tâches à faire.',
+                conciergeBotTitle: 'Rien à afficher',
+                conciergeBotDescription: 'Bip bop bip bop, revenez pour plus de tâches !',
                 checkboxTextTitle: 'Tout est à jour',
                 checkboxTextDescription: 'Cochez vos prochaines tâches à faire ici.',
                 flashTitle: 'C’est terminé !',
@@ -1631,7 +1618,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `approuvé${memo ? `, indiquant « ${memo} »` : ''}`,
         rejectedThisReport: 'rejeté',
         waitingOnBankAccount: (submitterDisplayName: string) => `a commencé le paiement, mais attend que ${submitterDisplayName} ajoute un compte bancaire personnel.`,
-        waitingOnVendorBankAccount: (vendorDisplayName: string) => `a commencé le paiement, mais attend que ${vendorDisplayName} ajoute un compte bancaire.`,
         adminCanceledRequest: 'a annulé le paiement',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `a annulé le paiement de ${amount}, car ${submitterDisplayName} n’a pas activé son Portefeuille Expensify dans un délai de 30 jours`,
@@ -11003,7 +10989,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             reports: 'Notes de frais',
             allExpenses: 'Toutes les dépenses',
             allReports: 'Toutes les notes de frais',
-            allBills: 'Toutes les factures',
             myReports: 'Mes notes de frais',
             myExpenses: 'Mes dépenses',
             expenses: 'Dépenses',

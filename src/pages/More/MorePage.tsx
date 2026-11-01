@@ -49,7 +49,6 @@ import {View} from 'react-native';
  */
 // TODO: placeholder destinations shown for design review only. They render as rows but go nowhere.
 const PLACEHOLDER_DESTINATIONS = [
-    {key: 'bills', title: 'Bills', description: 'Pay and track your bills.', iconName: 'Coins', illustrationName: 'Coins'},
     {key: 'invoices', title: 'Invoices', description: 'Send invoices and get paid.', iconName: 'InvoiceGeneric', illustrationName: 'InvoiceBlue'},
     {key: 'travel', title: 'Travel', description: 'Book and manage your trips.', iconName: 'LuggageWithLines', illustrationName: 'Luggage'},
 ] as const;

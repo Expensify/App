@@ -21,21 +21,6 @@ import type {CompanyCardBalanceParams} from './params';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
-    billPay: {
-        bills: 'Facturas por pagar',
-        createBill: 'Crear factura por pagar',
-        vendorEmail: 'Correo del proveedor',
-        domain: 'Dominio receptor',
-        invoiceDetails: 'Detalles de la factura',
-        attachPDF: 'Adjuntar PDF',
-        payByACH: 'Pagar por ACH',
-        markAsPaid: 'Marcar como pagada',
-        paymentFailed: 'No pudimos pagar esta factura. Inténtalo de nuevo.',
-        createFailed: 'No pudimos crear esta factura. Inténtalo de nuevo.',
-        payBills: ({count}) => ({one: 'Pagar 1 factura', other: `Pagar ${count} facturas`}),
-        primaryContactHint: (domain) =>
-            `El contacto principal es el punto de contacto de ${domain} y recibirá las facturas enviadas a la dirección de pago de facturas del dominio ${domain}@expensify.cash.`,
-    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 día`,
@@ -1124,6 +1109,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Las tareas están limpias, pero mantente atento a más tareas.',
                 houseTitle: 'Todo al día',
                 houseDescription: 'Esta es tu base para las próximas tareas.',
+                conciergeBotTitle: 'Nada que mostrar',
+                conciergeBotDescription: '¡Bip bup bip bup, vuelve a revisar para más tareas!',
                 checkboxTextTitle: 'Todo al día',
                 checkboxTextDescription: 'Marca tus próximas tareas aquí.',
                 flashTitle: '¡Has terminado!',
@@ -1618,7 +1605,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo) => `aprobó${memo ? `, dijo ${memo}` : ''}`,
         rejectedThisReport: 'rechazó',
         waitingOnBankAccount: (submitterDisplayName: string) => `inició el pago, pero está esperando a que ${submitterDisplayName} añada una cuenta bancaria personal.`,
-        waitingOnVendorBankAccount: (vendorDisplayName: string) => `inició el pago, pero está esperando a que ${vendorDisplayName} añada una cuenta bancaria.`,
         adminCanceledRequest: 'canceló el pago',
         canceledRequest: (amount, submitterDisplayName) => `canceló el pago  ${amount}, porque ${submitterDisplayName} no habilitó tu Billetera Expensify en un plazo de 30 días.`,
         settledAfterAddedBankAccount: (submitterDisplayName, amount) => `${submitterDisplayName} añadió una cuenta bancaria. El pago de ${amount} se ha realizado.`,
@@ -10483,7 +10469,6 @@ ${reportName}`,
             reports: 'Informes',
             allExpenses: 'Todos los gastos',
             allReports: 'Todos los informes',
-            allBills: 'Todas las facturas',
             myReports: 'Mis informes',
             myExpenses: 'Mis gastos',
             expenses: 'Gastos',

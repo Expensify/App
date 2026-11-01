@@ -1,4 +1,3 @@
-import BillPaymentButton from '@components/BillPaymentButton';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
@@ -165,10 +164,6 @@ function PayActionButton() {
             }
         }
     };
-
-    if (iouReport?.type === CONST.REPORT.TYPE.BILL || isInvoiceReportUtils(iouReport)) {
-        return <BillPaymentButton report={iouReport} />;
-    }
 
     return (
         <AnimatedSettlementButton

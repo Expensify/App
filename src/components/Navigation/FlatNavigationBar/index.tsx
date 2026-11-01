@@ -40,7 +40,7 @@ import navigationRef from '@libs/Navigation/navigationRef';
 import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
 import type {SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {formatBadgeText, getItemBadgeText, getLastSearchQuery, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
-import {ACCOUNTING_KEYS, BILLS_KEYS, EXPENSES_KEYS, getGroupedSearchTranslationPath, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
+import {ACCOUNTING_KEYS, EXPENSES_KEYS, getGroupedSearchTranslationPath, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
 import {requestNewConciergeQuestion} from '@pages/AskConcierge/NewQuestionStore';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
@@ -120,7 +120,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const {currentSearchKey} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {counts: reportCounts} = useTodoCounts();
-    const {expenses, reports, bills, accounting} = useFlatNavSpendItems();
+    const {expenses, reports, accounting} = useFlatNavSpendItems();
     const savedSearchItems = useFlatNavSavedSearchItems();
 
     const [searchFilters] = useOnyx(ONYXKEYS.SEARCH_FILTERS);
@@ -148,7 +148,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const isSpendTabSelected = selectedTab === NAVIGATION_TABS.SEARCH;
     const isExpensesGroupSelected = isSpendTabSelected && EXPENSES_KEYS.some((key) => key === currentSearchKey);
     const isReportsGroupSelected = isSpendTabSelected && REPORTS_KEYS.some((key) => key === currentSearchKey);
-    const isBillsGroupSelected = isSpendTabSelected && BILLS_KEYS.some((key) => key === currentSearchKey);
     const isAccountingGroupSelected = isSpendTabSelected && ACCOUNTING_KEYS.some((key) => key === currentSearchKey);
     const isAccountSelected = selectedTab === NAVIGATION_TABS.SETTINGS;
     const isSavedGroupSelected = isSpendTabSelected && !!currentSearchKey?.startsWith(CONST.SEARCH.SAVED_SEARCH_PREFIX);
@@ -158,14 +157,11 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const expensesChildren = expenses.filter((item) => item.key !== CONST.SEARCH.SEARCH_KEYS.EXPENSES);
     const reportsRoot = reports.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.REPORTS);
     const reportsChildren = reports.filter((item) => item.key !== CONST.SEARCH.SEARCH_KEYS.REPORTS);
-    const billsRoot = bills.find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.BILLS);
-    const billsChildren = bills.filter((item) => item.key !== CONST.SEARCH.SEARCH_KEYS.BILLS);
 
     // A collapsed bar hides every group's children, so a selected group is only expanded while the bar is open.
     // The badge follows the same rule: with its children hidden, the group has to carry their combined count again.
     const isExpensesGroupExpanded = isExpensesGroupSelected && !isVisuallyCollapsed && expensesChildren.length > 0;
     const isReportsGroupExpanded = isReportsGroupSelected && !isVisuallyCollapsed && reportsChildren.length > 0;
-    const isBillsGroupExpanded = isBillsGroupSelected && !isVisuallyCollapsed && billsChildren.length > 0;
     const isAccountingGroupExpanded = isAccountingGroupSelected && !isVisuallyCollapsed;
     const isSavedGroupExpanded = isSavedGroupSelected && !isVisuallyCollapsed;
     // A saved search pending deletion still shows until the server confirms, matching the Spend page's own list.
@@ -409,34 +405,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                                 selectedIndex={reportsChildren.findIndex((item) => item.key === currentSearchKey)}
                                             >
                                                 {reportsChildren.map((item, index) => renderSearchItem(item, true, index, reportsChildren.length))}
-                                            </FlatNavSubItemList>
-                                        )}
-                                    </>
-                                )}
-
-                                {bills.length > 0 && (
-                                    <>
-                                        <FlatNavItem
-                                            isCollapsed={isVisuallyCollapsed}
-                                            label={translate('billPay.bills')}
-                                            icon={navIcons.InvoiceGeneric}
-                                            isSelected={isSpendTabSelected && currentSearchKey === CONST.SEARCH.SEARCH_KEYS.BILLS}
-                                            badgeText={getParentBadgeText(bills, billsRoot, isBillsGroupExpanded)}
-                                            hasCollapsedStatusIndicator={hasGroupBadge(bills)}
-                                            onPress={() => {
-                                                if (!billsRoot) {
-                                                    navigateToSpendRoot();
-                                                    return;
-                                                }
-                                                navigateToSearchItem(billsRoot);
-                                            }}
-                                        />
-                                        {isBillsGroupSelected && billsChildren.length > 0 && (
-                                            <FlatNavSubItemList
-                                                isExpanded={isBillsGroupExpanded}
-                                                selectedIndex={billsChildren.findIndex((item) => item.key === currentSearchKey)}
-                                            >
-                                                {billsChildren.map((item, index) => renderSearchItem(item, true, index, billsChildren.length))}
                                             </FlatNavSubItemList>
                                         )}
                                     </>

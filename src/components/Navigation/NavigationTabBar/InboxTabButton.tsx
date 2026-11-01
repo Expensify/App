@@ -27,9 +27,8 @@ type WideInboxTabButtonProps = {
     accessibilityLabel: string;
 };
 
-// The last-viewed report deep link only exists in the wide layout, so the report and report-action
-// Onyx subscriptions live in the hook and are only created when the wide layout is rendered. In the
-// narrow layout tapping Inbox always routes to ROUTES.INBOX, so these subscriptions are never set up.
+// The report and report-action Onyx subscriptions live in the hook, so they are only created when the wide
+// layout renders. In the narrow layout tapping Inbox always routes to ROUTES.INBOX and needs neither.
 function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLabel}: WideInboxTabButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

@@ -116,7 +116,7 @@ function GroupHeader({
     const isVendorColumnAvailable = useIsVendorColumnAvailable();
 
     const groupItem = item;
-    const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || searchType === CONST.SEARCH.DATA_TYPES.BILL;
+    const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const oneTransactionItem = groupItem.isOneTransactionReport ? groupItem.transactions.at(0) : undefined;
     const oneTransactionReportID = getNonEmptyStringOnyxID(oneTransactionItem?.reportID);

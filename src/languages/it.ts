@@ -35,21 +35,6 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
-    billPay: {
-        bills: 'Fatture da pagare',
-        createBill: 'Crea fattura da pagare',
-        vendorEmail: 'Email del fornitore',
-        domain: 'Dominio destinatario',
-        invoiceDetails: 'Dettagli della fattura',
-        attachPDF: 'Allega PDF',
-        payByACH: 'Paga tramite ACH',
-        markAsPaid: 'Segna come pagata',
-        paymentFailed: 'Non è stato possibile pagare questa fattura. Riprova.',
-        createFailed: 'Non è stato possibile creare questa fattura. Riprova.',
-        payBills: ({count}) => ({one: 'Paga 1 fattura', other: `Paga ${count} fatture`}),
-        primaryContactHint: (domain) =>
-            `Il contatto principale è il referente di ${domain} e riceverà le fatture inviate all’indirizzo per il pagamento delle fatture del dominio ${domain}@expensify.cash.`,
-    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 giorno`,
@@ -1114,6 +1099,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Le attività sono a posto, ma resta in attesa di altre cose da fare.',
                 houseTitle: 'Tutto a posto',
                 houseDescription: 'Questa è la tua base per le prossime cose da fare.',
+                conciergeBotTitle: 'Niente da mostrare',
+                conciergeBotDescription: 'Beep boop beep boop, ricontrolla per altre attività!',
                 checkboxTextTitle: 'Tutto a posto',
                 checkboxTextDescription: 'Spunta qui le tue prossime cose da fare.',
                 flashTitle: 'Hai finito!',
@@ -1622,7 +1609,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `approvato${memo ? `, con nota: ${memo}` : ''}`,
         rejectedThisReport: 'rifiutato',
         waitingOnBankAccount: (submitterDisplayName: string) => `ha avviato il pagamento, ma sta aspettando che ${submitterDisplayName} aggiunga un conto bancario personale.`,
-        waitingOnVendorBankAccount: (vendorDisplayName: string) => `ha avviato il pagamento, ma sta aspettando che ${vendorDisplayName} aggiunga un conto bancario.`,
         adminCanceledRequest: 'ha annullato il pagamento',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `ha annullato il pagamento di ${amount}, perché ${submitterDisplayName} non ha abilitato il proprio Expensify Wallet entro 30 giorni`,
@@ -10928,7 +10914,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             reports: 'Report',
             allExpenses: 'Tutte le spese',
             allReports: 'Tutti i report',
-            allBills: 'Tutte le fatture',
             myReports: 'I miei report',
             myExpenses: 'Le mie spese',
             expenses: 'Spese',

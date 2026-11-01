@@ -35,20 +35,6 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
-    billPay: {
-        bills: '支払請求書',
-        createBill: '支払請求書を作成',
-        vendorEmail: '取引先のメールアドレス',
-        domain: '受信ドメイン',
-        invoiceDetails: '請求書の詳細',
-        attachPDF: 'PDFを添付',
-        payByACH: 'ACHで支払う',
-        markAsPaid: '支払済みにする',
-        paymentFailed: 'この請求書を支払えませんでした。もう一度お試しください。',
-        createFailed: 'この請求書を作成できませんでした。もう一度お試しください。',
-        payBills: ({count}) => ({one: '1件の請求書を支払う', other: `${count}件の請求書を支払う`}),
-        primaryContactHint: (domain) => `主な連絡先は${domain}の窓口となり、このドメインの請求書支払い用アドレス${domain}@expensify.cashに送信された請求書を受け取ります。`,
-    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 日`,
@@ -1101,6 +1087,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'タスクは順調です。新しい To-do をお楽しみに。',
                 houseTitle: 'すべて確認済みです',
                 houseDescription: 'ここが今後のやることのホームベースです。',
+                conciergeBotTitle: '表示するものがありません',
+                conciergeBotDescription: 'ピッピッ、ブッブッ。次のタスクをまた確認してください！',
                 checkboxTextTitle: 'すべて確認済みです',
                 checkboxTextDescription: 'ここで今後のやることにチェックを付けましょう。',
                 flashTitle: '完了しました！',
@@ -1607,7 +1595,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `承認済み${memo ? `、メモ: ${memo}` : ''}`,
         rejectedThisReport: '却下しました',
         waitingOnBankAccount: (submitterDisplayName: string) => `支払いを開始しましたが、${submitterDisplayName} が個人の銀行口座を追加するのを待っています。`,
-        waitingOnVendorBankAccount: (vendorDisplayName: string) => `支払いを開始しましたが、${vendorDisplayName} が銀行口座を追加するのを待っています。`,
         adminCanceledRequest: '支払いをキャンセルしました',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${submitterDisplayName} が30日以内に Expensify Wallet を有効化しなかったため、${amount} の支払いをキャンセルしました`,
@@ -10761,7 +10748,6 @@ ${reportName}`,
             reports: 'レポート',
             allExpenses: 'すべての経費',
             allReports: 'すべてのレポート',
-            allBills: 'すべての請求書',
             myReports: '自分のレポート',
             myExpenses: '自分の経費',
             expenses: '経費',

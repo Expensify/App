@@ -37,7 +37,7 @@ function GroupChildrenContent({
     const {isOffline} = useNetwork();
 
     const groupItem = item;
-    const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || searchType === CONST.SEARCH.DATA_TYPES.BILL;
+    const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState<number>(CONST.TRANSACTION.RESULTS_PAGE_SIZE);

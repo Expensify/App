@@ -11,7 +11,6 @@ import {defaultExpensifyCardSelector} from '@selectors/Card';
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useEffect, useState} from 'react';
 
-import useBillPayCounts from './useBillPayCounts';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCreateEmptyReportConfirmation from './useCreateEmptyReportConfirmation';
 import useHasOthersExpenses from './useHasOthersExpenses';
@@ -61,7 +60,6 @@ const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
  * reliably, so this hook never depends on a navigation context itself.
  */
 const useSearchTypeMenuSections = (isScreenFocused = true) => {
-    const {hasBills} = useBillPayCounts();
     const [defaultExpensifyCard] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: defaultExpensifyCardSelector});
 
     const {defaultCardFeed, cardFeedsByPolicy, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
@@ -123,7 +121,6 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
         isTrackIntentUser: isTrackIntentUser ?? false,
         hasReportAwaitingApproval,
         hasOthersExpenses,
-        hasBills,
         policyCategories: allPolicyCategories,
     });
 

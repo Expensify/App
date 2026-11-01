@@ -24,7 +24,6 @@ import {accountIDSelector} from '@src/selectors/Session';
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 
-import ConciergeCloudsBackdrop from './ConciergeCloudsBackdrop';
 import ConciergePromptBox from './ConciergePromptBox';
 import ForYouBody from './ForYouBody';
 import shouldHideForYouSection from './shouldHideForYouSection';
@@ -60,7 +59,6 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
     const submitCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
     const approveCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.APPROVE];
     const payCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.PAY];
-    const billPayCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.BILLS_PAY] ?? 0;
     const exportCount = reportCounts[CONST.SEARCH.SEARCH_KEYS.EXPORT];
 
     const navigateToReport = (reportID: string) => {
@@ -142,13 +140,6 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
             ),
         },
         {
-            key: 'billsPay',
-            count: billPayCount,
-            icon: icons.MoneyBag,
-            translationKey: 'billPay.payBills' as const,
-            handler: createNavigationHandler(CONST.SEARCH.ACTION_FILTERS.PAY, {type: CONST.SEARCH.DATA_TYPES.BILL, payer: accountID?.toString()}, CONST.SEARCH.SEARCH_KEYS.BILLS_PAY),
-        },
-        {
             key: 'reviewDomainAdminRequests',
             count: domainAdminRequestsCount,
             icon: icons.UserShield,
@@ -194,9 +185,8 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
 
     const visibleForYouRows = hideForYou ? [] : forYouRows;
 
-    // The empty state stands in for the to-dos only when both groups are empty. Narrow layouts leave the card as
-    // just the Concierge box instead, since there the card is the whole screen rather than one column of it.
-    const showEmptyState = !hideForYou && !shouldUseNarrowLayout && visibleForYouRows.length === 0 && timeSensitiveItems.length === 0;
+    // The empty state stands in for the to-dos only when both groups are empty.
+    const showEmptyState = !hideForYou && visibleForYouRows.length === 0 && timeSensitiveItems.length === 0;
 
     // Nothing but the Concierge box renders when the body is empty, which is the only case that needs the tighter
     // bottom padding.
@@ -205,14 +195,12 @@ function ForYouSection({isInitialLoad, isConciergeMenuVisible, setIsConciergeMen
     // The card always renders so the Concierge input stays on the home page.
     return (
         <WidgetContainer
-            backgroundContent={<ConciergeCloudsBackdrop />}
             containerStyles={hasBodyContent ? undefined : [styles.pb3]}
             titleContent={
                 <ConciergePromptBox
                     isMenuVisible={isConciergeMenuVisible}
                     setIsMenuVisible={setIsConciergeMenuVisible}
                     isCopyLoading={isInitialLoad}
-                    isEmptyStateShowing={showEmptyState}
                 />
             }
         >

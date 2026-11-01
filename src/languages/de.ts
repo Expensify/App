@@ -35,21 +35,6 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
-    billPay: {
-        bills: 'Eingangsrechnungen',
-        createBill: 'Eingangsrechnung erstellen',
-        vendorEmail: 'E-Mail des Lieferanten',
-        domain: 'Empfangende Domain',
-        invoiceDetails: 'Rechnungsdetails',
-        attachPDF: 'PDF anhängen',
-        payByACH: 'Per ACH bezahlen',
-        markAsPaid: 'Als bezahlt markieren',
-        paymentFailed: 'Diese Rechnung konnte nicht bezahlt werden. Bitte versuche es erneut.',
-        createFailed: 'Diese Rechnung konnte nicht erstellt werden. Bitte versuche es erneut.',
-        payBills: ({count}) => ({one: '1 Rechnung bezahlen', other: `${count} Rechnungen bezahlen`}),
-        primaryContactHint: (domain) =>
-            `Der Hauptkontakt ist die zentrale Kontaktperson für ${domain} und erhält Rechnungen, die an die Rechnungsadresse dieser Domain ${domain}@expensify.cash gesendet werden.`,
-    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 Tag`,
@@ -1114,6 +1099,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: 'Aufgaben sind erledigt, bleiben Sie aber gespannt auf weitere To-dos.',
                 houseTitle: 'Alles erledigt',
                 houseDescription: 'Hier ist Ihre Zentrale für anstehende Aufgaben.',
+                conciergeBotTitle: 'Nichts anzuzeigen',
+                conciergeBotDescription: 'Biep biep biep biep, schauen Sie später nach weiteren Aufgaben!',
                 checkboxTextTitle: 'Alles erledigt',
                 checkboxTextDescription: 'Haken Sie hier Ihre anstehenden Aufgaben ab.',
                 flashTitle: 'Sie sind fertig!',
@@ -1625,7 +1612,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `genehmigt${memo ? `, mit dem Vermerk ${memo}` : ''}`,
         rejectedThisReport: 'abgelehnt',
         waitingOnBankAccount: (submitterDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${submitterDisplayName} ein persönliches Bankkonto hinzufügt.`,
-        waitingOnVendorBankAccount: (vendorDisplayName: string) => `hat die Zahlung gestartet, wartet aber darauf, dass ${vendorDisplayName} ein Bankkonto hinzufügt.`,
         adminCanceledRequest: 'hat die Zahlung storniert',
         canceledRequest: (amount: string, submitterDisplayName: string) =>
             `${amount} Zahlung storniert, weil ${submitterDisplayName} ihr Expensify Wallet nicht innerhalb von 30 Tagen aktiviert hat`,
@@ -10976,7 +10962,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             reports: 'Berichte',
             allExpenses: 'Alle Ausgaben',
             allReports: 'Alle Berichte',
-            allBills: 'Alle Rechnungen',
             myReports: 'Meine Berichte',
             myExpenses: 'Meine Ausgaben',
             expenses: 'Ausgaben',

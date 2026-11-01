@@ -69,11 +69,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
     const viewOptions = getViewOptions(translate);
     const view = viewOptions.find((option) => option.value === queryJSON.view) ?? viewOptions.at(0);
     const shouldShowColumnsButton =
-        isLargeScreenWidth &&
-        (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE ||
-            queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ||
-            queryJSON.type === CONST.SEARCH.DATA_TYPES.BILL ||
-            shouldReturnTripRooms);
+        isLargeScreenWidth && (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE || queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT || shouldReturnTripRooms);
 
     const limitValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT];
 

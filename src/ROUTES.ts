@@ -2326,7 +2326,6 @@ const DYNAMIC_ROUTES = {
 } as const satisfies DynamicRoutes;
 
 const ROUTES = {
-    CREATE_BILL: 'create-bill',
     ...PUBLIC_SCREENS_ROUTES,
     // This route renders the list of reports.
     INBOX: 'inbox',

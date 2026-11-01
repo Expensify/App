@@ -149,8 +149,6 @@ describe('useTodoCounts', () => {
         const {result} = await renderTodoCounts();
 
         expect(result.current.counts).toEqual({
-            [CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]: 0,
-            [CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]: 0,
             [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: 0,
             [CONST.SEARCH.SEARCH_KEYS.APPROVE]: 0,
             [CONST.SEARCH.SEARCH_KEYS.PAY]: 0,

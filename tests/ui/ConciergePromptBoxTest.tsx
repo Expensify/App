@@ -184,14 +184,13 @@ const mockClose = jest.mocked(close);
 const mockIsAnonymousUser = jest.mocked(isAnonymousUser);
 const mockSignOutAndRedirectToSignIn = jest.mocked(signOutAndRedirectToSignIn);
 
-function ConciergePromptBoxWrapper({isCopyLoading = false, isEmptyStateShowing = false}: {isCopyLoading?: boolean; isEmptyStateShowing?: boolean} = {}) {
+function ConciergePromptBoxWrapper({isCopyLoading = false}: {isCopyLoading?: boolean} = {}) {
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     return (
         <ConciergePromptBox
             isMenuVisible={isMenuVisible}
             setIsMenuVisible={setIsMenuVisible}
             isCopyLoading={isCopyLoading}
-            isEmptyStateShowing={isEmptyStateShowing}
         />
     );
 }

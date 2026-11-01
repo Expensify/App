@@ -35,20 +35,6 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
-    billPay: {
-        bills: '账单',
-        createBill: '创建账单',
-        vendorEmail: '供应商邮箱',
-        domain: '接收域名',
-        invoiceDetails: '发票详情',
-        attachPDF: '附加 PDF',
-        payByACH: '通过 ACH 支付',
-        markAsPaid: '标记为已支付',
-        paymentFailed: '无法支付此账单。请重试。',
-        createFailed: '无法创建此账单。请重试。',
-        payBills: ({count}) => ({one: '支付 1 笔账单', other: `支付 ${count} 笔账单`}),
-        primaryContactHint: (domain) => `主要联系人是 ${domain} 的主要联络人，并将收到发送至此域名账单支付地址 ${domain}@expensify.cash 的账单。`,
-    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 天`,
@@ -1075,6 +1061,8 @@ const translations: TranslationDeepObject<typeof en> = {
                 broomDescription: '任务已清理完毕，但请留意更多待办事项。',
                 houseTitle: '全部完成',
                 houseDescription: '这里是你即将处理的待办事项的大本营。',
+                conciergeBotTitle: '暂无内容展示',
+                conciergeBotDescription: '哔哔啵啵，稍后再来查看更多任务！',
                 checkboxTextTitle: '全部完成',
                 checkboxTextDescription: '在这里勾选完成你即将要做的事项。',
                 flashTitle: '你已完成！',
@@ -1566,7 +1554,6 @@ const translations: TranslationDeepObject<typeof en> = {
         forwarded: (memo?: string) => `已批准${memo ? `，备注为 ${memo}` : ''}`,
         rejectedThisReport: '已拒绝',
         waitingOnBankAccount: (submitterDisplayName: string) => `已开始付款，但正在等待 ${submitterDisplayName} 添加个人银行账户。`,
-        waitingOnVendorBankAccount: (vendorDisplayName: string) => `已开始付款，但正在等待 ${vendorDisplayName} 添加银行账户。`,
         adminCanceledRequest: '已取消付款',
         canceledRequest: (amount: string, submitterDisplayName: string) => `已取消金额为 ${amount} 的付款，因为 ${submitterDisplayName} 未在 30 天内启用其 Expensify 钱包`,
         settledAfterAddedBankAccount: (submitterDisplayName: string, amount: string) => `${submitterDisplayName} 已添加了一个银行账户。已完成 ${amount} 付款。`,
@@ -10492,7 +10479,6 @@ ${reportName}`,
             reports: '报表',
             allExpenses: '所有报销费用',
             allReports: '所有报表',
-            allBills: '所有账单',
             myReports: '我的报表',
             myExpenses: '我的报销费用',
             expenses: '报销费用',

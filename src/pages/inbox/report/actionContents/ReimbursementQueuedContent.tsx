@@ -10,7 +10,7 @@ import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
-import {getIndicatedMissingPaymentMethod, getQueuedPaymentPayeeAccountID, getReimbursementQueuedMessageKey, isChatThread} from '@libs/ReportUtils';
+import {getIndicatedMissingPaymentMethod, isChatThread} from '@libs/ReportUtils';
 
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
 
@@ -48,12 +48,12 @@ function ReimbursementQueuedContent({action, report, iouReport}: ReimbursementQu
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const targetReport = isChatThread(report) ? parentReport : report;
-    const [payeeDisplayName = ''] = usePersonalDetail(getQueuedPaymentPayeeAccountID(targetReport), displayNameOrDefaultSelector(translate, formatPhoneNumber));
+    const [submitterDisplayName = ''] = usePersonalDetail(targetReport?.ownerAccountID, displayNameOrDefaultSelector(translate, formatPhoneNumber));
     const paymentType = getOriginalMessage(action)?.paymentType ?? '';
     const missingPaymentMethod = getIndicatedMissingPaymentMethod(userWalletTierName, targetReport?.reportID, action, bankAccountList);
 
     return (
-        <ReportActionItemBasicMessage message={translate(getReimbursementQueuedMessageKey(targetReport, paymentType), payeeDisplayName ?? '')}>
+        <ReportActionItemBasicMessage message={translate(paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? 'iou.waitingOnEnabledWallet' : 'iou.waitingOnBankAccount', submitterDisplayName)}>
             <>
                 {missingPaymentMethod === CONST.MISSING_PAYMENT_METHODS.BANK_ACCOUNT && (
                     <ActionableItemButtons layout="horizontal">

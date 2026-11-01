@@ -46,9 +46,6 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         withdrawalIDs: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
-        billSenderAccountID: unknown;
-        isBillPayReport: unknown;
-        isHiddenForBillReceiver: unknown;
         parentReportID: unknown;
         parentReportActionID: unknown;
         managerID: unknown;
