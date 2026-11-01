@@ -8,7 +8,7 @@ import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import {setupHadTabNavigation} from '@libs/hadTabNavigation';
 import Log from '@libs/Log';
 import {cancelSkipNextFocusRestore, skipNextFocusRestore} from '@libs/NavigationFocusReturn';
-import {shallowCompare} from '@libs/ObjectUtils';
+import {filterObject, shallowCompare} from '@libs/ObjectUtils';
 import {holdPendingSearchWriteFlush, releasePendingSearchWriteFlush} from '@libs/pendingSearchWrite';
 import {getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -367,9 +367,10 @@ const routeParamsIgnore = ['path', 'initial', 'params', 'state', 'screen', 'poli
 /**
  * @private
  * If we use destructuring, we will get an error if any of the ignored properties are not present in the object.
+ * Empty-string params are dropped because they produce the same URL as a missing param, e.g. a cleared `reportActionID`.
  */
 function getRouteParamsToCompare(routeParams: Record<string, string | undefined>) {
-    return omit(routeParams, routeParamsIgnore);
+    return filterObject(omit(routeParams, routeParamsIgnore), (_key, value) => value !== '');
 }
 
 /**
