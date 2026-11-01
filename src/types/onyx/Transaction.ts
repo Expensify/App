@@ -612,6 +612,9 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The iouReportID associated with the transaction */
         reportID: string | undefined;
 
+        /** Only set by the server; missing on optimistic transactions. Prefer the parent report's policyID */
+        policyID?: string;
+
         /**
          * The report a failed reject was attempted from.
          */

@@ -14656,6 +14656,17 @@ describe('SearchUIUtils', () => {
             expect(transaction.amount).toBe(transactionListItem.amount);
             expect(transaction.merchant).toBe(transactionListItem.merchant);
         });
+
+        it('keeps the policyID, since the server sends it on the transaction too', () => {
+            // Given a Search row whose transaction belongs to a workspace
+            const transactionListItem = {...getTransactionListItem(0), policyID: 'ABC123'};
+
+            // When it is turned back into a transaction
+            const transaction = getTransactionFromTransactionListItem(transactionListItem);
+
+            // Then the policyID stays, so the transactions collection doesn't lose the workspace
+            expect(transaction.policyID).toBe('ABC123');
+        });
     });
 
     describe('getSearchBulkEditPolicyID', () => {

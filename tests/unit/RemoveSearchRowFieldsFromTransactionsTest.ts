@@ -75,6 +75,20 @@ describe('RemoveSearchRowFieldsFromTransactions', () => {
         mergeCollectionSpy.mockRestore();
     });
 
+    it('keeps the policyID the server sends on a transaction', async () => {
+        // Given a cached transaction with the policyID the server sends, next to a leaked Search row field
+        const transactionFromServer: Transaction = {...baseTransaction, policyID: 'ABC123'};
+        await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, {...transactionFromServer, formattedMerchant: 'Original merchant'} as Transaction);
+
+        // When the migration runs at startup
+        await RemoveSearchRowFieldsFromTransactions();
+        await waitForBatchedUpdates();
+
+        // Then only the Search row field is removed, so the transaction doesn't lose its workspace on every launch
+        const transaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}1`);
+        expect(transaction).toEqual(transactionFromServer);
+    });
+
     it('leaves clean transactions alone', async () => {
         // Given a transaction without any Search row fields
         await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, baseTransaction);

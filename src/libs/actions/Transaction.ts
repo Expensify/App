@@ -1187,6 +1187,8 @@ function getChangeTransactionsReportOnyxData({
                 // Callers can pass Search row items, whose display-only fields must not be saved on the real transaction
                 ...getTransactionFromTransactionListItem(transaction),
                 reportID,
+                // The spread carries the source workspace, so point the transaction at the destination one
+                policyID: isUnreporting || !newReport ? null : newReport.policyID,
                 comment,
                 originalAmount: shouldCopyOriginalAmount ? transaction.originalAmount : null,
                 originalCurrency: shouldCopyOriginalCurrency ? transaction.originalCurrency : null,
@@ -1211,6 +1213,7 @@ function getChangeTransactionsReportOnyxData({
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
                 reportID: transaction.reportID,
+                policyID: transaction.policyID ?? null,
                 comment: transaction.comment,
                 originalAmount: transaction.originalAmount,
                 originalCurrency: transaction.originalCurrency,
