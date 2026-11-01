@@ -44,8 +44,8 @@ type ChartTooltipProps = {
     /** Updates the hovered point after the chart is moved in the window (e.g. via scroll) by the given offset */
     onChartMoved?: (deltaX: number, deltaY: number) => void;
 
-    /** Hides a tooltip pinned by a touch tap, passed only while it is pinned */
-    onDismiss?: () => void;
+    /** Hides the tooltip */
+    onDismiss: () => void;
 
     /** Identifies the item the content belongs to, so the content is mounted again and laid out on each change of the item */
     contentKey?: number;
@@ -100,9 +100,9 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
 
     const isFocused = useIsFocused();
 
-    // A pinned tooltip is registered for the screen's touch start to hide it
+    // The tooltip is hidden when the screen loses focus or when the screen is touched
     useEffect(() => {
-        if (!isShown || !onDismiss) {
+        if (!isShown) {
             return;
         }
 
@@ -115,13 +115,13 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
     }, [isShown, isFocused, onDismiss]);
 
     const dismissOnWindowResize = useEffectEvent(() => {
-        if (!isShown || !onDismiss) {
+        if (!isShown) {
             return;
         }
         onDismiss();
     });
 
-    // A pinned tooltip is hidden when the window is resized (e.g. on rotation)
+    // The tooltip is hidden when the window is resized (e.g. on rotation)
     useEffect(() => {
         dismissOnWindowResize();
     }, [windowWidth, windowHeight]);
@@ -176,21 +176,23 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
                 isShown={isShown}
                 onOriginChange={handleOriginChange}
             />
-            <ChartTooltipPortal>
-                <Animated.View
-                    style={[styles.chartTooltipLayer, tooltipStyle]}
-                    pointerEvents="none"
-                >
-                    <View
-                        key={contentKey}
-                        style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}
-                        onLayout={handleContentLayout}
+            {isFocused && (
+                <ChartTooltipPortal>
+                    <Animated.View
+                        style={[styles.chartTooltipLayer, tooltipStyle]}
+                        pointerEvents="none"
                     >
-                        <Text style={styles.chartTooltipTitle}>{label}</Text>
-                        {children}
-                    </View>
-                </Animated.View>
-            </ChartTooltipPortal>
+                        <View
+                            key={contentKey}
+                            style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}
+                            onLayout={handleContentLayout}
+                        >
+                            <Text style={styles.chartTooltipTitle}>{label}</Text>
+                            {children}
+                        </View>
+                    </Animated.View>
+                </ChartTooltipPortal>
+            )}
         </>
     );
 }

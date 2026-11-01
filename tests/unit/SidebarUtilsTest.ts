@@ -1755,6 +1755,72 @@ describe('SidebarUtils', () => {
             expect(result?.isUnread).toBe(true);
         });
 
+        it('builds the thread row avatar from the parent report action passed by the caller', async () => {
+            // Given a chat thread whose parent action in Onyx was posted by one user, while the LHN row resolved
+            // that same action from its own subscription as posted by another user
+            const parentReportID = '7102';
+            const parentReportActionID = '7103';
+            const report: Report = {
+                ...createRandomReport(7104, undefined),
+                type: CONST.REPORT.TYPE.CHAT,
+                parentReportID,
+                parentReportActionID,
+                participants: {
+                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: 'always'},
+                    3: {notificationPreference: 'always'},
+                },
+            };
+            const buildParentReportAction = (actorAccountID: number): ReportAction => ({
+                ...createRandomReportAction(Number(parentReportActionID)),
+                reportID: parentReportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                actorAccountID,
+                originalMessage: {html: '<p>hi</p>', lastModified: '2025-01-20 12:30:03.784'},
+                message: [{type: 'COMMENT', html: '<p>hi</p>', text: 'hi'}],
+            });
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {...createRandomReport(Number(parentReportID), undefined), type: CONST.REPORT.TYPE.CHAT});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: buildParentReportAction(4)});
+            });
+
+            // When the LHN option data is built with the parent report action the row subscribed to
+            const result = SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
+                report,
+                reportAttributes: {
+                    reportName: '',
+                    isEmpty: false,
+                    brickRoadStatus: undefined,
+                    requiresAttention: false,
+                    reportErrors: {},
+                },
+                reportNameValuePairs: {},
+                personalDetails: LHNTestUtils.fakePersonalDetails,
+                policy: undefined,
+                invoiceReceiverPolicy: undefined,
+                parentReportAction: buildParentReportAction(3),
+                conciergeReportID: '',
+                oneTransactionThreadReport: undefined,
+                card: undefined,
+                translate: translateLocal,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
+                localeCompare,
+                lastAction: undefined,
+                lastActionReport: undefined,
+                isReportArchived: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                reportAttributesDerived: undefined,
+                formatPhoneNumber,
+                rules: undefined,
+            });
+
+            // Then the row avatar belongs to the actor of the passed action, so getIcons did not read the module-level cache for it
+            expect(result?.icons?.at(0)?.id).toBe(3);
+        });
+
         /**
          * Builds a chat whose only comment sits after lastReadTime. The server does not reset
          * lastVisibleActionCreated when a message is deleted, so the deleted variant is the case the removed

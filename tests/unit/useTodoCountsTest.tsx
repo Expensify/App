@@ -437,7 +437,9 @@ describe('useTodoCounts', () => {
         });
     });
 
-    it('does not count export reports when the user is a connection-level exporter but not policy.exporter', async () => {
+    it('counts export reports when the user is a connection-level exporter but not policy.exporter', async () => {
+        // Given an approved report on a policy where policy.exporter is someone else, but the connection-level exporter
+        // is the current user, which is what the server's export to-do matches on
         const EXPORT_POLICY_ID = 'policy_export_mismatch';
         const reportID = 'export_mismatch_report';
 
@@ -448,7 +450,6 @@ describe('useTodoCounts', () => {
             ownerAccountID: OTHER_USER_ACCOUNT_ID,
             isWaitingOnBankAccount: false,
         });
-        // policy.exporter is someone else, even though the connection-level exporter is the current user.
         const policy = createPolicyWithQBOConnection(EXPORT_POLICY_ID, {policyExporter: 'someone-else@mail.com', connectionExporter: CURRENT_USER_EMAIL});
 
         await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
@@ -456,9 +457,11 @@ describe('useTodoCounts', () => {
         await setReports([report]);
         await waitForBatchedUpdates();
 
+        // When the to-do counts are computed
         const {result} = await renderTodoCounts();
 
-        expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.EXPORT]).toBe(0);
+        // Then the report counts toward Export, so the badge matches the list the server returns
+        expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.EXPORT]).toBe(1);
     });
 
     describe('uses primary login from personalDetailsList', () => {

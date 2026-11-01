@@ -847,6 +847,7 @@ const CONST = {
         PRODUCT_UPDATE_SEPTEMBER_2026: 'productUpdateSeptember2026',
     },
     BANK_ACCOUNT: {
+        PLAID_WRONG_ACCOUNT_ERROR_FIELD: 'plaidWrongAccount',
         BENEFICIAL_OWNER_INFO_STEP: {
             BENEFICIAL_OWNER_DATA: {
                 BENEFICIAL_OWNER_KEYS: 'beneficialOwnerKeys',
@@ -1459,17 +1460,12 @@ const CONST = {
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         TRAVEL_CODING_SYNC: 'travelCodingSync',
-        CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
-        INSIGHTS_PAGE: 'insightsPage',
-        INSIGHTS_COMPARE: 'insightsCompare',
         INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
-        PAYMENT_HISTORY: 'paymentHistory',
         UNIFIED_CONNECTIONS: 'unifiedConnections',
-        SPEND_FOOTER_SELECTORS: 'spendFooterSelectors',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
@@ -1750,7 +1746,6 @@ const CONST = {
     EXAMPLE_PHONE_NUMBER: '+15005550006',
     FORMATTED_EXAMPLE_PHONE_NUMBER: '+1-(201)-867-5309',
     CONCIERGE_CHAT_NAME: 'Concierge',
-    CONCIERGE_SESSION_EXPIRATION_MS: 2 * 3600 * 1000, // 2 hours
     CLOUDFRONT_URL,
     EMPTY_ARRAY,
     EMPTY_OBJECT,
@@ -2143,6 +2138,7 @@ const CONST = {
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
                 UNDELETED_TRANSACTION: 'UNDELETEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
+                QUEUED_FOR_EXPORT: 'QUEUEDFOREXPORT',
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
                 REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
@@ -3372,6 +3368,7 @@ const CONST = {
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
+    ADDITIONAL_ATTACHMENT_FILE_KEY_REGEX: /^file_\d+$/,
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
     ATTACHMENT_LOCAL_URL_PREFIX: ['blob:', 'file:'],
@@ -8223,6 +8220,7 @@ const CONST = {
             WEEK: 'week',
             YEAR: 'year',
             QUARTER: 'quarter',
+            APPROVER: 'approver',
         },
         /**
          * Single source of truth for which transaction-level columns are available in each column-picker surface:
@@ -8571,6 +8569,12 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                APPROVER: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
+                    APPROVER: this.TABLE_COLUMNS.GROUP_APPROVER,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8632,6 +8636,7 @@ const CONST = {
                 WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -8760,6 +8765,7 @@ const CONST = {
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
             GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
             GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
+            GROUP_APPROVER: 'groupApprover',
             START_DATE: 'startDate',
             END_DATE: 'endDate',
             TRIP_NAME: 'tripName',
@@ -8872,6 +8878,7 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
+            APPROVER: 'approver',
             // The Spend footer's display selections. They travel as filters because that is where the backend reads
             // them from, but they never narrow the result set: only `footerTotal` changes the response, by swapping
             // which aggregate comes back as the search total.
@@ -8966,6 +8973,7 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitter-user-id',
             SUBMITTER_PAYROLL_ID: 'submitter-payroll-id',
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
+            APPROVER: 'approver',
             COLUMNS: 'columns',
             LIMIT: 'limit',
             FOOTER_COUNT: 'footer-count',
@@ -9044,6 +9052,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
+                [this.TABLE_COLUMNS.GROUP_APPROVER]: 'group-approver',
                 [this.TABLE_COLUMNS.AMOUNT_DEBITED]: 'amount-debited',
                 [this.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'amount-reimbursed',
             };
@@ -10055,11 +10064,23 @@ const CONST = {
     RESIZE_HANDLE: {
         /** Width of the line drawn on a dragged edge, and of the grip shown while a table heading is hovered. */
         INDICATOR_WIDTH: 2,
+
+        /** Pointer travel, in px, under which pressing a handle counts as a click rather than a drag. */
+        DRAG_SLOP: 3,
     },
 
     RHP_RESIZE: {
         /** Width of the strip straddling the single RHP's left edge that picks up a drag, as wide as the floating card's gutter. */
         HANDLE_HIT_WIDTH: 12,
+
+        /** How close, in px, a drag has to come to the default width to snap onto it. */
+        SNAP_THRESHOLD: 20,
+
+        /** Width of the line while the edge is pressed or dragged. */
+        ACTIVE_INDICATOR_WIDTH: 3,
+
+        /** Width of the line while a drag is held on the default width. */
+        SNAPPED_INDICATOR_WIDTH: 5,
 
         /** Narrowest the single RHP can be dragged, in px. */
         MIN_WIDTH: 380,
@@ -10109,25 +10130,25 @@ const CONST = {
             WORKSPACE_TAXES: 'workspaceTaxes',
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
+
+            /** Prefix of the Search table IDs, one per data type. See `getSearchColumnResizingID`. */
+            SEARCH_PREFIX: 'search',
         },
 
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
-            /** Pointer travel, in px, under which pressing a column's edge counts as a click rather than a drag. */
-            DRAG_SLOP: 3,
+            /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
+            GRIP_HEIGHT_RATIO: 0.4,
 
-            /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
-            DOUBLE_CLICK_INTERVAL: 150,
-
-            /** Share of the heading's height the grip spans, centred vertically. */
-            GRIP_HEIGHT_RATIO: 0.8,
+            /** Width of the strip centred on a column's edge that picks up a drag, the smallest comfortable desktop click target. */
+            HIT_AREA_WIDTH: 24,
 
             /** How long, in ms, the grip takes to stretch into the line once its edge is dragged. */
             INDICATOR_MORPH_DURATION: 150,
 
-            /** What a click (`FIT`) or a double-click (`RESET`) on a column's edge sizes it to. */
+            /** What a click on a column's edge sizes it to: `FIT` its content, or `RESET` it when it already fits. */
             WIDTH_TARGET: {
                 FIT: 'fit',
                 RESET: 'reset',
@@ -10582,6 +10603,12 @@ const CONST = {
         TAX_PICKER_MODAL: {
             BACK_BUTTON: 'TaxPickerModal-BackButton',
         },
+        REPORT_PICKER_MODAL: {
+            BACK_BUTTON: 'ReportPickerModal-BackButton',
+        },
+        ATTENDEE_PICKER_MODAL: {
+            BACK_BUTTON: 'AttendeePickerModal-BackButton',
+        },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',
             MONTH_PICKER: 'CalendarPicker-MonthPicker',
@@ -10811,6 +10838,7 @@ const CONST = {
                 BANK_ACCOUNT: 'WorkspaceWorkflows-BankAccount',
                 ADD_BANK_ACCOUNT: 'WorkspaceWorkflows-AddBankAccount',
                 AUTHORIZED_PAYER: 'WorkspaceWorkflows-AuthorizedPayer',
+                BUSINESS_BANK_ACCOUNT_COUNTRIES: 'WorkspaceWorkflows-BusinessBankAccountCountries',
                 APPROVALS_EDIT_SAVE: 'WorkspaceWorkflows-ApprovalsEditSave',
                 APPROVAL_EDITOR_MEMBERS: 'WorkspaceWorkflows-ApprovalEditorMembers',
                 APPROVAL_EDITOR_APPROVER: 'WorkspaceWorkflows-ApprovalEditorApprover',
