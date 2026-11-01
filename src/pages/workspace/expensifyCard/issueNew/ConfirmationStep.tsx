@@ -33,6 +33,7 @@ import type {IssueNewCardStep} from '@src/types/onyx/Card';
 
 import type {ComponentRef} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -50,6 +51,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -251,7 +253,7 @@ function ConfirmationStep({policyID, stepNames, startStepIndex}: ConfirmationSte
                     />
                 )}
                 {isPhoneNumberStepShown && (
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => editStep(CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER))}>
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => editStep(CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER), false, session)}>
                         <MenuItemField.Row
                             name={translate('common.phoneNumber')}
                             value={shippingAddress?.phoneNumber}
