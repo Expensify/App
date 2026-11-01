@@ -2,7 +2,7 @@ import {write} from '@libs/API';
 import type {CreateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams, SetApprovalWorkflowParams, UpdateWorkspaceApprovalParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {getDefaultApprover, isNonMemberApprover} from '@libs/PolicyUtils';
+import {getDefaultApprover, hasDynamicExternalWorkflow, isNonMemberApprover} from '@libs/PolicyUtils';
 import type {ApprovalWorkflowRulesDiff} from '@libs/WorkflowUtils';
 import {
     addMembersToRule,
@@ -37,6 +37,7 @@ import type Rule from '@src/types/onyx/Rule';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 
 import lodashDropRightWhile from 'lodash/dropRightWhile';
 import Onyx from 'react-native-onyx';
@@ -61,6 +62,13 @@ type ClearApprovalWorkflowApproverParams = {
     approverIndex: number;
     currentApprovalWorkflow: ApprovalWorkflowOnyx | undefined;
 };
+
+/**
+ * Dynamic External Workflow policies keep their approval mode when workflows are edited, since the backend does not change it
+ */
+function getOptimisticApprovalMode(policy: Policy, approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>) {
+    return hasDynamicExternalWorkflow(policy) ? policy.approvalMode : approvalMode;
+}
 
 /**
  * Roll the policy's employees back to what they were before an approval workflow save.
@@ -108,7 +116,7 @@ function createApprovalWorkflow({approvalWorkflow, policy, addExpenseApprovalsTa
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: updatedEmployees,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approvalMode: getOptimisticApprovalMode(policy, CONST.POLICY.APPROVAL_MODE.ADVANCED),
                 ...(newDefaultApprover ? {approver: newDefaultApprover} : {}),
             },
         },
@@ -204,7 +212,7 @@ function updateApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, membersToRem
     const shouldKeepAdvancedMode = hasMultipleWorkflows || hasForwardsToChain;
     const previousApprovalMode = policy.approvalMode;
 
-    const updatedApprovalMode = shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
+    const updatedApprovalMode = getOptimisticApprovalMode(policy, shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -280,6 +288,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
     const defaultApproverEmployee = mergedEmployeeList[defaultApprover];
     const hasForwardsToChain = !!defaultApproverEmployee?.forwardsTo || !!defaultApproverEmployee?.overLimitForwardsTo;
     const shouldKeepAdvancedMode = hasMoreThanOneWorkflow || hasForwardsToChain;
+    const previousApprovalMode = policy.approvalMode;
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.APPROVAL_WORKFLOW | typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -292,7 +301,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: optimisticEmployees,
-                approvalMode: shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC,
+                approvalMode: getOptimisticApprovalMode(policy, shouldKeepAdvancedMode ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC),
             },
         },
     ];
@@ -303,7 +312,7 @@ function removeApprovalWorkflow(approvalWorkflow: ApprovalWorkflow, policy: Onyx
             key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}`,
             value: {
                 employeeList: getRolledBackEmployeeList(previousEmployeeList, updatedEmployees),
-                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                approvalMode: previousApprovalMode,
             },
         },
     ];
