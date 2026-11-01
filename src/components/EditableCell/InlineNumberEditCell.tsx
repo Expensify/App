@@ -20,7 +20,10 @@ import {getLocalizedCurrencySymbol, hasSpaceBetweenSymbolAndAmount} from '@libs/
 
 import CONST from '@src/CONST';
 
+import type {ReactNode} from 'react';
+
 import React, {useRef} from 'react';
+import {View} from 'react-native';
 
 import type {EditableProps} from './types';
 
@@ -52,6 +55,9 @@ type InlineNumberEditCellProps = {
 
     /** Defaults to Number() comparison so "1.00" and "1" are treated as unchanged. */
     isEqual?: (newValue: string, originalValue: string) => boolean;
+
+    /** Rendered right after the display text (like an icon), so it stays next to the value instead of at the cell's edge. Hidden while editing. */
+    displayAccessory?: ReactNode;
 } & EditableProps<string>;
 
 const areNumericValuesEqual = (newValue: string, originalValue: string) => Number(newValue) === Number(originalValue);
@@ -65,6 +71,7 @@ function InlineNumberEditCell({
     allowNegativeInput = false,
     textAlign = 'right',
     isEqual = areNumericValuesEqual,
+    displayAccessory,
     canEdit,
     onSave,
 }: InlineNumberEditCellProps) {
@@ -92,6 +99,15 @@ function InlineNumberEditCell({
 
     // The confirm modal handles Escape while it is open. This shortcut would otherwise cancel the edit underneath it.
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleEscape, {captureOnInputs: true, isActive: isEditing && !isAwaitingConfirm});
+
+    const displayTextElement = (
+        <TextWithTooltip
+            shouldShowTooltip
+            numberOfLines={1}
+            text={displayText}
+            style={[styles.lh16, styles.optionDisplayName, styles.pre, styles.flexShrink1, isRightAligned && styles.textAlignRight]}
+        />
+    );
 
     return (
         <EditableCell
@@ -130,12 +146,14 @@ function InlineNumberEditCell({
                 />
             }
         >
-            <TextWithTooltip
-                shouldShowTooltip
-                numberOfLines={1}
-                text={displayText}
-                style={[styles.lh16, styles.optionDisplayName, styles.pre, styles.flexShrink1, isRightAligned && styles.textAlignRight]}
-            />
+            {displayAccessory ? (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, isRightAligned && styles.justifyContentEnd]}>
+                    {displayTextElement}
+                    {displayAccessory}
+                </View>
+            ) : (
+                displayTextElement
+            )}
         </EditableCell>
     );
 }

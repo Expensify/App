@@ -91,6 +91,7 @@ function buildRow(rate: Rate): DistanceRateTableItemData {
         rateID: rate.customUnitRateID,
         rate,
         formattedRate: '$14.00 / mile',
+        formattedTaxReclaimable: '',
         enabled: true,
         isLocked: false,
         canEditName: true,
@@ -119,6 +120,7 @@ function renderTable() {
                                 selectionEnabled={false}
                                 selectedKeys={[]}
                                 canWriteDistanceRates
+                                shouldShowTaxReclaimableColumn={false}
                                 onRowSelectionChange={jest.fn()}
                             />
                         </ScreenWrapperStatusContext.Provider>
