@@ -41,6 +41,7 @@ import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import TextInputWithCurrencySymbol from './TextInputWithSymbol';
 
+/** @deprecated Use AmountFormFieldProps or KeypadAmountEditorProps instead. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
 type NumberWithSymbolFormProps = {
     /** Value to display, should already be formatted */
     value?: string;
@@ -134,6 +135,7 @@ type NumberWithSymbolFormProps = {
     shouldUseBorderlessButtons?: boolean;
 } & Omit<TextInputWithSymbolProps, 'formattedAmount' | 'onAmountChange' | 'placeholder' | 'onSelectionChange' | 'onKeyPress' | 'onMouseDown' | 'onMouseUp' | 'containerStyles'>;
 
+/** @deprecated Use AmountFormFieldRef (AmountFormField) or AmountEditingRef (KeypadAmountEditor) instead. See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md. */
 type NumberWithSymbolFormRef = {
     clearSelection: () => void;
     updateNumber: (newNumber: string) => void;
@@ -155,6 +157,9 @@ const NUM_PAD_CONTAINER_VIEW_ID = 'numPadContainerView';
 const NUM_PAD_VIEW_ID = 'numPadView';
 
 /**
+ * @deprecated Use AmountFormField (for inline fields) or KeypadAmountEditor (for full-screen forms) instead.
+ * See contributingGuides/NUMBER_WITH_SYMBOL_FORM_MIGRATION.md.
+ *
  * Generic number input form with symbol (currency or unit).
  *
  * Can render either a standard TextInput or a number input with BigNumberPad and symbol interaction.
