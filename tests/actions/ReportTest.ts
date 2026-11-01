@@ -45,6 +45,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
+import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -1392,7 +1393,7 @@ describe('actions/Report', () => {
                 hasReportActions: true,
                 reportID: REPORT_ID,
                 introSelected: TEST_INTRO_SELECTED,
-                participants: [{login: 'test@user.com'}],
+                participants: [{login: 'test@user.com', accountIDForOptimisticData: generateAccountID('test@user.com')}],
                 newReportObject: {
                     reportID: REPORT_ID,
                 },
@@ -1517,7 +1518,7 @@ describe('actions/Report', () => {
             hasReportActions: true,
             reportID: REPORT_ID,
             introSelected: undefined,
-            participants: [{login: PARTICIPANT_LOGIN}],
+            participants: [{login: PARTICIPANT_LOGIN, accountIDForOptimisticData: PARTICIPANT_ACCOUNT_ID}],
             newReportObject: {
                 reportID: REPORT_ID,
             },
@@ -1668,7 +1669,7 @@ describe('actions/Report', () => {
                 hasReportActions: true,
                 reportID,
                 introSelected: TEST_INTRO_SELECTED,
-                participants: [{login: 'test@user.com'}],
+                participants: [{login: 'test@user.com', accountIDForOptimisticData: generateAccountID('test@user.com')}],
                 newReportObject: {
                     reportID: REPORT_ID,
                 },
@@ -2308,6 +2309,48 @@ describe('actions/Report', () => {
         expect(relevant.slice(1).every((r) => r.command === WRITE_COMMANDS.ADD_ATTACHMENT)).toBe(true);
     });
 
+    it('should post several attachments as one action when Concierge answers in a thread', async () => {
+        setHasRadio(false);
+        await waitForBatchedUpdates();
+
+        // Given two files sent with a caption to Concierge, which answers each question in a thread
+        const REPORT: OnyxTypes.Report = createRandomReport(1, undefined);
+        const fileA: FileObject = {name: 'a.jpg', type: 'image/jpeg', uri: 'file://a.jpg'};
+        const fileB: FileObject = {name: 'b.jpg', type: 'image/jpeg', uri: 'file://b.jpg'};
+        const conciergeThreadReportID = '9001';
+
+        // When they are sent together
+        Report.addAttachmentWithComment({
+            report: REPORT,
+            notifyReportID: REPORT.reportID,
+            ancestors: [],
+            attachments: [fileA, fileB],
+            currentUserAccountID: 1,
+            text: 'Hello world',
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+            conciergeThreadReportID,
+            shouldNavigateToConciergeThread: false,
+        });
+        await waitForBatchedUpdates();
+
+        // Then one request carries both files with an attachment ID for each, so Concierge reads them together
+        const requests = PersistedRequests.getAll().filter((request) => request.command === WRITE_COMMANDS.ADD_ATTACHMENT || request.command === WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT);
+        expect(requests).toHaveLength(1);
+        const data = requests.at(0)?.data;
+        expect(data?.file).toEqual(fileA);
+        expect(data?.file_1).toEqual(fileB);
+        expect(String(data?.attachmentIDs).split(',')).toEqual([String(data?.attachmentID), expect.any(String)]);
+
+        // And one report action shows both files and opens the thread
+        const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT.reportID}` as const);
+        const reportAction = reportActions?.[String(data?.reportActionID)];
+        const message = Array.isArray(reportAction?.message) ? reportAction?.message.at(0) : undefined;
+        expect(message?.html).toContain('file://a.jpg');
+        expect(message?.html).toContain('file://b.jpg');
+        expect(reportAction?.childReportID).toBe(conciergeThreadReportID);
+    });
+
     it('should create attachment only actions when adding multiple attachments without a comment', async () => {
         global.fetch = TestHelper.createGlobalFetchMock({
             headers: new Headers({
@@ -2830,7 +2873,7 @@ describe('actions/Report', () => {
             hasReportActions: true,
             reportID: REPORT_ID,
             introSelected: TEST_INTRO_SELECTED,
-            participants: [{login: 'test@user.com'}],
+            participants: [{login: 'test@user.com', accountIDForOptimisticData: generateAccountID('test@user.com')}],
             newReportObject: {
                 parentReportID: REPORT_ID,
                 parentReportActionID: reportActionID,
@@ -3084,6 +3127,55 @@ describe('actions/Report', () => {
             expect(requests).toHaveLength(1);
             expect(requests.at(0)?.data?.reportComment).toContain('hello edited');
             expect(requests.at(0)?.data?.reportComment).toContain(syncedSource);
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
+        });
+
+        it('skips replaying an edit that restores a comment mentioning a room', async () => {
+            // Given a comment mentioning a room whose attachment is still uploading, with the mention still in the text form the frontend writes
+            global.fetch = TestHelper.createGlobalFetchMock();
+            setHasRadio(false);
+            const roomReportID = '456';
+            const reportIDToName = {[roomReportID]: '#admins'};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportActionID]: {
+                    reportID,
+                    reportActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2024-10-21 10:37:59.881',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    message: [
+                        {type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: uploadingHtml.replace('hello', 'hello <mention-report>#admins</mention-report>'), text: 'hello #admins [Attachment]'},
+                    ],
+                },
+            });
+            await waitForBatchedUpdates();
+
+            // When the user changes the caption and then changes it back, so the restoring edit is the one parked on the upload
+            Report.editReportComment({reportID}, await getAction(), `hello #admins changed\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, reportIDToName);
+            await waitForBatchedUpdates();
+            Report.editReportComment({reportID}, await getAction(), `hello #admins\n\n[file.csv](${localSource})`, undefined, '', undefined, 1, undefined, reportIDToName);
+            await waitForBatchedUpdates();
+            expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]?.reportIDToName).toEqual(reportIDToName);
+
+            // And the attachment syncs with the room mention stored by reportID, as the backend saves it
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                [reportActionID]: {
+                    pendingAction: null,
+                    message: [
+                        {
+                            type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
+                            html: syncedHtml.replace('hello', `hello <mention-report reportID="${roomReportID}" />`),
+                            text: 'hello #admins [Attachment]',
+                        },
+                    ],
+                },
+            });
+            await waitForBatchedUpdates();
+            await waitForBatchedUpdates();
+
+            // Then no edit is sent, because the replay resolves the room name saved with the edit instead of comparing against #Hidden
+            expect(getUpdateCommentRequests()).toHaveLength(0);
             expect((await OnyxUtils.get(ONYXKEYS.DEFERRED_ATTACHMENT_EDITS))?.[reportActionID]).toBeUndefined();
         });
     });
@@ -4292,7 +4384,74 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('getReportPrivateNote', () => {
+        it('does not fetch private notes for a passed anonymous session even when the stored session is signed in', async () => {
+            // Given a signed-in session stored in Onyx
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'user@example.com'});
+            await waitForBatchedUpdates();
+            const apiReadSpy = jest.spyOn(require('@libs/API'), 'read');
+
+            // When private notes are requested for an anonymous session passed by the caller
+            Report.getReportPrivateNote('4200', {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+
+            // Then the passed session decides: anonymous users have no private notes, so nothing is fetched
+            expect(apiReadSpy).not.toHaveBeenCalled();
+            apiReadSpy.mockRestore();
+        });
+
+        it('fetches private notes for a passed signed-in session even when the stored session is anonymous', async () => {
+            // Given an anonymous session stored in Onyx, as during an anonymous-to-signed-in transition
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+            const apiReadSpy = jest.spyOn(require('@libs/API'), 'read');
+
+            // When private notes are requested for a signed-in session passed by the caller
+            Report.getReportPrivateNote('4201', {accountID: 1, email: 'user@example.com'});
+
+            // Then the passed session decides: the signed-in user's notes are fetched
+            expect(apiReadSpy).toHaveBeenCalledTimes(1);
+            apiReadSpy.mockRestore();
+        });
+    });
+
     describe('markAllMessagesAsRead', () => {
+        it('does nothing for a passed anonymous session even when the stored session is signed in', async () => {
+            // Given a signed-in session stored in Onyx and an unread report
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: 1, email: 'user@example.com'});
+            const currentTime = DateUtils.getDBTime();
+            const unreadReport = {
+                ...createRandomReport(4100, undefined),
+                lastMessageText: 'test',
+                lastReadTime: DateUtils.subtractMillisecondsFromDateTime(currentTime, 1),
+                lastVisibleActionCreated: currentTime,
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${unreadReport.reportID}`, unreadReport);
+            await waitForBatchedUpdates();
+
+            // When marking everything as read for an anonymous session passed by the caller
+            markAllMessagesAsRead(undefined, undefined, undefined, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await waitForBatchedUpdates();
+
+            // Then the passed session decides: anonymous users can't mark reports read, so the report keeps its read time
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${unreadReport.reportID}` as const);
+            expect(report?.lastReadTime).toBe(unreadReport.lastReadTime);
+        });
+
+        it('goes past the anonymous-user check for a passed signed-in session even when the stored session is anonymous', async () => {
+            // Given an anonymous session stored in Onyx, as during an anonymous-to-signed-in transition, and a report to check
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}4101`, createRandomReport(4101, undefined));
+            await waitForBatchedUpdates();
+            const isUnreadSpy = jest.spyOn(require('@libs/ReportUtils'), 'isUnread');
+
+            // When marking everything as read for a signed-in session passed by the caller
+            markAllMessagesAsRead(undefined, undefined, undefined, {accountID: 1, email: 'user@example.com'});
+
+            // Then the passed session decides: the action is not blocked as anonymous and goes on to check the reports
+            expect(isUnreadSpy).toHaveBeenCalled();
+            isUnreadSpy.mockRestore();
+        });
+
         it('should mark all unread reports as read', async () => {
             // Given a collection of 10 unread and read reports, where even-index report is unread
             const currentTime = DateUtils.getDBTime();
@@ -4314,7 +4473,7 @@ describe('actions/Report', () => {
             await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, reportCollections);
 
             // When mark all reports as read
-            markAllMessagesAsRead(undefined, undefined, undefined);
+            markAllMessagesAsRead(undefined, undefined, undefined, {accountID: 1});
 
             await waitForBatchedUpdates();
 
@@ -4356,7 +4515,7 @@ describe('actions/Report', () => {
             const emitSpy = jest.spyOn(DeviceEventEmitter, 'emit');
 
             // When the user marks all as read
-            markAllMessagesAsRead(undefined, [unreadReport.reportID, openedReport.reportID], undefined);
+            markAllMessagesAsRead(undefined, [unreadReport.reportID, openedReport.reportID], undefined, {accountID: 1});
             await waitForBatchedUpdates();
 
             // Then both chats are in the event: the unread one with the new read time, the opened one with the time it was already read up to
@@ -4381,7 +4540,7 @@ describe('actions/Report', () => {
             const emitSpy = jest.spyOn(DeviceEventEmitter, 'emit');
 
             // When the user marks all as read
-            markAllMessagesAsRead(undefined, [openedReport.reportID], undefined);
+            markAllMessagesAsRead(undefined, [openedReport.reportID], undefined, {accountID: 1});
             await waitForBatchedUpdates();
 
             // Then no API call is made, but the open chat still gets the event
@@ -4398,12 +4557,13 @@ describe('actions/Report', () => {
                 lastMessageText: 'test',
                 lastReadTime: DateUtils.subtractMillisecondsFromDateTime(currentTime, 1000),
                 lastVisibleActionCreated: currentTime,
+                lastActorAccountID: 2,
                 manuallyMarkedUnreadReportActionID: 'markedAction',
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${markedUnreadReport.reportID}`, markedUnreadReport);
 
             // When the user marks all as read
-            markAllMessagesAsRead(undefined, [markedUnreadReport.reportID], undefined);
+            markAllMessagesAsRead(undefined, [markedUnreadReport.reportID], undefined, {accountID: 1});
             await waitForBatchedUpdates();
 
             // Then the anchor is gone, so the open chat no longer shows the "New" line on that message
@@ -6974,7 +7134,7 @@ describe('actions/Report', () => {
                 hasReportActions: true,
                 personalDetails: undefined,
                 currentUserAccountID: 1,
-                participants: [{login: 'other@test.com', accountID: 2}],
+                participants: [{login: 'other@test.com', accountID: 2, accountIDForOptimisticData: 2}],
             });
             await waitForBatchedUpdates();
 
@@ -10065,7 +10225,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When create group chat is called with a participant not in allPersonalDetails (flagged as an optimistic personal detail)
-            const unknownParticipantAccountID = getAccountIDsByLogins([UNKNOWN_PARTICIPANT_LOGIN]).at(0) ?? CONST.DEFAULT_NUMBER_ID;
+            const unknownParticipantAccountID = getAccountIDsByLogins([UNKNOWN_PARTICIPANT_LOGIN], {}).at(0) ?? CONST.DEFAULT_NUMBER_ID;
             Report.navigateToAndCreateGroupChat({
                 isSupportalSession: false,
                 participantsPersonalDetails: {
@@ -10309,7 +10469,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with a participant that doesn't have an existing chat
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10365,7 +10526,8 @@ describe('actions/Report', () => {
             // already complete (so no onboarding OpenReport needs to be enqueued)
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10420,7 +10582,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with onboarding still pending (guided setup not yet completed)
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10468,7 +10631,8 @@ describe('actions/Report', () => {
 
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10506,7 +10670,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with introSelected
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10528,6 +10693,7 @@ describe('actions/Report', () => {
             const TEST_USER_ACCOUNT_ID = 1;
             const TEST_USER_LOGIN = 'test@user.com';
             const PARTICIPANT_LOGIN = 'participant@test.com';
+            const PARTICIPANT_ACCOUNT_ID = 2;
 
             await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
@@ -10537,7 +10703,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport creates a new chat with introSelected and the conciergeChat threaded through
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10574,7 +10741,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with shouldDismissModal=false
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10610,7 +10778,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with isSelfTourViewed=true
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10648,7 +10817,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with isSelfTourViewed=undefined
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10686,7 +10856,8 @@ describe('actions/Report', () => {
             // When navigateToAndOpenReport is called with isSelfTourViewed=true and shouldDismissModal=false
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10724,7 +10895,8 @@ describe('actions/Report', () => {
 
             Report.navigateToAndOpenReport({
                 isSupportalSession: false,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10929,7 +11101,8 @@ describe('actions/Report', () => {
 
             Report.navigateToAndOpenReport({
                 isSupportalSession: true,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10951,7 +11124,8 @@ describe('actions/Report', () => {
 
             Report.navigateToAndOpenReport({
                 isSupportalSession: true,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,
@@ -10971,7 +11145,8 @@ describe('actions/Report', () => {
 
             Report.navigateToAndOpenReport({
                 isSupportalSession: true,
-                userLogins: [PARTICIPANT_LOGIN],
+                login: PARTICIPANT_LOGIN,
+                personalDetailsByLogin: {[PARTICIPANT_LOGIN]: {accountID: PARTICIPANT_ACCOUNT_ID, login: PARTICIPANT_LOGIN}},
                 conciergeChat: undefined,
                 personalDetails: {},
                 currentUserAccountID: TEST_USER_ACCOUNT_ID,

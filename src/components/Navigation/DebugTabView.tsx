@@ -103,6 +103,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.completeHrSetup';
         case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAnHRConnection';
+        case CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS:
+            return 'debug.indicatorStatus.theresAProblemWithYourAgent';
         default:
             return undefined;
     }
@@ -139,6 +141,8 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
         case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
             return ROUTES.WORKSPACE_HR.getRoute(indicatorPolicyID);
+        case CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS:
+            return ROUTES.SETTINGS_AGENTS;
         default:
             return undefined;
     }

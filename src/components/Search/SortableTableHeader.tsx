@@ -1,3 +1,5 @@
+import ColumnResizeHandle from '@components/Table/columnResize/ColumnResizeHandle';
+
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -75,7 +77,7 @@ function SortableTableHeader({
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.flex1]}>
+        <View style={[styles.flex1, styles.alignSelfStretch]}>
             <View style={[styles.flex1, styles.flexRow, styles.gap3, containerStyles]}>
                 {columns.map(({columnName, translationKey, icon, isColumnSortable, sortColumnName, canEdit}) => {
                     if (!shouldShowColumn(columnName)) {
@@ -86,7 +88,10 @@ function SortableTableHeader({
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
                     const isYesNoColumn =
-                        columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.HELD;
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.HELD ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.DECLINED;
                     const isConversionAmountColumn =
                         columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED ||
                         columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED ||
@@ -122,10 +127,13 @@ function SortableTableHeader({
                                     isWithdrawnColumnWide: withdrawnColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isActionColumnWide,
                                 }),
+                                styles.justifyContentCenter,
                             ]}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
-                        />
+                        >
+                            <ColumnResizeHandle columnKey={columnName} />
+                        </SortableHeaderText>
                     );
                 })}
             </View>

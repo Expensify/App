@@ -8,10 +8,10 @@ import {isArchivedReport, isUnread} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportActions, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {Report, ReportActions, ReportAttributesDerivedValue, Session as SessionType} from '@src/types/onyx';
 
 import type {ReportNameValuePairsArchivedState} from '@selectors/ReportNameValuePairs';
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import {DeviceEventEmitter} from 'react-native';
 import Onyx from 'react-native-onyx';
@@ -41,8 +41,9 @@ function markAllMessagesAsRead(
     reportNameValuePairs: OnyxCollection<ReportNameValuePairsArchivedState>,
     reportIDs: string[] | undefined,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    session: OnyxEntry<SessionType>,
 ) {
-    if (isAnonymousUser()) {
+    if (isAnonymousUser(session)) {
         return;
     }
 
