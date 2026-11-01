@@ -363,7 +363,7 @@ function getOnyxTargetTransactionData({
         data = getUpdateTrackExpenseParams({
             transactionID: targetTransaction.transactionID,
             transaction: targetTransaction,
-            transactionThreadReportID: targetTransactionThreadReport?.reportID,
+            transactionThread: targetTransactionThreadReport,
             transactionChanges: filteredTransactionChanges,
             policy,
             delegateAccountID,
