@@ -1,7 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useDetachedSignEditingController from '@components/NumericEditingController/hooks/useDetachedSignEditingController';
-import type {NumericEditingKeyPressEvent} from '@components/NumericEditingController/types';
+import useDetachedSignEditingController from '@components/AmountEditingController/hooks/useDetachedSignEditingController';
+import type {AmountEditingKeyPressEvent} from '@components/AmountEditingController/types';
 
 import type ShouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually/types';
 
@@ -30,7 +30,7 @@ type HookProps = {
     decimals: number;
 };
 
-const buildKeyPressEvent = (key: string): NumericEditingKeyPressEvent => ({nativeEvent: {key}});
+const buildKeyPressEvent = (key: string): AmountEditingKeyPressEvent => ({nativeEvent: {key}});
 
 function renderController({value, allowNegative = true, decimals = 2}: Partial<HookProps> & {value: string}) {
     const onInputChange = jest.fn();
