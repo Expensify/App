@@ -218,6 +218,8 @@ type CreateDraftTransactionParams = {
      * normally runs — can't be taken with the gate accidentally left off.
      */
     restrictedPreferredPolicy?: BillingRestrictionPolicy;
+    /** Set only when the user's domain group restricts workspace creation. Shown instead of creating a workspace on the fly. */
+    showRestrictedPolicyCreationModal?: () => void;
     transaction: OnyxEntry<Transaction>;
     currentUserAccountID: number;
     currentUserEmail: string;
@@ -251,6 +253,7 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     amountOwed,
     ownerBillingGracePeriodEnd,
     restrictedPreferredPolicy,
+    showRestrictedPolicyCreationModal,
     transaction,
     currentUserAccountID,
     currentUserEmail,
@@ -386,6 +389,11 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     if (actionName === CONST.IOU.ACTION.SUBMIT && submitDestination === CONST.IOU.SUBMIT_DESTINATION.EMPLOYER) {
         // No accessible workspace: spin up a new Submit (submit2026) workspace and drop the expense into its draft report.
         if (filteredPoliciesCount === 0) {
+            if (showRestrictedPolicyCreationModal) {
+                showRestrictedPolicyCreationModal();
+                return;
+            }
+
             // `reportID` is where the expense lives (the self DM), which is not necessarily what the user is looking at:
             // they may have drilled into the expense thread first. Going back resolves the report route to a POP_TO on
             // the tab navigator, which rebuilds the central pane from the route, so returning to the self DM here would
@@ -475,6 +483,11 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 ROUTES.REPORT_WITH_ID.getRoute(reportID),
             ),
         );
+        return;
+    }
+
+    if (showRestrictedPolicyCreationModal) {
+        showRestrictedPolicyCreationModal();
         return;
     }
 

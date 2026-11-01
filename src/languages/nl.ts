@@ -8606,6 +8606,7 @@ Vereis onkostendetails zoals bonnen en beschrijvingen, stel limieten en standaar
                     selectWorkspace: 'selecteer een werkruimte en wijzig het type abonnement in',
                 },
                 upgradeWorkspaceWarning: `Kan werkruimte niet upgraden`,
+                createWorkspaceWarning: `Kan werkruimte niet aanmaken`,
                 upgradeWorkspaceWarningForRestrictedPolicyCreationPrompt: 'Je bedrijf heeft het aanmaken van werkruimtes beperkt. Neem contact op met een admin voor hulp.',
             },
             hr: {

@@ -28,6 +28,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestrictedActionPolicyID from '@hooks/useRestrictedActionPolicyID';
+import useRestrictedPolicyCreationModal from '@hooks/useRestrictedPolicyCreationModal';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useTheme from '@hooks/useTheme';
@@ -195,6 +196,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const activePolicy = useActivePolicy();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
+    const showRestrictedPolicyCreationModal = useRestrictedPolicyCreationModal();
     const filteredPoliciesInfoSelector = createFilteredPoliciesInfoSelector(currentUserEmail);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const [preferredPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(preferredPolicyID)}`, {selector: billingRestrictionPolicySelector});
@@ -413,6 +415,7 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
         amountOwed,
         ownerBillingGracePeriodEnd,
         restrictedPreferredPolicy: isRestrictedToPreferredPolicy ? preferredPolicy : undefined,
+        showRestrictedPolicyCreationModal,
         transaction,
         currentUserAccountID: accountID,
         currentUserEmail: currentUserEmail ?? '',
