@@ -559,6 +559,9 @@ const ONYXKEYS = {
      */
     RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL: 'isCheckingPendingWalletApproval',
 
+    /** Whether the modal with the Turnstile check is currently shown. RAM only, so it never persists across launches */
+    RAM_ONLY_IS_CLOUDFLARE_CHALLENGE_MODAL_OPEN: 'isCloudflareChallengeModalOpen',
+
     /** The report ID of the public room that the user is currently viewing */
     VIEWING_PUBLIC_ROOM_REPORT_ID: 'ViewingPublicRoomReportID',
 
@@ -1923,6 +1926,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
     [ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM]: boolean;
     [ONYXKEYS.RAM_ONLY_IS_CHECKING_PENDING_WALLET_APPROVAL]: boolean;
+    [ONYXKEYS.RAM_ONLY_IS_CLOUDFLARE_CHALLENGE_MODAL_OPEN]: boolean;
     [ONYXKEYS.VIEWING_PUBLIC_ROOM_REPORT_ID]: string;
     [ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS]: Record<string, OnyxTypes.DomainSecurityGroupMembership>;
     [ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE]: string[];

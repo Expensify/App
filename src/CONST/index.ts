@@ -3158,6 +3158,8 @@ const CONST = {
     HTTP_STATUS: {
         // Cloudflare Access rejects an expired bearer token at the HTTP layer, before any jsonCode body
         UNAUTHORIZED: 401,
+        // When Cloudflare answers with a challenge page instead of the API
+        FORBIDDEN: 403,
         // When Cloudflare throttles
         TOO_MANY_REQUESTS: 429,
         INTERNAL_SERVER_ERROR: 500,
@@ -4798,6 +4800,21 @@ const CONST = {
         // Claimed as an iOS Universal Link in .well-known/apple-app-site-association. Web keeps its own
         // /oauth/callback so a browser-started sign-in is never handed to the app. No screen lives here.
         NATIVE_OAUTH_CALLBACK_PATH: '/oauth/native-callback',
+    },
+
+    CLOUDFLARE_CHALLENGE: {
+        // Cloudflare attaches this header when a WAF rule answers the request with a challenge page instead of our API
+        MITIGATED_HEADER: 'cf-mitigated',
+        MITIGATED: {
+            CHALLENGE: 'challenge',
+        },
+        TURNSTILE: {
+            // Public sitekey of the widget with pre-clearance enabled. Passing the check makes Cloudflare set a cf_clearance
+            // cookie that satisfies the managed-challenge rules on further requests
+            // cspell:disable-next-line
+            SITEKEY: '0x4AAAAAAFnSe7JVSGF7kNTA',
+            SCRIPT_URL: 'https://challenges.cloudflare.com/turnstile/v0/api.js',
+        },
     },
 
     ONFIDO: {

@@ -4259,6 +4259,10 @@ ${amount} dla ${merchant} - ${date}`,
         subtitle: `Nie udało nam się wczytać wszystkich Twoich danych. Zostaliśmy o tym powiadomieni i sprawdzamy problem. Jeśli będzie się powtarzał, skontaktuj się z`,
         refreshAndTryAgain: 'Odśwież i spróbuj ponownie',
     },
+    cloudflareChallengeModal: {
+        title: 'Kontrola bezpieczeństwa',
+        body: 'Expensify używa kontroli bezpieczeństwa, aby zatrzymać boty. Ukończ kontrolę, aby kontynuować.',
+    },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `Nie mogliśmy dostarczyć wiadomości SMS na numer ${login}, więc tymczasowo go zawiesiliśmy. Spróbuj zweryfikować swój numer:`,
         validationSuccess: 'Twój numer został zweryfikowany! Kliknij poniżej, aby wysłać nowy kod zabezpieczający do logowania.',

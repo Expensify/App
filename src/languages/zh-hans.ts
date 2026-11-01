@@ -4093,6 +4093,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         subtitle: `我们未能加载您的所有数据。我们已收到通知并正在调查此问题。如果问题仍然存在，请联系`,
         refreshAndTryAgain: '刷新后重试',
     },
+    cloudflareChallengeModal: {
+        title: '安全检查',
+        body: 'Expensify 使用安全检查来阻止机器人。请完成检查以继续。',
+    },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `我们暂时无法向 ${login} 发送短信，因此已暂时停用该号码。请尝试验证您的号码：`,
         validationSuccess: '您的号码已验证！点击下方发送新的安全登录验证码。',

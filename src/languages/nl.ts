@@ -4227,6 +4227,10 @@ ${amount} voor ${merchant} - ${date}`,
         subtitle: `We hebben niet alle gegevens kunnen laden. We zijn op de hoogte gebracht en onderzoeken het probleem. Neem als dit aanhoudt contact op met`,
         refreshAndTryAgain: 'Vernieuw en probeer het opnieuw',
     },
+    cloudflareChallengeModal: {
+        title: 'Beveiligingscontrole',
+        body: 'Expensify gebruikt een beveiligingscontrole om bots te stoppen. Voltooi de controle om door te gaan.',
+    },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `We kunnen geen sms-berichten afleveren naar ${login}, dus hebben we deze tijdelijk geblokkeerd. Probeer je nummer te valideren:`,
         validationSuccess: 'Je nummer is gevalideerd! Klik hieronder om een nieuwe beveiligingsaanmeldcode te versturen.',

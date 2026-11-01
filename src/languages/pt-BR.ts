@@ -4224,6 +4224,10 @@ ${amount} para ${merchant} - ${date}`,
         subtitle: `Não conseguimos carregar todos os seus dados. Já fomos notificados e estamos analisando o problema. Se isso continuar, entre em contato com`,
         refreshAndTryAgain: 'Atualize e tente novamente',
     },
+    cloudflareChallengeModal: {
+        title: 'Verificação de segurança',
+        body: 'A Expensify usa uma verificação de segurança para impedir bots. Conclua a verificação para continuar.',
+    },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `Não foi possível entregar mensagens SMS para ${login}, então ele foi suspenso temporariamente. Tente validar seu número:`,
         validationSuccess: 'Seu número foi validado! Clique abaixo para enviar um novo código de segurança de acesso.',
