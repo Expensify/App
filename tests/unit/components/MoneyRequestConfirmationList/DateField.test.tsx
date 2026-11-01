@@ -10,19 +10,20 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import React from 'react';
 
+import createRandomTransaction from '../../../utils/collections/transaction';
+
 let mockActiveTransaction: OnyxTypes.Transaction | undefined;
 let mockOnyxValues: Record<string, unknown> = {};
 
 jest.mock('@components/DatePicker', () => {
     const {Pressable, Text} = jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void}>>>('react-native');
-    const MockDatePicker = ({onInputChange}: {onInputChange: (date: string) => void}) => (
-        <Pressable
-            onPress={() => onInputChange('2024-02-01')}
-            accessibilityRole="button"
-        >
-            <Text>Pick new date</Text>
-        </Pressable>
-    );
+    function MockDatePicker({onInputChange}: {onInputChange: (date: string) => void}) {
+        return (
+            <Pressable onPress={() => onInputChange('2024-02-01')}>
+                <Text>Pick new date</Text>
+            </Pressable>
+        );
+    }
     return MockDatePicker;
 });
 jest.mock(
@@ -62,11 +63,16 @@ describe('DateField create flow', () => {
 
     it('recalculates the distance rate from the transaction draft when the date changes', () => {
         // Given a distance expense being created, whose fields live in the transaction draft
+        const draftTransaction = createRandomTransaction(1);
         mockActiveTransaction = {
+            ...draftTransaction,
             transactionID: '1',
             created: '2024-01-01',
-            comment: {customUnit: {customUnitID: 'unit', customUnitRateID: 'rate'}},
-        } as OnyxTypes.Transaction;
+            comment: {
+                ...draftTransaction.comment,
+                customUnit: {customUnitID: 'unit', customUnitRateID: 'rate'},
+            },
+        };
 
         render(
             <ConfirmationFieldsProvider
