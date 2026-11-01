@@ -124,6 +124,11 @@ type TransactionListItemType = ListItem &
         /** final and formatted "merchant" value used for displaying and sorting */
         formattedMerchant: string;
 
+        /**
+         * Violation messages sorted alphabetically for the Violations column.
+         */
+        formattedViolations?: string;
+
         /** The original amount of the transaction */
         originalAmount?: number;
 
