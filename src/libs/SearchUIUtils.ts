@@ -217,7 +217,9 @@ import {
     getDateRangeDisplayValueFromFormValue,
     getDateRangeForPreset,
     getFilterFromQuery,
+    getPositiveHasFilterValues,
     getQueryHashes,
+    hasValuesIncludeViolationFilter,
     isFilterSupported,
     isFilterNegated,
     isSearchDatePreset,
@@ -1945,6 +1947,8 @@ function getTransactionsSections({
     const transactionsSections: TransactionListItemType[] = [];
 
     const currentQueryJSON = queryJSON ?? getCurrentSearchQueryJSON();
+    const violationHasValues = getPositiveHasFilterValues(currentQueryJSON);
+    const shouldFormatViolations = hasValuesIncludeViolationFilter(violationHasValues);
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
@@ -2040,6 +2044,14 @@ function getTransactionsSections({
                 formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
+                formattedViolations: shouldFormatViolations
+                    ? getViolationsForTransaction(
+                          Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {}),
+                          transactionItem.transactionID,
+                          violationHasValues,
+                          translate,
+                      )
+                    : undefined,
                 date,
                 submitted,
                 approved,
