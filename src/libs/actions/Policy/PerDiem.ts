@@ -224,6 +224,7 @@ function prepareCustomUnitRateUpdates(customUnit: CustomUnit, subRatesToBeDelete
     if (shouldDeleteAllRates) {
         const firstSelectedSubRate = subRatesToBeDeleted.at(0);
         const firstSelectedRate = firstSelectedSubRate ? customUnit.rates[firstSelectedSubRate.rateID] : undefined;
+        // Restore every rate on failure, but attach one row error to avoid duplicating the same error across the full selection.
         const failureRates = {...customUnit.rates};
         if (firstSelectedSubRate && firstSelectedRate) {
             failureRates[firstSelectedSubRate.rateID] = {
