@@ -421,5 +421,41 @@ describe('WorkspaceTags', () => {
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
+
+        it('shows a row for each level when two levels share a name', async () => {
+            // Given a no-header import with GL codes in adjacent columns, which returned two levels named "Sub-projects"
+            // under the unique Onyx keys "Sub-projects" and "Sub-projects_2"
+            mockLayout(false);
+            await TestHelper.signInWithTestUser();
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, {
+                    Clients: {name: 'Clients', required: false, orderWeight: 0, tags: {Engineering: {name: 'Engineering', enabled: true}}},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Sub-projects': {name: 'Sub-projects', required: false, orderWeight: 1, tags: {'North America': {name: 'North America', enabled: true}}},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Sub-projects_2': {name: 'Sub-projects', required: false, orderWeight: 2, tags: {'Project Apollo': {name: 'Project Apollo', enabled: true}}},
+                });
+            });
+
+            // When the tags page renders
+            const {unmount} = renderPage(SCREENS.WORKSPACE.TAGS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then every level gets its own row, including both levels named "Sub-projects"
+            await waitFor(() => {
+                expect(screen.getByText('Clients')).toBeOnTheScreen();
+            });
+            expect(screen.getAllByText('Sub-projects')).toHaveLength(2);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 });

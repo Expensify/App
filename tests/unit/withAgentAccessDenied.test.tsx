@@ -103,6 +103,7 @@ describe('withAgentAccessDenied', () => {
         mockIsScreenFocused = true;
         jest.mocked(Navigation.navigate).mockClear();
         jest.mocked(Navigation.dismissModal).mockClear();
+        jest.mocked(Navigation.popRootToTop).mockClear();
         jest.mocked(Navigation.isActiveRoute).mockReturnValue(false);
         jest.mocked(Navigation.isTopmostRouteModalScreen).mockReturnValue(false);
     });
@@ -170,6 +171,24 @@ describe('withAgentAccessDenied', () => {
         const afterTransition = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0)?.afterTransition;
         act(() => afterTransition?.());
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_PROFILE.getRoute(), {forceReplace: true});
+    });
+
+    it('does not redirect while the copilot switch into the agent is still in progress', async () => {
+        // Given the session already flipped to the agent while the switch hasn't reset navigation yet
+        await Onyx.set(ONYXKEYS.IS_SWITCHING_TO_DELEGATOR, true);
+        await signInAsAgent();
+        await waitForBatchedUpdatesWithAct();
+
+        // When a guarded screen is still mounted
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the guard leaves navigation alone, so it can't race the switch's own reset, and keeps the page
+        // rendered so the user doesn't see a blank pane until the reset lands
+        expect(screen.getByTestId('protected-content')).toBeTruthy();
+        expect(Navigation.popRootToTop).not.toHaveBeenCalled();
+        expect(Navigation.dismissModal).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     it('shows access denied view instead of redirecting when agent is already on the redirect target', async () => {
