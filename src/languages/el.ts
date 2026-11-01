@@ -7113,6 +7113,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             updateFailureMessage: 'Παρουσιάστηκε σφάλμα κατά την ενημέρωση της κατηγορίας, δοκιμάστε ξανά',
             createFailureMessage: 'Παρουσιάστηκε σφάλμα κατά τη δημιουργία της κατηγορίας, παρακαλούμε δοκιμάστε ξανά',
             addCategory: 'Προσθήκη κατηγορίας',
+            createCategoryFromSearch: (categoryName: string) => `Δημιουργία κατηγορίας «${categoryName}»`,
             editCategory: 'Επεξεργασία κατηγορίας',
             editCategories: 'Επεξεργαστείτε κατηγορίες',
             findCategory: 'Εύρεση κατηγορίας',

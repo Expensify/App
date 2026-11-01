@@ -6962,6 +6962,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             updateFailureMessage: 'Si è verificato un errore durante l’aggiornamento della categoria, riprova per favore',
             createFailureMessage: 'Si è verificato un errore durante la creazione della categoria, riprova per favore',
             addCategory: 'Aggiungi categoria',
+            createCategoryFromSearch: (categoryName: string) => `Crea categoria «${categoryName}»`,
             editCategory: 'Modifica categoria',
             editCategories: 'Modifica categorie',
             findCategory: 'Trova categoria',

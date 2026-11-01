@@ -6725,6 +6725,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             updateFailureMessage: '更新类别时出错，请重试',
             createFailureMessage: '创建类别时出错，请重试',
             addCategory: '添加类别',
+            createCategoryFromSearch: (categoryName: string) => `创建“${categoryName}”类别`,
             editCategory: '编辑类别',
             editCategories: '编辑类别',
             findCategory: '查找类别',

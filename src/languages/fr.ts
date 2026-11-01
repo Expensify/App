@@ -7017,6 +7017,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             updateFailureMessage: 'Une erreur s’est produite lors de la mise à jour de la catégorie, veuillez réessayer.',
             createFailureMessage: 'Une erreur s’est produite lors de la création de la catégorie, veuillez réessayer.',
             addCategory: 'Ajouter une catégorie',
+            createCategoryFromSearch: (categoryName: string) => `Créer la catégorie « ${categoryName} »`,
             editCategory: 'Modifier la catégorie',
             editCategories: 'Modifier les catégories',
             findCategory: 'Rechercher une catégorie',

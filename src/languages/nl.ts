@@ -6954,6 +6954,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             updateFailureMessage: 'Er is een fout opgetreden bij het bijwerken van de categorie, probeer het opnieuw',
             createFailureMessage: 'Er is een fout opgetreden bij het aanmaken van de categorie, probeer het opnieuw.',
             addCategory: 'Categorie toevoegen',
+            createCategoryFromSearch: (categoryName: string) => `Categorie „${categoryName}” aanmaken`,
             editCategory: 'Categorie bewerken',
             editCategories: 'Categorieën bewerken',
             findCategory: 'Categorie zoeken',

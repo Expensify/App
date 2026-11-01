@@ -42,6 +42,9 @@ type CategoryPickerModalProps = {
 
     /** Sentry label for the add button, so each caller's presses are attributed to it */
     addCategorySentryLabel?: string;
+
+    /** Receives the searched-for name when the user taps the create row. The row is offered only when this is passed. */
+    onCreateCategory?: (categoryName: string) => void;
 } & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'shouldShowHeader' | 'children'>;
 
 function CategoryPickerModal({
@@ -52,6 +55,7 @@ function CategoryPickerModal({
     onSelected,
     onAddCategory,
     addCategorySentryLabel,
+    onCreateCategory,
     onClose,
     ...popoverProps
 }: CategoryPickerModalProps) {
@@ -71,6 +75,11 @@ function CategoryPickerModal({
         } else {
             onSelected?.(item);
         }
+        onClose();
+    };
+
+    const createCategory = (categoryName: string) => {
+        onCreateCategory?.(categoryName);
         onClose();
     };
 
@@ -109,6 +118,7 @@ function CategoryPickerModal({
                 selectedCategory={selectedCategory}
                 policyID={policyID}
                 onSubmit={handleCategorySelect}
+                onCreateCategory={onCreateCategory ? createCategory : undefined}
                 shouldAutoFocusSearchInput
                 shouldAlwaysShowGLCode={shouldAlwaysShowGLCode}
                 searchInputThreshold={searchInputThreshold}

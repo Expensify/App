@@ -7450,6 +7450,7 @@ const translations = {
             updateFailureMessage: 'An error occurred while updating the category, please try again',
             createFailureMessage: 'An error occurred while creating the category, please try again',
             addCategory: 'Add category',
+            createCategoryFromSearch: (categoryName: string) => `Create “${categoryName}” category`,
             editCategory: 'Edit category',
             editCategories: 'Edit categories',
             findCategory: 'Find category',
