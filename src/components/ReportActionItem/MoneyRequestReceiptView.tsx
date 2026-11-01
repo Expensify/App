@@ -32,6 +32,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
@@ -101,7 +102,7 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import HoveredDistanceEReceipt from './HoveredDistanceEReceipt';
@@ -153,6 +154,7 @@ function MoneyRequestReceiptView({
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const {environmentURL} = useEnvironment();
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const route = useRoute();
     const routeBackTo = (route.params as {backTo?: string} | undefined)?.backTo;
@@ -175,17 +177,18 @@ function MoneyRequestReceiptView({
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
     const reportsParentHierarchy = useReportsParentHierarchy(report?.reportID);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
+    const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(report, parentReport, parentReportAction);
     const moneyRequestReport = parentReport;
-    const linkedTransactionID = useMemo(() => {
-        if (!parentReportAction) {
-            return undefined;
-        }
+    let linkedTransactionID;
+    if (!parentReportAction) {
+        linkedTransactionID = undefined;
+    } else {
         const originalMessage = parentReportAction && isMoneyRequestAction(parentReportAction) ? getOriginalMessage(parentReportAction) : undefined;
-        return originalMessage?.IOUTransactionID;
-    }, [parentReportAction]);
+        linkedTransactionID = originalMessage?.IOUTransactionID;
+    }
 
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(linkedTransactionID)}`);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
@@ -272,7 +275,7 @@ function MoneyRequestReceiptView({
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
-    const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
+    const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL, buildDynamicRoute);
 
     const canEditReceipt =
         isEditable &&
@@ -307,16 +310,12 @@ function MoneyRequestReceiptView({
 
     const {validateFiles, PDFValidationComponent} = useFilesValidation(onAttachmentFilesValidated);
 
-    const iouType = useMemo(() => {
-        if (isTrackExpense) {
-            return CONST.IOU.TYPE.TRACK;
-        }
-        if (isInvoice) {
-            return CONST.IOU.TYPE.INVOICE;
-        }
-
-        return CONST.IOU.TYPE.SUBMIT;
-    }, [isTrackExpense, isInvoice]);
+    let iouType;
+    if (isTrackExpense) {
+        iouType = CONST.IOU.TYPE.TRACK;
+    } else {
+        iouType = isInvoice ? CONST.IOU.TYPE.INVOICE : CONST.IOU.TYPE.SUBMIT;
+    }
 
     const receiptURIs = hasReceipt ? getThumbnailAndImageURIs(displayedTransaction) : undefined;
     const isEReceiptTransaction = !!displayedTransaction && !hasReceiptSource(displayedTransaction) && hasEReceipt(displayedTransaction);
@@ -346,69 +345,48 @@ function MoneyRequestReceiptView({
     const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
     const distanceUnit = transaction?.comment?.customUnit?.distanceUnit;
 
-    const [receiptImageViolations, receiptViolations] = useMemo(() => {
-        const imageViolations = [];
-        const allViolations = [];
-        const filteredViolations = filterReceiptViolations(transactionViolations ?? []);
-
-        for (const violation of filteredViolations) {
-            const isReceiptFieldViolation = receiptFieldViolationNames.has(violation.name);
-            const isReceiptImageViolation = receiptImageViolationNames.has(violation.name);
-            const isRTERViolation = violation.name === CONST.VIOLATIONS.RTER;
-            if (isReceiptFieldViolation || isReceiptImageViolation || isRTERViolation) {
-                const cardID = violation.data?.cardID;
-                const card = cardID ? cardList?.[cardID] : undefined;
-                const violationMessage = ViolationsUtils.getViolationTranslation({
-                    dateFnsLocale,
-                    violation,
-                    translate,
-                    convertToDisplayString,
-                    canEdit: isActionTakenByCurrentUser && isEditable,
-                    companyCardPageURL,
-                    connectionLink,
-                    card,
-                    isMarkAsCash,
-                    routeDistanceMeters,
-                    distanceUnit,
-                    policyVendors,
-                    transactionCurrency: transaction?.currency,
-                });
-                allViolations.push(violationMessage);
-                if (isReceiptImageViolation || isRTERViolation) {
-                    imageViolations.push(violationMessage);
-                }
+    const imageViolations = [];
+    const allViolations = [];
+    const filteredViolations = filterReceiptViolations(transactionViolations ?? []);
+    for (const violation of filteredViolations) {
+        const isReceiptFieldViolation = receiptFieldViolationNames.has(violation.name);
+        const isReceiptImageViolation = receiptImageViolationNames.has(violation.name);
+        const isRTERViolation = violation.name === CONST.VIOLATIONS.RTER;
+        if (isReceiptFieldViolation || isReceiptImageViolation || isRTERViolation) {
+            const cardID = violation.data?.cardID;
+            const card = cardID ? cardList?.[cardID] : undefined;
+            const violationMessage = ViolationsUtils.getViolationTranslation({
+                dateFnsLocale,
+                violation,
+                translate,
+                convertToDisplayString,
+                canEdit: isActionTakenByCurrentUser && isEditable,
+                companyCardPageURL,
+                connectionLink,
+                card,
+                isMarkAsCash,
+                routeDistanceMeters,
+                distanceUnit,
+                policyVendors,
+                transactionCurrency: transaction?.currency,
+            });
+            allViolations.push(violationMessage);
+            if (isReceiptImageViolation || isRTERViolation) {
+                imageViolations.push(violationMessage);
             }
         }
-        return [imageViolations, allViolations];
-    }, [
-        transactionViolations,
-        translate,
-        convertToDisplayString,
-        isActionTakenByCurrentUser,
-        isEditable,
-        companyCardPageURL,
-        connectionLink,
-        cardList,
-        isMarkAsCash,
-        routeDistanceMeters,
-        distanceUnit,
-        policyVendors,
-        transaction?.currency,
-        dateFnsLocale,
-    ]);
+    }
+    const [receiptImageViolations, receiptViolations] = [imageViolations, allViolations];
 
     const receiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.RECEIPT_REQUIRED);
     const itemizedReceiptRequiredViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.ITEMIZED_RECEIPT_REQUIRED);
     const customRulesViolation = transactionViolations?.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_RULES);
 
-    const errorsWithoutReportCreation = useMemo(
-        () => ({
-            ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
-            ...parentReportAction?.errors,
-        }),
-        [transaction?.errorFields?.route, transaction?.errorFields?.waypoints, transaction?.errors, parentReportAction?.errors],
-    );
-    const reportCreationError = useMemo(() => (getCreationReportErrors(report) ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : {}), [report]);
+    const errorsWithoutReportCreation = {
+        ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
+        ...parentReportAction?.errors,
+    };
+    const reportCreationError = getCreationReportErrors(report) ? getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage') : {};
     const hasReceiptUploadError = Object.values(errorsWithoutReportCreation).some((error) => isReceiptError(error));
 
     // Whether to show receipt audit result (e.g.`Verified`, `Issue Found`) and messages (e.g. `Receipt not verified. Please confirm accuracy.`)
@@ -420,31 +398,27 @@ function MoneyRequestReceiptView({
         isGroupPolicyByType(policy?.type);
     const shouldShowReceiptAudit = !isInvoice && (shouldShowReceiptEmptyState || hasReceipt || hasReceiptUploadError);
 
-    const fallbackReceiptError = useMemo(() => {
-        // Map/route distance expenses carry a generated map e-receipt (no real uploaded file), so they should not
-        // surface a receipt-upload error on a create/report failure - the transaction's own generic error should be
-        // shown instead. Odometer / pure-manual distance flows can have a real uploaded file, so the fallback is kept
-        // for them (isMapBasedDistanceRequest is false for those).
-        if (hasReceiptUploadError || isEmptyObject(reportCreationError) || !hasReceipt || !transaction?.receipt || isMapDistanceRequest) {
-            return {};
-        }
+    // Map/route distance expenses carry a generated map e-receipt (no real uploaded file), so they should not
+    // surface a receipt-upload error on a create/report failure - the transaction's own generic error should be
+    // shown instead. Odometer / pure-manual distance flows can have a real uploaded file, so the fallback is kept
+    // for them (isMapBasedDistanceRequest is false for those).
+    const fallbackReceiptError =
+        hasReceiptUploadError || isEmptyObject(reportCreationError) || !hasReceipt || !transaction?.receipt || isMapDistanceRequest
+            ? {}
+            : getMicroSecondOnyxErrorObject({
+                  error: CONST.IOU.RECEIPT_ERROR,
+                  source: transaction.receipt.source?.toString() ?? '',
+                  filename: transaction.receipt.filename ?? '',
+              });
 
-        return getMicroSecondOnyxErrorObject({
-            error: CONST.IOU.RECEIPT_ERROR,
-            source: transaction.receipt.source?.toString() ?? '',
-            filename: transaction.receipt.filename ?? '',
-        });
-    }, [hasReceiptUploadError, reportCreationError, hasReceipt, transaction, isMapDistanceRequest]);
-
-    const errors = useMemo(() => {
-        if (hasReceiptUploadError) {
-            return errorsWithoutReportCreation;
-        }
-        if (!isEmptyObject(fallbackReceiptError)) {
-            return {...errorsWithoutReportCreation, ...fallbackReceiptError};
-        }
-        return isEmptyObject(errorsWithoutReportCreation) ? reportCreationError : errorsWithoutReportCreation;
-    }, [hasReceiptUploadError, fallbackReceiptError, errorsWithoutReportCreation, reportCreationError]);
+    let errors;
+    if (hasReceiptUploadError) {
+        errors = errorsWithoutReportCreation;
+    } else if (!isEmptyObject(fallbackReceiptError)) {
+        errors = {...errorsWithoutReportCreation, ...fallbackReceiptError};
+    } else {
+        errors = isEmptyObject(errorsWithoutReportCreation) ? reportCreationError : errorsWithoutReportCreation;
+    }
     const showReceiptErrorWithEmptyState = shouldShowReceiptEmptyState && !hasReceipt && !isEmptyObject(errors);
 
     const {showConfirmModal} = useConfirmModal();
@@ -492,13 +466,10 @@ function MoneyRequestReceiptView({
         ).catch((error: unknown) => Log.alert('[ReceiptRetry] Retry failed unexpectedly', {error}));
     };
 
-    const transactionAndReportActionErrors = useMemo(
-        () => ({
-            ...transaction?.errors,
-            ...parentReportAction?.errors,
-        }),
-        [transaction?.errors, parentReportAction?.errors],
-    );
+    const transactionAndReportActionErrors = {
+        ...transaction?.errors,
+        ...parentReportAction?.errors,
+    };
 
     const dismissReceiptError = () => {
         if (!report?.reportID) {
@@ -573,6 +544,7 @@ function MoneyRequestReceiptView({
                     isOffline,
                     isSingleTransactionView: true,
                     policy,
+                    chatReportActions: chatIOUReportActions,
                 });
                 return;
             }
@@ -613,7 +585,6 @@ function MoneyRequestReceiptView({
     };
 
     let receiptStyle: StyleProp<ViewStyle>;
-
     if (fillSpace && shouldShowReceiptEmptyState) {
         receiptStyle = styles.h100;
     } else if (fillSpace) {

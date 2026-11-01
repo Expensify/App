@@ -21,16 +21,17 @@ let capturedShortcutConfig: Record<string, any> | undefined;
 jest.mock('@hooks/useKeyboardShortcut', () =>
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (shortcut: {shortcutKey: string}, callback: (e?: KeyboardEvent) => void, config: Record<string, any> = {}) => {
-    if (shortcut.shortcutKey !== 'Enter' || !config.isActive) {
-        return;
-    }
-    enterKeyCallback = callback;
-    capturedShortcutConfig = config;
-});
+        if (shortcut.shortcutKey !== 'Enter' || !config.isActive) {
+            return;
+        }
+        enterKeyCallback = callback;
+        capturedShortcutConfig = config;
+    },
+);
 // ──────────────────────────────────────────────────────────────────────────────
 
 /**
- * Renders ButtonKeyboardShortcut inside a real Button (which owns ButtonContext) and a NavigationContainer.
+ * Renders ButtonKeyboardShortcut inside a real Button (which owns the Button state/actions contexts) and a NavigationContainer.
  * NavigationContainer is required because the component calls useIsFocused().
  * isPressOnEnterActive=true is the default here so the shortcut is active
  * even without a focused screen, keeping individual tests simple.

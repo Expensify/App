@@ -5,7 +5,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
-import useThemePreference from '@hooks/useThemePreference';
 
 import FS from '@libs/Fullstory';
 import {buildPageViewedEvent, trackFullstoryEvent} from '@libs/Fullstory/utils';
@@ -32,10 +31,10 @@ import type {NavigationState} from '@react-navigation/native';
 import {findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 
 import AppNavigator from './AppNavigator';
-import {cleanPreservedNavigatorStates, clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getNavigationBaseTheme from './getNavigationBaseTheme';
 import createDynamicRoute from './helpers/dynamicRoutesUtils/createDynamicRoute';
 import getActiveTabName from './helpers/getActiveTabName';
@@ -137,7 +136,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     ]);
 
     const firstRenderRef = useRef(true);
-    const themePreference = useThemePreference();
     const theme = useTheme();
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
@@ -190,24 +188,21 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     });
 
     // https://reactnavigation.org/docs/themes
-    const navigationTheme = useMemo(() => {
-        const defaultNavigationTheme = getNavigationBaseTheme(themePreference);
-
-        return {
-            ...defaultNavigationTheme,
-            colors: {
-                ...defaultNavigationTheme.colors,
-                /**
-                 * We want to have a stack with variable size of screens in RHP (wide layout).
-                 * The stack is the size of the biggest screen in RHP. Screens that should be smaller will reduce its size with margin.
-                 * The stack has to be this size because it has a container with overflow: hidden.
-                 * On wide layout, background: 'transparent' is used to make the bottom of the card stack transparent.
-                 * On narrow layout, we use theme.appBG to match the standard app background.
-                 */
-                background: shouldUseNarrowLayout ? theme.appBG : 'transparent',
-            },
-        };
-    }, [shouldUseNarrowLayout, theme.appBG, themePreference]);
+    const defaultNavigationTheme = getNavigationBaseTheme(theme.colorScheme);
+    const navigationTheme = {
+        ...defaultNavigationTheme,
+        colors: {
+            ...defaultNavigationTheme.colors,
+            /**
+             * We want to have a stack with variable size of screens in RHP (wide layout).
+             * The stack is the size of the biggest screen in RHP. Screens that should be smaller will reduce its size with margin.
+             * The stack has to be this size because it has a container with overflow: hidden.
+             * On wide layout, background: 'transparent' is used to make the bottom of the card stack transparent.
+             * On narrow layout, we use theme.appBG to match the standard app background.
+             */
+            background: shouldUseNarrowLayout ? theme.appBG : 'transparent',
+        },
+    };
 
     useEffect(() => {
         if (firstRenderRef.current) {
@@ -251,9 +246,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        // Drop the previous session's preserved navigator states. Otherwise restoreTabNavigatorRoutes
-        // reattaches the prior TAB_NAVIGATOR subtree to the public sign-in route (which shares that name).
-        clearPreservedNavigatorStates();
+        // Drop the previous session's navigation caches. Otherwise restoreTabNavigatorRoutes reattaches
+        // the prior TAB_NAVIGATOR subtree to the public sign-in route (which shares that name).
+        Navigation.clearSessionNavigationState();
 
         const stateToReset = getStateToResetAfterLogout(navigationRef.getRootState());
         if (!stateToReset) {
@@ -285,7 +280,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         cleanPreservedNavigatorStates(state);
     };
 
-    const onReadyWithSentry = useCallback(() => {
+    const onReadyWithSentry = () => {
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION_ROOT_READY);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.NAVIGATION);
         onReady();
@@ -298,7 +293,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // from the restored root state so isTopMostReportId is correct on the first report screen
         // (e.g. the composer's keyboard avoiding view is enabled right away).
         updateCurrentReportID(navigationRef.getRootState());
-    }, [onReady, updateCurrentReportID]);
+    };
 
     // Re-establish on (re)mount — StrictMode's cleanup-then-remount otherwise leaves us listener-less; setup is idempotent.
     useEffect(() => {
