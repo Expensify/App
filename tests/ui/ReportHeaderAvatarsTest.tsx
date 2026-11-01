@@ -87,6 +87,18 @@ const dmChatReport = {
     type: CONST.REPORT.TYPE.CHAT,
 };
 
+// The other member of a 1:1 DM, who pictures the DM in its header
+const DM_MEMBER_ID = Number(Object.keys(chatReportR14932.participants ?? {}).find((accountID) => Number(accountID) !== LOGGED_USER_ID));
+
+const oneOnOneDMReport = {
+    reportID: 'ONE_ON_ONE_DM',
+    type: CONST.REPORT.TYPE.CHAT,
+    participants: {
+        [LOGGED_USER_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+        [DM_MEMBER_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+    },
+};
+
 const reportPreviewDMAction = {
     ...actionR14932,
     actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
@@ -109,7 +121,7 @@ const onyxState = {
     [ONYXKEYS.SESSION]: {accountID: LOGGED_USER_ID, email: personalDetails[LOGGED_USER_ID].login},
     [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
     ...toCollectionDataSet(ONYXKEYS.COLLECTION.POLICY, [policy, personalPolicy], (item) => item.id),
-    ...toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [iouReport, chatReport, iouDMReport, dmChatReport], (report) => report.reportID),
+    ...toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [iouReport, chatReport, iouDMReport, dmChatReport, oneOnOneDMReport], (report) => report.reportID),
     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`]: {[reportPreviewAction.reportActionID]: reportPreviewAction},
     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${dmChatReport.reportID}`]: {[reportPreviewDMAction.reportActionID]: reportPreviewDMAction},
 };
@@ -166,7 +178,7 @@ describe('ReportHeaderAvatars', () => {
     it('opens the profile avatar when the primary avatar of a user + workspace subscript is pressed', async () => {
         await renderHeaderAvatars(iouReport.reportID);
 
-        fireEvent.press(screen.getByLabelText(translateLocal('common.profile')));
+        fireEvent.press(screen.getByLabelText(translateLocal('common.profile'), {exact: false}));
 
         expect(navigateSpy).toHaveBeenCalledTimes(1);
         expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(`avatar/${LOGGED_USER_ID}`));
@@ -175,7 +187,7 @@ describe('ReportHeaderAvatars', () => {
     it('opens the workspace avatar when the subscript badge of a user + workspace subscript is pressed', async () => {
         await renderHeaderAvatars(iouReport.reportID);
 
-        fireEvent.press(screen.getByLabelText(translateLocal('common.workspaces')));
+        fireEvent.press(screen.getByLabelText(translateLocal('common.workspaces'), {exact: false}));
 
         expect(navigateSpy).toHaveBeenCalledTimes(1);
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_AVATAR.getRoute(iouReport.reportID, policy.id));
@@ -184,7 +196,7 @@ describe('ReportHeaderAvatars', () => {
     it('opens the report avatar when a workspace-as-primary avatar is pressed', async () => {
         await renderHeaderAvatars(chatReport.reportID);
 
-        fireEvent.press(screen.getByLabelText(translateLocal('common.workspaces')));
+        fireEvent.press(screen.getByLabelText(translateLocal('common.workspaces'), {exact: false}));
 
         expect(navigateSpy).toHaveBeenCalledTimes(1);
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_AVATAR.getRoute(chatReport.reportID, policy.id));
@@ -197,6 +209,20 @@ describe('ReportHeaderAvatars', () => {
         expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars-MainAvatar')).toBeOnTheScreen();
         expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars-SecondaryAvatar')).toBeOnTheScreen();
         expect(screen.getAllByRole(CONST.ROLE.BUTTON)).toHaveLength(2);
+    });
+
+    it('makes a single avatar its own press target that opens the profile avatar', async () => {
+        // Given a 1:1 DM, whose header shows the other member's single avatar
+        await renderHeaderAvatars(oneOnOneDMReport.reportID);
+        expect(screen.getByTestId('SingleAvatar')).toBeOnTheScreen();
+        expect(screen.getAllByRole(CONST.ROLE.BUTTON)).toHaveLength(1);
+
+        // When the only avatar is pressed
+        fireEvent.press(screen.getByLabelText(translateLocal('common.profile'), {exact: false}));
+
+        // Then it opens the other member's profile avatar, not the current user's
+        expect(navigateSpy).toHaveBeenCalledTimes(1);
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(`avatar/${DM_MEMBER_ID}`));
     });
 
     it('navigates from each diagonal avatar independently', async () => {
