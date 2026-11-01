@@ -41,7 +41,10 @@ function AgentsPage() {
     const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useAgentsTable();
     const hasAgents = agents.length > 0;
     const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
-    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
+
+    // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const shouldShowBulkActionsButton = shouldUseNarrowLayout && canSelectMultiple;
 
     useDocumentTitle(translate('agentsPage.title'));
     useEffect(() => openAgentsPage(), []);
@@ -141,6 +144,7 @@ function AgentsPage() {
                 onRowSelectionChange={setSelectedAgents}
                 shouldShowOwnerColumn
                 emptyStateButtons={emptyStateButtons}
+                bulkActionOptions={bulkActionsButtonOptions}
             />
         </ScreenWrapper>
     );

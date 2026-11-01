@@ -1,3 +1,4 @@
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import WorkspaceFlagForReviewTable from '@components/Tables/WorkspaceFlagForReviewTable';
 
@@ -19,6 +20,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 import React from 'react';
 
@@ -29,9 +31,12 @@ type RulesFlagForReviewTabProps = {
     onSelectionChange: (selectedRowKeys: string[]) => void;
     showReadOnlyModal: () => void;
     headerComponent?: React.ReactElement;
+
+    /** The actions the selected rules support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>>;
 };
 
-function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal, headerComponent}: RulesFlagForReviewTabProps) {
+function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelectionChange, showReadOnlyModal, headerComponent, bulkActionOptions}: RulesFlagForReviewTabProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const styles = useThemeStyles();
@@ -87,6 +92,7 @@ function RulesFlagForReviewTab({policyID, canWriteRules, selectedKeys, onSelecti
             selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
             headerComponent={headerComponent}
+            bulkActionOptions={bulkActionOptions}
             emptyState={flagForReviewEmptyState}
         />
     );

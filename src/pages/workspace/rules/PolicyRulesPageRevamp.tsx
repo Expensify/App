@@ -186,12 +186,14 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     });
 
     const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
-    const hasSelectedRules = selectedRuleKeys.length > 0;
     const isTableTab =
         activeTab === RULES_TAB.CARD_RESTRICTIONS || activeTab === RULES_TAB.EXPENSE_DEFAULTS || activeTab === RULES_TAB.REQUIRE_FIELDS || activeTab === RULES_TAB.FLAG_FOR_REVIEW;
     const isAgentsTab = activeTab === RULES_TAB.AGENTS;
     const isGeneralTab = activeTab === RULES_TAB.GENERAL;
-    const shouldShowBulkActions = canWriteRules && isTableTab && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : hasSelectedRules);
+
+    // The wide layout offers these actions in the floating bar over the table instead, so its header keeps the
+    // page's own buttons no matter what is selected.
+    const shouldShowBulkActions = canWriteRules && isTableTab && shouldUseNarrowLayout && isMobileSelectionModeEnabled;
     const shouldShowAddRuleButton = isGeneralTab || !shouldShowBulkActions;
 
     const handleBackButtonPress = () => {
@@ -376,6 +378,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
         policyID,
         canWriteRules,
         headerComponent: rulesTabSelector,
+        bulkActionOptions: canWriteRules ? getBulkActionsButtonOptions() : undefined,
     };
 
     return (
