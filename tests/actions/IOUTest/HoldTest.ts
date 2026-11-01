@@ -816,6 +816,7 @@ describe('actions/IOU/Hold', () => {
             await waitForBatchedUpdates();
             jest.mocked(Navigation.navigate).mockClear();
             const heldTransaction = {...transaction, comment: {...transaction.comment, hold: 'holdActionID'}};
+            const heldIOUReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
 
             // When the hold status is changed
             changeMoneyRequestHoldStatus({
@@ -839,6 +840,10 @@ describe('actions/IOU/Hold', () => {
             const unholdAction = Object.values(threadActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD);
             expect(unholdAction).toBeDefined();
             expect(Navigation.navigate).not.toHaveBeenCalled();
+
+            // And the IOU report totals are refunded on the transaction report, so swapping the two reports fails the test
+            const unheldIOUReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+            expect(unheldIOUReport?.unheldTotal).not.toBe(heldIOUReport?.unheldTotal);
         });
     });
 

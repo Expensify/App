@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
+import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -17,7 +18,11 @@ import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {UseOnyxResult} from 'react-native-onyx';
 
+import Onyx from 'react-native-onyx';
+
 import createRandomTransaction from '../../../utils/collections/transaction';
+import {getCurrencyDecimalsLocal} from '../../../utils/TestHelper';
+import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 const IOU_REPORT_ID = '1001';
 const THREAD_REPORT_ID = '1002';
@@ -86,35 +91,48 @@ function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T
     return [value, {status: 'loaded'}];
 }
 
-const iouReport = {
+const HOLD_ACTION_ID = 'hold-report-action-id';
+
+const iouReport: Report = {
     reportID: IOU_REPORT_ID,
     type: CONST.REPORT.TYPE.EXPENSE,
     policyID: 'policy-1',
-} as Report;
+};
 
-const transactionThreadReport = {
+const transactionThreadReport: Report = {
     reportID: THREAD_REPORT_ID,
     type: CONST.REPORT.TYPE.CHAT,
     parentReportID: IOU_REPORT_ID,
     parentReportActionID: IOU_ACTION_ID,
-} as Report;
+};
 
 const transaction: Transaction = {
     ...createRandomTransaction(1),
     transactionID: TRANSACTION_ID,
     reportID: IOU_REPORT_ID,
-    comment: {hold: 'hold-report-action-id'},
+    comment: {hold: HOLD_ACTION_ID},
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- minimal IOU action stub so the component can resolve the linked transaction and its thread
-const iouAction = {
-    reportActionID: IOU_ACTION_ID,
-    reportID: IOU_REPORT_ID,
-    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-    childReportID: THREAD_REPORT_ID,
-    created: '2024-01-01 00:00:00.000',
-    originalMessage: {IOUTransactionID: TRANSACTION_ID},
-} as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+function buildIOUAction(reportActionID: string, transactionID: string, childReportID: string): ReportAction {
+    return {
+        ...buildOptimisticIOUReportAction({
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount: transaction.amount,
+            currency: transaction.currency,
+            comment: '',
+            participants: [],
+            transactionID,
+            iouReportID: IOU_REPORT_ID,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+        }),
+        reportActionID,
+        childReportID,
+        childType: CONST.REPORT.TYPE.CHAT,
+        actorAccountID: TEST_ACCOUNT_ID,
+    };
+}
+
+const iouAction = buildIOUAction(IOU_ACTION_ID, TRANSACTION_ID, THREAD_REPORT_ID);
 
 const allReports = {
     [`${ONYXKEYS.COLLECTION.REPORT}${IOU_REPORT_ID}`]: iouReport,
@@ -171,14 +189,109 @@ describe('RemoveHoldPrimaryAction', () => {
         // request has the report and its transaction thread available
         expect(mockChangeMoneyRequestHoldStatus).toHaveBeenCalledTimes(1);
         const payload = mockChangeMoneyRequestHoldStatus.mock.calls.at(0)?.at(0);
-        expect(payload?.iouTransactionReport).toBeDefined();
-        expect(payload?.reportActionChildReport).toBeDefined();
         expect(payload).toEqual(
             expect.objectContaining({
                 reportAction: iouAction,
                 iouTransaction: transaction,
                 iouTransactionReport: iouReport,
                 reportActionChildReport: transactionThreadReport,
+            }),
+        );
+    });
+
+    it('unholds every held expense with its own transaction thread report', async () => {
+        // Given a report with two held expenses, each with its own IOU action and transaction thread
+        const secondThreadReportID = '1003';
+        const secondActionID = 'iou-action-2';
+        const secondTransactionID = 'transaction-2';
+        const secondHoldActionID = 'hold-report-action-id-2';
+        const secondTransaction: Transaction = {
+            ...createRandomTransaction(2),
+            transactionID: secondTransactionID,
+            reportID: IOU_REPORT_ID,
+            comment: {hold: secondHoldActionID},
+        };
+        const secondThreadReport: Report = {
+            reportID: secondThreadReportID,
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: IOU_REPORT_ID,
+            parentReportActionID: secondActionID,
+        };
+        const secondIOUAction = buildIOUAction(secondActionID, secondTransactionID, secondThreadReportID);
+        const reports = {
+            ...allReports,
+            [`${ONYXKEYS.COLLECTION.REPORT}${secondThreadReportID}`]: secondThreadReport,
+        };
+
+        mockUseOnyx.mockImplementation((key) => {
+            if (key === ONYXKEYS.COLLECTION.REPORT) {
+                return createOnyxResult<Record<string, Report>>(reports);
+            }
+            return createOnyxResult(undefined);
+        });
+        mockUseTransactionThreadData.mockReturnValue({
+            moneyRequestReport: iouReport,
+            chatReport: undefined,
+            isOffline: false,
+            reportActions: [iouAction, secondIOUAction],
+            visibleTransactions: [transaction, secondTransaction],
+            reportTransactionIDs: [transaction.transactionID, secondTransaction.transactionID],
+            transactionThreadReportID: THREAD_REPORT_ID,
+            transactionThreadReport,
+            requestParentReportAction: iouAction,
+            iouTransactionID: transaction.transactionID,
+            transaction,
+        });
+        mockUseTransactionsAndViolationsForReport.mockReturnValue({
+            transactions: {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`]: secondTransaction,
+            },
+            violations: {},
+            isLoaded: true,
+        });
+        const buildHoldAction = (reportActionID: string): ReportAction => ({
+            reportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: TEST_ACCOUNT_ID,
+            created: '2024-01-01 00:00:00.000',
+        });
+        await Onyx.multiSet({
+            [ONYXKEYS.SESSION]: {accountID: TEST_ACCOUNT_ID, email: TEST_EMAIL},
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}`]: {[HOLD_ACTION_ID]: buildHoldAction(HOLD_ACTION_ID)},
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${secondThreadReportID}`]: {[secondHoldActionID]: buildHoldAction(secondHoldActionID)},
+        });
+        await waitForBatchedUpdates();
+
+        render(
+            <RemoveHoldPrimaryAction
+                reportID={IOU_REPORT_ID}
+                chatReportID="chat-report-1"
+            />,
+        );
+
+        // When the user presses the "Unhold" button
+        const buttonProps = mockButton.mock.lastCall?.[0];
+        buttonProps?.onPress?.();
+
+        // Then both expenses are unheld, and each call gets its own transaction thread as the action child report
+        expect(mockChangeMoneyRequestHoldStatus).toHaveBeenCalledTimes(2);
+        expect(mockChangeMoneyRequestHoldStatus).toHaveBeenNthCalledWith(
+            1,
+            expect.objectContaining({
+                reportAction: iouAction,
+                iouTransaction: transaction,
+                iouTransactionReport: iouReport,
+                reportActionChildReport: transactionThreadReport,
+            }),
+        );
+        expect(mockChangeMoneyRequestHoldStatus).toHaveBeenNthCalledWith(
+            2,
+            expect.objectContaining({
+                reportAction: secondIOUAction,
+                iouTransaction: secondTransaction,
+                iouTransactionReport: iouReport,
+                reportActionChildReport: secondThreadReport,
             }),
         );
     });

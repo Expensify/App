@@ -427,7 +427,7 @@ function putTransactionsOnHold({
 function unholdRequest({
     transactionID,
     reportID,
-    transactionReport,
+    transactionReport: iouReport,
     report,
     transaction,
     policy,
@@ -457,7 +457,6 @@ function unholdRequest({
 }) {
     const createdReportAction = buildOptimisticUnHoldReportAction(delegateAccountID);
     const updatedTransactionViolations = transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [];
-    const iouReport = transactionReport;
 
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.REPORT>
