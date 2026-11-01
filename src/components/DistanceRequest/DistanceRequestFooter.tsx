@@ -76,7 +76,10 @@ function DistanceRequestFooter({waypoints, transaction, navigateToWaypointEditPa
     const defaultMileageRate = DistanceRequestUtils.getDefaultMileageRate(policy ?? activePolicy);
     const policyCurrency = (policy ?? activePolicy ?? personalPolicy)?.outputCurrency ?? CONST.CURRENCY.USD;
     const mileageRate = isCustomUnitRateIDForP2P(transaction) ? DistanceRequestUtils.getRateForP2P(policyCurrency, transaction) : defaultMileageRate;
-    const {unit} = mileageRate ?? {};
+    // A saved expense keeps the unit the backend stored on it, which can differ from the stored default P2P rate after a currency change.
+    // Drafts can carry a distanceUnit too (reuse route, confirmation page), so only trust it when editing a saved expense.
+    const savedDistanceUnit = transactionState === CONST.TRANSACTION.STATE.CURRENT ? transaction?.comment?.customUnit?.distanceUnit : undefined;
+    const unit = savedDistanceUnit ?? mileageRate?.unit;
     const primaryRoute = transaction?.routes?.[CONST.TRANSACTION.DEFAULT_ROUTE_KEY];
     const alternateRoute = transaction?.routes?.[CONST.TRANSACTION.ALTERNATE_ROUTE_KEY];
     const isAlternateDirectionSelected = getSelectedRouteKey(transaction) === CONST.TRANSACTION.ALTERNATE_ROUTE_KEY;
