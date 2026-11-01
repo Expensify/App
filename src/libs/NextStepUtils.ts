@@ -11,7 +11,7 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
-import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
+import {canCreateExpensesOnPolicy, getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
 import {
@@ -413,6 +413,14 @@ function getReportNextStep({
     // Reports on an archived workspace can't be acted on until they're moved to another workspace
     if (isArchivedPolicy(policy)) {
         return buildChangeWorkspaceNextStep();
+    }
+
+    // An open, empty report only waits for its owner to add expenses, which a member without the create-expense permission, such as approve-only, cannot do.
+    if (policy && isOpenExpenseReport(moneyRequestReport) && !doesReportContainTransactions(moneyRequestReport) && !canCreateExpensesOnPolicy(policy, moneyRequestReportOwnerLogin)) {
+        return {
+            messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+            icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+        };
     }
 
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);

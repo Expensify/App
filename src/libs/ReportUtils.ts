@@ -5302,8 +5302,15 @@ function getReasonAndReportActionThatRequiresAttention({
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
     // shouldn't demand attention even when the chat still carries an outstanding-child flag.
     const hasStaleChildRequest = isTripRoom(optionOrReport) && (optionOrReport.transactionCount ?? 0) === 0;
+    // The bare outstanding-child flag only asks the owner to add expenses to their open report, so it is ignored when the current user cannot create expenses on that workspace.
+    const isBareOutstandingChildIgnorable =
+        !iouReportActionToApproveOrPay?.reportActionID &&
+        isOpenExpenseReport(iouReport) &&
+        (iouReport?.transactionCount ?? 0) === 0 &&
+        iouReport?.ownerAccountID === currentUserAccountID &&
+        !canCreateExpensesOnPolicy(resolvePolicy(iouReport?.policyID), currentUserLogin);
     const hasValidIOUAction =
-        ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) &&
+        ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest && !isBareOutstandingChildIgnorable) || iouReportActionToApproveOrPay?.reportActionID) &&
         !hasOnlyPendingTransactions &&
         !isFallbackReportExcludedForHeldExpenses;
 

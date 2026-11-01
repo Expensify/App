@@ -534,6 +534,20 @@ describe('createFilteredPoliciesInfoSelector', () => {
         expect(result.filteredPoliciesCount).toBe(2);
         expect(result.firstPolicy).toStrictEqual({id: 'p1', ownerAccountID: 1});
     });
+
+    it('excludes workspaces where the member cannot create expenses', () => {
+        // Given an approve-only workspace and a regular member workspace
+        // When "Submit to my employer" counts the workspaces it can route to
+        // Then only the member workspace counts, so the shortcut never picks the approve-only one
+        const policies = {
+            [`${P}p1`]: makePolicy({id: 'p1', role: CONST.POLICY.ROLE.APPROVE_ONLY, ownerAccountID: 1}),
+            [`${P}p2`]: makePolicy({id: 'p2', role: CONST.POLICY.ROLE.USER, ownerAccountID: 2}),
+        };
+        const result = createFilteredPoliciesInfoSelector(userLogin)(policies);
+
+        expect(result.filteredPoliciesCount).toBe(1);
+        expect(result.firstPolicy).toStrictEqual({id: 'p2', ownerAccountID: 2});
+    });
 });
 
 describe('billingRestrictionPolicySelector', () => {

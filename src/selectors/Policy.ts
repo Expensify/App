@@ -6,6 +6,7 @@ import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
 import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
+    canCreateExpensesOnPolicy,
     canSendInvoice,
     getActiveAdminWorkspaces,
     getActivePoliciesWithExpenseChat,
@@ -437,7 +438,7 @@ const createFilteredPoliciesInfoSelector =
         let filteredPoliciesCount = 0;
         let firstPolicy: BillingRestrictionPolicy | undefined;
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
+            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id) || !canCreateExpensesOnPolicy(policy, email)) {
                 continue;
             }
             if (filteredPoliciesCount === 0) {

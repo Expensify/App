@@ -1017,6 +1017,58 @@ describe('libs/NextStepUtils', () => {
             });
         });
 
+        it('returns the no further action next step for an open, empty report when the owner cannot create expenses on the workspace', () => {
+            // Given an open, empty report whose owner cannot create expenses on the workspace
+            // When the report next step is resolved
+            // Then it says no further action, because the owner can never add the expenses it waits for
+            const currentNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    rules: undefined,
+                    chatReportID: 'chat-approve-only',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    policyID,
+                    payeeAccountID: 1,
+                    total: 0,
+                    currency: CONST.CURRENCY.USD,
+                    isASAPSubmitBetaEnabled: true,
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                transactionCount: 0,
+                nextStep: currentNextStep,
+            } as Report;
+
+            const policy = createMock<Policy>({
+                id: policyID,
+                role: CONST.POLICY.ROLE.APPROVE_ONLY,
+            });
+
+            const result = getReportNextStep({
+                rules: undefined,
+                moneyRequestReport: report,
+                moneyRequestReportOwnerLogin: currentUserEmail,
+                transactions: [],
+                policy,
+                transactionViolations: {},
+                currentUserEmail,
+                currentUserAccountID,
+            });
+
+            expect(result).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
+            });
+        });
+
         it('returns an optimistic fix issue next step when all transactions have submission-blocking violations', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({

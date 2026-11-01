@@ -582,7 +582,14 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
 
     if (policyID === activePolicyID) {
         const mostRecentlyCreatedGroupPolicy = Object.values(policies ?? {})
-            .filter((p) => p && p.id !== activePolicyID && p.type !== CONST.POLICY.TYPE.PERSONAL && p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+            .filter(
+                (p) =>
+                    p &&
+                    p.id !== activePolicyID &&
+                    p.type !== CONST.POLICY.TYPE.PERSONAL &&
+                    p.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                    PolicyUtils.canCreateExpensesOnPolicy(p),
+            )
             .sort((policyA, policyB) => localeCompare(policyB?.created ?? '', policyA?.created ?? ''))
             .at(0);
 

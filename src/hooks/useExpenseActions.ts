@@ -15,7 +15,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getDistanceExpenseTypeForPolicy} from '@libs/PolicyDistanceRatesUtils';
-import {isPolicyAccessible} from '@libs/PolicyUtils';
+import {canAccessAndCreateExpensesOnPolicy} from '@libs/PolicyUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {
     canDuplicateExpenseIntoSourceReport,
@@ -448,7 +448,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                     return;
                 }
 
-                const isSourcePolicyValid = !!policy && isPolicyAccessible(policy, currentUserLogin ?? '');
+                const isSourcePolicyValid = !!policy && canAccessAndCreateExpensesOnPolicy(policy, currentUserLogin ?? '');
                 const targetPolicyForDuplicate = isSourcePolicyValid ? policy : defaultExpensePolicy;
 
                 if (targetPolicyForDuplicate && shouldRestrictUserBillableActions(targetPolicyForDuplicate, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
