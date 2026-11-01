@@ -11041,7 +11041,7 @@ function hasVisibleReportFieldViolations(
         if (!isReportFieldTargetMatchingReport(report, field)) {
             return false;
         }
-        if (shouldHideSingleReportField(field)) {
+        if (shouldHideSingleReportField(field, policy.fieldList)) {
             return false;
         }
         if (isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules)) {
@@ -15274,10 +15274,18 @@ function hasEnabledListValue(reportField: PolicyReportField): boolean {
     return reportField.values.some((_, index) => !reportField.disabledOptions.at(index));
 }
 
-function shouldHideSingleReportField(reportField: PolicyReportField) {
+/**
+ * Checks whether a report field should be hidden on the report.
+ * When `policyFieldList` is passed, a list field that is no longer on the workspace and has no value is hidden too.
+ * Only the workspace's copy of a list field records which options are disabled, so once the field is deleted the
+ * report's copy reads every option as enabled and would otherwise show a field that was hidden before the deletion.
+ */
+function shouldHideSingleReportField(reportField: PolicyReportField, policyFieldList?: Policy['fieldList']) {
     const hasEnableOption = reportField.type !== CONST.REPORT_FIELD_TYPES.LIST || hasEnabledListValue(reportField);
+    const isFieldOnPolicy = !policyFieldList || !!(policyFieldList[getReportFieldKey(reportField.fieldID)] ?? policyFieldList[reportField.fieldID]);
+    const isDeletedEmptyListField = reportField.type === CONST.REPORT_FIELD_TYPES.LIST && !isFieldOnPolicy && !reportField.value;
 
-    return isReportFieldOfTypeTitle(reportField) || !hasEnableOption;
+    return isReportFieldOfTypeTitle(reportField) || !hasEnableOption || isDeletedEmptyListField;
 }
 
 function isReportNameValuePairField(value: unknown): value is PolicyReportField {

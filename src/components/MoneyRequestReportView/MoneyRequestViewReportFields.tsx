@@ -144,7 +144,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
     const fields = Object.values(fieldsByName);
     const sortedPolicyReportFields: EnrichedPolicyReportField[] = fields
         .filter((field) => isReportFieldTargetMatchingReport(report, field))
-        .filter((reportField) => !shouldHideSingleReportField(reportField))
+        .filter((reportField) => !shouldHideSingleReportField(reportField, policy?.fieldList))
         .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
         .map((field): EnrichedPolicyReportField => {
             const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules);
