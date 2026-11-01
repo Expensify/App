@@ -11,6 +11,7 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
+import {isBillReport} from './BillPayUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimbursementChoice, getReimburserAccountID, isArchivedPolicy} from './PolicyUtils';
 import {getOriginalMessage} from './ReportActionMessageUtils';
 import {isDynamicExternalWorkflowApproveFailedAction} from './ReportActionTypeGuards';
@@ -354,8 +355,9 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             const reimbursementChoice = getReimbursementChoice(policy);
             const isReimbursementDisabled = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 
-            // The server returns no further action for approved reports on workspaces that reimburse outside Expensify (Indirect)
-            const isReimbursementManual = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+            // The server returns no further action for approved expense reports on workspaces that reimburse outside Expensify (Indirect).
+            // Bills still wait for the payer, because manual reimbursement only skips expense reports.
+            const isReimbursementManual = reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && !isBillReport(report);
             if (isInvoiceReport(report) || reimbursableSpend === 0 || isReimbursementDisabled || isReimbursementManual) {
                 nextStep = nextStepNoActionRequired;
                 break;
