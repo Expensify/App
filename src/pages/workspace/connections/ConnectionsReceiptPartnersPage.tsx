@@ -2,8 +2,8 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -155,10 +155,9 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
                                     </OfflineWithFeedback>
                                 )}
                                 {canWriteMoreFeatures && (
-                                    <MenuItem
+                                    <MenuItemNavigation
                                         icon={icons.Mail}
                                         title={translate('workspace.receiptPartners.uber.manageInvites')}
-                                        shouldShowRightIcon
                                         onPress={() =>
                                             Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)))
                                         }

@@ -3329,6 +3329,8 @@ ${amount} für ${merchant} – ${date}`,
         defaultWorkflowApproverNotWorkspaceMember: 'Diese genehmigende Person ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue genehmigende Person.',
         overLimitApproverNotWorkspaceMember:
             'Die zusätzliche genehmigende Person für Berichte über dem Limit ist nicht mehr Mitglied des Arbeitsbereichs. Wählen Sie eine neue zusätzliche genehmigende Person.',
+        overLimitApproverInWorkflow:
+            'Die zusätzliche Genehmigungsperson für Berichte über dem Limit ist bereits eine Genehmigungsperson in diesem Workflow. Wählen Sie eine andere zusätzliche Genehmigungsperson.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> genehmigt bereits Berichte für <strong>${name2}</strong>. Bitte wähle eine andere approvierende Person, um einen zirkulären Workflow zu vermeiden.`,
         emptyContent: {
@@ -5192,8 +5194,9 @@ ${amount} für ${merchant} – ${date}`,
                 'Wussten Sie, dass Sie Gruppenreisen wie diese direkt in Expensify buchen und verwalten können? Sparen Sie sich beim nächsten Mal den Aufwand und probieren Sie unser Tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reise-Events</a> aus.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Reisen ist nicht aktiviert',
-            message: 'Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standard-Arbeitsbereich oder wechseln Sie Ihren Standard-Arbeitsbereich zu einem, in dem Reisen aktiviert ist.',
+            title: 'Sie können noch keine Reisen buchen',
+            message:
+                'Sie sind Mitglied eines Reise-fähigen Arbeitsbereichs, aber er ist nicht Ihr Standardarbeitsbereich. Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standardarbeitsbereich oder ändern Sie Ihren Standardarbeitsbereich auf einen, der Reisen aktiviert hat.',
         },
     },
     workspace: {
@@ -10793,6 +10796,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Woche',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahr',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartal',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -10852,6 +10856,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Wochen',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Jahre',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quartale',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Genehmiger',
         },
         moneyRequestReport: {emptyStateTitle: 'Noch keine Ausgaben', accessPlaceHolder: 'Für Details öffnen'},
         noCategory: 'Keine Kategorie',
@@ -12103,6 +12108,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 info: 'Wenn du deine(n) Arbeitsbereich(e) weiterhin nutzungsbasiert bezahlen möchtest, bist du startklar.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Wenn du zukünftige Aktivitäten und Gebühren verhindern möchtest, musst du deinen <a href="${workspacesListRoute}">Workspace bzw. deine Workspaces löschen</a>. Bitte beachte, dass dir beim Löschen deines Workspace bzw. deiner Workspaces alle ausstehenden Aktivitäten in Rechnung gestellt werden, die im aktuellen Kalendermonat angefallen sind.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Um zukünftige Aktivitäten und Gebühren zu verhindern, <a href="${workspacesListRoute}">archiviere alle deine kostenpflichtigen Arbeitsbereiche</a>. Archivierte Arbeitsbereiche mit abrechenbaren Aktivitäten im aktuellen Monat werden weiterhin in deiner Rechnung berücksichtigt.`,
             },
             requestSubmitted: {
                 title: 'Anfrage gesendet',

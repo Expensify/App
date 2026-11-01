@@ -3317,6 +3317,7 @@ ${amount} voor ${merchant} - ${date}`,
         approverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur of verwijder deze workflow.',
         defaultWorkflowApproverNotWorkspaceMember: 'Deze fiatteur is geen lid meer van de workspace. Kies een nieuwe fiatteur.',
         overLimitApproverNotWorkspaceMember: 'De extra fiatteur voor rapporten boven de limiet is geen lid meer van de workspace. Kies een nieuwe extra fiatteur.',
+        overLimitApproverInWorkflow: 'De extra fiatteur voor rapporten boven de limiet is al een fiatteur in deze workflow. Kies een andere extra fiatteur.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> keurt al rapporten goed voor <strong>${name2}</strong>. Kies een andere fiatteur om een cirkelstroom te voorkomen.`,
         emptyContent: {
@@ -5161,8 +5162,9 @@ ${amount} voor ${merchant} - ${date}`,
                 'Wist je dat je groepsreizen zoals deze direct in Expensify kunt boeken en beheren? Bespaar jezelf de moeite de volgende keer en probeer onze tool <a href="https://help.expensify.com/travel/hubs/event-management/">Reisevenementen</a> eens uit.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Reizen is niet ingeschakeld',
-            message: 'Om te boeken, schakel reizen in op je standaardwerkruimte of stel een standaardwerkruimte in die reizen ondersteunt.',
+            title: 'Je kunt nog geen reizen boeken',
+            message:
+                'Je bent lid van een werkruimte met reizen ingeschakeld, maar dit is niet je standaardwerkruimte. Schakel reizen in op je standaardwerkruimte of stel een werkruimte met reizen als standaardwerkruimte in om te boeken.',
         },
     },
     workspace: {
@@ -10717,6 +10719,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Jaar',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartaal',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Goedkeurder',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -10821,6 +10824,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Weken',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Jaren',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartalen',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Goedkeurders',
         },
         spendOverTime: 'Uitgaven in de tijd',
         trip: {
@@ -12019,6 +12023,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 info: 'Als je je werkruimte(s) op basis van betalen-per-gebruik wilt blijven gebruiken, ben je helemaal klaar.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Als je toekomstige activiteit en kosten wilt voorkomen, moet je je <a href="${workspacesListRoute}">werkruimte(s) verwijderen</a>. Let op: wanneer je je werkruimte(s) verwijdert, worden eventuele openstaande activiteiten die in de huidige kalendermaand hebben plaatsgevonden alsnog in rekening gebracht.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Om toekomstige activiteit en kosten te voorkomen, <a href="${workspacesListRoute}">archiveer al je betaalde werkruimtes</a>. Gearchiveerde werkruimtes met factureerbare activiteit in de huidige maand worden nog steeds in je factuur opgenomen.`,
             },
             requestSubmitted: {
                 title: 'Aanvraag ingediend',

@@ -38,7 +38,7 @@ type PersonalCardDetailsHeaderMenuProps = {
     shouldShowBreakConnection: boolean;
     onBreakConnection: () => void;
     onUnassignCard: () => void;
-    onDeleteCard?: () => void;
+    onDeleteCard: () => void;
 };
 
 function PersonalCardDetailsHeaderMenu({
@@ -138,19 +138,21 @@ function PersonalCardDetailsHeaderMenu({
                     />
                 )}
                 {isCSVImportedPersonalCard ? (
-                    <MenuItem
-                        icon={icons.Trashcan}
-                        title={translate('common.delete')}
-                        style={styles.mb1}
-                        onPress={onDeleteCard}
-                    />
+                    <View style={styles.mb1}>
+                        <MenuItemAction
+                            icon={icons.Trashcan}
+                            title={translate('common.delete')}
+                            onPress={onDeleteCard}
+                        />
+                    </View>
                 ) : (
-                    <MenuItem
-                        icon={expensifyIcons.RemoveMembers}
-                        title={translate('workspace.moreFeatures.companyCards.removeCard')}
-                        style={styles.mb1}
-                        onPress={onUnassignCard}
-                    />
+                    <View style={styles.mb1}>
+                        <MenuItemAction
+                            icon={expensifyIcons.RemoveMembers}
+                            title={translate('workspace.moreFeatures.companyCards.removeCard')}
+                            onPress={onUnassignCard}
+                        />
+                    </View>
                 )}
             </View>
         </>

@@ -577,6 +577,21 @@ const getTransactionGroupHeaders = (groupBy: SearchGroupBy, icons: SearchHeaderI
                 },
                 ...commonGroupHeaders,
             ];
+        case CONST.SEARCH.GROUP_BY.APPROVER:
+            return [
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.AVATAR,
+                    translationKey: undefined,
+                    icon: icons.Profile,
+                    isColumnSortable: false,
+                },
+                {
+                    columnName: CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER,
+                    translationKey: 'search.filters.groupBy.approver',
+                    isColumnSortable: true,
+                },
+                ...commonGroupHeaders,
+            ];
         default:
             return [];
     }

@@ -17,9 +17,9 @@ import type {ColumnWidthTarget} from './columnResize/getResizableColumnLayout';
 import type {ResizableColumn} from './columnResize/resolveDraggedColumnWidths';
 import type {TableColumn, TableData} from './types';
 
-import calculateDynamicColumnWidths, {distributeEqualWidths} from './calculateDynamicColumnWidths';
-import getFrozenColumnWidths from './columnResize/getFrozenColumnWidths';
-import getResizableColumnLayout, {getAvailableColumnsWidth} from './columnResize/getResizableColumnLayout';
+import calculateDynamicColumnWidths from './calculateDynamicColumnWidths';
+import getPersistedColumnLayout from './columnResize/getPersistedColumnLayout';
+import {getFreshColumnWidths} from './columnResize/getResizableColumnLayout';
 
 const {MIN_FREE_TEXT_COLUMN_WIDTH, SCROLLED_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
@@ -225,7 +225,6 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     }
 
     const dynamicColumns: Array<TableColumn<ColumnKey, DataType>> = [];
-    const fixedColumnWidths = new Map<ColumnKey, number>();
     let fixedColumnsWidth = 0;
 
     for (const column of columns) {
@@ -236,7 +235,6 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         }
 
         if (typeof column.width === 'number') {
-            fixedColumnWidths.set(column.key, column.width);
             fixedColumnsWidth += column.width;
         } else {
             dynamicColumns.push(column);
@@ -309,7 +307,6 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     }
 
     const rowChromeWidths = {selectionColumnWidth, totalGapWidth, rowMarginWidth, rowPaddingWidth};
-    const availableColumnsWidth = getAvailableColumnsWidth(tableWidth, rowChromeWidths);
 
     const resizableColumns: ResizableColumn[] = columns.map((column) => ({
         key: column.key,
@@ -320,40 +317,13 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         maxWidth: column.dynamicSizing?.maxWidth ?? Number.POSITIVE_INFINITY,
     }));
 
-    const buildResizableResult = (baseColumnWidths: Record<string, number>, resizedColumnKeys: string[]): UseDynamicColumnWidthsResult => ({
-        ...getResizableColumnLayout({columns: resizableColumns, resolvedColumnWidths: baseColumnWidths, resizedColumnKeys, tableWidth, rowChromeWidths}),
-        getStoredTableColumnWidths: (columnWidths, columnKey, isResized) => {
-            const nextResizedColumnKeys = isResized ? [...new Set([...resizedColumnKeys, columnKey])] : resizedColumnKeys.filter((resizedColumnKey) => resizedColumnKey !== columnKey);
-
-            return nextResizedColumnKeys.length > 0 ? {availableColumnsWidth, columnWidths, resizedColumnKeys: nextResizedColumnKeys} : null;
-        },
-    });
-
-    // After the first drag, only room changes move the columns, so new content never shifts them.
-    if (isColumnResizingEnabled && storedTableColumnWidths) {
-        const frozenColumnWidths = getFrozenColumnWidths({columns: resizableColumns, storedTableColumnWidths, availableColumnsWidth});
-
-        return buildResizableResult(frozenColumnWidths, storedTableColumnWidths.resizedColumnKeys);
-    }
-
     const {widths, shouldScrollHorizontally} = calculateDynamicColumnWidths(constraints, availableWidth);
     // Equal columns are what the static `1fr` tracks already do, but a drag needs px widths to start from.
     if (widths.length === 0 && !isColumnResizingEnabled) {
         return noDynamicWidths;
     }
 
-    const resolvedWidths = widths.length > 0 ? widths : distributeEqualWidths(dynamicColumns.length, availableWidth);
-
-    // Keyed by column rather than tracked with a running index, so the tracks can be built without mutating a counter
-    // from inside the mapping callback (which the React Compiler can't compile).
-    const resolvedColumnWidths: Record<string, number> = {};
-    for (const [index, column] of dynamicColumns.entries()) {
-        resolvedColumnWidths[column.key] = resolvedWidths.at(index) ?? 0;
-    }
-
-    for (const [columnKey, fixedWidth] of fixedColumnWidths) {
-        resolvedColumnWidths[columnKey] = fixedWidth;
-    }
+    const resolvedColumnWidths = getFreshColumnWidths(resizableColumns, widths, availableWidth + fixedColumnsWidth);
 
     if (!isColumnResizingEnabled) {
         const gridTemplateColumns = columns.map((column) => `${resolvedColumnWidths[column.key] ?? 0}px`);
@@ -364,12 +334,12 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
 
         // Rows overflow, so scroll at exactly their width. Margin is included because rows keep it inside the scrolled
         // content, and without it their trailing edge gets clipped.
-        const scrollWidth = resolvedWidths.reduce((total, width) => total + width, 0) + fixedColumnsWidth + selectionColumnWidth + totalGapWidth + rowChromeWidth;
+        const scrollWidth = widths.reduce((total, width) => total + width, 0) + fixedColumnsWidth + selectionColumnWidth + totalGapWidth + rowChromeWidth;
 
         return {...noDynamicWidths, gridTemplateColumns, scrollWidth, resolvedColumnWidths};
     }
 
-    return buildResizableResult(resolvedColumnWidths, []);
+    return getPersistedColumnLayout({columns: resizableColumns, freshColumnWidths: resolvedColumnWidths, storedTableColumnWidths, tableWidth, rowChromeWidths});
 }
 
 export default useDynamicColumnWidths;
