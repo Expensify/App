@@ -2792,12 +2792,14 @@ function getUpdateTrackExpenseParams(
         },
     });
 
-    // Reset the transaction thread to its original state
-    failureData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-        value: transactionThread,
-    });
+    if (transactionThread?.reportID) {
+        // Reset the transaction thread to its original state
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
+            value: transactionThread,
+        });
+    }
 
     if (syncedOptimisticViolations !== undefined && transactionID && currentTransactionViolationsForFailure !== undefined) {
         const violationsOnyxData: OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
