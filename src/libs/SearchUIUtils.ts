@@ -68,6 +68,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 
 import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
+import IntlStore from '@src/languages/IntlStore';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -119,6 +120,7 @@ import {convertAttendeesToArray} from './AttendeeUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescriptionForSearchTable, getFeedNameForDisplay, isPersonalCard} from './CardUtils';
 import {getCategoryGLCode, getDecodedCategoryName} from './CategoryUtils';
+import getCollator from './CollatorUtils';
 import DateUtils from './DateUtils';
 import getIOUPayerAndReceiver from './getIOUPayerAndReceiver';
 import getTransactionFromTransactionListItem from './getTransactionFromTransactionListItem';
@@ -5547,11 +5549,9 @@ function formatTransactionViolationNames(violationNames: Set<string>, translate?
     }
 
     const names = Array.from(violationNames);
-    if (!translate) {
-        return names.join(', ');
-    }
-
-    return names.map((name) => getViolationDisplayName(name, translate)).join(', ');
+    const labels = translate ? names.map((name) => getViolationDisplayName(name, translate)) : names;
+    const collator = getCollator(IntlStore.getCurrentLocale());
+    return labels.sort((first, second) => collator.compare(first, second)).join(', ');
 }
 
 function collectSubmittedViolationNamesForTransaction(violationNames: Set<string>, reportActions: OnyxTypes.ReportAction[], transactionID: string) {
