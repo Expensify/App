@@ -1,7 +1,7 @@
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
-import {activatePhysicalExpensifyCard, clearIssueNewCardAssigneePhoneNumber, issueExpensifyCard, openIssueNewCardShippingAddressStep} from '@src/libs/actions/Card';
+import {clearIssueNewCardAssigneePhoneNumber, issueExpensifyCard, openIssueNewCardShippingAddressStep, setPersonalDetailsAndActivateExpensifyCard} from '@src/libs/actions/Card';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import {openPolicyExpensifyCardsPage} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -236,8 +236,8 @@ describe('actions/PolicyExpensifyCard', () => {
         });
     });
 
-    describe('activatePhysicalExpensifyCard', () => {
-        it('sends the details the cardholder confirmed with the last four digits', async () => {
+    describe('setPersonalDetailsAndActivateExpensifyCard', () => {
+        it('sends the details the cardholder confirmed with the last four digits and the magic code', async () => {
             // Given a cardholder who confirmed their details while activating a card shipped to an address their admin entered
             const personalDetails = {
                 phoneNumber: '+13466666666',
@@ -251,13 +251,15 @@ describe('actions/PolicyExpensifyCard', () => {
                 dob: '1988-05-19',
             };
 
-            // When they activate the card
-            activatePhysicalExpensifyCard('1234', 5555, personalDetails);
+            // When they enter the magic code
+            setPersonalDetailsAndActivateExpensifyCard('1234', 5555, personalDetails, '123456');
             await waitForBatchedUpdates();
 
-            // Then the details go along with the digits so their profile and Marqeta are updated before the card is active
-            const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD).at(-1)?.[1]?.body;
-            expect(body instanceof FormData ? Object.fromEntries(body) : {}).toEqual(expect.objectContaining({cardLastFourDigits: '1234', ...personalDetails}));
+            // Then the details go with the digits and the code, since saving them needs the magic code
+            const body = TestHelper.getFetchMockCalls(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_ACTIVATE_EXPENSIFY_CARD).at(-1)?.[1]?.body;
+            expect(body instanceof FormData ? Object.fromEntries(body) : {}).toEqual(
+                expect.objectContaining({cardID: '5555', cardLastFourDigits: '1234', validateCode: '123456', ...personalDetails}),
+            );
         });
     });
 });

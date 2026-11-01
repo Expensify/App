@@ -615,6 +615,7 @@ export type {default as BulkUpdateCardTransactionStartDateParams} from './BulkUp
 export type {default as SetPersonalCardReimbursableParams} from './SetPersonalCardReimbursableParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
+export type {default as SetPersonalDetailsAndActivateExpensifyCardParams} from './SetPersonalDetailsAndActivateExpensifyCardParams';
 export type {default as SetPersonalDetailsAndRevealExpensifyCardParams} from './SetPersonalDetailsAndRevealExpensifyCardParams';
 export type {default as SetPersonalDetailsAndRevealExpensifyCardWithSCAParams} from './SetPersonalDetailsAndRevealExpensifyCardWithSCAParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsWithPINParams} from './SetPersonalDetailsAndShipExpensifyCardsWithPINParams';

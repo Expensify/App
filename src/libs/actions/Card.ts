@@ -16,6 +16,7 @@ import type {
     RevealExpensifyCardDetailsParams,
     SetExpensifyCardRuleParams,
     SetPersonalCardReimbursableParams,
+    SetPersonalDetailsAndActivateExpensifyCardParams,
     StartIssueNewCardFlowParams,
     ToggleCardContinuousReconciliationParams,
     UnassignCardParams,
@@ -25,7 +26,7 @@ import type {
     UpdateExpensifyCardLimitTypeParams,
     UpdateExpensifyCardTitleParams,
 } from '@libs/API/parameters';
-import type {ActivatePhysicalCardPersonalDetails} from '@libs/API/parameters/ActivatePhysicalExpensifyCardParams';
+import type {ActivatePhysicalCardPersonalDetails} from '@libs/API/parameters/SetPersonalDetailsAndActivateExpensifyCardParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CardProgramKey} from '@libs/CardUtils';
 import {getDisplayedExpensifyCardLimitType, getTranslationKeyForLimitType, shouldShowShippingAddressStep} from '@libs/CardUtils';
@@ -227,14 +228,29 @@ function requestReplacementExpensifyCard(cardID: number, reason: ReplacementReas
 /**
  * Activates the physical Expensify card based on the last four digits of the card number
  */
-function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: number, personalDetails?: ActivatePhysicalCardPersonalDetails) {
+function activatePhysicalExpensifyCard(cardLastFourDigits: string, cardID: number) {
     const parameters: ActivatePhysicalExpensifyCardParams = {
         cardLastFourDigits,
         cardID,
-        ...personalDetails,
     };
 
     API.write(WRITE_COMMANDS.ACTIVATE_PHYSICAL_EXPENSIFY_CARD, parameters, buildCardLoadingOnyxData(cardID));
+}
+
+/**
+ * Saves the details the cardholder confirmed and activates their physical Expensify card, once they enter a magic code
+ */
+function setPersonalDetailsAndActivateExpensifyCard(cardLastFourDigits: string, cardID: number, personalDetails: ActivatePhysicalCardPersonalDetails, validateCode: string) {
+    const parameters: SetPersonalDetailsAndActivateExpensifyCardParams = {
+        ...personalDetails,
+        cardLastFourDigits,
+        cardID,
+        validateCode,
+    };
+
+    // The server sends the error for a wrong magic code or wrong digits, so a failure doesn't add a generic error
+    const {optimisticData, successData} = buildCardLoadingOnyxData(cardID);
+    API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_ACTIVATE_EXPENSIFY_CARD, parameters, {optimisticData, finallyData: successData});
 }
 
 /**
@@ -2095,6 +2111,7 @@ function exportExpensifyCardListToCSV({policyID, cards, personalDetailsList, set
 export {
     requestReplacementExpensifyCard,
     activatePhysicalExpensifyCard,
+    setPersonalDetailsAndActivateExpensifyCard,
     clearCardListErrors,
     clearReportVirtualCardFraudForm,
     clearIssueNewCardError,
