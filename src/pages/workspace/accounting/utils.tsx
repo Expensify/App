@@ -1,6 +1,7 @@
 import ConnectToBusinessCentralFlow from '@components/ConnectToBusinessCentralFlow';
 import ConnectToCampfireFlow from '@components/ConnectToCampfireFlow';
 import ConnectToCertiniaFlow from '@components/ConnectToCertiniaFlow';
+import ConnectToDigitsFlow from '@components/ConnectToDigitsFlow';
 import ConnectToDualEntryFlow from '@components/ConnectToDualEntry';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
 import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
@@ -77,6 +78,7 @@ type AccountingIntegrationIcons = Record<
     | 'RilletSquare'
     | 'DualEntrySquare'
     | 'CampfireSquare'
+    | 'DigitsSquare'
     | 'BusinessCentralSquare'
     | 'ZohoBooksSquare',
     IconAsset
@@ -176,6 +178,14 @@ function getAccountingIntegrationData(
             return ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXISTING_CONNECTIONS.getRoute(policyID);
         }
         return ROUTES.POLICY_ACCOUNTING_CAMPFIRE_SETUP.getRoute(policyID);
+    };
+    const getBackToAfterWorkspaceUpgradeRouteForDigits = () => {
+        if (integrationToDisconnect) {
+            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+        }
+        // The sign-in only opens in a new tab from a press, so the admin presses Connect again, which also reruns the
+        // currency check and offers the existing connections.
+        return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID);
     };
 
     switch (connectionName) {
@@ -684,6 +694,30 @@ function getAccountingIntegrationData(
                 errorFields: policy?.connections?.campfire?.config?.errorFields,
             };
         }
+        case CONST.POLICY.CONNECTIONS.NAME.DIGITS:
+            return {
+                title: translate('workspace.accounting.digits'),
+                icon: expensifyIcons?.DigitsSquare,
+                setupConnectionFlow: (
+                    <ConnectToDigitsFlow
+                        policyID={policyID}
+                        key={key}
+                    />
+                ),
+                // Import, export, and advanced screens are added in later releases.
+                onImportPagePress: () => null,
+                subscribedImportSettings: [],
+                onExportPagePress: () => null,
+                subscribedExportSettings: [],
+                onAdvancedPagePress: () => null,
+                subscribedAdvancedSettings: [],
+                workspaceUpgradeNavigationDetails: {
+                    integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.digits.alias,
+                    backToAfterWorkspaceUpgradeRoute: getBackToAfterWorkspaceUpgradeRouteForDigits(),
+                },
+                pendingFields: policy?.connections?.digits?.config?.pendingFields,
+                errorFields: policy?.connections?.digits?.config?.errorFields,
+            };
         case CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS:
             return {
                 title: translate('workspace.accounting.zohoBooks'),

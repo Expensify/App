@@ -5531,6 +5531,7 @@ const CONST = {
                 netsuite:
                     'https://help.expensify.com/articles/expensify-classic/connections/netsuite/Netsuite-Troubleshooting#expensierror-ns0109-failed-to-login-to-netsuite-please-verify-your-credentials',
                 businessCentral: 'https://help.expensify.com/new-expensify/hubs/connections/',
+                digits: 'https://help.expensify.com/new-expensify/hubs/connections/',
             },
             SYNC_STAGE_NAME: {
                 STARTING_IMPORT_QBO: 'startingImportQBO',
@@ -9338,6 +9339,14 @@ const CONST = {
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CAMPFIRE}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.CAMPFIRE}.description` as const,
                 icon: 'CampfireSquare',
+            },
+            [this.POLICY.CONNECTIONS.NAME.DIGITS]: {
+                id: this.POLICY.CONNECTIONS.NAME.DIGITS,
+                alias: 'digits',
+                name: this.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.digits,
+                title: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DIGITS}.title` as const,
+                description: `workspace.upgrade.${this.POLICY.CONNECTIONS.NAME.DIGITS}.description` as const,
+                icon: 'DigitsSquare',
             },
             [this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL]: {
                 id: this.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL,
