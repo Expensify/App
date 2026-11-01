@@ -21,7 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 
 import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
@@ -42,12 +42,10 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
 
-    const stepNames = useMemo(() => {
-        const baseStepNames = issueNewCard?.isChangeAssigneeDisabled ? CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.STEP_NAMES;
-        const shippingStepNames = Array.from({length: getIssueNewCardShippingStepCount(issueNewCard)}, (_, index) => String(baseStepNames.length + index + 1));
-        return [...baseStepNames, ...shippingStepNames];
-    }, [issueNewCard]);
-    const startStepIndex = useMemo(() => getIssueNewCardStartStepIndex(issueNewCard), [issueNewCard]);
+    const baseStepNames = issueNewCard?.isChangeAssigneeDisabled ? CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.STEP_NAMES;
+    const shippingStepNames = Array.from({length: getIssueNewCardShippingStepCount(issueNewCard)}, (_, index) => String(baseStepNames.length + index + 1));
+    const stepNames = [...baseStepNames, ...shippingStepNames];
+    const startStepIndex = getIssueNewCardStartStepIndex(issueNewCard);
 
     useEffect(() => {
         startIssueNewCardFlow(policyID);

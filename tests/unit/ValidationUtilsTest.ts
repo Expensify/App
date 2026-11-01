@@ -1,8 +1,13 @@
+import type {FormOnyxValues} from '@components/Form/types';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {
     containsHtmlTag,
     getAddressFieldErrors,
+    getCountryZipRegexDetails,
+    getFieldRequiredErrors,
+    isValidZipCodeForCountry,
     isValidNameOnCard,
     getAgeRequirementError,
     getInvalidAddressErrorTranslationPath,
@@ -29,9 +34,14 @@ import {
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
 } from '@src/libs/ValidationUtils';
+import type ONYXKEYS from '@src/ONYXKEYS';
+import SIGNER_INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 import {addDays, format, startOfDay, subYears} from 'date-fns';
+import {CONST as COMMON_CONST} from 'expensify-common';
 
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 
 describe('ValidationUtils', () => {
@@ -103,6 +113,24 @@ describe('ValidationUtils', () => {
     });
 
     describe('isRequiredFulfilled', () => {
+        it.each([false, true])('preserves boolean requiredness for %s', (value) => {
+            // Given a checkbox value rather than text.
+            // When requiredness is evaluated directly.
+            const result = isRequiredFulfilled(value);
+
+            // Then a checked value alone fulfills the requirement.
+            expect(result).toBe(value);
+        });
+
+        it('accepts a nonempty collection even when its element is false', () => {
+            // Given a populated collection with a falsy element.
+            // When requiredness checks collection emptiness.
+            const result = isRequiredFulfilled([false]);
+
+            // Then the element truthiness cannot make a populated collection empty.
+            expect(result).toBe(true);
+        });
+
         test('Should return true for a non-empty string value', () => {
             const stringValue = 'Test';
             const isFulfilled = isRequiredFulfilled(stringValue);
@@ -155,6 +183,84 @@ describe('ValidationUtils', () => {
             const emptyObjectValue = {};
             const isFulfilled = isRequiredFulfilled(emptyObjectValue);
             expect(isFulfilled).toBe(false);
+        });
+    });
+
+    describe('getFieldRequiredErrors', () => {
+        it.each(['', '   ', '\u200B', 'Ada Lovelace'])('validates only requested signer text for %j', (signerFullName) => {
+            // Given signer text and a separate empty field that was not requested.
+            const values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> = createMock<FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>>({
+                [SIGNER_INPUT_IDS.SIGNER_FULL_NAME]: signerFullName,
+                [SIGNER_INPUT_IDS.SIGNER_EMAIL]: '',
+            });
+
+            // When only the signer name is required.
+            const errors = getFieldRequiredErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>(values, [SIGNER_INPUT_IDS.SIGNER_FULL_NAME], translateLocal);
+
+            // Then empty and invisible text receives the exact field error and no unrelated field appears.
+            expect(errors).toStrictEqual(signerFullName === 'Ada Lovelace' ? {} : {[SIGNER_INPUT_IDS.SIGNER_FULL_NAME]: translateLocal('common.error.fieldRequired')});
+        });
+
+        it('returns no errors for an empty required-fields list', () => {
+            // Given an incomplete signer form whose fields were not requested.
+            const values = createMock<FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>>({});
+
+            // When the caller requires no fields.
+            const errors = getFieldRequiredErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>(values, [], translateLocal);
+
+            // Then missing unrequested fields do not receive errors.
+            expect(errors).toStrictEqual({});
+        });
+
+        it('reports a missing requested field on an incomplete signer form', () => {
+            // Given a signer form that does not yet contain its requested document field.
+            const values = createMock<FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>>({});
+
+            // When the document is required.
+            const errors = getFieldRequiredErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>(values, [SIGNER_INPUT_IDS.SIGNER_COPY_OF_ID], translateLocal);
+
+            // Then the missing value receives only its own translated error.
+            expect(errors).toStrictEqual({[SIGNER_INPUT_IDS.SIGNER_COPY_OF_ID]: translateLocal('common.error.fieldRequired')});
+        });
+
+        it.each([false, true])('validates the signer confirmation boolean %s', (downloadedPDSandFSG) => {
+            // Given the actual signer confirmation field and an unrequested empty document array.
+            const values = createMock<FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>>({
+                [SIGNER_INPUT_IDS.DOWNLOADED_PDS_AND_FSG]: downloadedPDSandFSG,
+                [SIGNER_INPUT_IDS.SIGNER_COPY_OF_ID]: [],
+            });
+
+            // When the checkbox alone is required.
+            const errors = getFieldRequiredErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>(values, [SIGNER_INPUT_IDS.DOWNLOADED_PDS_AND_FSG], translateLocal);
+
+            // Then false remains unfulfilled and true clears the exact checkbox error.
+            expect(errors).toStrictEqual(downloadedPDSandFSG ? {} : {[SIGNER_INPUT_IDS.DOWNLOADED_PDS_AND_FSG]: translateLocal('common.error.fieldRequired')});
+        });
+
+        it.each([false, true])('validates the signer document collection when populated is %s', (hasDocument) => {
+            // Given an ordinary uploaded file or the same document field after its last file is removed.
+            const document: FileObject = {name: 'identity.pdf', type: 'application/pdf', uri: 'file:///identity.pdf'};
+            const values = createMock<FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>>({
+                [SIGNER_INPUT_IDS.SIGNER_COPY_OF_ID]: hasDocument ? [document] : [],
+                [SIGNER_INPUT_IDS.DOWNLOADED_PDS_AND_FSG]: false,
+            });
+
+            // When only the uploaded document field is requested.
+            const errors = getFieldRequiredErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>(values, [SIGNER_INPUT_IDS.SIGNER_COPY_OF_ID], translateLocal);
+
+            // Then emptiness alone controls the exact document error without validating unrelated fields.
+            expect(errors).toStrictEqual(hasDocument ? {} : {[SIGNER_INPUT_IDS.SIGNER_COPY_OF_ID]: translateLocal('common.error.fieldRequired')});
+        });
+
+        it.each([undefined, 0, 123, Number.NaN])('preserves numeric requiredness for the declared bankAccountID field %s', (bankAccountID) => {
+            // Given the optional numeric property declared by the actual reimbursement form.
+            const values = createMock<FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>>({bankAccountID});
+
+            // When that property is explicitly requested by this caller.
+            const errors = getFieldRequiredErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>(values, ['bankAccountID'], translateLocal);
+
+            // Then only the nonzero ID fulfills requiredness, without adding a UI requirement for this property.
+            expect(errors).toStrictEqual(bankAccountID === 123 ? {} : {bankAccountID: translateLocal('common.error.fieldRequired')});
         });
     });
 
@@ -684,6 +790,28 @@ describe('ValidationUtils', () => {
             expect(isValidPhoneNumber('+12018675309')).toBe(true);
         });
 
+        test('Should return true for a US phone number in a recently added area code', () => {
+            // Given a phone number in the 983 area code, which libphonenumber only recognizes since v8.13.30
+            const phoneNumber = '+19833330123';
+
+            // When we validate it
+            const isValid = isValidPhoneNumber(phoneNumber);
+
+            // Then it is accepted, so users with newer area codes can save it in their personal details
+            expect(isValid).toBe(true);
+        });
+
+        test('Should return false for a US phone number with an area code that is not in use', () => {
+            // Given a 10-digit US phone number whose area code starts with 1, which no US area code does
+            const phoneNumber = '+11234567890';
+
+            // When we validate it
+            const isValid = isValidPhoneNumber(phoneNumber);
+
+            // Then it is still rejected, because the library keeps treating invalid numbers as not possible
+            expect(isValid).toBe(false);
+        });
+
         test('Should return true for a Canadian phone number', () => {
             expect(isValidPhoneNumber('+14165551234')).toBe(true);
         });
@@ -959,5 +1087,72 @@ describe('ValidationUtils', () => {
             // Then the zip gets the format error with the US samples
             expect(errors.zipPostCode).toBe(translateLocal('privatePersonalDetails.error.incorrectZipFormat', '12345, 12345-1234, 12345 1234'));
         });
+    });
+});
+
+describe('country ZIP details', () => {
+    it('returns the original US regex and samples', () => {
+        // Given the shared country table consumed by address forms.
+        const entry = COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.US;
+
+        // When the US details are requested.
+        const details = getCountryZipRegexDetails('US');
+
+        // Then callers retain the same entry and its validation hints.
+        expect(details).toBe(entry);
+        expect(details?.regex).toBe(entry.regex);
+        expect(details?.samples).toBe(entry.samples);
+        expect(details?.regex?.test('12345')).toBe(true);
+    });
+
+    it('preserves the deliberately empty AE entry', () => {
+        // Given AE has no country-specific ZIP requirements.
+        const entry = COMMON_CONST.COUNTRY_ZIP_REGEX_DATA.AE;
+
+        // When its details are requested.
+        const details = getCountryZipRegexDetails('AE');
+
+        // Then the empty object retains its identity rather than becoming absence.
+        expect(details).toBe(entry);
+        expect(details).toEqual({});
+    });
+
+    it.each([undefined, ''] as const)('returns absence for country %s', (country) => {
+        // Given no selected country.
+        // When its ZIP details are requested.
+        const details = getCountryZipRegexDetails(country);
+
+        // Then the existing early return remains available to callers.
+        expect(details).toBeUndefined();
+    });
+
+    it.each([undefined, '', 'AE'] as const)('uses generic ZIP validation for country %s', (country) => {
+        // Given a country with no specific regex and generic valid/invalid ZIP values.
+        // When validation uses the public address seam.
+        const valid = isValidZipCodeForCountry('  ab12  ', country);
+        const invalid = isValidZipCodeForCountry('!@#', country);
+
+        // Then the generic fallback still trims and validates the supplied value.
+        expect(valid).toBe(true);
+        expect(invalid).toBe(false);
+    });
+
+    it('normalizes country-specific ZIP input before validation', () => {
+        // Given a lowercase Canadian ZIP surrounded by spaces.
+        // When the country-specific regex is used.
+        const valid = isValidZipCodeForCountry('  k1a 0b1  ', 'CA');
+
+        // Then trimming and uppercase normalization preserve valid input.
+        expect(valid).toBe(true);
+        expect(isValidZipCodeForCountry('abc', 'US')).toBe(false);
+    });
+
+    it('keeps the permissive registration fallback for an empty country', () => {
+        // Given registration input before a country is selected.
+        // When registration validation cannot select a country rule.
+        const valid = isValidRegistrationNumber('', '');
+
+        // Then the existing default remains permissive.
+        expect(valid).toBe(true);
     });
 });

@@ -17,7 +17,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 
 type InviteeNewMemberStepProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WithCurrentUserPersonalDetailsProps & {
@@ -48,7 +48,7 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
         });
     };
 
-    const goToNextStep = useCallback(() => {
+    const goToNextStep = () => {
         const data = {...issueNewCard?.data, assigneeEmail: issueNewCard?.data?.invitingMemberEmail ?? '', invitingMemberEmail: undefined};
 
         // The shipping name, address and phone number were entered for the previous cardholder
@@ -72,7 +72,7 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
                 data,
             });
         }
-    }, [isEditing, issueNewCard?.data, policyID]);
+    };
 
     // If the currently inviting member is already a member of the policy then we should just call goToNextStep
     // See https://github.com/Expensify/App/issues/74256 for more details

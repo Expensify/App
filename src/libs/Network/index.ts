@@ -17,6 +17,9 @@ function startMainQueue() {
     ActiveClientManager.isReady().then(() => {
         flushSequentialQueue();
 
+        // A tab that becomes the leader later must send what was queued while another tab led
+        ActiveClientManager.onBecomeLeader(() => flushSequentialQueue());
+
         // Start main queue and process once every n ms delay
         processQueueInterval = setInterval(processMainQueue, CONST.NETWORK.PROCESS_REQUEST_DELAY_MS);
     });

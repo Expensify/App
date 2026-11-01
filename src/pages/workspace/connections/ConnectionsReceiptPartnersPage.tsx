@@ -2,8 +2,8 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
-import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -56,7 +56,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
         getOverflowMenu,
     } = useReceiptPartnersSettings(policyID, {
         // These settings have nothing to show once Uber is disconnected
-        onDisconnectConfirmed: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID)),
+        onDisconnectConfirmed: (disconnect) => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID), {afterTransition: disconnect}),
     });
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.receiptPartners');
     const isLoading = policy?.isLoading;
@@ -74,10 +74,7 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
             fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID))}}
         >
             {isLoading ? (
-                <FullScreenLoadingIndicator
-                    shouldUseGoBackButton
-                    style={styles.flex1}
-                />
+                <FullScreenLoadingIndicator style={styles.flex1} />
             ) : (
                 <ScreenWrapper
                     testID="ConnectionsReceiptPartnersPage"
@@ -160,10 +157,9 @@ function ConnectionsReceiptPartnersPage({route}: ConnectionsReceiptPartnersPageP
                                     </OfflineWithFeedback>
                                 )}
                                 {canWriteMoreFeatures && (
-                                    <MenuItem
+                                    <MenuItemNavigation
                                         icon={icons.Mail}
                                         title={translate('workspace.receiptPartners.uber.manageInvites')}
-                                        shouldShowRightIcon
                                         onPress={() =>
                                             Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_RECEIPT_PARTNERS_INVITE_EDIT.getRoute(CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER)))
                                         }

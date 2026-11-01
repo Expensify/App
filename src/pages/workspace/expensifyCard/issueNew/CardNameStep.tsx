@@ -23,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/IssueNewExpensifyCardForm';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type CardNameStepProps = {
     policyID: string | undefined;
@@ -44,7 +44,6 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
     const isEditing = issueNewCard?.isEditing;
     const data = issueNewCard?.data;
     const userName = usePersonalDetailByLogin(data?.assigneeEmail, (personalDetail) => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return formatPhoneNumber(personalDetail?.firstName || data?.assigneeEmail || '');
     });
     const isVirtualCard = data?.cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL;
@@ -63,23 +62,20 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
         return errors;
     };
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
-            KeyboardUtils.dismiss().then(() => {
-                setIssueNewCardStepAndData({
-                    step: !isEditing && shouldShowShippingAddressStep(data) ? CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS : CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
-                    data: {
-                        cardTitle: StringUtils.sanitizeName(values.cardTitle),
-                    },
-                    isEditing: false,
-                    policyID,
-                });
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ISSUE_NEW_EXPENSIFY_CARD_FORM>) => {
+        KeyboardUtils.dismiss().then(() => {
+            setIssueNewCardStepAndData({
+                step: !isEditing && shouldShowShippingAddressStep(data) ? CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS : CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
+                data: {
+                    cardTitle: StringUtils.sanitizeName(values.cardTitle),
+                },
+                isEditing: false,
+                policyID,
             });
-        },
-        [data, isEditing, policyID],
-    );
+        });
+    };
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         KeyboardUtils.dismiss().then(() => {
             if (isEditing) {
                 setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION, isEditing: false, policyID});
@@ -92,7 +88,7 @@ function CardNameStep({policyID, stepNames, startStepIndex}: CardNameStepProps) 
 
             setIssueNewCardStepAndData({step: CONST.EXPENSIFY_CARD.STEP.LIMIT_TYPE, policyID});
         });
-    }, [isEditing, areSpendRulesAvailable, isVirtualCard, policyID]);
+    };
 
     return (
         <InteractiveStepWrapper

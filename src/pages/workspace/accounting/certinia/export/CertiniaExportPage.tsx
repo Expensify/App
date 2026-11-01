@@ -1,5 +1,7 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -24,7 +26,6 @@ type ExportRow = {
     title?: string;
     helperText?: string;
     onPress?: () => void;
-    interactive?: boolean;
     subscribedSettings: string[];
 };
 
@@ -50,7 +51,6 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
     const preferredExporterRow: ExportRow = {
         description: translate('workspace.accounting.preferredExporter'),
         // We use the logical OR (||) here instead of ?? because `exporter` could be an empty string on a fresh connection
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         title: exportConfig?.exporter || policyOwner,
         onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_PREFERRED_EXPORTER.path)),
         subscribedSettings: [CONST.CERTINIA_CONFIG.EXPORTER],
@@ -68,14 +68,12 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.certinia.exportReimbursable.label'),
             title: translate('workspace.certinia.expenseReports'),
             helperText: translate('workspace.certinia.exportReimbursableExpenseReports.helperText'),
-            interactive: false,
             subscribedSettings: [CONST.CERTINIA_CONFIG.REIMBURSABLE],
         },
         {
             description: translate('workspace.certinia.exportNonReimbursable.label'),
             title: translate('workspace.certinia.expenseReports'),
             helperText: translate('workspace.certinia.exportNonReimbursableExpenseReports.helperText'),
-            interactive: false,
             subscribedSettings: [CONST.CERTINIA_CONFIG.NON_REIMBURSABLE],
         },
     ];
@@ -98,13 +96,11 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
             description: translate('workspace.certinia.exportReimbursable.label'),
             title: translate('workspace.certinia.payableInvoices'),
             helperText: translate('workspace.certinia.exportReimbursable.helperText'),
-            interactive: false,
             subscribedSettings: [CONST.CERTINIA_CONFIG.REIMBURSABLE],
         },
         {
             description: translate('workspace.certinia.exportNonReimbursable.label'),
             title: translate('workspace.certinia.payableInvoices'),
-            interactive: false,
             subscribedSettings: [CONST.CERTINIA_CONFIG.NON_REIMBURSABLE],
         },
         {
@@ -132,21 +128,27 @@ function CertiniaExportPage({policy}: WithPolicyConnectionsProps) {
         >
             {rows.map((row) => {
                 const pendingAction = settingsPendingAction(row.subscribedSettings, config?.pendingFields);
-                const brickRoadIndicator = areSettingsInErrorFields(row.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined;
+                const isInErrorFields = areSettingsInErrorFields(row.subscribedSettings, config?.errorFields);
                 return (
                     <OfflineWithFeedback
                         key={row.description}
                         pendingAction={pendingAction}
                     >
-                        <MenuItemWithTopDescription
-                            title={row.title}
-                            description={row.description}
-                            helperText={row.helperText}
-                            shouldShowRightIcon={row.interactive !== false}
+                        <MenuItemField
+                            name={row.description}
                             onPress={row.onPress}
-                            interactive={row.interactive}
-                            brickRoadIndicator={brickRoadIndicator}
-                        />
+                            value={row.title}
+                        >
+                            {isInErrorFields && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                        </MenuItemField>
+                        {!!row.helperText && (
+                            <FormHelpMessage
+                                isError={false}
+                                shouldShowRedDotIndicator={false}
+                                message={row.helperText}
+                                style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
+                            />
+                        )}
                     </OfflineWithFeedback>
                 );
             })}
