@@ -447,4 +447,56 @@ describe('ExpensifyCardPage', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it.each([
+        {action: 'show', description: 'active', archivedDate: undefined, shouldShowEditSpendRules: true},
+        {action: 'hide', description: 'archived', archivedDate: '2026-10-28 00:00:00.000', shouldShowEditSpendRules: false},
+    ])('should $action Edit spend rules for a workspace admin when the workspace is $description', async ({archivedDate, shouldShowEditSpendRules}) => {
+        // Given an admin whose card is issued by a workspace, which is archived in one case. Archived workspaces are
+        // read-only, so the spend rules page blocks every member there, admins included.
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}workspace-id`, {
+                id: 'workspace-id',
+                name: 'Workspace',
+                type: CONST.POLICY.TYPE.CORPORATE,
+                role: CONST.POLICY.ROLE.ADMIN,
+                policyAccountID: 12345,
+                archivedDate,
+            });
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                [userCardID]: {
+                    cardID: 1234,
+                    accountID: 1,
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    fundID: '12345',
+                    domainName: 'xyz',
+                    nameValuePairs: {
+                        isVirtual: true,
+                        cardTitle: 'Test Virtual Card',
+                    },
+                    availableSpend: 50000,
+                    fraud: null,
+                },
+            });
+        });
+
+        // When the admin opens the card in their Wallet
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, {cardID: userCardID});
+
+        await waitForBatchedUpdatesWithAct();
+
+        // Then Edit spend rules is offered only for the active workspace, so it never leads to the "Not here" page
+        await waitFor(() => {
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.reportFraud'))).toBeOnTheScreen();
+        });
+        if (shouldShowEditSpendRules) {
+            expect(screen.getByText(TestHelper.translateLocal('cardPage.editSpendRules'))).toBeOnTheScreen();
+        } else {
+            expect(screen.queryByText(TestHelper.translateLocal('cardPage.editSpendRules'))).not.toBeOnTheScreen();
+        }
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
 });
