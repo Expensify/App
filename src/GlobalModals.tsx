@@ -1,5 +1,6 @@
 import React, {startTransition, useEffect, useState} from 'react';
 
+import CloudflareChallengeModal from './components/CloudflareChallengeModal';
 import DelegateNoAccessModalProvider from './components/DelegateNoAccessModalProvider';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
 import ExpenseAddedGrowl from './components/ExpenseAddedGrowl';
@@ -52,6 +53,7 @@ function GlobalModals() {
         <>
             <GrowlNotification ref={growlRef} />
             {isAuthenticated && <ExpenseAddedGrowl />}
+            <CloudflareChallengeModal />
             <DelegateNoAccessModalProvider>
                 {shouldRenderContextMenu && (
                     <LazyModalSlot>

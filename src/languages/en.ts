@@ -4428,6 +4428,10 @@ const translations = {
         subtitle: `We have not been able to load all of your data. We have been notified and are looking into the problem. If this persists, please reach out to`,
         refreshAndTryAgain: 'Refresh and try again',
     },
+    cloudflareChallengeModal: {
+        title: 'Security check',
+        body: 'Expensify uses a security check to stop bots. Please complete the check to continue.',
+    },
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `We've been unable to deliver SMS messages to ${login}, so we've suspended it temporarily. Please try validating your number:`,
         validationSuccess: 'Your number has been validated! Click below to send a new security sign-in code.',

@@ -11,6 +11,7 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import {requestCloudflareChallengeResolution} from './actions/CloudflareChallenge';
 import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
@@ -85,6 +86,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
     body: FormData | null = null,
     abortSignal: AbortSignal | undefined = undefined,
     shouldSkipPrefetch = false,
+    credentials: NonNullable<Parameters<typeof nitroFetch>[1]>['credentials'] = 'omit',
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
 
@@ -103,7 +105,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
         // so to avoid sending cookies with the request we set it to 'omit' explicitly
         // this avoids us sending specially the expensifyWeb cookie, which makes a CSRF token required
         // more on that here: https://stackoverflowteams.com/c/expensify/questions/93
-        credentials: 'omit',
+        credentials,
     };
 
     registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
@@ -148,6 +150,14 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 throw new HttpsError({
                     message: CONST.ERROR.FAILED_TO_FETCH,
                 });
+            }
+
+            // A Cloudflare rule answered with a challenge page instead of the API, so ask the user to pass the
+            // Turnstile check and retry. The retry must send cookies, because passing the check makes Cloudflare
+            // set a cf_clearance cookie that satisfies the rule.
+            if (response.headers?.get(CONST.CLOUDFLARE_CHALLENGE.MITIGATED_HEADER) === CONST.CLOUDFLARE_CHALLENGE.MITIGATED.CHALLENGE) {
+                endSpan(downloadSpanId);
+                return requestCloudflareChallengeResolution().then(() => processHTTPRequest<TKey>(url, method, body, abortSignal, true, 'same-origin'));
             }
 
             if (!response.ok) {
