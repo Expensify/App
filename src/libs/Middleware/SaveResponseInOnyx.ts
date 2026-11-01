@@ -1,5 +1,7 @@
+import {getLatestWriteRequestIndex, processRequest} from '@libs/API/makeRequest';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import {waitForIdle as waitForSequentialQueueIdle} from '@libs/Network/SequentialQueue';
 
 import {reconnectApp} from '@userActions/App';
 import * as OnyxUpdates from '@userActions/OnyxUpdates';
@@ -35,8 +37,28 @@ const requestsExemptFromFullReconnect = new Set<string>([
 // A request belongs here when its successData/finallyData is what unblocks authentication, because parking that leaves the client unable to reauthenticate.
 const requestsToApplyWithoutAdvancingLastUpdateID = new Set<string>([READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN]);
 
+// API.read() waits for pending WRITEs before sending, but a READ already in flight when the user makes a WRITE can return data from before that WRITE
+// and overwrite its optimistic data. For these READs, a response is dropped when a WRITE was prepared after the READ was sent, and the READ is sent again
+// once the queue is idle so its data includes the WRITE. Add a command here only when it is known to bring back stale data this way.
+const readsToResendWhenOlderThanLatestWrite = new Set<string>([READ_COMMANDS.SEARCH_FOR_TODOS]);
+
 const SaveResponseInOnyx: Middleware = <TKey extends OnyxKey>(requestResponse: Promise<Response<TKey> | void>, request: OnyxRequest<TKey>) =>
     requestResponse.then((response = {}) => {
+        const latestWriteRequestIndex = getLatestWriteRequestIndex();
+        if (
+            request.data?.apiRequestType === CONST.API_REQUEST_TYPE.READ &&
+            readsToResendWhenOlderThanLatestWrite.has(request.command) &&
+            (request.latestWriteRequestIndexWhenSent ?? latestWriteRequestIndex) < latestWriteRequestIndex
+        ) {
+            Log.info('[SaveResponseInOnyx] READ response is older than the latest WRITE, sending it again once the queue is idle', false, {
+                command: request.command,
+                latestWriteRequestIndexWhenSent: request.latestWriteRequestIndexWhenSent,
+                latestWriteRequestIndex,
+            });
+            waitForSequentialQueueIdle().then(() => processRequest(request, CONST.API_REQUEST_TYPE.READ));
+            return Promise.resolve(response);
+        }
+
         const onyxUpdates = response?.onyxData ?? [];
 
         // Sometimes we call requests that are successful but they don't have any response or any success/failure/finally data to set. Let's return early since
