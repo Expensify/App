@@ -245,6 +245,16 @@ const config = defineConfig([
         },
     },
 
+    // useScreenActivityEffect takes a setup and a dependency list like useEffect, so its call sites get the same
+    // dependency linting.
+    {
+        settings: {
+            'react-hooks': {
+                additionalEffectHooks: '(useScreenActivityEffect)',
+            },
+        },
+    },
+
     {
         extends: new FlatCompat({baseDirectory: projectRoot}).extends(
             'plugin:storybook/recommended',
