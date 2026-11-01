@@ -11,7 +11,7 @@ import {LINT_SEVERITY} from '../../scripts/lint/types';
 
 function makeOptions(overrides: Partial<SeatbeltOptions> = {}): SeatbeltOptions {
     return {
-        seatbeltFile: '/tmp/config/eslint/eslint.seatbelt.tsv',
+        seatbeltFile: '/tmp/config/oxlint/oxlint.seatbelt.tsv',
         projectRoot: '/tmp',
         disable: false,
         frozen: false,
@@ -97,7 +97,7 @@ describe('transformMessages', () => {
         // zero must still block CI (not just the fully-removed-rule case, which already errors).
         expect(result.at(0)?.severity).toBe(LINT_SEVERITY.ERROR);
         expect(result.at(0)?.message).toContain('SEATBELT_FROZEN');
-        expect(result.at(0)?.message).toContain('eslint.seatbelt.tsv');
+        expect(result.at(0)?.message).toContain('oxlint.seatbelt.tsv');
         expect(result.at(0)?.message).not.toContain('/tmp/src/file.ts');
     });
 
@@ -156,7 +156,7 @@ describe('applySeatbelt', () => {
     it('does not write in readOnly mode when counts go down', async () => {
         const dir = await tempDir();
         await writeFile(path.join(dir, 'src.ts'), 'x\n');
-        const tsvPath = path.join(dir, 'eslint.seatbelt.tsv');
+        const tsvPath = path.join(dir, 'oxlint.seatbelt.tsv');
         const tsv = `"src.ts"\t"no-console"\t2\n`;
         await writeFile(tsvPath, tsv);
 
@@ -172,7 +172,7 @@ describe('applySeatbelt', () => {
     it('writes a tightened TSV when readOnly is off', async () => {
         const dir = await tempDir();
         await writeFile(path.join(dir, 'src.ts'), 'x\n');
-        const tsvPath = path.join(dir, 'eslint.seatbelt.tsv');
+        const tsvPath = path.join(dir, 'oxlint.seatbelt.tsv');
         await writeFile(tsvPath, `"src.ts"\t"no-console"\t2\n`);
 
         const result = await applySeatbelt([makeMessage('no-console', {filePath: path.join(dir, 'src.ts')})], makeOptions({seatbeltFile: tsvPath, projectRoot: dir, readOnly: false}), [
@@ -187,7 +187,7 @@ describe('applySeatbelt', () => {
     it('fails an increase without SEATBELT_INCREASE and does not write', async () => {
         const dir = await tempDir();
         await writeFile(path.join(dir, 'src.ts'), 'x\n');
-        const tsvPath = path.join(dir, 'eslint.seatbelt.tsv');
+        const tsvPath = path.join(dir, 'oxlint.seatbelt.tsv');
         const original = `"src.ts"\t"no-console"\t1\n`;
         await writeFile(tsvPath, original);
 
@@ -205,7 +205,7 @@ describe('applySeatbelt', () => {
     it('allows an increase when SEATBELT_INCREASE names the rule', async () => {
         const dir = await tempDir();
         await writeFile(path.join(dir, 'src.ts'), 'x\n');
-        const tsvPath = path.join(dir, 'eslint.seatbelt.tsv');
+        const tsvPath = path.join(dir, 'oxlint.seatbelt.tsv');
         await writeFile(tsvPath, `"src.ts"\t"no-console"\t1\n`);
 
         const result = await applySeatbelt(
@@ -222,7 +222,7 @@ describe('applySeatbelt', () => {
     it('prunes rows for deleted files on the write path', async () => {
         const dir = await tempDir();
         await writeFile(path.join(dir, 'kept.ts'), 'x\n');
-        const tsvPath = path.join(dir, 'eslint.seatbelt.tsv');
+        const tsvPath = path.join(dir, 'oxlint.seatbelt.tsv');
         await writeFile(tsvPath, `"gone.ts"\t"no-console"\t1\n"kept.ts"\t"no-console"\t1\n`);
 
         const result = await applySeatbelt([makeMessage('no-console', {filePath: path.join(dir, 'kept.ts')})], makeOptions({seatbeltFile: tsvPath, projectRoot: dir, readOnly: false}), [
@@ -237,7 +237,7 @@ describe('applySeatbelt', () => {
     it('does not prune deleted-file rows when frozen', async () => {
         const dir = await tempDir();
         await writeFile(path.join(dir, 'kept.ts'), 'x\n');
-        const tsvPath = path.join(dir, 'eslint.seatbelt.tsv');
+        const tsvPath = path.join(dir, 'oxlint.seatbelt.tsv');
         const original = `"gone.ts"\t"no-console"\t1\n"kept.ts"\t"no-console"\t1\n`;
         await writeFile(tsvPath, original);
 
@@ -254,7 +254,7 @@ describe('applySeatbelt', () => {
     it('names the TSV path when a frozen run drops a rule entirely', async () => {
         const dir = await tempDir();
         await writeFile(path.join(dir, 'kept.ts'), 'x\n');
-        const tsvPath = path.join(dir, 'eslint.seatbelt.tsv');
+        const tsvPath = path.join(dir, 'oxlint.seatbelt.tsv');
         await writeFile(tsvPath, `"kept.ts"\t"no-console"\t1\n`);
 
         const result = await applySeatbelt([], makeOptions({seatbeltFile: tsvPath, projectRoot: dir, frozen: true, readOnly: false}), [path.join(dir, 'kept.ts')]);
@@ -265,7 +265,7 @@ describe('applySeatbelt', () => {
 
     it('is a no-op when SEATBELT_DISABLE is set', async () => {
         const dir = await tempDir();
-        const tsvPath = path.join(dir, 'eslint.seatbelt.tsv');
+        const tsvPath = path.join(dir, 'oxlint.seatbelt.tsv');
         await writeFile(tsvPath, `"src.ts"\t"no-console"\t1\n`);
         const incoming = [makeMessage('no-console')];
         const result = await applySeatbelt(incoming, makeOptions({seatbeltFile: tsvPath, disable: true}), ['/tmp/src/file.ts']);

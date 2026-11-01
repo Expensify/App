@@ -74,7 +74,7 @@ type BannedRule = {
     message: string;
 };
 
-/** True for a file ESLint lints. A directive quoted in a markdown doc or a patch file silences nothing, so those files are skipped. */
+/** True for a file oxlint lints. A directive quoted in a markdown doc or a patch file silences nothing, so those files are skipped. */
 function isLintedFile(file: string): boolean {
     return /\.[cm]?[jt]sx?$/.test(file);
 }
