@@ -3219,6 +3219,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         approverNotWorkspaceMember: '此审批人已不再是工作区成员。请选择新的审批人或删除此工作流程。',
         defaultWorkflowApproverNotWorkspaceMember: '此审批人已不再是工作区成员。请选择新的审批人。',
         overLimitApproverNotWorkspaceMember: '超出限额报告的额外审批人已不再是工作区成员。请选择新的额外审批人。',
+        overLimitApproverInWorkflow: '此限额以上报表的额外审批人已是此工作流中的审批人。请选择其他额外审批人。',
         approverCircularReference: (name1: string, name2: string) => `<strong>${name1}</strong> 已经将报表提交给 <strong>${name2}</strong> 审批。请选择其他审批人以避免形成循环审批流程。`,
         emptyContent: {
             title: '没有可显示的成员',
@@ -5010,7 +5011,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             hotelBlockCard:
                 '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
         },
-        defaultWorkspaceTravelDisabled: {title: '差旅功能未启用', message: '如需预订，请在您的默认工作区中启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。'},
+        defaultWorkspaceTravelDisabled: {
+            title: '你目前还不能预订行程',
+            message: '您是已启用差旅功能的工作区成员，但该工作区不是您的默认工作区。要预订，请在您的默认工作区启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。',
+        },
     },
     workspace: {
         common: {
@@ -10361,6 +10365,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: '周',
                 [CONST.SEARCH.GROUP_BY.YEAR]: '年份',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: '审批人',
             },
             feed: '动态',
             withdrawalType: {
@@ -10414,6 +10419,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WEEK]: '周',
             [CONST.SEARCH.GROUP_BY.YEAR]: '年',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: '审批人',
         },
         moneyRequestReport: {emptyStateTitle: '暂时没有报销费用', accessPlaceHolder: '展开查看详情'},
         noCategory: '无类别',
@@ -11621,6 +11627,8 @@ ${reportName}`,
                 info: '如果你想按次付费继续使用你的工作区，你就都准备好了。',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `如果你想阻止未来的活动和收费，你必须<a href="${workspacesListRoute}">删除你的工作区</a>。请注意，当你删除工作区时，你将被收取在当前日历月内产生的所有未结活动费用。`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `若要防止今后的活动和收费，请<a href="${workspacesListRoute}">将所有付费工作区归档</a>。本月内有可计费活动的已归档工作区仍会计入您的账单。`,
             },
             requestSubmitted: {
                 title: '请求已提交',

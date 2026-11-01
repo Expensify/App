@@ -23,6 +23,7 @@ import {StyleSheet, View} from 'react-native';
 import type {TableColumn, TableData} from './types';
 
 import {rendersColumnHeaderInListHeader} from './buildTableListData';
+import {useColumnResizeController} from './columnResize/ColumnResizeContext';
 import ColumnResizeHandle from './columnResize/ColumnResizeHandle';
 import {TABLE_ROW_DATA_SET} from './columnResize/columnWidthExpressions';
 import getGridTemplateColumns from './getGridTemplateColumns';
@@ -90,9 +91,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
         dynamicGridTemplateColumns,
         scrollWidth,
         rowWidth,
-        columnResize,
         tableListMetadata,
     } = useTableContext<DataType, ColumnKey>();
+    const columnResize = useColumnResizeController();
     // Tables inside a narrow pane modal (RHP) opt into keying the header checkbox off the real screen size, since
     // shouldUseNarrowLayout is always true in an RHP. Other tables keep the original behavior. Visual padding below still uses shouldUseNarrowLayout.
     const selectionUsesNarrowLayout = shouldEnableSelectionInNarrowPaneModal ? isSmallScreenWidth : shouldUseNarrowLayout;
@@ -133,7 +134,9 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     const header = (
         <View
             style={[
-                styles.pv2,
+                // With table semantics every heading has a cell of its own, which carries the vertical padding, so each heading
+                // spans the row's full height and hovering anywhere over it shows its resize grip.
+                !isTableSemanticsEnabled && styles.pv2,
                 pageGutterMargin,
                 // Same expression as the rows, so headings stay aligned with their cells.
                 !!rowWidth && StyleUtils.getWidthStyle(rowWidth),
@@ -191,7 +194,10 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
                         // When semantics apply, this is exposed as the first (non-sortable) column header so the header
                         // column count matches the data rows, which include the selection checkbox cell. The
                         // accessibility props are empty otherwise, leaving the checkbox's layout unchanged.
-                        <View {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 1)}>
+                        <View
+                            style={isTableSemanticsEnabled && styles.pv2}
+                            {...getColumnHeaderAccessibilityProps(isTableSemanticsEnabled, false, false, undefined, 1)}
+                        >
                             <Checkbox
                                 disabled={isAccessibilityHidden || !hasSelectableRows}
                                 isChecked={isEverySelectableRowSelected}
@@ -352,7 +358,7 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
     // announces the header once (via the button's accessibilityLabel) instead of re-reading the cell's contents.
     return (
         <View
-            style={[columnFlexStyle, columnCellSizingStyle]}
+            style={[columnFlexStyle, columnCellSizingStyle, styles.pv2]}
             {...getColumnHeaderAccessibilityProps(true, !!column.sortable, isSortingByColumn, activeSorting.order, columnIndex)}
         >
             {sortButton}

@@ -27,6 +27,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
+import type {ValueOf} from 'type-fest';
+
 import {SafeString} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 
@@ -45,9 +47,27 @@ type MoneyRequestAttendeesSelectorProps = {
 
     /** Empty selection shows no error until the user tries to save */
     shouldDeferEmptySelectionError?: boolean;
+
+    /** Label of the search input. Defaults to "Name, email, or phone number" */
+    searchInputLabel?: string;
+
+    /** Text of the button that confirms the selection. Defaults to "Save" */
+    confirmButtonText?: string;
+
+    /** Size of the button that confirms the selection. Defaults to large, as in the footer of a full page */
+    confirmButtonSize?: ValueOf<typeof CONST.BUTTON_SIZE>;
 };
 
-function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdded, iouType, shouldDeferEmptySelectionError = false}: MoneyRequestAttendeesSelectorProps) {
+function MoneyRequestAttendeeSelector({
+    attendees = [],
+    onFinish,
+    onAttendeesAdded,
+    iouType,
+    shouldDeferEmptySelectionError = false,
+    searchInputLabel,
+    confirmButtonText,
+    confirmButtonSize = CONST.BUTTON_SIZE.LARGE,
+}: MoneyRequestAttendeesSelectorProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -163,12 +183,12 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={confirmSelection}
-                    size={CONST.BUTTON_SIZE.LARGE}
+                    size={confirmButtonSize}
                     isDisabled={shouldShowErrorMessage}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.ATTENDEES_SAVE_BUTTON}
                 >
                     <Button.KeyboardShortcut />
-                    <Button.Text>{translate('common.save')}</Button.Text>
+                    <Button.Text>{confirmButtonText ?? translate('common.save')}</Button.Text>
                 </Button>
             </>
         );
@@ -224,7 +244,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const shouldShowListEmptyContent = optionLength === 0 && !shouldShowLoadingPlaceholder;
 
     const textInputOptions = {
-        label: translate('selectionList.nameEmailOrPhoneNumber'),
+        label: searchInputLabel ?? translate('selectionList.nameEmailOrPhoneNumber'),
         hint: offlineMessage,
         value: searchTerm,
         onChangeText: setSearchTerm,
