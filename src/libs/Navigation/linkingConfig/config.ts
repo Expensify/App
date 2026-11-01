@@ -1165,7 +1165,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_EDIT]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_EDIT.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_PAYROLL_CODE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_GL_CODE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_GL_CODE.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_DEFAULT_TAX_RATE]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_CATEGORY_FLAG_AMOUNTS_OVER]: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER.path,
                         [SCREENS.WORKSPACE.DYNAMIC_EXPENSE_LIMIT_TYPE_SELECTOR]: DYNAMIC_ROUTES.EXPENSE_LIMIT_TYPE_SELECTOR.path,
                         [SCREENS.WORKSPACE.DYNAMIC_IMPORTED_MEMBERS_ROLE]: DYNAMIC_ROUTES.IMPORTED_MEMBERS_ROLE.path,
@@ -1400,9 +1399,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_NEW]: {
                             path: ROUTES.RULES_NEW.route,
                         },
-                        [SCREENS.WORKSPACE.RULES_EXPENSE_DEFAULT_TYPE]: {
-                            path: ROUTES.RULES_EXPENSE_DEFAULT_TYPE.route,
-                        },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_NEW]: {
                             path: ROUTES.RULES_MERCHANT_NEW.route,
                         },
@@ -1417,6 +1413,22 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_DESCRIPTION]: DYNAMIC_ROUTES.RULES_MERCHANT_DESCRIPTION_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_REIMBURSABLE]: DYNAMIC_ROUTES.RULES_MERCHANT_REIMBURSABLE_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_BILLABLE]: DYNAMIC_ROUTES.RULES_MERCHANT_BILLABLE_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_AMOUNT]: DYNAMIC_ROUTES.RULES_MERCHANT_AMOUNT_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_CATEGORY_TO_MATCH]: DYNAMIC_ROUTES.RULES_CATEGORY_TO_MATCH_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_TAG_TO_MATCH]: DYNAMIC_ROUTES.RULES_TAG_TO_MATCH_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_CURRENCY_TO_MATCH]: DYNAMIC_ROUTES.RULES_CURRENCY_TO_MATCH_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_TAX_RATE_TO_MATCH]: DYNAMIC_ROUTES.RULES_TAX_RATE_TO_MATCH_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_REIMBURSABLE_TO_MATCH]: DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_BILLABLE_TO_MATCH]: DYNAMIC_ROUTES.RULES_BILLABLE_TO_MATCH_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_SUBMITTER_TO_MATCH]: DYNAMIC_ROUTES.RULES_SUBMITTER_TO_MATCH_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_DATE_TO_MATCH]: DYNAMIC_ROUTES.RULES_DATE_TO_MATCH_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_DATE_MATCH_TYPE]: DYNAMIC_ROUTES.RULES_DATE_MATCH_TYPE_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_AMOUNT_TO_MATCH]: DYNAMIC_ROUTES.RULES_AMOUNT_TO_MATCH_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_AMOUNT_MATCH_TYPE]: DYNAMIC_ROUTES.RULES_AMOUNT_MATCH_TYPE_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_HAS_TO_MATCH]: DYNAMIC_ROUTES.RULES_HAS_TO_MATCH_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_HAS_MATCH_TYPE]: DYNAMIC_ROUTES.RULES_HAS_MATCH_TYPE_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_CARD_TO_MATCH]: DYNAMIC_ROUTES.RULES_CARD_TO_MATCH_FROM_EXPENSE.path,
+                        [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TYPE_TO_MATCH]: DYNAMIC_ROUTES.RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES]: DYNAMIC_ROUTES.RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.RULES_MERCHANT_IMPORT]: {
                             path: ROUTES.RULES_MERCHANT_IMPORT.route,
@@ -1523,11 +1535,53 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_MERCHANT_BILLABLE]: {
                             path: ROUTES.RULES_MERCHANT_BILLABLE.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_AMOUNT]: {
+                            path: ROUTES.RULES_MERCHANT_AMOUNT.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_CATEGORY_TO_MATCH]: {
                             path: ROUTES.RULES_CATEGORY_TO_MATCH.route,
                         },
-                        [SCREENS.WORKSPACE.RULES_CATEGORY_TAX_EDIT]: {
-                            path: ROUTES.RULES_CATEGORY_TAX_EDIT.route,
+                        [SCREENS.WORKSPACE.RULES_TAG_TO_MATCH]: {
+                            path: ROUTES.RULES_TAG_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_CURRENCY_TO_MATCH]: {
+                            path: ROUTES.RULES_CURRENCY_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_TAX_RATE_TO_MATCH]: {
+                            path: ROUTES.RULES_TAX_RATE_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_REIMBURSABLE_TO_MATCH]: {
+                            path: ROUTES.RULES_REIMBURSABLE_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_BILLABLE_TO_MATCH]: {
+                            path: ROUTES.RULES_BILLABLE_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_SUBMITTER_TO_MATCH]: {
+                            path: ROUTES.RULES_SUBMITTER_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_DATE_TO_MATCH]: {
+                            path: ROUTES.RULES_DATE_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_DATE_MATCH_TYPE]: {
+                            path: ROUTES.RULES_DATE_MATCH_TYPE.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_AMOUNT_TO_MATCH]: {
+                            path: ROUTES.RULES_AMOUNT_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_AMOUNT_MATCH_TYPE]: {
+                            path: ROUTES.RULES_AMOUNT_MATCH_TYPE.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_HAS_TO_MATCH]: {
+                            path: ROUTES.RULES_HAS_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_HAS_MATCH_TYPE]: {
+                            path: ROUTES.RULES_HAS_MATCH_TYPE.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_CARD_TO_MATCH]: {
+                            path: ROUTES.RULES_CARD_TO_MATCH.route,
+                        },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_TYPE_TO_MATCH]: {
+                            path: ROUTES.RULES_MERCHANT_TYPE_TO_MATCH.route,
                         },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_EDIT]: {
                             path: ROUTES.RULES_MERCHANT_EDIT.route,

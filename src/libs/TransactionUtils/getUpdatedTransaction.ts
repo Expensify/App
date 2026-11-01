@@ -31,7 +31,6 @@ import getDistanceInMeters from './getDistanceInMeters';
 // The functions imported here are pure helpers that aren't called at initialization time.
 // eslint-disable-next-line import/no-cycle
 import {
-    getCategoryTaxDetails,
     getCurrency,
     hasAppliedCommuterExclusion,
     hasLocallyKnownDistance,
@@ -136,7 +135,6 @@ function getUpdatedTransaction({
     policies = undefined,
     isSplitTransaction = false,
     personalPolicyOutputCurrency,
-    getCurrencyDecimals,
     getCurrencySymbol,
 }: {
     transaction: Transaction;
@@ -147,7 +145,6 @@ function getUpdatedTransaction({
     policies?: OnyxCollection<Policy>;
     isSplitTransaction?: boolean;
     personalPolicyOutputCurrency: string | undefined;
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }): Transaction {
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -402,18 +399,6 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
-
-        // On a server backed edit, clearing the category leaves the stored tax rate untouched, so predicting a
-        // change here only writes a rate that the response immediately overwrites. Split drafts have no such
-        // response and send whatever tax the draft holds, so they keep recalculating.
-        if (transactionChanges.category || isSplitTransaction) {
-            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, getCurrencyDecimals);
-            if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
-                updatedTransaction.taxCode = categoryTaxCode;
-                updatedTransaction.taxAmount = categoryTaxAmount;
-                updatedTransaction.taxValue = categoryTaxValue;
-            }
-        }
     }
 
     if (Object.hasOwn(transactionChanges, 'tag') && typeof transactionChanges.tag === 'string') {

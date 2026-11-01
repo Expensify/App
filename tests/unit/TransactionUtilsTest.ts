@@ -688,7 +688,6 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {merchant: 'Zero Scan edited'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
             updatedTransaction.pendingFields = {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
@@ -714,7 +713,6 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {merchant: 'Failed Scan edited'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
             updatedTransaction.pendingFields = {merchant: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
@@ -722,94 +720,6 @@ describe('TransactionUtils', () => {
             // Then the edit does not incorrectly confirm the missing amount
             expect(updatedTransaction.isAmountSet).not.toBe(true);
             expect(TransactionUtils.isFailedScanAmountPlaceholder(updatedTransaction)).toBe(true);
-        });
-
-        it('should return updated category and tax when updating category with a category tax rules', () => {
-            // Given a policy with tax expense rules associated with a category
-            const category = 'Advertising';
-            const taxCode = 'id_TAX_RATE_1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
-            };
-            const transaction = generateTransaction();
-
-            // When updating the transaction category to the category associated with the rule
-            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
-                transaction,
-                isFromExpenseReport: true,
-                policy: fakePolicy,
-                transactionChanges: {category},
-                personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                getCurrencySymbol: getCurrencySymbolLocal,
-            });
-
-            // Then the updated transaction should contain the tax from the matched rule
-            expect(updatedTransaction.category).toBe(category);
-            expect(updatedTransaction.taxCode).toBe(taxCode);
-            expect(updatedTransaction.taxAmount).toBe(5);
-            expect(updatedTransaction.taxValue).toBe('5%');
-        });
-
-        it('should keep the existing tax when clearing the category on a server backed edit', () => {
-            // Given an expense carrying the tax of a category that has its own rule
-            const category = 'Advertising';
-            const taxCode = 'id_TAX_RATE_1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
-            };
-            const transaction = generateTransaction({category, taxCode, taxAmount: 5, taxValue: '5%'});
-
-            // When the category is cleared
-            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
-                transaction,
-                isFromExpenseReport: true,
-                policy: fakePolicy,
-                transactionChanges: {category: ''},
-                personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                getCurrencySymbol: getCurrencySymbolLocal,
-            });
-
-            // Then the tax is left untouched, because the API is not told to change it and the server keeps its own
-            expect(updatedTransaction.category).toBe('');
-            expect(updatedTransaction.taxCode).toBe(taxCode);
-            expect(updatedTransaction.taxAmount).toBe(5);
-            expect(updatedTransaction.taxValue).toBe('5%');
-        });
-
-        it('should reset to the workspace default tax when clearing the category on a split draft', () => {
-            // Given a split draft carrying the tax of a category that has its own rule
-            const category = 'Advertising';
-            const taxCode = 'id_TAX_RATE_1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(0),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, taxCode)},
-            };
-            const transaction = generateTransaction({category, taxCode, taxAmount: 5, taxValue: '5%'});
-
-            // When the category is cleared on the draft
-            const updatedTransaction = TransactionUtils.getUpdatedTransaction({
-                transaction,
-                isFromExpenseReport: false,
-                isSplitTransaction: true,
-                policy: fakePolicy,
-                transactionChanges: {category: ''},
-                personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
-                getCurrencySymbol: getCurrencySymbolLocal,
-            });
-
-            // Then the draft falls back to the workspace default, since the draft tax is what gets sent
-            expect(updatedTransaction.category).toBe('');
-            expect(updatedTransaction.taxCode).toBe('id_TAX_EXEMPT');
-            expect(updatedTransaction.taxAmount).toBe(0);
-            expect(updatedTransaction.taxValue).toBe('0%');
         });
 
         it('should update transaction when distance is changed', () => {
@@ -853,7 +763,6 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {distance: newDistance},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -917,7 +826,6 @@ describe('TransactionUtils', () => {
                 policy: undefined,
                 transactionChanges: {distance: 20},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -964,7 +872,6 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1012,7 +919,6 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1075,7 +981,6 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {customUnitRateID: 'rate2'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1141,7 +1046,6 @@ describe('TransactionUtils', () => {
                         ...(rateUnitChanged ? {customUnitRateID: 'ID2'} : {}),
                     },
                     personalPolicyOutputCurrency: undefined,
-                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
@@ -1207,7 +1111,6 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {distance: 20},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1285,7 +1188,6 @@ describe('TransactionUtils', () => {
                 policy: fakePolicy,
                 transactionChanges: {selectedRouteKey: 'route1'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1357,7 +1259,6 @@ describe('TransactionUtils', () => {
                     policies,
                     transactionChanges: {customUnitRateID: 'ID2'},
                     personalPolicyOutputCurrency: undefined,
-                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
@@ -1436,7 +1337,6 @@ describe('TransactionUtils', () => {
                     policy: undefined,
                     transactionChanges: {distance: 20},
                     personalPolicyOutputCurrency: 'EUR',
-                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
@@ -1491,7 +1391,6 @@ describe('TransactionUtils', () => {
                         },
                     },
                     personalPolicyOutputCurrency: 'EUR',
-                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
@@ -1552,7 +1451,6 @@ describe('TransactionUtils', () => {
                     },
                 },
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1602,7 +1500,6 @@ describe('TransactionUtils', () => {
                     routes: {route0: {distance: 32186.88, geometry: {coordinates: [[0, 0]], type: 'LineString'}}},
                 },
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1657,7 +1554,6 @@ describe('TransactionUtils', () => {
                     routes: {route0: {distance: 32186.88, geometry: {coordinates: [[0, 0]], type: 'LineString'}}},
                 },
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1677,7 +1573,6 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {amount: newAmount},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1693,7 +1588,6 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 transactionChanges: {amount: newAmount},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1708,7 +1602,6 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: true,
                 transactionChanges: {taxCode: 'id_TAX_RATE_1', taxAmount: 50, taxValue: '5%'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
@@ -1725,7 +1618,6 @@ describe('TransactionUtils', () => {
                 isFromExpenseReport: false,
                 transactionChanges: {taxValue: '5%'},
                 personalPolicyOutputCurrency: undefined,
-                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 getCurrencySymbol: getCurrencySymbolLocal,
             });
 
