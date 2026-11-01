@@ -16,13 +16,11 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getButtonState from '@libs/getButtonState';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
-import Navigation from '@libs/Navigation/Navigation';
 import {isResolvedSupportTicket} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
 
-import {dismissFailedSupportTicket} from '@userActions/Report';
+import {dismissFailedSupportTicket, navigateToSupportTicket} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -79,7 +77,7 @@ function SupportTicketPreview({action, isHovered, style}: SupportTicketPreviewPr
         >
             <View style={styles.chatItemMessage}>
                 <PressableWithoutFeedback
-                    onPress={() => Navigation.navigate(getReportRouteForCurrentContext({reportID: supportTicketReportID}))}
+                    onPress={() => navigateToSupportTicket(supportTicketReportID)}
                     style={[styles.flexRow, styles.alignItemsCenter, style]}
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={supportTicketName}
