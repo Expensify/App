@@ -233,6 +233,105 @@ describe('CategoryPicker', () => {
         }
     });
 
+    describe('create category row', () => {
+        const CREATE_ROW_TEXT = 'workspace.categories.createCategoryFromSearch';
+
+        const findCreateRow = () =>
+            jest
+                .mocked(SelectionListWithSections)
+                .mock.lastCall?.[0].sections.flatMap((section) => section.data)
+                .find((row) => row.text === CREATE_ROW_TEXT);
+
+        const renderSearch = (searchValue: string, onCreateCategory = jest.fn(), onSubmit = jest.fn()) => {
+            mockDebouncedSearchValue = searchValue;
+            render(
+                <CategoryPicker
+                    policyID={POLICY_ID}
+                    onSubmit={onSubmit}
+                    onCreateCategory={onCreateCategory}
+                />,
+            );
+        };
+
+        beforeEach(() => {
+            mockedUseOnyxWithoutSnapshots.mockReturnValue([false, {status: 'loaded'}]);
+            mockedUseOnyx.mockImplementation((key) => {
+                if (key === `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${POLICY_ID}`) {
+                    return [{Meals: makeCategory('Meals', ''), Training: {...makeCategory('Training', ''), enabled: false}}, {status: 'loaded'}];
+                }
+                return [undefined, {status: 'loaded'}];
+            });
+        });
+
+        it('offers to create a searched-for name that matches nothing, and hands over the name without surrounding spaces', () => {
+            // Given an admin who searched for a category the workspace doesn't have, with stray spaces around it
+            const onCreateCategory = jest.fn();
+            const onSubmit = jest.fn();
+            renderSearch('  Flights ', onCreateCategory, onSubmit);
+
+            // When they tap the create row
+            const createRow = findCreateRow();
+            if (!createRow) {
+                throw new Error('Expected the picker to offer a create row');
+            }
+            expect(createRow.searchText).toBe('Flights');
+            jest.mocked(SelectionListWithSections).mock.lastCall?.[0].onSelectRow(createRow);
+
+            // Then the picker asks to create the trimmed name, which is the name the new-category page would save, and
+            // doesn't treat the row as an existing category pick
+            expect(onCreateCategory).toHaveBeenCalledWith('Flights');
+            expect(onSubmit).not.toHaveBeenCalled();
+        });
+
+        it('offers the row for a disabled category, which the picker hides from the results', () => {
+            // Given a search for a category that exists but is disabled
+            // When the picker renders
+            renderSearch('Training');
+
+            // Then the row is offered, since tapping it turns the category back on rather than failing as a duplicate
+            expect(findCreateRow()?.searchText).toBe('Training');
+        });
+
+        it('shows the matches instead of the row when the search matches a category, even partially', () => {
+            // Given a search that partly matches `Meals`
+            // When the picker renders
+            renderSearch('Mea');
+
+            // Then the match shows as today, with no row to create a near-duplicate
+            expect(findRow('Meals')).toBeDefined();
+            expect(findCreateRow()).toBeUndefined();
+        });
+
+        it.each([
+            ['the reserved `Uncategorized` name', CONST.SEARCH.CATEGORY_DEFAULT_VALUE],
+            ['the reserved `###` name', CONST.INVALID_CATEGORY_NAME],
+            ['HTML tags', '<b>Flights</b>'],
+            ['more than 255 characters', 'a'.repeat(CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH + 1)],
+        ])('does not offer the row for a search with %s', (_, searchValue) => {
+            // Given a search the new-category page would reject
+            // When the picker renders
+            renderSearch(searchValue);
+
+            // Then only `No results found` shows, so the row never offers a name that validation would reject
+            expect(findCreateRow()).toBeUndefined();
+        });
+
+        it('does not offer the row when the caller cannot create categories', () => {
+            // Given a picker opened by a user who doesn't see the `+`, so the caller passes no create handler
+            // When they search for a name that matches nothing
+            mockDebouncedSearchValue = 'Flights';
+            render(
+                <CategoryPicker
+                    policyID={POLICY_ID}
+                    onSubmit={jest.fn()}
+                />,
+            );
+
+            // Then there is no row, as today
+            expect(findCreateRow()).toBeUndefined();
+        });
+    });
+
     describe('search input threshold', () => {
         const EIGHT_CATEGORIES = Object.fromEntries(
             Array.from({length: CONST.INLINE_EDIT_PICKER_SEARCH_INPUT_THRESHOLD}, (_, index) => {

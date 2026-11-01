@@ -35,18 +35,32 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 
 jest.mock('@hooks/useUpdateTransactionCategory', () => () => ({updateCategory: jest.fn()}));
 
+const mockCreateAndApplyCategory = jest.fn();
+jest.mock('@hooks/useCreateAndApplyCategory', () => () => mockCreateAndApplyCategory);
+
 jest.mock('@components/CategoryPicker/CategoryPickerModal', () => {
     const {default: Pressable} = jest.requireActual<{default: typeof PressableWithoutFeedback}>('@components/Pressable/PressableWithoutFeedback');
     const {default: Text} = jest.requireActual<{default: typeof TextComponent}>('@components/Text');
-    return ({onAddCategory}: {onAddCategory?: () => void}) =>
-        onAddCategory ? (
-            <Pressable
-                accessibilityLabel="addCategory"
-                onPress={onAddCategory}
-            >
-                <Text>addCategory</Text>
-            </Pressable>
-        ) : null;
+    return ({onAddCategory, onCreateCategory}: {onAddCategory?: () => void; onCreateCategory?: (categoryName: string) => void}) => (
+        <>
+            {!!onAddCategory && (
+                <Pressable
+                    accessibilityLabel="addCategory"
+                    onPress={onAddCategory}
+                >
+                    <Text>addCategory</Text>
+                </Pressable>
+            )}
+            {!!onCreateCategory && (
+                <Pressable
+                    accessibilityLabel="createCategory"
+                    onPress={() => onCreateCategory('Training')}
+                >
+                    <Text>createCategory</Text>
+                </Pressable>
+            )}
+        </>
+    );
 });
 
 const TRANSACTION_ID = '1';
@@ -122,5 +136,27 @@ describe('CategoryFieldDropdown', () => {
 
         // Then it has no add button, so the user can only pick from the existing categories
         expect(screen.queryByLabelText('addCategory')).toBeNull();
+    });
+
+    it('lets a user who can add a category create the one they searched for', async () => {
+        // Given an admin with the category pop-over open
+        renderDropdown(jest.fn());
+        await waitForBatchedUpdatesWithAct();
+
+        // When they tap the create row for a search that matched nothing
+        fireEvent.press(screen.getByLabelText('createCategory'));
+
+        // Then the searched-for name is created and applied to the expense
+        expect(mockCreateAndApplyCategory).toHaveBeenCalledWith('Training');
+    });
+
+    it('offers no create row when the user cannot add a category', async () => {
+        // Given a user who cannot add categories to the workspace
+        // When the pop-over opens
+        renderDropdown(jest.fn(), false);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then a search with no results offers no create row, matching the missing add button
+        expect(screen.queryByLabelText('createCategory')).toBeNull();
     });
 });
