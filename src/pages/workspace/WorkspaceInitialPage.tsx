@@ -13,7 +13,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useHasApprovalWorkflowWithNonMemberApprover from '@hooks/useHasApprovalWorkflowWithNonMemberApprover';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -85,7 +84,6 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const {translate} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const isFocused = useIsFocused();
@@ -213,25 +211,22 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         shouldShowRBR,
         hasApprovalWorkflowWithNonMemberApprover,
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
-        isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
-        isUnifiedConnectionsBetaEnabled,
         convertToDisplayString,
     }).map((item) => ({
         ...item,
         action: singleExecution(waitForNavigate(() => Navigation.navigate(item.getRoute()))),
     }));
     const triggerScrollEvent = useScrollEventEmitter();
+    const connectionsMenuItem = workspaceMenuItems.find((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS);
     const {
         shouldShowTooltip: shouldShowConnectionsTooltip,
         hideTooltip: hideConnectionsTooltip,
         renderTooltipContent: renderConnectionsTooltip,
     } = useConnectionsMovedTooltip(
         // New workspaces never used the old integration pages, so only point this out where something is already connected.
-        isWorkspacesTabFocused &&
-            !hasPolicyCreationError &&
-            (!isEmptyObject(policy?.connections) || !!policy?.receiptPartners?.uber?.enabled) &&
-            workspaceMenuItems.some((item) => item.screenName === SCREENS.WORKSPACE.CONNECTIONS),
+        isWorkspacesTabFocused && !hasPolicyCreationError && (!isEmptyObject(policy?.connections) || !!policy?.receiptPartners?.uber?.enabled) && !!connectionsMenuItem,
         activeRoute,
+        !!connectionsMenuItem && [connectionsMenuItem.screenName, ...(connectionsMenuItem.aliasScreenNames ?? [])].some((screenName) => screenName === activeRoute),
         isWorkspacesTabFocused,
     );
     // Close RHP if we land on a route that no longer exists in the menu

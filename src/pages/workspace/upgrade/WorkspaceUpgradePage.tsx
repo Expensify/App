@@ -3,7 +3,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -129,7 +128,6 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const {translate} = useLocalize();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {accountID, email = ''} = useCurrentUserPersonalDetails();
     const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [priorFirstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
@@ -193,8 +191,8 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.id:
                 return Navigation.goBack(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
-                // Connections also upgrades for HR, and passes itself as the page to return to
-                return Navigation.goBack((isUnifiedConnectionsBetaEnabled ? route.params.backTo : undefined) ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
+                // Connections upgrades for HR and passes itself as the page to return to
+                return Navigation.goBack(route.params.backTo ?? ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID));
             default:
                 return route.params.backTo ? Navigation.goBack(route.params.backTo) : Navigation.goBack();
         }
@@ -335,10 +333,10 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                 enablePerDiem(policyID, true, perDiemCustomUnit?.customUnitID, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.hr.id:
-                enablePolicyHR(policyID, true, !isUnifiedConnectionsBetaEnabled);
+                enablePolicyHR(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.recruiting.id:
-                enablePolicyRecruiting(policyID, true, !isUnifiedConnectionsBetaEnabled);
+                enablePolicyRecruiting(policyID, true, false);
                 break;
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.id:
             case CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.id:

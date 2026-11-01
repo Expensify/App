@@ -8,7 +8,6 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -49,7 +48,6 @@ import type {Policy} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
@@ -58,21 +56,19 @@ import type {MenuItemData} from './types';
 
 import {useAccountingActions, useAccountingState} from './AccountingContext';
 import {getCertiniaSelectedCompanyID, isCertiniaFFAConnection} from './certinia/utils';
+import {getNetSuiteOAuthMigrationSeverity, shouldShowNetSuiteOAuthMigrationOption} from './netsuite/utils';
 import {getAccountingIntegrationData, getAccountingIntegrationDisplayName, getSynchronizationErrorMessage, isIntuitEnterpriseSuiteConnection} from './utils';
 
 type UseConnectedAccountingIntegrationOptions = {
-    /** Style applied to the settings rows, which the Accounting page lays out as cards */
-    menuItemWrapperStyle?: StyleProp<ViewStyle>;
-
     /** Runs once the user confirms disconnecting and takes over calling `disconnect`, so the panel can close before the connection is removed */
     onDisconnectConfirmed?: (disconnect: () => void) => void;
 };
 
 /**
- * Everything the Accounting page and the Connections accounting panel derive for the workspace's connected accounting
- * integration: its status, the overflow menu, and the settings rows.
+ * Everything the Connections accounting panel derives for the workspace's connected accounting integration: its status,
+ * the overflow menu, and the settings rows.
  */
-function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemWrapperStyle, onDisconnectConfirmed}: UseConnectedAccountingIntegrationOptions = {}) {
+function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconnectConfirmed}: UseConnectedAccountingIntegrationOptions = {}) {
     const policyID = policy?.id;
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
@@ -86,7 +82,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
     const {environment} = useEnvironment();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {showConfirmModal} = useConfirmModal();
     const {activeIntegration} = useAccountingState();
     const {startIntegrationFlow} = useAccountingActions();
@@ -286,7 +281,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           description: translate('workspace.xero.organization'),
                           iconRight: icons.ArrowRight,
                           title: getCurrentXeroOrganizationName(policy),
-                          wrapperStyle: menuItemWrapperStyle,
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting && tenants.length > 1,
                           shouldShowDescriptionOnTop: true,
@@ -309,7 +303,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           description: translate('workspace.netsuite.subsidiary'),
                           iconRight: icons.ArrowRight,
                           title: policy?.connections?.netsuite?.options?.config?.subsidiary ?? '',
-                          wrapperStyle: menuItemWrapperStyle,
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting && netSuiteSubsidiaryList?.length > 1,
                           shouldShowDescriptionOnTop: true,
@@ -330,7 +323,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           description: translate('workspace.intacct.entity'),
                           iconRight: icons.ArrowRight,
                           title: getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel')),
-                          wrapperStyle: menuItemWrapperStyle,
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting,
                           shouldShowDescriptionOnTop: true,
@@ -346,7 +338,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           description: translate(isConnectedToIntuitEnterpriseSuite ? 'workspace.qbo.entity' : 'workspace.qbo.connectedTo'),
                           iconRight: isConnectedToIntuitEnterpriseSuite ? icons.ArrowRight : undefined,
                           title: policy?.connections?.quickbooksOnline?.config?.companyName,
-                          wrapperStyle: menuItemWrapperStyle,
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: isConnectedToIntuitEnterpriseSuite && canWriteAccounting,
                           shouldShowDescriptionOnTop: true,
@@ -365,7 +356,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           description: translate('workspace.certinia.company'),
                           iconRight: icons.ArrowRight,
                           title: selectedCertiniaCompany?.name ?? certiniaCompanyID ?? translate('common.none'),
-                          wrapperStyle: menuItemWrapperStyle,
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting,
                           shouldShowDescriptionOnTop: true,
@@ -381,7 +371,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           description: translate('workspace.rillet.entity'),
                           iconRight: icons.ArrowRight,
                           title: rilletSubsidiaryList?.find((subsidiary) => subsidiary.id === policy?.connections?.rillet?.config?.subsidiaryID)?.tradeName ?? '',
-                          wrapperStyle: menuItemWrapperStyle,
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting && rilletSubsidiaryList && rilletSubsidiaryList.length > 1,
                           shouldShowDescriptionOnTop: true,
@@ -400,7 +389,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           description: translate('workspace.dualEntry.company'),
                           iconRight: icons.ArrowRight,
                           title: dualEntryCompanyList?.find((company) => company.id === policy?.connections?.dualEntry?.config?.subsidiaryID)?.name ?? '',
-                          wrapperStyle: menuItemWrapperStyle,
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting && dualEntryCompanyList && dualEntryCompanyList.length > 1,
                           shouldShowDescriptionOnTop: true,
@@ -419,7 +407,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           description: translate('workspace.campfire.entity'),
                           iconRight: icons.ArrowRight,
                           title: campfireSubsidiaryList?.find((subsidiary) => subsidiary.id === policy?.connections?.campfire?.config?.subsidiaryID)?.name ?? '',
-                          wrapperStyle: menuItemWrapperStyle,
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting && campfireSubsidiaryList && campfireSubsidiaryList.length > 1,
                           shouldShowDescriptionOnTop: true,
@@ -438,7 +425,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           description: translate('workspace.businessCentral.subsidiary'),
                           iconRight: icons.ArrowRight,
                           title: businessCentralCompanyList.find((company) => company.id === policy?.connections?.businessCentral?.config?.companyID)?.displayName ?? '',
-                          wrapperStyle: menuItemWrapperStyle,
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting && businessCentralCompanyList.length > 1,
                           shouldShowDescriptionOnTop: true,
@@ -457,7 +443,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           description: translate('workspace.zohoBooks.organization'),
                           iconRight: icons.ArrowRight,
                           title: currentZohoBooksOrganization?.name ?? '',
-                          wrapperStyle: menuItemWrapperStyle,
                           titleStyle: styles.fontWeightNormal,
                           shouldShowRightIcon: canWriteAccounting && zohoBooksOrganizationList.length > 1,
                           shouldShowDescriptionOnTop: true,
@@ -492,7 +477,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
             cardFeeds,
             cardList: cardLists,
             isIntuitEnterpriseSuiteOverride: isConnectedToIntuitEnterpriseSuite,
-            isUnifiedConnectionsBetaEnabled,
         });
         let connectionMessage;
         if (isSyncInProgress && connectionSyncStage) {
@@ -512,7 +496,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                       iconRight: icons.ArrowRight,
                       shouldShowRightIcon: true,
                       title: translate('workspace.accounting.import'),
-                      wrapperStyle: menuItemWrapperStyle,
                       onPress: integrationData?.onImportPagePress,
                       brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedImportSettings, integrationData?.errorFields)
                           ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
@@ -526,7 +509,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                                 iconRight: icons.ArrowRight,
                                 shouldShowRightIcon: true,
                                 title: translate('workspace.accounting.export'),
-                                wrapperStyle: menuItemWrapperStyle,
                                 onPress: integrationData?.onExportPagePress,
                                 brickRoadIndicator:
                                     areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
@@ -547,7 +529,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                                 iconRight: icons.ArrowRight,
                                 shouldShowRightIcon: true,
                                 title: translate('workspace.accounting.cardReconciliation'),
-                                wrapperStyle: menuItemWrapperStyle,
                                 onPress: integrationData?.onCardReconciliationPagePress,
                             },
                         ]
@@ -559,7 +540,6 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                                 iconRight: icons.ArrowRight,
                                 shouldShowRightIcon: true,
                                 title: translate('workspace.accounting.advanced'),
-                                wrapperStyle: menuItemWrapperStyle,
                                 onPress: integrationData?.onAdvancedPagePress,
                                 brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
                                     ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
@@ -599,6 +579,25 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         );
     }
 
+    let netSuiteOAuthMigrationHint;
+    const netSuiteAccountID = policy?.connections?.netsuite?.accountID;
+    if (connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.NETSUITE && shouldShowNetSuiteOAuthMigrationOption(policy) && canWriteAccounting && netSuiteAccountID) {
+        const severity = getNetSuiteOAuthMigrationSeverity();
+        netSuiteOAuthMigrationHint = (
+            <>
+                {translate(severity === 'danger' ? 'workspace.accounting.netSuiteOAuthMigrationRequiredUrgent' : 'workspace.accounting.netSuiteOAuthMigrationRequired')}{' '}
+                <TextLink
+                    style={styles.label}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID, CONST.NETSUITE_CONFIG.TOKEN_INPUT.PAGE_NAME.INSTALL, undefined, true))
+                    }
+                >
+                    {translate('workspace.accounting.netSuiteOAuthUpgradeNow')}
+                </TextLink>
+            </>
+        );
+    }
+
     const oldDotPolicyConnectionsURL = policyID ? `${getOldDotURLFromEnvironment(environment)}/${CONST.OLDDOT_URLS.POLICY_CONNECTIONS_URL_ENCODED(policyID)}` : '';
 
     return {
@@ -616,6 +615,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         overflowMenu,
         connectionDetails,
         qboTokenExpiryHint,
+        netSuiteOAuthMigrationHint,
         oldDotPolicyConnectionsURL,
         getAvailableIntegrationData,
     };

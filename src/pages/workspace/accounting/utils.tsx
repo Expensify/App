@@ -22,8 +22,6 @@ import {getCurrentConnectionName} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import {getAccountingConnectionsRoute} from '@pages/workspace/connections/utils';
-
 import type {ThemeStyles} from '@styles/index';
 
 import {getTrackingCategories} from '@userActions/connections/Xero';
@@ -94,9 +92,6 @@ type GetAccountingIntegrationDataOptions = {
 
     /** Picks QBO or Intuit Enterprise Suite explicitly instead of following the existing connection */
     isIntuitEnterpriseSuiteOverride?: boolean;
-
-    /** Routes the connect flows through the Connections page instead of the Accounting page */
-    isUnifiedConnectionsBetaEnabled?: boolean;
 };
 
 function getAccountingIntegrationData(
@@ -114,7 +109,6 @@ function getAccountingIntegrationData(
         cardFeeds,
         cardList,
         isIntuitEnterpriseSuiteOverride,
-        isUnifiedConnectionsBetaEnabled = false,
     }: GetAccountingIntegrationDataOptions = {},
 ): AccountingIntegration | undefined {
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
@@ -125,16 +119,16 @@ function getAccountingIntegrationData(
     const netsuiteSelectedSubsidiary = (policy?.connections?.netsuite?.options?.data?.subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === netsuiteConfig?.subsidiaryID);
     const getBackToAfterWorkspaceUpgradeRouteForIntacct = () => {
         if (integrationToDisconnect) {
-            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
         if (existingConnections.sageIntacct) {
             return ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID);
         }
-        return createDynamicRoute(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path, getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID));
+        return createDynamicRoute(DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path, ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID));
     };
     const getBackToAfterWorkspaceUpgradeRouteForQBD = () => {
         if (integrationToDisconnect) {
-            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
         if (existingConnections.qbd) {
             return ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXISTING_CONNECTIONS.getRoute(policyID);
@@ -143,7 +137,7 @@ function getAccountingIntegrationData(
     };
     const getBackToAfterWorkspaceUpgradeRouteForCertinia = () => {
         if (integrationToDisconnect) {
-            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
         if (existingConnections.certinia) {
             return ROUTES.POLICY_ACCOUNTING_CERTINIA_EXISTING_CONNECTIONS.getRoute(policyID);
@@ -152,7 +146,7 @@ function getAccountingIntegrationData(
     };
     const getBackToAfterWorkspaceUpgradeRouteForRillet = () => {
         if (integrationToDisconnect) {
-            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
         if (existingConnections.rillet) {
             return ROUTES.POLICY_ACCOUNTING_RILLET_EXISTING_CONNECTIONS.getRoute(policyID);
@@ -161,7 +155,7 @@ function getAccountingIntegrationData(
     };
     const getBackToAfterWorkspaceUpgradeRouteForDualEntry = () => {
         if (integrationToDisconnect) {
-            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
         if (existingConnections.dualEntry) {
             return ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXISTING_CONNECTIONS.getRoute(policyID);
@@ -170,7 +164,7 @@ function getAccountingIntegrationData(
     };
     const getBackToAfterWorkspaceUpgradeRouteForCampfire = () => {
         if (integrationToDisconnect) {
-            return getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
+            return ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting);
         }
         if (existingConnections.campfire) {
             return ROUTES.POLICY_ACCOUNTING_CAMPFIRE_EXISTING_CONNECTIONS.getRoute(policyID);
@@ -235,8 +229,7 @@ function getAccountingIntegrationData(
                     ? {
                           workspaceUpgradeNavigationDetails: {
                               integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intuitEnterpriseSuite.alias,
-                              backToAfterWorkspaceUpgradeRoute: getAccountingConnectionsRoute(
-                                  isUnifiedConnectionsBetaEnabled,
+                              backToAfterWorkspaceUpgradeRoute: ROUTES.WORKSPACE_CONNECTIONS.getRoute(
                                   policyID,
                                   connectionName,
                                   integrationToDisconnect,
@@ -353,7 +346,7 @@ function getAccountingIntegrationData(
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.netsuite.alias,
                     backToAfterWorkspaceUpgradeRoute: integrationToDisconnect
-                        ? getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
+                        ? ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
                         : ROUTES.POLICY_ACCOUNTING_NETSUITE_TOKEN_INPUT.getRoute(policyID, getInitialSubPageForNetsuiteTokenInput(policy)),
                 },
                 pendingFields: {...netsuiteConfig?.pendingFields, ...policy?.connections?.netsuite?.config?.pendingFields, ...policy?.connections?.netsuite?.options?.config?.pendingFields},
@@ -765,7 +758,7 @@ function getAccountingIntegrationData(
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.businessCentral.alias,
                     backToAfterWorkspaceUpgradeRoute: integrationToDisconnect
-                        ? getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled, policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
+                        ? ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, connectionName, integrationToDisconnect, shouldDisconnectIntegrationBeforeConnecting)
                         : ROUTES.POLICY_ACCOUNTING_BUSINESS_CENTRAL_PREREQUISITES.getRoute(policyID),
                 },
                 pendingFields: policy?.connections?.businessCentral?.config?.pendingFields,

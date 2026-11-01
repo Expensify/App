@@ -7,7 +7,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -19,7 +18,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 
 import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
-import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -46,7 +44,6 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
 
     const policyID = policy?.id;
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const accountingMethod = policy?.connections?.quickbooksOnline?.config?.accountingMethod;
     const {bankAccounts, creditCards, expenseAccounts, otherCurrentAssetAccounts, vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -181,7 +178,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
-            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="QuickbooksAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
