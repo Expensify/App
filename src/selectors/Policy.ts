@@ -4,6 +4,7 @@ import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnve
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
 import {getConnectedHRProvider} from '@libs/merge/HRUtils';
+import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
 import {
     canSendInvoice,
     getActiveAdminWorkspaces,
@@ -16,9 +17,11 @@ import {
     isPaidGroupPolicy,
     isPendingDeletePolicy,
     isPerDiemEligiblePolicy,
+    isPolicyAccessible,
     isPolicyAdmin,
     isArchivedOrPendingDeletePolicy,
     isArchivedPolicy,
+    isPolicyProvisionedForTravel,
     isTimeTrackingEnabled,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
@@ -27,7 +30,7 @@ import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
+import type {Card, FullPolicySnapshot, Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
 import type {PolicyConnectionName, PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
@@ -43,7 +46,9 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA
     | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
-    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
@@ -253,6 +258,15 @@ const createHasAdminPolicyWithXeroConnectionSelector =
         hasPolicyWithXeroConnection(getActiveAdminWorkspaces(policies, currentUserLogin));
 
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
+
+/**
+ * Creates a selector for whether the user belongs to any workspace with Travel enabled and provisioned, so subscribers only
+ * re-render when that answer changes rather than on every policy collection change.
+ */
+const createHasTravelEnabledPolicySelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        Object.values(policies ?? {}).some((policy) => policy?.isTravelEnabled && isPolicyProvisionedForTravel(policy) && isPolicyAccessible(policy, currentUserLogin ?? ''));
 
 /**
  * Creates a selector returning only whether the user has any active workspace they can submit expenses to
@@ -476,6 +490,12 @@ const adminPoliciesConnectedToDualEntrySelector = (policies: OnyxCollection<Poli
 const adminPoliciesConnectedToCampfireSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE));
 
+const adminPoliciesConnectedToZohoBooksSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS));
+
+const adminPoliciesConnectedToDigitsSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.DIGITS));
+
 const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (policies: OnyxCollection<Policy>) => Policy[]> = {
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
@@ -484,6 +504,8 @@ const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (po
     [CONST.POLICY.CONNECTIONS.NAME.RILLET]: adminPoliciesConnectedToRilletSelector,
     [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: adminPoliciesConnectedToDualEntrySelector,
     [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: adminPoliciesConnectedToCampfireSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: adminPoliciesConnectedToZohoBooksSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: adminPoliciesConnectedToDigitsSelector,
 };
 
 function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
@@ -534,6 +556,20 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+const fullPolicySnapshotLastModifiedSelector = (snapshot: OnyxEntry<FullPolicySnapshot>) => snapshot?.lastModified;
+
+/** Maps each policyID to the lastModified of its full policy snapshot, for screens that open reports from several policies. */
+const fullPolicySnapshotLastModifiedByPolicyIDSelector = (snapshots: OnyxCollection<FullPolicySnapshot>): Record<string, number> => {
+    const lastModifiedByPolicyID: Record<string, number> = {};
+    for (const [key, snapshot] of Object.entries(snapshots ?? {})) {
+        if (!snapshot?.lastModified) {
+            continue;
+        }
+        lastModifiedByPolicyID[key.slice(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT.length)] = snapshot.lastModified;
+    }
+    return lastModifiedByPolicyID;
+};
+
 /** The policy fields a workspace avatar renders from. */
 const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'avatarURL' | 'name'> | undefined => (policy ? {avatarURL: policy.avatarURL, name: policy.name} : undefined);
 
@@ -543,7 +579,11 @@ const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
 
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
-const policyACHAccountNumberSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.accountNumber;
+const policyDefaultBankAccountIDSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.bankAccountID;
+
+/** The policy fields that attribute a payment to a bank account (see `getBankAccountLastFourDigits`). */
+const policyPaymentAttributionSelector = (policy: OnyxEntry<Policy>): PolicyPaymentAttribution | undefined =>
+    policy ? {achAccount: policy.achAccount, reimburser: policy.reimburser} : undefined;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
     return (policies: OnyxCollection<Policy> | null): boolean => {
@@ -597,6 +637,7 @@ export {
     hasActiveAdminPoliciesSelector,
     createHasAdminPolicyWithXeroConnectionSelector,
     createTimeSensitiveAdminPoliciesSelector,
+    createHasTravelEnabledPolicySelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForAssignedCardsSelector,
     createPoliciesByIDsSelector,
@@ -611,10 +652,13 @@ export {
     homeAndOfficeCommuterExclusionPolicyNameSelector,
     policyAvatarFieldsSelector,
     policyNameSelector,
+    fullPolicySnapshotLastModifiedSelector,
+    fullPolicySnapshotLastModifiedByPolicyIDSelector,
     policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
-    policyACHAccountNumberSelector,
+    policyDefaultBankAccountIDSelector,
+    policyPaymentAttributionSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
     isCollectingDepositAccountsSelector,

@@ -17,7 +17,7 @@ import type {Report, ReportActions} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {TabActions} from '@react-navigation/native';
-import {useEffect, useMemo, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 import getLastRoute from './getLastRoute';
 import getReusableReportsTabStateKey from './getReusableReportsTabStateKey';
@@ -86,7 +86,7 @@ function useWideInboxNavigation(isInboxSelected: boolean) {
 
     const [doesLastReportExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${lastReportRouteReportID}`, {selector: doesLastReportExistSelector});
 
-    const doesLastReportActionExistSelector = useMemo(() => makeDoesLastReportActionExistSelector(lastReportRouteReportActionID), [lastReportRouteReportActionID]);
+    const doesLastReportActionExistSelector = makeDoesLastReportActionExistSelector(lastReportRouteReportActionID);
 
     const [doesLastReportActionExist] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${lastReportRouteReportID}`, {
         selector: doesLastReportActionExistSelector,

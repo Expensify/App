@@ -50,7 +50,7 @@ type DateFieldProps = {
 
 function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, transactionID, action, iouType, reportID, reportActionID}: DateFieldProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
-    const {isEditingSplitBill, canEnterScanFieldsManually} = useConfirmationFields();
+    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat} = useConfirmationFields();
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -83,7 +83,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
     const dateErrorText = shouldDisplayFieldError && createdMissing ? translate('common.error.enterDate') : '';
 
     // A draft always carries a date, so on a partially filled Scan the all-or-nothing rule stands in for `createdMissing`.
-    const isDateRequiredMissing = isPartiallyEnteredScanExpense(dateState, canEnterScanFieldsManually) ? !dateState?.isCreatedSet : createdMissing;
+    const isDateRequiredMissing = isPartiallyEnteredScanExpense(dateState, canEnterScanFieldsManually, isPolicyExpenseChat) ? !dateState?.isCreatedSet : createdMissing;
     const inlineDateErrorText = formError === 'common.error.fieldRequired' && isDateRequiredMissing ? translate('common.error.fieldRequired') : '';
 
     const handleDateChange = (newDate: string) => {
@@ -131,7 +131,8 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
 
     if (!isReadOnly) {
         return (
-            <View style={[styles.mh4, styles.mb2]}>
+            // The bordered rows carry their own vertical margin, so an extra bottom margin here would stack with it.
+            <View style={[styles.mh4, !shouldUseDropdownRows && styles.mb2]}>
                 <DatePicker
                     inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                     value={shouldShowEmptyDate ? '' : iouCreated}

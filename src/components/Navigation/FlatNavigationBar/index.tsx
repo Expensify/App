@@ -24,7 +24,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
 import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -100,7 +99,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {singleExecution} = useSingleExecution();
-    const {isBetaEnabled} = usePermissions();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
 
     const navIcons = useMemoizedLazyExpensifyIcons([
@@ -499,16 +497,14 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                     </>
                                 )}
 
-                                {isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && (
-                                    <FlatNavItem
-                                        isCollapsed={isVisuallyCollapsed}
-                                        label={translate('common.insights')}
-                                        icon={navIcons.PieChart}
-                                        isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
-                                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
-                                        onPress={navigateToInsights}
-                                    />
-                                )}
+                                <FlatNavItem
+                                    isCollapsed={isVisuallyCollapsed}
+                                    label={translate('common.insights')}
+                                    icon={navIcons.PieChart}
+                                    isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
+                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
+                                    onPress={navigateToInsights}
+                                />
 
                                 <FlatNavDivider />
 

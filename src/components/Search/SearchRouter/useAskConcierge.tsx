@@ -1,13 +1,13 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
-import useIsInAskConcierge, {useAskConciergeActions} from '@hooks/useIsInAskConcierge';
 import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
-import usePermissions from '@hooks/usePermissions';
 import useSidePanelReportID from '@hooks/useSidePanelReportID';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {generateReportID} from '@libs/ReportUtils';
+
+import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 
 import {addAttachmentWithComment, addComment} from '@userActions/Report';
 import {createTaskFromMarkdown} from '@userActions/Task';
@@ -28,18 +28,19 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const sidePanelReportID = useSidePanelReportID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {openConciergeAnywhere, isInSidePanel} = useOpenConciergeAnywhere();
-    const targetReportID = !forceConcierge && isInSidePanel && sidePanelReportID ? sidePanelReportID : conciergeReportID;
+    const [sidePanelReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(sidePanelReportID)}`);
+
+    const isSidePanelOnConciergeThread = !!conciergeReportID && sidePanelReport?.parentReportID === conciergeReportID;
+    const targetReportID = !forceConcierge && isInSidePanel && sidePanelReportID && !isSidePanelOnConciergeThread ? sidePanelReportID : conciergeReportID;
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetReportID)}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {timezone, accountID: currentUserAccountID} = currentUserPersonalDetails;
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
-    const isInAskConcierge = useIsInAskConcierge();
-    const {openConciergeThread} = useAskConciergeActions();
+    const {setShowFullHistory} = useConciergeChatHistoryActions();
     const shouldShowAskConcierge = !!targetReportID && !!targetReport;
 
-    const shouldRespondInThread = targetReportID === conciergeReportID && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+    const shouldRespondInThread = targetReportID === conciergeReportID;
 
     const askConcierge = (searchQuery: string) => {
         const trimmedQuery = searchQuery.trim();
@@ -48,6 +49,9 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
         }
         const isTask = createTaskFromMarkdown({text: trimmedQuery, parentReport: targetReport, currentUserPersonalDetails, quickAction, delegateAccountID});
         if (isTask) {
+            if (shouldRespondInThread && !isInSidePanel) {
+                setShowFullHistory(true);
+            }
             openConciergeAnywhere({forceConcierge});
             return;
         }
@@ -64,12 +68,8 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             delegateAccountID,
             conciergeReportID,
             conciergeThreadReportID,
-            shouldNavigateToConciergeThread: !isInSidePanel && !isInAskConcierge,
+            shouldNavigateToConciergeThread: !isInSidePanel,
         });
-        if (conciergeThreadReportID && isInAskConcierge) {
-            openConciergeThread?.(conciergeThreadReportID);
-            return;
-        }
         if (!conciergeThreadReportID || isInSidePanel) {
             openConciergeAnywhere({forceConcierge, reportID: conciergeThreadReportID});
         }
@@ -80,8 +80,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             return;
         }
 
-        const willOpenThread = shouldRespondInThread && (!Array.isArray(attachments) || attachments.length === 1);
-        const conciergeThreadReportID = willOpenThread ? generateReportID() : undefined;
+        const conciergeThreadReportID = shouldRespondInThread ? generateReportID() : undefined;
         addAttachmentWithComment({
             report: targetReport,
             notifyReportID: targetReportID,
@@ -95,12 +94,8 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
             delegateAccountID,
             conciergeReportID,
             conciergeThreadReportID,
-            shouldNavigateToConciergeThread: !isInSidePanel && !isInAskConcierge,
+            shouldNavigateToConciergeThread: !isInSidePanel,
         });
-        if (conciergeThreadReportID && isInAskConcierge) {
-            openConciergeThread?.(conciergeThreadReportID);
-            return;
-        }
         if (!conciergeThreadReportID || isInSidePanel) {
             openConciergeAnywhere({forceConcierge, reportID: conciergeThreadReportID});
         }

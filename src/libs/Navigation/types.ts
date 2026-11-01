@@ -651,7 +651,6 @@ type NewTaskNavigatorParamList = {
 
 type TeachersUniteNavigatorParamList = {
     [SCREENS.SAVE_THE_WORLD.ROOT]: undefined;
-    [SCREENS.SAVE_THE_WORLD.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.I_KNOW_A_TEACHER]: undefined;
     [SCREENS.I_AM_A_TEACHER]: undefined;
 };
@@ -730,7 +729,7 @@ type ReimbursementAccountNavigatorParamList = {
 };
 
 type ReimbursementAccountEnterSignerInfoNavigatorParamList = {
-    [SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: {
+    [SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO]: {
         policyID: string;
         bankAccountID: string;
         isCompleted: string;
@@ -1154,6 +1153,13 @@ type WorkspaceSplitNavigatorParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_WEEKLY_OFFSET]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.WORKFLOWS_AUTO_REPORTING_SEMI_MONTHLY_OFFSET]: {
+        policyID: string;
+        submission: ValueOf<typeof CONST.POLICY.SEMI_MONTHLY_SUBMISSIONS>;
+    };
     [SCREENS.WORKSPACE.INVOICES]: {
         policyID: string;
     };
@@ -1482,6 +1488,7 @@ type AttachmentModalScreensParamList = {
 type AuthScreensParamList = SharedScreensParamList &
     AttachmentModalScreensParamList & {
         [SCREENS.CONCIERGE]: undefined;
+        [SCREENS.TALK_TO_HUMAN]: undefined;
         [SCREENS.TRACK_EXPENSE]: undefined;
         [SCREENS.SUBMIT_EXPENSE]: undefined;
         [SCREENS.WORKSPACE_JOIN_USER]: {
@@ -1574,6 +1581,7 @@ type SearchAdvancedFiltersParamList = {
         filterKey: string;
         applyDirectly?: string;
     };
+    [SCREENS.SEARCH.NL_FILTER_RHP]: Record<string, never>;
 };
 
 type SearchSavedSearchParamList = {

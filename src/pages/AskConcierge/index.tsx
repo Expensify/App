@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
-import {useConciergeSessionActions} from '@pages/inbox/ConciergeSessionContext';
+import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 
 import variables from '@styles/variables';
 
@@ -26,8 +26,8 @@ import {View} from 'react-native';
 
 import AskConciergeReport from './AskConciergeReport';
 import AskConciergeSidebar from './AskConciergeSidebar';
-import useConciergeThreads from './useConciergeThreads';
 import {useNewConciergeQuestionRequests} from './NewQuestionStore';
+import useConciergeThreads from './useConciergeThreads';
 
 type AskConciergePageProps = BottomTabScreenProps<TabNavigatorParamList, typeof SCREENS.ASK_CONCIERGE>;
 
@@ -35,7 +35,7 @@ function AskConciergePage({navigation}: AskConciergePageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const {resetSession} = useConciergeSessionActions();
+    const {collapseHistory} = useConciergeChatHistoryActions();
     const threads = useConciergeThreads(conciergeReportID);
 
     // The Concierge chat is the starting point, so the page opens on it until a thread is picked.
@@ -53,8 +53,8 @@ function AskConciergePage({navigation}: AskConciergePageProps) {
     };
 
     const askNewQuestion = () => {
-        // A new question starts a new session, so the chat opens on its empty state rather than on the last answer.
-        resetSession();
+        // Collapsing the earlier conversation opens the chat on its welcome screen rather than on the last answer.
+        collapseHistory();
 
         if (shouldUseNarrowLayout && conciergeReportID) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID));
@@ -71,9 +71,9 @@ function AskConciergePage({navigation}: AskConciergePageProps) {
             return;
         }
         handledNewQuestionRequests.current = newQuestionRequests;
-        resetSession();
+        collapseHistory();
         setSelectedReportID(undefined);
-    }, [newQuestionRequests, resetSession]);
+    }, [newQuestionRequests, collapseHistory]);
 
     const sidebar = (
         <AskConciergeSidebar

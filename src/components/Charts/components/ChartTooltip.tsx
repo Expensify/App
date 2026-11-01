@@ -15,7 +15,7 @@ import type {LayoutChangeEvent} from 'react-native';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -44,8 +44,8 @@ type ChartTooltipProps = {
     /** Updates the hovered point after the chart is moved in the window (e.g. via scroll) by the given offset */
     onChartMoved?: (deltaX: number, deltaY: number) => void;
 
-    /** Hides a tooltip pinned by a touch tap, passed only while it is pinned */
-    onDismiss?: () => void;
+    /** Hides the tooltip */
+    onDismiss: () => void;
 
     /** Identifies the item the content belongs to, so the content is mounted again and laid out on each change of the item */
     contentKey?: number;
@@ -100,9 +100,9 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
 
     const isFocused = useIsFocused();
 
-    // A pinned tooltip is registered for the screen's touch start to hide it
+    // The tooltip is hidden when the screen loses focus or when the screen is touched
     useEffect(() => {
-        if (!isShown || !onDismiss) {
+        if (!isShown) {
             return;
         }
 
@@ -113,6 +113,18 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
         pinChartTooltip(onDismiss);
         return () => unpinChartTooltip(onDismiss);
     }, [isShown, isFocused, onDismiss]);
+
+    const dismissOnWindowResize = useEffectEvent(() => {
+        if (!isShown) {
+            return;
+        }
+        onDismiss();
+    });
+
+    // The tooltip is hidden when the window is resized (e.g. on rotation)
+    useEffect(() => {
+        dismissOnWindowResize();
+    }, [windowWidth, windowHeight]);
 
     const handleOriginChange = (x: number, y: number) => {
         const previousOrigin = origin.get();
@@ -164,21 +176,23 @@ function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVi
                 isShown={isShown}
                 onOriginChange={handleOriginChange}
             />
-            <ChartTooltipPortal>
-                <Animated.View
-                    style={[styles.chartTooltipLayer, tooltipStyle]}
-                    pointerEvents="none"
-                >
-                    <View
-                        key={contentKey}
-                        style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}
-                        onLayout={handleContentLayout}
+            {isFocused && (
+                <ChartTooltipPortal>
+                    <Animated.View
+                        style={[styles.chartTooltipLayer, tooltipStyle]}
+                        pointerEvents="none"
                     >
-                        <Text style={styles.chartTooltipTitle}>{label}</Text>
-                        {children}
-                    </View>
-                </Animated.View>
-            </ChartTooltipPortal>
+                        <View
+                            key={contentKey}
+                            style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}
+                            onLayout={handleContentLayout}
+                        >
+                            <Text style={styles.chartTooltipTitle}>{label}</Text>
+                            {children}
+                        </View>
+                    </Animated.View>
+                </ChartTooltipPortal>
+            )}
         </>
     );
 }

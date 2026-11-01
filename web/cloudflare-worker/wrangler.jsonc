@@ -12,10 +12,11 @@
         "watch_dir": "src",
     },
     // Issues groups uncaught exceptions, 5xx responses and console.error calls. Each environment's observability block
-    // replaces this one, so they all set it too; a deploy without it turns Issues off.
+    // replaces this one, so they all set Issues and traces too; a deploy without them turns them off.
     "observability": {
         "enabled": true,
         "issues": {"enabled": true},
+        "traces": {"enabled": true},
     },
     "upload_source_maps": true,
     "assets": {
@@ -27,16 +28,16 @@
         // Every response needs security headers, and HTML needs a per-request CSP nonce, including SPA navigations.
         "run_worker_first": true,
     },
-    // Files from previous staging builds, served when a tab running an older build requests a file the current build
+    // Files from previous builds, served when a tab running an older build requests a file the current build
     // doesn't have. `wrangler dev` uses an empty local bucket.
     "r2_buckets": [{"binding": "PREVIOUS_BUILDS", "bucket_name": "new-expensify-web-assets-staging"}],
     "vars": {
         "ENVIRONMENT": "staging",
     },
     // Routes are managed in Cloudflare, not here: syncing routes needs zone access, and the CI deploy token can only
-    // edit the test-staging and staging Workers.
+    // edit these Workers.
     "env": {
-        // Serves a staging build on test-staging.new.expensify.com, a hostname nobody else uses.
+        // Serves a staging build on test-staging.new.expensify.com, a hostname nobody else uses. Only deployed by hand.
         "test-staging": {
             "name": "test-staging-new-expensify-assets",
             "r2_buckets": [{"binding": "PREVIOUS_BUILDS", "bucket_name": "new-expensify-web-assets-staging"}],
@@ -49,21 +50,26 @@
             "name": "staging-new-expensify-assets",
             "r2_buckets": [{"binding": "PREVIOUS_BUILDS", "bucket_name": "new-expensify-web-assets-staging"}],
             // The Worker runs for every asset, so logging every request would exceed the included Workers Logs volume.
+            // Traces don't inherit head_sampling_rate and default to tracing every request.
             "observability": {
                 "enabled": true,
                 "head_sampling_rate": 0.1,
                 "issues": {"enabled": true},
+                "traces": {"enabled": true, "head_sampling_rate": 0.1},
             },
             "vars": {
                 "ENVIRONMENT": "staging",
             },
         },
+        // Serves nothing on new.expensify.com until new.expensify.com/* is routed to this Worker.
         "production": {
             "name": "new-expensify-assets",
+            "r2_buckets": [{"binding": "PREVIOUS_BUILDS", "bucket_name": "new-expensify-web-assets-production"}],
             "observability": {
                 "enabled": true,
                 "head_sampling_rate": 0.01,
                 "issues": {"enabled": true},
+                "traces": {"enabled": true, "head_sampling_rate": 0.01},
             },
             "vars": {
                 "ENVIRONMENT": "production",

@@ -1,7 +1,12 @@
 import ScrollView from '@components/ScrollView';
 
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
+
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
@@ -12,32 +17,27 @@ type AskConciergeWelcomeProps = {
     /** The ID of the report being displayed */
     reportID: string;
 
-    /** Whether there are messages from before this session */
-    hasPreviousMessages: boolean;
-
     /** Called when the user presses `View chat history` */
     onShowPreviousMessages: () => void;
 };
 
-function AskConciergeWelcome({reportID, hasPreviousMessages, onShowPreviousMessages}: AskConciergeWelcomeProps) {
+function AskConciergeWelcome({reportID, onShowPreviousMessages}: AskConciergeWelcomeProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
-    // On wide layouts the welcome hugs its content so it and the composer center as one block, rather than the
-    // welcome filling the pane and pushing the composer down to the bottom edge.
     return (
         <ScrollView
-            style={[shouldUseNarrowLayout ? styles.flex1 : [styles.flexShrink1, styles.flexGrow0], styles.conciergeAskColumn]}
-            contentContainerStyle={[shouldUseNarrowLayout && styles.flexGrow1, styles.justifyContentCenter, styles.pb5]}
+            style={[!shouldUseNarrowLayout && styles.flexGrow0, styles.conciergeAskColumn]}
+            contentContainerStyle={[styles.flexGrow1, styles.justifyContentCenter]}
             keyboardShouldPersistTaps="handled"
+            onLayout={() => markOpenReportEnd(reportID, report, {warm: true})}
         >
             <AskConciergeEmptyState />
             <ConciergeChatHistoryToggle
-                reportID={reportID}
-                hasPreviousMessages={hasPreviousMessages}
-                shouldShowFullHistory={false}
-                onShowPreviousMessages={onShowPreviousMessages}
-                containerStyles={styles.pt5}
+                isHistoryShown={false}
+                onPress={onShowPreviousMessages}
+                containerStyles={styles.pv5}
             />
         </ScrollView>
     );

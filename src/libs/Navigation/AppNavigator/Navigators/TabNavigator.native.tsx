@@ -43,8 +43,8 @@ function isNativeTabName(name: string): name is NativeTabName {
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
-    const {shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
-    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, isAccountAvatarShown, dotColors, tabLabels});
+    const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
+    const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
     // A tab with no bar item draws no icon.
     const getScreenOptions = ({route}: {route: {name: string}}) =>
         route.name === tabWithoutBarItem || !isNativeTabName(route.name)
@@ -79,7 +79,7 @@ function TabNavigator() {
             <Tab.Screen
                 name={SCREENS.INSIGHTS}
                 component={InsightsPage}
-                // The Insights tab button opens the Spend dashboard, so a tap on the native tab lands on it too.
+                // The tab opens on Spend dashboard once, then keeps the last dashboard in navigation state until the app restarts.
                 initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
             />
             <Tab.Screen

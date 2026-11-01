@@ -1,107 +1,55 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-
-import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
-
-import Navigation from '@libs/Navigation/Navigation';
 
 import ConciergeChatHistoryToggle from '@pages/inbox/report/ConciergeChatHistoryToggle';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import ONYXKEYS from '@src/ONYXKEYS';
-
-import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
-import Onyx from 'react-native-onyx';
-
-import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: () => ({UpArrow: 'UpArrow', DownArrow: 'DownArrow'}),
 }));
 
-const mockResetSession = jest.fn();
-
-jest.mock('@pages/inbox/ConciergeSessionContext', () => ({
-    useConciergeSessionState: () => ({sessionStartTime: '2024-06-01 12:00:00.000', showFullHistory: false, hadMessagesAtSessionStart: false}),
-    useConciergeSessionActions: () => ({resetSession: mockResetSession}),
-}));
-
-jest.mock('@react-navigation/native', () => ({
-    ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
-    useRoute: () => ({key: 'Report-test', name: 'Report', params: {}}),
-    useNavigation: () => ({getState: () => ({key: 'ReportsSplitNavigator-test'})}),
-}));
-
-const CONCIERGE_REPORT_ID = '1';
-
-const renderToggle = (overrides: {hasPreviousMessages?: boolean; shouldShowFullHistory?: boolean} = {}) => {
-    const onShowPreviousMessages = jest.fn();
+const renderToggle = (isHistoryShown: boolean) => {
+    const onPress = jest.fn();
     render(
-        <OnyxListItemProvider>
-            <LocaleContextProvider>
-                <IsInSidePanelContext.Provider value={false}>
-                    <ConciergeChatHistoryToggle
-                        reportID={CONCIERGE_REPORT_ID}
-                        hasPreviousMessages={overrides.hasPreviousMessages ?? true}
-                        shouldShowFullHistory={overrides.shouldShowFullHistory ?? false}
-                        onShowPreviousMessages={onShowPreviousMessages}
-                    />
-                </IsInSidePanelContext.Provider>
-            </LocaleContextProvider>
-        </OnyxListItemProvider>,
+        <LocaleContextProvider>
+            <ConciergeChatHistoryToggle
+                isHistoryShown={isHistoryShown}
+                onPress={onPress}
+            />
+        </LocaleContextProvider>,
     );
-    return {onShowPreviousMessages};
+    return {onPress};
 };
 
 describe('ConciergeChatHistoryToggle', () => {
     beforeAll(async () => {
-        jest.spyOn(Navigation, 'setParams').mockImplementation(() => {});
         await IntlStore.load(CONST.LOCALES.EN);
-        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, CONCIERGE_REPORT_ID);
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD]);
-        await waitForBatchedUpdates();
     });
 
-    beforeEach(() => {
-        jest.clearAllMocks();
+    it('offers to show the earlier conversation while it is hidden', () => {
+        // Given the earlier conversation is hidden
+        const {onPress} = renderToggle(false);
+
+        // When the user presses `View chat history`
+        fireEvent.press(screen.getByText('View chat history'));
+
+        // Then the press is handled
+        expect(onPress).toHaveBeenCalledTimes(1);
     });
 
-    it('reveals the earlier conversation when history is hidden', () => {
-        const {onShowPreviousMessages} = renderToggle();
+    it('offers to hide the earlier conversation while it is shown', () => {
+        // Given the earlier conversation is shown
+        const {onPress} = renderToggle(true);
 
-        expect(screen.getByText('View chat history')).toBeTruthy();
-        fireEvent.press(screen.getByRole('button'));
-        expect(onShowPreviousMessages).toHaveBeenCalledTimes(1);
-    });
+        // When the user presses `Hide chat history`
+        fireEvent.press(screen.getByText('Hide chat history'));
 
-    it('returns to the empty state when history is shown', () => {
-        const {onShowPreviousMessages} = renderToggle({shouldShowFullHistory: true});
-
-        expect(screen.getByText('Hide chat history')).toBeTruthy();
-        fireEvent.press(screen.getByRole('button'));
-        expect(mockResetSession).toHaveBeenCalledTimes(1);
-        expect(Navigation.setParams).toHaveBeenCalledWith({reportActionID: undefined}, 'Report-test', 'ReportsSplitNavigator-test');
-        expect(onShowPreviousMessages).not.toHaveBeenCalled();
-    });
-
-    it('renders nothing when there is no earlier conversation to reveal', () => {
-        renderToggle({hasPreviousMessages: false});
-        expect(screen.queryByRole('button')).toBeNull();
-    });
-
-    it('renders nothing when the Ask Concierge beta is disabled', async () => {
-        await Onyx.set(ONYXKEYS.BETAS, []);
-        await waitForBatchedUpdates();
-
-        renderToggle();
-        expect(screen.queryByRole('button')).toBeNull();
-
-        await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD]);
-        await waitForBatchedUpdates();
+        // Then the press is handled
+        expect(onPress).toHaveBeenCalledTimes(1);
     });
 });

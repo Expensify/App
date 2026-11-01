@@ -61,11 +61,12 @@ function ReportActionItemThread({report, reportAction, isHovered, onSecondaryInt
 
     // While an agent is still replying, the server can report zero replies, so count the in-progress reply
     const numberOfReplies = isAgentProcessingInThread ? Math.max(reportAction.childVisibleActionCount ?? 0, 1) : (reportAction.childVisibleActionCount ?? 0);
-    const childAccountIDs =
-        reportAction.childOldestFourAccountIDs
-            ?.split(',')
-            .map((accountID) => Number(accountID))
-            .filter((accountID): accountID is number => typeof accountID === 'number') ?? [];
+    // A thread with no replies yet has an empty `childOldestFourAccountIDs`, which must give an empty list so the processing agents are shown
+    const childAccountIDs = (reportAction.childOldestFourAccountIDs ?? '')
+        .split(',')
+        .filter(Boolean)
+        .map((accountID) => Number(accountID))
+        .filter((accountID) => !Number.isNaN(accountID) && accountID !== CONST.DEFAULT_NUMBER_ID);
     const accountIDs = childAccountIDs.length === 0 && processingAgentIDs ? processingAgentIDs : childAccountIDs;
     const mostRecentReply = `${reportAction.childLastVisibleActionCreated}`;
 

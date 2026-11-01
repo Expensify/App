@@ -54,7 +54,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceTaxesPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TAXES>;
@@ -91,9 +91,9 @@ function WorkspaceTaxesPage({
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Gear', 'Plus', 'Trashcan']);
 
-    const fetchTaxes = useCallback(() => {
+    const fetchTaxes = () => {
         openPolicyTaxesPage(policyID);
-    }, [policyID]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchTaxes});
 
@@ -102,9 +102,9 @@ function WorkspaceTaxesPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const clearTableSelection = useCallback(() => {
+    const clearTableSelection = () => {
         setSelectedTaxesIDs((prevSelectedTaxesIDs) => (prevSelectedTaxesIDs.length > 0 ? [] : prevSelectedTaxesIDs));
-    }, []);
+    };
 
     useCleanupSelectedOptions(clearTableSelection);
 
@@ -136,54 +136,41 @@ function WorkspaceTaxesPage({
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
-    const getDefaultLabel = useCallback(
-        (taxID: string): string => {
-            if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
-                return translate('common.default');
-            }
-            if (taxID === defaultExternalID) {
-                return translate('workspace.taxes.workspaceDefault');
-            }
-            if (taxID === foreignTaxDefault) {
-                return translate('workspace.taxes.foreignDefault');
-            }
-            return '';
-        },
-        [defaultExternalID, foreignTaxDefault, translate],
-    );
-
-    const updateWorkspaceTaxEnabled = useCallback(
-        (value: boolean, taxID: string) => {
-            if (!canWriteTaxes) {
-                showReadOnlyModal();
-                return;
-            }
-            setPolicyTaxesEnabled(policy, [taxID], value);
-        },
-        [canWriteTaxes, policy, showReadOnlyModal],
-    );
-
-    const navigateToEditTaxRate = useCallback(
-        (taxID: string) => {
-            Navigation.navigate(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxID));
-        },
-        [policyID],
-    );
-
-    const taxRows = useMemo<WorkspaceTaxTableRowData[]>(() => {
-        if (!policy) {
-            return [];
+    const getDefaultLabel = (taxID: string): string => {
+        if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
+            return translate('common.default');
         }
+        if (taxID === defaultExternalID) {
+            return translate('workspace.taxes.workspaceDefault');
+        }
+        if (taxID === foreignTaxDefault) {
+            return translate('workspace.taxes.foreignDefault');
+        }
+        return '';
+    };
 
-        return Object.entries(policy.taxRates?.taxes ?? {}).reduce<WorkspaceTaxTableRowData[]>((acc, [key, value]) => {
+    const updateWorkspaceTaxEnabled = (value: boolean, taxID: string) => {
+        if (!canWriteTaxes) {
+            showReadOnlyModal();
+            return;
+        }
+        setPolicyTaxesEnabled(policy, [taxID], value);
+    };
+
+    const navigateToEditTaxRate = (taxID: string) => {
+        Navigation.navigate(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxID));
+    };
+
+    let taxRows: WorkspaceTaxTableRowData[];
+    if (!policy) {
+        taxRows = [];
+    } else {
+        taxRows = Object.entries(policy.taxRates?.taxes ?? {}).reduce<WorkspaceTaxTableRowData[]>((acc, [key, value]) => {
             const isDeleting = value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
             if (!isOffline && isDeleting) {
                 return acc;
             }
-
             const canDisableOrDeleteTaxRate = canWriteTaxes && canDisableOrDeleteTaxRateUtil(policy, key);
-
             acc.push({
                 keyForList: key,
                 name: value.name,
@@ -203,10 +190,9 @@ function WorkspaceTaxesPage({
                 onDisabledSwitchPress: withReadOnlyFallback(),
                 onClose: () => clearTaxRateError(policyID, key, value.pendingAction),
             });
-
             return acc;
         }, []);
-    }, [canWriteTaxes, getDefaultLabel, isOffline, navigateToEditTaxRate, policy, policyID, updateWorkspaceTaxEnabled, withReadOnlyFallback]);
+    }
 
     // Tax codes are a Control feature, and a Collect workspace is sent to the upgrade path instead of an editable code,
     // so the column has nothing to show there.
@@ -216,101 +202,84 @@ function WorkspaceTaxesPage({
     const hasVisibleTaxes = taxRows.length > 0;
     const isLoading = !isOffline && !policy?.taxRates;
 
-    const deleteTaxes = useCallback(() => {
+    const deleteTaxes = () => {
         if (!policy?.id) {
             return;
         }
         deletePolicyTaxes(policy, selectedTaxesIDs, localeCompare);
 
         setSelectedTaxesIDs([]);
-    }, [policy, selectedTaxesIDs, localeCompare]);
+    };
 
-    const toggleTaxes = useCallback(
-        (isEnabled: boolean) => {
-            if (!policy?.id) {
-                return;
-            }
-            setPolicyTaxesEnabled(policy, selectedTaxesIDs, isEnabled);
-            setSelectedTaxesIDs([]);
-        },
-        [policy, selectedTaxesIDs],
-    );
-
-    const dropdownMenuOptions = useMemo(() => {
-        const isMultiple = selectedTaxesIDs.length > 1;
-        const options: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>> = [];
-        if (!hasAccountingConnections) {
-            options.push({
-                icon: icons.Trashcan,
-                text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
-                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                shouldSkipFocusRestore: true,
-                onSelected: async () => {
-                    const {action} = await showConfirmModal({
-                        title: translate('workspace.taxes.actions.delete'),
-                        prompt:
-                            selectedTaxesIDs.length > 1
-                                ? translate('workspace.taxes.deleteMultipleTaxConfirmation', selectedTaxesIDs.length)
-                                : translate('workspace.taxes.deleteTaxConfirmation'),
-                        confirmText: translate('common.delete'),
-                        cancelText: translate('common.cancel'),
-                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
-                    });
-                    if (action === ModalActions.CONFIRM) {
-                        deleteTaxes();
-                    }
-                },
-            });
+    const toggleTaxes = (isEnabled: boolean) => {
+        if (!policy?.id) {
+            return;
         }
+        setPolicyTaxesEnabled(policy, selectedTaxesIDs, isEnabled);
+        setSelectedTaxesIDs([]);
+    };
 
-        // `Disable rates` when at least one enabled rate is selected.
-        if (selectedTaxesIDs.some((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled)) {
-            options.push({
-                icon: icons.Close,
-                text: translate('workspace.taxes.actions.disableTaxRates', {count: enabledRatesCount}),
-                value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
-                onSelected: () => toggleTaxes(false),
-            });
-        }
+    const isMultiple = selectedTaxesIDs.length > 1;
+    const options: Array<DropdownOption<WorkspaceTaxRatesBulkActionType>> = [];
+    if (!hasAccountingConnections) {
+        options.push({
+            icon: icons.Trashcan,
+            text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
+            value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+            shouldSkipFocusRestore: true,
+            onSelected: async () => {
+                const {action} = await showConfirmModal({
+                    title: translate('workspace.taxes.actions.delete'),
+                    prompt:
+                        selectedTaxesIDs.length > 1
+                            ? translate('workspace.taxes.deleteMultipleTaxConfirmation', selectedTaxesIDs.length)
+                            : translate('workspace.taxes.deleteTaxConfirmation'),
+                    confirmText: translate('common.delete'),
+                    cancelText: translate('common.cancel'),
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                });
+                if (action === ModalActions.CONFIRM) {
+                    deleteTaxes();
+                }
+            },
+        });
+    }
 
-        // `Enable rates` when at least one disabled rate is selected.
-        if (selectedTaxesIDs.some((taxID) => policy?.taxRates?.taxes[taxID]?.isDisabled)) {
-            options.push({
-                icon: icons.Checkmark,
-                text: translate('workspace.taxes.actions.enableTaxRates', {count: disabledRatesCount}),
-                value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
-                onSelected: () => toggleTaxes(true),
-            });
-        }
-        return options;
-    }, [
-        hasAccountingConnections,
-        icons.Checkmark,
-        icons.Close,
-        icons.Trashcan,
-        policy?.taxRates?.taxes,
-        selectedTaxesIDs,
-        toggleTaxes,
-        translate,
-        enabledRatesCount,
-        disabledRatesCount,
-        showConfirmModal,
-        deleteTaxes,
-    ]);
+    // `Disable rates` when at least one enabled rate is selected.
+    if (selectedTaxesIDs.some((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled)) {
+        options.push({
+            icon: icons.Close,
+            text: translate('workspace.taxes.actions.disableTaxRates', {
+                count: enabledRatesCount,
+            }),
+            value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+            onSelected: () => toggleTaxes(false),
+        });
+    }
+
+    // `Enable rates` when at least one disabled rate is selected.
+    if (selectedTaxesIDs.some((taxID) => policy?.taxRates?.taxes[taxID]?.isDisabled)) {
+        options.push({
+            icon: icons.Checkmark,
+            text: translate('workspace.taxes.actions.enableTaxRates', {
+                count: disabledRatesCount,
+            }),
+            value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+            onSelected: () => toggleTaxes(true),
+        });
+    }
+    const dropdownMenuOptions = options;
 
     const shouldShowBulkActionsButton = canWriteTaxes && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : selectedTaxesIDs.length > 0);
 
-    const secondaryActions = useMemo(
-        () => [
-            {
-                icon: icons.Gear,
-                text: translate('common.settings'),
-                onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID)),
-                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-            },
-        ],
-        [icons.Gear, policyID, translate],
-    );
+    const secondaryActions = [
+        {
+            icon: icons.Gear,
+            text: translate('common.settings'),
+            onSelected: () => Navigation.navigate(ROUTES.WORKSPACE_TAXES_SETTINGS.getRoute(policyID)),
+            value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
+        },
+    ];
 
     const getHeaderButtons = () => {
         if (!canWriteTaxes) {

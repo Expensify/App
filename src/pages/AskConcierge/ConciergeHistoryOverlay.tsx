@@ -5,7 +5,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import {useConciergeSessionActions} from '@pages/inbox/ConciergeSessionContext';
+import {useConciergeChatHistoryActions} from '@pages/inbox/ConciergeChatHistoryContext';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,7 +29,7 @@ function ConciergeHistoryOverlay() {
     const isOpen = useIsConciergeHistoryOpen();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const threads = useConciergeThreads(conciergeReportID);
-    const {resetSession} = useConciergeSessionActions();
+    const {collapseHistory} = useConciergeChatHistoryActions();
 
     if (!isOpen) {
         return null;
@@ -44,8 +44,8 @@ function ConciergeHistoryOverlay() {
                 threads={threads}
                 onBackButtonPress={closeConciergeHistory}
                 onAskNewQuestion={() => {
-                    // A new question starts a new session, so the chat behind the list opens on its empty state.
-                    resetSession();
+                    // Collapsing the earlier conversation opens the chat behind the list on its welcome screen.
+                    collapseHistory();
                     closeConciergeHistory();
                 }}
                 onSelectThread={(reportID) => {

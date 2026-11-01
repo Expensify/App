@@ -9,6 +9,15 @@ import {fileURLToPath} from 'url';
 
 import type Environment from './types.ts';
 
+// The Worker is a separately installed package that the App does not depend on, so it can only be reached by path.
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+// eslint-disable-next-line import/no-relative-packages
+import {API_PROXY_PATHS, API_PROXY_PORT} from '../../web/cloudflare-worker/src/developmentAPIProxy.ts';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+// eslint-disable-next-line import/no-relative-packages
+import NONCE_PLACEHOLDER from '../../web/cloudflare-worker/src/noncePlaceholder.ts';
+// @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
+import getDevServerSettings from './getDevServerSettings.ts';
 // @ts-expect-error -- Can't use .ts extensions without allowImportingTsExtensions in tsconfig
 import getCommonConfiguration from './rsbuild.common.ts';
 
@@ -48,10 +57,9 @@ export default defineConfig(async ({command}) => {
         };
     }
 
-    const port = await portfinder.getPortPromise({port: BASE_PORT});
+    const {isWorkerEnabled, publicPort, port, strictPort, open} = await getDevServerSettings(process.env, () => portfinder.getPortPromise({port: BASE_PORT}));
     // Check if the USE_WEB_PROXY variable has been provided and rewrite any requests to the local proxy server
-    const webProxyPort = process.env.WEB_PROXY_PORT ?? '9000';
-    const proxy = process.env.USE_WEB_PROXY === 'false' ? undefined : [{pathFilter: ['/api', '/staging', '/chat-attachments', '/receipts'], target: `http://[::1]:${webProxyPort}`}];
+    const proxy = process.env.USE_WEB_PROXY === 'false' ? undefined : [{pathFilter: API_PROXY_PATHS, target: `http://[::1]:${API_PROXY_PORT}`}];
 
     const commonRspackTool = common.tools?.rspack;
 
@@ -59,29 +67,31 @@ export default defineConfig(async ({command}) => {
         ...common,
         dev: {
             client: {overlay: false},
+            assetPrefix: '/',
             lazyCompilation: false,
         },
+        security: isWorkerEnabled ? {nonce: NONCE_PLACEHOLDER} : common.security,
         source: {
             ...common.source,
             define: {
                 ...common.source?.define,
-                // The dev server's resolved port can differ from BASE_PORT if 8082 is already in use.
-                // CONFIG.DEV_PORT (src/CONFIG.ts) reads this at runtime to build correct dev environment URLs.
+                // CONFIG.DEV_PORT builds browser-facing links, so it must not use the private Rsbuild port.
                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                'process.env.PORT': port,
+                'process.env.PORT': publicPort,
             },
         },
         server: {
             proxy,
             port,
-            host: 'dev.new.expensify.com',
-            // Rsbuild's --open flag defaults to the first entry's route, e.g. "/main" for our "main" entry key,
-            // which 404s since the app has no route by that name. Open the actual app root instead.
-            open: '/',
-            https: {
-                key: fs.readFileSync(path.join(dirname, 'key.pem')),
-                cert: fs.readFileSync(path.join(dirname, 'certificate.pem')),
-            },
+            strictPort,
+            host: isWorkerEnabled ? '127.0.0.1' : 'dev.new.expensify.com',
+            open,
+            https: isWorkerEnabled
+                ? undefined
+                : {
+                      key: fs.readFileSync(path.join(dirname, 'key.pem')),
+                      cert: fs.readFileSync(path.join(dirname, 'certificate.pem')),
+                  },
             headers: {
                 // HTTP header names aren't valid camelCase identifiers.
                 // eslint-disable-next-line @typescript-eslint/naming-convention

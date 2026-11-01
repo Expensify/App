@@ -64,9 +64,6 @@ type AncestorReportActionItemProps = {
 
     /** The message a thread hangs off needs no "Thread" line above it: it is the thread's own first message */
     shouldHideThreadDivider?: boolean;
-
-    /** Whether the report being viewed allows the Concierge feedback prompt on the message it hangs off */
-    shouldAllowConciergeFeedback: boolean;
     shouldUseThreadDividerLine: boolean;
     transactionThreadReport: OnyxEntry<Report>;
 
@@ -89,7 +86,6 @@ function AncestorReportActionItem({
     linkedTransactionRouteError,
     parentReportAction,
     shouldHideThreadDivider = false,
-    shouldAllowConciergeFeedback,
     shouldUseThreadDividerLine,
     transactionThreadReport,
     reportsParentHierarchy,
@@ -109,7 +105,9 @@ function AncestorReportActionItem({
     // An agent account can be opened through Copilot, and the agent must not rate its own replies
     const canAuthorCollectFeedback = authorAccountID === CONST.ACCOUNT_ID.CONCIERGE || (isAuthorCustomAgent && authorAccountID !== currentUserAccountID);
 
-    // The message shown above a thread belongs to the parent report, so its own actions decide whether it is the author's newest answer
+    // The message shown above a thread belongs to the parent report, so its own actions decide whether it is the author's newest answer.
+    // The thread's feedback marker is deliberately left out of that decision: the marker outlives the reaction, so consulting it would keep the prompt
+    // away here after the user takes their thumbs down back, while the same message offers it again in the chat.
     const [latestConciergeFeedbackActionID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.reportID)}`, {
         selector: getLatestFeedbackActionIDByAuthorSelector(canAuthorCollectFeedback ? authorAccountID : undefined),
     });
@@ -160,7 +158,7 @@ function AncestorReportActionItem({
             shouldDisableOpacity={!!reportAction?.pendingAction}
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
-            errorRowStyles={[styles.ml10, styles.mr2]}
+            errorRowStyles={styles.ml10}
             onClose={deleteAncestorReportAndNavigateToConcierge}
         >
             {shouldDisplayThreadDivider && (
@@ -181,7 +179,7 @@ function AncestorReportActionItem({
                 isFirstVisibleReportAction={isFirstVisibleReportAction}
                 shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                 isThreadReportParentAction
-                isLatestConciergeFeedbackAction={shouldAllowConciergeFeedback && !!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
+                isLatestConciergeFeedbackAction={!!latestConciergeFeedbackActionID && latestConciergeFeedbackActionID === reportAction.reportActionID}
                 linkedTransactionRouteError={linkedTransactionRouteError}
                 reportsParentHierarchy={reportsParentHierarchy}
             />

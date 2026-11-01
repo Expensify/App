@@ -134,12 +134,12 @@ export default {
     floatingTabBarGlyphBottomInset: 1,
     /** Glyph size in the iOS native tab bar. */
     iconNativeTabBarIOS: 22,
-    /** Account avatar size in the iOS native tab bar. */
-    avatarNativeTabBarIOS: 26,
+    /** Icon box size that preserves glyph and label spacing in the iOS native tab bar. */
+    nativeTabIconBoxIOS: 26,
     /** Glyph size in the iOS native tab bar in landscape, where UIKit lays the label beside a smaller icon. */
     iconNativeTabBarIOSLandscape: 18,
-    /** Account avatar size in the iOS native tab bar in landscape. */
-    avatarNativeTabBarIOSLandscape: 21,
+    /** Icon box size in the iOS native tab bar in landscape. */
+    nativeTabIconBoxIOSLandscape: 21,
     /** Radius of the status dot drawn into a native tab bar icon. */
     nativeTabIconDotRadius: 4,
     /** Width of the ring cut out of a native tab bar icon around its status dot, as the JS tab bar's dot border does. */
@@ -465,6 +465,7 @@ export default {
     rulesNewMenuItemMinHeight: 84,
     agentRulePromptInputHeight: 340,
     describeRulePromptInputHeight: 312,
+    describeNewRulePromptInputHeight: 96,
     cardPreviewWidth: 235,
     cardDetailsActionButtonMinWidth: 140,
     cardScarfOverlayWidth: 264,
@@ -525,8 +526,6 @@ export default {
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
 
-    minimalTopBarOffset: -120,
-    minimalTopBarWithFiltersOffset: -164,
     searchHeaderDefaultOffset: 0,
     searchListContentMarginTop: 120,
     searchListContentWithFiltersMarginTop: 164,
@@ -663,4 +662,5 @@ export default {
     editableCellEditButtonWidth: 28 + 4,
     // How short a value has to be before that edit button is worth reserving room for.
     narrowEditableContentWidth: 60,
+    pieChartLegendMargin: 32,
 } as const;

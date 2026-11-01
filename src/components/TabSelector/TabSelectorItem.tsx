@@ -6,6 +6,8 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getGroupItemAccessibilityLabel from '@libs/Accessibility/getGroupItemAccessibilityLabel';
+
 import CONST from '@src/CONST';
 
 import React, {useState} from 'react';
@@ -58,6 +60,8 @@ function TabSelectorItem({
     pendingAction,
     badgeEducationalTooltipProps,
     tabButtonStyles,
+    role = CONST.ROLE.TAB,
+    groupAccessibilityLabel,
 }: TabSelectorItemProps) {
     const {isOffline} = useNetwork();
 
@@ -66,7 +70,7 @@ function TabSelectorItem({
 
     const {onTabLayout, scrollToTab} = useTabSelectorActions();
 
-    const accessibilityState = {selected: isActive};
+    const accessibilityState = role === CONST.ROLE.RADIO ? {checked: isActive} : {selected: isActive};
 
     const isOfflineWithPendingAction = !!isOffline && !!pendingAction;
     const shouldTextHaveStrikeThrough = isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
@@ -78,9 +82,9 @@ function TabSelectorItem({
     const children = (
         <AnimatedPressableWithSecondaryInteraction
             ref={tabRef}
-            accessibilityLabel={title}
+            accessibilityLabel={getGroupItemAccessibilityLabel(title, groupAccessibilityLabel)}
             accessibilityState={accessibilityState}
-            accessibilityRole={CONST.ROLE.TAB}
+            accessibilityRole={role}
             style={[
                 styles.tabSelectorButton,
                 styles.tabBackground(isHovered, isActive, isDisabled, backgroundColor),
@@ -97,7 +101,7 @@ function TabSelectorItem({
             onWrapperLayout={(event) => onTabLayout(tabKey, event)}
             onHoverIn={() => setIsHovered(true)}
             onHoverOut={() => setIsHovered(false)}
-            role={CONST.ROLE.TAB}
+            role={role}
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             testID={testID}
             sentryLabel={sentryLabel}

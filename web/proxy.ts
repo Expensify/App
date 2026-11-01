@@ -5,6 +5,9 @@ import http from 'http';
 import https from 'https';
 
 import proxyConfig from '../config/proxyConfig';
+// The Worker is a separately installed package that the App does not depend on, so it can only be reached by path.
+// eslint-disable-next-line import/no-relative-packages
+import {API_PROXY_PORT} from './cloudflare-worker/src/developmentAPIProxy';
 
 dotenv.config();
 
@@ -87,10 +90,7 @@ const server = http.createServer((request: IncomingMessage, response: ServerResp
     });
 });
 
-// WEB_PROXY_PORT frees the default when another local service already holds it.
-const port = Number(process.env.WEB_PROXY_PORT ?? 9000);
-
-server.listen(port, () => {
+server.listen(API_PROXY_PORT, () => {
     /* eslint-disable-next-line no-console */
-    console.log(`Proxy server listening at http://localhost:${port}`);
+    console.log(`Proxy server listening at http://localhost:${API_PROXY_PORT}`);
 });

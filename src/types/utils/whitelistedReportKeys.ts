@@ -35,6 +35,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         created: unknown;
         submitted: unknown;
         approved: unknown;
+        paid: unknown;
         submitterUserID: unknown;
         submitterPayrollID: unknown;
         orderDealNumbers: unknown;
@@ -42,6 +43,7 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
         debitedCurrency: unknown;
         creditedAmount: unknown;
         creditedCurrency: unknown;
+        withdrawalIDs: unknown;
         visibility: unknown;
         invoiceReceiver: unknown;
         billSenderAccountID: unknown;
@@ -94,6 +96,10 @@ type WhitelistedReport = OnyxCommon.OnyxValueWithOfflineFeedback<
             eta: {
                 etaKey: unknown;
                 dateTime: unknown;
+                autoReportingFrequency: unknown;
+                autoReportingOffset: unknown;
+                autoReportingOffsetSecondSemiMonthly: unknown;
+                timeZone: unknown;
             };
         };
         transactionCount: unknown;

@@ -9,7 +9,6 @@ import {PressableWithFeedback} from '@components/Pressable';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,11 +51,10 @@ type NavigationTabBarProps = {
 };
 
 function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, shouldShowTopShadow = false}: NavigationTabBarProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const {isBetaEnabled} = usePermissions();
-    const isInsightsTabVisible = isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Receipt', 'Document']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -79,7 +77,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, should
         }
         interceptAnonymousUser(() => {
             Navigation.navigate(ROUTES.SETTINGS);
-        });
+        }, session);
     };
 
     // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
@@ -136,12 +134,10 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, should
                                     selectedTab={selectedTab}
                                     isWideLayout
                                 />
-                                {isInsightsTabVisible && (
-                                    <InsightsTabButton
-                                        selectedTab={selectedTab}
-                                        isWideLayout
-                                    />
-                                )}
+                                <InsightsTabButton
+                                    selectedTab={selectedTab}
+                                    isWideLayout
+                                />
                                 <WorkspacesTabButton
                                     selectedTab={selectedTab}
                                     isWideLayout

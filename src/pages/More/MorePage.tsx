@@ -12,7 +12,6 @@ import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
 import useTheme from '@hooks/useTheme';
@@ -60,7 +59,6 @@ function MorePage() {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['Connect', 'Bookmark', 'PieChart', 'Buildings', 'Coins', 'InvoiceGeneric', 'LuggageWithLines']);
     const illustrations = useMemoizedLazyIllustrations(['Accounting', 'MagnifyingGlassReceipt', 'Chart', 'Building', 'Coins', 'InvoiceBlue', 'Luggage']);
 
@@ -168,22 +166,20 @@ function MorePage() {
         });
     }
 
-    if (isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
-        menuItems.push({
-            key: 'insights',
-            ...cardProps,
-            title: translate('common.insights'),
-            description: shouldUseNarrowLayout ? translate('morePage.insightsDescription') : undefined,
-            icon: shouldUseNarrowLayout ? illustrations.Chart : icons.PieChart,
-            onPress: () => {
-                setLastVisitedMoreDestination(MORE_DESTINATIONS.INSIGHTS);
-                clearSelectedText();
-                interceptAnonymousUser(() => {
-                    Navigation.navigate(ROUTES.INSIGHTS.getRoute(getLastVisitedInsightsDashboard() ?? CONST.INSIGHTS.DASHBOARD.SPEND));
-                });
-            },
-        });
-    }
+    menuItems.push({
+        key: 'insights',
+        ...cardProps,
+        title: translate('common.insights'),
+        description: shouldUseNarrowLayout ? translate('morePage.insightsDescription') : undefined,
+        icon: shouldUseNarrowLayout ? illustrations.Chart : icons.PieChart,
+        onPress: () => {
+            setLastVisitedMoreDestination(MORE_DESTINATIONS.INSIGHTS);
+            clearSelectedText();
+            interceptAnonymousUser(() => {
+                Navigation.navigate(ROUTES.INSIGHTS.getRoute(getLastVisitedInsightsDashboard() ?? CONST.INSIGHTS.DASHBOARD.SPEND));
+            });
+        },
+    });
 
     return (
         <ScreenWrapper

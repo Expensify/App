@@ -100,6 +100,7 @@ type ConciergePromptBoxProps = {
 };
 
 function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading, isEmptyStateShowing}: ConciergePromptBoxProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -202,7 +203,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading, isE
         interceptAnonymousUser(() => {
             askConciergeWithAttachment(attachments, value);
             clearInput();
-        });
+        }, session);
     };
     const {pickAttachments, PDFValidationComponent} = useConciergeAttachmentPicker(conciergeTargetReportID, sendAttachment);
 
@@ -246,7 +247,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading, isE
         interceptAnonymousUser(() => {
             askConcierge(value);
             clearInput();
-        });
+        }, session);
     };
 
     const handleKeyPress = (event: TextInputKeyPressEvent) => {
@@ -360,7 +361,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading, isE
                                                         onPress={(e) => {
                                                             e?.preventDefault();
                                                             actionButtonRef.current?.blur();
-                                                            interceptAnonymousUser(() => setIsMenuVisible((prev) => !prev));
+                                                            interceptAnonymousUser(() => setIsMenuVisible((prev) => !prev), session);
                                                         }}
                                                         style={({hovered, pressed}) => [
                                                             styles.composerSizeButton,
@@ -444,7 +445,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible, isCopyLoading, isE
                                     // Blur before the attachment preview modal takes over, so the keyboard doesn't stay up over it.
                                     composerRef.current?.blur();
                                     pickAttachments(files);
-                                });
+                                }, session);
                             }}
                             maxLines={MAX_INPUT_LINES}
                             multiline

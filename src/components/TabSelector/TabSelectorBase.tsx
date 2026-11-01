@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import type {TabSelectorBaseProps} from './types';
 
@@ -36,13 +36,15 @@ function TabSelectorBase<K extends string = string>({
     contentContainerStyles,
     tabButtonStyles,
     shouldShowScrollFade = false,
+    itemRole,
+    itemGroupAccessibilityLabel,
 }: TabSelectorBaseProps<K>) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
     const routesLength = tabs.length;
 
-    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: routesLength}, (_v, i) => i), [routesLength]);
+    const defaultAffectedAnimatedTabs = Array.from({length: routesLength}, (_v, i) => i);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
 
     const {containerRef} = useTabSelectorState();
@@ -162,6 +164,8 @@ function TabSelectorBase<K extends string = string>({
                             equalWidth={equalWidth}
                             tabButtonStyles={tabButtonStyles}
                             shouldHugContent={shouldHugContent}
+                            role={itemRole}
+                            groupAccessibilityLabel={itemGroupAccessibilityLabel}
                             badgeText={tab.badgeText}
                             isBadgeCondensed={tab.isBadgeCondensed}
                             badgeStyles={tab.badgeStyles}

@@ -16,6 +16,8 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isMoneyRequestReport} from '@libs/ReportUtils';
 
+import ConciergeHistoryOverlay from '@pages/AskConcierge/ConciergeHistoryOverlay';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -26,7 +28,6 @@ import {PortalHost} from '@gorhom/portal';
 import React from 'react';
 import {View} from 'react-native';
 
-import ConciergeHistoryOverlay from '@pages/AskConcierge/ConciergeHistoryOverlay';
 import type ReportScreenNavigationProps from './types';
 
 import {ActionListContextProvider} from './ActionListContext';
@@ -77,8 +78,8 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
 function ReportScreen({route, navigation, shouldDeferReportActions = false}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const {shouldShowWelcome: shouldShowConciergeWelcome} = useConciergeAskState(reportIDFromRoute);
-    const {isInNarrowPaneModal, shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldCenterWelcomeWithComposer} = useConciergeAskState(reportIDFromRoute);
+    const {isInNarrowPaneModal} = useResponsiveLayout();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const viewportOffsetTop = useViewportOffsetTop();
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
@@ -154,7 +155,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                                         <View
                                                             style={[
                                                                 styles.flex1,
-                                                                shouldShowConciergeWelcome && !shouldUseNarrowLayout ? styles.justifyContentCenter : styles.justifyContentEnd,
+                                                                shouldCenterWelcomeWithComposer ? styles.justifyContentCenter : styles.justifyContentEnd,
                                                                 styles.overflowHidden,
                                                             ]}
                                                             testID="report-actions-view-wrapper"

@@ -48,6 +48,7 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     findSelfDMReportID,
     generateReportID,
+    getChatReportFromMoneyRequestReport,
     getDefaultNotificationPreferenceForReport,
     getParsedComment,
     getReportOrDraftReport,
@@ -736,8 +737,15 @@ function getDeleteTrackExpenseInformation({
     if (chatReport) {
         canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport, isChatReportArchived);
     }
-    const lastVisibleAction = getLastVisibleAction(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction);
-    const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction);
+    const lastVisibleAction = getLastVisibleAction(chatReport?.reportID, canUserPerformWriteAction, updatedReportAction, undefined, undefined, currentUserAccountID);
+    const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(
+        chatReport?.reportID,
+        canUserPerformWriteAction,
+        updatedReportAction,
+        undefined,
+        undefined,
+        currentUserAccountID,
+    );
 
     // STEP 4: Build Onyx data
     const optimisticData: Array<
@@ -1760,7 +1768,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = getChatReportFromMoneyRequestReport(report);
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
     const existingTransactionID = existingTransactionDraft?.transactionID;
@@ -1842,6 +1850,9 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         formatPhoneNumber,
         getCurrencyDecimals,
         rules,
+        // Refactor this call site to pass real report actions instead of undefined in https://github.com/Expensify/App/issues/66522
+        parentChatReportActions: undefined,
+        participantChatReportActions: undefined,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
@@ -2051,6 +2062,7 @@ function convertBulkTrackedExpensesToIOU({
     getCurrencyDecimals,
     rules,
     isVendorMatchingBetaEnabled,
+    chatReportActions,
 }: {
     isVendorMatchingBetaEnabled: boolean | undefined;
     transactions: OnyxTypes.Transaction[];
@@ -2070,6 +2082,7 @@ function convertBulkTrackedExpensesToIOU({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     rules: OnyxCollection<OnyxTypes.Rule>;
+    chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
 }) {
     const iouReportID = iouReport?.reportID;
 
@@ -2193,6 +2206,10 @@ function convertBulkTrackedExpensesToIOU({
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            parentChatReportActions: chatReportActions,
+            // The IOU report is already known here and its report preview action can only live in its own chat report,
+            // so a chat found by participants would never contain it.
+            participantChatReportActions: undefined,
         });
 
         const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
@@ -2353,7 +2370,7 @@ function submitTrackedExpenseToPolicy(trackedExpenseParams: TrackedExpenseParams
             // sending them would tell the backend to treat the moved expense as a 0-mile distance request and wipe the amount.
             customUnitID: isDistanceRequest ? createdWorkspaceParams?.customUnitID : undefined,
             customUnitRateID: isDistanceRequest ? (createdWorkspaceParams?.customUnitRateID ?? transactionParams.customUnitRateID) : undefined,
-            // Reached only for the submit2026 draft flow (gated in useExpenseSubmission and getTrackExpenseInformation), so a
+            // Reached only for the submit2026 draft flow (gated in IOURequestStepConfirmation and getTrackExpenseInformation), so a
             // workspace created here must be a Submit (submit2026) workspace.
             type: createdWorkspaceParams ? CONST.POLICY.TYPE.SUBMIT : undefined,
         },
@@ -2572,7 +2589,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         selectedRouteDistance,
     } = transactionData;
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentChatReport = getChatReportFromMoneyRequestReport(report);
     const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
 
