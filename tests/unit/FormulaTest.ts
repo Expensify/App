@@ -681,6 +681,24 @@ describe('CustomFormula', () => {
             expect(compute('{report:autoreporting:end}', context)).toBe(expectedEnd);
         });
 
+        test.each([
+            {now: '2026-11-01T12:00:00Z', expectedStart: '2026-10-27', expectedEnd: '2026-11-02'},
+            {now: '2026-11-02T12:00:00Z', expectedStart: '2026-10-27', expectedEnd: '2026-11-02'},
+            {now: '2026-11-03T12:00:00Z', expectedStart: '2026-11-03', expectedEnd: '2026-11-09'},
+        ])('should compute weekly dates from a custom submission day on $now', ({now, expectedStart, expectedEnd}) => {
+            // Given a weekly schedule submitted on Monday
+            jest.setSystemTime(new Date(now));
+            const policy = createMock<Policy>({
+                autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY,
+                autoReportingOffset: CONST.POLICY.AUTO_REPORTING_WEEKDAYS.MONDAY,
+            });
+            const context = createMockContext(policy);
+
+            // When computing the period, then it ends on the next Monday and starts the day after the previous one, as the backend does
+            expect(compute('{report:autoreporting:start}', context)).toBe(expectedStart);
+            expect(compute('{report:autoreporting:end}', context)).toBe(expectedEnd);
+        });
+
         test('should compute semi-monthly dates with a submission day past the end of a short month', () => {
             // Given a twice a month schedule on the 10th and 31st during February
             jest.setSystemTime(new Date('2025-02-15T12:00:00Z'));

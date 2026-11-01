@@ -8,7 +8,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addDays, addMonths, endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfDay, startOfMonth, startOfWeek, subDays, subMonths} from 'date-fns';
+import {addDays, addMonths, endOfDay, endOfMonth, getDay, lastDayOfMonth, set, startOfDay, startOfMonth, subDays, subMonths} from 'date-fns';
 
 import {convertToDisplayStringEnLocale, convertToDisplayStringWithoutCurrencyEnLocale, isValidCurrencyCode} from './CurrencyUtils';
 import {getCurrentUserEmail} from './CurrentUserStore';
@@ -874,10 +874,11 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
 
     switch (frequency) {
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY: {
-            // Weekly: use the app's configured week start convention (Monday)
-            const weekStartsOn = CONST.WEEK_STARTS_ON;
-            startDate = startOfWeek(currentDate, {weekStartsOn});
-            endDate = endOfWeek(currentDate, {weekStartsOn});
+            // The offset counts Sunday as 7 while getDay counts it as 0, which the modulo reconciles
+            const {offset: submissionWeekday} = getAutoReportingOffsetsForFrequency(frequency, {offset});
+            const daysUntilSubmission = (Number(submissionWeekday) - getDay(currentDate) + 7) % 7;
+            endDate = endOfDay(addDays(currentDate, daysUntilSubmission));
+            startDate = startOfDay(subDays(endDate, 6));
             break;
         }
 
