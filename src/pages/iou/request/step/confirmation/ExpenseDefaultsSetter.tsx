@@ -1,4 +1,4 @@
-import {isGroupPolicy} from '@libs/PolicyUtils';
+import {getDefaultReimbursableForPolicy} from '@libs/IOUUtils';
 
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@userActions/IOU/MoneyRequest';
 
@@ -36,7 +36,7 @@ function ExpenseDefaultsSetter({transactionIDs, policy, isPolicyExpenseChat, isM
         if (isMovingTransactionFromTrackExpense) {
             return;
         }
-        const defaultReimbursable = (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = getDefaultReimbursableForPolicy({policy, isPolicyExpenseChat: !!isPolicyExpenseChat, isCreatingTrackExpense});
         for (const transactionID of transactionIDs) {
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
         }

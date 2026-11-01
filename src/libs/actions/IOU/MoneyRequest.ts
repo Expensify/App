@@ -9,16 +9,11 @@ import {getGPSRoutes, getGPSWaypoints} from '@libs/GPSDraftDetailsUtils';
 import {getExistingTransactionID} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
+import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {
-    getReportOrDraftReport,
-    isInvoiceRoom,
-    isMoneyRequestReport as isMoneyRequestReportReportUtils,
-    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
-    isSelfDM,
-} from '@libs/ReportUtils';
+import {getChatReportFromMoneyRequestReport, getTransactionDetails, isInvoiceRoom, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
@@ -30,8 +25,11 @@ import {
     getIsFromGlobalCreate,
     isDistanceRequest,
     isExpenseUnreported,
+    isMapDistanceRequest,
     isOdometerDistanceRequest as isOdometerDistanceRequestTransactionUtils,
 } from '@libs/TransactionUtils';
+import {getRouteDistanceMetersMatchingQuantity} from '@libs/TransactionUtils/hasManualMapDistanceOverride';
+import {isInvalidMerchantValue} from '@libs/ValidationUtils';
 
 import type {ReceiptFile} from '@pages/iou/request/step/IOURequestStepScan/types';
 
@@ -600,7 +598,7 @@ function setMoneyRequestParticipants(transactionID: string, participants: Partic
  */
 function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, currentUserAccountID?: number): Participant[] {
     // If the report is iou or expense report, we should get the chat report to set participant for request money
-    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
+    const chatReport = getChatReportFromMoneyRequestReport(report);
     const isSelfDMChat = !isEmptyObject(chatReport) && isSelfDM(chatReport);
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
     let participants: Participant[] = [];
@@ -790,7 +788,12 @@ function setCustomUnitRateID(
 
             // getDistanceInMeters returns 0 only if there was not enough input to get the correct
             // distance in meters or if the current transaction distance is 0
-            if (newQuantityInMeters !== 0) {
+            // Converting the already rounded map quantity drifts by a hundredth from the route converted directly, which
+            // then reads as a typed distance and gets sent, so a quantity that is the route distance is redone from the route.
+            const routeDistanceMeters = isMapDistanceRequest(transaction) ? getRouteDistanceMetersMatchingQuantity(transaction) : undefined;
+            if (routeDistanceMeters) {
+                newQuantity = roundToTwoDecimalPlaces(DistanceRequestUtils.convertDistanceUnit(routeDistanceMeters, distanceRate.unit));
+            } else if (newQuantityInMeters !== 0) {
                 newQuantity = DistanceRequestUtils.convertDistanceUnit(newQuantityInMeters, distanceRate.unit);
             }
         }
@@ -846,6 +849,14 @@ function setCustomUnitID(transactionID: string, customUnitID: string) {
 
 function setMoneyRequestDistance(transactionID: string, distanceAsFloat: number, isDraft: boolean, distanceUnit: Unit) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: distanceAsFloat, distanceUnit}}});
+}
+
+function clearMoneyRequestDistance(transactionID: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {customUnit: {quantity: null}}});
+}
+
+function clearReusedRoute(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {isReusedRoute: null});
 }
 
 function setMoneyRequestCommuterExclusionFields({
@@ -1132,6 +1143,26 @@ function updateDistanceRateOnExpenseDateChange({
     }
 }
 
+/**
+ * Copies the SmartScan results of a tracked expense into the draft created when it is moved (e.g. "Submit it to
+ * someone"). That draft is a one-off copy taken while the receipt was still scanning, so without this the confirmation
+ * page keeps showing "Scanning…" and would submit the pre-scan values. Values the user already entered on the draft are kept.
+ */
+function copyScanResultsToMovedExpenseDraft(draftTransaction: OnyxEntry<Transaction>, sourceTransaction: OnyxEntry<Transaction>) {
+    const transactionID = draftTransaction?.transactionID;
+    if (!transactionID || !sourceTransaction) {
+        return;
+    }
+
+    const {created, amount, currency, merchant} = getTransactionDetails(sourceTransaction) ?? {};
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        ...(!draftTransaction.amount ? {amount, currency} : {}),
+        ...(!draftTransaction.isMerchantSet ? {merchant, isMerchantSet: !isInvalidMerchantValue(merchant)} : {}),
+        ...(!draftTransaction.isCreatedSet ? {created} : {}),
+        receipt: {state: sourceTransaction.receipt?.state},
+    });
+}
+
 function setMoneyRequestReportID(transactionID: string, reportID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         reportID,
@@ -1166,6 +1197,8 @@ export {
     resetDraftTransactionsCustomUnit,
     setCustomUnitID,
     setMoneyRequestDistance,
+    clearMoneyRequestDistance,
+    clearReusedRoute,
     setMoneyRequestCommuterExclusionFields,
     setMoneyRequestDistanceRate,
     setMoneyRequestAmount,
@@ -1185,4 +1218,5 @@ export {
     setMoneyRequestReimbursable,
     setMoneyRequestReportID,
     setLastSelectedDistanceRate,
+    copyScanResultsToMovedExpenseDraft,
 };

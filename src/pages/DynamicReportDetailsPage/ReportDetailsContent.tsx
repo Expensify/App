@@ -1,6 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
@@ -27,6 +28,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
@@ -42,6 +44,7 @@ type ReportDetailsContentProps = {
 };
 
 function ReportDetailsContent({reportID}: ReportDetailsContentProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const {translate} = useLocalize();
@@ -64,8 +67,8 @@ function ReportDetailsContent({reportID}: ReportDetailsContentProps) {
             return;
         }
 
-        getReportPrivateNote(report?.reportID);
-    }, [report?.reportID, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
+        getReportPrivateNote(report?.reportID, session);
+    }, [report?.reportID, session, isOffline, isPrivateNotesFetchTriggered, isSelfDM]);
 
     return (
         <ScreenWrapper testID="DynamicReportDetailsPage">
@@ -84,22 +87,18 @@ function ReportDetailsContent({reportID}: ReportDetailsContentProps) {
 
                     {isFinancialReportsForBusinesses && (
                         <>
-                            <MenuItemWithTopDescription
-                                title={base62ReportID}
-                                description={translate('common.reportID')}
-                                copyValue={base62ReportID}
-                                interactive={false}
-                                shouldBlockSelection
-                                copyable
-                            />
-                            <MenuItemWithTopDescription
-                                title={reportID}
-                                description={translate('common.longReportID')}
-                                copyValue={reportID}
-                                interactive={false}
-                                shouldBlockSelection
-                                copyable
-                            />
+                            <MenuItemField
+                                name={translate('common.reportID')}
+                                value={base62ReportID}
+                            >
+                                <MenuItem.Copy value={base62ReportID} />
+                            </MenuItemField>
+                            <MenuItemField
+                                name={translate('common.longReportID')}
+                                value={reportID}
+                            >
+                                <MenuItem.Copy value={reportID} />
+                            </MenuItemField>
                         </>
                     )}
 

@@ -5,7 +5,7 @@ import CONST from '@src/CONST';
 import type {IOURequestType} from '@src/CONST';
 import type {LastSelectedDistanceRates, OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type DefaultP2PMileageRate from '@src/types/onyx/DefaultP2PMileageRate';
-import type {Unit} from '@src/types/onyx/Policy';
+import type {RateAttributes, Unit} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -33,6 +33,7 @@ type MileageRate = {
     index?: number;
     startDate?: string | null;
     endDate?: string | null;
+    attributes?: RateAttributes;
 };
 
 type CommuterExclusionData = Required<Pick<TransactionCustomUnit, 'commuterExclusion' | 'reimbursableDistance' | 'distanceUnit'>>;
@@ -70,6 +71,7 @@ function getMileageRates(policy: OnyxInputOrEntry<Policy>, includeDisabledRates 
             index: rate.index,
             startDate: rate.startDate,
             endDate: rate.endDate,
+            attributes: rate.attributes,
         };
     }
 
@@ -163,7 +165,6 @@ function getFormattedRateValue(
 
     const singularDistanceUnit = unit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES ? translate('common.mile') : translate('common.kilometer');
     const formattedRate = getUnitRateValue(toLocaleDigit, {rate}, useShortFormUnit);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currencySymbol = getCurrencySymbol(currency) || `${currency} `;
 
     return `${currencySymbol}${formattedRate} / ${useShortFormUnit ? unit : singularDistanceUnit}`;
@@ -1011,6 +1012,67 @@ function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['tran
     return '';
 }
 
+type RateNameFields = Pick<MileageRate, 'name' | 'startDate' | 'endDate' | 'attributes'>;
+
+/** Matches a trailing ` - M/D/YY - M/D/YY` or ` - From M/D/YY` suffix that the backend appends to keep dated rate names unique */
+const RATE_NAME_DATE_SUFFIX_REGEX = / - (?:\d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})? - \d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})?|From \d{1,2}\/\d{1,2}\/\d{2}(?:\d{2})?)$/;
+
+/**
+ * Returns the trailing date suffix that getRateDisplayName hides, or an empty string when nothing is hidden.
+ * Only rates copied from the government rate table get the suffix from the backend, so a custom rate that was named with a date on purpose keeps it.
+ */
+function getRateNameDateSuffix(rate: RateNameFields): string {
+    if (!rate.name || !rate.attributes?.governmentRate) {
+        return '';
+    }
+
+    const suffix = RATE_NAME_DATE_SUFFIX_REGEX.exec(rate.name)?.at(0) ?? '';
+
+    // Keep the full name when stripping would leave nothing
+    return suffix === rate.name ? '' : suffix;
+}
+
+/**
+ * Returns the rate name without its trailing date suffix, since the date range is already shown next to it.
+ * Editors prefill this name and save it through getRateNameWithDateSuffix, so the raw name keeps its suffix.
+ */
+function getRateDisplayName(rate: RateNameFields): string | undefined {
+    const suffix = getRateNameDateSuffix(rate);
+    return suffix ? rate.name?.slice(0, -suffix.length) : rate.name;
+}
+
+/**
+ * Re-appends the date suffix hidden by getRateDisplayName to a name edited from the display name, so Onyx and the API keep the full raw name.
+ * Pass a sanitized name. An empty name stays empty so it still fails the required-name check.
+ */
+function getRateNameWithDateSuffix(rate: RateNameFields, editedDisplayName: string): string {
+    if (!editedDisplayName) {
+        return editedDisplayName;
+    }
+
+    return `${editedDisplayName}${getRateNameDateSuffix(rate)}`;
+}
+
+/**
+ * Sorts rates by display name. Rates that share a display name are ordered newest start date first, so the
+ * current band sits above its ended bands and a rate without a start date sorts last. The raw name keeps the order stable.
+ * displayNameOrderMultiplier only flips the display name order, so the tie-break stays the same in both directions.
+ */
+function compareRatesByDisplayName(a: RateNameFields, b: RateNameFields, localeCompare: LocaleContextProps['localeCompare'], displayNameOrderMultiplier = 1): number {
+    const displayNameDiff = localeCompare(getRateDisplayName(a) ?? '', getRateDisplayName(b) ?? '');
+    if (displayNameDiff !== 0) {
+        return displayNameDiff * displayNameOrderMultiplier;
+    }
+
+    const aStart = a.startDate ?? '';
+    const bStart = b.startDate ?? '';
+    if (aStart !== bStart) {
+        return aStart < bStart ? 1 : -1;
+    }
+
+    return localeCompare(a.name ?? '', b.name ?? '');
+}
+
 export default {
     getDefaultMileageRate,
     getDistanceMerchant,
@@ -1050,6 +1112,9 @@ export default {
     getBestEligibleRate,
     getRateForPolicyChange,
     getRateDateLabel,
+    getRateDisplayName,
+    getRateNameWithDateSuffix,
+    compareRatesByDisplayName,
 };
 
 export type {MileageRate, CommuterExclusionData};

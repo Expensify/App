@@ -1,7 +1,7 @@
 import renderDynamicField from '@components/DynamicForm/renderDynamicField';
 import type {DynamicFieldContext} from '@components/DynamicForm/renderers/types';
 import formatDynamicFieldValue from '@components/DynamicForm/utils/formatDynamicFieldValue';
-import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
+import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import {getListItems} from '@components/DynamicForm/utils/listItems';
 import summarizeListItem, {getListItemFallbackTitle} from '@components/DynamicForm/utils/summarizeListItem';
@@ -57,7 +57,7 @@ function DynamicFormFieldRow({
         const readonlyValue =
             field.type === 'list'
                 ? getListItems(values[field.key])
-                      .map((item) => summarizeListItem(item, field.itemFields, translate, getListItemFallbackTitle(field, translate)).title)
+                      .map((item, index) => summarizeListItem(item, field.itemFields, translate, getListItemFallbackTitle(field, index, translate)).title)
                       .join(', ')
                 : formatDynamicFieldValue(field, values, translate);
         return (
@@ -106,8 +106,9 @@ function DynamicFormFieldRow({
                 <Text
                     style={[labelAbove === 'prompt' ? styles.mt3 : [styles.textStrong, styles.mb3], isMenuRow && styles.ph5]}
                     role={labelAbove === 'heading' ? CONST.ROLE.HEADING : undefined}
+                    aria-level={labelAbove === 'heading' ? 3 : undefined}
                 >
-                    {label}
+                    {getInputLabel(field, translate)}
                 </Text>
             )}
             {!!description && <Text style={[styles.textSupporting, styles.mb3, isMenuRow && styles.ph5]}>{description}</Text>}

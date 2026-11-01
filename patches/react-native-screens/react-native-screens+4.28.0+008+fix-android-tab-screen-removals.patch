@@ -1,0 +1,36 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt
+index 05a6d07..3df9215 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHost.kt
+@@ -118,6 +118,11 @@ class TabsHost(
+         container.removeAllTabsScreens()
+     }
+ 
++    internal val reactSubviewCount: Int
++        get() = renderedScreens.size
++
++    internal fun getReactSubviewAt(index: Int): TabsScreen? = renderedScreens.getOrNull(index)
++
+     internal fun updateJSNavigationStateUpdateRequest(navStateRequest: TabsNavigationStateUpdateRequest) {
+         jsNavStateRequest = navStateRequest
+         container.setPendingNavigationStateUpdate(navStateRequest.copy())
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt
+index c640543..7342e3c 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/host/TabsHostViewManager.kt
+@@ -58,6 +58,15 @@ class TabsHostViewManager :
+         parent.unmountAllReactSubviews()
+     }
+ 
++    // Tab screens live in fragments inside the container, not as raw children of TabsHost. Fabric checks
++    // every removal through getChildAt, so without these overrides it skips the removal.
++    override fun getChildCount(parent: TabsHost): Int = parent.reactSubviewCount
++
++    override fun getChildAt(
++        parent: TabsHost,
++        index: Int,
++    ): View? = parent.getReactSubviewAt(index)
++
+     override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> =
+         mutableMapOf(
+             makeEventRegistrationInfo(TabsHostTabSelectedEvent),
