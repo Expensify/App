@@ -382,7 +382,7 @@ function DatePicker({
             return;
         }
 
-        segmentInput.focusFirstUnfilledSegment();
+        segmentInput.restoreFocus();
     };
 
     const enterField = () => {

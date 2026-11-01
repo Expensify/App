@@ -92,6 +92,9 @@ type UseDateSegmentInputResult = {
     /** Selects the whole date, which is what a triple click on the field asks for */
     selectAllSegments: () => void;
 
+    /** Hands focus back to the segment a modal took it from, rather than to wherever the date now stops short */
+    restoreFocus: () => void;
+
     /** Whether focus is going to another segment, which is moving within the field rather than leaving it */
     isSegmentElement: (target: unknown) => boolean;
 
@@ -151,6 +154,8 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
     const hasJustSelectedByClick = useRef(false);
     // Set as a finished segment hands the caret on, so the separator that usually follows knows it has already happened
     const isCaretHandedOverRef = useRef(false);
+    // Outlives the blur a modal causes, so focus can be given back to the segment the user actually left
+    const lastFocusedSegmentRef = useRef<DateSegmentName | undefined>(undefined);
     // Every keystroke is prevented, so each segment's input has an empty undo history of its own and the field keeps
     // one covering all three. `pastSegments` is what undo walks back through and `undoneSegments` is what redo returns.
     const pastSegments = useRef<DateSegments[]>([]);
@@ -532,6 +537,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
             focusFirstUnfilledSegment: () => {},
             selectLastSegment: () => {},
             selectAllSegments: () => {},
+            restoreFocus: () => {},
             isSegmentElement: () => false,
             viewDate: undefined,
             viewDateVersion: 0,
@@ -560,6 +566,15 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
 
         setIsAllSelected(false);
         focusSegment(getFirstUnfilledSegmentName(displayedSegments) ?? LAST_SEGMENT_NAME);
+    };
+
+    /**
+     * A month or year pick revises the date rather than asking for a new one, so the caret belongs where the user left
+     * it. Where the date now stops short is no answer, since a pick that completes it leaves it stopping short nowhere.
+     */
+    const restoreFocus = () => {
+        setIsAllSelected(false);
+        focusSegment(lastFocusedSegmentRef.current ?? getFirstUnfilledSegmentName(displayedSegments) ?? FIRST_SEGMENT_NAME);
     };
 
     /**
@@ -601,6 +616,7 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
         focusFirstUnfilledSegment,
         selectLastSegment,
         selectAllSegments,
+        restoreFocus,
         isSegmentElement,
         viewDate: isEditing ? viewDate : undefined,
         viewDateVersion,
@@ -613,7 +629,10 @@ function useDateSegmentInput({value, isEnabled, minDate, maxDate, onCommit, onLe
             value: getSegmentDisplay(displayedSegments, name),
             onKeyPress: (event: TextInputKeyPressEvent) => applyKeyToSegments(name, event),
             onChangeText: (text: string) => applyPastedOrCutText(name, text),
-            onFocus: startEditing,
+            onFocus: () => {
+                lastFocusedSegmentRef.current = name;
+                startEditing();
+            },
             onPointerDown: () => setIsAllSelected(false),
         }),
         onFieldBlur: settleEntry,
