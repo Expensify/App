@@ -369,6 +369,10 @@ function DatePicker({
         }
 
         commitDate(newDate);
+
+        // A month or year pick can land on the date the field already holds, and a segment the user has taken a digit
+        // out of reports no date at all, so the committed value never changes and nothing else tells the segments.
+        segmentInput.onDateSelected(newDate);
     };
 
     // The pickers are modals of their own, so they take focus with them, and their focus trap holds on to it until

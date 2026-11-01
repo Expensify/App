@@ -14,10 +14,24 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
+import type {PropsWithChildren} from 'react';
 
 import React from 'react';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
+
+type MockYearPickerModalProps = {
+    isVisible: boolean;
+    minYear: number;
+    maxYear: number;
+    onYearChange?: (year: number) => void;
+};
+
+type MockReactNativePrimitives = {
+    Pressable: React.ComponentType<Record<string, unknown>>;
+    Text: React.ComponentType<Record<string, unknown>>;
+    View: React.ComponentType<Record<string, unknown>>;
+};
 
 // Typing is only offered where the calendar can sit beside the field, so a touch screen turns the whole feature off
 jest.mock('@libs/DeviceCapabilities', () => ({
@@ -37,6 +51,40 @@ jest.mock('@react-navigation/native', () => ({
 
 // The window's own width is what decides whether there is room to show a calendar beside the field
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
+
+// The calendar is measured against a layout jest never performs, so it is rendered in place of its popover
+jest.mock('@components/PopoverWithMeasuredContent', () => jest.fn(({isVisible, children}: PropsWithChildren<{isVisible: boolean}>) => (isVisible ? children : null)));
+
+// The year list is a modal of its own, so it stands in as one row per year the calendar is willing to offer
+jest.mock('@components/DatePicker/CalendarPicker/YearPickerModal', () => {
+    const ReactNativeActual = jest.requireActual<MockReactNativePrimitives>('react-native');
+    const {Pressable, Text, View} = ReactNativeActual;
+
+    function MockYearPickerModal({isVisible, minYear, maxYear, onYearChange}: MockYearPickerModalProps) {
+        if (!isVisible) {
+            return null;
+        }
+
+        const years = Array.from({length: maxYear - minYear + 1}, (value, index) => minYear + index);
+
+        return (
+            <View testID="YearPickerModal">
+                {years.map((year) => (
+                    <Pressable
+                        key={year}
+                        testID={`year-option-${year}`}
+                        role="button"
+                        onPress={() => onYearChange?.(year)}
+                    >
+                        <Text>{year.toString()}</Text>
+                    </Pressable>
+                ))}
+            </View>
+        );
+    }
+
+    return MockYearPickerModal;
+});
 
 const SEGMENT_LABELS = {
     year: 'Year',
@@ -166,5 +214,22 @@ describe('DatePicker typing', () => {
 
         // Then the field reports an error naming the range, which is what the page's submit guard reads
         expect(onValidationErrorChange).toHaveBeenLastCalledWith(expect.stringContaining('2024'));
+    });
+
+    it('restores a year taken apart by hand when the calendar is asked for the same year back', async () => {
+        // Given a field holding a date whose year the user has taken the last digit out of, which is held back as no
+        // date at all, so the field still reports the date it had before
+        await renderDatePicker({value: '1990-05-15', minDate: new Date('1900-01-01'), maxDate: new Date('2100-12-31')});
+        focusSegment(SEGMENT_LABELS.year);
+        pressKeys(SEGMENT_LABELS.year, [CONST.KEYBOARD_SHORTCUTS.BACKSPACE.shortcutKey]);
+        expect(screen.getByLabelText(SEGMENT_LABELS.year).props.value).toBe('199');
+
+        // When the same year is picked from the calendar, which hands over the date the field already holds
+        fireEvent.press(screen.getByTestId('currentYearButton'));
+        fireEvent.press(screen.getByTestId('year-option-1990'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the year is whole again, rather than being left behind because the date never changed
+        expect(screen.getByLabelText(SEGMENT_LABELS.year).props.value).toBe('1990');
     });
 });
