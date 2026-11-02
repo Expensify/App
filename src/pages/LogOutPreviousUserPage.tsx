@@ -134,7 +134,10 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                     if (CONFIG.IS_HYBRID_APP || shortLivedAuthToken === getLastShortAuthToken()) {
                         return;
                     }
-                    signInWithShortLivedAuthToken(shortLivedAuthToken, undefined, false, undefined, undefined).catch((error) =>
+                    // The sign-out keeps the last route of the previous account's stack, so land on exitTo explicitly instead of on
+                    // whatever that account navigated to while the prompt was open. A workspace/new link goes Home, because
+                    // App.setUpPoliciesAndNavigate owns that route.
+                    signInWithShortLivedAuthToken(shortLivedAuthToken, undefined, false, exitTo && exitTo !== ROUTES.WORKSPACE_NEW ? exitTo : ROUTES.HOME, linkEmail).catch((error) =>
                         Log.warn('Unable to sign in with shortLivedAuthToken', {error}),
                     );
                 });

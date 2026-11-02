@@ -951,7 +951,7 @@ function signInWithShortLivedAuthToken(authToken: string, currentAuthToken: stri
             navigationRef.resetRoot({...getAdaptedStateFromPath(exitTo as Route), stale: true});
         } catch (error) {
             // A path saved by an older build may no longer exist, and the sign-in already landed on Home.
-            Log.warn('Unable to return to the last visited path after SAML sign in', {error});
+            Log.warn('Unable to restore exitTo after short lived authToken sign in', {error});
         }
     });
 
