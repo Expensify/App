@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
@@ -26,7 +27,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID} from '@src/types/onyx';
+import type {AIInsight, InsightsDashboardID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -37,6 +38,7 @@ import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
+import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
@@ -50,6 +52,8 @@ import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
     state: InsightsDashboardState;
+    aiInsights: AIInsight[] | undefined;
+    isLoadingAIInsights: boolean;
     headlineChart: InsightsDashboardChart;
 
     /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
@@ -65,12 +69,13 @@ type InsightsDashboardContentProps = {
     onGroupByChange: (update: Partial<InsightsFilters>) => void;
 };
 
-function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({state, aiInsights, isLoadingAIInsights, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
     const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
@@ -146,6 +151,12 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                 addBottomSafeAreaPadding
             >
                 <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
+                    {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
+                        <InsightsAICardRow
+                            insights={aiInsights}
+                            isLoading={isLoadingAIInsights}
+                        />
+                    )}
                     <InsightsChartWidget
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
@@ -291,6 +302,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             )}
             <InsightsDashboardContent
                 state={state}
+                aiInsights={dashboard?.aiInsights}
+                // Offline no response is coming, so the row hides instead of loading forever
+                isLoadingAIInsights={!hasDashboardResponse(dashboard) && !isOffline}
                 headlineChart={headlineChart}
                 supportingCharts={supportingCharts}
                 filters={filters}
