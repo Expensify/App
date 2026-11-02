@@ -17,7 +17,7 @@ const FLIGHT_PNR_ID = 'pnr-flight-oslo-2661';
 // 10:00 in Oslo (UTC+1 in December)
 const NOW = new Date('2026-12-10T09:00:00Z');
 
-// One distinct colour pair per status, so each assertion can tell which pair a badge got
+// One distinct color pair per status, so each assertion can tell which pair a badge got
 const BADGE_COLORS: ThemeColors['reportStatusBadge'] = {
     draft: {backgroundColor: '#d1', textColor: '#d2'},
     outstanding: {backgroundColor: '#o1', textColor: '#o2'},
@@ -150,12 +150,12 @@ describe('TravelApprovalUtils', () => {
     });
 
     describe('getBookingStatusBadge', () => {
-        it('colours each decision like the report statuses, with its own colour for canceled', () => {
+        it('colors each decision like the report statuses, with its own color for canceled', () => {
             // Given bookings in each status that shows a badge
             const {STATUS} = CONST.TRAVEL.BOOKING_APPROVAL;
 
             // When their badges are built
-            // Then outstanding and approved reuse the report colours, rejected uses closed and canceled its new colour
+            // Then outstanding and approved reuse the report colors, rejected uses closed and canceled its new color
             expect(getBookingStatusBadge(translateLocal, BADGE_COLORS, buildBooking({status: STATUS.OUTSTANDING}))).toEqual({text: 'Outstanding', ...BADGE_COLORS.outstanding});
             expect(getBookingStatusBadge(translateLocal, BADGE_COLORS, buildBooking({status: STATUS.APPROVED}))).toEqual({text: 'Approved', ...BADGE_COLORS.approved});
             expect(getBookingStatusBadge(translateLocal, BADGE_COLORS, buildBooking({status: STATUS.REJECTED}))).toEqual({text: 'Rejected', ...BADGE_COLORS.closed});

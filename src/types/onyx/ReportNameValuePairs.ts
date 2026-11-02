@@ -217,4 +217,4 @@ type ReportNameValuePairsCollectionDataSet = CollectionDataSet<typeof ONYXKEYS.C
 
 export default ReportNameValuePairs;
 
-export type {ReportNameValuePairsCollectionDataSet, CalendlyCall, BookingApproval, BookingApprovalState};
+export type {ReportNameValuePairsCollectionDataSet, CalendlyCall, BookingApproval};

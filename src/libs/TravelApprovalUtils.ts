@@ -117,5 +117,4 @@ function getBookingStatusBadge(translate: LocalizedTranslate, badgeColors: Theme
     return {text: translate(`travel.approval.status.${booking.status}`), backgroundColor: colors.backgroundColor, textColor: colors.textColor};
 }
 
-export {canApproveBooking, getBookingDeadlineDate, getBookingDeadlineText, getBookingStatusBadge, getEarliestOutstandingBooking, getTripDeadlineText, isBookingDeadlinePassed};
-export type {BookingStatusBadge};
+export {canApproveBooking, getBookingDeadlineDate, getBookingStatusBadge, getEarliestOutstandingBooking, getTripDeadlineText};
