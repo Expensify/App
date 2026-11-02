@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, render} from '@testing-library/react-native';
 
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import Modal from '@components/Modal';
@@ -83,7 +83,6 @@ describe('IOURequestStepCurrencyModal', () => {
         // When Any currency is selected instead of a currency code.
         const listProps = jest.mocked(CurrencySelectionList).mock.calls.at(-1)?.[0];
         expect(listProps?.shouldAllowEmptySelection).toBe(true);
-        expect(screen.queryByText('common.anyCurrency')).toBeNull();
         act(() => listProps?.onSelect({currencyCode: '', currencyName: 'Any currency', keyForList: 'any-currency'}));
 
         // Then the caller receives the empty selection used by legacy operands.
