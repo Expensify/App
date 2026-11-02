@@ -270,7 +270,8 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             </View>
                         </OfflineWithFeedback>
                     )}
-                    {isDistanceTrackTaxEnabled && !!taxRate && isPolicyTrackTaxEnabled && (
+                    {/* Expenses use the percentage even when the rate has no valid tax rate, so show it whenever one is set. Keep the tax rate check so admins can set it on a new rate. */}
+                    {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (!!taxRate || !!taxClaimablePercentage) && (
                         <OfflineWithFeedback
                             errors={getLatestErrorField(rate, 'taxClaimablePercentage')}
                             pendingAction={rate?.pendingFields?.taxClaimablePercentage}

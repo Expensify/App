@@ -180,12 +180,21 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
         jest.clearAllMocks();
     });
 
-    it('shows the header when policy tax tracking and distance tax are both on', async () => {
-        // Given a workspace that tracks tax on its distance rates, with a rate that has no tax set up yet
-        await renderPage([buildRate('cars')]);
+    it('shows the header when both tax settings are on and a rate has an amount', async () => {
+        // Given a workspace that tracks tax on its distance rates, with a rate that has a tax reclaimable amount
+        await renderPage([buildRate('cars', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}})]);
 
-        // Then the column header is shown regardless of the rates, so admins can see where the amount will appear
+        // Then the column header is shown
         expect(screen.getByLabelText(getColumnHeaderLabel())).toBeTruthy();
+    });
+
+    it('hides the header when no rate has an amount', async () => {
+        // Given a workspace that tracks tax on its distance rates, but whose rates have no percentage set
+        await renderPage([buildRate('cars', {attributes: {taxRateExternalID: TAX_RATE_ID}}), buildRate('bikes')]);
+
+        // Then the column is hidden, like the date columns when no rate has a date, so the table has no empty column
+        expect(screen.queryByLabelText(getColumnHeaderLabel())).toBeNull();
+        expect(getRenderedAmounts()).toEqual([]);
     });
 
     it.each([
@@ -212,30 +221,31 @@ describe('PolicyDistanceRatesPage tax reclaimable column', () => {
     });
 
     it('leaves the cell blank when the percentage is missing or zero', async () => {
-        // Given two rates with a valid tax rate, one without a percentage and one with a zero percentage
+        // Given two rates with a valid tax rate, one without a percentage and one with a zero percentage, next to a rate with an amount
         await renderPage([
             buildRate('missing', {attributes: {taxRateExternalID: TAX_RATE_ID}}),
             buildRate('zero', {attributes: {taxClaimablePercentage: 0, taxRateExternalID: TAX_RATE_ID}}),
+            buildRate('set', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: TAX_RATE_ID}}),
         ]);
 
-        // Then the column is shown but neither row shows an amount, since there is nothing to reclaim
+        // Then the column is shown, but only the rate with a percentage shows an amount, since the others have nothing to reclaim
         expect(screen.getByLabelText(getColumnHeaderLabel())).toBeTruthy();
-        expect(getRenderedAmounts()).toEqual([]);
+        expect(getRenderedAmounts()).toEqual(['$5.00']);
 
-        // And the row labels don't mention the tax reclaimable amount
-        expect(screen.queryByLabelText(new RegExp(`${getColumnHeaderLabel()}:`))).toBeNull();
+        // And only that row's label mentions the tax reclaimable amount
+        expect(screen.getAllByLabelText(new RegExp(`${getColumnHeaderLabel()}:`))).toHaveLength(1);
     });
 
-    it('leaves the cell blank when the tax rate is missing or does not exist on the workspace', async () => {
+    it('shows the amount when the tax rate is missing or does not exist on the workspace', async () => {
         // Given two rates with a percentage, one without a tax rate and one whose tax rate was removed from the workspace
         await renderPage([
             buildRate('missing', {attributes: {taxClaimablePercentage: 0.5}}),
-            buildRate('removed', {attributes: {taxClaimablePercentage: 0.5, taxRateExternalID: 'id_REMOVED'}}),
+            buildRate('removed', {attributes: {taxClaimablePercentage: 0.2, taxRateExternalID: 'id_REMOVED'}}),
         ]);
 
-        // Then neither row shows an amount, matching the rate details page that hides the field without a valid tax rate
+        // Then both rows show their amount, because expenses still apply the percentage when the rate has no valid tax rate
         expect(screen.getByLabelText(getColumnHeaderLabel())).toBeTruthy();
-        expect(getRenderedAmounts()).toEqual([]);
+        expect(getRenderedAmounts().sort()).toEqual(['$2.00', '$5.00']);
     });
 
     it('orders the rows by amount when sorting by the column', async () => {

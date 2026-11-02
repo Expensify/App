@@ -34,7 +34,9 @@ type WorkspaceDistanceRatesTableProps = {
     selectionEnabled: boolean;
     selectedKeys: string[];
     canWriteDistanceRates: boolean;
-    shouldShowTaxReclaimableColumn: boolean;
+
+    /** Whether the workspace tracks tax and distance rates track tax. The tax reclaimable column also needs a rate with an amount. */
+    isDistanceRateTaxEnabled: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
     headerComponent?: React.ReactElement;
 };
@@ -53,7 +55,7 @@ function WorkspaceDistanceRatesTable({
     selectionEnabled,
     selectedKeys,
     canWriteDistanceRates,
-    shouldShowTaxReclaimableColumn,
+    isDistanceRateTaxEnabled,
     onRowSelectionChange,
     headerComponent,
 }: WorkspaceDistanceRatesTableProps) {
@@ -64,6 +66,7 @@ function WorkspaceDistanceRatesTable({
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
     const hasAnyDateBound = ratesData.some((item) => !!item.rate.startDate || !!item.rate.endDate);
+    const shouldShowTaxReclaimableColumn = isDistanceRateTaxEnabled && ratesData.some((item) => item.taxReclaimableAmount !== undefined);
 
     const columns: Array<TableColumn<DistanceRatesTableColumnKey>> = [
         {

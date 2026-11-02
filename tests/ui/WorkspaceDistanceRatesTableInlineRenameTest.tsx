@@ -120,7 +120,7 @@ function renderTable() {
                                 selectionEnabled={false}
                                 selectedKeys={[]}
                                 canWriteDistanceRates
-                                shouldShowTaxReclaimableColumn={false}
+                                isDistanceRateTaxEnabled={false}
                                 onRowSelectionChange={jest.fn()}
                             />
                         </ScreenWrapperStatusContext.Provider>

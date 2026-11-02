@@ -269,13 +269,12 @@ function getRateStatus(rate: Rate): string {
 
 /**
  * The tax reclaimable amount of a distance rate (taxClaimablePercentage × rate), in the rate's currency subunits.
- * Like the rate details page, it only applies when the rate has a tax rate that exists on the policy, a non-zero percentage, and a non-zero rate.
- * Returns undefined otherwise.
+ * It doesn't depend on the rate's tax rate: expenses still use the percentage when the rate has no valid tax rate.
+ * Returns undefined when the percentage or the rate is zero or missing.
  */
-function getTaxReclaimableAmount(rate: Rate, policy: Policy | null | undefined): number | undefined {
+function getTaxReclaimableAmount(rate: Rate): number | undefined {
     const taxClaimablePercentage = rate.attributes?.taxClaimablePercentage;
-    const taxRateExternalID = rate.attributes?.taxRateExternalID;
-    if (!taxRateExternalID || !policy?.taxRates?.taxes?.[taxRateExternalID] || !taxClaimablePercentage || !rate.rate) {
+    if (!taxClaimablePercentage || !rate.rate) {
         return undefined;
     }
     return taxClaimablePercentage * rate.rate;

@@ -80,7 +80,7 @@ function PolicyDistanceRatesPage({
     const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitID = customUnit?.customUnitID;
     const customUnitRates: Record<string, Rate> = customUnit?.rates ?? {};
-    const shouldShowTaxReclaimableColumn = isTaxTrackingEnabled(true, policy, true);
+    const isDistanceRateTaxEnabled = isTaxTrackingEnabled(true, policy, true);
 
     const selectableRates = Object.values(customUnitRates).reduce<Record<string, Rate>>((acc, rate) => {
         acc[rate.customUnitRateID] = rate;
@@ -283,7 +283,7 @@ function PolicyDistanceRatesPage({
 
         const isDeleting = resolvedPendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         const rateCurrency = rate.currency ?? CONST.CURRENCY.USD;
-        const taxReclaimableAmount = getTaxReclaimableAmount(rate, policy);
+        const taxReclaimableAmount = getTaxReclaimableAmount(rate);
 
         return {
             keyForList: rate.customUnitRateID,
@@ -476,7 +476,7 @@ function PolicyDistanceRatesPage({
                         selectionEnabled={canWriteDistanceRates}
                         onRowSelectionChange={setSelectedDistanceRates}
                         canWriteDistanceRates={canWriteDistanceRates}
-                        shouldShowTaxReclaimableColumn={shouldShowTaxReclaimableColumn}
+                        isDistanceRateTaxEnabled={isDistanceRateTaxEnabled}
                         headerComponent={distanceRatesTableHeader}
                     />
                 )}
