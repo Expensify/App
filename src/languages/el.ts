@@ -335,6 +335,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pm: 'μ.μ.',
         tbd: 'Θα καθοριστεί',
         selectCurrency: 'Επιλέξτε νόμισμα',
+        any: 'Οποιοδήποτε',
+        anyCurrency: 'Οποιοδήποτε νόμισμα',
         selectSymbolOrCurrency: 'Επιλέξτε ένα σύμβολο ή νόμισμα',
         card: 'Κάρτα',
         mcc: 'MCC',

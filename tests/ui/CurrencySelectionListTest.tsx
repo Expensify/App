@@ -44,12 +44,13 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
-type MockSection = {sectionIndex: number; data: Array<{currencyCode: string; isSelected?: boolean}>};
+type MockSection = {sectionIndex: number; title?: string; data: Array<{currencyCode: string; isSelected?: boolean}>};
 
 type MockSelectionListProps = {
     sections: MockSection[];
+    initiallyFocusedItemKey?: string;
     shouldUpdateFocusedIndex?: boolean;
-    textInputOptions?: {onChangeText?: (value: string) => void};
+    textInputOptions?: {onChangeText?: (value: string) => void; headerMessage?: string};
 };
 
 function renderCurrencyList(props: Partial<React.ComponentProps<typeof CurrencySelectionList>> = {}) {
@@ -70,6 +71,69 @@ describe('CurrencySelectionList', () => {
 
     beforeEach(() => {
         mockedSelectionList.mockClear();
+    });
+
+    it.each([
+        {initiallySelectedCurrencyCode: 'USD', recentlyUsedCurrencies: ['EUR']},
+        {initiallySelectedCurrencyCode: 'USD', recentlyUsedCurrencies: []},
+    ])('puts Any currency first under All with selection "$initiallySelectedCurrencyCode" and recents $recentlyUsedCurrencies', (props) => {
+        // Given an optional currency picker with a saved selection and optional recent currencies.
+        renderCurrencyList({...props, shouldAllowEmptySelection: true});
+
+        // When the picker builds its selected, recent, and All sections.
+        const sections = getSelectionListProps()?.sections;
+        const allSection = sections?.at(-1);
+
+        // Then Any currency leads All, stays out of earlier sections, and reflects the empty selection.
+        expect(allSection?.title).toBe('common.all');
+        expect(allSection?.data.at(0)).toMatchObject({currencyCode: '', text: 'common.anyCurrency', isSelected: props.initiallySelectedCurrencyCode === ''});
+        expect(getSelectionListProps()?.initiallyFocusedItemKey).toBe(props.initiallySelectedCurrencyCode || 'any-currency');
+        expect(sections?.slice(0, -1).flatMap((section) => section.data.map((item) => item.currencyCode))).not.toContain('');
+        if (props.initiallySelectedCurrencyCode) {
+            expect(pinnedCurrencyCodes()).toEqual(['USD']);
+        }
+    });
+
+    it.each([{recentlyUsedCurrencies: ['EUR']}, {recentlyUsedCurrencies: []}])('pins selected Any currency above recents $recentlyUsedCurrencies', ({recentlyUsedCurrencies}) => {
+        // Given an optional picker reopened with Any currency selected and optional recents.
+        renderCurrencyList({initiallySelectedCurrencyCode: '', recentlyUsedCurrencies, shouldAllowEmptySelection: true});
+
+        // When the selected option is pinned before the other sections.
+        const sections = getSelectionListProps()?.sections;
+
+        // Then initial focus stays above Recents and Any currency does not appear twice.
+        expect(pinnedCurrencyCodes()).toEqual(['']);
+        expect(sections?.at(0)?.title).toBeUndefined();
+        expect(sections?.at(0)?.data.at(0)).toMatchObject({currencyCode: '', isSelected: true});
+        expect(sections?.slice(1).flatMap((section) => section.data.map((item) => item.currencyCode))).not.toContain('');
+        expect(getSelectionListProps()?.initiallyFocusedItemKey).toBe('any-currency');
+    });
+
+    it('searches Any currency as a list option', () => {
+        // Given a picker that permits comparisons without a currency.
+        renderCurrencyList({shouldAllowEmptySelection: true});
+
+        // When the search matches the Any currency label rather than a currency code.
+        act(() => getSelectionListProps()?.textInputOptions?.onChangeText?.('any'));
+
+        // Then the option remains under All and does not show a no-results message.
+        expect(getSelectionListProps()?.sections.at(0)?.title).toBe('common.all');
+        expect(getSelectionListProps()?.sections.at(0)?.data).toMatchObject([{currencyCode: ''}]);
+        expect(getSelectionListProps()?.textInputOptions?.headerMessage).toBeUndefined();
+
+        // When the search only matches USD, then Any currency is filtered out like other options.
+        act(() => getSelectionListProps()?.textInputOptions?.onChangeText?.('USD'));
+        expect(getSelectionListProps()?.sections.at(0)?.data).toMatchObject([{currencyCode: 'USD'}]);
+    });
+
+    it('omits Any currency when a currency is required', () => {
+        // Given a picker that requires an actual currency code.
+        // When the default list is built without enabling empty selections.
+        renderCurrencyList();
+
+        // Then no empty currency option or optional All header is offered.
+        expect(getSelectionListProps()?.sections.flatMap((section) => section.data.map((item) => item.currencyCode))).not.toContain('');
+        expect(getSelectionListProps()?.sections.at(0)?.title).toBeUndefined();
     });
 
     it('pins the initially selected currency to its own top section on open', () => {

@@ -412,6 +412,8 @@ const translations = {
         // @context Acronym meaning “To Be Determined.” Should be translated or localized according to the target language's convention.
         tbd: 'TBD',
         selectCurrency: 'Select a currency',
+        any: 'Any',
+        anyCurrency: 'Any currency',
         selectSymbolOrCurrency: 'Select a symbol or currency',
         card: 'Card',
         mcc: 'MCC',
