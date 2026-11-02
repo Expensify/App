@@ -34,6 +34,7 @@ describe('useInputFSClass', () => {
 
     it('should unmask an input with no container and no class', () => {
         // Given an input outside any FSClassView, like most inputs in the App
+        // When the input renders and works out the class to set on itself
         render(<InputFSClassProbe />);
 
         // Then it keeps the unmasked default, since the App root is unmasked
@@ -42,6 +43,7 @@ describe('useInputFSClass', () => {
 
     it('should mask an input inside a masked FSClassView', () => {
         // Given an input inside a masked container, like the company card feed credentials
+        // When the input renders and works out the class to set on itself
         render(
             <FSClassView forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>
                 <InputFSClassProbe />
@@ -54,6 +56,7 @@ describe('useInputFSClass', () => {
 
     it('should follow the closest FSClassView', () => {
         // Given an unmasked container nested inside a masked one
+        // When the input renders and works out the class to set on itself
         render(
             <FSClassView forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>
                 <FSClassView forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}>
@@ -68,6 +71,7 @@ describe('useInputFSClass', () => {
 
     it('should keep the outer class when an FSClassView gets no class', () => {
         // Given a component that forwards an optional class it wasn't given, inside a masked container
+        // When the input renders and works out the class to set on itself
         render(
             <FSClassView forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>
                 <FSClassView>
@@ -82,6 +86,7 @@ describe('useInputFSClass', () => {
 
     it('should let a class passed to the input win over its container', () => {
         // Given an input explicitly unmasked inside a masked container
+        // When the input renders and works out the class to set on itself
         render(
             <FSClassView forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}>
                 <InputFSClassProbe forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK} />
@@ -94,6 +99,7 @@ describe('useInputFSClass', () => {
 
     it('should mask a sensitive input inside an unmasked container', () => {
         // Given a card number input inside an unmasked screen, with no class passed to it
+        // When the input renders and works out the class to set on itself
         render(
             <FSClassView forwardedFSClass={CONST.FULLSTORY.CLASS.UNMASK}>
                 <InputFSClassProbe autoComplete="cc-number" />
@@ -108,6 +114,7 @@ describe('useInputFSClass', () => {
 describe('FSClassView', () => {
     it('should set its class on the view it renders', () => {
         // Given a masked FSClassView
+        // When it renders
         render(
             <FSClassView
                 testID="container"
