@@ -2,7 +2,8 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 type PayMoneyRequestParams = {
     iouReportID: string | undefined;
-    chatReportID: string;
+    /** Bills have no policy expense chat, so they may omit it */
+    chatReportID: string | undefined;
     reportActionID: string;
     paymentMethodType: PaymentMethodType;
     full: boolean;

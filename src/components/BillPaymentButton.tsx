@@ -1,6 +1,7 @@
 /** Pays bills and received invoices without depending on a parent room. */
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -39,7 +40,7 @@ type BillPaymentButtonProps = {
 };
 
 /**
- * ReimburseReport debits the payer's account by ACH in USD, so only open USD accounts that allow debits can pay. The
+ * An ACH payment debits the payer's account in USD, so only open USD accounts that allow debits can pay. The
  * Expensify Card settlement account only settles card spend.
  */
 function payableBankAccountsSelector(bankAccounts: OnyxEntry<BankAccountList>): BankAccountList {
@@ -61,7 +62,8 @@ function BillPaymentButton({report, isDisabled = false, searchHash}: BillPayment
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Bank', 'CheckCircle']);
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
+    const delegateAccountID = useDelegateAccountID();
     const [payableBankAccounts] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: payableBankAccountsSelector});
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -76,7 +78,16 @@ function BillPaymentButton({report, isDisabled = false, searchHash}: BillPayment
             showDelegateNoAccessModal();
             return;
         }
-        payBill(report, paymentMethod, bankAccountID, searchHash, currentSearchKey);
+        payBill({
+            report,
+            paymentMethodType: paymentMethod,
+            bankAccountID,
+            accountNumber: bankAccountID ? payableBankAccounts?.[bankAccountID]?.accountData?.accountNumber : undefined,
+            searchHash,
+            searchKey: currentSearchKey,
+            getCurrencyDecimals,
+            delegateAccountID,
+        });
     };
     const bankAccounts = formatPaymentMethods(payableBankAccounts ?? {}, {}, styles, translate);
 
@@ -93,7 +104,7 @@ function BillPaymentButton({report, isDisabled = false, searchHash}: BillPayment
                   iconHeight: typeof bank.icon === 'number' ? undefined : bank.iconSize,
                   shouldIgnoreCompactStyle: true,
                   value: `${bank.methodID}`,
-                  onSelected: () => pay(CONST.IOU.PAYMENT_TYPE.EXPENSIFY, bank.methodID),
+                  onSelected: () => pay(CONST.IOU.PAYMENT_TYPE.VBBA, bank.methodID),
               }))
             : [
                   {
@@ -124,7 +135,7 @@ function BillPaymentButton({report, isDisabled = false, searchHash}: BillPayment
                 // shouldAlwaysShowDropdownMenu opens the menu on every press, so the button has no action of its own
                 onPress={() => {}}
                 options={[
-                    // ReimburseReport pays bills by ACH only in USD, so bills in other currencies can only be marked as paid
+                    // ACH payments are only in USD, so bills in other currencies can only be marked as paid
                     ...(report?.currency === CONST.CURRENCY.USD ? businessBankAccountOptions : []),
                     {
                         text: translate('billPay.markAsPaid'),
