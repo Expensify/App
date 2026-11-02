@@ -32,6 +32,7 @@ import {
 import {
     buildOptimisticAddCommentReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    getChatByParticipants,
     getParsedComment,
     getPolicyExpenseChat,
     getReimbursableTotal,
@@ -1002,6 +1003,13 @@ function updateSplitTransactions({
             moneyRequestReportIDForSplit = splitExpense?.reportID;
         }
 
+        // getMoneyRequestInformation resolves the chat report on its own, so it gets the actions of both candidates:
+        // the parent chat report and the participant's existing chat.
+        const {participant} = participantParams;
+        const participantChatReportID = participant.isPolicyExpenseChat
+            ? participant.reportID
+            : getChatByParticipants([Number(participant.accountID), currentUserPersonalDetails.accountID], allReportsList)?.reportID;
+
         // getMoneyRequestInformation sets lastVisibleActionCreated on the selfDM report object in place, so copy the
         // pre-split selfDM before the first call that can touch it
         const selfDMReportBeforeSplit = isSelfDMSplit && selfDMReportID ? allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`] : undefined;
@@ -1045,6 +1053,8 @@ function updateSplitTransactions({
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            parentChatReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReport?.reportID}`],
+            participantChatReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${participantChatReportID}`],
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};

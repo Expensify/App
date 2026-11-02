@@ -1465,7 +1465,6 @@ const CONST = {
         REPORT_MERGE: 'reportMerge',
         INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
-        UNIFIED_CONNECTIONS: 'unifiedConnections',
         SUPPORT_TICKET: 'supportTicket',
         ANCHORED_FIELD_DROPDOWNS: 'anchoredFieldDropdowns',
         RESIZABLE_TABLE_COLUMNS: 'resizableTableColumns',
@@ -2138,6 +2137,7 @@ const CONST = {
                 UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
                 UNDELETED_TRANSACTION: 'UNDELETEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
+                QUEUED_FOR_EXPORT: 'QUEUEDFOREXPORT',
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
                 REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
@@ -2918,6 +2918,7 @@ const CONST = {
         ATTRIBUTE_NEUTRAL_ZOOM: 'neutral_zoom',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
+        ATTRIBUTE_DURATION_SINCE_JS_STARTUP_MS: 'duration_since_js_startup_ms',
         CAPTURE_METHOD: {
             PHOTO: 'photo',
             SNAPSHOT: 'snapshot',
@@ -5060,7 +5061,6 @@ const CONST = {
         DEFAULT_FIELD_LIST_TARGET: 'expense',
         DEFAULT_FIELD_LIST_NAME: 'title',
         ROLE: {
-            OWNER: 'owner',
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             GUEST: 'guest',
@@ -6423,6 +6423,7 @@ const CONST = {
         ROOM_NAME_WITHOUT_LIMIT: /^#[\p{Ll}0-9-]+$/u,
         DOMAIN_BASE: '^(?:https?:\\/\\/)?(?:www\\.)?([^\\/]+)',
         ALPHANUMERIC_WITH_SPACE_AND_HYPHEN: /^[A-Za-z0-9 -]+$/,
+        ISO_8601_UTC_OFFSET_SUFFIX: /([+-]\d{2}:\d{2})$/,
 
         // eslint-disable-next-line no-misleading-character-class
         EMOJI: /[\p{Extended_Pictographic}\u200d\u{1f1e6}-\u{1f1ff}\u{1f3fb}-\u{1f3ff}\u{e0020}-\u{e007f}\u20E3\uFE0F]|[#*0-9]\uFE0F?\u20E3/gu,
@@ -8219,6 +8220,7 @@ const CONST = {
             WEEK: 'week',
             YEAR: 'year',
             QUARTER: 'quarter',
+            APPROVER: 'approver',
         },
         /**
          * Single source of truth for which transaction-level columns are available in each column-picker surface:
@@ -8567,6 +8569,12 @@ const CONST = {
                     EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
                     TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
                 },
+                APPROVER: {
+                    AVATAR: this.TABLE_COLUMNS.AVATAR,
+                    APPROVER: this.TABLE_COLUMNS.GROUP_APPROVER,
+                    EXPENSES: this.TABLE_COLUMNS.GROUP_EXPENSES,
+                    TOTAL: this.TABLE_COLUMNS.GROUP_TOTAL,
+                },
             };
         },
         get TYPE_DEFAULT_COLUMNS() {
@@ -8628,6 +8636,7 @@ const CONST = {
                 WEEK: [this.TABLE_COLUMNS.GROUP_WEEK, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 YEAR: [this.TABLE_COLUMNS.GROUP_YEAR, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
                 QUARTER: [this.TABLE_COLUMNS.GROUP_QUARTER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
+                APPROVER: [this.TABLE_COLUMNS.AVATAR, this.TABLE_COLUMNS.GROUP_APPROVER, this.TABLE_COLUMNS.GROUP_EXPENSES, this.TABLE_COLUMNS.GROUP_TOTAL],
             };
         },
         BOOLEAN: {
@@ -8756,6 +8765,7 @@ const CONST = {
             GROUP_WITHDRAWAL_STATUS: 'groupWithdrawalStatus',
             GROUP_AMOUNT_DEBITED: 'groupAmountDebited',
             GROUP_AMOUNT_REIMBURSED: 'groupAmountReimbursed',
+            GROUP_APPROVER: 'groupApprover',
             START_DATE: 'startDate',
             END_DATE: 'endDate',
             TRIP_NAME: 'tripName',
@@ -8868,6 +8878,7 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
+            APPROVER: 'approver',
             // The Spend footer's display selections. They travel as filters because that is where the backend reads
             // them from, but they never narrow the result set: only `footerTotal` changes the response, by swapping
             // which aggregate comes back as the search total.
@@ -8962,6 +8973,7 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitter-user-id',
             SUBMITTER_PAYROLL_ID: 'submitter-payroll-id',
             ORDER_DEAL_NUMBERS: 'order-deal-numbers',
+            APPROVER: 'approver',
             COLUMNS: 'columns',
             LIMIT: 'limit',
             FOOTER_COUNT: 'footer-count',
@@ -9040,6 +9052,7 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
+                [this.TABLE_COLUMNS.GROUP_APPROVER]: 'group-approver',
                 [this.TABLE_COLUMNS.AMOUNT_DEBITED]: 'amount-debited',
                 [this.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'amount-reimbursed',
             };
@@ -10117,22 +10130,25 @@ const CONST = {
             WORKSPACE_TAXES: 'workspaceTaxes',
             WORKSPACE_EXPENSIFY_CARDS: 'workspaceExpensifyCards',
             WORKSPACE_COMPANY_CARDS: 'workspaceCompanyCards',
+
+            /** Prefix of the Search table IDs, one per data type. See `getSearchColumnResizingID`. */
+            SEARCH_PREFIX: 'search',
         },
 
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
 
-            /** How long, in ms, a click on a column's edge waits for a second click before fitting the column. */
-            DOUBLE_CLICK_INTERVAL: 150,
+            /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
+            GRIP_HEIGHT_RATIO: 0.4,
 
-            /** Share of the heading's height the grip spans, centred vertically. */
-            GRIP_HEIGHT_RATIO: 0.8,
+            /** Width of the strip centred on a column's edge that picks up a drag, the smallest comfortable desktop click target. */
+            HIT_AREA_WIDTH: 24,
 
             /** How long, in ms, the grip takes to stretch into the line once its edge is dragged. */
             INDICATOR_MORPH_DURATION: 150,
 
-            /** What a click (`FIT`) or a double-click (`RESET`) on a column's edge sizes it to. */
+            /** What a click on a column's edge sizes it to: `FIT` its content, or `RESET` it when it already fits. */
             WIDTH_TARGET: {
                 FIT: 'fit',
                 RESET: 'reset',
@@ -10586,6 +10602,12 @@ const CONST = {
         },
         TAX_PICKER_MODAL: {
             BACK_BUTTON: 'TaxPickerModal-BackButton',
+        },
+        REPORT_PICKER_MODAL: {
+            BACK_BUTTON: 'ReportPickerModal-BackButton',
+        },
+        ATTENDEE_PICKER_MODAL: {
+            BACK_BUTTON: 'AttendeePickerModal-BackButton',
         },
         CALENDAR_PICKER: {
             YEAR_PICKER: 'CalendarPicker-YearPicker',

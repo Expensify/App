@@ -466,6 +466,7 @@ function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransacti
  */
 const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
     CONST.SEARCH.GROUP_BY.FROM,
+    CONST.SEARCH.GROUP_BY.APPROVER,
     CONST.SEARCH.GROUP_BY.CARD,
     CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
     CONST.SEARCH.GROUP_BY.CATEGORY,
@@ -1433,6 +1434,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 !!expenseReport.policyID && shouldRestrictUserBillableActions(reportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
 
             approveMoneyRequest({
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 expenseReport,
                 expenseReportPolicy: reportPolicy,
@@ -1489,6 +1491,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchKey,
         isTrackIntentUser,
         personalDetails,
+        getPersonalDetailsByLogin,
         delegateAccountID,
         getCurrencyDecimals,
         rules,
