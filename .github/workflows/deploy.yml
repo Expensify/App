@@ -444,7 +444,7 @@ jobs:
   iosUploadTestflight:
     name: Upload iOS to TestFlight
     needs: [prep, iosBuild]
-    runs-on: blacksmith-12vcpu-macos-latest
+    runs-on: blacksmith-12vcpu-macos-27
     if: ${{ fromJSON(needs.prep.outputs.SHOULD_BUILD_NATIVE) }}
     steps:
       - name: Checkout
@@ -526,7 +526,7 @@ jobs:
   iosSubmit:
     name: Submit iOS for production rollout
     needs: [prep, iosBuild, iosUploadTestflight]
-    runs-on: blacksmith-12vcpu-macos-latest
+    runs-on: blacksmith-12vcpu-macos-27
     if: ${{ always() && !cancelled() && needs.prep.outputs.DEPLOY_ENV == 'production' && needs.iosBuild.result != 'failure' && needs.iosUploadTestflight.result != 'failure' }}
     steps:
       - name: Checkout
