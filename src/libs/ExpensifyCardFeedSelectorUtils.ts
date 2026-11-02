@@ -46,6 +46,10 @@ function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefi
             continue;
         }
         if (programKey === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
+            // Linking a disabled travel feed doesn't turn it back on, so it goes through the enable flow.
+            if (nested.isEnabled === false) {
+                continue;
+            }
             if (hasTravelBillingSettlementAccount(nested) || getIsTravelBillingPayByInvoice(nested)) {
                 return true;
             }
