@@ -50,11 +50,11 @@ describe('Bill Pay', () => {
         expect(canPayBill({...approved, isWaitingOnBankAccount: true}, policy, accountID, email)).toBe(false);
     });
 
-    it('lets the payer pay a bill again after its payment is canceled on a workspace with approvals turned off', () => {
+    it('lets the payer pay a bill again after its payment is canceled on a policy with approvals turned off', () => {
         // Given a bill that a canceled payment left Submitted and Closed.
         const canceled = {...bill, stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
 
-        // Then the payer can pay it when approvals are turned off, but not when the workspace requires approval.
+        // Then the payer can pay it when approvals are turned off, but not when the policy requires approval.
         expect(canPayBill(canceled, {...policy, approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL}, accountID, email)).toBe(true);
         expect(canPayBill(canceled, policy, accountID, email)).toBe(false);
     });
@@ -143,14 +143,14 @@ describe('Bill Pay', () => {
         expect(canRejectReportAction(expenseReport, accountID, policy)).toBe(true);
     });
 
-    it('offers payment to the bill receiver, the reimburser, and the workspace and payments admins', () => {
+    it('offers payment to the bill receiver, the reimburser, and the policy and payments admins', () => {
         // Given an approved bill that its receiver owns, on a policy whose reimburser is another user
         const approved = {...bill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
         const memberPolicy: Policy = {...policy, role: CONST.POLICY.ROLE.USER, reimburser: 'reimburser@example.com'};
         const otherAccountID = 456;
 
         // When each user checks whether they can pay the bill
-        // Then the receiver, the reimburser, a workspace admin and a payments admin can pay it, as in Classic
+        // Then the receiver, the reimburser, a policy admin and a payments admin can pay it, as in Classic
         expect(canPayBill(approved, memberPolicy, accountID, email)).toBe(true);
         expect(canPayBill(approved, memberPolicy, otherAccountID, 'reimburser@example.com')).toBe(true);
         expect(canPayBill(approved, {...memberPolicy, role: CONST.POLICY.ROLE.ADMIN}, otherAccountID, 'admin@example.com')).toBe(true);
@@ -161,9 +161,9 @@ describe('Bill Pay', () => {
     });
 
     it.each([CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO, CONST.POLICY.DEPRECATED_REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO])(
-        'hides the report Pay action when workspace payments are disabled with %s',
+        'hides the report Pay action when policy payments are disabled with %s',
         (reimbursementChoice) => {
-            // Given an approved bill whose workspace payer can pay when payments are enabled.
+            // Given an approved bill whose policy payer can pay when payments are enabled.
             const approved: Report = {...bill, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.APPROVED};
             const params = {
                 report: approved,
@@ -180,7 +180,7 @@ describe('Bill Pay', () => {
             };
             expect(getReportPrimaryAction(params)).toBe(CONST.REPORT.PRIMARY_ACTIONS.PAY);
 
-            // When the workspace disables payments using either its current or Classic setting.
+            // When the policy disables payments using either its current or Classic setting.
             const disabledPolicy = {...policy, reimbursementChoice};
 
             // Then the same approved bill offers no Pay action.
