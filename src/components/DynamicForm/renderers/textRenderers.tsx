@@ -1,7 +1,9 @@
 import AmountForm from '@components/AmountForm';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
+import DynamicFormOnFileTextInput from '@components/DynamicForm/components/DynamicFormOnFileTextInput';
 import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
+import hasProvidedAnswer from '@components/DynamicForm/utils/hasProvidedAnswer';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PercentageForm from '@components/PercentageForm';
@@ -45,26 +47,31 @@ function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, trans
 
 function renderTextInput(
     field: DynamicFormTextField | DynamicFormNumberField,
-    {translate}: DynamicFieldContext,
+    {values, translate}: DynamicFieldContext,
     inputProps: DynamicFieldInputProps<string>,
     inputMode: InputModeOptions | undefined,
     isMultiline = false,
 ): DynamicFieldInput {
+    const textInputProps = {
+        ...inputProps,
+        label: getInputLabel(field, translate),
+        hint: getTextHint(field, translate),
+        maxLength: field.maxLength,
+        inputMode,
+        multiline: isMultiline,
+        autoGrowHeight: isMultiline,
+        maxAutoGrowHeight: isMultiline ? variables.textInputAutoGrowMaxHeight : undefined,
+        ...(isMultiline ? {} : getTextInputAutocorrectProps()),
+    };
     return {
         isMenuRow: false,
         showsDescription: true,
-        input: (
+        input: hasProvidedAnswer(field, values) ? (
+            <DynamicFormOnFileTextInput {...textInputProps} />
+        ) : (
             <InputWrapper
                 InputComponent={TextInput}
-                {...inputProps}
-                label={getInputLabel(field, translate)}
-                hint={getTextHint(field, translate)}
-                maxLength={field.maxLength}
-                inputMode={inputMode}
-                multiline={isMultiline}
-                autoGrowHeight={isMultiline}
-                maxAutoGrowHeight={isMultiline ? variables.textInputAutoGrowMaxHeight : undefined}
-                {...(isMultiline ? {} : getTextInputAutocorrectProps())}
+                {...textInputProps}
             />
         ),
     };

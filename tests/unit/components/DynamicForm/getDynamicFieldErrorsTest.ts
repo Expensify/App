@@ -471,6 +471,17 @@ describe('getDynamicFieldErrors with an answer the server holds', () => {
         expect(errors).toEqual({});
     });
 
+    it('requires a new answer once the user clears the mask', () => {
+        // Given a required SSN the server holds, whose mask the user cleared, so the input holds an empty answer
+        const ssn: DynamicFormField = {key: 'ssn', type: 'text', required: true, sensitive: true};
+
+        // When the page is validated with the input left empty
+        const errors = getDynamicFieldErrors([ssn], {ssnProvided: true, ssn: ''}, translateLocal);
+
+        // Then a new SSN is required, as for anyone who has one, since clearing the mask means replacing the saved one
+        expect(errors).toEqual({ssn: translateLocal('common.error.fieldRequired')});
+    });
+
     it('still requires a field that is not sensitive', () => {
         // Given a required plain field with a stray provided flag
         const firstName: DynamicFormField = {key: 'firstName', type: 'text', required: true};
