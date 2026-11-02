@@ -3920,6 +3920,21 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        // The dot in front of a form or status message
+        messageDot: {
+            width: 12,
+            height: 12,
+            borderRadius: 6,
+        },
+
+        messageDotDanger: {
+            backgroundColor: theme.danger,
+        },
+
+        messageDotSuccess: {
+            backgroundColor: theme.success,
+        },
+
         emptyLHNWrapper: {
             marginBottom: variables.bottomTabHeight,
         },

@@ -2,7 +2,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -22,7 +21,6 @@ import React from 'react';
 import {View} from 'react-native';
 
 import Button from './Button';
-import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
@@ -54,11 +52,10 @@ type DotIndicatorMessageProps = {
 };
 
 function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectable, onRetryReceiptUpload}: DotIndicatorMessageProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'DotIndicator', 'Download']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'Download']);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isInNarrowPaneModal} = useResponsiveLayout();
 
@@ -191,16 +188,11 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
             dataSet={selectionDataSet}
         >
             <View
-                style={styles.offlineFeedbackErrorDot}
+                style={[styles.messageDot, isErrorMessage ? styles.messageDotDanger : styles.messageDotSuccess, styles.mr2]}
                 accessible={isErrorMessage}
                 role={isErrorMessage ? CONST.ROLE.IMG : undefined}
                 accessibilityLabel={isErrorMessage ? (CONST.ACCESSIBILITY_LABELS.ERROR as string) : undefined}
-            >
-                <Icon
-                    src={expensifyIcons.DotIndicator}
-                    fill={isErrorMessage ? theme.danger : theme.success}
-                />
-            </View>
+            />
             <View style={styles.offlineFeedbackTextContainer}>{uniqueMessages.map(renderMessage)}</View>
         </View>
     );
