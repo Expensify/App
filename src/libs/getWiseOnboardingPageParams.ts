@@ -27,10 +27,16 @@ function toSavedFile(savedFileKey: string): WiseSavedFile {
     };
 }
 
-/** Every file field the server holds files for on the given pages, as draft entries. A field it emptied comes back as an empty list. */
-function getSavedFileAnswers(documents: Record<string, Record<string, string[] | null> | null> | undefined): DynamicFormValues {
+/**
+ * Every file field the server holds files for on the given pages, as draft entries. A field it emptied comes back as an empty list.
+ * The skipped pages are left out, so the local files of a page whose save failed stay in the draft for the next save.
+ */
+function getSavedFileAnswers(documents: Record<string, Record<string, string[] | null> | null> | undefined, skippedPageKeys: string[] = []): DynamicFormValues {
     const answers: DynamicFormValues = {};
-    for (const pageDocuments of Object.values(documents ?? {})) {
+    for (const [pageKey, pageDocuments] of Object.entries(documents ?? {})) {
+        if (skippedPageKeys.includes(pageKey)) {
+            continue;
+        }
         for (const [fieldKey, fileKeys] of Object.entries(pageDocuments ?? {})) {
             if (fileKeys) {
                 answers[fieldKey] = fileKeys.map(toSavedFile);

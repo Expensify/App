@@ -138,7 +138,8 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     // After a save, the draft still holds the files picked on this device, so the next save of that page would upload them again, or drop them once they
     // can no longer be read, which tells the server to delete them. Once the server's file keys change and no save is running, the draft takes them instead.
     // Only changes count, since the keys a page opens with may predate its newest files. The draft records the keys it last took, so a change that lands
-    // while another page saves, before Next or Back mounts the page again, or while the flow is closed is still taken.
+    // while another page saves, before Next or Back mounts the page again, or while the flow is closed is still taken. A page that has not saved keeps its
+    // local files, since the server still holds its older ones, and takes the server's keys once a later save of it changes them.
     const savedDocuments = businessAccount?.data?.bankAccountID === bankAccountID ? businessAccount.data.wise?.documents : undefined;
     const savedDocumentsRecord = JSON.stringify(savedDocuments ?? {});
     const draftedSavedDocumentsRecord = draft?.[SAVED_DOCUMENTS_DRAFT_KEY];
@@ -148,8 +149,8 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         if (!haveSavedDocumentsChanged) {
             return;
         }
-        saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {...getSavedFileAnswers(savedDocuments), [SAVED_DOCUMENTS_DRAFT_KEY]: savedDocumentsRecord});
-    }, [haveSavedDocumentsChanged, savedDocuments, savedDocumentsRecord]);
+        saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {...getSavedFileAnswers(savedDocuments, unsavedPageKeys), [SAVED_DOCUMENTS_DRAFT_KEY]: savedDocumentsRecord});
+    }, [haveSavedDocumentsChanged, savedDocuments, savedDocumentsRecord, unsavedPageKeys]);
 
     // The prefill already puts the server's files in the draft, so it records their keys too. A local file in a draft that predates the record is kept.
     const missingPrefill =
