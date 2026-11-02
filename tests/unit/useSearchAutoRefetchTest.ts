@@ -28,11 +28,15 @@ jest.mock('@rnmapbox/maps', () => ({
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
 
+let mockIsInPreloadedTab = false;
+jest.mock('@hooks/useIsInPreloadedTab', () => jest.fn(() => mockIsInPreloadedTab));
+
 const mockUseIsFocused = jest.fn().mockReturnValue(true);
 
 afterEach(() => {
     jest.clearAllMocks();
     mockIsOffline = false;
+    mockIsInPreloadedTab = false;
 });
 
 describe('useSearchAutoRefetch', () => {
@@ -402,6 +406,39 @@ describe('useSearchAutoRefetch', () => {
 
         rerender({...settledProps});
         expect(search).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not keep a deferred search from a preloaded tab for when it is opened', () => {
+        // Given a Spend tab preloaded at idle that is not active yet, showing an expense
+        const transaction = createMock<Transaction>({transactionID: '1', amount: 100});
+        const editedTransaction = createMock<Transaction>({transactionID: '1', amount: 250});
+        const initialProps = createMock<UseSearchAutoRefetch>({
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {transactionID: '1'},
+                },
+            },
+            transactions: {transactions_1: transaction},
+            previousTransactions: {transactions_1: transaction},
+        });
+        mockIsInPreloadedTab = true;
+        mockIsOffline = true;
+        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
+            initialProps,
+        });
+
+        // When that expense changes while the tab is hidden, and the user then opens the tab
+        const editedProps = createMock<UseSearchAutoRefetch>({...initialProps, transactions: {transactions_1: editedTransaction}});
+        rerender(editedProps);
+        rerender(createMock<UseSearchAutoRefetch>({...editedProps, previousTransactions: {transactions_1: editedTransaction}}));
+        mockIsInPreloadedTab = false;
+        mockIsOffline = false;
+        rerender(createMock<UseSearchAutoRefetch>({...editedProps, previousTransactions: {transactions_1: editedTransaction}}));
+
+        // Then no refetch goes out, since the page refreshes the whole snapshot on first open and a second request would repeat it
+        expect(search).not.toHaveBeenCalled();
     });
 
     it('should not trigger search when only the snapshot changes and the collections are unchanged', () => {

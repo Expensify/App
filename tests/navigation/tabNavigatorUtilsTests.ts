@@ -3,9 +3,11 @@ import {
     getTabNavigatorRoute,
     getTabNavigatorState,
     getTabNavigatorStateKey,
+    getTabPreloadTarget,
     getTabScreenParam,
     getTabState,
     isReportsTabPreloaded,
+    isTabPreloaded,
     isTabRoutePreloaded,
 } from '@libs/Navigation/helpers/tabNavigatorUtils';
 
@@ -236,5 +238,87 @@ describe('getReportsTabPreloadTarget', () => {
 
     it('returns undefined when the root state is undefined', () => {
         expect(getReportsTabPreloadTarget(undefined)).toBeUndefined();
+    });
+});
+
+describe('isTabPreloaded', () => {
+    const buildRootState = (preloadedRouteKeys?: string[]) => ({
+        routes: [
+            {
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    key: 'tab-1',
+                    index: 0,
+                    routes: [
+                        {name: SCREENS.HOME, key: 'home-1'},
+                        {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, key: 'reports-1'},
+                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, key: 'search-1'},
+                    ],
+                    preloadedRouteKeys,
+                },
+            },
+        ],
+    });
+
+    it.each([
+        ['is true when the Search route key is preloaded', buildRootState(['search-1']), true],
+        // The Reports preload must not make a Spend tap look preloaded, or its span would be tagged wrongly.
+        ['is false when only the Reports route key is preloaded', buildRootState(['reports-1']), false],
+        ['is false when nothing is preloaded', buildRootState([]), false],
+        // A rehydrated or partial state carries no `preloadedRouteKeys`.
+        ['is false when the tab state does not track preloaded keys', buildRootState(undefined), false],
+        // The navigation container has not produced a state yet.
+        ['is false when the root state is undefined', undefined, false],
+    ])('%s', (_description: string, rootState: ReturnType<typeof buildRootState> | undefined, expected: boolean) => {
+        // Given a tab navigator whose preloaded keys are set up for this case, built in the table above
+        // When the Spend tab button checks whether it is about to reveal a preloaded screen
+        const isPreloaded = isTabPreloaded(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+
+        // Then only a preloaded Search route counts
+        expect(isPreloaded).toBe(expected);
+    });
+});
+
+describe('getTabPreloadTarget for the Spend tab', () => {
+    const buildRootState = ({index = 0, searchState}: {index?: number; searchState?: {routes: Array<{name: string}>; index: number}} = {}) => ({
+        routes: [
+            {
+                name: NAVIGATORS.TAB_NAVIGATOR,
+                state: {
+                    key: 'tab-1',
+                    index,
+                    routes: [
+                        {name: SCREENS.HOME, key: 'home-1'},
+                        {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, key: 'search-1', state: searchState},
+                    ],
+                },
+            },
+        ],
+    });
+
+    it.each([
+        ['the tab state key when Search is present, blurred and unmounted', {}, 'tab-1'],
+        // Preloading the focused tab would drop its freeze with nothing to warm in return.
+        ['undefined when Search is the focused tab', {index: 1}, undefined],
+        // The user already visited Spend in this session, so the screen is built and there is nothing to warm.
+        ['undefined when the Search route is already mounted', {searchState: {routes: [{name: SCREENS.SEARCH.ROOT}], index: 0}}, undefined],
+    ])('returns %s', (_description: string, options: {index?: number; searchState?: {routes: Array<{name: string}>; index: number}}, expected: string | undefined) => {
+        // Given a tab navigator in the state described by this case
+        const rootState = buildRootState(options);
+
+        // When the idle preload asks where to dispatch the Spend tab preload
+        const target = getTabPreloadTarget(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+
+        // Then it only targets a Spend tab that is neither focused nor already built
+        expect(target).toBe(expected);
+    });
+
+    it('returns undefined when there is no Search route', () => {
+        // Given a tab navigator that holds no Spend tab
+        const rootState = {routes: [{name: NAVIGATORS.TAB_NAVIGATOR, state: {key: 'tab-1', index: 0, routes: [{name: SCREENS.HOME, key: 'home-1'}]}}]};
+
+        // When the idle preload asks for a target
+        // Then there is nothing to preload
+        expect(getTabPreloadTarget(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)).toBeUndefined();
     });
 });
