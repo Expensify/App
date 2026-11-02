@@ -62,6 +62,8 @@ function DynamicFormFlow({
     onRefreshRequirements,
     isSubmitting,
     submitError,
+    isSavingPages,
+    unsavedPageKeys,
     layout = 'auto',
     hasConfirmation = true,
     shouldDisableNextWhenOffline,
@@ -102,9 +104,13 @@ function DynamicFormFlow({
         pages.findIndex((page) => isPageShown(page, answers, allFields) && Object.keys(getDynamicFieldErrors(getContentFields(page.content), answers, translate, allFields)).length > 0);
 
     // A visit opened without a page in the URL drops the sensitive answers of earlier visits, so it starts from what the draft holds
+    // A page whose save did not go through comes first, so the user sees which page to save again
+    const firstUnsavedPageIndex = subPages.findIndex((page) => !!unsavedPageKeys?.includes(page.pageName) && !skipPages.includes(page.pageName));
     let startFrom = firstShownPageIndex;
     if (isDraftLoading) {
         startFrom = -1;
+    } else if (firstUnsavedPageIndex !== -1) {
+        startFrom = firstUnsavedPageIndex;
     } else if (allFields.some((field) => hasDraftAnswer(draftValues[field.key]))) {
         const firstIncompleteIndex = getFirstIncompletePageIndex(draftValues);
         startFrom = firstIncompleteIndex === -1 ? lastShownPageIndex : firstIncompleteIndex;
@@ -366,6 +372,7 @@ function DynamicFormFlow({
                     confirmationTitle={confirmationTitle}
                     isSubmitting={isSubmitting}
                     submitError={submitError}
+                    isSavingPages={isSavingPages}
                     shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
                 />
             )}

@@ -62,7 +62,7 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const [privatePersonalDetails, privatePersonalDetailsMetadata] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [draft, draftMetadata] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT);
     const [businessAccount, businessAccountMetadata] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: businessAccountSelector});
-    const {isSaving, saveError} = useWiseOnboardingSaveStatus();
+    const {isSaving, saveError, unsavedPageKeys} = useWiseOnboardingSaveStatus();
     const bankAccount = bankAccountList?.[bankAccountID];
 
     const {translate} = useLocalize();
@@ -214,6 +214,9 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             // No page saves offline, so a typed SSN never waits for a connection and a later visit never resumes from a save the server has not seen
             shouldDisableNextWhenOffline
             submitError={saveError}
+            // Confirm waits while a page is saving, and a visit after a page did not save opens on that page
+            isSavingPages={isSaving}
+            unsavedPageKeys={unsavedPageKeys}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
             isSubmitting={false}
             onSubmit={() => {

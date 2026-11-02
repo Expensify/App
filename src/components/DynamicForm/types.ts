@@ -57,6 +57,15 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
     /** Error from sending the answers, shown on the confirmation page */
     submitError?: string;
 
+    /**
+     * Shows the confirmation page's Confirm button loading while pages saved with `onPageSubmit` are still saving. Unlike `isSubmitting`, the flow keeps the
+     * sensitive answers when it turns false.
+     */
+    isSavingPages?: boolean;
+
+    /** Pages whose `onPageSubmit` save has not gone through, so a new visit starts on the first one shown instead of where the draft leaves off */
+    unsavedPageKeys?: string[];
+
     /** When the step indicator shows: `auto` from three shown pages on, `stepper` always, `pages` never */
     layout?: DynamicFormLayout;
 
@@ -72,7 +81,10 @@ type DynamicFormFlowProps = Pick<DynamicFormFieldsProps, 'currency' | 'maxFileSi
 
 /** Props of every page in the flow: useSubPage's routing props plus the form's data */
 type DynamicFormSubPageProps = SubPageProps &
-    Pick<DynamicFormFlowProps, 'formID' | 'currency' | 'maxFileSize' | 'onRefreshRequirements' | 'confirmationTitle' | 'isSubmitting' | 'submitError' | 'shouldDisableNextWhenOffline'> & {
+    Pick<
+        DynamicFormFlowProps,
+        'formID' | 'currency' | 'maxFileSize' | 'onRefreshRequirements' | 'confirmationTitle' | 'isSubmitting' | 'submitError' | 'isSavingPages' | 'shouldDisableNextWhenOffline'
+    > & {
         pages: DynamicFormPage[];
 
         /** Every supported field of the form, which is where a `showWhen` finds its controller */

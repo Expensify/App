@@ -109,6 +109,7 @@ type RenderFlowOptions = {
     maxFileSize?: number;
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
     shouldDisableNextWhenOffline?: boolean;
+    unsavedPageKeys?: string[];
 };
 
 function mockSubPage(currentPageName: string, pageIndex: number, isRedirecting: boolean) {
@@ -140,6 +141,7 @@ async function renderFlow({
     maxFileSize,
     onRefreshRequirements,
     shouldDisableNextWhenOffline,
+    unsavedPageKeys,
 }: RenderFlowOptions = {}) {
     await Onyx.set(`${FORM_ID}Draft`, draft);
     await Onyx.set(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: sensitiveAnswers});
@@ -165,6 +167,7 @@ async function renderFlow({
             onRefreshRequirements={onRefreshRequirements}
             isSubmitting={submitting}
             shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
+            unsavedPageKeys={unsavedPageKeys}
         />
     );
     const {rerender, unmount} = render(renderWith(isSubmitting));
@@ -352,6 +355,34 @@ describe('DynamicFormFlow', () => {
         const {subPageOptions} = await renderFlow({flowSchema: schemaWithoutSsn, draft: {firstName: 'Jane', legalType: 'PRIVATE'}, hasConfirmation: true});
 
         // Then it opens on the confirmation page, where the user only has to confirm
+        expect(subPageOptions.startFrom).toBe(3);
+    });
+
+    it('resumes on a page whose save did not go through, even when the draft completes every page', async () => {
+        // Given a complete form whose recipient page did not save, as when the app closed while it was saving
+        // When the flow renders with a confirmation page
+        const {subPageOptions} = await renderFlow({
+            flowSchema: schemaWithoutSsn,
+            draft: {firstName: 'Jane', legalType: 'PRIVATE'},
+            hasConfirmation: true,
+            unsavedPageKeys: ['recipient'],
+        });
+
+        // Then it opens on the recipient page instead of the confirmation page, so the user sees which page to save again
+        expect(subPageOptions.startFrom).toBe(1);
+    });
+
+    it('does not resume on an unsaved page the answers now skip', async () => {
+        // Given a complete form whose company page did not save, though the recipient is no longer a business
+        // When the flow renders with a confirmation page
+        const {subPageOptions} = await renderFlow({
+            flowSchema: schemaWithoutSsn,
+            draft: {firstName: 'Jane', legalType: 'PRIVATE'},
+            hasConfirmation: true,
+            unsavedPageKeys: ['company'],
+        });
+
+        // Then it opens on the confirmation page, since the company page is never shown
         expect(subPageOptions.startFrom).toBe(3);
     });
 
