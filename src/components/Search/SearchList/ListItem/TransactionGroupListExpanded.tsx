@@ -173,13 +173,29 @@ function TransactionGroupListExpandedImpl({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
 
-    const {isAmountColumnWide, isTaxAmountColumnWide, shouldShowYear: shouldShowYearForSomeTransaction, isActionColumnWide} = getGroupColumnWidthFlags(transactions);
+    const columnWidthFlags = getGroupColumnWidthFlags(transactions);
+    const {
+        isAmountColumnWide,
+        isTaxAmountColumnWide,
+        shouldShowYear: shouldShowYearForSomeTransaction,
+        shouldShowYearSubmitted,
+        shouldShowYearApproved,
+        shouldShowYearPaid,
+        shouldShowYearPosted,
+        shouldShowYearExported,
+        isActionColumnWide,
+    } = columnWidthFlags;
     const amountColumnSize = isAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const taxAmountColumnSize = isTaxAmountColumnWide ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
     const dateColumnSize = shouldShowYearForSomeTransaction ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const submittedColumnSize = shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const approvedColumnSize = shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const paidColumnSize = shouldShowYearPaid ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const postedColumnSize = shouldShowYearPosted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
+    const exportedColumnSize = shouldShowYearExported ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL;
 
     // Shared with GroupHeader so the two always agree on the table's width.
-    const {minTableWidth, shouldScrollHorizontally} = getGroupTableScrollLayout(currentColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isActionColumnWide, windowWidth, isLargeScreenWidth);
+    const {minTableWidth, shouldScrollHorizontally} = getGroupTableScrollLayout(currentColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, columnWidthFlags, windowWidth, isLargeScreenWidth);
 
     // syncScrollKey is only set when the header is split out (wide web); otherwise this is a no-op.
     const {scrollViewRef: horizontalScrollViewRef, syncProps: horizontalSyncProps} = useSyncedHorizontalScroll(syncScrollKey, shouldScrollHorizontally);
@@ -335,6 +351,11 @@ function TransactionGroupListExpandedImpl({
                             sortOrder={undefined}
                             sortBy={undefined}
                             shouldShowYear={dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
+                            shouldShowYearSubmitted={shouldShowYearSubmitted}
+                            shouldShowYearApproved={shouldShowYearApproved}
+                            shouldShowYearPaid={shouldShowYearPaid}
+                            shouldShowYearPosted={shouldShowYearPosted}
+                            shouldShowYearExported={shouldShowYearExported}
                             isAmountColumnWide={amountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
                             isTaxAmountColumnWide={taxAmountColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE}
                             shouldShowSorting={false}
@@ -397,6 +418,11 @@ function TransactionGroupListExpandedImpl({
                                     isSelected={!!transaction.isSelected}
                                     isDisabled={isTransactionPendingDelete(transaction)}
                                     dateColumnSize={dateColumnSize}
+                                    submittedColumnSize={submittedColumnSize}
+                                    approvedColumnSize={approvedColumnSize}
+                                    paidColumnSize={paidColumnSize}
+                                    postedColumnSize={postedColumnSize}
+                                    exportedColumnSize={exportedColumnSize}
                                     amountColumnSize={amountColumnSize}
                                     taxAmountColumnSize={taxAmountColumnSize}
                                     shouldShowTooltip={showTooltip}

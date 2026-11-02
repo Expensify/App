@@ -439,26 +439,28 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
 
     // The arrow keys mirror the on-screen arrows. Text inputs keep them for editing, and a key already handled by
     // whatever has focus (e.g. a menu) is left alone, so keyboard and assistive tech navigation keep working.
+    // The shortcuts stay active at the first and last expense so they still swallow the key there. Otherwise the
+    // browser's default arrow-key scrolling reaches whatever was focused last, such as the report table behind the RHP.
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT,
         (event) => {
-            if (event?.defaultPrevented) {
+            if (event?.defaultPrevented || !canNavigateToPrevious) {
                 return;
             }
             onPrevious(event);
         },
-        {captureOnInputs: false, isActive: isArrowKeyNavigationActive && canNavigateToPrevious},
+        {captureOnInputs: false, isActive: isArrowKeyNavigationActive},
     );
 
     useKeyboardShortcut(
         CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT,
         (event) => {
-            if (event?.defaultPrevented) {
+            if (event?.defaultPrevented || !canNavigateToNext) {
                 return;
             }
             onNext(event);
         },
-        {captureOnInputs: false, isActive: isArrowKeyNavigationActive && canNavigateToNext},
+        {captureOnInputs: false, isActive: isArrowKeyNavigationActive},
     );
 
     // Two entries are the minimum for there to be anything to page between, and an anchor that isn't in the list

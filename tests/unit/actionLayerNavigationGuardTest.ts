@@ -51,17 +51,15 @@ const NAVIGATION_IMPORT = /from ['"](@libs\/Navigation\/[^'"]+)['"]/g;
  * what to do next. Assignability cannot express that rule, because TypeScript deliberately lets `(p) => {id: string}`
  * satisfy `(p) => void`, so these checks read ReturnType instead. `Awaited` keeps async actions passing. The imports
  * are type-only, so no action module is loaded at runtime, and these checks fail under `npm run typecheck`, not Jest.
+ * An action that becomes void fails here until its entry is deleted from PAYLOAD_RETURNING_ACTIONS.
  */
-type NoPayload<F extends (...args: never[]) => unknown> = Awaited<ReturnType<F>> extends void | undefined ? true : {actionMustNotReturnAPayload: true; thisActionReturns: ReturnType<F>};
-
-/** The inverse, so an action that becomes void fails here until its entry is deleted from the list below. */
-type HasPayload<F extends (...args: never[]) => unknown> = NoPayload<F> extends true ? {actionNowReturnsNothing: true; deleteItsEntryFromThisList: true} : true;
+type HasPayload<F extends (...args: never[]) => unknown> = Awaited<ReturnType<F>> extends void | undefined ? {actionNowReturnsNothing: true; deleteItsEntryFromThisList: true} : true;
 
 /**
  * Exhaustive per-module check for the action files whose navigation has already moved. It declares the complete set
  * of exports that return anything, so a newly added action is covered without anybody remembering to list it: a new
- * returning export fails with its own name, and a declared name that becomes void fails too. The modules not listed
- * here still navigate by design until the later PRs in issue #84631, which is when they join. Adding a module here
+ * returning export fails with its own name, and a declared name that becomes void fails too. Modules not listed here
+ * are not checked yet, and the ones that still navigate join in the later PRs in issue #84631. Adding a module here
  * also adds its file to the navigation scans below, so a migrated file always gets both checks.
  */
 type ReturningExports<M> = {
