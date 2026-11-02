@@ -1648,6 +1648,14 @@ describe('useSearchBulkActions - export options', () => {
             };
         }
 
+        function getOutsideDateRangeNode(start: string, end: string) {
+            return {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
+                left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: start},
+                right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: end},
+            };
+        }
+
         async function runCurrentViewExport() {
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: monthGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
@@ -1755,8 +1763,8 @@ describe('useSearchBulkActions - export options', () => {
             expect(exportSearchItemsToCSV).not.toHaveBeenCalled();
         });
 
-        it('shows the download error instead of exporting an excluded month when all matching items are selected', async () => {
-            // Given every matching item selected with September unselected afterwards, so September is an excluded group
+        it('leaves a deselected month out when all matching items are selected', async () => {
+            // Given every matching item selected with September deselected afterwards, so September is an excluded group
             mockMonthGroupsInSnapshot();
             mockAreAllMatchingItemsSelected = true;
             mockSelectedTransactions = {
@@ -1768,12 +1776,45 @@ describe('useSearchBulkActions - export options', () => {
             // When the user exports the current view
             await runCurrentViewExport();
 
-            // Then nothing is queued, because excluding a date range needs an OR that this path's flat filters cannot express,
-            // and dropping the exclusion would export September anyway
+            // Then the queued query keeps only dates outside September, ANDed in the filters AST because flatFilters can't express the OR
             await waitFor(() => {
-                expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedDescription'}));
+                expect(queueExportSearchItemsToCSV).toHaveBeenCalled();
             });
-            expect(queueExportSearchItemsToCSV).not.toHaveBeenCalled();
+            const query: unknown = JSON.parse(jest.mocked(queueExportSearchItemsToCSV).mock.calls.at(-1)?.at(0)?.jsonQuery ?? '{}');
+            expect(query).toHaveProperty('filters', {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: monthGroupedExpenseQueryJSON.filters,
+                right: getOutsideDateRangeNode('2026-09-01', '2026-09-30'),
+            });
+        });
+
+        it('leaves every deselected month out when all matching items are selected', async () => {
+            // Given every matching item selected with August and October deselected afterwards
+            mockMonthGroupsInSnapshot();
+            mockAreAllMatchingItemsSelected = true;
+            mockSelectedTransactions = {[SEPTEMBER_GROUP_KEY]: makeSelectedTransaction()};
+            mockExcludedTransactions = {
+                [AUGUST_GROUP_KEY]: makeSelectedTransaction(),
+                [OCTOBER_GROUP_KEY]: makeSelectedTransaction(),
+            };
+
+            // When the user exports the current view
+            await runCurrentViewExport();
+
+            // Then each deselected month adds its own exclusion, so an expense has to be outside both to be exported
+            await waitFor(() => {
+                expect(queueExportSearchItemsToCSV).toHaveBeenCalled();
+            });
+            const query: unknown = JSON.parse(jest.mocked(queueExportSearchItemsToCSV).mock.calls.at(-1)?.at(0)?.jsonQuery ?? '{}');
+            expect(query).toHaveProperty('filters', {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                left: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: monthGroupedExpenseQueryJSON.filters,
+                    right: getOutsideDateRangeNode('2026-08-01', '2026-08-31'),
+                },
+                right: getOutsideDateRangeNode('2026-10-01', '2026-10-31'),
+            });
         });
     });
 

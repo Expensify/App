@@ -345,6 +345,19 @@ function addSelectedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: Sea
     return {...queryJSON, filters};
 }
 
+/** Leaves the deselected groups' dates out of a time-grouped query, through the `filters` AST like addSelectedDateRangesFilter. */
+function addExcludedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: SearchDateRange[]): SearchQueryJSON {
+    const filters = dateRanges.reduce<ASTNode | undefined>((left, range) => {
+        const outsideRangeNode: ASTNode = {
+            operator: CONST.SEARCH.SYNTAX_OPERATORS.OR,
+            left: {operator: CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.start},
+            right: {operator: CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE, right: range.end},
+        };
+        return left ? {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left, right: outsideRangeNode} : outsideRangeNode;
+    }, queryJSON.filters);
+    return filters ? {...queryJSON, filters} : queryJSON;
+}
+
 /**
  * Scopes a group export to the selected groups. Returns undefined unless every group can be scoped,
  * because their row IDs aren't sent, so an unscoped group would be exported wrongly or dropped.
@@ -429,6 +442,7 @@ function getAllMatchingExportQueryAndExclusions(
 ): {queryJSON: SearchQueryJSON; excludedTransactionIDList: string[]} | undefined {
     const excludedTransactionIDList: string[] = [];
     const excludedGroupEntries: SelectedGroupValueFilter[] = [];
+    const excludedDateRanges: SearchDateRange[] = [];
 
     for (const key of Object.keys(excludedTransactions)) {
         if (!isGroupEntry(key)) {
@@ -438,11 +452,19 @@ function getAllMatchingExportQueryAndExclusions(
 
         const group = searchData?.[key];
         const groupEntry = queryJSON.groupBy && group ? getSelectedGroupFilterEntry(queryJSON.groupBy, group) : undefined;
-        // Excluding a date group needs an OR, which flatFilters can't express
-        if (groupEntry?.kind !== 'value') {
+        if (!groupEntry) {
             return undefined;
         }
-        excludedGroupEntries.push(groupEntry);
+        if (groupEntry.kind === 'dateRange') {
+            excludedDateRanges.push(groupEntry.dateRange);
+        } else {
+            excludedGroupEntries.push(groupEntry);
+        }
+    }
+
+    // Excluding a date group needs an OR, which flatFilters can't express
+    if (excludedDateRanges.length > 0) {
+        return {queryJSON: addExcludedDateRangesFilter(queryJSON, excludedDateRanges), excludedTransactionIDList};
     }
 
     if (excludedGroupEntries.length === 0) {
