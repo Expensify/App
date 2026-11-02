@@ -1291,7 +1291,7 @@ function waypointHasValidAddress(waypoint: RecentWaypoint | Waypoint): boolean {
     return !!waypoint?.address?.trim();
 }
 
-function isWaypointNullIsland(waypoint: RecentWaypoint | Waypoint): boolean {
+function isZeroCoordinatesWaypoint(waypoint: RecentWaypoint | Waypoint): boolean {
     return waypoint.lat === 0 && waypoint.lng === 0;
 }
 
@@ -1338,7 +1338,7 @@ function getValidWaypoints(waypoints: WaypointCollection | undefined, reArrangeI
         }
 
         // Exclude null island
-        if (isWaypointNullIsland(currentWaypoint)) {
+        if (isZeroCoordinatesWaypoint(currentWaypoint)) {
             return acc;
         }
 
@@ -1930,7 +1930,7 @@ export {
     hasPendingUI,
     getWaypointIndex,
     waypointHasValidAddress,
-    isWaypointNullIsland,
+    isZeroCoordinatesWaypoint,
     getRecentTransactions,
     hasReservationList,
     hasViolation,

@@ -4,7 +4,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 
-import {isWaypointNullIsland} from '@libs/TransactionUtils';
+import {isZeroCoordinatesWaypoint} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -50,7 +50,7 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
 
     const waypoint = waypoints?.[`waypoint${index}`] ?? {};
     const title = waypoint.name || waypoint.address;
-    const errorText = isWaypointNullIsland(waypoint) ? translate('violations.noRoute') : undefined;
+    const errorText = isZeroCoordinatesWaypoint(waypoint) ? translate('violations.noRoute') : undefined;
 
     return (
         <MenuItemWithTopDescription

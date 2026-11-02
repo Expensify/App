@@ -293,6 +293,106 @@ describe('useConfirmationValidation', () => {
         expect(result.current.validate()).toEqual({errorKey: null});
     });
 
+    it('returns atLeastTwoDifferentWaypoints when distance request has waypoints with zero coordinates', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isDistanceRequest: true,
+                transaction: createTransactionBase({
+                    amount: 1000,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    comment: {
+                        waypoints: {
+                            waypoint0: {address: 'Start', lat: 0, lng: 0},
+                            waypoint1: {address: 'End', lat: 0, lng: 0},
+                        },
+                    },
+                }),
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: 'iou.error.atLeastTwoDifferentWaypoints'});
+    });
+
+    it('returns atLeastTwoDifferentWaypoints when distance request has fewer than 2 valid waypoints', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isDistanceRequest: true,
+                transaction: createTransactionBase({
+                    amount: 1000,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    comment: {
+                        waypoints: {
+                            waypoint0: {address: 'Start', lat: 10, lng: 10},
+                            waypoint1: {keyForList: 'stop_waypoint'},
+                        },
+                    },
+                }),
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: 'iou.error.atLeastTwoDifferentWaypoints'});
+    });
+
+    it('returns duplicateWaypointsErrorMessage when distance request has duplicate waypoints', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isDistanceRequest: true,
+                transaction: createTransactionBase({
+                    amount: 1000,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    comment: {
+                        waypoints: {
+                            waypoint0: {address: 'Same Address', lat: 10, lng: 10},
+                            waypoint1: {address: 'Same Address', lat: 10, lng: 10},
+                        },
+                    },
+                }),
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: 'iou.error.duplicateWaypointsErrorMessage'});
+    });
+
+    it('does not block confirmation when distance request has valid waypoints', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isDistanceRequest: true,
+                transaction: createTransactionBase({
+                    amount: 1000,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP,
+                    comment: {
+                        waypoints: {
+                            waypoint0: {address: 'Start Address', lat: 10, lng: 10},
+                            waypoint1: {address: 'End Address', lat: 20, lng: 20},
+                        },
+                    },
+                }),
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
+    it('does not block confirmation for GPS distance requests with repeated waypoints', () => {
+        const {result} = renderHook(() =>
+            useConfirmationValidation({
+                ...baseParams,
+                isDistanceRequest: true,
+                transaction: createTransactionBase({
+                    amount: 1000,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS,
+                    comment: {
+                        waypoints: {
+                            waypoint0: {address: 'Same Address', lat: 10, lng: 10},
+                            waypoint1: {address: 'Same Address', lat: 10, lng: 10},
+                        },
+                    },
+                }),
+            }),
+        );
+        expect(result.current.validate()).toEqual({errorKey: null});
+    });
+
     it('returns invalidAmount for split with zero amount when fields are filled', () => {
         const {result} = renderHook(() =>
             useConfirmationValidation({
