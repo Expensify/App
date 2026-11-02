@@ -213,6 +213,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               isASAPSubmitBetaEnabled,
               predictedNextStatus,
               isTrackIntentUser,
+              personalDetailsByLogins,
           });
     const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
@@ -1079,6 +1080,7 @@ function submitReport({
               isUnapprove: true,
               bypassNextApproverID: optimisticNextStepApproverID,
               isTrackIntentUser,
+              personalDetailsByLogins,
           });
     const optimisticData: Array<
         OnyxUpdate<
