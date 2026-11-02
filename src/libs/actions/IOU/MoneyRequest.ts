@@ -507,6 +507,20 @@ function clearMoneyRequest(transactionID: string, draftTransactionIDs: string[] 
     Onyx.multiSet(onyxData as Parameters<typeof Onyx.multiSet>[0]);
 }
 
+/** Clears fields whose values are only valid for the policy associated with the current destination. */
+function clearMoneyRequestPolicyFields(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        category: '',
+        tag: '',
+        taxCode: '',
+        taxAmount: null,
+        taxValue: null,
+        comment: {
+            attendees: null,
+        },
+    });
+}
+
 function startMoneyRequest(
     iouType: ValueOf<typeof CONST.IOU.TYPE>,
     reportID: string,
@@ -1175,6 +1189,7 @@ export {
     initMoneyRequest,
     createDraftTransaction,
     clearMoneyRequest,
+    clearMoneyRequestPolicyFields,
     startMoneyRequest,
     startDistanceRequest,
     setMoneyRequestParticipants,

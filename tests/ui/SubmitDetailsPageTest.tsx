@@ -13,7 +13,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {Scheduler} from '@libs/Scheduler';
 
-import SubmitDetailsPage from '@pages/Share/SubmitDetailsPage';
+import SubmitDetailsPage, {getDefaultBillableForDestination, getDestinationKey} from '@pages/Share/SubmitDetailsPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -172,18 +172,23 @@ jest.mock('@components/HeaderWithBackButton', () => {
 // pulling in the real form. The `mock` prefix is what lets the hoisted jest.mock factory reference it.
 let mockConfirmationListProps: Record<string, unknown> = {};
 
-// Mock the confirmation list down to a button that fires onConfirm — isolates the test from the form internals.
+// Mock the confirmation list down to buttons that fire onConfirm and onOpenParticipantPicker — isolates the test from the form internals.
 jest.mock('@components/MoneyRequestConfirmationList', () => {
     const React2 = require('react');
     const {Pressable, Text} = require('react-native');
     return {
         __esModule: true,
-        default: (props: {onConfirm: (participants?: Array<{accountID: number; login: string}>) => void}) => {
+        default: (props: {onConfirm: (participants?: Array<{accountID: number; login: string}>) => void; onOpenParticipantPicker?: () => void}) => {
             mockConfirmationListProps = props;
             return React2.createElement(
-                Pressable,
-                {testID: 'mock-confirm-button', onPress: () => props.onConfirm([{accountID: 2, login: 'participant@example.com'}])},
-                React2.createElement(Text, null, 'confirm'),
+                React2.Fragment,
+                null,
+                React2.createElement(
+                    Pressable,
+                    {testID: 'mock-confirm-button', onPress: () => props.onConfirm([{accountID: 2, login: 'participant@example.com'}])},
+                    React2.createElement(Text, null, 'confirm'),
+                ),
+                React2.createElement(Pressable, {testID: 'mock-participant-picker-button', onPress: props.onOpenParticipantPicker}, React2.createElement(Text, null, 'participant')),
             );
         },
     };
@@ -280,7 +285,7 @@ function renderSubmitDetailsPage() {
     return render(
         <SubmitDetailsPage
             route={{key: 'submit-test', name: SCREENS.SHARE.SUBMIT_DETAILS, params: {reportOrAccountID: SHARED_REPORT_ID}}}
-            navigation={createMock<React.ComponentProps<typeof SubmitDetailsPage>['navigation']>({})}
+            navigation={createMock<React.ComponentProps<typeof SubmitDetailsPage>['navigation']>({addListener: jest.fn(() => jest.fn())})}
         />,
     );
 }
@@ -302,6 +307,58 @@ function resetNavigationMocksForSubmitDetailsPageTests() {
 }
 
 describe('SubmitDetailsPage', () => {
+    it('does not inherit a stale workspace billable default for a personal destination', () => {
+        // Given a P2P destination while the previously selected workspace policy is still resolving away
+        const staleWorkspaceDefaultBillable = true;
+
+        // When the destination default is resolved
+        const defaultBillable = getDefaultBillableForDestination(false, false, staleWorkspaceDefaultBillable);
+
+        // Then the personal destination uses its own non-billable default
+        expect(defaultBillable).toBe(false);
+    });
+
+    it('uses the resolved policy billable default for workspace and Track destinations', () => {
+        // Given policy-backed Submit and Track destinations
+        const policyDefaultBillable = true;
+
+        // When their destination defaults are resolved
+        const workspaceDefaultBillable = getDefaultBillableForDestination(true, false, policyDefaultBillable);
+        const trackDefaultBillable = getDefaultBillableForDestination(false, true, policyDefaultBillable);
+
+        // Then both continue using the resolved policy default
+        expect(workspaceDefaultBillable).toBe(true);
+        expect(trackDefaultBillable).toBe(true);
+    });
+
+    it('keys personal destinations with a fake policy by report ID', () => {
+        // Given a self-DM and P2P destination that both use the fake policy sentinel
+        const selfDMReportID = 'self-dm-report';
+        const p2pReportID = 'p2p-report';
+
+        // When their destination keys are resolved
+        const selfDMDestinationKey = getDestinationKey(CONST.POLICY.ID_FAKE, selfDMReportID);
+        const p2pDestinationKey = getDestinationKey(CONST.POLICY.ID_FAKE, p2pReportID);
+
+        // Then each personal destination is distinguished by its report ID
+        expect(selfDMDestinationKey).toBe(`report:${selfDMReportID}`);
+        expect(p2pDestinationKey).toBe(`report:${p2pReportID}`);
+        expect(selfDMDestinationKey).not.toBe(p2pDestinationKey);
+    });
+
+    it('keys reports from the same real workspace by policy ID', () => {
+        // Given two reports belonging to the same real workspace
+        const policyID = 'workspace-policy';
+
+        // When their destination keys are resolved
+        const firstDestinationKey = getDestinationKey(policyID, 'first-report');
+        const secondDestinationKey = getDestinationKey(policyID, 'second-report');
+
+        // Then both reports retain the shared workspace destination key
+        expect(firstDestinationKey).toBe(`policy:${policyID}`);
+        expect(secondDestinationKey).toBe(firstDestinationKey);
+    });
+
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS, evictableKeys: [ONYXKEYS.COLLECTION.REPORT_ACTIONS]});
     });
@@ -551,6 +608,24 @@ describe('SubmitDetailsPage', () => {
         fireEvent.press(screen.getByTestId('mock-back-button'));
         await waitForBatchedUpdatesWithAct();
 
+        expect(Navigation.removePreInsertedFullscreenIfNeeded).toHaveBeenCalled();
+        expect(Navigation.goBack).toHaveBeenCalled();
+    });
+
+    it('cleans up a pre-inserted destination route before goBack when opening the participant picker', async () => {
+        // Given the destination report is not topmost and is pre-inserted behind the Share flow
+        jest.mocked(Navigation.getTopmostReportId).mockReturnValue(undefined);
+
+        renderSubmitDetailsPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(Navigation.preInsertFullscreenUnderRHP).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(SHARED_REPORT_ID));
+
+        // When the user opens the participant picker
+        fireEvent.press(screen.getByTestId('mock-participant-picker-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the pre-inserted route is removed before navigating back to the picker
         expect(Navigation.removePreInsertedFullscreenIfNeeded).toHaveBeenCalled();
         expect(Navigation.goBack).toHaveBeenCalled();
     });

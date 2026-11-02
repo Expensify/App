@@ -65,7 +65,7 @@ async function renderShareConfirmation() {
                     <LocaleContextProvider>
                         <SubmitDetailsPage
                             route={{key: 'submit-details-test', name: SCREENS.SHARE.SUBMIT_DETAILS, params: {reportOrAccountID: SHARED_REPORT_ID}}}
-                            navigation={createMock<React.ComponentProps<typeof SubmitDetailsPage>['navigation']>({})}
+                            navigation={createMock<React.ComponentProps<typeof SubmitDetailsPage>['navigation']>({addListener: jest.fn(() => jest.fn())})}
                         />
                     </LocaleContextProvider>
                 </CurrentUserPersonalDetailsProvider>
