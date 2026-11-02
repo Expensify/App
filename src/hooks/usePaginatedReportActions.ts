@@ -1,8 +1,10 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getContinuousChain} from '@libs/PaginationUtils';
-import {getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
+import {getDynamicExternalWorkflowRoutedActionID, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
+import {isActionOfType} from '@libs/ReportActionTypeGuards';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 
@@ -93,7 +95,21 @@ function usePaginatedReportActions(reportID: string | undefined, reportActionID?
             return {data: [], hasNextPage: false, hasPreviousPage: false};
         }
 
-        return getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, id);
+        const continuousChain = getContinuousChain(sortedAllReportActions, reportActionPages ?? [], (reportAction) => reportAction.reportActionID, id);
+
+        // Pages leave out the app-only DEW routed row, which sorts just before its submit or forward action.
+        // When a linked page starts at that action, add its routed row back so the routed message still shows.
+        const firstReportActionID = continuousChain.data.at(0)?.reportActionID;
+        const routedReportActionID = continuousChain.hasPreviousPage && firstReportActionID ? getDynamicExternalWorkflowRoutedActionID(firstReportActionID) : undefined;
+        const routedReportAction = routedReportActionID
+            ? sortedAllReportActions.find(
+                  (reportAction) => reportAction.reportActionID === routedReportActionID && isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED),
+              )
+            : undefined;
+        if (!routedReportAction) {
+            return continuousChain;
+        }
+        return {...continuousChain, data: [routedReportAction, ...continuousChain.data]};
     }, [id, reportActionPages, sortedAllReportActions]);
 
     // When `treatAsNoPaginationAnchor` is set, we intentionally ignore `reportActionID` for pagination
