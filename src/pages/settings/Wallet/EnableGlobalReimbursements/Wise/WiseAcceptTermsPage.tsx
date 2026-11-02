@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -63,7 +64,7 @@ const TERM_LABELS: Record<TermKey, () => React.JSX.Element> = {
 
 /** The last page of our own onboarding, after the confirmation page. Every box is required to continue. */
 function WiseAcceptTermsPage() {
-    const confirmationPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path);
+    const introPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [accepted, setAccepted] = useState<Record<TermKey, boolean>>({certify: false, expensifyTerms: false, wiseTerms: false});
@@ -71,14 +72,22 @@ function WiseAcceptTermsPage() {
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isWiseReimbursementsBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.WISE_REIMBURSEMENTS);
 
-    const goBackToConfirmation = () => Navigation.goBack(confirmationPath);
+    // The terms replaced the confirmation page, so back puts it in their place
+    const goBackToConfirmation = () =>
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY), introPath), {forceReplace: true});
+
+    // The intro is the screen underneath, so Android's back takes the header's step instead of popping to it
+    useAndroidBackButtonHandler(() => {
+        goBackToConfirmation();
+        return true;
+    });
 
     useEffect(() => {
         if (isWiseReimbursementsBetaEnabled !== false) {
             return;
         }
-        goBackToConfirmation();
-    }, [isWiseReimbursementsBetaEnabled, goBackToConfirmation]);
+        Navigation.goBack(introPath);
+    }, [isWiseReimbursementsBetaEnabled, introPath]);
 
     const confirm = () => {
         if (!TERM_KEYS.every((key) => accepted[key])) {
@@ -87,7 +96,7 @@ function WiseAcceptTermsPage() {
         }
         clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         // TODO: Remove once SubmitWiseBusinessOnboarding decides when Wise needs more details
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path), {forceReplace: true});
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introPath), {forceReplace: true});
     };
 
     if (!isWiseReimbursementsBetaEnabled) {

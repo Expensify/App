@@ -27,7 +27,7 @@ const KYC_REVIEW_URL = 'https://sandbox.transferwise.tech/embedded-flows/kyc-rev
 
 jest.mock('@userActions/Wise', () => ({getWiseKYCReviewEmbeddedLink: jest.fn(), clearWiseKYCReviewEmbeddedLink: jest.fn()}));
 jest.mock('@libs/openExternalLink', () => jest.fn());
-jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/9053192/business-onboarding/confirm'));
+jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => 'settings/wallet/global-reimbursements/9053192'));
 jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: (key: string) => key})));
 
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
@@ -74,14 +74,15 @@ describe('WiseMoreInfoNeededPage', () => {
     });
 
     it('goes back to the screen the flow started from', async () => {
-        // Given the page opened from the terms, which it replaced, over the wallet
+        // Given the page replaced the terms over the intro opened from the wallet
         const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
         await renderPage();
 
         // When the user presses the back button
         fireEvent.press(screen.getByLabelText('common.back'));
 
-        // Then the user lands on the wallet rather than the onboarding form, since our part of the flow is done
+        // Then the user leaves the intro too rather than reopening the form, since our part of the flow is done
         expect(goBackSpy).toHaveBeenCalledWith('settings/wallet');
+        goBackSpy.mockRestore();
     });
 });

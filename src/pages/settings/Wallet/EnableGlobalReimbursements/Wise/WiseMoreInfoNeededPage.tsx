@@ -5,6 +5,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -14,7 +15,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import {getWiseGlobalReimbursementsEntryPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
+import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import openExternalLink from '@libs/openExternalLink';
 
@@ -35,8 +36,8 @@ type WiseMoreInfoNeededPageProps = PlatformStackScreenProps<SettingsNavigatorPar
 /** Sends the user to Wise's own page for the details only Wise can collect */
 function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
-    const wiseFlowPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path);
-    const entryPath = getWiseGlobalReimbursementsEntryPath(wiseFlowPath);
+    const introPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path);
+    const entryPath = stripDynamicRouteSuffixFromPath(introPath, DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
     const [embeddedLink] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK);
 
     const {translate} = useLocalize();
@@ -48,6 +49,12 @@ function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
 
     // The flow is finished on our side, so back leaves it instead of reopening the form
     const goBackToEntryPoint = () => Navigation.goBack(entryPath);
+
+    // The intro is the screen underneath, so Android's back takes the header's step instead of popping to it
+    useAndroidBackButtonHandler(() => {
+        goBackToEntryPoint();
+        return true;
+    });
 
     useEffect(() => {
         if (isWiseReimbursementsBetaEnabled !== false) {

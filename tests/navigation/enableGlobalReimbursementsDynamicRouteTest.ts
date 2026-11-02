@@ -4,7 +4,6 @@ import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesU
 import isDynamicRouteSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/isDynamicRouteSuffix';
 import {
     getEnableGlobalReimbursementsBusinessNavigationRoute,
-    getWiseGlobalReimbursementsEntryPath,
     getWiseGlobalReimbursementsIntroNavigationRoute,
     isWiseGlobalReimbursementsIntroOverPayReportScreen,
     shouldUseDynamicEnableGlobalReimbursementsBase,
@@ -124,22 +123,6 @@ describe('Enable global reimbursements dynamic routes', () => {
 
             // Then the intro opens over the wallet because it has no static route
             expect(route).toBe('settings/wallet/global-reimbursements/456');
-        });
-    });
-
-    describe('getWiseGlobalReimbursementsEntryPath', () => {
-        it.each([
-            ['the wallet', 'settings/wallet/global-reimbursements/456/business-onboarding/confirm', 'settings/wallet'],
-            ['a search report RHP with backTo', 'search/view/123/global-reimbursements/456/business-onboarding/confirm?backTo=search', 'search/view/123?backTo=search'],
-            ['the wallet under terms that were not replaced', 'settings/wallet/global-reimbursements/456/business-onboarding/confirm/accept-terms', 'settings/wallet'],
-        ])('returns %s under the whole Wise flow', (_label, wiseFlowPath, entryPath) => {
-            // Given the more info needed page sits on the intro and the onboarding form opened over an entry screen
-
-            // When the more info needed page resolves where back should go
-            const path = getWiseGlobalReimbursementsEntryPath(wiseFlowPath);
-
-            // Then it skips every Wise page, since the admin is done with our part of the flow
-            expect(path).toBe(entryPath);
         });
     });
 

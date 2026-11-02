@@ -7,7 +7,6 @@ import WiseAcceptTermsPage from '@pages/settings/Wallet/EnableGlobalReimbursemen
 import {clearSensitiveAnswers} from '@userActions/DynamicForm';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type ReactNative from 'react-native';
 
@@ -21,7 +20,7 @@ const mockTranslate = TestHelper.translateLocal;
 jest.mock('@react-navigation/native', () => ({...jest.requireActual<Record<string, unknown>>('@react-navigation/native'), useFocusEffect: jest.fn()}));
 jest.mock('@navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@userActions/DynamicForm', () => ({clearSensitiveAnswers: jest.fn()}));
-jest.mock('@hooks/useDynamicBackPath', () => () => 'settings/wallet/global-reimbursements/1/business-onboarding/confirm');
+jest.mock('@hooks/useDynamicBackPath', () => () => 'settings/wallet/global-reimbursements/1');
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabledOrUnknown: () => true}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate, preferredLocale: 'en'}));
 jest.mock('@hooks/useThemeStyles', () => () => new Proxy({}, {get: () => ({})}));
@@ -86,7 +85,7 @@ describe('WiseAcceptTermsPage', () => {
 
         // Then the button still works after the error, the SSN kept in memory for this page is dropped, and the more info needed page replaces the terms
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-        expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path), {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/more-info-needed', {forceReplace: true});
     });
 
     it('hides the error once the user changes a box', () => {
