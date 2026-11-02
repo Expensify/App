@@ -86,7 +86,7 @@ function TaxPicker({
     const defaultTaxCode = getDefaultTaxCode(policy, currentTransaction) ?? '';
     const fallbackTaxCode = transactionID ? defaultTaxCode : '';
     const effectiveTaxCode = resolveCurrentTaxCode(policy, taxCode && taxCode.length > 0 ? taxCode : fallbackTaxCode);
-    const effectiveSelectedTaxRate = selectedTaxRate || (effectiveTaxCode ? (transformedTaxRates(policy, currentTransaction)[effectiveTaxCode]?.modifiedName ?? '') : '');
+    const effectiveSelectedTaxRate = selectedTaxRate || (effectiveTaxCode ? (transformedTaxRates(translate, policy, currentTransaction)[effectiveTaxCode]?.modifiedName ?? '') : '');
     const hasTaxBeenDeleted = !!taxCode && taxValue !== undefined && !taxRates?.taxes?.[effectiveTaxCode];
     const hasTaxValueChanged = !!taxCode && taxValue !== undefined && taxRates?.taxes?.[effectiveTaxCode]?.value !== taxValue;
 
@@ -116,6 +116,7 @@ function TaxPicker({
         policy,
         searchValue,
         localeCompare,
+        translate,
         selectedOptions,
         transaction: currentTransaction,
     });

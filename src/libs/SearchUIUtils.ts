@@ -4285,8 +4285,8 @@ function getSortedTransactionData(
 
     if (sortBy === CONST.SEARCH.TABLE_COLUMNS.TAX_RATE) {
         return data.sort((a, b) => {
-            const aValue = getTaxName(a.policy, a);
-            const bValue = getTaxName(b.policy, b);
+            const aValue = getTaxName(translate, a.policy, a);
+            const bValue = getTaxName(translate, b.policy, b);
             return compareValues(aValue, bValue, sortOrder, sortBy, localeCompare);
         });
     }

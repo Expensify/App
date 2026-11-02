@@ -369,7 +369,7 @@ function SearchEditMultiplePage() {
                     {isTaxTrackingEnabled && (
                         <MenuItemField
                             name={policy?.taxRates?.name ?? translate('common.tax')}
-                            value={draftTransaction?.taxCode ? getTaxName(policy, draftTransaction) : ''}
+                            value={draftTransaction?.taxCode ? getTaxName(translate, policy, draftTransaction) : ''}
                             onPress={isTaxDisabled ? undefined : () => Navigation.navigate(ROUTES.SEARCH_EDIT_MULTIPLE_TAX_RHP)}
                             isDisabled={isTaxDisabled}
                         />

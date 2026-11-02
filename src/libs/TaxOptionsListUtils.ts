@@ -1,4 +1,4 @@
-import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
 
 import CONST from '@src/CONST';
@@ -58,18 +58,20 @@ function getTaxRatesSection({
     policy,
     searchValue,
     localeCompare,
+    translate,
     selectedOptions = [],
     transaction,
 }: {
     policy: OnyxEntry<Policy> | undefined;
     searchValue: string;
     localeCompare: LocaleContextProps['localeCompare'];
+    translate: LocalizedTranslate;
     selectedOptions?: Tax[];
     transaction?: OnyxEntry<Transaction>;
 }): Array<Section<TaxRatesOption>> {
     const policyRatesSections = [];
 
-    const taxes = transformedTaxRates(policy, transaction);
+    const taxes = transformedTaxRates(translate, policy, transaction);
 
     const sortedTaxRates = sortTaxRates(taxes, localeCompare);
     const selectedOptionNames = new Set(selectedOptions.map((selectedOption) => selectedOption.modifiedName));

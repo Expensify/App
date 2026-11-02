@@ -882,7 +882,6 @@
 "../../src/libs/TransactionUtils/getUpdatedTransaction.ts"	"@typescript-eslint/no-deprecated/translateLocal"	2
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-deprecated/getReportTransactions"	1
 "../../src/libs/TransactionUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/libs/TransactionUtils/tax.ts"	"@typescript-eslint/no-deprecated/translateLocal"	1
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-imports"	1
 "../../src/libs/UnreadIndicatorUpdater/index.ts"	"no-restricted-syntax"	1
 "../../src/libs/updateMultilineInputRange/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1

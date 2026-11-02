@@ -3293,7 +3293,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, getCurrencyDecimals, reports, false, true, undefined),
+                        onSelected: () =>
+                            setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, translate, getCurrencyDecimals, reports, false, true, undefined),
                     });
                 }
             }

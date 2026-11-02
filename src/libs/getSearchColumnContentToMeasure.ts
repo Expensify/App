@@ -256,7 +256,7 @@ function getTransactionColumnContentToMeasure(
             // width of the fallback it actually shows rather than at nothing.
             return [{text: getPolicyName({report: item.report, unavailableTranslation: translate('workspace.common.unavailable')})}];
         case CONST.SEARCH.TABLE_COLUMNS.TAX_RATE:
-            return [{text: isTimeRequest(item) || isPerDiemRequest(item) ? '' : (getTaxName(item.policy, item) ?? item.taxValue ?? '')}];
+            return [{text: isTimeRequest(item) || isPerDiemRequest(item) ? '' : (getTaxName(translate, item.policy, item) ?? item.taxValue ?? '')}];
         case CONST.SEARCH.TABLE_COLUMNS.EXCHANGE_RATE:
             return [{text: getExchangeRate(item, item.report?.currency ?? item.policy?.outputCurrency, true)}];
         case CONST.SEARCH.TABLE_COLUMNS.CATEGORY_GL_CODE:
