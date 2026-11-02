@@ -89,6 +89,13 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.SETTINGS.WALLET.DYNAMIC_ENABLE_GLOBAL_REIMBURSEMENTS_SIGN]: {
         animationTypeForReplace: 'push',
     },
+    // These pages replace the previous Wise page, so a swipe back would pop to the intro instead of taking the header's back step
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: {
+        gestureEnabled: false,
+    },
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED]: {
+        gestureEnabled: false,
+    },
     [SCREENS.REIMBURSEMENT_ACCOUNT_USD]: {
         animationTypeForReplace: 'push',
     },
