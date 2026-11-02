@@ -1,3 +1,4 @@
+import useInputFSClass from '@hooks/useInputFSClass';
 import useLandscapeOnBlurProxy from '@hooks/useLandscapeOnBlurProxy';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
@@ -30,8 +31,9 @@ type RNMarkdownTextInputWithRefProps = Omit<MarkdownTextInputProps, 'parser'> &
         ref?: ForwardedRef<AnimatedMarkdownTextInputRef>;
     };
 
-function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = CONST.FULLSTORY.CLASS.UNMASK, ...props}: RNMarkdownTextInputWithRefProps) {
+function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass, ...props}: RNMarkdownTextInputWithRefProps) {
     const theme = useTheme();
+    const fsClass = useInputFSClass(forwardedFSClass, props);
     const styles = useThemeStyles();
 
     const {availableLoginsList, currentUserMentions} = useShortMentionsList();
@@ -83,7 +85,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
         // so the View won't interfere with the layout tree.
         <View
             style={styles.dContents}
-            fsClass={forwardedFSClass}
+            fsClass={fsClass}
         >
             <AnimatedMarkdownTextInput
                 allowFontScaling={false}
@@ -93,7 +95,7 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
                 ref={inputRef}
                 formatSelection={toggleSelectionFormat}
                 // eslint-disable-next-line react/forbid-component-props
-                fsClass={forwardedFSClass}
+                fsClass={fsClass}
                 {...props}
                 /**
                  * If maxLength is not set, we should set it to CONST.MAX_COMMENT_LENGTH + 1, to avoid parsing markdown for large text

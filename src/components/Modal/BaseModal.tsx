@@ -1,4 +1,5 @@
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
+import FSClassContext from '@components/FSClassView/FSClassContext';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
@@ -431,7 +432,9 @@ function BaseModal({
                                     <View />
                                 </PressableWithoutFeedback>
                             )}
-                            <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                            <FSClassContext.Provider value={forwardedFSClass}>
+                                <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
+                            </FSClassContext.Provider>
                         </Animated.View>
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>

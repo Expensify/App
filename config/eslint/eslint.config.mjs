@@ -348,7 +348,7 @@ const config = defineConfig([
                             propName: 'fsClass',
                             allowedFor: ['View', 'Animated.View', 'Text', 'Pressable'],
                             message:
-                                "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nPlease use the 'ForwardedFSClassProps' or 'MultipleFSClassProps' types to pass down the desired 'fsClass' value to the allowed components.",
+                                "The 'fsClass' prop doesn't work for custom components, only RN's View, Text and Pressable.\nType the component's props with 'ForwardedFSClassProps' and pass 'forwardedFSClass' down to one of those, or wrap the content in 'FSClassView' so text inputs inside follow its class.",
                         },
                     ],
                 },

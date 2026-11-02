@@ -5,6 +5,7 @@ import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/Dynami
 import isSensitiveField from '@components/DynamicForm/utils/isSensitiveField';
 import {getListItems} from '@components/DynamicForm/utils/listItems';
 import summarizeListItem, {getListItemFallbackTitle} from '@components/DynamicForm/utils/summarizeListItem';
+import FSClassView from '@components/FSClassView';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import Text from '@components/Text';
 
@@ -15,7 +16,6 @@ import CONST from '@src/CONST';
 import type {DynamicFormField, DynamicFormFieldType} from '@src/types/onyx';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import type {DynamicFormFieldsProps} from './DynamicFormFields';
 
@@ -61,15 +61,15 @@ function DynamicFormFieldRow({
                       .join(', ')
                 : formatDynamicFieldValue(field, values, translate);
         return (
-            <View
+            <FSClassView
                 style={[styles.mhn5, styles.pv1]}
-                fsClass={CONST.FULLSTORY.CLASS.MASK}
+                forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             >
                 <MenuItemField
                     name={label}
                     value={readonlyValue}
                 />
-            </View>
+            </FSClassView>
         );
     }
 
@@ -98,9 +98,9 @@ function DynamicFormFieldRow({
 
     // Some inputs, such as CountryPicker, do not pass the FullStory class on, so the whole row is masked
     return (
-        <View
+        <FSClassView
             style={isMenuRow ? [styles.mhn5, styles.pv1] : styles.pv2}
-            fsClass={CONST.FULLSTORY.CLASS.MASK}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
         >
             {!!labelAbove && !shouldHideLabel && (
                 <Text
@@ -113,7 +113,7 @@ function DynamicFormFieldRow({
             )}
             {!!description && <Text style={[styles.textSupporting, styles.mb3, isMenuRow && styles.ph5]}>{description}</Text>}
             {input}
-        </View>
+        </FSClassView>
     );
 }
 

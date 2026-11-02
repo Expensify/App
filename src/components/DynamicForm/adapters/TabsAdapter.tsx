@@ -1,4 +1,5 @@
 import FormHelpMessage from '@components/FormHelpMessage';
+import FSClassView from '@components/FSClassView';
 import type {Choice} from '@components/RadioButtons';
 import TabSelectorBase from '@components/TabSelector/TabSelectorBase';
 
@@ -38,10 +39,10 @@ function TabsAdapter({items, value, onInputChange = () => {}, errorText, forward
     const styles = useThemeStyles();
 
     return (
-        <View
+        <FSClassView
             ref={ref}
             style={styles.mb3}
-            fsClass={forwardedFSClass}
+            forwardedFSClass={forwardedFSClass}
         >
             {/* The tabs answer a question instead of switching views, so they are a radio group to screen readers */}
             <View
@@ -59,7 +60,7 @@ function TabsAdapter({items, value, onInputChange = () => {}, errorText, forward
                 />
             </View>
             {!!errorText && <FormHelpMessage message={errorText} />}
-        </View>
+        </FSClassView>
     );
 }
 
