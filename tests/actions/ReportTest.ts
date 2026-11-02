@@ -52,6 +52,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import {addMinutes, addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
+import {DeviceEventEmitter} from 'react-native';
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
@@ -4491,6 +4492,84 @@ describe('actions/Report', () => {
                 }),
             );
             expect(isUnreadCollection.some(Boolean)).toBe(false);
+        });
+
+        it('should tell open chats how far they are read, including chats that were already read', async () => {
+            // Given one unread chat and one chat the user already read by opening it
+            const currentTime = DateUtils.getDBTime();
+            const olderTime = DateUtils.subtractMillisecondsFromDateTime(currentTime, 1000);
+            const unreadReport: OnyxTypes.Report = {
+                ...createRandomReport(1, undefined),
+                lastMessageText: 'test',
+                lastReadTime: olderTime,
+                lastVisibleActionCreated: currentTime,
+            };
+            const openedReport: OnyxTypes.Report = {
+                ...createRandomReport(2, undefined),
+                lastMessageText: 'test',
+                lastReadTime: currentTime,
+                lastVisibleActionCreated: olderTime,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${unreadReport.reportID}`, unreadReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openedReport.reportID}`, openedReport);
+            const emitSpy = jest.spyOn(DeviceEventEmitter, 'emit');
+
+            // When the user marks all as read
+            markAllMessagesAsRead(undefined, [unreadReport.reportID, openedReport.reportID], undefined, {accountID: 1});
+            await waitForBatchedUpdates();
+
+            // Then both chats are in the event: the unread one with the new read time, the opened one with the time it was already read up to
+            expect(emitSpy).toHaveBeenCalledWith(CONST.EVENTS.MARK_ALL_AS_READ, {
+                [unreadReport.reportID]: expect.not.stringContaining(olderTime),
+                [openedReport.reportID]: currentTime,
+            });
+            emitSpy.mockRestore();
+        });
+
+        it('should still tell open chats when there is nothing to mark as read', async () => {
+            // Given only a chat that is already read
+            const currentTime = DateUtils.getDBTime();
+            const openedReport: OnyxTypes.Report = {
+                ...createRandomReport(3, undefined),
+                lastMessageText: 'test',
+                lastReadTime: currentTime,
+                lastVisibleActionCreated: currentTime,
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${openedReport.reportID}`, openedReport);
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const emitSpy = jest.spyOn(DeviceEventEmitter, 'emit');
+
+            // When the user marks all as read
+            markAllMessagesAsRead(undefined, [openedReport.reportID], undefined, {accountID: 1});
+            await waitForBatchedUpdates();
+
+            // Then no API call is made, but the open chat still gets the event
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.MARK_ALL_MESSAGES_AS_READ, 0);
+            expect(emitSpy).toHaveBeenCalledWith(CONST.EVENTS.MARK_ALL_AS_READ, {[openedReport.reportID]: currentTime});
+            emitSpy.mockRestore();
+        });
+
+        it('should clear the manual unread anchor of the chats it marks as read', async () => {
+            // Given a chat the user marked unread from one of its messages
+            const currentTime = DateUtils.getDBTime();
+            const markedUnreadReport: OnyxTypes.Report = {
+                ...createRandomReport(4, undefined),
+                lastMessageText: 'test',
+                lastReadTime: DateUtils.subtractMillisecondsFromDateTime(currentTime, 1000),
+                lastVisibleActionCreated: currentTime,
+                lastActorAccountID: 2,
+                manuallyMarkedUnreadReportActionID: 'markedAction',
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${markedUnreadReport.reportID}`, markedUnreadReport);
+
+            // When the user marks all as read
+            markAllMessagesAsRead(undefined, [markedUnreadReport.reportID], undefined, {accountID: 1});
+            await waitForBatchedUpdates();
+
+            // Then the anchor is gone, so the open chat no longer shows the "New" line on that message
+            const report = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${markedUnreadReport.reportID}`);
+            expect(ReportUtils.isUnread(report, undefined, undefined, undefined)).toBe(false);
+            expect(report?.manuallyMarkedUnreadReportActionID).toBeFalsy();
         });
     });
 

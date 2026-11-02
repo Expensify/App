@@ -13,6 +13,7 @@ import arraysEqual from '@src/utils/arraysEqual';
 import type {ValueOf} from 'type-fest';
 
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 
 import useCollectionDelta from './useCollectionDelta';
 import {useCurrentReportIDState} from './useCurrentReportID';
@@ -370,14 +371,28 @@ function SidebarOrderedReportsContextProvider({
 
     // Held in a ref so getReportIDsForTab stays referentially stable (keeping the actions context stable) and only
     // filters when a bulk tab action actually asks for a tab's reports, rather than on every LHN update.
-    const inboxTabSourcesRef = useRef({orderedReportIDs, reportsToDisplayInLHN});
+    const inboxTabSourcesRef = useRef({orderedReportIDs, reportsToDisplayInLHN, stickyReport});
     useEffect(() => {
-        inboxTabSourcesRef.current = {orderedReportIDs, reportsToDisplayInLHN};
-    }, [orderedReportIDs, reportsToDisplayInLHN]);
-    const getReportIDsForTab = useCallback(
-        (tab: ValueOf<typeof CONST.INBOX_TAB>) => SidebarUtils.filterReportsForInboxTab(inboxTabSourcesRef.current.orderedReportIDs, inboxTabSourcesRef.current.reportsToDisplayInLHN, tab),
-        [],
-    );
+        inboxTabSourcesRef.current = {orderedReportIDs, reportsToDisplayInLHN, stickyReport};
+    }, [orderedReportIDs, reportsToDisplayInLHN, stickyReport]);
+    const getReportIDsForTab = useCallback((tab: ValueOf<typeof CONST.INBOX_TAB>) => {
+        const sources = inboxTabSourcesRef.current;
+        const reportIDs = SidebarUtils.filterReportsForInboxTab(sources.orderedReportIDs, sources.reportsToDisplayInLHN, tab);
+        // The sticky report is still listed under the tab it was opened from, even though it no longer matches the filter.
+        const sticky = sources.stickyReport;
+        if (sticky?.tab === tab && !reportIDs.includes(sticky.reportID)) {
+            return [...reportIDs, sticky.reportID];
+        }
+        return reportIDs;
+    }, []);
+
+    // "Mark all as read" (from a tab or the keyboard shortcut) also reads the sticky report, so stop keeping it in the list.
+    useEffect(() => {
+        const subscription = DeviceEventEmitter.addListener(CONST.EVENTS.MARK_ALL_AS_READ, (readUpToTimes: Record<string, string>) => {
+            setStickyReport((current) => (current && readUpToTimes[current.reportID] ? undefined : current));
+        });
+        return () => subscription.remove();
+    }, []);
 
     const clearLHNCache = useCallback(() => {
         Log.info('[useSidebarOrderedReports] Clearing sidebar cache manually via debug modal');
