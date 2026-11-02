@@ -19,7 +19,7 @@ function getShortRelativeTime(translate: LocalizedTranslate, datetime: string, c
     if (minutes < 60 * 24) {
         return translate('reportHistoryPage.hoursAgo', Math.floor(minutes / 60));
     }
-    return translate('reportHistoryPage.daysAgo', Math.floor(minutes / (60 * 24)));
+    return translate('reportHistoryPage.daysAgo', {count: Math.floor(minutes / (60 * 24))});
 }
 
 export default getShortRelativeTime;

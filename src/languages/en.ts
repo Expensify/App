@@ -3879,7 +3879,10 @@ const translations = {
         toPay: 'to pay',
         minutesAgo: (count: number) => `${count}m ago`,
         hoursAgo: (count: number) => `${count}h ago`,
-        daysAgo: (count: number) => `${count}d ago`,
+        daysAgo: () => ({
+            one: '1d ago',
+            other: (count: number) => `${count}d ago`,
+        }),
     },
     groupChat: {
         lastMemberTitle: 'Heads up!',
