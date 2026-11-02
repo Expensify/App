@@ -3274,6 +3274,7 @@ ${amount} para ${merchant} - ${date}`,
         businessBankAccountCountries: 'Países de contas bancárias empresariais',
         businessBankAccountCountriesDescription:
             'Funcionários nesses países fornecem dados para transferência local. Todos os demais fornecem dados para transferência internacional via wire.',
+        businessBankAccountCountriesError: 'Não foi possível atualizar seus países de reembolso. Tente novamente.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Um fluxo de aprovação personalizado está ativado neste workspace. Para revisar ou alterar esse fluxo de trabalho, entre em contato com o(a) seu(sua) <account-manager-link>Gerente de Conta</account-manager-link> ou com o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

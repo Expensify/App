@@ -3172,6 +3172,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         collectEmployeeBankDetailsDescription: '收集员工的银行账户信息，以便在 Expensify 之外向他们报销。',
         businessBankAccountCountries: '企业银行账户国家',
         businessBankAccountCountriesDescription: '这些国家的员工需提供本地转账信息，其他员工需提供国际电汇信息。',
+        businessBankAccountCountriesError: '报销国家更新失败，请重试。',
         customApprovalWorkflowEnabled:
             '<muted-text-label>此工作区已启用自定义审批流程。若要查看或更改此流程，请联系您的<account-manager-link>客户经理</account-manager-link>或<concierge-link>Concierge</concierge-link>。</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:

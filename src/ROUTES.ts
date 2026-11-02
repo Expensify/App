@@ -3508,6 +3508,15 @@ const ROUTES = {
             return `workspaces/${policyID}/workflows/currency-conversion-fees` as const;
         },
     },
+    WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES: {
+        route: 'workspaces/:policyID/workflows/reimbursement-countries',
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES route');
+            }
+            return `workspaces/${policyID}/workflows/reimbursement-countries` as const;
+        },
+    },
     WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
         route: 'workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
         getRoute: (policyID: string | undefined) => {

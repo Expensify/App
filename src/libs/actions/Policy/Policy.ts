@@ -67,6 +67,7 @@ import type {
     SetWorkspaceAutoReportingMonthlyOffsetParams,
     UpdatePolicyTimezoneParams,
     SetWorkspacePayerParams,
+    SetReimbursementCountriesParams,
     SetWorkspaceReimbursementParams,
     ToggleCollectDepositAccountsParams,
     TogglePolicyReceiptPartnersParams,
@@ -1053,6 +1054,69 @@ function toggleCollectDepositAccounts(policyID: string, enabled: boolean, curren
 
     const params: ToggleCollectDepositAccountsParams = {policyID, enabled};
     API.write(WRITE_COMMANDS.TOGGLE_COLLECT_DEPOSIT_ACCOUNTS, params, {optimisticData, failureData, successData});
+}
+
+/**
+ * Replace the countries a workspace collects employee deposit accounts for. The server never removes a country the
+ * workspace has a withdrawal account in, so callers should keep that country in the list.
+ */
+function setReimbursementCountries(policyID: string, countryISOs: string[], currentCountries: NonNullable<Policy['reimbursement']>['countries']) {
+    // A country waiting to be deleted is already gone for the user, so selecting it again adds it back
+    const currentCountryISOs = PolicyUtils.getReimbursementCountryISOs(currentCountries);
+    const addedCountryISOs = countryISOs.filter((countryISO) => !currentCountryISOs.includes(countryISO));
+    const removedCountryISOs = currentCountryISOs.filter((countryISO) => !countryISOs.includes(countryISO));
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                reimbursement: {
+                    countries: {
+                        ...Object.fromEntries(addedCountryISOs.map((countryISO) => [countryISO, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}])),
+                        ...Object.fromEntries(removedCountryISOs.map((countryISO) => [countryISO, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}])),
+                    },
+                },
+                errorFields: {reimbursementCountries: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                reimbursement: {
+                    countries: {
+                        ...Object.fromEntries(addedCountryISOs.map((countryISO) => [countryISO, null])),
+                        ...Object.fromEntries(removedCountryISOs.map((countryISO) => [countryISO, {pendingAction: null}])),
+                    },
+                },
+                errorFields: {reimbursementCountries: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsPage.businessBankAccountCountriesError')},
+            },
+        },
+    ];
+
+    // Removed countries are deleted rather than having their pendingAction cleared, because this runs after the
+    // response deletes them and clearing a field would add the country back as an empty object.
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                reimbursement: {
+                    countries: {
+                        ...Object.fromEntries(addedCountryISOs.map((countryISO) => [countryISO, {pendingAction: null}])),
+                        ...Object.fromEntries(removedCountryISOs.map((countryISO) => [countryISO, null])),
+                    },
+                },
+            },
+        },
+    ];
+
+    const params: SetReimbursementCountriesParams = {policyID, countryISOList: countryISOs.join(',')};
+    API.write(WRITE_COMMANDS.SET_REIMBURSEMENT_COUNTRIES, params, {optimisticData, failureData, successData});
 }
 
 function setWorkspaceAutoReportingOffset(
@@ -8339,6 +8403,7 @@ export {
     setWorkspaceAutoReportingOffset,
     setWorkspaceTimezone,
     toggleCollectDepositAccounts,
+    setReimbursementCountries,
     updateWorkspaceDescription,
     updateWorkspaceClientID,
     setWorkspacePayer,

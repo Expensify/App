@@ -7633,6 +7633,75 @@ describe('actions/Policy', () => {
         });
     });
 
+    describe('setReimbursementCountries', () => {
+        it('should add and remove countries optimistically and settle them when the request succeeds', async () => {
+            // Given a policy that collects deposit accounts in GB and DE
+            const policyID = '1';
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, reimbursement: {countries: {GB: {}, DE: {}}}});
+            await waitForBatchedUpdates();
+
+            // When the admin keeps GB, drops DE and adds FR
+            mockFetch.pause();
+            const writeSpy = jest.spyOn(APIModule, 'write');
+            Policy.setReimbursementCountries(policyID, ['GB', 'FR'], {GB: {}, DE: {}});
+            await waitForBatchedUpdates();
+
+            // Then the full list is sent, and the changed countries show as pending until the server confirms them
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.SET_REIMBURSEMENT_COUNTRIES, {policyID, countryISOList: 'GB,FR'}, expect.anything());
+            let updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.reimbursement?.countries?.GB).toEqual({});
+            expect(updatedPolicy?.reimbursement?.countries?.DE?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+            expect(updatedPolicy?.reimbursement?.countries?.FR?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+            // When the request succeeds
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+
+            // Then DE is gone and FR is no longer pending
+            updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.reimbursement?.countries).toEqual({GB: {}, FR: {}});
+            writeSpy.mockRestore();
+        });
+
+        it('should revert the countries and show an error when the request fails', async () => {
+            // Given a policy that collects deposit accounts in GB
+            const policyID = '1';
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, reimbursement: {countries: {GB: {}}}});
+            await waitForBatchedUpdates();
+
+            // When the admin swaps GB for FR and the request fails
+            mockFetch.fail();
+            Policy.setReimbursementCountries(policyID, ['FR'], {GB: {}});
+            await waitForBatchedUpdates();
+
+            // Then the countries go back to what the server has, with an error to explain why
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.reimbursement?.countries).toEqual({GB: {}});
+            expect(updatedPolicy?.errorFields?.reimbursementCountries).toBeDefined();
+        });
+
+        it('should add back a country that is waiting to be deleted', async () => {
+            // Given a policy whose DE removal is still queued offline
+            const policyID = '1';
+            const currentCountries = {GB: {}, DE: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}};
+            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {id: policyID, reimbursement: {countries: currentCountries}});
+            await waitForBatchedUpdates();
+
+            // When the admin selects DE again
+            mockFetch.pause();
+            Policy.setReimbursementCountries(policyID, ['GB', 'DE'], currentCountries);
+            await waitForBatchedUpdates();
+
+            // Then DE is pending an add, so it no longer shows as deleted
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.reimbursement?.countries?.DE?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+
+            // Let the queued request finish so it doesn't hold up the next test's requests
+            await mockFetch.resume();
+            await waitForBatchedUpdates();
+        });
+    });
+
     describe('updateMemberCustomField', () => {
         it('should update member custom field optimistically and succeed', async () => {
             // Given a policy with an employee and a custom field value
