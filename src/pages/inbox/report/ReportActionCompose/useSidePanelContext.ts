@@ -5,7 +5,6 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
-import getFocusedReportParams from '@libs/Navigation/helpers/getFocusedReportParams';
 import getFocusedWorkspacePolicyID from '@libs/Navigation/helpers/getFocusedWorkspacePolicyID';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -17,13 +16,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {NavigationState} from '@react-navigation/native';
-
 import {useRoute} from '@react-navigation/native';
-
-function getFocusedReportID(state: NavigationState | undefined): string | undefined {
-    return state ? getFocusedReportParams(state)?.reportID : undefined;
-}
 
 function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | undefined {
     const isInSidePanel = useIsInSidePanel();
@@ -32,7 +25,6 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const {selectedTransactionIDs, selectedTransactions, selectedReports} = useSearchSelectionContext();
     const focusedWorkspacePolicyID = useRootNavigationState(getFocusedWorkspacePolicyID);
-    const focusedReportID = useRootNavigationState(getFocusedReportID);
 
     // On native there is no side panel: the source report is threaded onto this Concierge screen's route params
     // (see SidePanelButton/index.native.tsx). Reading it here keeps it scoped to this navigation entry, so a second
@@ -62,9 +54,7 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
         return {policyID: focusedWorkspacePolicyID};
     }
 
-    // currentReportID only follows Inbox reports, so it goes stale when the user opens a report from Reports instead.
-    // The focused report follows every report screen and updates while the side panel stays open.
-    const contextReportID = currentRHPReportID ?? focusedReportID ?? currentReportID ?? undefined;
+    const contextReportID = currentRHPReportID ?? currentReportID ?? undefined;
 
     // selectedTransactions (map) is populated from the Search list; selectedTransactionIDs (array)
     // is populated from the report table view. The two are mutually exclusive.
