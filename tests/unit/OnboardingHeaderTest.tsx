@@ -27,9 +27,10 @@ type TestFlowProps = {
     onBackStep1?: () => void;
     onBackStep2?: () => void;
     shouldShowBackButtonStep2?: boolean;
+    shouldCollapseOnKeyboardStep2?: boolean;
 };
 
-function TestFlow({step = 1, showHeader = true, onBackStep1, onBackStep2, shouldShowBackButtonStep2 = true}: TestFlowProps) {
+function TestFlow({step = 1, showHeader = true, onBackStep1, onBackStep2, shouldShowBackButtonStep2 = true, shouldCollapseOnKeyboardStep2 = false}: TestFlowProps) {
     return (
         <OnboardingHeaderProvider>
             {showHeader && (
@@ -39,6 +40,7 @@ function TestFlow({step = 1, showHeader = true, onBackStep1, onBackStep2, should
                         <OnboardingHeader
                             onBackButtonPress={onBackStep2}
                             shouldShowBackButton={shouldShowBackButtonStep2}
+                            shouldCollapseOnKeyboard={shouldCollapseOnKeyboardStep2}
                         />
                     )}
                 </>
@@ -137,6 +139,40 @@ describe('OnboardingHeader', () => {
         rerender(<TestFlow showHeader={false} />);
 
         expect(queryStickyBackButton()).toBeNull();
+    });
+
+    it('keeps the sticky back button mounted when moving to a step with shouldCollapseOnKeyboard true', () => {
+        // Given step 1 with a default header (shouldCollapseOnKeyboard false)
+        const onBackStep1 = jest.fn();
+        const onBackStep2 = jest.fn();
+
+        const {rerender} = render(
+            <TestFlow
+                step={1}
+                onBackStep1={onBackStep1}
+                onBackStep2={onBackStep2}
+            />,
+        );
+
+        expect(queryStickyBackButton()).not.toBeNull();
+
+        // When navigating to step 2 which enables shouldCollapseOnKeyboard
+        rerender(
+            <TestFlow
+                step={2}
+                onBackStep1={onBackStep1}
+                onBackStep2={onBackStep2}
+                shouldCollapseOnKeyboardStep2
+            />,
+        );
+
+        // Then the sticky back button should remain visible and functional without unmounting
+        const backButtonStep2 = getStickyBackButton();
+        expect(backButtonStep2).toBeDefined();
+        if (backButtonStep2) {
+            fireEvent.press(backButtonStep2);
+        }
+        expect(onBackStep2).toHaveBeenCalledTimes(1);
     });
 
     describe('on web', () => {

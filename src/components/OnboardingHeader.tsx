@@ -200,7 +200,12 @@ function OnboardingStickyHeader() {
             aria-hidden={isWeb}
             style={[styles.onboardingStickyHeaderContainer, {paddingTop}, shouldEnableMaxHeight && {marginTop: viewportOffsetTop}, isHeaderFocused && styles.opacity0]}
         >
-            {shouldCollapseOnKeyboard ? <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>{header}</CollapsibleHeaderOnKeyboard> : header}
+            <CollapsibleHeaderOnKeyboard
+                disabled={!shouldCollapseOnKeyboard}
+                alwaysCollapseHeaderOnKeyboard={shouldCollapseOnKeyboard}
+            >
+                {header}
+            </CollapsibleHeaderOnKeyboard>
         </View>
     );
 }
