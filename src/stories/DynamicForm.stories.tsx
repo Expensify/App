@@ -281,7 +281,7 @@ const owners: GroupedField = {
         },
         {key: 'firstName', label: 'Legal first name', type: 'text', required: true, rule: 'legalName', showWhen: {key: 'ownerType', equals: ['INDIVIDUAL']}},
         {key: 'lastName', label: 'Legal last name', type: 'text', required: true, rule: 'legalName', showWhen: {key: 'ownerType', equals: ['INDIVIDUAL']}},
-        {key: 'ssn', label: 'SSN', type: 'text', required: false, sensitive: true, showWhen: {key: 'ownerType', equals: ['INDIVIDUAL']}},
+        {key: 'ssn', label: 'SSN', type: 'text', required: false, sensitive: true, rule: 'ssn', showWhen: {key: 'ownerType', equals: ['INDIVIDUAL']}},
         {key: 'companyName', label: 'Legal business name', type: 'text', required: true, showWhen: {key: 'ownerType', equals: ['COMPANY']}},
         {key: 'countryOfResidence', label: 'Country of residence', type: 'country', required: true},
         {key: 'ownership', label: 'Ownership percentage', type: 'percent', required: true},

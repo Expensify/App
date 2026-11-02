@@ -12,7 +12,7 @@ const pages: DynamicFormPage[] = [
         title: 'Identity',
         content: [
             {key: 'name', type: 'text', required: true, label: 'Name'},
-            {key: 'ssn', type: 'text', required: true, label: 'SSN', sensitive: true},
+            {key: 'ssn', type: 'text', required: true, label: 'SSN', sensitive: true, rule: 'ssn'},
             {key: 'country', type: 'text', required: false, label: 'Country', readonly: true},
         ],
     },
