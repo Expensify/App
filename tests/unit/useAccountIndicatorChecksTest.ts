@@ -747,14 +747,14 @@ describe('useAccountIndicatorChecks', () => {
                     createMock<OnyxMultiSetInput>({
                         [ONYXKEYS.USER_WALLET]: {errors: {error: 'Wallet error'}},
                         [ONYXKEYS.BANK_ACCOUNT_LIST]: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- This fixture key is a numeric bank account ID, so it cannot follow the naming rule.
                             12345: {
                                 methodID: 12345,
                                 errors: {error: 'Bank account error'},
                             },
                         },
                         [ONYXKEYS.LOGINS]: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- This fixture key contains an email address, so it cannot follow the naming rule.
                             '1_otheruser@expensify.com': {
                                 partnerID: 1,
                                 partnerUserID: 'different@expensify.com',
