@@ -4,7 +4,7 @@ import {hasRulesEnabledPolicy} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardList, Policy} from '@src/types/onyx';
+import type {CardList, Policy, PolicyCategories} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -324,7 +324,8 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const isVendorFilterAvailableSelector = (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled);
     const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorFilterAvailableSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const shouldDisplayViolationFilterSelector = (policyCategories: OnyxCollection<PolicyCategories>) => hasRulesEnabledPolicy(policies, policyCategories);
+    const [shouldDisplayViolationFilter = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: shouldDisplayViolationFilterSelector});
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 
@@ -334,7 +335,6 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const shouldDisplayBankAccountFilter = shouldDisplayFilter(hasFilterableBankAccount ? 1 : 0, true);
     const shouldDisplayTaxFilter = shouldDisplayFilter(policyDerived?.hasAnyTaxRates ? 1 : 0, policyDerived?.areTaxEnabled ?? false);
     const shouldDisplayWorkspaceFilter = workspaces.some((section) => section.data.length > 1);
-    const shouldDisplayViolationFilter = hasRulesEnabledPolicy(policies, policyCategories);
 
     let currentType = type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 

@@ -6423,7 +6423,7 @@ function getDisplayValue(
         return form[key]?.map((receiptType) => translate(getReceiptTypeTranslationKey(receiptType))).join(', ');
     }
 
-    if (key === FILTER_KEYS.VIOLATION) {
+    if (key === FILTER_KEYS.VIOLATION || key === FILTER_KEYS.VIOLATION_NOT) {
         return form[key]?.map((violationName) => getViolationDisplayName(violationName, translate)).join(', ');
     }
 
