@@ -390,7 +390,7 @@ function useReportActionsScroll({
         setIsFloatingMessageCounterVisible(false);
 
         if (unreadMarkerReportActionIndex >= 0) {
-            reportScrollManager.scrollToIndex(unreadMarkerReportActionIndex);
+            reportScrollManager.scrollToIndex(unreadMarkerReportActionIndex, {viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
             if (hasNewestReportAction) {
                 markNewestActionAsRead();
             }
