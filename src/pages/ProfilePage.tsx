@@ -67,6 +67,7 @@ import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -90,6 +91,7 @@ const chatReportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 const reportsSelector = (reports: OnyxCollection<Report>) => mapOnyxCollectionItems(reports, chatReportSelector);
 
 function ProfilePage({route}: ProfilePageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: reportsSelector});
     const [personalDetails] = useAllPersonalDetails();
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
@@ -168,6 +170,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const isSMSLogin = Str.isSMSLogin(login);
     const phoneNumber = getPhoneNumber(details);
+    const formattedLogin = isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login;
 
     // An admin opens this page from their workspace Members list, which is the only place the member's display name can be set.
     const canManageMemberDisplayName = !!policyID && !!login && isPolicyAdmin(policy, currentUserLogin) && !!policy?.employeeList?.[login];
@@ -209,7 +212,7 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const promotedActions: PromotedAction[] = [];
     if (report) {
-        promotedActions.push(PromotedActions.pin(report));
+        promotedActions.push(PromotedActions.pin(report, session));
     }
 
     // If it's a self DM, we only want to show the Message button if the self DM report exists because we don't want to optimistically create a report for self DM
@@ -241,7 +244,7 @@ function ProfilePage({route}: ProfilePageProps) {
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
                     <ScrollView>
-                        <View style={[styles.avatarSectionWrapper, styles.pb0]}>
+                        <View style={styles.avatarSectionWrapper}>
                             <PressableWithoutFocus
                                 style={[styles.noOutline, styles.mb4]}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_AVATAR.getRoute(accountID)))}
@@ -261,65 +264,51 @@ function ProfilePage({route}: ProfilePageProps) {
                             </PressableWithoutFocus>
                             {!!displayName && (
                                 <Text
-                                    style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
+                                    style={[styles.textHeadline, styles.pre, styles.mb3, styles.w100, styles.textAlignCenter]}
                                     numberOfLines={1}
                                 >
                                     {displayName}
                                 </Text>
                             )}
-                            <PromotedActionsBar
-                                promotedActions={promotedActions}
-                                containerStyle={[styles.ph0, styles.mb8]}
-                            />
-                            {hasStatus && (
-                                <View style={[styles.detailsPageSectionContainer, styles.w100]}>
-                                    <MenuItemWithTopDescription
-                                        style={[styles.ph0]}
-                                        title={statusContent}
-                                        description={translate('statusPage.status')}
-                                        interactive={false}
-                                    />
-                                </View>
-                            )}
-
-                            {/* Don't display email if current user is anonymous */}
-                            {!(isCurrentUser && isAnonymousUserSession()) && login ? (
-                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
-                                    <MenuItemWithTopDescription
-                                        style={[styles.ph0]}
-                                        title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
-                                        copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
-                                        description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                        interactive={false}
-                                        copyable
-                                    />
-                                </View>
-                            ) : null}
-                            {canManageMemberDisplayName ? (
-                                <View style={[styles.alignSelfStretch, styles.mhn5]}>
-                                    <OfflineWithFeedback pendingAction={details?.pendingFields?.displayName}>
-                                        <MenuItemWithTopDescription
-                                            title={displayName}
-                                            description={translate('displayNamePage.headerTitle')}
-                                            interactive={!hasDisplayNameSet}
-                                            shouldShowRightIcon={!hasDisplayNameSet}
-                                            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.getRoute(accountID, policyID)))}
-                                        />
-                                    </OfflineWithFeedback>
-                                </View>
-                            ) : null}
-                            {pronouns ? (
-                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
-                                    <MenuItemWithTopDescription
-                                        style={[styles.ph0]}
-                                        title={pronouns}
-                                        description={translate('profilePage.preferredPronouns')}
-                                        interactive={false}
-                                    />
-                                </View>
-                            ) : null}
-                            {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
+                        <PromotedActionsBar
+                            promotedActions={promotedActions}
+                            containerStyle={styles.mb8}
+                        />
+                        {hasStatus && (
+                            <MenuItemField
+                                name={translate('statusPage.status')}
+                                value={statusContent}
+                            />
+                        )}
+
+                        {/* Don't display email if current user is anonymous */}
+                        {!(isCurrentUser && isAnonymousUserSession()) && login ? (
+                            <MenuItemField
+                                name={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                value={formattedLogin}
+                            >
+                                {!!formattedLogin && <MenuItem.Copy value={formattedLogin} />}
+                            </MenuItemField>
+                        ) : null}
+                        {canManageMemberDisplayName ? (
+                            <OfflineWithFeedback pendingAction={details?.pendingFields?.displayName}>
+                                <MenuItemField
+                                    name={translate('displayNamePage.headerTitle')}
+                                    value={displayName}
+                                    onPress={
+                                        !hasDisplayNameSet ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.getRoute(accountID, policyID))) : undefined
+                                    }
+                                />
+                            </OfflineWithFeedback>
+                        ) : null}
+                        {pronouns ? (
+                            <MenuItemField
+                                name={translate('profilePage.preferredPronouns')}
+                                value={pronouns}
+                            />
+                        ) : null}
+                        {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         {isCurrentUser && (
                             <MenuItemNavigation
                                 title={translate('common.editYourProfile')}
@@ -348,12 +337,12 @@ function ProfilePage({route}: ProfilePageProps) {
                             <MenuItemAction
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
-                                onPress={() => switchToDelegator(login)}
+                                // The agent can't use its own Agents pages, so copiloting from here starts over from Home
+                                onPress={() => switchToDelegator(login, ROUTES.HOME)}
                             />
                         )}
                         {!!accountID && !isAnonymousUserSession() && (
-                            <MenuItem
-                                shouldShowRightIcon
+                            <MenuItemNavigation
                                 title={translate(isCustomAgent || isAgentEmail(login) ? 'profilePage.viewAgentHistory' : 'profilePage.seeChatHistory')}
                                 icon={expensifyIcons.History}
                                 onPress={() => {
@@ -375,7 +364,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {Permissions.canUsePrivateNotes() && !isEmptyObject(report) && !!report.reportID && !isCurrentUser && (
-                            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID, true))}>
+                            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => navigateToPrivateNotes(report, currentUserAccountID, true), false, session)}>
                                 <MenuItem.Row>
                                     <MenuItem.Leading>
                                         <MenuItem.Icon src={expensifyIcons.Pencil} />
