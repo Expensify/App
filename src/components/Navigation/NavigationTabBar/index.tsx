@@ -47,7 +47,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
 
     const StyleUtils = useStyleUtils();
 
@@ -150,7 +150,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         <>
             {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
             <View
-                style={styles.navigationTabBarContainer}
+                style={[styles.navigationTabBarContainer, isInLandscapeMode && styles.navigationTabBarContainerLandscape]}
                 testID="NavigationTabBar"
             >
                 <PressableWithFeedback

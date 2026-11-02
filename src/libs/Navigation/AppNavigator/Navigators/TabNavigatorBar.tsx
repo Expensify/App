@@ -26,7 +26,7 @@ import {View} from 'react-native';
  * Wrapped in overflow:'visible' so floating buttons (FAB, GPS, Camera) aren't clipped.
  */
 function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {isBlockingViewVisible} = useFullScreenBlockingViewState();
     const {paddingBottom: safeAreaPaddingBottom} = useSafeAreaPaddings(true);
     const styles = useThemeStyles();
@@ -75,7 +75,7 @@ function TabNavigatorBar({state}: Pick<BottomTabBarProps, 'state'>) {
         // Negative marginTop overlays the tab bar on content (zero flex space) to prevent layout shifts.
         return (
             <View
-                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom), isHidden && styles.opacity0]}
+                style={[StyleUtils.getTabBarNarrowStyle(safeAreaPaddingBottom, isInLandscapeMode), isHidden && styles.opacity0]}
                 pointerEvents={isHidden ? 'none' : 'auto'}
             >
                 <NavigationTabBar
