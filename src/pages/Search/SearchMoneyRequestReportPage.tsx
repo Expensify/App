@@ -32,7 +32,7 @@ import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID, getReportAction} from '@libs/ReportActionsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
-import {cancelAllSendMessageSpans} from '@libs/telemetry/sendMessageSpans';
+import {cancelSendMessageSpansForReport} from '@libs/telemetry/sendMessageSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -254,8 +254,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         hasCreatedLegacyThreadRef.current = false;
 
         return () => {
-            // Cancel any pending send-message spans to prevent orphaned spans when navigating away
-            cancelAllSendMessageSpans();
+            // Cancel this report's pending send-message spans to prevent orphaned spans when navigating away
+            cancelSendMessageSpansForReport(reportIDFromRoute);
         };
     }, [reportIDFromRoute]);
 

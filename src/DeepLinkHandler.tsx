@@ -228,10 +228,12 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
 
     // An anonymous user opening a public room via a cold deep link loads the room (OpenReport), but the
     // OpenApp that follows anonymous session creation drops it from Onyx, so it never reaches the LHN.
+    const isAnonymous = isAnonymousUser(session);
+
     // Once OpenApp settles, re-fetch the room if it went missing so it shows up in the LHN. See #92672.
     useEffect(() => {
         const reportID = pendingPublicRoomReportID.current;
-        if (!reportID || isLoadingApp || !isAnonymousUser()) {
+        if (!reportID || isLoadingApp || !isAnonymous) {
             return;
         }
         // The room made it into Onyx, so the cold-start race is over - stop tracking it.
@@ -255,7 +257,16 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
             hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         });
-    }, [isLoadingApp, allReports, introSelected, conciergeChat, session?.accountID, guidedSetupAndTourStatus?.isSelfTourViewed, guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow]);
+    }, [
+        isLoadingApp,
+        isAnonymous,
+        allReports,
+        introSelected,
+        conciergeChat,
+        session?.accountID,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+    ]);
 
     return null;
 }
