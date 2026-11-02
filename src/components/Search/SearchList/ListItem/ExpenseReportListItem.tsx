@@ -244,10 +244,19 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [liveViolationsForSnapshotTransactions] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: transactionViolationsByIDsSelector(snapshotTransactionIDs),
     });
-    const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID, readSearchActionInputs} =
-        useReportPaymentContext({
-            chatReportPolicyID: chatReport?.policyID,
-        });
+    const {
+        currentUserAccountID,
+        currentUserLogin,
+        isASAPSubmitBetaEnabled,
+        isWiseReimbursementsBetaEnabled,
+        activePolicy,
+        chatReportPolicy,
+        delegateEmail,
+        delegateAccountID,
+        readSearchActionInputs,
+    } = useReportPaymentContext({
+        chatReportPolicyID: chatReport?.policyID,
+    });
 
     const handleOnButtonPress = async () => {
         if (shouldIgnoreSearchSubmitPress(liveReportItem.action)) {

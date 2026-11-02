@@ -6,10 +6,10 @@ import {delegateEmailSelector} from '@src/selectors/Account';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
 import type {BankAccountList, IntroSelected, Policy, Report} from '@src/types/onyx';
 
-import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {createContext, useContext} from 'react';
+import Onyx from 'react-native-onyx';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
@@ -130,4 +130,3 @@ function useReportPaymentContext({chatReportPolicyID}: UseReportPaymentContextPa
 
 export default usePaymentContext;
 export {EMPTY_SEARCH_ACTION_INPUTS, PaymentContextProvider, useReportPaymentContext};
-export type {SearchActionInputs};
