@@ -116,6 +116,9 @@ function payBill({report, paymentMethodType, bankAccountID, accountNumber, searc
     // PayMoneyRequest adds a pay action to the bill, like it does on expense reports, so show it right away.
     // A bill stores its total as a negative amount, like an expense report.
     const total = getReimbursableTotal(report);
+
+    // PayMoneyRequest pays a bill only by ACH or outside Expensify, so any bank payment is sent as ACH
+    const billPaymentType = isMarkedAsPaid ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : CONST.IOU.PAYMENT_TYPE.VBBA;
     const payAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount: -total,
@@ -123,7 +126,7 @@ function payBill({report, paymentMethodType, bankAccountID, accountNumber, searc
         comment: '',
         participants: [],
         transactionID: '',
-        paymentType: paymentMethodType,
+        paymentType: billPaymentType,
         iouReportID: report.reportID,
         isSettlingUp: true,
         bankAccountID,
@@ -156,7 +159,7 @@ function payBill({report, paymentMethodType, bankAccountID, accountNumber, searc
         iouReportID: report.reportID,
         chatReportID: report.chatReportID,
         reportActionID: payAction.reportActionID,
-        paymentMethodType,
+        paymentMethodType: billPaymentType,
         full: true,
         amount: Math.abs(total),
         ...(isMarkedAsPaid ? {} : {bankAccountID}),
