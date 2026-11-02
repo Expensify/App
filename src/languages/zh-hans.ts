@@ -4886,6 +4886,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             roomType: '房型',
             cancellation: '取消政策',
             cancellationUntil: '免费取消截止至',
+            hotelLocalTime: '酒店当地时间',
             confirmation: '确认编号',
             cancellationPolicies: {
                 unknown: '未知',
@@ -5137,8 +5138,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             guestAlternateText: '提交可见性受限的报表。',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return '所有者';
                     case CONST.POLICY.ROLE.ADMIN:
                         return '工作区管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -11622,6 +11621,8 @@ ${reportName}`,
                 info: '如果你想按次付费继续使用你的工作区，你就都准备好了。',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `如果你想阻止未来的活动和收费，你必须<a href="${workspacesListRoute}">删除你的工作区</a>。请注意，当你删除工作区时，你将被收取在当前日历月内产生的所有未结活动费用。`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `若要防止今后的活动和收费，请<a href="${workspacesListRoute}">将所有付费工作区归档</a>。本月内有可计费活动的已归档工作区仍会计入您的账单。`,
             },
             requestSubmitted: {
                 title: '请求已提交',

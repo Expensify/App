@@ -5111,6 +5111,7 @@ ${amount} για ${merchant} - ${date}`,
             roomType: 'Τύπος δωματίου',
             cancellation: 'Πολιτική ακύρωσης',
             cancellationUntil: 'Δωρεάν ακύρωση έως',
+            hotelLocalTime: 'τοπική ώρα του ξενοδοχείου',
             confirmation: 'Αριθμός επιβεβαίωσης',
             cancellationPolicies: {
                 unknown: 'Άγνωστο',
@@ -5401,8 +5402,6 @@ ${amount} για ${merchant} - ${date}`,
             },
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Ιδιοκτήτης';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Διαχειριστής χώρου εργασίας';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -12355,6 +12354,8 @@ ${reportName}`,
                 info: 'Αν θέλετε να συνεχίσετε να χρησιμοποιείτε τον/τους χώρο(ους) εργασίας σας με χρέωση ανά χρήση, είστε έτοιμοι.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Αν θέλετε να αποτρέψετε μελλοντική δραστηριότητα και χρεώσεις, πρέπει να <a href="${workspacesListRoute}">διαγράψετε τον/τους χώρο(ους) εργασίας σας</a>. Σημειώστε ότι, όταν διαγράψετε τον/τους χώρο(ους) εργασίας σας, θα χρεωθείτε για οποιαδήποτε εκκρεμή δραστηριότητα πραγματοποιήθηκε κατά τη διάρκεια του τρέχοντος ημερολογιακού μήνα.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Για να αποτρέψετε μελλοντική δραστηριότητα και χρεώσεις, <a href="${workspacesListRoute}">αρχειοθετήστε όλους τους επί πληρωμή χώρους εργασίας σας</a>. Οι αρχειοθετημένοι χώροι εργασίας με χρεώσιμη δραστηριότητα κατά τη διάρκεια του τρέχοντος μήνα θα εξακολουθήσουν να περιλαμβάνονται στον λογαριασμό σας.`,
             },
             requestSubmitted: {
                 title: 'Το αίτημα υποβλήθηκε',

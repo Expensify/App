@@ -5070,6 +5070,7 @@ ${amount} dla ${merchant} - ${date}`,
             roomType: 'Rodzaj pokoju',
             cancellation: 'Zasady anulowania',
             cancellationUntil: 'Bezpłatne anulowanie do',
+            hotelLocalTime: 'czas lokalny hotelu',
             confirmation: 'Numer potwierdzenia',
             cancellationPolicies: {
                 unknown: 'Nieznane',
@@ -5330,8 +5331,6 @@ ${amount} dla ${merchant} - ${date}`,
             guestAlternateText: 'Przesyłaj raporty z ograniczoną widocznością.',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Właściciel';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrator przestrzeni roboczej';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -12091,6 +12090,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 info: 'Jeśli chcesz nadal korzystać ze swojego(-ich) workspace’u(-ów) w modelu płatności za użycie, wszystko jest gotowe.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Jeśli chcesz zapobiec przyszłej aktywności i obciążeniom, musisz <a href="${workspacesListRoute}">usunąć swoje przestrzenie robocze</a>. Pamiętaj, że po usunięciu przestrzeni roboczych zostaniesz obciążony za wszelką nierozliczoną aktywność z bieżącego miesiąca kalendarzowego.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Aby zapobiec przyszłej aktywności i naliczeniom, <a href="${workspacesListRoute}">zarchiwizuj wszystkie swoje płatne przestrzenie robocze</a>. Zarchiwizowane przestrzenie robocze z rozliczaną aktywnością w bieżącym miesiącu nadal będą uwzględnione na twoim rachunku.`,
             },
             requestSubmitted: {
                 title: 'Wniosek wysłany',
