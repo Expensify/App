@@ -374,6 +374,7 @@ function getOnyxTargetTransactionData({
         data = getUpdateMoneyRequestParams({
             isVendorMatchingBetaEnabled,
             transactionID: targetTransaction.transactionID,
+            transaction: targetTransaction,
             transactionThreadReport: targetTransactionThreadReport,
             iouReport: targetTransactionThreadParentReport,
             iouReportOwnerLogin,
