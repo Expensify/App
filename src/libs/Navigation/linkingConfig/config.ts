@@ -1143,6 +1143,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.MEMBER_DETAILS_ROLE]: {
                             path: ROUTES.WORKSPACE_MEMBER_DETAILS_ROLE.route,
                         },
+                        [SCREENS.WORKSPACE.MEMBER_DETAILS_CATEGORY_VISIBILITY]: {
+                            path: ROUTES.WORKSPACE_MEMBER_DETAILS_CATEGORY_VISIBILITY.route,
+                        },
                         [SCREENS.WORKSPACE.MEMBERS_ROLE]: {
                             path: ROUTES.WORKSPACE_MEMBERS_ROLE.route,
                         },

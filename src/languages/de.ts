@@ -7024,6 +7024,14 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Es können nicht alle Kategorien gelöscht oder deaktiviert werden',
                 description: `Mindestens eine Kategorie muss aktiviert bleiben, da dein Workspace Kategorien erfordert.`,
             },
+            cannotDisableCategoryForMembers: {
+                title: 'Kategorie kann nicht deaktiviert werden',
+                description:
+                    'Jedes Mitglied braucht mindestens eine Kategorie zur Auswahl, und diese Mitglieder können nur diese eine verwenden. Gib ihnen zuerst Zugriff auf eine andere Kategorie und versuche es dann erneut.',
+                bulkDescription:
+                    'Jedes Mitglied braucht mindestens eine Kategorie zur Auswahl, und diese Mitglieder können nur diese Kategorien verwenden. Gib ihnen zuerst Zugriff auf eine andere Kategorie und versuche es dann erneut.',
+                andMore: ({count}: {count: number}) => `und ${count} weitere`,
+            },
         },
         moreFeatures: {
             subtitle: 'Verwende die Schalter unten, um beim Wachsen weitere Funktionen zu aktivieren. Jede Funktion wird im Navigationsmenü angezeigt, wo du sie weiter anpassen kannst.',
@@ -7750,6 +7758,16 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             },
             officeLocation: 'Bürostandort',
             officeLocationWithAddress: ({name, address}: {name: string; address: string}) => `${name} (${address})`,
+            categoryVisibility: 'Kategorie-Sichtbarkeit',
+            allCategories: 'Alle Kategorien',
+            categoriesCount: ({count}: {count: number}) => ({
+                one: '1 Kategorie',
+                other: `${count} Kategorien`,
+            }),
+            categoryVisibilityRequiredModal: {
+                title: 'Mitglieder müssen mindestens eine Kategorie haben',
+                description: 'Wähle mindestens eine Kategorie aus, die dieses Mitglied verwenden kann.',
+            },
             changeOfficeLocation: 'Bürostandort ändern',
             changeWorkArrangement: 'Arbeitsvereinbarung ändern',
             changeRole: 'Rolle ändern',
