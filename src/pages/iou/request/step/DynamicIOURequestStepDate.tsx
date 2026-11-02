@@ -137,6 +137,7 @@ function DynamicIOURequestStepDate({
             updateMoneyRequestDate({
                 isVendorMatchingBetaEnabled,
                 transactionID,
+                transaction,
                 transactionThreadReport: report,
                 parentReport,
                 iouReportOwnerLogin,

@@ -691,6 +691,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             const {onyxData} = getUpdateTrackExpenseParams({
                 transactionID,
+                transaction,
                 transactionThreadReportID: transactionThreadReport.reportID,
                 transactionChanges: {amount: 20000},
                 policy: createRandomPolicy(1),
@@ -2326,6 +2327,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             // When the caller passes a higher-precision distance than what `customUnit.quantity` would round to
             const {params} = getUpdateTrackExpenseParams({
                 transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReportID,
                 transactionChanges: {distance: 5.555},
                 policy: fakePolicy,
@@ -2401,6 +2403,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             const {onyxData} = getUpdateTrackExpenseParams({
                 transactionID,
+                transaction: fakeTransaction,
                 transactionThreadReportID,
                 transactionChanges: {created: '2026-06-15'},
                 policy: fakePolicy,
