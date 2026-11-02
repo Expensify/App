@@ -1,7 +1,7 @@
 ---
 title: Explore the Spend Over Time Insight
 description: Learn what the Spend over time insight shows, how spending trends are calculated, and how to group expenses by different time periods.
-keywords: [Spend over time, spending trends, spending over time, expense trends, spending chart, monthly spending, daily spending, weekly spending, quarterly spending, yearly spending, Group by, Insights, spending analysis]
+keywords: [Spend over time, spending trends, spending over time, expense trends, spending chart, monthly spending, daily spending, weekly spending, quarterly spending, yearly spending, running total, cumulative spending, Group by, Insights, spending analysis]
 internalScope: Audience is members who can access Insights. Covers what Spend over time shows, who can see it, how expenses are grouped by time period, and how to explore the underlying expenses in Spend. Does not cover detailed shared filtering instructions, exporting expenses, or other insights.
 contentType: topic
 platform: new-expensify
@@ -69,13 +69,14 @@ The available options are:
 - **Month:** Track monthly spending trends.
 - **Quarter:** Compare spending across quarters.
 - **Year:** Review annual spending trends.
+- **Running total:** Track cumulative spending from the start of the date range.
 
 **Month** is selected by default.
 
 To change the grouping:
 
 1. On the **Spend over time** visualization, select **Group by**.
-2. Choose **Day**, **Week**, **Month**, **Quarter**, or **Year**.
+2. Choose **Day**, **Week**, **Month**, **Quarter**, **Year**, or **Running total**.
 3. Select **Apply**.
 
 The chart updates to show spending grouped by your selected time period.

@@ -16,6 +16,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {getMsSinceJsStartup, getMsSinceNativeAppStart} from '@libs/telemetry/nativeAppStartTime';
 
 import captureReceipt, {shouldTakePhoto} from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
@@ -162,11 +163,28 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     };
 
     const capturePhoto = () => {
+        const torchFallbackReason = isTorchRequested
+            ? getTorchFallbackReason({torchMode: camera.current?.controller?.torchMode, msSinceTorchRequested: Date.now() - torchRequestedAt.current})
+            : undefined;
+        const isTorchOn = isTorchRequested && !torchFallbackReason;
+        const isPhotoCapture = shouldTakePhoto({flash, hasFlash, isInLandscapeMode, isTorchOn});
+        const captureAttributes = {
+            [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: isPhotoCapture ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
+            [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: flash && hasFlash,
+        };
+
         if (!isMultiScanEnabled) {
+            const msSinceNativeAppStart = getMsSinceNativeAppStart();
+            const msSinceJsStartup = getMsSinceJsStartup();
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
                 op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE},
+                attributes: {
+                    [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
+                    ...captureAttributes,
+                    ...(msSinceNativeAppStart !== undefined && {[CONST.TELEMETRY.ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS]: msSinceNativeAppStart}),
+                    ...(msSinceJsStartup !== undefined && {[CONST.TELEMETRY.ATTRIBUTE_DURATION_SINCE_JS_STARTUP_MS]: msSinceJsStartup}),
+                },
             });
         }
 
@@ -191,14 +209,9 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             return;
         }
 
-        const torchFallbackReason = isTorchRequested
-            ? getTorchFallbackReason({torchMode: camera.current?.controller?.torchMode, msSinceTorchRequested: Date.now() - torchRequestedAt.current})
-            : undefined;
         if (torchFallbackReason) {
             Log.info('[Camera] the torch is not lighting the receipt yet, so the flash photo is taken', false, {reason: torchFallbackReason});
         }
-        const isTorchOn = isTorchRequested && !torchFallbackReason;
-        const isPhotoCapture = shouldTakePhoto({flash, hasFlash, isInLandscapeMode, isTorchOn});
 
         startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
             name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
@@ -206,8 +219,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
             attributes: {
                 [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
-                [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: isPhotoCapture ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
-                [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: flash && hasFlash,
+                ...captureAttributes,
             },
         });
 

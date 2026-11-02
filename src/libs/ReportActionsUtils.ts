@@ -3323,6 +3323,13 @@ function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction
 }
 
 /**
+ * Check if the current user authored the action. For report previews, the author is the last actor on the child report.
+ */
+function isReportActionFromCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
+    return currentUserAccountID === (isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction?.actorAccountID);
+}
+
+/**
  * Get IOU action for a reportID and transactionID
  */
 function getIOUActionForReportID(reportID: string | undefined, transactionID: string | undefined, shouldPreferLiveAction = false): OnyxEntry<ReportAction> {
@@ -6200,6 +6207,7 @@ export {
     shouldReportActionBeVisible,
     isReportActionVisible,
     wasActionTakenByCurrentUser,
+    isReportActionFromCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
