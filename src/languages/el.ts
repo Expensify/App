@@ -6155,8 +6155,22 @@ ${amount} για ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Λογαριασμός πιστωτικής κάρτας',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Θα χρησιμοποιήσουμε αυτόν τον λογαριασμό για κάρτες που δεν έχουν δικό τους λογαριασμό εξαγωγής.'
+                    : 'Επιλέξτε έναν προεπιλεγμένο λογαριασμό. Θα τον χρησιμοποιήσουμε για κάρτες που δεν έχουν δικό τους λογαριασμό εξαγωγής.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Θα χρησιμοποιήσουμε αυτόν τον προμηθευτή για έξοδα χωρίς προμηθευτή.'
+                    : 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή. Θα τον χρησιμοποιήσουμε για έξοδα χωρίς προμηθευτή.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Χρεώσεις πιστωτικής κάρτας',
+                        nonReimbursableDescription: 'Τα έξοδα εταιρικής κάρτας θα εξαχθούν στο NetSuite ως μεμονωμένες χρεώσεις πιστωτικής κάρτας, με την ημερομηνία κάθε αγοράς.',
+                        legacyTaxHelper: 'Οι χρεώσεις πιστωτικής κάρτας δεν υποστηρίζουν το NetSuite legacy tax. Αν χρησιμοποιείτε legacy tax, επιλέξτε άλλον τύπο εξαγωγής.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Αναφορές εξόδων',
                         reimbursableDescription: 'Τα έξοδα από ίδιους πόρους θα εξαχθούν ως αναφορές εξόδων στο NetSuite.',
@@ -6911,6 +6925,18 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Τελευταία ημέρα του μήνα',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Τελευταία εργάσιμη ημέρα του μήνα',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Προσαρμοσμένη ημέρα μήνα',
+            },
+            reimbursable: {
+                title: 'Επιστρεπτέο',
+                description: 'Επιλέξτε πώς θα δημιουργούνται οι συναλλαγές κάρτας. Οι νέες συναλλαγές θα ακολουθούν αυτούς τους κανόνες.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Πάντα επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Επιστρέφεται πάντα στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Πάντα μη επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Δεν επιστρέφεται ποτέ στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Επιστρέφεται συνήθως στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Μη επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Επιστρέφεται περιστασιακά στους υπαλλήλους',
             },
             assign: 'Ανάθεση',
             assignCard: 'Ανάθεση κάρτας',
@@ -10209,6 +10235,8 @@ ${reportName}`,
             `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} κατόχοι κάρτας να διαγράψουν συναλλαγές κάρτας για την τροφοδοσία κάρτας «${feedName}»`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `άλλαξε την ημέρα λήξης της περιόδου εκκαθάρισης της ροής κάρτας «${feedName}»${newValue ? `σε "${newValue}"` : ''}${previousValue ? `(προηγουμένως "${previousValue}")` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `άλλαξε τη ρύθμιση επιστρεπτέου του καναλιού κάρτας "${feedName}"${newValue ? ` σε "${newValue}"` : ''}${previousValue ? ` (προηγουμένως "${previousValue}")` : ''}`,
         agentRule: {
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `προσέθεσε τον κανόνα πράκτορα «${title}»: ${prompt}` : `προσέθεσε έναν κανόνα πράκτορα: ${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) =>

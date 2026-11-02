@@ -6084,8 +6084,24 @@ ${amount} pour ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Compte de carte de crédit',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? "Nous utiliserons ce compte pour les cartes qui n'ont pas leur propre compte d'exportation."
+                    : "Choisissez un compte par défaut. Nous l'utiliserons pour les cartes qui n'ont pas leur propre compte d'exportation.",
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet
+                    ? "Nous utiliserons ce fournisseur pour les dépenses qui n'ont pas de fournisseur."
+                    : "Choisissez un fournisseur par défaut. Nous l'utiliserons pour les dépenses qui n'ont pas de fournisseur.",
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Frais de carte de crédit',
+                        nonReimbursableDescription:
+                            "Les dépenses des cartes d'entreprise seront exportées vers NetSuite en tant que frais de carte de crédit individuels, datés de chaque achat.",
+                        legacyTaxHelper:
+                            "Les frais de carte de crédit ne prennent pas en charge le NetSuite legacy tax. Si vous utilisez le legacy tax, choisissez un autre type d'exportation.",
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Notes de frais',
                         reimbursableDescription: 'Les dépenses payées de votre poche seront exportées sous forme de notes de frais vers NetSuite.',
@@ -6829,6 +6845,18 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Dernier jour du mois',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Dernier jour ouvrable du mois',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Jour du mois personnalisé',
+            },
+            reimbursable: {
+                title: 'Remboursable',
+                description: 'Choisissez comment les transactions par carte doivent être créées. Les nouvelles transactions suivront ces règles.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Toujours remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Toujours remboursé aux employés',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Toujours non remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Jamais remboursé aux employés',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Le plus souvent remboursé aux employés',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Non remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Parfois remboursé aux employés',
             },
             assign: 'Assigner',
             assignCard: 'Assigner une carte',
@@ -10391,6 +10419,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `Autoriser les porteurs de carte ${enabled ? 'activé' : 'Désactivé'} à supprimer les transactions de carte pour le flux de cartes « ${feedName} »`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `a modifié le jour de fin de période de relevé du flux de carte « ${feedName} »${newValue ? ` à « ${newValue} »` : ''}${previousValue ? ` (précédemment « ${previousValue} »)` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `a modifié le paramètre de remboursement du flux de cartes "${feedName}"${newValue ? ` en "${newValue}"` : ''}${previousValue ? ` (auparavant "${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
