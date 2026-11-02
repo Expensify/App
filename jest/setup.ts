@@ -352,7 +352,6 @@ jest.mock('@shopify/react-native-skia', () => ({
 
 // The native tab bar icons are drawn with Skia's imperative API, which the mock above leaves out, so the tabs get no icons.
 jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer', () => jest.fn(() => undefined));
-jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/useTabAvatarImage', () => jest.fn(() => undefined));
 
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     isSensorAvailable: jest.fn(() => Promise.resolve({available: false})),

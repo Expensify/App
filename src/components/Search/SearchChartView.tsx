@@ -23,10 +23,11 @@ import {View} from 'react-native';
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
 import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
-import {buildChartSeries} from './buildChartSeries';
+import {buildChartSeries, isChartAverage} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
+import isPeriodAfterToday, {isEmptyPeriodAfterToday} from './isPeriodAfterToday';
 import applyRunningTotal from './runningTotal';
 import {useSearchQueryContext} from './SearchContext';
 
@@ -56,7 +57,7 @@ type SearchChartViewProps = {
     /** Whether a line chart with a single point is drawn as a bar */
     shouldShowSinglePointAsBar?: boolean;
 
-    /** Rows the chart is compared against, drawn as a second series */
+    /** What the chart is compared against, drawn as a second series */
     comparison?: ChartComparison;
 
     /** Plots each point as the spend accumulated from the start of the range, instead of each period's own total. Applies to time-grouped line charts. */
@@ -96,10 +97,12 @@ function SearchChartView({
 
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
-    const {data: chartData, comparison: chartComparison} = shouldShowRunningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
-
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
+    const emptyLaterKeys = new Set(data.filter((item) => isEmptyPeriodAfterToday(item, groupBy, today, dateFilterRange.start)).map((item) => item.keyForList));
+    const comparedKeysWithExpenses = new Set(comparison && !isChartAverage(comparison) ? comparison.data.filter((item) => !!item.count).map((item) => item.keyForList) : []);
+    const {data: chartData, comparison: chartComparison} = shouldShowRunningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
+
     const {series, rows} = buildChartSeries({
         data: chartData,
         comparison: chartComparison,
@@ -111,14 +114,10 @@ function SearchChartView({
         getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
         isLaterPeriod: (item) => {
             const range = getDateRange?.(item);
-            if (!range) {
-                return false;
-            }
-
-            // A date filter that starts partway through a group starts the group there too, e.g. Oct 10 for a range from Oct 10 to Dec 31
-            const start = dateFilterRange.start && dateFilterRange.start > range.start ? dateFilterRange.start : range.start;
-            return start > today;
+            return !!range && isPeriodAfterToday(range.start, today, dateFilterRange.start);
         },
+        isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
+        hasComparedExpenses: (item) => comparedKeysWithExpenses.has(item.keyForList),
         translate,
         dateFnsLocale,
         colorScheme: theme.colorScheme,
@@ -183,6 +182,7 @@ function SearchChartView({
                     isLoading={isLoading}
                     onPointPress={onItemPress}
                     labelSteps={labelSteps}
+                    shouldShowTooltipChange={!shouldShowRunningTotal || !isChartAverage(comparison)}
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
                 />

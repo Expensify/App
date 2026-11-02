@@ -5,6 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksDesktopMarkChecksToBePrinted} from '@libs/actions/connections/QuickbooksDesktop';
@@ -23,11 +24,13 @@ import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type QBDSectionType = {
@@ -45,6 +48,7 @@ const accountOrExportDestination = [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE
 const markChecksToBePrintedOrExportDestination = [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE, CONST.QUICKBOOKS_DESKTOP_CONFIG.MARK_CHECKS_TO_BE_PRINTED];
 
 function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -112,7 +116,7 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: W
                     // eslint-disable-next-line react/no-array-index-key
                     key={index}
                 >
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress)}>
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress, false, session)}>
                         <MenuItemField.Row
                             name={section.description ?? ''}
                             value={section.title}

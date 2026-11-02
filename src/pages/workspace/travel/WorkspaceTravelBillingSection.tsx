@@ -63,6 +63,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
@@ -78,6 +79,7 @@ type WorkspaceTravelBillingSectionProps = {
  * Shows a setup CTA if Travel Billing is not configured, otherwise shows the settings.
  */
 function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSectionProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -449,7 +451,11 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
-                    onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID))) : undefined}
+                    onPress={
+                        canWriteMoreFeatures
+                            ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_ACCOUNT.getRoute(policyID)), false, session)
+                            : undefined
+                    }
                 >
                     <MenuItem.Row>
                         <MenuItem.Content>
@@ -473,7 +479,11 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
-                    onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID))) : undefined}
+                    onPress={
+                        canWriteMoreFeatures
+                            ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_FREQUENCY.getRoute(policyID)), false, session)
+                            : undefined
+                    }
                 >
                     <MenuItemField.Row
                         name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.settlementFrequencyLabel')}
@@ -492,7 +502,11 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
                 errorRowTextStyles={styles.mr3}
             >
                 <MenuItemSectionRoot
-                    onPress={canWriteMoreFeatures ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID))) : undefined}
+                    onPress={
+                        canWriteMoreFeatures
+                            ? callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.WORKSPACE_TRAVEL_SETTINGS_MONTHLY_LIMIT.getRoute(policyID)), false, session)
+                            : undefined
+                    }
                 >
                     <MenuItemField.Row
                         name={translate('workspace.moreFeatures.travel.travelBilling.travelBillingSection.subsections.monthlySpendLimitLabel')}

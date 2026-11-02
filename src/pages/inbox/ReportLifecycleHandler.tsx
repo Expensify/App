@@ -1,6 +1,7 @@
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useBankAccountUnlockEffect from '@hooks/useBankAccountUnlockEffect';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
+import useIsReportOutOfSight from '@hooks/useIsReportOutOfSight';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 
@@ -34,6 +35,9 @@ function ReportLifecycleHandler({reportID}: ReportLifecycleHandlerProps) {
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const isTopMostReportId = currentReportIDValue === reportID;
 
+    // A report mounted out of sight (preloaded tab, wide submit pre-mount) can be the topmost one while the user never opened it.
+    const isOutOfSight = useIsReportOutOfSight();
+
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onyxReportID}`);
     useBankAccountUnlockEffect(report);
 
@@ -59,7 +63,7 @@ function ReportLifecycleHandler({reportID}: ReportLifecycleHandlerProps) {
     // Clear notifications for the current report when it's opened and re-focused
     const clearNotifications = () => {
         // Check if this is the top-most ReportScreen since the Navigator preserves multiple at a time
-        if (!isTopMostReportId) {
+        if (!isTopMostReportId || isOutOfSight) {
             return;
         }
 
