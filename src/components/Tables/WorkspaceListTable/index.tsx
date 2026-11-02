@@ -130,7 +130,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
         return item.title.toLowerCase().includes(searchValue.toLowerCase());
     };
 
-    const canAccessArchived = (role: ValueOf<typeof CONST.POLICY.ROLE>) => role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.OWNER || role === CONST.POLICY.ROLE.AUDITOR;
+    const canAccessArchived = (role: ValueOf<typeof CONST.POLICY.ROLE>) => role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR;
     const canSeeFilter = canUseArchivePolicies && workspaces.some((w) => canAccessArchived(w.role));
     const searchBarComponent = (
         <Table.FilterBar

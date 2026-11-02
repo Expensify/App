@@ -1,7 +1,9 @@
-import {updateFinancialForceFxExpenseAccount} from '@libs/actions/connections/FinancialForce';
+import {connectPolicyToFinancialForce, updateFinancialForceFxExpenseAccount} from '@libs/actions/connections/FinancialForce';
 import * as API from '@libs/API';
 import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
+import {openLink} from '@userActions/Link';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,6 +13,9 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
+jest.mock('@userActions/Link', () => ({
+    openLink: jest.fn(),
+}));
 jest.mock('@expensify/react-native-hybrid-app', () => ({
     __esModule: true,
     default: {
@@ -123,6 +128,19 @@ describe('actions/connections/FinancialForce', () => {
                     }),
                 }),
             );
+        });
+    });
+
+    describe('connectPolicyToFinancialForce', () => {
+        it('passes the session to openLink', () => {
+            // Given an anonymous session, which openLink uses to decide whether to redirect to sign in
+            const session = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
+
+            // When connecting the policy to Certinia
+            connectPolicyToFinancialForce(MOCK_POLICY_ID, false, CONST.NEW_EXPENSIFY_URL, session);
+
+            // Then the setup link is opened with the passed session
+            expect(openLink).toHaveBeenCalledWith(expect.stringContaining(MOCK_POLICY_ID), CONST.NEW_EXPENSIFY_URL, false, session);
         });
     });
 });

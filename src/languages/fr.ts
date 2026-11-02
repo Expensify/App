@@ -5336,8 +5336,6 @@ ${amount} pour ${merchant} - ${date}`,
             guestAlternateText: 'Soumettre des notes de frais avec une visibilité limitée.',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Responsable';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrateur de l’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
