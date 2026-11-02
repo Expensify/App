@@ -80,16 +80,16 @@ describe('Bill Pay actions', () => {
             statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
         };
 
-        // When the payer pays the bill from that bank account
+        // When the payer pays the bill from that bank account, with a saved payment method that isn't ACH, as bulk pay can
         payBill({
             report: bill,
-            paymentMethodType: CONST.IOU.PAYMENT_TYPE.VBBA,
+            paymentMethodType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
             bankAccountID: 789,
             getCurrencyDecimals,
             delegateAccountID: undefined,
         });
 
-        // Then PayMoneyRequest debits that account by ACH for the amount shown on the bill
+        // Then PayMoneyRequest debits that account by ACH for the amount shown on the bill, since it pays bills only by ACH or outside Expensify
         expect(write).toHaveBeenCalledWith(
             WRITE_COMMANDS.PAY_MONEY_REQUEST,
             expect.objectContaining({
