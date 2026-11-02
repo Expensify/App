@@ -11,6 +11,7 @@ import createRandomPolicy from '../utils/collections/policies';
 const mockSyncConnection = jest.fn();
 let mockConnectedIntegration: ConnectionName | undefined;
 let mockSynchronizationError: string | undefined;
+let mockIsAuthenticationError = false;
 
 jest.mock('@hooks/useCardFeeds', () => () => [undefined]);
 jest.mock('@hooks/useCardsLists', () => () => [undefined]);
@@ -37,7 +38,7 @@ jest.mock('@libs/AccountingUtils', () => ({
     getQBORefreshTokenExpiryStatus: () => undefined,
 }));
 jest.mock('@libs/actions/connections', () => ({
-    isAuthenticationError: () => false,
+    isAuthenticationError: () => mockIsAuthenticationError,
     isConnectionInProgress: () => false,
     isConnectionUnverified: () => false,
     removePolicyConnection: jest.fn(),
@@ -118,6 +119,24 @@ const campfirePolicy: Policy = {
     } as Policy['connections'],
 };
 
+function createNetSuitePolicy(netSuiteConnection: Record<string, unknown>): Policy {
+    return {
+        ...policy,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The hook only reads the auth type of the NetSuite connection, so the rest of the connection is left out.
+        connections: {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: netSuiteConnection} as Policy['connections'],
+    };
+}
+
+const netSuiteOAuthPolicy = createNetSuitePolicy({accountID: 'TSTDRV123', config: {authType: CONST.NETSUITE_CONFIG.TOKEN_INPUT.AUTH_TYPE.OAUTH2}});
+const netSuiteTBAPolicy = createNetSuitePolicy({accountID: 'TSTDRV123', tokenID: 'token-id', tokenSecret: 'token-secret', config: {}});
+
+const credentialsMenuTextKeys = new Set(['workspace.accounting.enterCredentials', 'workspace.accounting.reconnect', 'workspace.accounting.updateCredentials']);
+
+function getCredentialsItemText(policyToRender: Policy) {
+    const {result} = renderHook(() => useConnectedAccountingIntegration(policyToRender));
+    return result.current.overflowMenu.find((item) => credentialsMenuTextKeys.has(item.text))?.text;
+}
+
 function getSettingsMenuItemDescriptions(policyToRender: Policy) {
     const {result} = renderHook(() => useConnectedAccountingIntegration(policyToRender));
     return result.current.connectionDetails?.settingsMenuItems.map((item) => item.description);
@@ -133,6 +152,7 @@ describe('useConnectedAccountingIntegration', () => {
         jest.clearAllMocks();
         mockConnectedIntegration = undefined;
         mockSynchronizationError = undefined;
+        mockIsAuthenticationError = false;
     });
 
     describe('Sync now menu item', () => {
@@ -182,6 +202,34 @@ describe('useConnectedAccountingIntegration', () => {
 
             // Then the entity row is hidden, since only Zoho Books keeps its row through a sync error
             expect(descriptions).not.toContain('workspace.campfire.entity');
+        });
+    });
+
+    describe('Credentials menu item on a NetSuite authentication error', () => {
+        beforeEach(() => {
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
+            mockSynchronizationError = 'Authentication failed';
+            mockIsAuthenticationError = true;
+        });
+
+        it('should say Reconnect for an OAuth connection', () => {
+            // Given a NetSuite OAuth connection whose last sync failed to authenticate
+
+            // When the overflow menu is built
+            const text = getCredentialsItemText(netSuiteOAuthPolicy);
+
+            // Then the item says Reconnect, because the admin authorizes Expensify again in NetSuite instead of typing new credentials
+            expect(text).toBe('workspace.accounting.reconnect');
+        });
+
+        it('should keep Enter your credentials for a Token-Based Authentication connection', () => {
+            // Given a NetSuite Token-Based Authentication connection whose last sync failed to authenticate
+
+            // When the overflow menu is built
+            const text = getCredentialsItemText(netSuiteTBAPolicy);
+
+            // Then the item keeps the Enter your credentials label, since only OAuth connections say Reconnect
+            expect(text).toBe('workspace.accounting.enterCredentials');
         });
     });
 });
