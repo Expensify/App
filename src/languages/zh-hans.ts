@@ -5411,6 +5411,8 @@ ${amount}，商户：${merchant} - 日期：${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: '自掏腰包的报销在支付时会导出',
                 },
             },
+            noVendorsFound: '未找到供应商',
+            noVendorsFoundDescription: '请在 QuickBooks Desktop 中添加供应商，然后再次同步连接',
         },
         qbo: {
             connectedTo: '已连接到',

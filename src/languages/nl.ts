@@ -5580,6 +5580,8 @@ ${amount} voor ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Uit eigen zak gemaakte uitgaven worden geëxporteerd zodra ze zijn betaald',
                 },
             },
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Voeg leveranciers toe in QuickBooks Desktop en synchroniseer de verbinding daarna opnieuw',
         },
         qbo: {
             connectedTo: 'Verbonden met',

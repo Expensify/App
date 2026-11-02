@@ -5582,6 +5582,8 @@ ${amount} per ${merchant} - ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
                 },
             },
+            noVendorsFound: 'Nessun fornitore trovato',
+            noVendorsFoundDescription: 'Aggiungi i fornitori in QuickBooks Desktop e sincronizza di nuovo la connessione',
         },
         qbo: {
             connectedTo: 'Collegato a',

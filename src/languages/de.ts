@@ -5616,6 +5616,8 @@ ${amount} für ${merchant} – ${date}`,
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Auslagenausgaben werden beim Bezahlen exportiert',
                 },
             },
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in QuickBooks Desktop hinzu und synchronisieren Sie die Verbindung erneut',
         },
         qbo: {
             connectedTo: 'Verbunden mit',
