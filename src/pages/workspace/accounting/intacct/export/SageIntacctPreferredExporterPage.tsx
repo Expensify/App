@@ -26,7 +26,7 @@ import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type CardListItem = ListItem & {
@@ -46,60 +46,49 @@ function SageIntacctPreferredExporterPage({policy}: WithPolicyProps) {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREFERRED_EXPORTER>>();
     const backTo = route.params?.backTo;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))));
-    }, [policyID, backTo]);
+    };
 
-    const data: CardListItem[] = useMemo(() => {
-        if (!isEmpty(policyOwner) && isEmpty(exporters)) {
-            return [
-                {
-                    value: policyOwner,
-                    text: policyOwner,
-                    keyForList: policyOwner,
-                    isSelected: exportConfiguration?.exporter === policyOwner,
-                },
-            ];
+    // Don't show guides if the current user is not a guide themselves or an Expensify employee
+    const data: CardListItem[] =
+        !isEmpty(policyOwner) && isEmpty(exporters)
+            ? [
+                  {
+                      value: policyOwner,
+                      text: policyOwner,
+                      keyForList: policyOwner,
+                      isSelected: exportConfiguration?.exporter === policyOwner,
+                  },
+              ]
+            : exporters?.reduce<CardListItem[]>((options, exporter) => {
+                  if (!exporter.email) {
+                      return options;
+                  }
+                  if (isExpensifyTeam(exporter.email) && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
+                      return options;
+                  }
+                  options.push({
+                      value: exporter.email,
+                      text: exporter.email,
+                      keyForList: exporter.email,
+                      isSelected: exportConfiguration?.exporter === exporter.email,
+                  });
+                  return options;
+              }, []);
+
+    const selectExporter = (row: CardListItem) => {
+        if (row.value !== exportConfiguration?.exporter && policyID) {
+            updateSageIntacctExporter(policyID, row.value, exportConfiguration?.exporter);
         }
+        goBack();
+    };
 
-        return exporters?.reduce<CardListItem[]>((options, exporter) => {
-            if (!exporter.email) {
-                return options;
-            }
-
-            // Don't show guides if the current user is not a guide themselves or an Expensify employee
-            if (isExpensifyTeam(exporter.email) && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
-                return options;
-            }
-
-            options.push({
-                value: exporter.email,
-                text: exporter.email,
-                keyForList: exporter.email,
-                isSelected: exportConfiguration?.exporter === exporter.email,
-            });
-            return options;
-        }, []);
-    }, [exportConfiguration?.exporter, exporters, policyOwner, currentUserLogin]);
-
-    const selectExporter = useCallback(
-        (row: CardListItem) => {
-            if (row.value !== exportConfiguration?.exporter && policyID) {
-                updateSageIntacctExporter(policyID, row.value, exportConfiguration?.exporter);
-            }
-            goBack();
-        },
-        [policyID, exportConfiguration?.exporter, goBack],
-    );
-
-    const headerContent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.sageIntacct.exportPreferredExporterNote')}</Text>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.exportPreferredExporterSubNote')}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+    const headerContent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb2, styles.textNormal]}>{translate('workspace.sageIntacct.exportPreferredExporterNote')}</Text>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.exportPreferredExporterSubNote')}</Text>
+        </View>
     );
 
     return (

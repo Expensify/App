@@ -21,7 +21,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {cardByIdSelector} from '@selectors/Card';
 import {accountIDSelector} from '@selectors/Session';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type ImportTransactionsSpreadsheetPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.IMPORT_TRANSACTIONS_SPREADSHEET>;
 
@@ -32,7 +32,7 @@ function ImportTransactionsSpreadsheetPage({route}: ImportTransactionsSpreadshee
     const [importedSpreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [savedColumnLayouts, savedColumnLayoutsMetadata] = useOnyx(ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
     const [accountID = CONST.DEFAULT_NUMBER_ID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const cardSelector = useCallback((cardList: OnyxEntry<CardList>) => (cardID ? cardByIdSelector(String(cardID))(cardList) : undefined), [cardID]);
+    const cardSelector = (cardList: OnyxEntry<CardList>) => (cardID ? cardByIdSelector(String(cardID))(cardList) : undefined);
     const [existingCard] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const {setIsClosing} = useCloseImportPage();

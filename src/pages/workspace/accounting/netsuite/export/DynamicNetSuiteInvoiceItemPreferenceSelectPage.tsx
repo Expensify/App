@@ -28,7 +28,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_INVOICE_ITEM_PREFERENCE>;
@@ -43,29 +43,25 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_INVOICE_ITEM_PREFERENCE_SELECT.path);
 
     const {items} = policy?.connections?.netsuite?.options.data ?? {};
-    const selectedItem = useMemo(() => items?.find(({id}) => id === config?.invoiceItem), [items, config?.invoiceItem]);
+    const selectedItem = items?.find(({id}) => id === config?.invoiceItem);
 
     const selectedValue = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).find((value) => value === config?.invoiceItemPreference) ?? CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE;
 
     const [draftPreference, setDraftPreference] = useState<ValueOf<typeof CONST.NETSUITE_INVOICE_ITEM_PREFERENCE>>();
     const currentPreference = draftPreference ?? selectedValue;
 
-    const options: MenuListItem[] = useMemo(
-        () =>
-            Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).map((postingPreference) => ({
-                value: postingPreference,
-                text: translate(`workspace.netsuite.invoiceItem.values.${postingPreference}.label`),
-                keyForList: postingPreference,
-                isSelected: currentPreference === postingPreference,
-            })),
-        [currentPreference, translate],
-    );
+    const options: MenuListItem[] = Object.values(CONST.NETSUITE_INVOICE_ITEM_PREFERENCE).map((postingPreference) => ({
+        value: postingPreference,
+        text: translate(`workspace.netsuite.invoiceItem.values.${postingPreference}.label`),
+        keyForList: postingPreference,
+        isSelected: currentPreference === postingPreference,
+    }));
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const savePreference = useCallback(() => {
+    const savePreference = () => {
         if (currentPreference !== config?.invoiceItemPreference && policyID) {
             updateNetSuiteInvoiceItemPreference(policyID, currentPreference, config?.invoiceItemPreference);
         }
@@ -73,14 +69,14 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
         if (currentPreference === CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.CREATE) {
             goBack();
         }
-    }, [currentPreference, config?.invoiceItemPreference, policyID, goBack]);
+    };
 
     // Rendered as the list footer so the invoice-item sub-menu sits directly under the options and the Save button stays pinned to the bottom of the screen.
-    const invoiceItemFooterContent = useMemo(() => {
-        if (config?.invoiceItemPreference !== CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT) {
-            return null;
-        }
-        return (
+    let invoiceItemFooterContent;
+    if (config?.invoiceItemPreference !== CONST.NETSUITE_INVOICE_ITEM_PREFERENCE.SELECT) {
+        invoiceItemFooterContent = null;
+    } else {
+        invoiceItemFooterContent = (
             <OfflineWithFeedback
                 key={translate('workspace.netsuite.invoiceItem.label')}
                 pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM], config?.pendingFields)}
@@ -99,7 +95,7 @@ function DynamicNetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConn
                 </MenuItemField>
             </OfflineWithFeedback>
         );
-    }, [config?.invoiceItemPreference, config?.pendingFields, config?.errorFields, policyID, selectedItem, translate]);
+    }
 
     // Update focused index when the current preference changes (after an error reverts the selection)
     useEffect(() => {

@@ -24,7 +24,7 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {CorpayFormField} from '@src/types/onyx';
 
 import {SafeString} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 const {ACCOUNT_HOLDER_COUNTRY} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
@@ -41,9 +41,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const accountHolderDetailsFields = useMemo(() => {
-        return corpayFields?.formFields?.filter((field) => field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
-    }, [corpayFields]);
+    const accountHolderDetailsFields = corpayFields?.formFields?.filter((field) => field.id.includes(CONST.NON_USD_BANK_ACCOUNT.BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX));
     const fieldIds = accountHolderDetailsFields?.map((field) => field.id);
 
     const subStepKeys = accountHolderDetailsFields?.reduce(
@@ -56,10 +54,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const defaultValues = useMemo(
-        () => getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount),
-        [subStepKeys, reimbursementAccount, reimbursementAccountDraft],
-    );
+    const defaultValues = getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount);
     const defaultBankAccountCountry = reimbursementAccount?.achData?.[COUNTRY] ?? reimbursementAccountDraft?.[COUNTRY] ?? '';
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
@@ -68,91 +63,86 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
         shouldSaveDraft: true,
     });
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
 
-            if (accountHolderDetailsFields) {
-                for (const field of accountHolderDetailsFields) {
-                    const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
+        if (accountHolderDetailsFields) {
+            for (const field of accountHolderDetailsFields) {
+                const fieldID = field.id as keyof FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>;
 
-                    if (field.isRequired && !values[fieldID]) {
-                        errors[fieldID] = translate('common.error.fieldRequired');
+                if (field.isRequired && !values[fieldID]) {
+                    errors[fieldID] = translate('common.error.fieldRequired');
+                }
+
+                for (const rule of field.validationRules) {
+                    if (!rule.regEx) {
+                        continue;
                     }
 
-                    for (const rule of field.validationRules) {
-                        if (!rule.regEx) {
-                            continue;
-                        }
-
-                        if (new RegExp(rule.regEx).test(values[fieldID] ? SafeString(values[fieldID]) : '')) {
-                            continue;
-                        }
-
-                        errors[fieldID] = rule.errorMessage;
+                    if (new RegExp(rule.regEx).test(values[fieldID] ? SafeString(values[fieldID]) : '')) {
+                        continue;
                     }
+
+                    errors[fieldID] = rule.errorMessage;
                 }
             }
+        }
 
-            return errors;
-        },
-        [accountHolderDetailsFields, translate],
-    );
+        return errors;
+    };
 
-    const inputs = useMemo(() => {
-        return accountHolderDetailsFields?.map((field) => {
-            if (field.valueSet !== undefined) {
-                return getInputForValueSet(field, SafeString(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
-            }
+    const inputs = accountHolderDetailsFields?.map((field) => {
+        if (field.valueSet !== undefined) {
+            return getInputForValueSet(field, SafeString(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
+        }
 
-            if (field.id === ACCOUNT_HOLDER_COUNTRY) {
-                return (
-                    <View
-                        style={[styles.mb6, styles.mhn5]}
-                        key={field.id}
-                    >
-                        <InputWrapper
-                            InputComponent={PushRowWithModal}
-                            optionsList={CONST.ALL_COUNTRIES}
-                            description={field.label}
-                            shouldSaveDraft={!isEditing}
-                            defaultValue={String(defaultValues[field.id] !== '' ? defaultValues[field.id] : defaultBankAccountCountry)}
-                            modalHeaderTitle={translate('countryStep.selectCountry')}
-                            searchInputTitle={translate('countryStep.findCountry')}
-                            inputID={field.id}
-                        />
-                    </View>
-                );
-            }
-
-            const inputComponent = getInputComponent(field);
+        if (field.id === ACCOUNT_HOLDER_COUNTRY) {
             return (
                 <View
-                    style={styles.mb6}
+                    style={[styles.mb6, styles.mhn5]}
                     key={field.id}
                 >
                     <InputWrapper
-                        InputComponent={inputComponent}
-                        inputID={field.id}
-                        label={field.label}
-                        aria-label={field.label}
-                        role={CONST.ROLE.PRESENTATION}
-                        defaultValue={SafeString(defaultValues[field.id as keyof typeof defaultValues])}
+                        InputComponent={PushRowWithModal}
+                        optionsList={CONST.ALL_COUNTRIES}
+                        description={field.label}
                         shouldSaveDraft={!isEditing}
-                        limitSearchesToCountry={defaultValues.accountHolderCountry || defaultBankAccountCountry}
-                        renamedInputKeys={{
-                            street: 'accountHolderAddress1',
-                            city: 'accountHolderCity',
-                            country: 'accountHolderCountry',
-                        }}
-                        hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
-                        forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
-                        {...(inputComponent === TextInput ? getTextInputAutocorrectProps() : {})}
+                        defaultValue={String(defaultValues[field.id] !== '' ? defaultValues[field.id] : defaultBankAccountCountry)}
+                        modalHeaderTitle={translate('countryStep.selectCountry')}
+                        searchInputTitle={translate('countryStep.findCountry')}
+                        inputID={field.id}
                     />
                 </View>
             );
-        });
-    }, [accountHolderDetailsFields, styles, defaultValues, isEditing, defaultBankAccountCountry, translate]);
+        }
+
+        const inputComponent = getInputComponent(field);
+        return (
+            <View
+                style={styles.mb6}
+                key={field.id}
+            >
+                <InputWrapper
+                    InputComponent={inputComponent}
+                    inputID={field.id}
+                    label={field.label}
+                    aria-label={field.label}
+                    role={CONST.ROLE.PRESENTATION}
+                    defaultValue={SafeString(defaultValues[field.id as keyof typeof defaultValues])}
+                    shouldSaveDraft={!isEditing}
+                    limitSearchesToCountry={defaultValues.accountHolderCountry || defaultBankAccountCountry}
+                    renamedInputKeys={{
+                        street: 'accountHolderAddress1',
+                        city: 'accountHolderCity',
+                        country: 'accountHolderCountry',
+                    }}
+                    hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
+                    forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
+                    {...(inputComponent === TextInput ? getTextInputAutocorrectProps() : {})}
+                />
+            </View>
+        );
+    });
 
     return (
         <FormProvider
