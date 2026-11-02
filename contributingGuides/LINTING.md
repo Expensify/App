@@ -1,11 +1,11 @@
 # Linting
 
-The App is linted with [ESLint](https://eslint.org). Rule configuration lives in [`config/eslint/`](../config/eslint/); the runner, seatbelt ratchet, and post-process pipeline live in [`scripts/lint/`](../scripts/lint/).
+The App is linted with [oxlint](https://oxc.rs/docs/guide/usage/linter). Rule configuration lives in [`oxlint.config.mts`](../oxlint.config.mts) and [`config/oxlint/`](../config/oxlint/); the runner, seatbelt ratchet, and post-process pipeline live in [`scripts/lint/`](../scripts/lint/).
 
 ## TL;DR
 
 ```bash
-# Lint the whole repo (same command CI runs):
+# Lint the whole repo (same command CI runs, minus the sharding flag):
 npm run lint
 
 # Lint only the files added/modified/renamed on this branch vs origin/main:
@@ -21,27 +21,35 @@ npm run lint -- --show-warnings
 npm run lint-watch
 
 # HTML dashboard: seatbelt baseline broken down by rule and by file:
-npm run eslint-report
+npm run lint-report
 ```
 
 Put flags before file or directory paths. The CLI stops parsing flags once it starts collecting variadic targets.
 
-Prefer `npm run lint` (or `lint-changed` / `lint -- <files>`) over raw `npx eslint` invocations. The wrapper increases the memory allocation to prevent OOM errors, applies the seatbelt ratchet and the other post-processors, and includes caching and concurrency flags for faster linting.
+Prefer `npm run lint` (or `lint-changed` / `lint -- <files>`) over raw `npx oxlint` invocations. The wrapper applies the seatbelt ratchet and the other post-processors, splits the JS plugins across several oxlint processes (`--shards`), and runs the Onyx lint bypass checks.
 
-Editor integrations and bare `npx eslint` still run the rule set from `config/eslint/`, but they do **not** apply the seatbelt ratchet, the React Compiler filter, or no-deprecated stratification. Those run only in `scripts/lint/`. Grandfathered seatbelt rows may therefore show as errors in the editor even though `npm run lint` passes.
+Editor integrations and bare `npx oxlint` still run the rule set from `oxlint.config.mts`, but they do **not** apply the seatbelt ratchet, the React Compiler filter, or no-deprecated stratification. Those run only in `scripts/lint/`. Grandfathered seatbelt rows may therefore show as errors in the editor even though `npm run lint` passes.
 
 By default the wrapper only prints blocking errors — seatbelt-grandfathered violations (which CI does not fail on) are suppressed from the output but still evaluated against the baseline. Pass `--show-warnings` when you want to see them too, e.g. when paying down baselined errors.
+
+## How the rules run
+
+- **Native rules** come from oxlint itself; type-aware ones run through `oxlint-tsgolint`.
+- **JS plugins** in [`config/oxlint/plugins/`](../config/oxlint/plugins/) run the rules oxlint has no native version of, using the ESLint plugins' own rule code (`eslint`, `eslint-config-expensify`, `eslint-plugin-react`, `typescript-eslint`, ...). That is why those packages stay in `devDependencies`. The repo's own rules live in [`eslint-plugin-local-rules/`](../eslint-plugin-local-rules/) and load under the `rulesdir/` prefix.
+- **React Compiler rules** (`react-hooks/refs`, `react-hooks/purity`, ...) come from the Rust React Compiler via [`config/oxlint/reactCompilerRust.mjs`](../config/oxlint/reactCompilerRust.mjs).
+- Findings, the seatbelt baseline and `eslint-disable` comments all use the ESLint rule IDs (`@typescript-eslint/no-deprecated`, `react/jsx-no-bind`, ...); [`config/oxlint/ruleNames.mjs`](../config/oxlint/ruleNames.mjs) maps oxlint's names to them. `eslint-disable-next-line <rule>` is still the way to suppress a finding inline.
+- oxlint runs JS plugins on one thread, so `scripts/lint/` splits the files into shards (`--shards=<n>` or `auto`). CI uses `--shards=4`.
 
 ## Seatbelt
 Known lint errors are grandfathered by a seatbelt ratchet implemented in [`scripts/lint/processors/Seatbelt.ts`](../scripts/lint/processors/Seatbelt.ts). The TSV format and env-var names match the previous `eslint-seatbelt` plugin so existing workflows stay the same.
 
 1. **Every rule is an error.** There are no warnings.
-2. **Pre-existing errors are grandfathered via the seatbelt ratchet.** A per-file / per-rule baseline lives at [`config/eslint/eslint.seatbelt.tsv`](../config/eslint/eslint.seatbelt.tsv). As long as a file's error count for a given rule is **≤** its recorded baseline, seatbelt reclassifies those errors as warnings and the run still passes.
+2. **Pre-existing errors are grandfathered via the seatbelt ratchet.** A per-file / per-rule baseline lives at [`config/oxlint/oxlint.seatbelt.tsv`](../config/oxlint/oxlint.seatbelt.tsv). As long as a file's error count for a given rule is **≤** its recorded baseline, seatbelt reclassifies those errors as warnings and the run still passes.
 3. **The baseline is a ratchet.** The count can only go down over time — never up — unless you (and a reviewer) explicitly allow an increase.
-4. **The baseline auto-tightens on `main`.** When a PR merges, the lint job on `main` rewrites `eslint.seatbelt.tsv` to reflect the new (lower) counts and commits it back as OSBotify. You don't need to commit TSV updates yourself during normal development.
-5. **You never hand-edit `eslint.seatbelt.tsv`.** Seatbelt rewrites it deterministically based on what it sees during a lint run.
+4. **The baseline auto-tightens on `main`.** When a PR merges, the lint job on `main` rewrites `oxlint.seatbelt.tsv` to reflect the new (lower) counts and commits it back as OSBotify. You don't need to commit TSV updates yourself during normal development.
+5. **You never hand-edit `oxlint.seatbelt.tsv`.** Seatbelt rewrites it deterministically based on what it sees during a lint run.
 
-### Mental model: what happens to `eslint.seatbelt.tsv`
+### Mental model: what happens to `oxlint.seatbelt.tsv`
 
 | Scenario                                                     | TSV rewritten locally? | Lint result                                                |
 | ------------------------------------------------------------ | ---------------------- | ---------------------------------------------------------- |
@@ -52,7 +60,7 @@ Known lint errors are grandfathered by a seatbelt ratchet implemented in [`scrip
 | PR CI, counts go up without `SEATBELT_INCREASE`              | No                     | Fails                                                      |
 | `push: main` lint job, counts go down                        | Yes                    | Passes; OSBotify commits the tightened TSV back to `main`  |
 
-In plain English: during normal development, fixing baselined errors does not dirty your worktree. `main`'s lint job takes care of tightening the committed baseline after your PR merges. The only case where you commit `eslint.seatbelt.tsv` by hand is the `SEATBELT_INCREASE` escape hatch.
+In plain English: during normal development, fixing baselined errors does not dirty your worktree. `main`'s lint job takes care of tightening the committed baseline after your PR merges. The only case where you commit `oxlint.seatbelt.tsv` by hand is the `SEATBELT_INCREASE` escape hatch.
 
 ## Day-to-day workflows
 
@@ -72,10 +80,10 @@ npm run lint -- src/components/Foo/index.tsx src/libs/bar.ts
 
 ### "What if I want to see lint errors broken down by type or by file?"
 
-Use `npm run eslint-report`. It will show an HTML report of current lint errors in the project (populated from `eslint.seatbelt.tsv`)
+Use `npm run lint-report`. It will show an HTML report of current lint errors in the project (populated from `oxlint.seatbelt.tsv`)
 
 ```bash
-npm run eslint-report
+npm run lint-report
 ```
 
 ![Seatbelt report: breakdown by ESLint rule](https://github.com/user-attachments/assets/2e1cc9dd-155e-4975-8a1f-365c5a830f27)
@@ -84,7 +92,7 @@ npm run eslint-report
 
 ### "I fixed an existing baselined error"
 
-Just run `npm run lint` (or `npm run lint-changed`) locally. Seatbelt notices the count went down and passes. **It does not rewrite `config/eslint/eslint.seatbelt.tsv` locally** — `readOnly` defaults to on unless `CI` is set, so the TSV is only rewritten in CI. After your PR merges, the lint job on `main` re-runs, writes the tightened TSV, and OSBotify commits it back to `main` for you.
+Just run `npm run lint` (or `npm run lint-changed`) locally. Seatbelt notices the count went down and passes. **It does not rewrite `config/oxlint/oxlint.seatbelt.tsv` locally** — `readOnly` defaults to on unless `CI` is set, so the TSV is only rewritten in CI. After your PR merges, the lint job on `main` re-runs, writes the tightened TSV, and OSBotify commits it back to `main` for you.
 
 No TSV commit required on your end.
 
@@ -99,7 +107,7 @@ The default assumption is that you fix it. If you genuinely need to land code th
     SEATBELT_INCREASE=@typescript-eslint/no-deprecated npm run lint
     ```
 
-   That will modify `config/eslint/eslint.seatbelt.tsv`. **Always commit the diff alongside your code**, and expect a reviewer to ask you why a fix wasn't feasible. Because the violation stays visible in the baseline, it can still be fixed later.
+   That will modify `config/oxlint/oxlint.seatbelt.tsv`. **Always commit the diff alongside your code**, and expect a reviewer to ask you why a fix wasn't feasible. Because the violation stays visible in the baseline, it can still be fixed later.
 
 2. **Suppress the specific occurrence** with an `eslint-disable-next-line <rule>` comment and a justification — preferred for **permanent** suppressions, where you genuinely believe the lint rule is wrong for that specific case and you don't expect the violation to ever be fixed. See [`CONSISTENCY-5`](../.claude/skills/app-coding-standards/rules/consistency-5-justify-eslint-disable.md).
 
@@ -113,27 +121,27 @@ When you move or rename a file, seatbelt's baseline entry for the old path is no
 SEATBELT_INCREASE=<rule-id> npm run lint
 ```
 
-Commit the updated `config/eslint/eslint.seatbelt.tsv` alongside the rename. The old path will be removed from the TSV automatically by the lint job on `main` after your PR merges.
+Commit the updated `config/oxlint/oxlint.seatbelt.tsv` alongside the rename. The old path will be removed from the TSV automatically by the lint job on `main` after your PR merges.
 
 ### "I'm enabling a new rule repo-wide"
 
-1. Add the rule to `config/eslint/eslint.config.mjs` in `'error'` mode.
+1. Add the rule to `oxlint.config.mts` in `'error'` mode. If oxlint has no native version, add it to the matching JS plugin in `config/oxlint/plugins/` and, for a hosted ESLint rule, to `config/oxlint/ruleNames.mjs`.
 2. Save the initial baseline:
 
     ```bash
     SEATBELT_INCREASE=<rule-id> npm run lint
     ```
 
-3. Commit the config change and the new lines in `config/eslint/eslint.seatbelt.tsv` together.
+3. Commit the config change and the new lines in `config/oxlint/oxlint.seatbelt.tsv` together.
 
 ## CI behavior
 
-The [`ESLint check`](../.github/workflows/lint.yml) workflow runs `npm run lint`. In CI, `readOnly` is off (so seatbelt can write) and `SEATBELT_FROZEN` defaults to off so GitHub Actions' auto-set `CI=true` doesn't flip seatbelt into frozen mode.
+The [`Oxlint check`](../.github/workflows/lint.yml) workflow runs `npm run lint -- --shards=4`. In CI, `readOnly` is off (so seatbelt can write) and `SEATBELT_FROZEN` defaults to off so GitHub Actions' auto-set `CI=true` doesn't flip seatbelt into frozen mode.
 
-- **PR runs:** counts go down → passes (TSV rewrite is ephemeral and thrown away with the runner). Counts go up without `SEATBELT_INCREASE` → fails with seatbelt's "exceeds allowed count" error.
-- **`push: main` runs:** same behavior, plus an extra step — if `config/eslint/eslint.seatbelt.tsv` changed, OSBotify commits the tightened baseline straight back to `main`.
+- **PR runs:** counts go down, passes (TSV rewrite is ephemeral and thrown away with the runner). Counts go up without `SEATBELT_INCREASE`, fails with seatbelt's "exceeds allowed count" error.
+- **`push: main` runs:** same behavior, plus an extra step — if `config/oxlint/oxlint.seatbelt.tsv` changed, OSBotify commits the tightened baseline straight back to `main`.
 
-You do **not** need to commit `eslint.seatbelt.tsv` diffs for ordinary fixes. The only case that requires a TSV commit from you is `SEATBELT_INCREASE` (see below).
+You do **not** need to commit `oxlint.seatbelt.tsv` diffs for ordinary fixes. The only case that requires a TSV commit from you is `SEATBELT_INCREASE` (see below).
 
 ## Escape hatches
 
@@ -144,7 +152,7 @@ Set any of these env vars for a one-off local run when you need to bypass seatbe
 | `SEATBELT_INCREASE=<rule>`| Allow the baseline to grow for `<rule>` (or `ALL`). Overrides `readOnly` and writes the new count to disk. Commit the diff. |
 | `SEATBELT_READ_ONLY=0`    | Force writes locally (e.g. you want to see what CI would rewrite). Opposite of the default local behavior. |
 | `SEATBELT_FROZEN=1`       | Force frozen mode locally (fail on any diff). Useful for reproducing a stale-baseline failure. |
-| `SEATBELT_DISABLE=1`      | Skip all seatbelt processing for this run — raw ESLint output, baseline file ignored.    |
+| `SEATBELT_DISABLE=1`      | Skip all seatbelt processing for this run — raw oxlint output, baseline file ignored.    |
 | `SEATBELT_VERBOSE=1`      | Log every decrement/increment seatbelt performs. Handy when debugging the baseline.      |
 
 The env-var names and TSV format are unchanged from the previous `eslint-seatbelt` plugin.
@@ -152,7 +160,7 @@ The env-var names and TSV format are unchanged from the previous `eslint-seatbel
 ## Related reading
 
 - [Ratcheting errors](https://www.notion.com/blog/how-we-evolved-our-code-notions-ratcheting-system-using-custom-eslint-rules).
-- [`CONSISTENCY-5`: Justify ESLint rule disables](../.claude/skills/app-coding-standards/rules/consistency-5-justify-eslint-disable.md) — when `eslint-disable` is acceptable, and how to document it.
+- [`CONSISTENCY-5`: Justify lint rule disables](../.claude/skills/app-coding-standards/rules/consistency-5-justify-eslint-disable.md) — when `eslint-disable` is acceptable, and how to document it.
 - `rulesdir/no-manual-memoization` forbids `React.memo`, `useMemo`, and `useCallback` when React Compiler memoizes the file. Callbacks passed to `useFocusEffect` may retain `useCallback`, which React Navigation requires.
 - [`STYLE.md`](./STYLE.md) — the coding style rules many of our ESLint rules enforce.
 - [`REACT_COMPILER.md`](./REACT_COMPILER.md) — separate compiler-compliance CI check that runs alongside lint.
