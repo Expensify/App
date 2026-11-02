@@ -41,7 +41,7 @@ import ROUTES from '@src/ROUTES';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
 import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
@@ -324,20 +324,26 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             .filter(Boolean) as MenuItemWithLink[];
     };
     const otherIntegrationsItems = getOtherIntegrationsItems();
+    const exactOnlineWaitlistRow = (
+        <ExactOnlineWaitlistRow
+            policy={policy}
+            style={styles.sectionMenuItemTopDescription}
+            titleWrapperStyle={!shouldUseNarrowLayout && [styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+        />
+    );
 
-    const [chatTextLink, chatReportID] = useMemo(() => {
-        // If they have an onboarding specialist assigned display the following and link to the #admins room with the account executive.
-        if (policy?.chatReportIDAdmins) {
-            return [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins?.toString()];
-        }
-
-        // If not, if they have an account manager assigned display the following and link to the DM with their account manager.
-        if (account?.accountManagerAccountID) {
-            return [translate('workspace.accounting.talkYourAccountManager'), account?.accountManagerReportID];
-        }
+    let derivedValue;
+    // If they have an onboarding specialist assigned display the following and link to the #admins room with the account executive.
+    if (policy?.chatReportIDAdmins) {
+        derivedValue = [translate('workspace.accounting.talkYourOnboardingSpecialist'), policy?.chatReportIDAdmins?.toString()];
+    } else // If not, if they have an account manager assigned display the following and link to the DM with their account manager.
+    if (account?.accountManagerAccountID) {
+        derivedValue = [translate('workspace.accounting.talkYourAccountManager'), account?.accountManagerReportID];
+    } else {
         // Else, display the following and link to their Concierge DM.
-        return [translate('workspace.accounting.talkToConcierge'), conciergeReportID];
-    }, [account?.accountManagerAccountID, account?.accountManagerReportID, conciergeReportID, policy?.chatReportIDAdmins, translate]);
+        derivedValue = [translate('workspace.accounting.talkToConcierge'), conciergeReportID];
+    }
+    const [chatTextLink, chatReportID] = derivedValue;
 
     return (
         <AccessOrNotFoundWrapper
@@ -406,7 +412,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     </Text>
                                 </FormHelpMessage>
                             )}
-                            {!!otherIntegrationsItems && (
+                            {otherIntegrationsItems ? (
                                 <CollapsibleSection
                                     title={translate('workspace.accounting.other')}
                                     wrapperStyle={[styles.pr3, styles.mt5, styles.pv3]}
@@ -417,13 +423,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                         menuItems={otherIntegrationsItems}
                                         shouldUseSingleExecution
                                     />
+                                    {exactOnlineWaitlistRow}
                                 </CollapsibleSection>
+                            ) : (
+                                exactOnlineWaitlistRow
                             )}
-                            <ExactOnlineWaitlistRow
-                                policy={policy}
-                                style={styles.sectionMenuItemTopDescription}
-                                titleWrapperStyle={!shouldUseNarrowLayout && [styles.flexRow, styles.alignItemsCenter, styles.gap3]}
-                            />
                             {!!account?.guideDetails?.email && !hasAccountingConnections(policy) && canWriteAccounting && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                     <Icon

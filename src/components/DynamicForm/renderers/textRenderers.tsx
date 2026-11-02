@@ -9,6 +9,8 @@ import TextInput from '@components/TextInput';
 
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {DynamicFormNumberField, DynamicFormTextField} from '@src/types/onyx';
 
@@ -61,6 +63,7 @@ function renderTextInput(
                 inputMode={inputMode}
                 multiline={isMultiline}
                 autoGrowHeight={isMultiline}
+                maxAutoGrowHeight={isMultiline ? variables.textInputAutoGrowMaxHeight : undefined}
                 {...(isMultiline ? {} : getTextInputAutocorrectProps())}
             />
         ),

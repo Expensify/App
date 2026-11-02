@@ -564,8 +564,8 @@ type OriginalMessagePolicyChangeLog = {
     /** Array of field changes for consolidated employee updates */
     fields?: Array<{
         field: string;
-        oldValue: string;
-        newValue: string;
+        oldValue: string | number;
+        newValue: string | number;
     }>;
 
     /** Report field name */
@@ -745,6 +745,9 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Name of company card feed */
     feedName?: string;
+
+    /** Type of the card feed added to the workspace */
+    feedType?: ValueOf<typeof CONST.COMPANY_CARD.LINK_FEED_TYPE>;
 
     /** Last four digits of a company card */
     cardLastFour?: string;

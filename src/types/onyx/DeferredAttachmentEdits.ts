@@ -17,6 +17,9 @@ type DeferredAttachmentEdit = {
 
     /** Video attributes the editor cached for the draft, keyed by source */
     videoAttributeCache?: Record<string, string>;
+
+    /** Names of the rooms mentioned in the edit, keyed by reportID, so the replay can read the room mentions the backend stores by reportID */
+    reportIDToName?: Record<string, string>;
 };
 
 /** Deferred attachment edits, indexed by report action ID */

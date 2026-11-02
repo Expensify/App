@@ -1,4 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
+import NavigatorTabBarVisibilityProvider from '@components/Navigation/TabBarBottomContent/NavigatorTabBarVisibilityProvider';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -122,37 +123,39 @@ function TabNavigator() {
     };
 
     return (
-        <Tab.Navigator
-            backBehavior="fullHistory"
-            tabBar={renderTabBar}
-            screenOptions={screenOptions}
-            screenLayout={bottomTabScreenLayoutWrapper}
-        >
-            <Tab.Screen
-                name={SCREENS.HOME}
-                component={HomePageScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
-                component={ReportsSplitNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
-                component={SearchFullscreenNavigator}
-            />
-            <Tab.Screen
-                name={SCREENS.INSIGHTS}
-                component={InsightsPageScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.WORKSPACE_NAVIGATOR}
-                component={WorkspaceNavigatorScreen}
-            />
-            <Tab.Screen
-                name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                component={SettingsSplitNavigatorScreen}
-            />
-        </Tab.Navigator>
+        <NavigatorTabBarVisibilityProvider>
+            <Tab.Navigator
+                backBehavior="fullHistory"
+                tabBar={renderTabBar}
+                screenOptions={screenOptions}
+                screenLayout={bottomTabScreenLayoutWrapper}
+            >
+                <Tab.Screen
+                    name={SCREENS.HOME}
+                    component={HomePageScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}
+                    component={ReportsSplitNavigatorScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                    component={SearchFullscreenNavigator}
+                />
+                <Tab.Screen
+                    name={SCREENS.INSIGHTS}
+                    component={InsightsPageScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.WORKSPACE_NAVIGATOR}
+                    component={WorkspaceNavigatorScreen}
+                />
+                <Tab.Screen
+                    name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
+                    component={SettingsSplitNavigatorScreen}
+                />
+            </Tab.Navigator>
+        </NavigatorTabBarVisibilityProvider>
     );
 }
 

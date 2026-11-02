@@ -24,6 +24,12 @@ jest.mock('@libs/Navigation/Navigation');
 jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
     __esModule: true,
     default: () => ({isLargeScreenWidth: true, shouldUseNarrowLayout: false, isInNarrowPaneModal: false}),
+    useIsDisplayedInWideRHP: () => false,
+}));
+
+jest.mock('@hooks/useResponsiveLayout', () => ({
+    __esModule: true,
+    default: () => ({isLargeScreenWidth: true, shouldUseNarrowLayout: false, isInNarrowPaneModal: false}),
 }));
 
 // EditableCell only renders the edit-pencil button while hovered, which jsdom can't simulate reliably.

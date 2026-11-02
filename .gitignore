@@ -109,9 +109,6 @@ tests/e2e/results/
 .reassure
 .benchmarks/
 
-# Temporary files created by Metro to check the health of the file watcher
-.metro-health-check*
-
 # Typescript
 *.tsbuildinfo
 
@@ -185,3 +182,7 @@ server/victory-chart-renderer/.dev/
 
 # Bun lockfiles (VCR uses npm workspaces + package-lock.json; bun is runtime-only)
 bun.lock
+
+# Per-run Oxlint configs written by scripts/lint/oxlint/OxlintLinter.ts
+.oxlintrc.js-plugins.*.json
+.oxlintrc.type-aware.*.json
