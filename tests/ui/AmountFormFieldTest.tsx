@@ -84,7 +84,7 @@ describe('AmountFormField', () => {
 
     describe('rendering', () => {
         it('renders children', () => {
-            // Given a AmountFormField with a child element
+            // Given an AmountFormField with a child element
             renderAmountFormField({}, <Text testID="child">hello</Text>);
 
             // Then the child is rendered
@@ -94,7 +94,7 @@ describe('AmountFormField', () => {
 
     describe('AmountFormFieldContext', () => {
         it('provides default state with an empty value and negative input disabled', () => {
-            // Given a AmountFormField with no value or mode props
+            // Given an AmountFormField with no value or mode props
             renderAmountFormField();
 
             // Then the context exposes an empty value, negative input disabled, and no error
@@ -104,7 +104,7 @@ describe('AmountFormField', () => {
         });
 
         it('propagates value, allowNegative, and errorText from props', () => {
-            // Given a AmountFormField with value, allowNegative, and errorText props
+            // Given an AmountFormField with value, allowNegative, and errorText props
             renderAmountFormField({
                 value: '12.50',
                 allowNegative: true,
@@ -121,7 +121,7 @@ describe('AmountFormField', () => {
 
     describe('external value synchronization', () => {
         it('re-initializes the editing state when the value prop resets to an empty string', () => {
-            // Given a AmountFormField controlled with value "10"
+            // Given an AmountFormField controlled with value "10"
             const {rerender} = renderAmountFormField({value: '10'});
 
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
@@ -134,7 +134,7 @@ describe('AmountFormField', () => {
         });
 
         it('ignores an external change to another non-empty value, matching NumberWithSymbolForm', () => {
-            // Given a AmountFormField controlled with value "10"
+            // Given an AmountFormField controlled with value "10"
             const {rerender} = renderAmountFormField({value: '10'});
 
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('10');
@@ -147,7 +147,7 @@ describe('AmountFormField', () => {
         });
 
         it('does not overwrite a local edit when the parent rerenders with the same external value', () => {
-            // Given a AmountFormField controlled with value "10" and a local edit to "7"
+            // Given an AmountFormField controlled with value "10" and a local edit to "7"
             const {rerender} = renderAmountFormField({value: '10'});
 
             fireEvent.press(screen.getByTestId('ctx-setNumber'));
@@ -190,7 +190,7 @@ describe('AmountFormField', () => {
         });
 
         it('commits the last value when setNumber is called more than once before a render', () => {
-            // Given a AmountFormField with value "1"
+            // Given an AmountFormField with value "1"
             renderAmountFormField({value: '1'});
 
             // When setNumber is called twice before the next render
@@ -203,7 +203,7 @@ describe('AmountFormField', () => {
         });
 
         it('does nothing when toggleSign is called and allowNegative is false', () => {
-            // Given a AmountFormField with negative input disabled
+            // Given an AmountFormField with negative input disabled
             renderAmountFormField({value: '10', allowNegative: false});
 
             // When toggleSign is called
@@ -215,7 +215,7 @@ describe('AmountFormField', () => {
         });
 
         it('toggles sign when toggleSign is called and allowNegative is true', () => {
-            // Given a AmountFormField with negative input enabled
+            // Given an AmountFormField with negative input enabled
             renderAmountFormField({value: '10', allowNegative: true});
 
             // When toggleSign is called

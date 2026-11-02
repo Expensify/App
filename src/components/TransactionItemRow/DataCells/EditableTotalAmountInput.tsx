@@ -97,7 +97,7 @@ function EditableTotalAmountInput({
 
     const controller = useDetachedSignEditingController({
         value: seedValue,
-        onInputChange: (value: string) => onChange(hasFixedNegativeSign ? `-${value}` : value),
+        onInputChange: (value) => onChange(hasFixedNegativeSign ? `-${value}` : value),
         allowNegative: canFlipSign,
         decimals,
     });

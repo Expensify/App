@@ -113,7 +113,7 @@ describe('KeypadAmountLayout', () => {
     });
 
     it('renders a single scrollable column with the footer inside the scroll view outside phone landscape', async () => {
-        // Given a phone in portrait (tablets in landscape are covered by KeypadAmountEditorLayoutTabletTest)
+        // Given a phone in portrait (tablets in landscape are covered by KeypadAmountLayoutTabletTest)
         mockWindowDimensions.mockReturnValue(PORTRAIT_PHONE);
 
         // When the layout renders
