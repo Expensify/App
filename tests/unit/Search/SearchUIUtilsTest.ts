@@ -14411,6 +14411,34 @@ describe('SearchUIUtils', () => {
             expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID: expectedSelfDMReportID}));
         });
 
+        test("Should create a transaction thread in the current user's self DM when the Search row has no IOU action", async () => {
+            // Given the current user's own unreported expense whose IOU action is only in their local self DM, not on the Search row
+            jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
+            const selfDMReportID = 'own-self-dm-no-row-action';
+            const ownAction = {...reportAction1, actorAccountID: currentUserAccountID, reportID: selfDMReportID};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {reportID: selfDMReportID, type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
+            await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReportID);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {[ownAction.reportActionID]: ownAction});
+            await waitForBatchedUpdates();
+            const unreportedTransaction = {
+                ...transactionListItem,
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                report: undefined,
+                reportAction: undefined,
+            };
+
+            // When the current user opens the expense from Search
+            SearchUIUtils.createAndOpenSearchTransactionThread({...baseParams, item: unreportedTransaction, shouldNavigate: false});
+
+            // Then ownership is read from their self DM action, so the thread is created there instead of the click doing nothing
+            expect(createTransactionThreadReport).toHaveBeenCalledWith(expect.objectContaining({selfDMReportID}));
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, null);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, null);
+            await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, null);
+            await waitForBatchedUpdates();
+        });
+
         test("Should reuse the thread already created under another user's self DM instead of creating a new one", async () => {
             // Given another user's unreported expense whose IOU action in their self DM already points at a thread
             jest.mocked(createTransactionThreadReport).mockReset();
