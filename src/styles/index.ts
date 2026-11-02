@@ -5,6 +5,7 @@ import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/Wid
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import CONST from '@src/CONST';
@@ -7207,7 +7208,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 top: variables.rhpFloatingCardMargin,
                 bottom: variables.rhpFloatingCardMargin,
                 width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
-                right: getSingleRHPWidthStyleValue(singleRHPWidth, variables.rhpFloatingCardMargin + 2 * variables.rhpFloatingCardBorderWidth - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+                right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
             }) satisfies ViewStyle,
 
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the

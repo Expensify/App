@@ -3,13 +3,13 @@ import type {DimensionValue} from 'react-native';
 
 const SINGLE_RHP_WIDTH_VARIABLE = '--rhp-width';
 
-/** `scope` must contain every element whose style reads the width: the RHP cards and the handle. */
-function writeLiveSingleRHPWidth(scope: HTMLElement | null, width: number) {
-    scope?.style.setProperty(SINGLE_RHP_WIDTH_VARIABLE, `${width}px`);
+/** On the document root, so modals portaled over the RHP follow the drag along with the RHP's own cards. */
+function writeLiveSingleRHPWidth(width: number) {
+    document.documentElement.style.setProperty(SINGLE_RHP_WIDTH_VARIABLE, `${width}px`);
 }
 
-function clearLiveSingleRHPWidth(scope: HTMLElement | null) {
-    scope?.style.removeProperty(SINGLE_RHP_WIDTH_VARIABLE);
+function clearLiveSingleRHPWidth() {
+    document.documentElement.style.removeProperty(SINGLE_RHP_WIDTH_VARIABLE);
 }
 
 /** The live width mid-drag, the committed `width` otherwise. */
