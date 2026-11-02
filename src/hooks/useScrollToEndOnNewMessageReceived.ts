@@ -17,6 +17,8 @@ type UseScrollToEndOnPaginationMergeParams = {
     hasNewestReportAction: boolean;
     setIsFloatingMessageCounterVisible: (isVisible: boolean) => void;
     scrollToEnd: () => void;
+    /** Whether the newest action should leave the list where it is, e.g. the record of an edit made from the expense form above */
+    shouldSkipScrollForLastAction?: boolean;
     /**
      * Inbox uses `previousLength !== currentLength` to detect pagination merges.
      * Money request uses `previousLength > reportActionsLength`.
@@ -37,6 +39,7 @@ function useScrollToEndOnNewMessageReceived({
     hasNewestReportAction,
     setIsFloatingMessageCounterVisible,
     scrollToEnd,
+    shouldSkipScrollForLastAction = false,
     sizeChangeType = 'changed',
     resetKey,
 }: UseScrollToEndOnPaginationMergeParams) {
@@ -63,6 +66,7 @@ function useScrollToEndOnNewMessageReceived({
 
         if (
             scrollOffsetRef.current < CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD &&
+            !shouldSkipScrollForLastAction &&
             previousLastIndex.current !== lastActionID &&
             didListSizeChange &&
             hasNewestReportAction &&
@@ -86,6 +90,7 @@ function useScrollToEndOnNewMessageReceived({
         visibleActionsLength,
         hasNewestReportAction,
         prevHasNewestReportAction,
+        shouldSkipScrollForLastAction,
         sizeChangeType,
         resetKey,
         setIsFloatingMessageCounterVisible,
