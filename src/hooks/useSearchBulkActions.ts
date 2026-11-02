@@ -509,8 +509,8 @@ function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransacti
 }
 
 /**
- * The groupings whose selected groups `getSelectedGroupFilterEntry` can turn into a query filter, which a template export needs.
- * Keep this in sync with that function. Time-based groupings are left out because the template export would drop their date scope.
+ * The groupings a template export can scope to the selected groups. Keep this in sync with `getSelectedGroupFilterEntry`.
+ * Time-based groupings are left out because the template export would drop their date scope.
  */
 const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
     CONST.SEARCH.GROUP_BY.FROM,
@@ -2282,7 +2282,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const isReportsTab = isExpenseReportType;
             const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
             // A template export sends a group selection as a filter on the ungrouped query (see `getTemplateGroupExportQuery`), alongside any individually picked expenses.
-            // Groupings with no such filter (the time-based ones) would fail that export, so they keep only "Current view".
+            // That export rebuilds the query from its text, which drops the time-based groupings' date scope, so they keep only "Current view".
             const canExportGroupWithTemplates = !includesGroupExport || (!!groupBy && TEMPLATE_EXPORTABLE_GROUP_BYS.has(groupBy));
 
             const canReportBeExported = (report: (typeof selectedReports)[0], exportOption: ValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>) => {
