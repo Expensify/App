@@ -365,7 +365,7 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                       role: CONST.ROLE.SWITCH,
                                       accessibilityState: {checked: item.switchProps.isOn, disabled: isSwitchDisabled},
                                       // The tooltip is web-only, so fold its reason into the row's accessible name for native and screen reader users.
-                                      accessibilityLabel: item.tooltipText ? `${item.text}, ${item.tooltipText}` : undefined,
+                                      accessibilityLabel: item.switchTooltipText ? `${item.text}, ${item.switchTooltipText}` : undefined,
                                       // Mirror the disabled state so the row (and Enter) can't flip a disabled toggle.
                                       disabled: isSwitchDisabled,
                                       shouldGreyOutWhenDisabled: false,
@@ -374,8 +374,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                                       // The tooltip wraps the Switch (not the whole row) so it's centered above the lock, per design. It wraps the View so it has a child that forwards a ref to measure.
                                       rightComponent: (
                                           <Tooltip
-                                              text={item.tooltipText}
-                                              shouldRender={!!item.tooltipText}
+                                              text={item.switchTooltipText}
+                                              shouldRender={!!item.switchTooltipText}
                                               shouldTeleportPortalToModalLayer
                                           >
                                               <View

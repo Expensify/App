@@ -63,8 +63,8 @@ type DropdownOption<TValueType> = WithSentryLabel & {
     /** When set, renders a Switch on the right of the option as an inline toggle row. The menu builds the Switch from this data so no JSX is threaded through the option config. */
     switchProps?: SwitchProps;
 
-    /** Tooltip shown on hover over the toggle row, e.g. to explain why a toggle is locked */
-    tooltipText?: string;
+    /** Tooltip shown on hover over the Switch, e.g. to explain why a toggle is locked */
+    switchTooltipText?: string;
 
     /** Errors to display under the option (e.g. when an inline toggle's save fails) */
     errors?: Errors | null;

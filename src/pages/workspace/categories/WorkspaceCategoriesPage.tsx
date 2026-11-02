@@ -344,10 +344,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const menuItems = [];
     // The former Settings page's toggles are surfaced directly in this menu. Selecting a toggle row (click or Enter)
     // flips it; the Switch is a display-only indicator and the menu stays open on select.
-    // Auto-categorize needs at least one enabled category to do anything, so it shows as off + locked (with a tooltip) until one exists.
+    // Auto-categorize needs at least one enabled category to do anything, so it's locked (with a tooltip) until one exists.
     const isAutoCategorizeToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories;
     const autoCategorizeToggleDisabledTooltip = isAutoCategorizeToggleDisabled ? translate('workspace.categories.enableAtLeastOneCategory') : undefined;
-    const isGLCodesToggleDisabled = !policy?.areCategoriesEnabled;
     if (canWriteCategories) {
         menuItems.push({
             text: translate('workspace.categories.autoCategorizeNewExpenses'),
@@ -361,9 +360,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             pendingAction: policy?.pendingFields?.autoCategorizeNewExpenses,
             errors: policy?.errorFields?.autoCategorizeNewExpenses,
             onCloseError: () => clearPolicyErrorField(policyId, 'autoCategorizeNewExpenses'),
-            tooltipText: autoCategorizeToggleDisabledTooltip,
+            switchTooltipText: autoCategorizeToggleDisabledTooltip,
             switchProps: {
-                isOn: !isAutoCategorizeToggleDisabled && (policy?.autoCategorizeNewExpenses ?? true),
+                isOn: policy?.autoCategorizeNewExpenses ?? true,
                 accessibilityLabel: translate('workspace.categories.autoCategorizeNewExpenses'),
                 onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value),
                 disabled: isAutoCategorizeToggleDisabled,
@@ -387,7 +386,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                 isOn: policy?.showCategoryGLCodes ?? false,
                 accessibilityLabel: translate('workspace.categories.showCategoryGLCodes'),
                 onToggle: (value: boolean) => setPolicyShowCategoryGLCodes(policyId, value),
-                disabled: isGLCodesToggleDisabled,
+                disabled: !policy?.areCategoriesEnabled,
             },
         });
     }
