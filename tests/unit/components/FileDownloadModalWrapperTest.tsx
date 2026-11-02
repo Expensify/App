@@ -70,6 +70,45 @@ describe('FileDownloadModalWrapper', () => {
         expect(closeModal).toHaveBeenCalledWith({action: ModalActions.CLOSE});
     });
 
+    it('settles the show promise on dismiss when asked to, and still leaves the stack only after hiding', () => {
+        // Given a caller that wants to run its cleanup while the modal fades out, so UI changes behind it stay hidden
+        const closeModal = jest.fn();
+        const resolveModal = jest.fn();
+        render(getWrapperElement({closeModal, resolveModal, shouldResolveOnDismiss: true}));
+
+        // When the user closes the modal while the file is still generating
+        act(() => {
+            getLatestModalProps()?.onClose?.();
+        });
+
+        // Then the show promise resolves right away as a cancel, but the modal stays on the stack while it hides
+        expect(resolveModal).toHaveBeenCalledTimes(1);
+        expect(resolveModal).toHaveBeenCalledWith({action: ModalActions.CLOSE});
+        expect(closeModal).not.toHaveBeenCalled();
+
+        // When the hide animation ends
+        act(() => {
+            getLatestModalProps()?.onModalHide?.();
+        });
+
+        // Then the modal removes itself from the stack
+        expect(closeModal).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not settle the show promise on dismiss by default', () => {
+        // Given a caller that relies on cleanup running after the modal is gone
+        const resolveModal = jest.fn();
+        render(getWrapperElement({resolveModal}));
+
+        // When the user closes the modal
+        act(() => {
+            getLatestModalProps()?.onClose?.();
+        });
+
+        // Then the show promise is left for closeModal to settle once the modal has hidden
+        expect(resolveModal).not.toHaveBeenCalled();
+    });
+
     it.each([CONST.FILE_DOWNLOAD_STATUS.READY, CONST.FILE_DOWNLOAD_STATUS.FAILED])('confirms when dismissed once the file is %s', (status) => {
         // Given a file that is no longer generating, so there is nothing left to cancel
         const closeModal = jest.fn();

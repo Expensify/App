@@ -48,6 +48,7 @@ import {View} from 'react-native';
 type AddExistingExpensePageType = PlatformStackScreenProps<AddExistingExpensesParamList, typeof SCREENS.ADD_EXISTING_EXPENSES_ROOT>;
 
 function AddExistingExpense({route}: AddExistingExpensePageType) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
     const [errorMessage, setErrorMessage] = useState<string>('');
@@ -178,7 +179,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                                     }
                                     interceptAnonymousUser(() => {
                                         startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, undefined, false, backToReport);
-                                    });
+                                    }, session);
                                 },
                                 buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                             },

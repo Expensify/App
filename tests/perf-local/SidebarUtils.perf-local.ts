@@ -116,6 +116,7 @@ describe('SidebarUtils', () => {
                 reportNameValuePairs: {},
                 guideAccountIDs: [],
                 conciergeReportID: undefined,
+                session: undefined,
             }),
         );
     });
@@ -137,6 +138,7 @@ describe('SidebarUtils', () => {
                 reportNameValuePairs: {},
                 guideAccountIDs: [],
                 conciergeReportID: undefined,
+                session: undefined,
             }),
         );
     });
