@@ -32,7 +32,6 @@ import {ActionListContextProvider} from './ActionListContext';
 import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import {ConciergeDraftProvider} from './ConciergeDraftContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
-import useDeferNonEssentials from './hooks/useDeferNonEssentials';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import OneTransactionThreadRedirectHandler from './OneTransactionThreadRedirectHandler';
 import ReactionListWrapper from './ReactionListWrapper';
@@ -46,6 +45,7 @@ import ReportFetchHandler from './ReportFetchHandler';
 import ReportHeader from './ReportHeader';
 import ReportLifecycleHandler from './ReportLifecycleHandler';
 import ReportNavigateAwayHandler from './ReportNavigateAwayHandler';
+import ReportNonEssentialsDeferredMount from './ReportNonEssentialsDeferredMount';
 import ReportNotFoundGuard from './ReportNotFoundGuard';
 import ReportRouteParamHandler from './ReportRouteParamHandler';
 import WideRHPReceiptPanel from './WideRHPReceiptPanel';
@@ -83,8 +83,6 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
 
-    const shouldDeferNonEssentials = useDeferNonEssentials(reportIDFromRoute);
-
     useSubmitToDestinationVisible(
         [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
         reportIDFromRoute,
@@ -118,19 +116,19 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                             shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
                             testID={`report-screen-${reportIDFromRoute}`}
                         >
-                            {!shouldDeferNonEssentials && (
-                                <>
-                                    <DeleteTransactionNavigateBackHandler />
-                                    <ReportRouteParamHandler />
-                                    <OneTransactionThreadRedirectHandler />
-                                    <ReportFetchHandler />
-                                    <ReportNavigateAwayHandler />
-                                </>
-                            )}
+                            <ReportNonEssentialsDeferredMount reportID={reportIDFromRoute}>
+                                <DeleteTransactionNavigateBackHandler />
+                                <ReportRouteParamHandler />
+                                <OneTransactionThreadRedirectHandler />
+                                <ReportFetchHandler />
+                                <ReportNavigateAwayHandler />
+                            </ReportNonEssentialsDeferredMount>
                             <ReportNotFoundGuard>
                                 <LinkedActionNotFoundGuard>
                                     <ReportDragAndDropProvider>
-                                        {!shouldDeferNonEssentials && <ReportLifecycleHandler reportID={reportIDFromRoute} />}
+                                        <ReportNonEssentialsDeferredMount reportID={reportIDFromRoute}>
+                                            <ReportLifecycleHandler reportID={reportIDFromRoute} />
+                                        </ReportNonEssentialsDeferredMount>
                                         <CollapsibleHeaderOnKeyboard>
                                             <ReportHeader />
                                         </CollapsibleHeaderOnKeyboard>
@@ -144,7 +142,9 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                             errorRowStyles={[styles.ph5, styles.mv2]}
                                         >
                                             <View style={[styles.flex1, styles.flexRow]}>
-                                                {!shouldDeferNonEssentials && <WideRHPReceiptPanel />}
+                                                <ReportNonEssentialsDeferredMount reportID={reportIDFromRoute}>
+                                                    <WideRHPReceiptPanel />
+                                                </ReportNonEssentialsDeferredMount>
                                                 <AgentZeroStatusProvider reportID={reportIDFromRoute}>
                                                     <ConciergeDraftProvider reportID={reportIDFromRoute}>
                                                         <View
@@ -159,7 +159,12 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                                                 reportID={reportIDFromRoute}
                                                                 shouldDefer={shouldDeferReportActions}
                                                             />
-                                                            {shouldDeferNonEssentials ? <ReportActionCompose.Placeholder /> : <ReportFooter />}
+                                                            <ReportNonEssentialsDeferredMount
+                                                                reportID={reportIDFromRoute}
+                                                                placeholder={<ReportActionCompose.Placeholder />}
+                                                            >
+                                                                <ReportFooter />
+                                                            </ReportNonEssentialsDeferredMount>
                                                         </View>
                                                     </ConciergeDraftProvider>
                                                 </AgentZeroStatusProvider>
