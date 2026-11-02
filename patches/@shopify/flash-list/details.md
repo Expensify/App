@@ -214,3 +214,12 @@
 - Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2334 (tracks the underlying web scrollbar oscillation addressed by patch 012; this patch releases the stale width lock after content changes).
 - E/App issue: https://github.com/Expensify/App/issues/103719
 - PR introducing patch: https://github.com/Expensify/App/pull/104066
+
+### [@shopify+flash-list+2.3.2+018+delete-layouts-of-removed-items.patch](@shopify+flash-list+2.3.2+018+delete-layouts-of-removed-items.patch)
+
+- Reason: Keeps each item's measured size when items are removed from the list. `LayoutManager` stores layouts by index, and upstream never calls `deleteLayout`. When `data` shrinks, `modifyLayout` truncates layouts from the end, so every item after a removed item takes over its neighbour's measured size until it is measured again. In an inverted chat the oldest item is the last one, so a tall item such as the expense details at the top of an expense thread briefly gets a short neighbour's height. The content then shrinks below the viewport, the browser clamps `scrollTop` to 0, and the list jumps to the newest message. This happens when a report action is removed while the user is scrolled up, for example when editing an expense field replaces its optimistic system message.
+- Changes: `RecyclerViewManager.updateProps` compares the previous and next data by key. When the update only removes items, it calls `layoutManager.deleteLayout` with the removed indices before the render reads any layout. Any other kind of change keeps the upstream handling.
+- Files changed: `dist/recyclerview/RecyclerViewManager.js`.
+- Upstream PR/issue: TBD
+- E/App issue: TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/105647

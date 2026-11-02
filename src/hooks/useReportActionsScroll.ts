@@ -304,8 +304,6 @@ function useReportActionsScroll({
         hasNewestReportAction,
         setIsFloatingMessageCounterVisible,
         scrollToEnd: reportScrollManager.scrollToBottom,
-        // The user's own expense edits are made from the form at the top of the thread, so the record they add must not pull the list away from it
-        shouldSkipScrollForLastAction: lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE && lastAction?.actorAccountID === currentUserAccountID,
         // Include reportID so list-length / last-id baselines reset when the same screen instance shows another report.
         resetKey: `${reportID}:${linkedReportActionID}`,
     });
