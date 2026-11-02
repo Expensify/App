@@ -17,6 +17,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {emailSelector} from '@selectors/Session';
 import React, {useEffect} from 'react';
 
 import SessionExpiredPage from './ErrorPage/SessionExpiredPage';
@@ -28,6 +29,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [lastVisitedPath, lastVisitedPathMetadata] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const isLoadingSignInData = isLoadingOnyxValue(lastVisitedPathMetadata, ...(isSAML ? [credentialsMetadata] : []));
 
     useEffect(() => {
@@ -56,7 +58,7 @@ function LogInWithShortLivedAuthTokenPage({route}: LogInWithShortLivedAuthTokenP
         // A forced SAML re-auth leaves account.isLoading true until this sign-in, so it must not block a SAML token.
         if (token && (isSAML || !account?.isLoading)) {
             Log.info('LogInWithShortLivedAuthTokenPage - Successfully received shortLivedAuthToken. Signing in...');
-            signInWithShortLivedAuthToken(token, isSAML, isSAML ? lastVisitedPath : undefined, credentials?.login);
+            signInWithShortLivedAuthToken(token, isSAML, isSAML ? lastVisitedPath : undefined, credentials?.login, sessionEmail);
             // For SAML sign-ins, navigate to HOME explicitly since the SAML flow
             // doesn't use exitTo deep link routing. For non-SAML flows, let the
             // navigation system handle exitTo routing naturally via setUpPoliciesAndNavigate.

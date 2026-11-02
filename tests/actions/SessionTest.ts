@@ -1002,7 +1002,7 @@ describe('Session', () => {
                 callback: (val) => (session = val),
             });
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, undefined);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(session?.signedInWithSAML).toBe(true);
@@ -1015,7 +1015,7 @@ describe('Session', () => {
                 callback: (val) => (session = val),
             });
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', false, undefined, undefined);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', false, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(session?.signedInWithSAML).toBe(false);
@@ -1024,7 +1024,7 @@ describe('Session', () => {
         test('signInWithShortLivedAuthToken sends the token to the API with the SAML auth method', async () => {
             const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, undefined);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             const call = readSpy.mock.calls.at(0);
@@ -1037,7 +1037,7 @@ describe('Session', () => {
         test('signInWithShortLivedAuthToken sends the token to the API with the short-lived-token auth method when it is not a SAML sign in', async () => {
             const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', false, undefined, undefined);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', false, undefined, undefined, undefined);
             await waitForBatchedUpdates();
 
             expect(readSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'testAuthToken', authMethod: CONST.AUTH_METHOD.SHORT_LIVED_AUTH_TOKEN}));
@@ -1049,7 +1049,7 @@ describe('Session', () => {
             const waitForProtectedRoutesSpy = jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, 'user@saml.example.com');
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, undefined, 'user@saml.example.com', 'user@saml.example.com');
             await waitForBatchedUpdates();
 
             expect(waitForProtectedRoutesSpy).not.toHaveBeenCalled();
@@ -1058,15 +1058,17 @@ describe('Session', () => {
         });
 
         test('signInWithShortLivedAuthToken rebuilds navigation from exitTo once the same login is signed in', async () => {
-            // CREDENTIALS is empty (cleared in beforeEach), so the restore firing proves the login comes from the param, not the module cache.
-            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'User@saml.example.com'});
+            // Given the stored session belongs to another account, while the caller passes the SAML account's email in a different case
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'other@example.com'});
             await waitForBatchedUpdates();
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', 'user@saml.example.com');
+            // When the SAML sign-in runs with an exitTo path
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', 'user@saml.example.com', 'User@saml.example.com');
             await waitForBatchedUpdates();
 
+            // Then the restore fires, which proves the email comes from the param rather than the stored session
             expect(resetRootSpy).toHaveBeenCalledTimes(1);
             const [state] = resetRootSpy.mock.calls.at(0) ?? [];
             expect(state?.stale).toBe(true);
@@ -1082,7 +1084,7 @@ describe('Session', () => {
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', undefined);
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', undefined, 'user@saml.example.com');
             await waitForBatchedUpdates();
 
             expect(resetRootSpy).not.toHaveBeenCalled();
@@ -1090,14 +1092,17 @@ describe('Session', () => {
         });
 
         test('signInWithShortLivedAuthToken does not navigate to exitTo when another login signs in', async () => {
-            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'other@example.com'});
+            // Given the stored session matches the login, while the caller passes another account's email
+            await Onyx.merge(ONYXKEYS.SESSION, {authToken: 'testAuthToken', email: 'user@saml.example.com'});
             await waitForBatchedUpdates();
             jest.spyOn(Navigation, 'waitForProtectedRoutes').mockResolvedValue(undefined);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
 
-            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', 'user@saml.example.com');
+            // When the SAML sign-in runs with an exitTo path
+            SessionUtil.signInWithShortLivedAuthToken('testAuthToken', true, '/search?q=status:outstanding', 'user@saml.example.com', 'other@example.com');
             await waitForBatchedUpdates();
 
+            // Then the restore is skipped, which proves the comparison uses the passed email rather than the stored session
             expect(resetRootSpy).not.toHaveBeenCalled();
             jest.restoreAllMocks();
         });

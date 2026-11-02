@@ -23,6 +23,7 @@ import type {SeverityLevel} from '@sentry/react-native';
 import type {WebBrowserAuthSessionResult} from 'expo-web-browser';
 import type {AppStateStatus} from 'react-native';
 
+import {emailSelector} from '@selectors/Session';
 import * as Sentry from '@sentry/react-native';
 import {dismissAuthSession, openAuthSessionAsync} from 'expo-web-browser';
 import React, {useEffect, useRef, useState} from 'react';
@@ -53,6 +54,7 @@ function msSince(startedAt: number | null): number | undefined {
 function SAMLSignInPage() {
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [showNavigation, shouldShowNavigation] = useState(true);
     const [SAMLUrl, setSAMLUrl] = useState('');
     const {translate} = useLocalize();
@@ -152,7 +154,7 @@ function SAMLSignInPage() {
         // A forced re-auth leaves account.isLoading true until sign-in, so the token alone decides here.
         if (credentials?.login && shortLivedAuthToken) {
             Log.info('SAMLSignInPage - Successfully received shortLivedAuthToken. Signing in...');
-            signInWithShortLivedAuthToken(shortLivedAuthToken, true, lastVisitedPath, credentials?.login);
+            signInWithShortLivedAuthToken(shortLivedAuthToken, true, lastVisitedPath, credentials?.login, sessionEmail);
             return;
         }
 
