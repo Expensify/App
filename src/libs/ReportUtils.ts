@@ -5374,43 +5374,12 @@ function getReasonAndReportActionThatRequiresAttention({
         };
     }
 
-    // An unread mention falls back to a green dot linked to the oldest unread mention. It stays above the invoice room
-    // branch, which can return null.
+    // An unread mention falls back to a green dot linked to the oldest unread mention.
     if (isUnreadWithMention(optionOrReport)) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.IS_UNREAD_WITH_MENTION,
             reportAction: getOldestUnreadMentionReportAction(optionOrReport, reportActions, currentUserLogin, currentUserAccountID),
         };
-    }
-
-    if (hasMissingInvoiceBankAccount(optionOrReport.reportID) && !isSettled(optionOrReport.reportID)) {
-        return {
-            reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_MISSING_INVOICE_BANK_ACCOUNT,
-        };
-    }
-
-    if (isInvoiceRoom(optionOrReport)) {
-        let earliestAction: ReportAction | undefined;
-        for (const action of Object.values(reportActions)) {
-            if (
-                action.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ||
-                !action.childReportID ||
-                !hasMissingInvoiceBankAccount(action.childReportID) ||
-                isSettled(action.childReportID)
-            ) {
-                continue;
-            }
-            if (!earliestAction || isOlderReportAction(action, earliestAction)) {
-                earliestAction = action;
-            }
-        }
-
-        return earliestAction
-            ? {
-                  reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_MISSING_INVOICE_BANK_ACCOUNT,
-                  reportAction: earliestAction,
-              }
-            : null;
     }
 
     return null;
@@ -14687,29 +14656,6 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
         fullApprovalChain.pop();
     }
     return fullApprovalChain;
-}
-
-/**
- * Checks if the user has missing bank account for the invoice room.
- */
-// TODO: currentUserAccountID will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
-function hasMissingInvoiceBankAccount(iouReportID: string | undefined, currentUserAccountID?: number): boolean {
-    if (!iouReportID) {
-        return false;
-    }
-
-    const invoiceReport = getReport(iouReportID, deprecatedAllReports);
-
-    if (!isInvoiceReport(invoiceReport)) {
-        return false;
-    }
-
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    return (
-        invoiceReport?.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID) &&
-        !getPolicy(invoiceReport?.policyID)?.invoice?.bankAccount?.transferBankAccountID &&
-        isSettled(iouReportID)
-    );
 }
 
 function hasInvoiceReports() {

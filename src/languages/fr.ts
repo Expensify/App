@@ -12338,7 +12338,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             isUnreadWithMention: 'Est non lu avec mention',
             isWaitingForAssigneeToCompleteAction: 'En attente que l’assigné termine l’action',
             hasChildReportAwaitingAction: 'Une note de frais enfant est en attente d’action',
-            hasMissingInvoiceBankAccount: 'A un compte bancaire de facture manquant',
             hasUnresolvedCardFraudAlert: 'A une alerte de fraude de carte non résolue',
             hasDEWApproveFailed: 'L’approbation DEW a échoué',
         },
