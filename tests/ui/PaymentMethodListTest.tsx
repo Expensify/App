@@ -155,6 +155,9 @@ describe('PaymentMethodList', () => {
         // Then the row shows the globe, so the admin can tell this account pays worldwide
         expect(screen.getByText('Chase Checking')).toBeOnTheScreen();
         expect(screen.getByLabelText('Global reimbursements enabled')).toBeOnTheScreen();
+
+        // And the row's label says so too, because a screen reader can't reach the globe inside the row's button
+        expect(screen.getByLabelText(/^Chase Checking, .*Global reimbursements enabled$/)).toBeOnTheScreen();
     });
 
     it.each([
