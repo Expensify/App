@@ -78,9 +78,12 @@ function EarlyDiscountBanner({isSubscriptionPage, onboardingHelpDropdownButton, 
 
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
 
-    const smallScreenStyle = shouldDisplayButtonsInSeparateLine ? [styles.flex0, styles.flexBasis100, styles.justifyContentCenter] : [];
+    const smallScreenStyle = shouldDisplayButtonsInSeparateLine ? [styles.flex0, styles.mnw100, styles.maxWidth100Percentage, styles.justifyContentCenter] : [];
     const rightComponent = (
-        <View style={[styles.flexRow, styles.gap2, smallScreenStyle, styles.alignItemsCenter]}>
+        <View
+            key={shouldDisplayButtonsInSeparateLine ? 'separate-line' : 'inline'}
+            style={[styles.flexRow, styles.gap2, smallScreenStyle, styles.alignItemsCenter]}
+        >
             {onboardingHelpDropdownButton}
             <Button
                 variant={!hasActiveScheduledCall ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
