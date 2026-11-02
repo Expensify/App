@@ -61,6 +61,9 @@ const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connecti
 const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
 const CLAUDE_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP';
 const CURSOR_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP';
+const DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL = 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses#how-to-reuse-a-route-from-a-frequent-trip';
+const DISTANCE_RATES_AUTO_UPDATE_HELP_URL =
+    'https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates#how-to-automatically-update-distance-rates-when-government-rates-change';
 const XERO_PARTNER_LINK = 'https://referrals.xero.com/uzfjy4uegog2-v0pj1v';
 const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
 const PLATFORM_OS_MACOS = 'Mac OS';
@@ -711,6 +714,7 @@ const CONST = {
         DUALENTRY: 'DualEntry',
         CAMPFIRE: 'Campfire',
         DIGITS: 'Digits',
+        ZOHO_BOOKS: 'Zoho Books',
         BUSINESS_CENTRAL: 'Dynamics 365 Business Central',
     },
 
@@ -794,6 +798,8 @@ const CONST = {
     CLAUDE_CONNECT_URL,
     CLAUDE_MCP_HELP_URL,
     CURSOR_MCP_HELP_URL,
+    DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL,
+    DISTANCE_RATES_AUTO_UPDATE_HELP_URL,
     XERO_PARTNER_LINK,
     UBER_TERMS_LINK,
     APP_DOWNLOAD_LINKS: {
@@ -845,6 +851,7 @@ const CONST = {
         PRODUCT_UPDATE_JULY_2026: 'productUpdateJuly2026',
         PRODUCT_UPDATE_AUGUST_2026: 'productUpdateAugust2026',
         PRODUCT_UPDATE_SEPTEMBER_2026: 'productUpdateSeptember2026',
+        PRODUCT_UPDATE_OCTOBER_2026: 'productUpdateOctober2026',
     },
     BANK_ACCOUNT: {
         PLAID_WRONG_ACCOUNT_ERROR_FIELD: 'plaidWrongAccount',
@@ -2876,6 +2883,8 @@ const CONST = {
         // Leaving a tab is paid inside the navigate-to-inbox-tab span, so the same tap costs more from some tabs.
         ATTRIBUTE_SOURCE_TAB: 'source_tab',
         ATTRIBUTE_MS_SINCE_PRELOAD: 'ms_since_preload',
+        // `<Area>-<Action>` part of a `<Area>-<Action>-<Detail>` data-sentry-label, stamped on INP spans so the dashboard can group them.
+        ATTRIBUTE_INP_CATEGORY: 'inp.category',
         // The tap also kicked off an OpenReport request, so exclude these from render-only comparisons.
         ATTRIBUTE_WAITED_ON_OPEN_REPORT: 'waited_on_open_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
@@ -7338,6 +7347,8 @@ const CONST = {
         SCROLLBAR: 'scrollbar',
         /** Use for text fields that are used for searching. */
         SEARCHBOX: 'searchbox',
+        /** Use for dividers, including focusable ones that resize the areas on either side. */
+        SEPARATOR: 'separator',
         /** Use for adjustable elements like sliders. */
         SLIDER: 'slider',
         /** Use for a button that opens a list of choices. */
@@ -10138,6 +10149,9 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
+
+            /** How far, in px, one arrow key press on a focused column edge moves it. */
+            KEYBOARD_STEP: 8,
 
             /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
             GRIP_HEIGHT_RATIO: 0.4,

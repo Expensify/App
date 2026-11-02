@@ -2780,6 +2780,20 @@ type ZohoBooksAccount = {
 };
 
 /**
+ * Bank or credit card account retrieved from Zoho Books. The backend syncs only active ones, for the company card account picker.
+ */
+type ZohoBooksBankAccount = {
+    /** Unique identifier of the account. */
+    id: string;
+
+    /** Name of the account. */
+    name: string;
+
+    /** Currency associated with the account. */
+    currency?: string;
+};
+
+/**
  * Reporting tag retrieved from Zoho Books.
  */
 type ZohoBooksReportingTag = {
@@ -2861,6 +2875,9 @@ type ZohoBooksConnectionData = {
 
     /** Accounts available in Zoho Books. */
     accounts?: ZohoBooksAccount[];
+
+    /** Active bank and credit card accounts that company card expenses can export to. */
+    bankAccounts?: ZohoBooksBankAccount[];
 
     /** Reporting tags available in Zoho Books. */
     reportingTags?: ZohoBooksReportingTag[];
@@ -4530,6 +4547,7 @@ export type {
     ZohoBooksExportDate,
     ZohoBooksVendor,
     ZohoBooksAccount,
+    ZohoBooksBankAccount,
     BusinessCentralBankAccount,
     BusinessCentralCompany,
     BusinessCentralCoding,
