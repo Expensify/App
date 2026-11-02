@@ -1,3 +1,4 @@
+import {shouldTextFilterGrow} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
 import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
@@ -7,6 +8,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getFilterFormValues} from '@libs/SearchQueryUtils';
 import {getFilterNegatableValue} from '@libs/SearchUIUtils';
+import StringUtils from '@libs/StringUtils';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {SearchAdvancedFiltersForm} from '@src/types/form/SearchAdvancedFiltersForm';
@@ -32,13 +36,15 @@ function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeO
     const [isNegated, setIsNegated] = useState(initialIsNegated);
     const [value, setValue] = useState(initialValue);
 
-    const error = useTextFilterValidation(baseFilterKey, value);
+    const shouldGrow = shouldTextFilterGrow(baseFilterKey);
+    const normalizedValue = shouldGrow && value !== undefined ? StringUtils.lineBreaksToSpaces(value) : value;
+    const error = useTextFilterValidation(baseFilterKey, normalizedValue);
 
     const applyChanges = () => {
         if (error) {
             return;
         }
-        updateFilterForm(getFilterFormValues(baseFilterKey, value, isNegated));
+        updateFilterForm(getFilterFormValues(baseFilterKey, normalizedValue, isNegated));
         closeOverlay();
     };
 
@@ -47,7 +53,7 @@ function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeO
             label={label}
             onApply={applyChanges}
             applySentryLabel={`Search-FilterPopupApply-${baseFilterKey}`}
-            shouldSubmitOnEnter
+            shouldSubmitOnEnter={!shouldGrow}
         >
             <NegatableFilter
                 baseFilterKey={baseFilterKey}
@@ -63,6 +69,10 @@ function TextFilterPopup({baseFilterKey, values, label, updateFilterForm, closeO
                     accessibilityLabel={label}
                     role={CONST.ROLE.PRESENTATION}
                     containerStyles={[styles.ph5]}
+                    autoGrowHeight={shouldGrow}
+                    maxAutoGrowHeight={shouldGrow ? variables.textInputAutoGrowMaxHeight : undefined}
+                    submitBehavior={shouldGrow ? 'submit' : undefined}
+                    onSubmitEditing={shouldGrow ? applyChanges : undefined}
                 />
             </NegatableFilter>
         </BasePopup>

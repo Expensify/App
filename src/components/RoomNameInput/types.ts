@@ -1,9 +1,9 @@
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef} from 'react';
 import type {BlurEvent, ReturnKeyTypeOptions, TextInputSubmitEditingEvent} from 'react-native';
 
-type RoomNameInputProps = {
+type RoomNameInputProps = Pick<BaseTextInputProps, 'autoGrowSingleLine' | 'maxAutoGrowHeight'> & {
     value?: string;
     disabled?: boolean;
     errorText?: string;
