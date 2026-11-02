@@ -27,4 +27,6 @@ Keep the `<Area>-<Action>` prefix the same for all variants of one interaction, 
 
 ## No IDs or user data
 
-Labels must be static strings from `CONST.SENTRY_LABEL`. Never build a label from IDs (report, transaction, policy, account), names, emails, amounts or any other user data. Labels are sent to Sentry and FullStory, and dynamic values would both leak user data and split one interaction into a separate series per value.
+Labels must be built only from constants, never from runtime values. Never build a label from IDs (report, transaction, policy, account), names, emails, amounts or any other user data. Labels are sent to Sentry and FullStory, and dynamic values would both leak user data and split one interaction into a separate series per value.
+
+Usually the label is a single `CONST.SENTRY_LABEL` value. A component that renders an inner pressable may derive that pressable's label from the label it received by appending a fixed PascalCase suffix to the last part, e.g. `${sentryLabel}ClearButton`. Don't append it as a new part (`${sentryLabel}-ClearButton`): the derived label then has a different number of parts than the original, so it gets a category the original doesn't have, or loses the one it has.
