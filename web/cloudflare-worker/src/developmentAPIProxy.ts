@@ -4,7 +4,9 @@
  */
 const API_PROXY_PATHS = ['/api', '/staging', '/staging-secure', '/chat-attachments', '/receipts'];
 
-const API_PROXY_PORT = 9000;
+// WEB_PROXY_PORT moves the proxy off the default when another local service already holds it. The Worker build has
+// no process, so it falls back to the default there.
+const API_PROXY_PORT = Number(typeof process === 'undefined' ? undefined : process.env?.WEB_PROXY_PORT) || 9000;
 
 /** API and attachment responses must never enter the SPA fallback or HTML nonce/cache pipeline. */
 function isAPIRequest(pathname: string): boolean {

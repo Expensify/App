@@ -17,6 +17,8 @@ import {
     shouldShowEmployeeListError,
 } from '@libs/PolicyUtils';
 
+import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasReimbursementAccountErrorsSelector} from '@src/selectors/ReimbursementAccount';
@@ -73,6 +75,8 @@ function WorkspaceRowBrickRoadIndicator({policyID}: WorkspaceRowBrickRoadIndicat
             <Icon
                 src={icons.DotIndicator}
                 fill={hasError ? theme.danger : theme.iconSuccessFill}
+                width={variables.iconSizeSmall}
+                height={variables.iconSizeSmall}
             />
         </View>
     );

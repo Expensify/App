@@ -209,7 +209,7 @@ function SearchPageFooter({
     );
 
     return (
-        <View style={[styles.borderTop, styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
+        <View style={[styles.borderTop, shouldUseNarrowLayout ? styles.ph3 : styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
             <View style={[shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd, styles.flexRow, styles.alignItemsCenter]}>
                 <FilterPopupButton
                     PopoverComponent={renderFooterPopup}

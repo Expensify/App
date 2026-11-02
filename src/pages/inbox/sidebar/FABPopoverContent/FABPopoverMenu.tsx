@@ -12,6 +12,8 @@ import {close} from '@libs/actions/Modal';
 import {isSafari} from '@libs/Browser';
 
 import CONST from '@src/CONST';
+import type {AnchorPosition} from '@src/styles';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 import type {ActivityProps, ComponentRef, RefObject} from 'react';
 
@@ -38,14 +40,36 @@ type FABPopoverMenuProps = {
     anchorRef: RefObject<ComponentRef<typeof View> | HTMLDivElement | null>;
     animationInTiming?: number;
     animationOutTiming?: number;
+
+    /** Overrides the default placement above the bottom-left floating action button */
+    anchorPosition?: AnchorPosition;
+
+    /** Overrides how the menu lines up with its anchor position */
+    anchorAlignment?: AnchorAlignment;
+
     children: React.ReactNode;
 };
 
-function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animationInTiming, animationOutTiming, children}: FABPopoverMenuProps) {
+const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+};
+
+function FABPopoverMenu({
+    isVisible,
+    onClose,
+    onItemSelected,
+    anchorRef,
+    animationInTiming,
+    animationOutTiming,
+    anchorPosition: anchorPositionOverride,
+    anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
+    children,
+}: FABPopoverMenuProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
-    const anchorPosition = styles.createMenuPositionSidebar(windowHeight);
+    const anchorPosition = anchorPositionOverride ?? styles.createMenuPositionSidebar(windowHeight);
     // Use paddingTop (pt*) for the top and pass the bottom via additionalPaddingBottom so it composes with the safe-area inset.
     // paddingVertical (pv*) shorthand isn't readable by the hook, so its injected paddingBottom would clobber the intended bottom padding.
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
@@ -120,10 +144,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
             <PopoverWithMeasuredContent
                 anchorPosition={anchorPosition}
                 anchorRef={anchorRef}
-                anchorAlignment={{
-                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                }}
+                anchorAlignment={anchorAlignment}
                 onClose={handleClose}
                 isVisible={isVisible}
                 onModalWillShow={() => setContentActivityMode('visible')}

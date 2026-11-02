@@ -32,9 +32,9 @@ const colors: Record<string, Color> = {
 
     // Light Mode Theme Colors
     productLight100: '#FCFBF9',
-    productLight200: '#F8F4F0',
+    productLight200: '#FAF6F2',
     productLight300: '#F2EDE7',
-    productLight400: '#E6E1DA',
+    productLight400: '#EBE7E1',
     productLight500: '#D8D1C7',
     productLight600: '#C7BFB3',
     productLight700: '#A2A9A3',

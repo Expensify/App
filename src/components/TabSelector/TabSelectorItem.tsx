@@ -25,6 +25,14 @@ import {useTabSelectorActions} from './TabSelectorContext';
 // right-click, so the desktop-web menu could not be opened.
 const AnimatedPressableWithSecondaryInteraction = Animated.createAnimatedComponent(PressableWithSecondaryInteraction);
 
+function getTabWrapperStyle(equalWidth: boolean, shouldHugContent: boolean, styles: ReturnType<typeof useThemeStyles>) {
+    if (equalWidth) {
+        return styles.flex1;
+    }
+    // Hugging leaves the row left-aligned at its natural width; growing spreads the tabs across it.
+    return shouldHugContent ? styles.flexGrow0 : styles.flexGrow1;
+}
+
 type TabSelectorItemProps = BaseTabSelectorItemProps;
 
 function TabSelectorItem({
@@ -42,6 +50,7 @@ function TabSelectorItem({
     testID,
     sentryLabel,
     equalWidth = false,
+    shouldHugContent = false,
     badgeText,
     isBadgeCondensed = false,
     badgeStyles,
@@ -83,7 +92,7 @@ function TabSelectorItem({
                 isOfflineWithPendingAction ? styles.offlineFeedbackPending : undefined,
                 tabButtonStyles,
             ]}
-            wrapperStyle={equalWidth ? styles.flex1 : styles.flexGrow1}
+            wrapperStyle={getTabWrapperStyle(equalWidth, shouldHugContent, styles)}
             onSecondaryInteraction={isPressableDisabled ? undefined : onLongPress}
             onPress={() => {
                 scrollToTab(tabKey);

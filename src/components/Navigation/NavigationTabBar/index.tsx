@@ -3,6 +3,7 @@ import FloatingGPSButton from '@components/FloatingGPSButton';
 import Hoverable from '@components/Hoverable';
 import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
+import useFlatNavSpendItems from '@components/Navigation/FlatNavigationBar/useFlatNavSpendItems';
 import {PressableWithFeedback} from '@components/Pressable';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -14,6 +15,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import {EXPENSES_KEYS, REPORTS_KEYS} from '@libs/SpendNavigationGroups';
 
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
@@ -28,8 +30,10 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
+import CannedSearchTabButton from './CannedSearchTabButton';
 import InboxTabButton from './InboxTabButton';
 import InsightsTabButton from './InsightsTabButton';
+import MoreTabButton from './MoreTabButton';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
 import TabBarItem from './TabBarItem';
@@ -37,17 +41,26 @@ import WorkspacesTabButton from './WorkspacesTabButton';
 
 type NavigationTabBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
+
+    /**
+     * Whether to cast the shadow above the bar. Preloaded screens each render their own tab bar at the same spot,
+     * so only the navigator's bar - the one stacked above the screens - opts in. Otherwise the shadows compound.
+     */
+    shouldShowTopShadow?: boolean;
     shouldShowFloatingButtons?: boolean;
 };
 
-function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
+function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true, shouldShowTopShadow = false}: NavigationTabBarProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['ExpensifyAppIcon', 'Home', 'Receipt', 'Document']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {expenses, reports} = useFlatNavSpendItems();
+    const firstExpensesSearch = expenses.at(0);
+    const firstReportsSearch = reports.at(0);
 
     const StyleUtils = useStyleUtils();
 
@@ -150,7 +163,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         <>
             {shouldShowDebugTabView && <DebugTabView selectedTab={selectedTab} />}
             <View
-                style={styles.navigationTabBarContainer}
+                style={[styles.navigationTabBarContainer, shouldShowTopShadow && styles.navigationTabBarTopShadow]}
                 testID="NavigationTabBar"
             >
                 <PressableWithFeedback
@@ -172,18 +185,27 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     selectedTab={selectedTab}
                     isWideLayout={false}
                 />
-                <SearchTabButton
-                    selectedTab={selectedTab}
-                    isWideLayout={false}
-                />
-                <InsightsTabButton
-                    selectedTab={selectedTab}
-                    isWideLayout={false}
-                />
-                <WorkspacesTabButton
-                    selectedTab={selectedTab}
-                    isWideLayout={false}
-                />
+                {!!firstExpensesSearch && (
+                    <CannedSearchTabButton
+                        selectedTab={selectedTab}
+                        item={firstExpensesSearch}
+                        label={translate('search.tabs.expenses')}
+                        icon={expensifyIcons.Receipt}
+                        searchKeys={EXPENSES_KEYS}
+                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.EXPENSES}
+                    />
+                )}
+                {!!firstReportsSearch && (
+                    <CannedSearchTabButton
+                        selectedTab={selectedTab}
+                        item={firstReportsSearch}
+                        label={translate('common.reports')}
+                        icon={expensifyIcons.Document}
+                        searchKeys={REPORTS_KEYS}
+                        sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
+                    />
+                )}
+                <MoreTabButton selectedTab={selectedTab} />
             </View>
 
             {shouldShowFloatingButtons && (

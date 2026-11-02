@@ -1,8 +1,10 @@
 import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 
+import AskConciergePage from '@pages/AskConcierge';
 import HomePage from '@pages/home/HomePage';
 import InsightsPage from '@pages/Insights/InsightsPage';
+import MorePage from '@pages/More/MorePage';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -14,6 +16,7 @@ import React from 'react';
 import type {NativeTabName} from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import type {NativeTabLayoutProps} from './NativeTabNavigator/NativeTabLayout';
 
+import NATIVE_TAB_GLYPHS from './NativeTabNavigator/NATIVE_TAB_GLYPHS';
 import NativeTabLayout from './NativeTabNavigator/NativeTabLayout';
 import tabScreenListeners from './NativeTabNavigator/tabScreenListeners';
 import useNativeTabBarOptions from './NativeTabNavigator/useNativeTabBarOptions';
@@ -32,14 +35,19 @@ const Tab = createNativeBottomTabNavigator<TabNavigatorParamList>();
 
 const HIDDEN_TAB_OPTIONS = {tabBarItemHidden: true};
 
+/** The native bar draws its items from Skia glyphs, so a tab without one can only be hidden from it. */
+function isNativeTabName(name: string): name is NativeTabName {
+    return name in NATIVE_TAB_GLYPHS;
+}
+
 const renderNativeTabLayout = (props: NativeTabLayoutProps) => <NativeTabLayout {...props} />;
 
 function TabNavigator() {
     const {shouldShowNativeTabBar, dotColors, tabLabels, tabWithoutBarItem, tabRouterOverride, isTabSelectionEnabled} = useNativeTabNavigator();
     const {screenOptions, getTabOptions} = useNativeTabBarOptions({shouldShowNativeTabBar, dotColors, tabLabels});
     // A tab with no bar item draws no icon.
-    const getScreenOptions = ({route}: {route: {name: NativeTabName}}) =>
-        route.name === tabWithoutBarItem
+    const getScreenOptions = ({route}: {route: {name: string}}) =>
+        route.name === tabWithoutBarItem || !isNativeTabName(route.name)
             ? {...screenOptions, ...HIDDEN_TAB_OPTIONS}
             : {
                   ...screenOptions,
@@ -73,6 +81,14 @@ function TabNavigator() {
                 component={InsightsPage}
                 // The tab opens on Spend dashboard once, then keeps the last dashboard in navigation state until the app restarts.
                 initialParams={{dashboardID: CONST.INSIGHTS.DASHBOARD.SPEND}}
+            />
+            <Tab.Screen
+                name={SCREENS.ASK_CONCIERGE}
+                component={AskConciergePage}
+            />
+            <Tab.Screen
+                name={SCREENS.MORE}
+                component={MorePage}
             />
             <Tab.Screen
                 name={NAVIGATORS.WORKSPACE_NAVIGATOR}
