@@ -1,4 +1,5 @@
 import Hoverable from '@components/Hoverable';
+import {useColumnResizeController} from '@components/Table/columnResize/ColumnResizeContext';
 import {
     RESIZE_GRIP_HOVER_VARIABLE,
     RESIZE_INDICATOR_DATA_ATTRIBUTE,
@@ -7,7 +8,6 @@ import {
     RESIZE_INDICATOR_TOP_VARIABLE,
 } from '@components/Table/columnResize/columnWidthExpressions';
 import type {ColumnResizeHandleProps} from '@components/Table/columnResize/types';
-import {useTableContext} from '@components/Table/TableContext';
 
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,6 +44,16 @@ const INDICATOR_STYLE: React.CSSProperties = {
     pointerEvents: 'none',
 };
 
+// Centred on the grip, so it reaches into the column as far as into the gap after it.
+// A child of the handle, so its presses, hovers and pointer capture are the handle's.
+const HIT_AREA_STYLE: React.CSSProperties = {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: (CONST.RESIZE_HANDLE.INDICATOR_WIDTH - CONST.TABLES.COLUMN_RESIZE.HIT_AREA_WIDTH) / 2,
+    width: CONST.TABLES.COLUMN_RESIZE.HIT_AREA_WIDTH,
+};
+
 /**
  * Drag the strip over a column's right edge. Carries the grip and the indicator line, so they move with the column through drags and scrolls.
  * A plain `div` because it relies on DOM pointer capture.
@@ -51,7 +61,7 @@ const INDICATOR_STYLE: React.CSSProperties = {
 function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {columnResize} = useTableContext();
+    const columnResize = useColumnResizeController();
     const handleProps = columnResize?.getHandleProps(columnKey);
 
     if (!handleProps) {
@@ -64,8 +74,12 @@ function ColumnResizeHandle({columnKey}: ColumnResizeHandleProps) {
                 <div {...handleProps}>
                     <div
                         aria-hidden
+                        style={HIT_AREA_STYLE}
+                    />
+                    <div
+                        aria-hidden
                         // Takes the line's color while the handle itself is hovered, hinting that dragging grows it into the line.
-                        style={{...GRIP_STYLE, backgroundColor: isHovered ? theme.iconMenu : theme.border}}
+                        style={{...GRIP_STYLE, backgroundColor: isHovered ? theme.iconMenu : theme.icon}}
                     />
                     <div
                         aria-hidden

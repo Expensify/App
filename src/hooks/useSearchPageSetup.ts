@@ -15,6 +15,7 @@ import {useCallback, useEffect, useRef} from 'react';
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 
 // Gates the save below to real hash changes so snapshot-loading re-fires don't wipe fields
 // (hasMoreResults, previousLengthOfResults) maintained by report-browsing callers.
@@ -44,6 +45,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // Without this, a plain page-level fetch during active select-all clears totals on arrival
     // (shouldClearTotals in getOnyxLoadingData), wiping a total the Search-internal effect already fetched.
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
+    const shouldReturnTripRooms = useShouldReturnTripRooms(queryJSON?.type);
 
     // Derived primitives so effects do not depend on the whole snapshot object (new reference every
     // Onyx merge) while exhaustive-deps still sees every transition that matters for firing search().
@@ -105,8 +107,28 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         if (!isSnapshotDataLoaded) {
             markPageRequestedSearch(hash, shouldCalculateTotals);
         }
-        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites, shouldSaveRecentSearch: true});
-    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
+        search({
+            queryJSON,
+            searchKey: currentSearchKey,
+            offset: 0,
+            shouldCalculateTotals,
+            isLoading: false,
+            skipWaitForWrites: shouldSkipWaitForWrites,
+            shouldSaveRecentSearch: true,
+            shouldReturnTripRooms,
+        });
+    }, [
+        hash,
+        isOffline,
+        shouldUseLiveData,
+        queryJSON,
+        isSnapshotDataLoaded,
+        isSnapshotSearchLoading,
+        isInitialSearchPending,
+        currentSearchKey,
+        shouldCalculateTotals,
+        shouldReturnTripRooms,
+    ]);
 
     useFocusEffect(dropPageRequestOnBlur);
 

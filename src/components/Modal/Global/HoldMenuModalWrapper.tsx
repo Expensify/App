@@ -8,10 +8,7 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-
-import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useState} from 'react';
 
@@ -20,9 +17,8 @@ import type {ModalProps} from './ModalContext';
 type HoldMenuModalWrapperProps = ModalProps & {
     reportID: string | undefined;
     chatReportID: string | undefined;
-    /** Which action the modal confirms. Chat surfaces the approval choice up front via the approve
-     *  dropdown and never open this modal to approve, so it defaults to the pay copy when omitted. The Search
-     *  page still routes its approve action here until it gets the same treatment. */
+    /** Which action the modal confirms. Callers surface the approval choice up front via the approve
+     *  dropdown, so it defaults to the pay copy when omitted. */
     requestType?: ActionHandledType;
     paymentType?: PaymentMethodType;
     paymentMethod?: PaymentMethod;
@@ -32,12 +28,6 @@ type HoldMenuModalWrapperProps = ModalProps & {
     hasNonHeldExpenses?: boolean;
     transactionCount: number;
     onConfirm?: (full: boolean) => void;
-    /**
-     * Optional overrides for callers that source reports from a place other
-     * than the main report collection (e.g. Search rows render from a snapshot).
-     */
-    moneyRequestReport?: OnyxEntry<Report>;
-    chatReport?: OnyxEntry<Report>;
 };
 
 function HoldMenuModalWrapper({
@@ -48,13 +38,11 @@ function HoldMenuModalWrapper({
     paymentType,
     paymentMethod,
     methodID,
-    nonHeldAmount = '0',
+    nonHeldAmount,
     fullAmount,
     hasNonHeldExpenses,
     transactionCount,
     onConfirm,
-    moneyRequestReport: moneyRequestReportOverride,
-    chatReport: chatReportOverride,
 }: HoldMenuModalWrapperProps) {
     const [isVisible, setIsVisible] = useState(true);
     const {translate} = useLocalize();
@@ -62,10 +50,8 @@ function HoldMenuModalWrapper({
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
-    const [moneyRequestReportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [chatReportFromOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const moneyRequestReport = moneyRequestReportOverride ?? moneyRequestReportFromOnyx;
-    const chatReport = chatReportOverride ?? chatReportFromOnyx;
+    const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
 
     const {onSubmit, isApprove} = useHoldMenuSubmit({
         moneyRequestReport,
@@ -92,7 +78,8 @@ function HoldMenuModalWrapper({
             onClose={() => setIsVisible(false)}
             isVisible={isVisible}
             prompt={approvalPrompt}
-            firstOptionText={hasNonHeldExpenses ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
+            // Callers pass undefined when there is no meaningful partial amount to offer.
+            firstOptionText={nonHeldAmount !== undefined ? `${translate(isApprove ? 'iou.approveOnly' : 'iou.payOnly')} ${nonHeldAmount}` : undefined}
             secondOptionText={`${translate(isApprove ? 'iou.approve' : 'iou.pay')} ${fullAmount}`}
             onFirstOptionSubmit={() => onSubmit(false)}
             onSecondOptionSubmit={() => onSubmit(true)}

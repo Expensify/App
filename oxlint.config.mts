@@ -353,6 +353,7 @@ export default defineConfig({
         'rulesdir/prefer-type-fest': 'error',
         'rulesdir/require-a11y-disable-justification': 'error',
         'rulesdir/require-live-region-for-status-updates': 'error',
+        'rulesdir/no-onyx-loading-status': 'error',
         'rulesdir/require-locale-for-localized-date-format': 'error',
         'rulesdir/no-unsafe-onyx-read': 'error',
         'rulesdir/no-onyx-get-snapshot-key': 'error',
@@ -1295,6 +1296,19 @@ export default defineConfig({
                 'src/**/__mocks__/**/*.{ts,tsx}',
             ],
             rules: {'rulesdir/no-direct-personal-details-list': 'off'},
+        },
+        // LocaleContextProvider and HybridAppHandler mount before `Onyx.init` finishes, so they keep relying on the startup
+        // loading status. Tests and mocks follow the code they cover and get cleaned up together with it.
+        {
+            files: [
+                'src/components/LocaleContextProvider.tsx',
+                'src/HybridAppHandler.tsx',
+                'tests/**/*.{ts,tsx}',
+                'jest/**/*.{ts,tsx}',
+                '__mocks__/**/*.{ts,tsx}',
+                'src/**/__mocks__/**/*.{ts,tsx}',
+            ],
+            rules: {'rulesdir/no-onyx-loading-status': 'off'},
         },
     ],
 });

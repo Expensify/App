@@ -31,7 +31,7 @@ type GetSubmitExpensePreMountDestinationRouteParams = {
 };
 
 /**
- * Returns the fullscreen route to pre-mount behind the expense confirmation RHP on narrow layout,
+ * Returns the fullscreen route to pre-mount for the expense confirmation RHP,
  * or undefined when pre-insert is not eligible for the current navigation topology.
  */
 function getSubmitExpensePreMountDestinationRoute({
@@ -47,8 +47,7 @@ function getSubmitExpensePreMountDestinationRoute({
     isLookingAroundUser,
     isMovingTransactionFromTrackExpense,
 }: GetSubmitExpensePreMountDestinationRouteParams): Route | undefined {
-    // Bail out early on wide layout: nothing here is ever shown on wide, so skip the navigation reads below entirely.
-    if (!isTransactionReady || !getIsNarrowLayout()) {
+    if (!isTransactionReady) {
         return undefined;
     }
 
@@ -80,7 +79,9 @@ function getSubmitExpensePreMountDestinationRoute({
     // RHP has its own dismiss handler; pre-inserting under it would break the stack.
     const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
     // Don't pre-insert if the report is already the topmost fullscreen - it would push a duplicate route (extra back press).
-    const hasValidDestination = !!destinationReportID && (hasPreInsertedFullscreen || Navigation.getTopmostReportId() !== destinationReportID);
+    // On wide layout the topmost report can sit in a background Reports tab, which is not on screen, so only the focused one counts.
+    const isDestinationOnScreen = Navigation.getTopmostReportId() === destinationReportID && (getIsNarrowLayout() || isReportTopmostSplitNavigator());
+    const hasValidDestination = !!destinationReportID && (hasPreInsertedFullscreen || !isDestinationOnScreen);
     // A report destination while a *different* report is topmost has no tab to switch to, so the pre-insert overwrites the
     // visible report and cancelling must rebuild it from a state snapshot - a restore the root router's guards can silently
     // swallow (#97437). Relocating a tracked expense is where that bites: it is rebound to its destination chat before this
@@ -98,7 +99,10 @@ function getSubmitExpensePreMountDestinationRoute({
     // An optimistic new chat is the one exception: it has no report row yet, but that's fine since submit
     // will create it under this same ID.
     const isDestinationReportLoaded = isOptimisticNewChatDestination || isDestinationReportRenderable;
-    const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded && !isReplacingVisibleReport;
+    // A wide Pay reveals the plain report route, so a wide pre-mount of a new chat, built with the pending-creation flag, would
+    // never match it and only be mounted for nothing.
+    const isWidePayToNewChat = iouType === CONST.IOU.TYPE.PAY && isOptimisticNewChatDestination && !getIsNarrowLayout();
+    const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded && !isReplacingVisibleReport && !isWidePayToNewChat;
 
     if (!shouldPreInsertSearch && !shouldPreInsertReport) {
         return undefined;
