@@ -1510,6 +1510,60 @@ describe('actions/PolicyMember', () => {
             expect(importFinalModal.promptKey).toBe('spreadsheet.importMembersAddedAndUpdated');
             expect(importFinalModal.promptKeyParams).toStrictEqual({added: 2, updated: 2});
         });
+
+        it('should keep DYNAMIC_EXTERNAL approval mode when importing members with approval fields into a Dynamic External Workflow policy', async () => {
+            // Given a Control workspace that uses a Dynamic External Workflow
+            const policyID = '1';
+            const approverEmail = 'approver@gmail.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                employeeList: {
+                    [approverEmail]: {
+                        email: approverEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            // When importing a member who submits to another member, which would switch a non-DEW Control policy to ADVANCED
+            await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: CONST.POLICY.ROLE.USER, submitsTo: approverEmail}]);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode stays DYNAMIC_EXTERNAL because the backend keeps the policy on DEW
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL);
+        });
+
+        it('should switch a non-DEW Control policy to ADVANCED approval mode when importing members with approval fields', async () => {
+            // Given a Control workspace on BASIC approvals
+            const policyID = '1';
+            const approverEmail = 'approver@gmail.com';
+            const policy = {
+                ...createRandomPolicy(Number(policyID)),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [approverEmail]: {
+                        email: approverEmail,
+                        role: CONST.POLICY.ROLE.USER,
+                    },
+                },
+            };
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await waitForBatchedUpdates();
+
+            // When importing a member who submits to another member
+            await Member.importPolicyMembers(policy, [{email: 'user@gmail.com', role: CONST.POLICY.ROLE.USER, submitsTo: approverEmail}]);
+            await waitForBatchedUpdates();
+
+            // Then approvalMode becomes ADVANCED because custom submitsTo values need advanced approvals
+            const updatedPolicy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+            expect(updatedPolicy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.ADVANCED);
+        });
     });
 
     describe('setWorkspaceInviteMembersDraft', () => {
