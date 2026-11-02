@@ -25,6 +25,7 @@ import type {
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
 import type AskForCorpaySignerInformationParams from '@libs/API/parameters/AskForCorpaySignerInformationParams';
+import type CreateWiseBankAccountParams from '@libs/API/parameters/CreateWiseBankAccountParams';
 import type GetWiseBankAccountFieldsParams from '@libs/API/parameters/GetWiseBankAccountFieldsParams';
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
@@ -1375,6 +1376,19 @@ function getWiseBankAccountFields(country: string, currency?: string, inputs?: R
     API.read(READ_COMMANDS.GET_WISE_BANK_ACCOUNT_FIELDS, parameters, onyxData);
 }
 
+function createWiseBankAccount(country: string, currency: string | undefined, inputs: Record<string, unknown>, confirmVerificationOfPayee: boolean) {
+    const parameters: CreateWiseBankAccountParams = {country, currency, inputs: JSON.stringify(inputs)};
+    if (confirmVerificationOfPayee) {
+        parameters.confirmVerificationOfPayee = true;
+    }
+    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> = {
+        optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isLoading: true, isSuccess: null, errors: null, errorFields: null}}],
+        successData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isSuccess: true}}],
+        finallyData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isLoading: false}}],
+    };
+    API.write(WRITE_COMMANDS.CREATE_WISE_BANK_ACCOUNT, parameters, onyxData);
+}
+
 function clearWiseBankAccountFields() {
     Onyx.set(ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS, null);
 }
@@ -2148,6 +2162,7 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
     clearWiseBankAccountFields,
+    createWiseBankAccount,
     finishCorpayBankAccountOnboarding,
     shareBankAccountAndSetPayer,
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
