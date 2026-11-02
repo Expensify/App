@@ -15,7 +15,7 @@ import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCardSettings} from '@libs/CardUtils';
+import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
@@ -178,7 +178,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);
+            queueExpensifyCardForBilling(defaultFundID, getCardProgramKey(cardSettings));
         });
     };
 
