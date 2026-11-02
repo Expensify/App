@@ -4,6 +4,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {ValueOf} from 'type-fest';
 
 import type {CardID} from './Card';
+import type {FeedReimbursable} from './CardFeeds';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
@@ -763,6 +764,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Previous statement period end day for a company card feed */
     previousStatementPeriodEndDay?: string;
+
+    /** Reimbursable setting of a company card feed */
+    forceReimbursable?: FeedReimbursable;
+
+    /** Previous reimbursable setting of a company card feed */
+    previousForceReimbursable?: FeedReimbursable;
 
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;
