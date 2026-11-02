@@ -12,6 +12,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useCompleteReviewWorkspaceSettingsTask from '@hooks/useCompleteReviewWorkspaceSettingsTask';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -155,6 +156,7 @@ function ExpenseDefaultRulePageBase({
     testID,
 }: ExpenseDefaultRulePageBaseProps) {
     const {translate} = useLocalize();
+    const completeReviewWorkspaceSettingsTask = useCompleteReviewWorkspaceSettingsTask();
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const policy = usePolicy(policyID);
@@ -248,37 +250,38 @@ function ExpenseDefaultRulePageBase({
         }, [fetchPolicyData]),
     );
 
+    // A value the rule already carries keeps its row whatever the workspace offers, so turning the feature off or
+    // removing the last option leaves the admin able to see and clear it rather than leaving it saved and invisible.
     const hasCategories = () => {
-        if (!policy?.areCategoriesEnabled) {
-            return false;
+        if (form?.category) {
+            return true;
         }
-        return !!form?.category || hasEnabledOptions(policyCategories ?? {});
+        return !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
     };
 
     const hasTags = () => {
-        if (!policy?.areTagsEnabled) {
-            return false;
+        if (form?.tag) {
+            return true;
         }
-        return policyTags.length > 0;
+        return !!policy?.areTagsEnabled && policyTags.length > 0;
     };
 
     // `hasCategories` falls back to the category the rule sets, which says nothing about what it matches on, so the
-    // condition row asks separately. A category the rule already matches on keeps the row even once the workspace has
-    // none left to pick, otherwise the condition would be invisible and still saved.
+    // condition row asks separately.
     const hasCategoriesToMatch = () => {
-        if (!policy?.areCategoriesEnabled) {
-            return false;
+        if (form?.categoriesToMatch?.length) {
+            return true;
         }
-        return !!form?.categoriesToMatch?.length || hasEnabledOptions(policyCategories ?? {});
+        return !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
     };
 
     // Turning tags on creates a tag list whether or not it holds anything, so the condition row needs a tag to
-    // actually match on. A tag the rule already matches on keeps the row, the same way.
+    // actually match on.
     const hasTagsToMatch = () => {
-        if (!policy?.areTagsEnabled) {
-            return false;
+        if (form?.tagsToMatch?.length) {
+            return true;
         }
-        return !!form?.tagsToMatch?.length || policyTags.some((tagList) => hasEnabledOptions(tagList.tags));
+        return !!policy?.areTagsEnabled && policyTags.some((tagList) => hasEnabledOptions(tagList.tags));
     };
     const formTags = getTagArrayFromName(form?.tag ?? '');
 
@@ -363,6 +366,7 @@ function ExpenseDefaultRulePageBase({
         }
 
         setRule(policyID, buildExpenseDefaultRule(form, policy, existingRule?.triggers), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule, shouldUpdateMatchingTransactions);
+        completeReviewWorkspaceSettingsTask();
         if (categorySettingsBackPath) {
             // Category settings enters through its own dynamic route, so the way back is the category the rule was
             // opened from rather than anything in the workspace Rules flow.
