@@ -91,7 +91,7 @@ function resize(width: number) {
     fireEvent(screen.getByTestId('attachment-carousel'), 'layout', {nativeEvent: {layout: {width, height: 300, x: 0, y: 0}}});
 }
 
-function renderCarousel(overrides: Partial<AttachmentCarouselViewProps> = {}) {
+function renderCarousel(overrides: Partial<AttachmentCarouselViewProps> = {}, Component: React.ComponentType<AttachmentCarouselViewProps> = CarouselHost) {
     const props: AttachmentCarouselViewProps = {
         page: 0,
         attachments: [{source: 'first.png'}, {source: 'protected.pdf'}, {source: 'last.png'}],
@@ -104,7 +104,7 @@ function renderCarousel(overrides: Partial<AttachmentCarouselViewProps> = {}) {
         onNavigate: jest.fn(),
         ...overrides,
     };
-    const view = render(<CarouselHost {...props} />);
+    const view = render(<Component {...props} />);
     resize(390);
     return {props, ...view};
 }
@@ -260,7 +260,7 @@ describe('AttachmentCarouselView web', () => {
 
     it('follows parent selection through replacement and reordering without duplicate navigation', () => {
         // Given a parent-controlled selected page
-        const {props, rerender} = renderCarousel({page: 1});
+        const {props, rerender} = renderCarousel({page: 1}, AttachmentCarouselView);
         const replacement: Attachment = {source: 'uploaded.pdf', attachmentID: 'uploaded'};
         const neighbor: Attachment = {source: 'neighbor.png'};
 
@@ -271,7 +271,6 @@ describe('AttachmentCarouselView web', () => {
                 attachments={[neighbor, replacement]}
             />,
         );
-        resize(390);
         expect(screen.getByText('uploaded:true')).toBeOnTheScreen();
         rerender(
             <AttachmentCarouselView
