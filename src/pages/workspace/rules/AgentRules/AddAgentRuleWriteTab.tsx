@@ -33,11 +33,14 @@ type AddAgentRuleWriteTabProps = {
     /** A rule with this text saves without a check, because Concierge already wrote it */
     checkedPrompt?: string;
 
+    /** The tab stays mounted while hidden, and Enter must not submit a hidden form */
+    isTabActive: boolean;
+
     /** Called with the form values when the user saves the rule */
     onSave: (values: FormOnyxValues<AddAgentRuleFormID>) => void;
 };
 
-function AddAgentRuleWriteTab({policyID, checkedPrompt, onSave}: AddAgentRuleWriteTabProps) {
+function AddAgentRuleWriteTab({policyID, checkedPrompt, isTabActive, onSave}: AddAgentRuleWriteTabProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const formRef = useRef<FormRef>(null);
@@ -83,6 +86,7 @@ function AddAgentRuleWriteTab({policyID, checkedPrompt, onSave}: AddAgentRuleWri
             submitFlexEnabled={false}
             shouldUseScrollView={false}
             enabledWhenOffline
+            disablePressOnEnter={!isTabActive}
             shouldHideFixErrorsAlert
             isSubmitButtonNeutral={suggestionButtonRow.isSubmitButtonNeutral}
             submitButtonAndFooterContainerStyles={suggestionButtonRow.containerStyles}

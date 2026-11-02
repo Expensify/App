@@ -170,6 +170,7 @@ async function renderWriteTab(onSave: jest.Mock, checkedPrompt?: string) {
         <AddAgentRuleWriteTab
             policyID={POLICY_ID}
             checkedPrompt={checkedPrompt}
+            isTabActive
             onSave={onSave}
         />,
     );
@@ -347,6 +348,7 @@ describe('Agent rule prompt check', () => {
         render(
             <AddAgentRuleWriteTab
                 policyID={POLICY_ID}
+                isTabActive
                 onSave={onSave}
             />,
         );
@@ -378,6 +380,7 @@ describe('Agent rule prompt check', () => {
         render(
             <AddAgentRuleWriteTab
                 policyID={POLICY_ID}
+                isTabActive
                 onSave={onSave}
             />,
         );
@@ -395,6 +398,20 @@ describe('Agent rule prompt check', () => {
         // Then the form is not loading, because the next visit must not open with a loading button
         expect((await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM))?.isLoading).toBe(false);
         expect(onSave).not.toHaveBeenCalled();
+    });
+
+    it('stops a loading state that a reload left during a check', async () => {
+        // Given a reload during a check, which leaves the loading state in Onyx without the cleanup
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {isLoading: true});
+        });
+
+        // When the form mounts again
+        await renderWriteTab(jest.fn());
+
+        // Then the form is not loading, because no check runs after the reload
+        expect((await getOnyxValue(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM))?.isLoading).toBe(false);
+        expect(screen.getByText('workspace.rules.agentRules.disclaimer')).toBeTruthy();
     });
 
     describe('EditAgentRulePage', () => {

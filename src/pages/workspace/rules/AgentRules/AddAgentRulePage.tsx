@@ -285,6 +285,7 @@ function AddAgentRulePage({
                             key={suggestionPickCount}
                             policyID={policyID}
                             checkedPrompt={checkedPrompt}
+                            isTabActive={activeTab === CONST.TAB.AGENT_RULE.WRITE}
                             onSave={saveRule}
                         />
                     </View>

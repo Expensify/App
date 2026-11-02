@@ -122,7 +122,7 @@ jest.mock('@pages/workspace/rules/AgentRules/AddAgentRuleWriteTab', () => {
         Pressable: React.ComponentType<{accessibilityLabel?: string; onPress?: () => void; children?: React.ReactNode}>;
         Text: React.ComponentType<{children?: React.ReactNode}>;
     }>('react-native');
-    return ({onSave, checkedPrompt}: {onSave: (values: {prompt: string}) => void; checkedPrompt?: string}) => {
+    return ({onSave, checkedPrompt, isTabActive}: {onSave: (values: {prompt: string}) => void; checkedPrompt?: string; isTabActive: boolean}) => {
         ReactModule.useEffect(() => {
             mockWriteTabMountCount += 1;
         }, []);
@@ -131,6 +131,7 @@ jest.mock('@pages/workspace/rules/AgentRules/AddAgentRuleWriteTab', () => {
             {accessibilityLabel: 'WriteTab', onPress: () => onSave({prompt: mockSavedPrompt})},
             ReactModule.createElement(Text, null, 'WriteTab'),
             ReactModule.createElement(Text, null, `CheckedPrompt: ${checkedPrompt ?? 'none'}`),
+            ReactModule.createElement(Text, null, `IsTabActive: ${String(isTabActive)}`),
         );
     };
 });
@@ -351,6 +352,21 @@ describe('AddAgentRulePage', () => {
         // Then the same Write tab shows, because a remount would stop a running check and drop its warning and a tried suggestion
         expect(screen.getByText('WriteTab')).toBeVisible();
         expect(mockWriteTabMountCount).toBe(1);
+    });
+
+    it('stops Enter from submitting the Write tab while the admin looks at Suggestions', async () => {
+        // Given the Write tab is open for a typed draft
+        await setAgentRuleDraft(PROMPT);
+        renderAddAgentRulePage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText('IsTabActive: true')).toBeTruthy();
+
+        // When the admin goes to Suggestions
+        fireEvent.press(screen.getByLabelText('workspace.rules.agentRules.suggestionsTab'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the hidden Write tab is inactive, because Enter must not save a rule that the admin cannot see
+        expect(screen.getByText('IsTabActive: false', {includeHiddenElements: true})).toBeTruthy();
     });
 
     it('mounts a new Write tab when the admin picks a suggestion', async () => {

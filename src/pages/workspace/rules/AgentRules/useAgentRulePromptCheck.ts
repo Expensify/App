@@ -75,17 +75,18 @@ function useAgentRulePromptCheck({policyID, formID, formRef, checkedPrompt, save
         savePrompt(pendingCheck.prompt);
     }, [finishCheck, generatedRuleID, generatedRuleReason, generatedRuleState, policyID, savePrompt]);
 
-    // The loading state stays in Onyx. Stop it when the admin leaves during a check, so that the form does not open loading.
-    useEffect(
-        () => () => {
+    // The loading state stays in Onyx, and a reload during a check does not run the cleanup. No check runs when the form
+    // mounts, therefore stop the loading state then too. Also stop it when the admin leaves during a check.
+    useEffect(() => {
+        stopAgentRuleCheckLoading(formID);
+        return () => {
             clearTimeout(timeoutRef.current);
             if (!pendingCheckRef.current) {
                 return;
             }
             stopAgentRuleCheckLoading(formID);
-        },
-        [formID],
-    );
+        };
+    }, [formID]);
 
     const startCheck = (prompt: string) => {
         const generationID = checkAgentRulePrompt(formID, policyID, prompt);
