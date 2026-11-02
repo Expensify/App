@@ -1,5 +1,5 @@
 diff --git a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt
-index a471e13..3d64dc6 100644
+index 9d68d2f..f38f762 100644
 --- a/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt
 +++ b/node_modules/@rnmapbox/maps/android/src/main/java/com/rnmapbox/rnmbx/components/camera/RNMBXCamera.kt
 @@ -62,6 +62,7 @@ class RNMBXCamera(private val mContext: Context, private val mManager: RNMBXCame
@@ -22,10 +22,10 @@ index a471e13..3d64dc6 100644
      fun setFollowZoomLevel(zoomLevel: Double?) {
          mFollowZoomLevel = zoomLevel
          _updateViewportState();
-@@ -520,7 +526,11 @@ class RNMBXCamera(private val mContext: Context, private val mManager: RNMBXCame
- 
+@@ -521,7 +527,11 @@ class RNMBXCamera(private val mContext: Context, private val mManager: RNMBXCame
  
              val followState = viewport.makeFollowPuckViewportState(followOptions.build())
+             it.cameraWillMoveMap()
 -            viewport.transitionTo(followState)
 +            if (mFollowUserLocationUseImmediateTransition) {
 +                viewport.transitionTo(followState, viewport.makeImmediateViewportTransition())
@@ -52,36 +52,36 @@ index f630a8a..61bf524 100644
      override fun setFollowUserMode(camera: RNMBXCamera, value: Dynamic) {
          camera.setFollowUserMode(value.asStringOrNull())
 diff --git a/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXCamera.swift b/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXCamera.swift
-index bc3f632..6b03499 100644
+index 2f06609..ccdecc2 100644
 --- a/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXCamera.swift
 +++ b/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXCamera.swift
-@@ -211,6 +211,8 @@ open class RNMBXCamera : RNMBXMapAndMapViewComponentBase {
+@@ -236,6 +236,8 @@ open class RNMBXCamera : RNMBXMapAndMapViewComponentBase {
      }
    }
- 
+   
 +  @objc public var followUserLocationUseImmediateTransition: Bool = false
 +
    @objc public var followUserMode: String? {
      didSet {
        _updateCameraFromTrackingMode()
-@@ -434,7 +436,11 @@ open class RNMBXCamera : RNMBXMapAndMapViewComponentBase {
+@@ -466,7 +468,11 @@ open class RNMBXCamera : RNMBXMapAndMapViewComponentBase {
+       let followState = mapView.viewport.makeFollowPuckViewportState(options: followOptions)
        
-       let followState = map.viewport.makeFollowPuckViewportState(options: followOptions)
-       
--      map.viewport.transition(to: followState)
+       map.cameraWillMoveMap()
+-      mapView.viewport.transition(to: followState)
 +      if self.followUserLocationUseImmediateTransition {
-+        map.viewport.transition(to: followState, transition: map.viewport.makeImmediateViewportTransition())
++        mapView.viewport.transition(to: followState, transition: mapView.viewport.makeImmediateViewportTransition())
 +      } else {
-+        map.viewport.transition(to: followState)
++        mapView.viewport.transition(to: followState)
 +      }
-       map.viewport.addStatusObserver(self)
-       map.mapboxMap.setCamera(to: _camera)
+       mapView.viewport.addStatusObserver(self)
+       mapView.mapboxMap.setCamera(to: _camera)
      }
 diff --git a/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXCameraComponentView.mm b/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXCameraComponentView.mm
-index a1a6596..5cd3b86 100644
+index 4794097..58ece5d 100644
 --- a/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXCameraComponentView.mm
 +++ b/node_modules/@rnmapbox/maps/ios/RNMBX/RNMBXCameraComponentView.mm
-@@ -96,6 +96,10 @@ - (void)updateProps:(const Props::Shared &)props oldProps:(const Props::Shared &
+@@ -94,6 +94,10 @@ - (void)updateProps:(const Props::Shared &)props oldProps:(const Props::Shared &
      if (followUserLocationDynamic != nil) {
          _view.followUserLocation = [followUserLocationDynamic boolValue];
      }
@@ -92,24 +92,11 @@ index a1a6596..5cd3b86 100644
      id followUserMode = RNMBXConvertFollyDynamicToId(newViewProps.followUserMode);
      if (followUserMode != nil) {
          _view.followUserMode = followUserMode;
-diff --git a/node_modules/@rnmapbox/maps/lib/typescript/src/components/Camera.d.ts b/node_modules/@rnmapbox/maps/lib/typescript/src/components/Camera.d.ts
-index 5ba4843..bf31699 100644
---- a/node_modules/@rnmapbox/maps/lib/typescript/src/components/Camera.d.ts
-+++ b/node_modules/@rnmapbox/maps/lib/typescript/src/components/Camera.d.ts
-@@ -61,6 +61,8 @@ export type CameraStop = {
- export type CameraFollowConfig = {
-     /** Whether the map orientation follows the user location. */
-     followUserLocation?: boolean;
-+    /** Whether to snap immediately when entering follow mode instead of using the default viewport transition. */
-+    followUserLocationUseImmediateTransition?: boolean;
-     /** The mode used to track the user location on the map. */
-     followUserMode?: UserTrackingMode;
-     /** The zoom level used when following the user location. */
 diff --git a/node_modules/@rnmapbox/maps/lib/module/components/Camera.js b/node_modules/@rnmapbox/maps/lib/module/components/Camera.js
-index c8e61a0..d3e50b9 100644
+index da6b273..46c38d2 100644
 --- a/node_modules/@rnmapbox/maps/lib/module/components/Camera.js
 +++ b/node_modules/@rnmapbox/maps/lib/module/components/Camera.js
-@@ -70,6 +70,7 @@
+@@ -70,6 +70,7 @@ export const Camera = /*#__PURE__*/memo(/*#__PURE__*/forwardRef((props, ref) =>
      maxZoomLevel,
      maxBounds,
      followUserLocation,
@@ -117,7 +104,7 @@ index c8e61a0..d3e50b9 100644
      followUserMode,
      followZoomLevel,
      followPitch,
-@@ -367,6 +368,7 @@
+@@ -367,6 +368,7 @@ export const Camera = /*#__PURE__*/memo(/*#__PURE__*/forwardRef((props, ref) =>
      animationMode: animationMode,
      defaultStop: nativeDefaultStop,
      followUserLocation: followUserLocation,
@@ -137,11 +124,24 @@ index 79fb0d0..acd20c1 100644
    followUserMode?: OptionalProp<string>;
    followZoomLevel?: OptionalProp<Double>;
    followPitch?: OptionalProp<Double>;
+diff --git a/node_modules/@rnmapbox/maps/lib/typescript/src/components/Camera.d.ts b/node_modules/@rnmapbox/maps/lib/typescript/src/components/Camera.d.ts
+index e097863..dda7610 100644
+--- a/node_modules/@rnmapbox/maps/lib/typescript/src/components/Camera.d.ts
++++ b/node_modules/@rnmapbox/maps/lib/typescript/src/components/Camera.d.ts
+@@ -70,6 +70,8 @@ export type CameraStop = {
+ export type CameraFollowConfig = {
+     /** Whether the map orientation follows the user location. */
+     followUserLocation?: boolean;
++    /** Whether to snap immediately when entering follow mode instead of using the default viewport transition. */
++    followUserLocationUseImmediateTransition?: boolean;
+     /** The mode used to track the user location on the map. */
+     followUserMode?: UserTrackingMode;
+     /** The zoom level used when following the user location. */
 diff --git a/node_modules/@rnmapbox/maps/src/components/Camera.tsx b/node_modules/@rnmapbox/maps/src/components/Camera.tsx
-index c8e61a0..d3e50b9 100644
+index e092368..295c9a5 100644
 --- a/node_modules/@rnmapbox/maps/src/components/Camera.tsx
 +++ b/node_modules/@rnmapbox/maps/src/components/Camera.tsx
-@@ -158,6 +158,8 @@ export type CameraStop = {
+@@ -167,6 +167,8 @@ export type CameraStop = {
  export type CameraFollowConfig = {
    /** Whether the map orientation follows the user location. */
    followUserLocation?: boolean;
@@ -150,7 +150,7 @@ index c8e61a0..d3e50b9 100644
    /** The mode used to track the user location on the map. */
    followUserMode?: UserTrackingMode;
    /** The zoom level used when following the user location. */
-@@ -270,6 +272,7 @@ export const Camera = memo(
+@@ -279,6 +281,7 @@ export const Camera = memo(
          maxZoomLevel,
          maxBounds,
          followUserLocation,
@@ -158,7 +158,7 @@ index c8e61a0..d3e50b9 100644
          followUserMode,
          followZoomLevel,
          followPitch,
-@@ -686,6 +689,7 @@ export const Camera = memo(
+@@ -695,6 +698,7 @@ export const Camera = memo(
            animationMode={animationMode}
            defaultStop={nativeDefaultStop}
            followUserLocation={followUserLocation}
