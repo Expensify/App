@@ -79,8 +79,8 @@ const MFAMachine = setup({
     guards: {
         hasError: ({context}) => context.error !== undefined,
         hasRegistrationChallenge: ({context}) => context.registrationChallenge !== undefined,
-        // Once the flow reaches the outcome there is nothing left to cancel, so back closes the modal instead.
-        isCancelable: not(stateIn(OUTCOME_TARGET)),
+        // Back asks for confirmation until the outcome. From there it closes the modal right away.
+        shouldConfirmCancel: not(stateIn(OUTCOME_TARGET)),
     },
     actions: {
         // Seeds the flow's context from the INIT event. A named action's event is typed as the full
@@ -506,7 +506,7 @@ const MFAMachine = setup({
                     states: {
                         [MFA_STATE.CANCEL_CONFIRM_HIDDEN]: {
                             on: {
-                                REQUEST_CANCEL: {guard: 'isCancelable', target: MFA_STATE.CANCEL_CONFIRM_VISIBLE},
+                                REQUEST_CANCEL: {guard: 'shouldConfirmCancel', target: MFA_STATE.CANCEL_CONFIRM_VISIBLE},
                             },
                         },
                         [MFA_STATE.CANCEL_CONFIRM_VISIBLE]: {
@@ -515,8 +515,8 @@ const MFAMachine = setup({
                                 DISMISS_CANCEL: MFA_STATE.CANCEL_CONFIRM_HIDDEN,
                             },
                             // The flow owns CONFIRM_CANCEL. Once it reaches the outcome behind the dialog, there is nothing
-                            // left to cancel, so the dialog hides.
-                            always: {guard: not('isCancelable'), target: MFA_STATE.CANCEL_CONFIRM_HIDDEN},
+                            // left to confirm, so the dialog hides.
+                            always: {guard: not('shouldConfirmCancel'), target: MFA_STATE.CANCEL_CONFIRM_HIDDEN},
                         },
                     },
                 },
