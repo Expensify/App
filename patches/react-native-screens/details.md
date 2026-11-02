@@ -112,3 +112,10 @@
 - Upstream PR/issue: not reported, because the iOS part hides private UIKit views by class name, which RNScreens would not take as is.
 - E/App issue: [#104197](https://github.com/Expensify/App/issues/104197)
 - PR introducing patch: [#104491](https://github.com/Expensify/App/pull/104491)
+
+### [react-native-screens+4.28.0+008+fix-android-tab-screen-removals.patch](react-native-screens+4.28.0+008+fix-android-tab-screen-removals.patch)
+
+- Reason: On Android, a native tab that React removes is never removed natively. `TabsHost` keeps its tab screens in a list of its own and draws them through fragments inside its container, so the container is its only real child view. Fabric checks every removal through the view manager's `getChildAt`, and `TabsHostViewManager` did not override `getChildCount`/`getChildAt`, so Fabric never found the tab, logged "view already removed from parent!" and skipped the removal. The removed tab stayed in the bar next to the tab that replaced it, and once seven were registered the next rebuild of the bar crashed with `Maximum number of items supported by CustomBottomNavigationView is 6`. The patch answers `getChildCount`/`getChildAt` from that list, the same way `ScreenStackViewManager` does for its fragment-based children, so removals reach `TabsHost` again. The tab container still shows no content for a tab added after it selected its first tab, and still crashes when the selected tab is removed in place (upstream [#4904](https://github.com/software-mansion/react-native-screens/pull/4904) covers part of that), so `NativeTabLayout` keeps remounting the tab host when the set of tabs without a bar item changes.
+- Upstream PR/issue: [software-mansion/react-native-screens#5074](https://github.com/software-mansion/react-native-screens/pull/5074), the same change as [#4812](https://github.com/software-mansion/react-native-screens/pull/4812) rebased onto the current tabs layout. Once it ships in a release we consume, this patch can be dropped.
+- E/App issue: [#104505](https://github.com/Expensify/App/issues/104505)
+- PR introducing patch: [#105020](https://github.com/Expensify/App/pull/105020)

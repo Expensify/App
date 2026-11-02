@@ -515,6 +515,28 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {
             greeting: 'Γεια σας, πώς μπορώ να σας βοηθήσω;',
             showHistory: 'Εμφάνιση ιστορικού',
+            subtitle: 'Ο προσωπικός σας βοηθός AI',
+            welcomeDescription: 'Ο Concierge μπορεί να απαντήσει σε ερωτήσεις, να ενημερώσει δαπάνες και άλλα.',
+            viewChatHistory: 'Προβολή ιστορικού συνομιλιών',
+            hideChatHistory: 'Απόκρυψη ιστορικού συνομιλιών',
+            askNewQuestion: 'Κάντε μια νέα ερώτηση',
+            newChat: 'Νέα συνομιλία',
+            composerPlaceholders: {
+                spendLastMonth: 'Πόσα ξόδεψα τον προηγούμενο μήνα;',
+                topExpenses: 'Δείξε μου τις μεγαλύτερες δαπάνες μου αυτόν τον μήνα',
+                spendDrivers: 'Τι οδήγησε τις δαπάνες μου το προηγούμενο τρίμηνο;',
+                travelSpendChange: 'Πώς άλλαξαν οι δαπάνες ταξιδιού μου από τον προηγούμενο μήνα;',
+                topSpender: 'Ποιος ξόδεψε τα περισσότερα αυτόν τον μήνα;',
+                missingCategory: 'Ποιες δαπάνες δεν έχουν κατηγορία;',
+                awaitingApproval: 'Ποιες αναφορές περιμένουν την έγκρισή μου;',
+                notReimbursed: 'Τι δεν μου έχει αποζημιωθεί ακόμη;',
+                unsubmitted: 'Ποιες από τις δαπάνες μου δεν έχουν υποβληθεί ακόμη;',
+                leftToPay: 'Τι μένει να πληρωθεί αυτόν τον μήνα;',
+                createExpense: 'Δημιούργησε μια δαπάνη 30 $ για ένα γεύμα',
+                combineExpenses: 'Συνδύασε όλες τις ανοιχτές δαπάνες μου σε μία αναφορά',
+                exportPdf: 'Εξήγαγε την τελευταία μου αναφορά σε PDF',
+                exportCsv: 'Δώσε μου ένα CSV με τις δαπάνες μου άνω των 50 $',
+            },
         },
         vacationDelegate: 'Εκπρόσωπος διακοπών',
         expensifyLogo: 'Λογότυπο Expensify',
@@ -1239,6 +1261,15 @@ const translations: TranslationDeepObject<typeof en> = {
             yearLabel: (year?: number) => (year === undefined ? 'Έτος' : `Έτος ${year}`),
             increase: (percentage: string) => `Αύξηση ${percentage}`,
             decrease: (percentage: string) => `Μείωση ${percentage}`,
+            dailyAverage: 'Ημερήσιος μέσος όρος',
+            weeklyAverage: 'Εβδομαδιαίος μέσος όρος',
+            monthlyAverage: 'Μηνιαίος μέσος όρος',
+            quarterlyAverage: 'Τριμηνιαίος μέσος όρος',
+            yearlyAverage: 'Ετήσιος μέσος όρος',
+            allSpenderAverage: 'Μέσος όρος όλων των δαπανών',
+            allMerchantAverage: 'Μέσος όρος όλων των εμπόρων',
+            allCategoryAverage: 'Μέσος όρος όλων των κατηγοριών',
+            averageValue: (amount: string) => `${amount} κατά μέσο όρο`,
         },
         compliance: 'Συμμόρφωση',
         runningTotal: 'Τρέχον σύνολο',
@@ -2926,6 +2957,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Παρακαλούμε επιβεβαιώστε τις δοκιμαστικές συναλλαγές',
             accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
             unlock: 'Ξεκλείδωμα',
+            plaidBrokenReconnect: 'Διορθώστε τη σύνδεσή σας με το Plaid για πιο ακριβές όριο στην Κάρτα Expensify',
+            plaidConnectForLimit: 'Συνδεθείτε με το Plaid για πιο ακριβές όριο στην Κάρτα Expensify',
+            connect: 'Σύνδεση',
+        },
+        linkPlaid: {
+            title: 'Σύνδεση με το Plaid',
+            successHeading: 'Επιτυχής σύνδεση',
+            successDescription: 'Ευχαριστούμε που συνδεθήκατε με το Plaid!',
+            failureHeading: 'Ανεπιτυχής σύνδεση',
+            failureDescription: '<muted-text>Παρακαλούμε δοκιμάστε ξανά ή <concierge-link>επικοινωνήστε με το Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Λάθος τραπεζικός λογαριασμός',
+            wrongAccountDescription: 'Παρακαλούμε επιλέξτε τον αντίστοιχο τραπεζικό λογαριασμό στο Plaid.',
         },
         wiseOnboarding: {
             confirmationTitle: 'Ας ελέγξουμε ότι όλα είναι σωστά',
@@ -3298,6 +3341,8 @@ ${amount} για ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Προσθέστε ένα εξουσιοδοτημένο πρόσωπο πληρωμής για πληρωμές που γίνονται στο Expensify ή παρακολουθήστε πληρωμές που έγιναν αλλού.',
         collectEmployeeBankDetails: 'Συλλογή τραπεζικών στοιχείων υπαλλήλων',
         collectEmployeeBankDetailsDescription: 'Συλλέξτε τα τραπεζικά στοιχεία των υπαλλήλων, ώστε να μπορείτε να τους αποζημιώνετε εκτός Expensify.',
+        businessBankAccountCountries: 'Χώρες επαγγελματικών τραπεζικών λογαριασμών',
+        businessBankAccountCountriesDescription: 'Οι υπάλληλοι σε αυτές τις χώρες δίνουν στοιχεία για τοπική μεταφορά. Όλοι οι υπόλοιποι δίνουν στοιχεία για διεθνές έμβασμα.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Μια προσαρμοσμένη ροή έγκρισης είναι ενεργοποιημένη σε αυτόν τον χώρο εργασίας. Για να ελέγξετε ή να αλλάξετε αυτήν τη ροή, επικοινωνήστε με τον/την <account-manager-link>Account Manager</account-manager-link> σας ή το <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -3340,6 +3385,7 @@ ${amount} για ${merchant} - ${date}`,
         approverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα ή διαγράψτε αυτή τη ροή εργασίας.',
         defaultWorkflowApproverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα.',
         overLimitApproverNotWorkspaceMember: 'Ο πρόσθετος εγκρίνων για αναφορές πάνω από το όριο δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο πρόσθετο εγκρίνοντα.',
+        overLimitApproverInWorkflow: 'Ο επιπλέον εγκρίνων για αναφορές πάνω από το όριο είναι ήδη εγκρίνων σε αυτή τη ροή εργασίας. Επιλέξτε έναν διαφορετικό επιπλέον εγκρίνοντα.',
         approverCircularReference: (name1: string, name2: string) =>
             `Ο/Η <strong>${name1}</strong> ήδη εγκρίνει αναφορές προς τον/την <strong>${name2}</strong>. Παρακαλούμε επιλέξτε διαφορετικό εγκρίνων για να αποφύγετε έναν κυκλικό κύκλο έγκρισης.`,
         emptyContent: {
@@ -5202,9 +5248,9 @@ ${amount} για ${merchant} - ${date}`,
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Η ταξιδιωτική λειτουργία δεν είναι ενεργοποιημένη',
+            title: 'Δεν μπορείτε ακόμη να κάνετε κράτηση ταξιδιού',
             message:
-                'Για να κάνετε κράτηση, ενεργοποιήστε τα ταξίδια στον προεπιλεγμένο χώρο εργασίας σας ή αλλάξτε τον προεπιλεγμένο χώρο εργασίας σε κάποιον όπου τα ταξίδια είναι ενεργοποιημένα.',
+                'Είστε μέλος ενός χώρου εργασίας με ενεργοποιημένα ταξίδια, αλλά δεν είναι ο προεπιλεγμένος χώρος εργασίας σας. Για να κάνετε κράτηση, ενεργοποιήστε τα ταξίδια στον προεπιλεγμένο χώρο εργασίας σας ή αλλάξτε τον προεπιλεγμένο χώρο εργασίας σας σε έναν με ενεργοποιημένα ταξίδια.',
         },
     },
     proactiveAppReview: {
@@ -5355,8 +5401,6 @@ ${amount} για ${merchant} - ${date}`,
             },
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Ιδιοκτήτης';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Διαχειριστής χώρου εργασίας';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -6740,7 +6784,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             selectCards: 'Επιλέξτε κάρτες',
             fromOtherWorkspaces: 'Από άλλους χώρους εργασίας',
             addWorkEmail: 'Προσθέστε το επαγγελματικό σας email',
-            addWorkEmailDescription: 'Παρακαλούμε προσθέστε το επαγγελματικό σας email για να χρησιμοποιήσετε τα υπάρχοντα feeds από άλλους χώρους εργασίας.',
+            addWorkEmailDescription:
+                'Παρακαλούμε προσθέστε το επαγγελματικό σας email και ορίστε το ως την προεπιλεγμένη μέθοδο επικοινωνίας σας για να χρησιμοποιήσετε τα υπάρχοντα feeds από άλλους χώρους εργασίας.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Αδυναμία φόρτωσης ροών καρτών',
                 workspaceFeedsCouldNotBeLoadedMessage: 'Προέκυψε σφάλμα κατά τη φόρτωση των ροών καρτών του χώρου εργασίας. Δοκιμάστε ξανά ή επικοινωνήστε με τον διαχειριστή σας.',
@@ -7665,6 +7710,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             confirmWorkflows: {
                 continue: 'Συνέχεια χωρίς μέλη',
                 description: 'Η αντιγραφή ροών εργασίας χωρίς μέλη δεν θα αντιγράψει τις ροές εργασίας έγκρισης. Οι ρυθμίσεις υποβολής και πληρωμής θα αντιγραφούν κανονικά.',
+            },
+            confirmMembers: {
+                title: 'Αντιγραφή μελών',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Είστε σίγουροι ότι θέλετε να αντικαταστήσετε τα μέλη του ${targetWorkspaceName} με τα μέλη αυτού του χώρου εργασίας;`,
+                    other: `Είστε σίγουροι ότι θέλετε να αντικαταστήσετε τα μέλη ${count} χώρων εργασίας με τα μέλη αυτού του χώρου εργασίας;`,
+                }),
             },
             upgrade: {
                 title: 'Ορισμένες δυνατότητες απαιτούν πρόγραμμα Control',
@@ -9326,7 +9378,10 @@ ${reportName}`,
                     missingData: 'Η Expensify δεν διαθέτει αυτές τις πληροφορίες.',
                     retroactive: 'Οι κανόνες ισχύουν μόνο για νέα δραστηριότητα.',
                     historyLimit: 'Οι κανόνες δεν μπορούν να ανατρέξουν τόσο πίσω.',
-                    tryThisInstead: 'Δοκιμάστε αυτό αντί για εκείνο',
+                    useSuggestion: 'Χρήση πρότασης',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Δοκιμάστε αντ’ αυτού την παρακάτω πρόταση:`,
+                    quotedSuggestion: (suggestedPrompt: string) => `«${suggestedPrompt}»`,
+                    createAnyway: 'Δημιουργία ούτως ή άλλως',
                 },
             },
             expenseDefaultsTable: {
@@ -9783,6 +9838,11 @@ ${reportName}`,
             noOrganizationsFound: 'Δεν βρέθηκαν οργανισμοί',
             noOrganizationsFoundDescription: 'Προσθέστε έναν οργανισμό στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
             multiLocationNotSupported: 'Οι οργανισμοί με πολλές τοποθεσίες δεν υποστηρίζονται ακόμη',
+            importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θα εισαχθούν από το Zoho Books.',
+            accountTypesDescription: 'Οι λογαριασμοί σας στο Zoho Books θα εισαχθούν ως κατηγορίες.',
+            enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
+            enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Zoho Books θα είναι διαθέσιμοι ως κατηγορίες.',
+            reportingTagsImport: 'Όλες οι ετικέτες αναφορών Zoho Books εισάγονται ως ετικέτες',
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -10667,6 +10727,7 @@ ${reportName}`,
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `ενημερώθηκε το «αποτροπή επισήμανσης μη αποζημιώσιμων αναφορών ως πληρωμένες» σε «${newValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}» (προηγουμένως «${oldValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}»)`,
+        addedExpensifyCardFeed: (feedName: string) => `προστέθηκε ροή Κάρτας Expensify «${feedName}»`,
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',
@@ -10979,6 +11040,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Εβδομάδα',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτος',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνο',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνων',
             },
             feed: 'Ροή',
             withdrawalType: {
@@ -11042,6 +11104,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Εβδομάδες',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτη',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνα',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνοντες',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Καμία δαπάνη ακόμη',
@@ -12290,6 +12353,8 @@ ${reportName}`,
                 info: 'Αν θέλετε να συνεχίσετε να χρησιμοποιείτε τον/τους χώρο(ους) εργασίας σας με χρέωση ανά χρήση, είστε έτοιμοι.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Αν θέλετε να αποτρέψετε μελλοντική δραστηριότητα και χρεώσεις, πρέπει να <a href="${workspacesListRoute}">διαγράψετε τον/τους χώρο(ους) εργασίας σας</a>. Σημειώστε ότι, όταν διαγράψετε τον/τους χώρο(ους) εργασίας σας, θα χρεωθείτε για οποιαδήποτε εκκρεμή δραστηριότητα πραγματοποιήθηκε κατά τη διάρκεια του τρέχοντος ημερολογιακού μήνα.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Για να αποτρέψετε μελλοντική δραστηριότητα και χρεώσεις, <a href="${workspacesListRoute}">αρχειοθετήστε όλους τους επί πληρωμή χώρους εργασίας σας</a>. Οι αρχειοθετημένοι χώροι εργασίας με χρεώσιμη δραστηριότητα κατά τη διάρκεια του τρέχοντος μήνα θα εξακολουθήσουν να περιλαμβάνονται στον λογαριασμό σας.`,
             },
             requestSubmitted: {
                 title: 'Το αίτημα υποβλήθηκε',

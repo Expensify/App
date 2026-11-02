@@ -27,6 +27,7 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type Rule from '@src/types/onyx/Rule';
+import type Session from '@src/types/onyx/Session';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -155,6 +156,7 @@ type ShouldDisplayReportInLHNParams = {
     currentUserAccountID: number;
     hasGuidesEmails: boolean;
     conciergeReportID: string | undefined;
+    session: OnyxEntry<Session>;
 };
 
 function shouldDisplayReportInLHN({
@@ -173,6 +175,7 @@ function shouldDisplayReportInLHN({
     currentUserLogin,
     conciergeReportID,
     hasGuidesEmails,
+    session,
 }: ShouldDisplayReportInLHNParams) {
     if (!report) {
         return {shouldDisplay: false};
@@ -218,7 +221,7 @@ function shouldDisplayReportInLHN({
         // An anonymous user can only access public rooms, and such a room's notification preference
         // defaults to `hidden`. Without this, opening a thread inside the room (which steals focus)
         // drops the room from the LHN, leaving the anon user unable to return to it. See #92672.
-        (isPublicRoom(report) && isAnonymousUser()) ||
+        (isPublicRoom(report) && isAnonymousUser(session)) ||
         isSystemChat ||
         !!report.isPinned ||
         requiresAttention ||
@@ -300,6 +303,7 @@ function getReportsToDisplayInLHN({
     reportAttributes,
     conciergeReportID,
     guideAccountIDs,
+    session,
 }: {
     currentReportId: string | undefined;
     reports: OnyxCollection<Report>;
@@ -315,6 +319,7 @@ function getReportsToDisplayInLHN({
     reportAttributes?: ReportAttributesDerivedValue['reports'];
     guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
+    session: OnyxEntry<Session>;
 }) {
     rememberLHNUnreadStateBeforeFocus(currentReportId);
 
@@ -346,6 +351,7 @@ function getReportsToDisplayInLHN({
             hasGuidesEmails: hasExpensifyGuidesEmails(Object.keys(report.participants ?? {}).map(Number), guideAccountIDs),
             currentUserAccountID,
             conciergeReportID,
+            session,
         });
 
         if (shouldDisplay) {
@@ -377,6 +383,7 @@ type UpdateReportsToDisplayInLHNProps = {
     currentUserAccountID: number;
     guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
+    session: OnyxEntry<Session>;
 };
 
 function updateReportsToDisplayInLHN({
@@ -396,6 +403,7 @@ function updateReportsToDisplayInLHN({
     currentUserAccountID,
     conciergeReportID,
     guideAccountIDs,
+    session,
 }: UpdateReportsToDisplayInLHNProps) {
     rememberLHNUnreadStateBeforeFocus(currentReportId);
 
@@ -438,6 +446,7 @@ function updateReportsToDisplayInLHN({
             hasGuidesEmails: hasExpensifyGuidesEmails(Object.keys(report.participants ?? {}).map(Number), guideAccountIDs),
             currentUserAccountID,
             conciergeReportID,
+            session,
         });
 
         if (shouldDisplay) {
@@ -998,20 +1007,21 @@ function getOptionData({
     result.subtitle = subtitle;
     result.participantsList = participantPersonalDetailList;
 
-    const reportIcons = getIcons(
+    const reportIcons = getIcons({
         report,
         formatPhoneNumber,
         translate,
         personalDetails,
-        personalDetail?.avatar,
-        personalDetail?.login,
-        personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        defaultIcon: personalDetail?.avatar,
+        defaultName: personalDetail?.login,
+        defaultAccountID: personalDetail?.accountID ?? CONST.DEFAULT_NUMBER_ID,
         policy,
         invoiceReceiverPolicy,
         isReportArchived,
-        getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
+        pendingDeleteMemberAccountIDs: getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
         conciergeReportID,
-    );
+        parentReportAction,
+    });
 
     // IOU icon trimming (single vs diagonal) is handled at the component level
     // using useReportPreviewSenderID which has access to transaction attendee data.

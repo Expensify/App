@@ -1,7 +1,7 @@
 require('dotenv').config();
 /**
  * Expo SDK 56 replaces global fetch with expo/fetch unless this is set at transform time.
- * metro.config.js sets it for the Metro process; babel needs it here so release bundles inline the value.
+ * dotenv loads `.env` above; babel needs this here so release bundles inline the value.
  */
 process.env.EXPO_PUBLIC_USE_RN_FETCH = process.env.EXPO_PUBLIC_USE_RN_FETCH ?? '1';
 
@@ -23,11 +23,13 @@ function traceTransformer() {
 
 const isTestEnv = process.env.BABEL_ENV === 'test' || process.env.NODE_ENV === 'test';
 
-const metro = {
+// One config for both remaining callers: `@callstack/repack` (native builds, app source via its
+// loaders, allowlisted node_modules via babel-swc-loader) and `babel-jest` (tests, coverage).
+const config = {
     presets: [require('@react-native/babel-preset')],
     plugins: [
         // This is needed due to a react-native bug: https://github.com/facebook/react-native/issues/29084#issuecomment-1030732709
-        // It is included in metro-react-native-babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
+        // It is included in @react-native/babel-preset but needs to be before plugin-proposal-class-properties or FlatList will break
         '@babel/plugin-transform-flow-strip-types',
 
         // Inline EXPO_PUBLIC_* env vars into release bundles (e.g. EXPO_PUBLIC_USE_RN_FETCH to keep RN fetch).
@@ -103,7 +105,7 @@ const metro = {
                           // `unescapeText` (from `expensify-common/utils`) and `decode` (from `html-entities`) into its
                           // worklets, so those imports must be forwarded to avoid the "Tried to synchronously call a
                           // Remote Function" crash. Their transitive dependencies (expensify-common's `Str`, `punycode`,
-                          // `awesome-phonenumber`, html-entities' internals, ...) do NOT need forwarding: metro bundles
+                          // `awesome-phonenumber`, html-entities' internals, ...) do NOT need forwarding: the bundler puts
                           // the whole `require()` graph onto the Worklet Runtime, so they resolve locally there.
                           // `relativePaths` only needs to cover live-markdown's own `./rangeUtils` (expensify-common and
                           // html-entities resolve to CommonJS, where `relativePaths` forwarding never fires).
@@ -127,7 +129,7 @@ const metro = {
 };
 
 if (process.env.DEBUG_BABEL_TRACE) {
-    metro.plugins.push(traceTransformer);
+    config.plugins.push(traceTransformer);
 }
 
 /*
@@ -139,7 +141,7 @@ if (process.env.CAPTURE_METRICS === 'true') {
     const path = require('path');
     const profilingRenderer = path.resolve(__dirname, './node_modules/react-native/Libraries/Renderer/implementations/ReactNativeRenderer-profiling');
 
-    metro.plugins.push([
+    config.plugins.push([
         'module-resolver',
         {
             root: ['./'],
@@ -152,9 +154,12 @@ if (process.env.CAPTURE_METRICS === 'true') {
     ]);
 }
 
+// Re.Pack runs babel only on allowlisted node_modules (babel-swc-loader): app-source aliases don't
+// apply there, and worklets are transformed by worklets-loader instead, so drop the alias plugin
+// and the worklet options.
 const repack = {
-    ...metro,
-    plugins: metro.plugins
+    ...config,
+    plugins: config.plugins
         .filter((plugin) => !(Array.isArray(plugin) && plugin[0] === 'module-resolver' && plugin[2] !== 'extra-alias'))
         .map((plugin) => (Array.isArray(plugin) && plugin[0] === 'react-native-worklets/plugin' ? 'react-native-worklets/plugin' : plugin)),
 };
@@ -168,10 +173,9 @@ module.exports = (api) => {
         console.debug('  - process.env.BABEL_ENV:', process.env.BABEL_ENV);
     }
 
-    // For `react-native` (iOS/Android) caller will be "metro"
-    // For `@callstack/repack` (Re.Pack native bundler) caller will be "@callstack/repack"
-    // For jest, it will be babel-jest
-    // The web build and Storybook (Rsbuild) don't call into this file at all
+    // For native builds the caller is "@callstack/repack", for tests "babel-jest".
+    // The web build and Storybook (Rsbuild) don't call into this file at all, and anything else
+    // (an editor plugin, a stray script) still gets no config rather than an unintended one.
     const runningIn = api.caller((args = {}) => args.name);
     if (process.env.DEBUG_BABEL_CONFIG === 'true') {
         console.debug('  - running in: ', runningIn);
@@ -181,10 +185,5 @@ module.exports = (api) => {
         return repack;
     }
 
-    // React Compiler now runs only in OXC (Re.Pack and Jest), so a Metro bundle would ship without it.
-    if (runningIn === 'metro') {
-        throw new Error('Metro bundles no longer run React Compiler. Build with Re.Pack instead (unset BUNDLER=metro).');
-    }
-
-    return runningIn === 'babel-jest' ? metro : {};
+    return runningIn === 'babel-jest' ? config : {};
 };

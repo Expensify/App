@@ -46,7 +46,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
-import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {AppReview, Beta, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue, Session} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {AnyOnyxServerUpdate, OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
@@ -180,7 +180,7 @@ function clearRevokeError(loginKey: string) {
  */
 function closeAccount(reason: string, validateCode: string) {
     // Note: successData does not need to set isLoading to false because if the CloseAccount
-    // command succeeds, a Pusher response will clear all Onyx data.
+    // command succeeds, its response clears all Onyx data.
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM>> = [
         {
@@ -202,12 +202,6 @@ function closeAccount(reason: string, validateCode: string) {
     API.write(WRITE_COMMANDS.CLOSE_ACCOUNT, parameters, {
         optimisticData,
         failureData,
-    }).then((response) => {
-        // The account stays open when the validateCode is rejected, so OldDot must stay signed in to keep the state of both apps in sync
-        if (!CONFIG.IS_HYBRID_APP || response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
-            return;
-        }
-        HybridAppModule.signOutFromOldDot();
     });
 }
 
@@ -1193,9 +1187,9 @@ function setContactMethodAsDefault(
     }
 }
 
-function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack = true) {
+function updateTheme(theme: ValueOf<typeof CONST.THEME>, shouldGoBack: boolean, session: OnyxEntry<Session>) {
     // When toggling high contrast from the sign-in page, the user is not signed in. So persist the preference locally only.
-    if (!sessionAccountID || isAnonymousUser()) {
+    if (!sessionAccountID || isAnonymousUser(session)) {
         Onyx.set(ONYXKEYS.PREFERRED_THEME, theme);
         return;
     }

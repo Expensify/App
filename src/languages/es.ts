@@ -505,6 +505,28 @@ const translations: TranslationDeepObject<typeof en> = {
         concierge: {
             greeting: 'Hola, ¿en qué puedo ayudarte?',
             showHistory: 'Mostrar historial',
+            subtitle: 'Tu asistente de IA personal',
+            welcomeDescription: 'Concierge puede responder preguntas, actualizar gastos y mucho más.',
+            viewChatHistory: 'Ver historial del chat',
+            hideChatHistory: 'Ocultar historial del chat',
+            askNewQuestion: 'Haz una nueva pregunta',
+            newChat: 'Nuevo chat',
+            composerPlaceholders: {
+                spendLastMonth: '¿Cuánto gasté el mes pasado?',
+                topExpenses: 'Muéstrame mis mayores gastos de este mes',
+                spendDrivers: '¿Qué impulsó mi gasto el trimestre pasado?',
+                travelSpendChange: '¿Cómo cambió mi gasto en viajes desde el mes pasado?',
+                topSpender: '¿Quién gastó más este mes?',
+                missingCategory: '¿Qué gastos no tienen categoría?',
+                awaitingApproval: '¿Qué informes están esperando mi aprobación?',
+                notReimbursed: '¿Qué no se me ha reembolsado todavía?',
+                unsubmitted: '¿Cuáles de mis gastos siguen sin enviarse?',
+                leftToPay: '¿Qué queda por pagar este mes?',
+                createExpense: 'Crea un gasto de $30 por un almuerzo',
+                combineExpenses: 'Combina todos mis gastos abiertos en un informe',
+                exportPdf: 'Exporta mi último informe a PDF',
+                exportCsv: 'Dame un CSV de mis gastos de más de $50',
+            },
         },
         vacationDelegate: 'Delegado de vacaciones',
         expensifyLogo: 'Logo de Expensify',
@@ -1187,6 +1209,15 @@ const translations: TranslationDeepObject<typeof en> = {
             yearLabel: (year?: number) => (year === undefined ? 'Año' : `Año ${year}`),
             increase: (percentage: string) => `Sube ${percentage}`,
             decrease: (percentage: string) => `Baja ${percentage}`,
+            dailyAverage: 'Promedio diario',
+            weeklyAverage: 'Promedio semanal',
+            monthlyAverage: 'Promedio mensual',
+            quarterlyAverage: 'Promedio trimestral',
+            yearlyAverage: 'Promedio anual',
+            allSpenderAverage: 'Promedio de todos los que gastan',
+            allMerchantAverage: 'Promedio de todos los comercios',
+            allCategoryAverage: 'Promedio de todas las categorías',
+            averageValue: (amount: string) => `${amount} prom de media`,
         },
         compliance: 'Cumplimiento',
         runningTotal: 'Total acumulado',
@@ -2776,6 +2807,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Confirma las transacciones de prueba',
             accountRequiresAttention: 'Esta cuenta requiere atención',
             unlock: 'Desbloquear',
+            plaidBrokenReconnect: 'Repara tu conexión con Plaid para tener un límite de la Tarjeta Expensify más preciso',
+            plaidConnectForLimit: 'Conéctate a Plaid para tener un límite más preciso en la Tarjeta Expensify',
+            connect: 'Conectar',
+        },
+        linkPlaid: {
+            title: 'Conectar con Plaid',
+            successHeading: 'Conexión correcta',
+            successDescription: '¡Gracias por conectarte a Plaid!',
+            failureHeading: 'Conexión fallida',
+            failureDescription: '<muted-text>Por favor, inténtalo de nuevo o <concierge-link>contacta con Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Cuenta bancaria incorrecta',
+            wrongAccountDescription: 'Selecciona la cuenta bancaria correspondiente en Plaid.',
         },
         wiseOnboarding: {
             confirmationTitle: 'Comprobemos que todo esté correcto',
@@ -3135,6 +3178,9 @@ ${amount} para ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
         collectEmployeeBankDetails: 'Recopilar los datos bancarios de los empleados',
         collectEmployeeBankDetailsDescription: 'Recopila los datos bancarios de los empleados para poder reembolsarles fuera de Expensify.',
+        businessBankAccountCountries: 'Países con cuenta bancaria de empresa',
+        businessBankAccountCountriesDescription:
+            'Los empleados de estos países proporcionan datos de transferencia local. Todos los demás proporcionan datos de transferencia bancaria internacional.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Este espacio de trabajo tiene habilitado un flujo de aprobación personalizado. Para revisar o cambiar este flujo de trabajo, comunícate con tu <account-manager-link>Administrador de cuenta</account-manager-link> o <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -3177,6 +3223,7 @@ ${amount} para ${merchant} - ${date}`,
         approverNotWorkspaceMember: 'Este aprobador ya no es miembro del espacio de trabajo. Elige un nuevo aprobador o elimina este flujo de trabajo.',
         defaultWorkflowApproverNotWorkspaceMember: 'Este aprobador ya no es miembro del espacio de trabajo. Elige un nuevo aprobador.',
         overLimitApproverNotWorkspaceMember: 'El aprobador adicional para los informes que superan el límite ya no es miembro del espacio de trabajo. Elige un nuevo aprobador adicional.',
+        overLimitApproverInWorkflow: 'El aprobador adicional para los informes que superan el límite ya es un aprobador en este flujo de trabajo. Elige un aprobador adicional diferente.',
         approverCircularReference: (name1, name2) =>
             `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
         emptyContent: {
@@ -5038,8 +5085,9 @@ ${amount} para ${merchant} - ${date}`,
                 '¿Sabías que puedes reservar y gestionar viajes en grupo como este directamente en Expensify? Evita complicaciones la próxima vez y prueba nuestra herramienta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de viaje</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Los viajes no están habilitados',
-            message: 'Para reservar, habilita los viajes en tu espacio de trabajo predeterminado o cambia tu espacio de trabajo predeterminado a uno que tenga los viajes habilitados.',
+            title: 'Aún no puedes reservar viajes',
+            message:
+                'Eres miembro de un espacio de trabajo con viajes habilitados, pero no es tu espacio de trabajo predeterminado. Para reservar, habilita los viajes en tu espacio de trabajo predeterminado o cambia tu espacio de trabajo predeterminado a uno que tenga los viajes habilitados.',
         },
     },
     proactiveAppReview: {
@@ -5198,8 +5246,6 @@ ${amount} para ${merchant} - ${date}`,
             },
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Propietario';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrador del espacio de trabajo';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -6519,7 +6565,8 @@ ${amount} para ${merchant} - ${date}`,
             selectCards: 'Seleccionar tarjetas',
             fromOtherWorkspaces: 'De otros espacios de trabajo',
             addWorkEmail: 'Añade tu correo electrónico de trabajo',
-            addWorkEmailDescription: 'Por favor, añade tu correo de trabajo para poder usar los feeds existentes de otros espacios de trabajo.',
+            addWorkEmailDescription:
+                'Añade tu correo electrónico del trabajo y establécelo como tu método de contacto principal para poder usar los feeds existentes de otros espacios de trabajo.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Error al cargar las fuentes de tarjetas del espacio de trabajo',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7401,6 +7448,13 @@ ${amount} para ${merchant} - ${date}`,
             confirmWorkflows: {
                 continue: 'Continuar sin miembros',
                 description: 'Copiar flujos de trabajo sin miembros no copiará los flujos de aprobación. La configuración de envío y pago sí se copiará.',
+            },
+            confirmMembers: {
+                title: 'Copiar miembros',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `¿Seguro que quieres reemplazar los miembros de ${targetWorkspaceName} por los miembros de este espacio de trabajo?`,
+                    other: `¿Seguro que quieres reemplazar los miembros de ${count} espacios de trabajo por los miembros de este espacio de trabajo?`,
+                }),
             },
             progress: {
                 copyInProgressTitle: 'Copia en curso...',
@@ -9245,7 +9299,10 @@ ${reportName}`,
                     missingData: 'Expensify no tiene esa información.',
                     retroactive: 'Las reglas solo se aplican a la actividad nueva.',
                     historyLimit: 'Las reglas no pueden mirar tan atrás.',
-                    tryThisInstead: 'Prueba esto en su lugar',
+                    useSuggestion: 'Usar sugerencia',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Prueba en su lugar la sugerencia de abajo:`,
+                    quotedSuggestion: (suggestedPrompt: string) => `"${suggestedPrompt}"`,
+                    createAnyway: 'Crear de todos modos',
                 },
             },
             expenseDefaultsTable: {
@@ -9440,6 +9497,11 @@ ${reportName}`,
             noOrganizationsFound: 'No se encontraron organizaciones',
             noOrganizationsFoundDescription: 'Añade una organización en Zoho Books y vuelve a sincronizar la conexión',
             multiLocationNotSupported: 'Las organizaciones con varias ubicaciones aún no son compatibles',
+            importDescription: 'Elige qué configuraciones de codificación importar desde Zoho Books.',
+            accountTypesDescription: 'Tus cuentas de Zoho Books se importarán como categorías.',
+            enableNewAccountsTitle: 'Habilitar cuentas recién importadas',
+            enableNewAccountsDescription: 'Las nuevas cuentas de Zoho Books estarán disponibles como categorías.',
+            reportingTagsImport: 'Todas las etiquetas de informes de Zoho Books se importan como etiquetas',
         },
         businessCentral: {
             businessCentralSetup: 'Configuración de Dynamics 365 Business Central',
@@ -10302,6 +10364,7 @@ ${reportName}`,
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `actualizó "Impedir marcar los informes no reembolsables como pagados" a "${newValue === 'true' ? 'Habilitado' : 'Deshabilitado'}" (previamente "${oldValue === 'true' ? 'Habilitado' : 'Deshabilitado'}")`,
+        addedExpensifyCardFeed: (feedName: string) => `añadió el feed de Tarjeta Expensify "${feedName}"`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -10619,6 +10682,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semana',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Año',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprobador',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -10664,6 +10728,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Semanas',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Años',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprobadores',
         },
         moneyRequestReport: {emptyStateTitle: 'Aún no hay gastos', accessPlaceHolder: 'Abrir para ver detalles'},
         noCategory: 'Sin categoría',
@@ -12261,6 +12326,8 @@ ${reportName}`,
                 info: 'Ya puedes seguir utilizando tu(s) espacio(s) de trabajo en la modalidad de pago por uso.',
                 preventFutureActivity: (workspacesListRoute) =>
                     `Si quieres evitar actividad y cargos futuros, debes <a href="${workspacesListRoute}">eliminar tu(s) espacio(s) de trabajo.</a> Ten en cuenta que cuando elimines tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendienteque se haya incurrido durante el mes en curso.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Para evitar actividad y cargos futuros, <a href="${workspacesListRoute}">archiva todos tus espacios de trabajo de pago</a>. Los espacios de trabajo archivados con actividad facturable durante el mes en curso seguirán incluidos en tu factura.`,
             },
             requestSubmitted: {
                 title: 'Solicitud enviada',
