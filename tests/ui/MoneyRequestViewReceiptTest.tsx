@@ -69,11 +69,6 @@ jest.mock('@pages/inbox/report/AnimatedEmptyStateBackground', () => {
     return () => <RN.View testID="animated-bg" />;
 });
 
-jest.mock('@components/MenuItemWithTopDescription', () => {
-    const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
-    return ({description}: {description?: string}) => <RN.View testID={`menu-item-${description}`} />;
-});
-
 jest.mock('@components/MenuItem', () => {
     const RN = jest.requireActual<Record<string, React.ComponentType<{testID?: string; children?: React.ReactNode}>>>('react-native');
     const {default: actualMenuItem} = jest.requireActual<{default: Record<string, unknown>}>('@components/MenuItem');
@@ -247,7 +242,7 @@ describe('MoneyRequestView receipt visibility with a wide RHP open', () => {
 
         await waitFor(() => {
             // Anchor on an always-rendered field so the absence below reflects the hidden receipt, not an unrendered view.
-            expect(screen.getByTestId('menu-item-common.merchant')).toBeOnTheScreen();
+            expect(screen.getByLabelText('common.merchant')).toBeOnTheScreen();
             expect(screen.queryByTestId('money-request-receipt-view')).not.toBeOnTheScreen();
         });
     });
