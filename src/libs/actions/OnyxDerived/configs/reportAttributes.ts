@@ -678,6 +678,7 @@ export default createOnyxDerivedValueConfig({
                 let needsParentChatErrorPropagation = false;
                 const reasonAndReportAction = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report,
+                    policy,
                     chatReport,
                     reportActions: reportActionsList,
                     hasViolations: hasAnyViolations || hasFieldViolations,

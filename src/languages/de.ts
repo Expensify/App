@@ -51,6 +51,8 @@ const translations: TranslationDeepObject<typeof en> = {
         count: 'Anzahl',
         cancel: 'Abbrechen',
         dismiss: 'Schließen',
+        resizeColumn: ({columnName}: {columnName: string}) => `Spalte ${columnName} in der Größe ändern`,
+        columnWidth: ({width}: {width: number}) => `${width} Pixel`,
         proceed: 'Weiter',
         unshare: 'Freigabe aufheben',
         yes: 'Ja',
@@ -3978,7 +3980,7 @@ ${amount} für ${merchant} – ${date}`,
 
                         1. Klicke auf *Workspaces*.
                         2. Wähle deinen Workspace aus.
-                        3. Klicke auf *Accounting*.
+                        3. Klicke auf *Verknüpfungen*.
                         4. Suche nach ${integrationName}.
                         5. Klicke auf *Connect*.
 
@@ -5398,22 +5400,14 @@ ${amount} für ${merchant} – ${date}`,
             description: 'Großartige Neuigkeiten 🎉. Kontaktiere uns, wenn sie Hilfe bei der Einrichtung benötigen.',
         },
         mcp: {
-            connectors: 'Konnektoren',
-            connectorsSubtitle: 'Verbinde einen KI-Assistenten mit deinem Expensify-Konto.',
-            connect: 'Verbinden',
-            helpPrompt: 'Brauchst du Hilfe beim Verbinden?',
-            helpLink: 'Lies unsere Anleitung.',
             claude: {
                 title: 'Claude',
-                subtitle: 'von Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'von Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'von OpenAI',
             },
         },
         connections: {
@@ -7045,10 +7039,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 title: 'Organisieren',
                 subtitle: 'Ausgaben gruppieren und analysieren, jede gezahlte Steuer erfassen.',
             },
-            integrateSection: {
-                title: 'Integrieren',
-                subtitle: 'Verbinde Expensify mit beliebten Finanzprodukten.',
-            },
             distanceRates: {
                 title: 'Kilometersätze',
                 subtitle: 'Sätze Tarife fest, aktualisiere sie und setze sie durch.',
@@ -7280,23 +7270,18 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Verbinde einen KI-Assistenten mit deinem Expensify-Konto.',
             },
             receiptPartners: {
                 title: 'Belegpartner',
-                subtitle: 'Belege automatisch importieren.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Nicht so schnell ...',
                 featureEnabledText: 'Um diese Funktion zu aktivieren oder zu deaktivieren, musst du deine Einstellungen für den Buchhaltungsimport ändern.',
-                disconnectText: 'Um die Buchhaltung zu deaktivieren, musst du die Buchhaltungsanbindung von deinem Workspace trennen.',
                 manageSettings: 'Einstellungen verwalten',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Uber-Verknüpfung trennen',
-                disconnectText: 'Um diese Funktion zu deaktivieren, trenne bitte zuerst die Uber for Business-Integration.',
                 description: 'Möchtest du diese Integration wirklich trennen?',
-                confirmText: 'Verstanden',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Nicht so schnell ...',
@@ -7313,15 +7298,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 subtitle: 'Legen Sie einen abrechnungsfähigen Stundensatz für die Zeiterfassung fest.',
                 defaultHourlyRate: 'Standardstundensatz',
             },
-            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Um HR zu deaktivieren, trennen Sie bitte zuerst ${integration} von diesem Workspace.`},
             vendors: {
                 title: 'Lieferanten',
                 subtitle: 'Ordnen Sie Kartenausgaben den aus Ihrer Buchhaltungssoftware importierten Lieferanten zu.',
                 disabledTitle: 'Nicht so schnell...',
                 disabledMessage: 'Um diese Funktion zu aktivieren oder zu deaktivieren, müssen Sie Ihre Buchhaltungsimporteinstellungen ändern.',
-            },
-            recruitingWarningModal: {
-                disconnectText: ({integration}: {integration: string}) => `Um Recruiting zu deaktivieren, trennen Sie bitte zuerst die Verbindung von ${integration} mit diesem Workspace.`,
             },
         },
         reports: {
@@ -7823,7 +7804,6 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
         accounting: {
             settings: 'Einstellungen',
             title: 'Verknüpfungen',
-            subtitle: 'Verbinden Sie Ihre Buchhaltungssoftware für eine automatische Synchronisierung.',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7835,10 +7815,6 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chatten Sie mit Ihrer Kundenbetreuung.',
-            talkYourAccountManager: 'Chatte mit deiner/deinem Account Manager/in.',
-            talkToConcierge: 'Chatte mit Concierge.',
-            needAnotherAccounting: 'Benötigen Sie eine weitere Buchhaltungssoftware?',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -7887,7 +7863,6 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             disconnect: 'Trennen',
             reinstall: 'Connector neu installieren',
             disconnectTitle: (connectionName = 'Integration') => `${connectionName} trennen`,
-            connectTitle: (connectionName) => `${connectionName} verbinden`,
             syncError: (connectionName) => `Verbindung mit ${connectionName} nicht möglich`,
             accounts: 'Kontenplan',
             taxes: 'Steuern',
@@ -7904,12 +7879,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Standardmäßige NetSuite-Mitarbeiterperson',
             },
             disconnectPrompt: (connectionName = 'diese Integration') => `Möchtest du ${connectionName} wirklich trennen?`,
-            connectPrompt: (connectionName) => `Sind Sie sicher, dass Sie ${connectionName} verbinden möchten? Dadurch werden alle bestehenden Buchhaltungsverbindungen entfernt.`,
             enterCredentials: 'Gib deine Anmeldedaten ein',
             reconnect: 'Erneut verbinden',
             updateCredentials: 'Anmeldedaten aktualisieren',
             claimOffer: {
-                badgeText: 'Angebot verfügbar!',
                 xero: {
                     headline: 'Hol dir Xero 6 Monate lang kostenlos!',
                     description: '<muted-text><centered-text>Neu bei Xero? Expensify-Kund*innen erhalten 6 Monate kostenlos. Fordern Sie unten Ihr Angebot an.</centered-text></muted-text>',
@@ -9419,10 +9392,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             subscriptions: 'Abonnements',
         },
         hr: {
-            title: 'Personalwesen',
             connectionsSubtitle:
                 'Verbinden Sie sich mit Ihrem HR-System, um Mitarbeiterdaten zu synchronisieren, Erstattungen automatisch den richtigen Personen zuzuordnen und die Ausgaben Ihres Teams ohne manuellen Aufwand korrekt zu halten.',
-            subtitle: 'HR-Tools verbinden und Mitarbeitergenehmigungen synchron halten.',
             alreadyConnectedTitle: 'Es kann keine Verbindung zu mehreren HR-Plattformen hergestellt werden',
             alreadyConnectedPrompt: 'Sie müssen Ihre aktuelle HR-Plattform trennen, bevor Sie eine andere verbinden.',
             connectionDescription: (providerName: string) => `Verbinden Sie ${providerName}, um Mitarbeitergenehmigungen mit Ihrem Workspace zu synchronisieren.`,
@@ -9485,7 +9456,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
         },
         recruiting: {
-            title: 'Personalbeschaffung',
             connectionsSubtitle:
                 'Verbinden Sie Ihr Recruiting-System, um Kandidatendaten zu synchronisieren, Erstattungen automatisch den richtigen Personen zuzuordnen und die Ausgaben Ihres Teams ohne manuelle Arbeit korrekt zu halten.',
             alreadyConnectedTitle: 'Es kann keine Verbindung zu mehreren ATS-Plattformen hergestellt werden',
@@ -9493,7 +9463,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             syncing: 'Kandidaten werden synchronisiert',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Verbunden. ${setupLink ? `<a href="${setupLink}">Einrichtung abschließen</a>` : 'Einrichtung abschließen'} zum Importieren von Kandidaten.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>Sie sehen Ihr ATS hier nicht? <a href="#">Fragen Sie Concierge</a>, und wir können es hinzufügen.</muted-text-label>`,
             importSettings: 'Import-Einstellungen',
             defaultApprover: 'Standardgenehmiger',
             approverFields: {recruiter: 'Personalvermittler', recruitingCoordinator: 'Recruiting-Koordinator', hiringManager: 'Einstellungsmanager'},
@@ -9519,7 +9488,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 },
                 enableJobStagesOrTags: 'Wählen Sie mindestens eine Jobphase oder ein Tag aus, um fortzufahren',
             },
-            subtitle: 'Verknüpfen Sie Recruiting-Tools und halten Sie Kandidatengenehmigungen synchron.',
             syncResults: {
                 importedCount: () => ({
                     one: '1 Kandidat',
@@ -9543,9 +9511,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             },
         },
         merge: {
-            connections: 'Verbindungen',
-            connect: 'Verbinden',
-            findIntegration: 'Integration finden',
             syncNow: 'Jetzt synchronisieren',
             disconnect: 'Trennen',
             disconnectTitle: (providerName: string) => `${providerName} trennen`,
@@ -9687,6 +9652,27 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             enableNewAccountsTitle: 'Neu importierte Konten aktivieren',
             enableNewAccountsDescription: 'Neue Zoho Books-Konten werden als Kategorien verfügbar sein.',
             reportingTagsImport: 'Alle Zoho Books-Berichts-Tags werden als Tags importiert',
+            exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Zoho Books exportiert werden.',
+            exportReimbursable: {label: 'Erstattungsfähige Ausgaben exportieren als', values: {VENDOR_BILL: {label: 'Lieferantenrechnungen'}}},
+            exportDate: {
+                label: 'Rechnungsdatum des Lieferanten',
+                description: 'Verwenden Sie dieses Datum beim Exportieren von Berichten nach Zoho Books.',
+                values: {
+                    LAST_EXPENSE: {label: 'Datum der letzten Ausgabe', description: 'Datum der jüngsten Ausgabe im Bericht.'},
+                    REPORT_EXPORTED: {label: 'Exportdatum', description: 'Datum, an dem der Bericht nach Zoho Books exportiert wurde.'},
+                    REPORT_SUBMITTED: {label: 'Eingereichtes Datum', description: 'Datum, an dem der Bericht zur Genehmigung eingereicht wurde.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Firmenkarten-Ausgaben exportieren als', values: {EXPENSE: {label: 'Ausgaben'}}},
+            defaultCompanyCardVendor: {
+                label: 'Standardanbieter für alle Firmenkarten',
+                description: 'Wählen Sie einen Standard-Zoho Books-Anbieter für Ausgaben, die nicht automatisch zugeordnet werden.',
+            },
+            companyCardAccount: {label: 'Firmenkartenkonto', description: 'Wählen Sie aus, wohin Unternehmenskartentransaktionen exportiert werden sollen.'},
+            noVendorsFound: 'Keine Anbieter gefunden',
+            noVendorsFoundDescription: 'Bitte fügen Sie Lieferanten in Zoho Books hinzu und synchronisieren Sie die Verbindung erneut',
+            noAccountsFound: 'Keine Konten gefunden',
+            noAccountsFoundDescription: 'Bitte fügen Sie Konten in Zoho Books hinzu und synchronisieren Sie die Verbindung erneut',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-Einrichtung',
@@ -10974,6 +10960,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         mergeReports: {
             title: 'Berichte zusammenführen',
             description: 'Wählen Sie den Bericht aus, der beibehalten werden soll. Alle Ausgaben werden in ihn verschoben und die anderen Berichte werden gelöscht.',
+            exportedWarning:
+                'Ein oder mehrere ausgewählte Berichte wurden bereits an eine Buchhaltungsintegration exportiert. Das Zusammenführen kann zu doppelten Daten führen, wenn sie erneut exportiert werden.',
+            reportFieldsMismatch:
+                '<strong>Diese Berichte haben unterschiedliche Berichtsfeldwerte.</strong> Um sie zusammenzuführen, passen Sie zuerst die Berichtsfelder in jedem Bericht aneinander an.',
             listPage: {noEligibleReportsFound: 'Keine berechtigten Berichte gefunden', noEligibleReportsFoundSubtitle: 'Sie haben keine Berichte, die zusammengeführt werden können.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} bisher`,
@@ -12338,8 +12328,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
     },
     productMarketingWindow: {
-        heading: 'Expensify mit Claude verbinden',
-        body: 'Durchsuchen, analysieren und fassen Sie Ausgabendaten direkt in Claude zusammen.',
+        member: {
+            heading: 'Kilometer im Autopilot',
+            body: 'Springen Sie direkt zu Ihren häufigen Fahrten und korrigieren Sie den Standort eines Stopps, ohne von vorne zu beginnen.',
+        },
+        admin: {
+            heading: 'Kilometer automatisch erledigt',
+            body: 'Kilometersätze, die sich selbst aktuell halten, plus volle Kontrolle darüber, wie Fahrten erfasst werden.',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',
