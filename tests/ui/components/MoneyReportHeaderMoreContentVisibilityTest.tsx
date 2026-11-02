@@ -118,9 +118,8 @@ describe('useMoneyReportHeaderMoreContentVisibility', () => {
         expect(result.current.hasStatusOrNextStep).toBe(false);
     });
 
-    it('shows the next step for an invoice whose payment waits for the sender to add a bank account', () => {
-        // Given an invoice on a paid policy whose next step asks the sender to add a bank account
-        mockPolicyType(CONST.POLICY.TYPE.TEAM);
+    it('shows the next step for an invoice whose payment waits for the sender to add a bank account, even without policy data', () => {
+        // Given a vendor invoice whose next step asks the sender to add a bank account, without the payer policy loaded
         mockedIsInvoiceReport.mockReturnValue(true);
         const waitingInvoice = {...report, nextStep: {messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT, icon: CONST.NEXT_STEP.ICONS.HOURGLASS}} as Report;
         mockedUseOnyx.mockImplementation((key) => {

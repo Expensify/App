@@ -37,7 +37,7 @@ function useMoneyReportHeaderMoreContentVisibility(reportID: string | undefined)
     // before they can be paid.
     const isWaitingOnSenderBankAccount = moneyRequestReport?.nextStep?.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT;
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
-    const shouldShowNextStep = isGroupPolicy(policy) && (!isInvoiceReport || isWaitingOnSenderBankAccount) && !shouldShowStatusBar;
+    const shouldShowNextStep = (isInvoiceReport ? isWaitingOnSenderBankAccount : isGroupPolicy(policy)) && !shouldShowStatusBar;
 
     return {
         statusBarType,
