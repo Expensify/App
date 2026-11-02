@@ -63,7 +63,7 @@ describe('HybridAppHandler', () => {
         mockOnyxValue = true;
         rerender(<HybridAppHandler />);
 
-        await waitFor(() => expect(mockUseOnyx).toHaveBeenCalledTimes(4));
+        await waitFor(() => expect(mockUseOnyx).toHaveBeenCalledTimes(6));
         expect(mockGetHybridAppSettings).toHaveBeenCalledTimes(1);
         expect(mockSetSplashScreenState).not.toHaveBeenCalledWith(CONST.BOOT_SPLASH_STATE.HIDDEN);
     });
