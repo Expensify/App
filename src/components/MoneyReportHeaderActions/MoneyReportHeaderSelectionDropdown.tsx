@@ -344,6 +344,9 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
             searchData={undefined}
             onHandlerReady={setDuplicateHandler}
             onAfterDuplicate={() => clearSelectedTransactions(true)}
+            sourceReport={moneyRequestReport}
+            sourceChatReport={chatReport}
+            sourcePolicy={policy}
         />
     ) : null;
 
