@@ -7,7 +7,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useEffect, useMemo, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -20,7 +20,7 @@ function useSeedMyExpensesSearch() {
     const [savedSearches, savedSearchesMetadata] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const isSubmitterAndApproverSelector = useMemo(() => createIsSubmitterAndApproverSelector(currentUserEmail), [currentUserEmail]);
+    const isSubmitterAndApproverSelector = createIsSubmitterAndApproverSelector(currentUserEmail);
     const [isSubmitterAndApproverUser] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isSubmitterAndApproverSelector});
     const hasSeededRef = useRef(false);
 

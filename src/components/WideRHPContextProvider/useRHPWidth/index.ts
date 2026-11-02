@@ -1,9 +1,15 @@
 import {consumePendingRHPWidth} from '@components/WideRHPContextProvider/pendingRHPWidths';
 import type {RHPWidth, RHPWidthHint} from '@components/WideRHPContextProvider/types';
 
+import useOnyx from '@hooks/useOnyx';
+
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {navigationRef} from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {getReportType} from '@src/selectors/Report';
 
 import {useRoute} from '@react-navigation/native';
 import {useEffect, useEffectEvent, useRef} from 'react';
@@ -25,6 +31,8 @@ function useRHPWidth(width: RHPWidth) {
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
     const {setRHPWidth, removeRHPRouteKey} = useWideRHPActions();
+    const [reportType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`, {selector: getReportType});
+    const isWideHintExcluded = reportType === CONST.REPORT.TYPE.INVOICE || reportType === CONST.REPORT.TYPE.TASK;
     const consumedHintRef = useRef<{reportID: string; floor: RHPWidthHint | undefined}>(undefined);
 
     const onClose = useEffectEvent(() => {
@@ -47,9 +55,10 @@ function useRHPWidth(width: RHPWidth) {
             consumedHintRef.current = {reportID, floor: undefined};
         }
         const {floor} = consumedHintRef.current;
-        const effectiveWidth: RHPWidth = floor && getWidthOrder(floor) > getWidthOrder(width) ? floor : width;
+        const hint = floor === 'wide' && isWideHintExcluded ? undefined : floor;
+        const effectiveWidth: RHPWidth = hint && getWidthOrder(hint) > getWidthOrder(width) ? hint : width;
         setRHPWidth(route, effectiveWidth);
-    }, [width, reportID, route, setRHPWidth]);
+    }, [width, reportID, route, setRHPWidth, isWideHintExcluded]);
 }
 
 export default useRHPWidth;

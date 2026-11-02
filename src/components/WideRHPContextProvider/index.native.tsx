@@ -63,6 +63,7 @@ export {
     thirdOverlayProgress,
     useWideRHPState,
     useWideRHPActions,
+    WideRHPStateContext,
     subscribeToRHPRouteKeys,
     getRHPRouteWidth,
     getDisplayedRHPRouteWidth,

@@ -2,6 +2,8 @@ import {renderHook} from '@testing-library/react-native';
 
 import type {RHPWidth, RHPWidthHint} from '@components/WideRHPContextProvider/types';
 
+import CONST from '@src/CONST';
+
 const mockSetRHPWidth = jest.fn<void, [{key: string}, RHPWidth]>();
 const mockRemoveRHPRouteKey = jest.fn();
 // One-shot: the store hands the width to the first screen that asks.
@@ -19,6 +21,12 @@ jest.mock('@components/WideRHPContextProvider', () => ({
 jest.mock('@components/WideRHPContextProvider/pendingRHPWidths', () => ({
     __esModule: true,
     consumePendingRHPWidth: (reportID: string) => mockConsumePendingRHPWidth(reportID),
+}));
+
+let mockReportType: string | undefined;
+jest.mock('@hooks/useOnyx', () => ({
+    __esModule: true,
+    default: () => [mockReportType],
 }));
 
 let mockRoute: {key: string; name: string; params: {reportID: string}} = {key: 'route-1', name: 'Screen', params: {reportID: 'report1'}};
@@ -41,7 +49,46 @@ describe('useRHPWidth', () => {
     beforeEach(() => {
         mockSetRHPWidth.mockClear();
         mockConsumePendingRHPWidth.mockReset();
+        mockReportType = undefined;
         mockRoute = {key: 'route-1', name: 'Screen', params: {reportID: 'report1'}};
+    });
+
+    it.each([CONST.REPORT.TYPE.INVOICE, CONST.REPORT.TYPE.TASK])('ignores a wide mark for a report of type %s, which keeps its own width', (reportType) => {
+        // Given a press that left a wide width for a report of a type that never opens wide
+        mockReportType = reportType;
+        mockConsumePendingRHPWidth.mockReturnValueOnce('wide');
+
+        // When its screen registers its own width
+        renderHarness('narrow');
+
+        // Then the mark is ignored
+        expect(lastRegisteredWidth()).toBe('narrow');
+    });
+
+    it('keeps a super-wide mark for an invoice, since only a wide mark is excluded', () => {
+        // Given a press that left a super-wide width for an invoice
+        mockReportType = CONST.REPORT.TYPE.INVOICE;
+        mockConsumePendingRHPWidth.mockReturnValueOnce('super-wide');
+
+        // When its screen registers its own width
+        renderHarness('narrow');
+
+        // Then it opens at the width left for it
+        expect(lastRegisteredWidth()).toBe('super-wide');
+    });
+
+    it('drops a wide mark once the report loads as an invoice, since its type was unknown when the screen opened', () => {
+        // Given a screen that opened at a wide mark before its report's type was known
+        mockConsumePendingRHPWidth.mockReturnValueOnce('wide');
+        const {setWidth} = renderHarness('narrow');
+        expect(lastRegisteredWidth()).toBe('wide');
+
+        // When the report loads as an invoice
+        mockReportType = CONST.REPORT.TYPE.INVOICE;
+        setWidth('narrow');
+
+        // Then the screen goes back to its own width
+        expect(lastRegisteredWidth()).toBe('narrow');
     });
 
     it('opens at the width the press left for it, taking it so no later mount can act on the same one', () => {

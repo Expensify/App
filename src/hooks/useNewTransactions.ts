@@ -1,4 +1,4 @@
-import {deletePendingNewTransactionIDs} from '@libs/actions/IOU/PendingNewTransactions';
+import {deletePendingNewTransactionFlags} from '@libs/actions/IOU/PendingNewTransactions';
 
 import CONST from '@src/CONST';
 import type {PendingNewTransactions} from '@src/selectors/ReportMetaData';
@@ -144,7 +144,7 @@ function useNewTransactions({
             for (const flagKey of claimedKeys) {
                 scheduledSweeps.delete(`${railReportID}:${flagKey}`);
             }
-            deletePendingNewTransactionIDs(railReportID, claimedKeys);
+            deletePendingNewTransactionFlags(railReportID, claimedKeys);
         }, CONST.PENDING_TRANSACTION_DELETION_DELAY);
     }, [isReportVisible, pendingNewTransactions, newTransactions, railReportID]);
 

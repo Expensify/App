@@ -4,12 +4,14 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScrollView from '@components/ScrollView';
 
+import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -30,7 +32,7 @@ import CONST from '@src/CONST';
 import type {ComponentRef} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
 
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 // Animated required for side panel navigation
 // eslint-disable-next-line no-restricted-imports
 import {Animated, View} from 'react-native';
@@ -137,27 +139,24 @@ function BaseModal({
      * Hides modal
      * @param callHideCallback - Should we call the onModalHide callback
      */
-    const hideModal = useCallback(
-        (callHideCallback = true) => {
-            shouldCallHideModalOnUnmount.current = false;
-            willAlertModalBecomeVisible(false);
-            if (areAllModalsHidden()) {
-                if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
-                    setModalVisibility(false);
-                }
+    const hideModal = (callHideCallback = true) => {
+        shouldCallHideModalOnUnmount.current = false;
+        willAlertModalBecomeVisible(false);
+        if (areAllModalsHidden()) {
+            if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
+                setModalVisibility(false);
             }
-            if (callHideCallback) {
-                onModalHide();
-            }
-            onModalDidClose();
-            ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
-        },
-        [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
-    );
+        }
+        if (callHideCallback) {
+            onModalHide();
+        }
+        onModalDidClose();
+        ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
+    };
 
-    const handleDismissModal = useCallback(() => {
+    const handleDismissModal = () => {
         ComposerFocusManager.setReadyToFocus(uniqueModalId);
-    }, [uniqueModalId]);
+    };
 
     useEffect(() => {
         let removeOnCloseListener: () => void;
@@ -206,12 +205,12 @@ function BaseModal({
         [],
     );
 
-    const handleShowModal = useCallback(() => {
+    const handleShowModal = () => {
         if (shouldSetModalVisibility) {
             setModalVisibility(true, type);
         }
         onModalShow();
-    }, [onModalShow, shouldSetModalVisibility, type]);
+    };
 
     const handleBackdropPress = (e?: GestureResponderEvent | KeyboardEvent) => {
         if (e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
@@ -255,6 +254,9 @@ function BaseModal({
 
     // A right docked modal opened from inside the RHP sits on the RHP's own card, so it must not dim it or add a second shadow.
     const isStackedOnRHP = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
+    const isResizableSingleRHP = useIsResizableSingleRHP();
+    const {width: singleRHPWidth} = useSingleRHPWidth();
+    const rightDockedCardWidth = isStackedOnRHP && isResizableSingleRHP ? singleRHPWidth : undefined;
 
     const {
         modalStyle,
@@ -285,6 +287,7 @@ function BaseModal({
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldDisplayBelowModals,
         isStackedOnRHP,
+        rightDockedCardWidth,
     });
 
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.

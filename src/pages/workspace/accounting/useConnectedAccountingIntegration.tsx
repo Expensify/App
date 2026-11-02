@@ -64,8 +64,8 @@ type UseConnectedAccountingIntegrationOptions = {
     /** Style applied to the settings rows, which the Accounting page lays out as cards */
     menuItemWrapperStyle?: StyleProp<ViewStyle>;
 
-    /** Runs once the user confirms disconnecting, before the connection is removed */
-    onDisconnectConfirmed?: () => void;
+    /** Runs once the user confirms disconnecting and takes over calling `disconnect`, so the panel can close before the connection is removed */
+    onDisconnectConfirmed?: (disconnect: () => void) => void;
 };
 
 /**
@@ -135,12 +135,16 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
     const canUseZohoBooksIntegration = isBetaEnabled(CONST.BETAS.ZOHO_BOOKS) || !!policy?.connections?.zohoBooks;
+    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
         }
         if (name === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
             return canUseZohoBooksIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
+            return canUseDigitsIntegration;
         }
         return true;
     });
@@ -241,8 +245,12 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                     if (action !== ModalActions.CONFIRM || !connectedIntegration || !policyID) {
                         return;
                     }
-                    onDisconnectConfirmed?.();
-                    removePolicyConnection(policy, connectedIntegration);
+                    const disconnect = () => removePolicyConnection(policy, connectedIntegration);
+                    if (onDisconnectConfirmed) {
+                        onDisconnectConfirmed(disconnect);
+                        return;
+                    }
+                    disconnect();
                 });
             },
             shouldCallAfterModalHide: true,
@@ -264,6 +272,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         const campfireSubsidiaryList = policy?.connections?.campfire?.data?.subsidiaries;
         const businessCentralCompanyList = policy?.connections?.businessCentral?.data?.companies;
         const zohoBooksOrganizationList = policy?.connections?.zohoBooks?.data?.organizations;
+        const currentZohoBooksOrganization = zohoBooksOrganizationList?.find((organization) => organization.id === policy?.connections?.zohoBooks?.config?.subsidiaryID);
         const certiniaConfig = policy?.connections?.financialforce?.config;
         const certiniaCompanies = policy?.connections?.financialforce?.data?.companies ?? [];
         const certiniaCompanyID = getCertiniaSelectedCompanyID(certiniaConfig);
@@ -446,13 +455,22 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                     ? {}
                     : {
                           description: translate('workspace.zohoBooks.organization'),
-                          title: zohoBooksOrganizationList.find((organization) => organization.id === policy?.connections?.zohoBooks?.config?.subsidiaryID)?.name ?? '',
+                          iconRight: icons.ArrowRight,
+                          title: currentZohoBooksOrganization?.name ?? '',
                           wrapperStyle: menuItemWrapperStyle,
                           titleStyle: styles.fontWeightNormal,
+                          shouldShowRightIcon: canWriteAccounting && zohoBooksOrganizationList.length > 1,
                           shouldShowDescriptionOnTop: true,
-                          interactive: false,
+                          interactive: canWriteAccounting && zohoBooksOrganizationList.length > 1,
                           pendingAction: policy?.connections?.zohoBooks?.config?.pendingFields?.subsidiaryID,
-                          brickRoadIndicator: policy?.connections?.zohoBooks?.config?.errorFields?.subsidiaryID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                          brickRoadIndicator:
+                              !!policy?.connections?.zohoBooks?.config?.errorFields?.subsidiaryID || !!currentZohoBooksOrganization?.isMultiLocation
+                                  ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                  : undefined,
+                          onPress:
+                              policyID && canWriteAccounting && zohoBooksOrganizationList.length > 1
+                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_ORGANIZATION_SELECTOR.getRoute(policyID))
+                                  : undefined,
                       };
 
             default:
@@ -460,6 +478,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         }
     };
     const integrationSpecificMenuItems = getIntegrationSpecificMenuItems();
+    const shouldKeepIntegrationSpecificMenuItemOnSyncError = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
 
     const getConnectionDetails = () => {
         if (!connectedIntegration || !policyID) {
@@ -484,9 +503,9 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
             connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
-        // Zoho Books import, export, and advanced screens are added in a later release, so hide their entry points until then.
-        const shouldShowConfigurationOptions = canWriteAccounting && connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
-        const configurationOptions = shouldShowConfigurationOptions
+        // Zoho Books export and advanced screens are added in a later release, so hide their entry points until then.
+        const shouldShowExportAndAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+        const configurationOptions = canWriteAccounting
             ? [
                   {
                       icon: icons.Pencil,
@@ -500,22 +519,27 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                           : undefined,
                       pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
                   },
-                  {
-                      icon: icons.Send,
-                      iconRight: icons.ArrowRight,
-                      shouldShowRightIcon: true,
-                      title: translate('workspace.accounting.export'),
-                      wrapperStyle: menuItemWrapperStyle,
-                      onPress: integrationData?.onExportPagePress,
-                      brickRoadIndicator:
-                          areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
-                          shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
-                          integrationData?.externalSubscribedExportSettingsHasErrorFields
-                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                              : undefined,
-                      pendingAction:
-                          settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields) ?? integrationData?.externalSubscribedExportSettingsPendingAction,
-                  },
+                  ...(shouldShowExportAndAdvancedOptions
+                      ? [
+                            {
+                                icon: icons.Send,
+                                iconRight: icons.ArrowRight,
+                                shouldShowRightIcon: true,
+                                title: translate('workspace.accounting.export'),
+                                wrapperStyle: menuItemWrapperStyle,
+                                onPress: integrationData?.onExportPagePress,
+                                brickRoadIndicator:
+                                    areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
+                                    shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
+                                    integrationData?.externalSubscribedExportSettingsHasErrorFields
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : undefined,
+                                pendingAction:
+                                    settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields) ??
+                                    integrationData?.externalSubscribedExportSettingsPendingAction,
+                            },
+                        ]
+                      : []),
                   ...(shouldShowCardReconciliationOption && integrationData?.onCardReconciliationPagePress
                       ? [
                             {
@@ -528,23 +552,29 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
                             },
                         ]
                       : []),
-                  {
-                      icon: icons.Gear,
-                      iconRight: icons.ArrowRight,
-                      shouldShowRightIcon: true,
-                      title: translate('workspace.accounting.advanced'),
-                      wrapperStyle: menuItemWrapperStyle,
-                      onPress: integrationData?.onAdvancedPagePress,
-                      brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
-                          ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                          : undefined,
-                      pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
-                  },
+                  ...(shouldShowExportAndAdvancedOptions
+                      ? [
+                            {
+                                icon: icons.Gear,
+                                iconRight: icons.ArrowRight,
+                                shouldShowRightIcon: true,
+                                title: translate('workspace.accounting.advanced'),
+                                wrapperStyle: menuItemWrapperStyle,
+                                onPress: integrationData?.onAdvancedPagePress,
+                                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedAdvancedSettings, integrationData?.errorFields)
+                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                    : undefined,
+                                pendingAction: settingsPendingAction(integrationData?.subscribedAdvancedSettings, integrationData?.pendingFields),
+                            },
+                        ]
+                      : []),
               ]
             : [];
 
         const settingsMenuItems: MenuItemData[] = [
-            ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || !hasAccountingConnection ? [] : [integrationSpecificMenuItems]),
+            ...(isEmptyObject(integrationSpecificMenuItems) || (shouldShowSynchronizationError && !shouldKeepIntegrationSpecificMenuItemOnSyncError) || !hasAccountingConnection
+                ? []
+                : [integrationSpecificMenuItems]),
             ...(!hasAccountingConnection || !isConnectionVerified ? [] : configurationOptions),
         ];
         return {icon: integrationData?.icon, title: integrationData?.title, connectionMessage, settingsMenuItems};

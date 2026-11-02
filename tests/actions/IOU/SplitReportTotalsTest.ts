@@ -61,7 +61,7 @@ jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.f
 jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/IOU/PendingNewTransactions'),
     flagNewTransactionForChatPreview: jest.fn(),
-    deletePendingNewTransactionIDs: jest.fn(),
+    deletePendingNewTransactionFlags: jest.fn(),
 }));
 jest.mock('@libs/API/writeWhenReady');
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));

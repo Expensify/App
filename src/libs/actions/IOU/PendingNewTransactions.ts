@@ -52,7 +52,7 @@ function buildNewTransactionFlagForReportTable({expenseReportID, transactionID}:
 }
 
 /** Clears these flag instances. A flag written since has another key and survives. */
-function deletePendingNewTransactionIDs(reportID: string | undefined, flagKeys: string[]) {
+function deletePendingNewTransactionFlags(reportID: string | undefined, flagKeys: string[]) {
     if (!reportID || !flagKeys.length) {
         return;
     }
@@ -60,4 +60,4 @@ function deletePendingNewTransactionIDs(reportID: string | undefined, flagKeys: 
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {pendingNewTransactionIDs: buildClearedPendingNewTransactionFlags(flagKeys)});
 }
 
-export {buildNewTransactionFlagForReportTable, deletePendingNewTransactionIDs, flagNewTransactionForChatPreview, wasReportShowingRowsWhenActionBegan};
+export {buildNewTransactionFlagForReportTable, deletePendingNewTransactionFlags, flagNewTransactionForChatPreview, wasReportShowingRowsWhenActionBegan};

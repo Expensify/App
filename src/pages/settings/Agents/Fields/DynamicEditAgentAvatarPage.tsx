@@ -36,7 +36,7 @@ import type {Route} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type DynamicEditAgentAvatarPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT_AVATAR>;
@@ -68,12 +68,7 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
 
     const [personalDetails] = usePersonalDetail(accountID);
 
-    const initialBotAvatar = useMemo<AgentAvatarID | null>(() => {
-        if (!initialPresetID || !AGENT_AVATARS.isAvatarID(initialPresetID)) {
-            return null;
-        }
-        return initialPresetID;
-    }, [initialPresetID]);
+    const initialBotAvatar: AgentAvatarID | null = !initialPresetID || !AGENT_AVATARS.isAvatarID(initialPresetID) ? null : initialPresetID;
 
     const [selectedBotAvatar, setSelectedBotAvatar] = useState<AgentAvatarID | null>(() => initialBotAvatar);
     const [imageData, setImageData] = useState<ImageData>(EMPTY_IMAGE_DATA);

@@ -1,6 +1,6 @@
 import {
     buildNewTransactionFlagForReportTable,
-    deletePendingNewTransactionIDs,
+    deletePendingNewTransactionFlags,
     flagNewTransactionForChatPreview,
     wasReportShowingRowsWhenActionBegan,
 } from '@libs/actions/IOU/PendingNewTransactions';
@@ -22,7 +22,7 @@ const FLAG_C = 'txC:1000';
 
 const readFlags = async () => (await getOnyxValue(METADATA_KEY))?.pendingNewTransactionIDs;
 
-describe('deletePendingNewTransactionIDs', () => {
+describe('deletePendingNewTransactionFlags', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         return waitForBatchedUpdates();
@@ -39,7 +39,7 @@ describe('deletePendingNewTransactionIDs', () => {
         await waitForBatchedUpdates();
 
         // When the sweep for that flag runs
-        deletePendingNewTransactionIDs(REPORT_ID, [FLAG_A_EARLY]);
+        deletePendingNewTransactionFlags(REPORT_ID, [FLAG_A_EARLY]);
         await waitForBatchedUpdates();
 
         // Then the flag is removed outright rather than left as a tombstone
@@ -53,7 +53,7 @@ describe('deletePendingNewTransactionIDs', () => {
 
         // When the same transaction is flagged again just before that sweep runs
         await Onyx.merge(METADATA_KEY, {pendingNewTransactionIDs: {[FLAG_A_LATE]: true}});
-        deletePendingNewTransactionIDs(REPORT_ID, [FLAG_A_EARLY]);
+        deletePendingNewTransactionFlags(REPORT_ID, [FLAG_A_EARLY]);
         await waitForBatchedUpdates();
 
         // Then only the earlier flag is cleared, so the new one still gets its highlight
@@ -68,7 +68,7 @@ describe('deletePendingNewTransactionIDs', () => {
         await waitForBatchedUpdates();
 
         // When its sweep starts and the same transaction is flagged again before the sweep lands
-        deletePendingNewTransactionIDs(REPORT_ID, [FLAG_A_EARLY]);
+        deletePendingNewTransactionFlags(REPORT_ID, [FLAG_A_EARLY]);
         Onyx.merge(METADATA_KEY, {pendingNewTransactionIDs: {[FLAG_A_LATE]: true}});
         await waitForBatchedUpdates();
 
@@ -84,7 +84,7 @@ describe('deletePendingNewTransactionIDs', () => {
         await waitForBatchedUpdates();
 
         // When one sweep clears two of them
-        deletePendingNewTransactionIDs(REPORT_ID, [FLAG_A_EARLY, FLAG_B]);
+        deletePendingNewTransactionFlags(REPORT_ID, [FLAG_A_EARLY, FLAG_B]);
         await waitForBatchedUpdates();
 
         // Then those two are gone and the one it did not name remains

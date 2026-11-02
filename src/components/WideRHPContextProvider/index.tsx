@@ -1,4 +1,3 @@
-import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
 import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
@@ -6,13 +5,8 @@ import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperW
 import calculateWideRHPWidth from '@libs/Navigation/helpers/calculateWideRHPWidth';
 import type {NavigationRoute} from '@libs/Navigation/types';
 
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
 import arraysEqual from '@src/utils/arraysEqual';
-
-import type {OnyxCollection} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import React, {createContext, useContext, useEffect, useLayoutEffect, useState} from 'react';
@@ -103,18 +97,6 @@ function getDisplayedRHPRouteWidth(routeKey: string | undefined): Exclude<RHPWid
 const WideRHPStateContext = createContext<WideRHPStateContextType>(defaultWideRHPStateContextValue);
 const WideRHPActionsContext = createContext<WideRHPActionsContextType>(defaultWideRHPActionsContextValue);
 
-const expenseReportSelector = (reports: OnyxCollection<Report>) => {
-    return Object.fromEntries(
-        Object.entries(reports ?? {}).map(([key, report]) => [
-            key,
-            {
-                reportID: report?.reportID,
-                type: report?.type,
-            },
-        ]),
-    );
-};
-
 /** One entry per route wider than narrow, newest first. */
 type RHPWidthRegistration = {
     key: string;
@@ -154,10 +136,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
 
     // In state because the derivation reads it during render, so it must get a new identity when it changes.
     const [seenRHPRouteKeys, setSeenRHPRouteKeys] = useState<ReadonlyMap<string, string>>(() => new Map());
-
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: expenseReportSelector,
-    });
 
     const {focusedRoute, focusedNavigator, rootNavigationState} = useRootNavigationState((state) => {
         if (!state) {
@@ -263,16 +241,10 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         setRHPWidthRegistrations((previousRegistrations) => registerRHPRouteWidth(previousRegistrations, routeKey, width));
     };
 
-    /** Leaves a width for the screen this press opens, until its own data can say. Invoices and tasks are never marked wide, and the latest mark wins. */
+    /** Leaves a width for the screen this press opens, until its own data can say. The latest mark wins, and useRHPWidth ignores a 'wide' mark for invoices and tasks. */
     const markReportRHPWidth = (reportID: string | undefined, width: RHPWidthHint) => {
         if (!reportID) {
             return;
-        }
-        if (width === 'wide') {
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            if (report?.type === CONST.REPORT.TYPE.INVOICE || report?.type === CONST.REPORT.TYPE.TASK) {
-                return;
-            }
         }
         markPendingRHPWidth(reportID, width);
     };
@@ -351,6 +323,7 @@ export {
     thirdOverlayProgress,
     useWideRHPState,
     useWideRHPActions,
+    WideRHPStateContext,
     subscribeToRHPRouteKeys,
     getRHPRouteWidth,
     getDisplayedRHPRouteWidth,

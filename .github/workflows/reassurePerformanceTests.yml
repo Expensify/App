@@ -3,7 +3,7 @@ name: Reassure Performance Tests
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches-ignore: [production]
     # Ordered: the last matching pattern wins.
     paths:
       - '**'
@@ -64,7 +64,7 @@ concurrency:
 
 jobs:
   baseline-perf-tests:
-    if: ${{ github.actor != 'OSBotify' }}
+    if: ${{ github.actor != 'OSBotify' && github.actor != 'os-botify[bot]' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -91,7 +91,7 @@ jobs:
 
       # Before setupNode: the key hashes no lockfile, and not running setupNode is most of the saving.
       # Restore-only for the same reasons as the Jest transform cache below.
-      - name: Restore the baseline measured on main
+      - name: Restore the cached baseline
         id: restoreBaseline
         # v5.0.1
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
@@ -107,9 +107,9 @@ jobs:
           CACHE_HIT: ${{ steps.restoreBaseline.outputs.cache-hit }}
         run: |
           if [[ "$CACHE_HIT" == "true" ]]; then
-            echo "::notice::Restored main's baseline for $BASELINE_SHA from the cache; not measuring it here."
+            echo "::notice::Restored the baseline for $BASELINE_SHA from the cache; not measuring it here."
           else
-            echo "::warning::No cached baseline for $BASELINE_SHA - measuring it in this job. Expected when the seed run on that commit has not finished or failed; otherwise seedJestPerfCache.yml has stopped writing the entry."
+            echo "::warning::No cached baseline for $BASELINE_SHA - measuring it in this job. Expected when the PR targets a branch other than main (seedJestPerfCache.yml only seeds main), or when the seed run on that commit has not finished or failed; otherwise seedJestPerfCache.yml has stopped writing the entry."
           fi
 
       - name: Check out the baseline commit
@@ -119,7 +119,7 @@ jobs:
           BASELINE_SHA: ${{ steps.baselineCommit.outputs.sha }}
         run: |
           set -e
-          # That commit, not the tip of main: the tip moves mid-run, and measuring the two sides at
+          # That commit, not the tip of the base branch: the tip moves mid-run, and measuring the two sides at
           # different trees is the noise this comparison exists to detect. Only its source tree is
           # needed, and a reachable SHA can be fetched bare.
           git fetch origin "$BASELINE_SHA" --no-tags --depth=1
@@ -132,7 +132,7 @@ jobs:
       # Skips a cold Babel pass over the whole source tree; seedJestPerfCache.yml writes the entry
       # on main and explains the key. Restore-only, so nothing an untrusted PR runs can end up in an
       # entry a later run executes, and no restore-keys: a prefix fallback could serve output built
-      # by an older babel-plugin-react-compiler and move the render counts gated at
+      # by an older React Compiler and move the render counts gated at
       # COUNT_DEVIATION: 0. Keep the key identical to the other three.
       - name: Restore Jest transform cache
         id: restoreJestCache
@@ -175,7 +175,7 @@ jobs:
           include-hidden-files: true
 
   branch-perf-tests:
-    if: ${{ github.actor != 'OSBotify' }}
+    if: ${{ github.actor != 'OSBotify' && github.actor != 'os-botify[bot]' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     steps:
       - name: Checkout
@@ -187,7 +187,7 @@ jobs:
       # Skips a cold Babel pass over the whole source tree; seedJestPerfCache.yml writes the entry
       # on main and explains the key. Restore-only, so nothing an untrusted PR runs can end up in an
       # entry a later run executes, and no restore-keys: a prefix fallback could serve output built
-      # by an older babel-plugin-react-compiler and move the render counts gated at
+      # by an older React Compiler and move the render counts gated at
       # COUNT_DEVIATION: 0. Keep the key identical to the other three.
       - name: Restore Jest transform cache
         id: restoreJestCache
@@ -231,7 +231,7 @@ jobs:
           include-hidden-files: true
 
   validate-perf-tests:
-    if: ${{ github.actor != 'OSBotify' }}
+    if: ${{ github.actor != 'OSBotify' && github.actor != 'os-botify[bot]' }}
     runs-on: blacksmith-4vcpu-ubuntu-2404
     needs: [baseline-perf-tests, branch-perf-tests]
     steps:
