@@ -3,7 +3,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import useOnyx from '@hooks/useOnyx';
 import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
-import {clearDualEntryErrorField, updateDualEntryTravelInvoicingPayableAccount} from '@libs/actions/connections/DualEntry';
+import {clearDualEntryErrorField, updateDualEntryTravelBillingPayableAccount} from '@libs/actions/connections/DualEntry';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -52,7 +52,7 @@ function DualEntryTravelInvoicingPayableAccountSelectPage({policy}: WithPolicyCo
 
     const setPayableAccount = (item: SelectorType<string>) => {
         if (item.value !== travelInvoicingPayableAccountID && policyID) {
-            updateDualEntryTravelInvoicingPayableAccount(policyID, item.value, travelInvoicingPayableAccountID);
+            updateDualEntryTravelBillingPayableAccount(policyID, item.value, travelInvoicingPayableAccountID);
         }
         Navigation.goBack(backPath);
     };

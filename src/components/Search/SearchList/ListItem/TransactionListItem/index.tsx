@@ -218,7 +218,7 @@ function TransactionListItemInner<TItem extends ListItem>({
         policyCategories,
         transaction?.category ?? transactionItem.category ?? '',
         getAttendees(transaction ?? transactionItem),
-        currentUserDetails,
+        submitterLogin,
         isAttendeeTrackingEnabled(policyForViolations),
         policyForViolations?.type === CONST.POLICY.TYPE.CORPORATE,
         isInvoice,

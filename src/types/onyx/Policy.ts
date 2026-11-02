@@ -4051,6 +4051,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
 
+        /** The second day of the month a twice a month scheduled submit happens on */
+        autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset;
+
+        /** The IANA timezone the scheduled submit runs in */
+        timeZone?: string;
+
         employeeList?: OnyxTypes.PolicyEmployeeList;
 
         /** How the workspace pays reimbursable expenses. Can hold a deprecated value, so read it through `PolicyUtils.getReimbursementChoice`. */
@@ -4241,6 +4247,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Travel feature is enabled */
         isTravelEnabled?: boolean;
+
+        /** Whether the workspace has been provisioned for Travel */
+        isTravelProvisioned?: boolean;
 
         /** Whether the Per diem rates feature is enabled */
         arePerDiemRatesEnabled?: boolean;
@@ -4540,7 +4549,7 @@ export type {
  *
  * @public
  */
-export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksSync};
+export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksOrganization, ZohoBooksSync};
 
 /**
  * The Digits action module is the only importer of these config types, and Knip ignores that module until workspace screens import it.

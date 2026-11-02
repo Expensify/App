@@ -14,6 +14,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicy from '@hooks/usePolicy';
 import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -30,6 +31,7 @@ import {
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
     getDisplayNameForParticipant,
+    getInvoiceReceiverPolicyID,
     getParentNavigationSubtitle,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
@@ -113,6 +115,7 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID}`);
+    const invoiceReceiverPolicy = usePolicy(getInvoiceReceiverPolicyID(parentReport));
     const reportForTitle = getReportForHeader(report, parentReport);
     const derivedReportNames = useDerivedReportNamesByReportIDs([report?.parentReportID, reportForTitle?.reportID]);
     const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
@@ -142,8 +145,8 @@ function ShareCodePage({report, policy, backTo, shouldShowQRCodeOnly = false}: S
                 .join(' & ');
         } else {
             subtitle =
-                getParentNavigationSubtitle(report, policy, conciergeReportID, translate, formatPhoneNumber, derivedParentReportName, isParentReportArchived).workspaceName ??
-                getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
+                getParentNavigationSubtitle(report, policy, invoiceReceiverPolicy, conciergeReportID, translate, formatPhoneNumber, derivedParentReportName, isParentReportArchived)
+                    .workspaceName ?? getChatRoomSubtitle(report, policy, conciergeReportID, translate, rules, false, isReportArchived);
         }
     } else {
         subtitle = currentUserPersonalDetails.login;

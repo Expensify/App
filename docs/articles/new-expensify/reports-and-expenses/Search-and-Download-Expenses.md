@@ -65,7 +65,7 @@ When you group expenses on the **Spend** page, you can export the grouped result
 3. Click **Apply**.
 4. Check the box next to the groups you want to export, or use the top checkbox to select all.
 5. On the selection bar, choose **Export**.
-6. Select **Current view**.
+6. Select **Current view**, or select **Current view (groups only)** to export only the group rows without the expenses in each group.
 
 In the exported file:
 - Each group appears as its own section with a group row.

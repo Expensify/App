@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches-ignore: [production]
     paths:
       - '.github/workflows/nativeDependencies.yml'
       - 'ios/Podfile'
@@ -37,6 +37,7 @@ concurrency:
 jobs:
   nativeDependencies:
     name: Check for unused native dependencies
+    if: github.actor != 'os-botify[bot]'
     runs-on: blacksmith-2vcpu-ubuntu-2404
     steps:
       - name: Checkout

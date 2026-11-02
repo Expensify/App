@@ -10,7 +10,6 @@ import {addComment, openReport} from '@libs/actions/Report';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction, isTimeRequest} from '@libs/TransactionUtils';
@@ -722,12 +721,11 @@ describe('actions/Duplicate', () => {
 
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participantAccountIDs = Object.keys(transactionThreadReport1.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
             jest.advanceTimersByTime(10);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
+            const participants = participantAccountIDs.flatMap((accountID) => {
+                const login = allPersonalDetails?.[accountID]?.login;
+                return login ? [{login, accountID, accountIDForOptimisticData: accountID}] : [];
+            });
             openReport({
                 conciergeChat: undefined,
                 hasReportActions: true,

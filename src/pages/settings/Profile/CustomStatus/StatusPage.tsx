@@ -5,8 +5,9 @@ import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItem from '@components/MenuItem';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -206,13 +207,13 @@ function StatusPage() {
                             defaultValue={defaultText}
                         />
                     </View>
-                    <MenuItemWithTopDescription
-                        title={customClearAfter}
-                        description={translate('statusPage.clearAfter')}
-                        shouldShowRightIcon
+                    <MenuItemField
+                        name={translate('statusPage.clearAfter')}
+                        value={customClearAfter}
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)}
-                        brickRoadIndicator={brickRoadIndicator}
-                    />
+                    >
+                        {!!brickRoadIndicator && <MenuItem.BrickRoadIndicator status={brickRoadIndicator} />}
+                    </MenuItemField>
                     {(!!currentUserEmojiCode || !!currentUserStatusText) && (
                         <MenuItemAction
                             title={translate('statusPage.clearStatus')}
