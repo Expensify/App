@@ -20,7 +20,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {FieldItemType} from './ReviewFields';
 
@@ -35,10 +35,7 @@ function DynamicReviewReimbursablePage() {
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
-    const allDuplicateIDs = useMemo(
-        () => transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [],
-        [transactionViolations],
-    );
+    const allDuplicateIDs = transactionViolations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [];
     const [allDuplicates] = useTransactionsByID(allDuplicateIDs);
     const [reviewDuplicatesReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reviewDuplicates?.reportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reviewDuplicatesReport?.policyID)}`);
@@ -48,14 +45,10 @@ function DynamicReviewReimbursablePage() {
     const compareResult = compareDuplicateTransactionFields(policyTags ?? {}, transaction, allDuplicates, reviewDuplicatesReport, reviewDuplicates?.transactionID, policy, policyCategories);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, navigateToNextScreen} = useReviewDuplicatesNavigation(Object.keys(compareResult.change ?? {}), 'reimbursable', route.params.reportID, route.params.backTo);
-    const options = useMemo(
-        () =>
-            compareResult.change.reimbursable?.map((reimbursable) => ({
-                text: reimbursable ? translate('common.yes') : translate('common.no'),
-                value: reimbursable ?? false,
-            })),
-        [compareResult.change.reimbursable, translate],
-    );
+    const options = compareResult.change.reimbursable?.map((reimbursable) => ({
+        text: reimbursable ? translate('common.yes') : translate('common.no'),
+        value: reimbursable ?? false,
+    }));
 
     const setReimbursable = (data: FieldItemType<'reimbursable'>) => {
         if (data.value !== undefined) {

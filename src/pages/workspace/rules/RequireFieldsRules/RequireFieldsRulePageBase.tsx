@@ -1,7 +1,8 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import Header from '@components/Header';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import FieldRequirementSettingRow from '@components/RequireFieldsRules/FieldRequirementSettingRow';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -15,6 +16,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
@@ -30,7 +32,9 @@ import {
     getEffectiveRequireFieldsRuleForm,
     getRequireFieldsDisplayedSetting,
     getRequireFieldsFieldClearKeys,
+    getRequireFieldsDraftFromGeneratedValues,
     getRequireFieldsFieldSettingUpdate,
+    REQUIRE_FIELDS_SETTING_FIELD_KEYS,
     getRequireFieldsFormFromCategory,
     getRequireFieldsPendingActionForCategory,
     getRequireFieldsRuleKey,
@@ -42,19 +46,28 @@ import type {FieldRequirementsDirection} from '@libs/RequireFieldsRulesUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import DescribeRuleButton from '@pages/workspace/rules/DescribeRuleButton';
 import useRuleDeleteHeaderProps from '@pages/workspace/rules/useRuleDeleteHeaderProps';
 
-import variables from '@styles/variables';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES, getRequireFieldsRuleCategoryRoute, getWorkspaceCategorySettingsRoute} from '@src/ROUTES';
 import type {RequireFieldsRuleForm, RequireFieldsRuleSettingFieldKey} from '@src/types/form/RequireFieldsRuleForm';
 import INPUT_IDS from '@src/types/form/RequireFieldsRuleForm';
+import type {GeneratedRuleValues} from '@src/types/onyx/GeneratedRule';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+/** Returns the setting fields that have a value in the given form values */
+function getDefinedSettingFieldKeys(values: Partial<RequireFieldsRuleForm> | undefined) {
+    return REQUIRE_FIELDS_SETTING_FIELD_KEYS.filter((fieldKey) => values?.[fieldKey] !== undefined);
+}
 
 type RequireFieldsRulePageBaseProps = {
     policyID: string;
@@ -67,17 +80,20 @@ type RequireFieldsRulePageBaseProps = {
 };
 
 function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName, isCategoryLocked: isCategoryLockedProp, testID}: RequireFieldsRulePageBaseProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const policyData = usePolicyData(policyID);
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {policy} = policyData;
     const {canWrite: canWriteRules} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const isAttendeeFieldApplicable = isAttendeeTrackingEnabled(policy);
     const icons = useMemoizedLazyExpensifyIcons(['Folder']);
     const isEditing = !!categoryName;
     const isCategoryLocked = isCategoryLockedProp ?? !!initialCategoryName;
+    const shouldShowDescribeRule = !isEditing && !isCategoryLocked;
     const canEditCategory = canWriteRules && !isCategoryLocked;
     const categorySettingsBackPath = useCategoryRuleCreateBackPath(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_REQUIRE_FIELDS_NEW.path);
 
@@ -90,6 +106,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     // Fields the user toggled directly — category reassignment marks touchedFields for save/display
     // without meaning the user caused coupling, so tooltips key off this set instead.
     const [couplingInteractionFields, setCouplingInteractionFields] = useState<Set<RequireFieldsRuleSettingFieldKey>>(() => new Set());
+    const [generatedCategoryName, setGeneratedCategoryName] = useState<string>();
     const initializedDraftForRuleKeyRef = useRef<string | null>(null);
 
     const category = categoryName ? policyCategories?.[categoryName] : undefined;
@@ -109,8 +126,10 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         setSelectionCategoryName(selectedCategoryName);
     } else if (selectionCategoryName !== selectedCategoryName) {
         const previousCategoryName = selectionCategoryName;
-        const didChangeSelectedCategory = previousCategoryName !== undefined && selectedCategoryName !== undefined;
+        const isGeneratedCategory = selectedCategoryName === generatedCategoryName;
+        const didChangeSelectedCategory = previousCategoryName !== undefined && selectedCategoryName !== undefined && !isGeneratedCategory;
         setSelectionCategoryName(selectedCategoryName);
+        setGeneratedCategoryName(undefined);
 
         if (didChangeSelectedCategory) {
             const previousCategory = previousCategoryName ? policyCategories?.[previousCategoryName] : undefined;
@@ -120,7 +139,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
             // Preserve whatever is currently shown (edit often displays category overrides
             // without those fields being in touchedFields yet).
-            for (const fieldKey of [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const) {
+            for (const fieldKey of REQUIRE_FIELDS_SETTING_FIELD_KEYS) {
                 const displayedSetting = getRequireFieldsDisplayedSetting({
                     fieldKey,
                     category: previousCategory,
@@ -157,9 +176,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
     // Remount after a category change loses local touched state — rebuild it from the draft.
     if (isEditing && categoryName && selectedCategoryName && selectedCategoryName !== categoryName && form) {
-        const draftSettingKeys = ([INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const).filter(
-            (fieldKey) => form[fieldKey] !== undefined,
-        );
+        const draftSettingKeys = getDefinedSettingFieldKeys(form);
         if (draftSettingKeys.some((fieldKey) => !touchedFields.has(fieldKey))) {
             setTouchedFields(new Set([...touchedFields, ...draftSettingKeys]));
         }
@@ -172,7 +189,12 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         if (!isEditing) {
             if (initializedDraftForRuleKeyRef.current !== ROUTES.NEW) {
                 initializedDraftForRuleKeyRef.current = ROUTES.NEW;
-                setDraftRequireFieldsRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
+                if (!isEmptyObject(form)) {
+                    // eslint-disable-next-line react-hooks/set-state-in-effect -- Seed local selection state from the seeded draft.
+                    setTouchedFields(new Set(getDefinedSettingFieldKeys(form)));
+                } else {
+                    setDraftRequireFieldsRule(initialCategoryName ? {[INPUT_IDS.CATEGORY]: initialCategoryName} : {});
+                }
             }
             return;
         }
@@ -195,7 +217,6 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
 
         // Always reseed from the category so a leftover new-rule draft cannot leave a stale Require/Don't require.
         initializedDraftForRuleKeyRef.current = ruleKey;
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- Seed local selection state when opening an edit rule.
         setTouchedFields(new Set());
         setClearedFields(new Set());
         setCouplingInteractionFields(new Set());
@@ -205,12 +226,12 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         });
     }, [category, categoryName, form, initialCategoryName, isEditing]);
 
-    const fetchPolicyData = useCallback(() => {
+    const fetchPolicyData = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
         }
         openPolicyCategoriesPage(policyID);
-    }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
+    };
 
     useNetwork({onReconnect: fetchPolicyData});
 
@@ -305,7 +326,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                 const nextDraft: Partial<RequireFieldsRuleForm> = {
                     [INPUT_IDS.CATEGORY]: form[INPUT_IDS.CATEGORY],
                 };
-                for (const settingFieldKey of [INPUT_IDS.DESCRIPTION_SETTING, INPUT_IDS.ATTENDEES_SETTING, INPUT_IDS.RECEIPT_SETTING, INPUT_IDS.ITEMIZED_RECEIPT_SETTING] as const) {
+                for (const settingFieldKey of REQUIRE_FIELDS_SETTING_FIELD_KEYS) {
                     if (keysToClear.includes(settingFieldKey) || form[settingFieldKey] === undefined) {
                         continue;
                     }
@@ -362,11 +383,11 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         }
 
         if (didChangeCategory && originalCategoryName) {
-            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(originalCategoryName), isVendorMatchingBetaEnabled);
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(originalCategoryName), isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
             // Old category is fully removed; clearedFields belonged to that rule, not the new category.
             saveRequireFieldsRule(policyData, formToSave, isVendorMatchingBetaEnabled, touchedFields);
         } else {
-            saveRequireFieldsRule(policyData, formToSave, isVendorMatchingBetaEnabled, touchedFields, clearedFields);
+            saveRequireFieldsRule(policyData, formToSave, isVendorMatchingBetaEnabled, touchedFields, clearedFields, getReviewWorkspaceSettingsTaskCompletion());
         }
 
         clearDraftRequireFieldsRule();
@@ -407,7 +428,7 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
     const {deleteIconButtonProps} = useRuleDeleteHeaderProps({
         canDelete: canWriteRules && isEditing && !!category && categoryHasAnyRequireFieldsRule(category) && !isRuleBeingDeleted,
         onDelete: () => {
-            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName ?? ''), isVendorMatchingBetaEnabled);
+            deleteRequireFieldsRule(policyData, getRequireFieldsRuleKey(categoryName ?? ''), isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
             return true;
         },
         sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DELETE,
@@ -424,6 +445,13 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
         return <NotFoundPage />;
     }
 
+    const applyGeneratedRule = (values: GeneratedRuleValues) => {
+        const {draft, touchedFieldKeys} = getRequireFieldsDraftFromGeneratedValues(values);
+        setDraftRequireFieldsRule(draft);
+        setGeneratedCategoryName(values.category);
+        setTouchedFields(touchedFieldKeys);
+    };
+
     const footer = canWriteRules ? (
         <FormAlertWithSubmitButton
             buttonText={translate('workspace.rules.requireFieldsRule.saveRule')}
@@ -434,8 +462,24 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
             shouldShowLoadingImmediatelyOnPress={false}
             enabledWhenOffline
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_SAVE}
+            buttonStyles={styles.flex1}
+            buttonAndFooterContainerStyles={[styles.flexRow, styles.gap2]}
+            shouldRenderFooterAboveSubmit
+            footerContent={
+                shouldShowDescribeRule && (
+                    <DescribeRuleButton
+                        policyID={policyID}
+                        ruleType={CONST.GENERATED_RULE.RULE_TYPE.REQUIRE_FIELDS}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_DESCRIBE}
+                        onRuleGenerated={applyGeneratedRule}
+                        isCategoryEligible={(generatedCategory) => !categoryHasAnyRequireFieldsRule(generatedCategory)}
+                    />
+                )
+            }
         />
     ) : null;
+
+    const categoryError = canEditCategory && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : '';
 
     return (
         <AccessOrNotFoundWrapper
@@ -457,19 +501,34 @@ function RequireFieldsRulePageBase({policyID, categoryName, initialCategoryName,
                         <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.requireFieldsRule.subtitle')}</Text>
                         <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
                     </View>
-                    <MenuItemWithTopDescription
-                        description={translate('common.category')}
-                        title={categoryDisplayName}
-                        errorText={canEditCategory && shouldShowError && !form?.[INPUT_IDS.CATEGORY] ? translate('common.error.fieldRequired') : ''}
-                        onPress={canEditCategory ? () => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)) : undefined}
-                        shouldShowRightIcon={canEditCategory}
-                        interactive={canEditCategory}
-                        icon={icons.Folder}
-                        iconWidth={variables.iconSizeNormal}
-                        iconHeight={variables.iconSizeNormal}
-                        shouldIconUseAutoWidthStyle
+                    <MenuItem.Root
+                        onPress={
+                            canEditCategory
+                                ? callFunctionIfActionIsAllowed(() => Navigation.navigate(getRequireFieldsRuleCategoryRoute(policyID, isEditing ? categoryName : undefined)), false, session)
+                                : undefined
+                        }
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.REQUIRE_FIELDS_RULE_CATEGORY}
-                    />
+                    >
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <MenuItem.IconNarrow src={icons.Folder} />
+                            </MenuItem.Leading>
+                            <MenuItemField.Content name={translate('common.category')}>
+                                {!!categoryDisplayName && <MenuItem.FieldValue>{categoryDisplayName}</MenuItem.FieldValue>}
+                            </MenuItemField.Content>
+                            {canEditCategory && (
+                                <MenuItem.Trailing>
+                                    <MenuItem.Chevron />
+                                </MenuItem.Trailing>
+                            )}
+                        </MenuItem.Row>
+                        {!!categoryError && (
+                            <MenuItem.HelpText
+                                isError
+                                message={categoryError}
+                            />
+                        )}
+                    </MenuItem.Root>
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
                     <View style={[styles.ph5, styles.pv3]}>
                         <Text style={[styles.textLabel, styles.textStrong, styles.lh16]}>{translate('workspace.rules.requireFieldsRule.doTheFollowing')}</Text>

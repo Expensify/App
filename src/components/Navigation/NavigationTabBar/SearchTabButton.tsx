@@ -8,8 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {startSpan} from '@libs/telemetry/activeSpans';
-import {startNavigateToReportsSpans} from '@libs/telemetry/navigateToReportsSpans';
+import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 
 import navigationRef from '@navigation/navigationRef';
 
@@ -31,6 +30,7 @@ type SearchTabButtonProps = {
 };
 
 function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
@@ -44,15 +44,10 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
-                name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
-                op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
-                forceTransaction: true,
-            });
-            startNavigateToReportsSpans();
+            startNavigateToReportsTabSpans();
 
             Navigation.navigate(getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuery));
-        });
+        }, session);
     };
 
     if (isWideLayout) {
@@ -83,7 +78,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             role={CONST.ROLE.TAB}
             accessibilityLabel={translate('common.spend')}
             accessibilityState={searchAccessibilityState}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={styles.navigationTabBarSlot}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
         >

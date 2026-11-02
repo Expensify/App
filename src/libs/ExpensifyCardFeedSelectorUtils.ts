@@ -35,12 +35,21 @@ function hasConfiguredExpensifyCardFeed(settings: ExpensifyCardSettings | undefi
         return false;
     }
 
+    // The pre-2024 US program is stored un-nested, with its settlement account on the settings root, so CURRENT also matches that layout.
+    if (programs.includes(CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT) && settings.paymentBankAccountID != null) {
+        return true;
+    }
+
     for (const programKey of programs) {
         const nested = settings[programKey];
         if (!nested || typeof nested !== 'object' || Array.isArray(nested)) {
             continue;
         }
         if (programKey === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
+            // Linking a disabled travel feed doesn't turn it back on, so it goes through the enable flow.
+            if (nested.isEnabled === false) {
+                continue;
+            }
             if (hasTravelBillingSettlementAccount(nested) || getIsTravelBillingPayByInvoice(nested)) {
                 return true;
             }

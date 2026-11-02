@@ -10,7 +10,6 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {loginSelector} from '@selectors/PersonalDetails';
-import {useMemo} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
@@ -29,22 +28,20 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
     const policy = policyOverride ?? distanceOriginalPolicy ?? reportPolicy;
     const currentUserDetails = useCurrentUserPersonalDetails();
 
-    return useMemo(() => {
-        const syncedDateRangeViolations = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
-        // `policy` already prefers distanceOriginalPolicy when the report policy lacks the rate.
-        const syncedViolations = syncCustomUnitOutOfPolicyViolation(syncedDateRangeViolations, transaction, policy, distanceOriginalPolicy);
+    const syncedDateRangeViolations = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+    // `policy` already prefers distanceOriginalPolicy when the report policy lacks the rate.
+    const syncedViolations = syncCustomUnitOutOfPolicyViolation(syncedDateRangeViolations, transaction, policy, distanceOriginalPolicy);
 
-        return getVisibleTransactionViolations(
-            transaction,
-            syncedViolations,
-            currentUserDetails.email ?? '',
-            currentUserDetails.accountID,
-            iouReport,
-            ownerLogin,
-            policy,
-            shouldShowRterForSettledReport,
-        );
-    }, [transaction, transactionViolations, iouReport, ownerLogin, policy, distanceOriginalPolicy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID]);
+    return getVisibleTransactionViolations(
+        transaction,
+        syncedViolations,
+        currentUserDetails.email ?? '',
+        currentUserDetails.accountID,
+        iouReport,
+        ownerLogin,
+        policy,
+        shouldShowRterForSettledReport,
+    );
 }
 
 export default useTransactionViolations;

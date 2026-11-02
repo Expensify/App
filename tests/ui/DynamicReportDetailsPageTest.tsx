@@ -117,12 +117,7 @@ describe('DynamicReportDetailsPage', () => {
             <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <DynamicReportDetailsPage
-                        isLoadingReportData={false}
                         navigation={navigationMock}
-                        policy={undefined}
-                        report={trackExpenseReport}
-                        reportMetadata={undefined}
-                        reportLoadingState={undefined}
                         route={getRouteMock(trackExpenseReportID)}
                     />
                 </LocaleContextProvider>
@@ -151,12 +146,7 @@ describe('DynamicReportDetailsPage', () => {
             <OnyxListItemProvider>
                 <LocaleContextProvider>
                     <DynamicReportDetailsPage
-                        isLoadingReportData={false}
                         navigation={navigationMock}
-                        policy={undefined}
-                        report={movedTrackExpenseReport}
-                        reportMetadata={undefined}
-                        reportLoadingState={undefined}
                         route={getRouteMock(trackExpenseReportID)}
                     />
                 </LocaleContextProvider>
@@ -179,12 +169,7 @@ describe('DynamicReportDetailsPage', () => {
                 <OnyxListItemProvider>
                     <LocaleContextProvider>
                         <DynamicReportDetailsPage
-                            isLoadingReportData={false}
                             navigation={navigationMock}
-                            policy={undefined}
-                            report={policyRoom}
-                            reportMetadata={undefined}
-                            reportLoadingState={undefined}
                             route={getRouteMock(roomReportID)}
                         />
                     </LocaleContextProvider>
@@ -320,12 +305,7 @@ describe('DynamicReportDetailsPage', () => {
                 <OnyxListItemProvider>
                     <LocaleContextProvider>
                         <DynamicReportDetailsPage
-                            isLoadingReportData={false}
                             navigation={navigationMock}
-                            policy={undefined}
-                            report={invoiceReport}
-                            reportMetadata={undefined}
-                            reportLoadingState={undefined}
                             route={getRouteMock(invoiceReportID)}
                         />
                     </LocaleContextProvider>
@@ -357,12 +337,7 @@ describe('DynamicReportDetailsPage', () => {
                 <OnyxListItemProvider>
                     <LocaleContextProvider>
                         <DynamicReportDetailsPage
-                            isLoadingReportData={false}
                             navigation={navigationMock}
-                            policy={undefined}
-                            report={invoiceReport}
-                            reportMetadata={undefined}
-                            reportLoadingState={undefined}
                             route={getRouteMock(invoiceReportID)}
                         />
                     </LocaleContextProvider>

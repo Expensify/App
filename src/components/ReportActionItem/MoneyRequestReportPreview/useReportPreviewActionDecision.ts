@@ -6,8 +6,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {getConnectedIntegration, hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
-
-import {canIOUBePaid as canIOUBePaidIOUActions} from '@userActions/IOU/ReportWorkflow';
+import {canIOUBePaid} from '@libs/ReportUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {loginSelector} from '@src/selectors/PersonalDetails';
@@ -55,7 +54,7 @@ function useReportPreviewActionDecision({
     const isDEWSubmitPending = hasPendingDEWSubmit(iouReportMetadata, isDEWPolicy);
     const connectedIntegration = getConnectedIntegration(policy);
 
-    const canIOUBePaid = canIOUBePaidIOUActions(
+    const isIOUPayable = canIOUBePaid(
         iouReport,
         chatReport,
         policy,
@@ -68,8 +67,8 @@ function useReportPreviewActionDecision({
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
-        !canIOUBePaid &&
-        canIOUBePaidIOUActions(
+        !isIOUPayable &&
+        canIOUBePaid(
             iouReport,
             chatReport,
             policy,
@@ -81,7 +80,7 @@ function useReportPreviewActionDecision({
             isChatReportArchived,
             invoiceReceiverPolicy,
         );
-    const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
+    const shouldShowPayButton = isPaidAnimationRunning || isIOUPayable || onlyShowPayElsewhere;
 
     const reportPreviewAction = getReportPreviewAction({
         isReportArchived: isIouReportArchived || isChatReportArchived,
@@ -102,7 +101,7 @@ function useReportPreviewActionDecision({
         rules,
     });
 
-    return {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton, connectedIntegration};
+    return {reportPreviewAction, canIOUBePaid: isIOUPayable, onlyShowPayElsewhere, shouldShowPayButton, connectedIntegration};
 }
 
 export default useReportPreviewActionDecision;

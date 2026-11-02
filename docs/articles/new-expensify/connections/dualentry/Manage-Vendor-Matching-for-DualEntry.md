@@ -1,8 +1,8 @@
 ---
 title: Manage Vendor Matching for DualEntry
-description: Learn how DualEntry vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, subsidiary scoping, and default vendor behavior.
+description: Learn how DualEntry vendor matching assigns vendors to non-reimbursable company card expenses before they export, including automatic matching, manual selection, company scoping, and default vendor behavior.
 keywords: [DualEntry, vendor matching, vendor, company card expenses, default vendor for all company cards, Credit Card Misc, company card export]
-internalScope: Audience is workspace admins using the DualEntry connection for company card exports. Covers imported DualEntry vendors, subsidiary scoping, automatic and manual vendor assignment, default vendor behavior, the Credit Card Misc export fallback, and vendors that are no longer valid. Does not cover DualEntry connection setup, other DualEntry configuration settings, or vendor matching for other accounting connections.
+internalScope: Audience is workspace admins using the DualEntry connection for company card exports. Covers imported DualEntry vendors, company scoping, automatic and manual vendor assignment, default vendor behavior, the Credit Card Misc export fallback, and vendors that are no longer valid. Does not cover DualEntry connection setup, other DualEntry configuration settings, or vendor matching for other accounting connections.
 order: 3
 ---
 
@@ -24,9 +24,9 @@ If your workspace isn't connected to DualEntry yet, learn how to [connect to Dua
 Expensify only imports the vendors a workspace can actually export to. A DualEntry vendor appears in Expensify when it is:
 
  - Active in DualEntry.
- - Either assigned to the **Subsidiary** selected for the connection, or not assigned to any subsidiary.
+ - Either assigned to the **Company** selected for the connection, or not assigned to any company.
 
-Vendors assigned to a different subsidiary are not available, so changing the **Subsidiary** on the connection changes which vendors you can select.
+Vendors assigned to a different company are not available, so changing the **Company** on the connection changes which vendors you can select.
 
 The same list is used everywhere vendors appear in Expensify: automatic matching, the **Vendor** field on an expense, workspace merchant rules, and the **Default vendor for all company cards** setting.
 
@@ -48,6 +48,7 @@ The **Vendor** field appears only on non-reimbursable expenses. It isn't shown o
 2. Select **Vendor**.
 3. Search for the vendor by name.
 4. Select the vendor you want to assign.
+5. Select **Save**.
 
 Once a vendor is selected manually, Expensify preserves that selection and won't overwrite it with automatic matching.
 
@@ -59,7 +60,7 @@ Once a vendor is selected manually, Expensify preserves that selection and won't
 2. Select **Vendors**.
 3. Use **Find vendor** to search the list by name.
 
-Vendors are managed in DualEntry, so the list is read-only in Expensify and refreshes when the connection syncs.
+Vendors are managed in DualEntry, and the list refreshes when the connection syncs. To stop a vendor from appearing in the **Vendor** field on expenses, disable it in the **Enabled** column.
 
 ## How to set a default vendor for all company cards in DualEntry
 
@@ -83,7 +84,7 @@ If no **Credit Card Misc** vendor exists in DualEntry, Expensify creates one on 
 
 ## What happens when a DualEntry vendor is no longer valid
 
-If a vendor assigned to an expense is deactivated in DualEntry, or is no longer available to the selected **Subsidiary**, the expense displays a **Vendor no longer valid** error, similar to category, tag, and tax violations.
+If a vendor assigned to an expense is deactivated in DualEntry, or is no longer available to the selected **Company**, the expense displays a **Vendor no longer valid** error, similar to category, tag, and tax violations.
 
 Select an active vendor on the expense to clear the error. You can also select **None** to leave the **Vendor** field empty.
 
@@ -105,11 +106,11 @@ Yes. Once a workspace admin manually assigns a vendor to an expense, Expensify p
 
 ## Why don't I see any vendors to choose from?
 
-The vendor selector shows **No vendors found** when no DualEntry vendors are available to your workspace. This happens when your DualEntry vendor list is empty, when every vendor is inactive, or when every vendor belongs to a different subsidiary than the one selected for the connection. Add or activate the vendors in DualEntry, then sync the connection again.
+The vendor selector shows **No vendors found** when no DualEntry vendors are available to your workspace. This happens when your DualEntry vendor list is empty, when every vendor is inactive, or when every vendor belongs to a different company than the one selected for the connection. Add or activate the vendors in DualEntry, then sync the connection again.
 
-## Why did a vendor disappear after I changed the subsidiary?
+## Why did a vendor disappear after I changed the company?
 
-Vendors are scoped to the **Subsidiary** selected for the DualEntry connection. After you change the subsidiary, vendors that belong only to the previous subsidiary are no longer available, and expenses or merchant rules using them need an available vendor selected instead.
+Vendors are scoped to the **Company** selected for the DualEntry connection. After you change the company, vendors that belong only to the previous company are no longer available, and expenses or merchant rules using them need an available vendor selected instead.
 
 ## How do I know why Expensify assigned a vendor automatically?
 

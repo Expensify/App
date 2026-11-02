@@ -24,7 +24,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type QuickbooksDesktopAutoSyncPageBaseParams = {
     policy: OnyxEntry<Policy>;
@@ -41,9 +41,12 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
     const pendingAction =
         settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], pendingFields);
 
-    const goBack = useCallback(() => {
-        Navigation.goBack(navigateBackTo ?? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)));
-    }, [policyID, navigateBackTo]);
+    const goBack = () => {
+        Navigation.goBack(
+            navigateBackTo ??
+                (policyID ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID)) : undefined),
+        );
+    };
 
     return (
         <ConnectionLayout

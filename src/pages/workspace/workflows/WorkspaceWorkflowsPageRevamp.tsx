@@ -7,6 +7,7 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -41,7 +42,7 @@ import type SCREENS from '@src/SCREENS';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import WorkflowsApprovalsTab from './tabs/WorkflowsApprovalsTab';
@@ -66,6 +67,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Download', 'Send', 'ThumbsUp', 'MoneyBag', 'Wrench']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
@@ -73,10 +75,10 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
 
-    const fetchData = useCallback(() => {
+    const fetchData = () => {
         openPolicyWorkflowsPage(policyID, true);
         getPaymentMethods();
-    }, [policyID]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const canReadWorkflows = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
@@ -97,14 +99,14 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
 
     // The read-only modal says the role can view but not edit, which isn't true here — a disabled tab can't be opened at
     // all — so these tabs get their own "no access" explanation.
-    const showNoAccessModal = useCallback(() => {
+    const showNoAccessModal = () => {
         showConfirmModal({
             title: translate('workspace.common.readOnlyActionTitle'),
             prompt: translate('workspace.common.noAccessActionPrompt'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
     const [lastSelectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.WORKFLOWS_TAB_TYPE}`);
     // A `?tab=` deep link wins over the persisted tab until it has been handed over to Onyx by the effect below.
@@ -187,13 +189,13 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
         }
     };
 
-    const navigateToSubmitWorkspaceApprovalsUpgrade = useCallback(() => {
+    const navigateToSubmitWorkspaceApprovalsUpgrade = () => {
         Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvalSubmit.alias, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)));
-    }, [policyID]);
+    };
 
     // Reuses the Members spreadsheet importer (it already maps the `submitsTo` / `approvesTo` columns) so approval
     // workflows can be bulk-imported directly from the Workflows page.
-    const importWorkflowsAction = useCallback(() => {
+    const importWorkflowsAction = () => {
         if (isAccountLocked) {
             showLockedAccountModal();
             return;
@@ -214,10 +216,10 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(policyID));
-    }, [isAccountLocked, showLockedAccountModal, isOffline, showConfirmModal, translate, policyID, isSubmitPolicyWorkspace, navigateToSubmitWorkspaceApprovalsUpgrade]);
+    };
 
     // The Workflows CSV export reuses the Members export command so the downloaded file is identical to Members > Download CSV.
-    const downloadWorkflowsAction = useCallback(() => {
+    const downloadWorkflowsAction = () => {
         if (isOffline) {
             showConfirmModal({
                 title: translate('common.youAppearToBeOffline'),
@@ -240,7 +242,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
             },
             translate,
         );
-    }, [isOffline, showConfirmModal, translate, policyID]);
+    };
 
     // A Dynamic External Workflow with "Hide People Table Columns" keeps the approval workflows out of the customer's
     // hands entirely, so the importer that would edit them is blocked too.
@@ -310,6 +312,7 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
                 <View style={[styles.flexRow, styles.mb1, styles.w100]}>
                     <TabSelectorContextProvider activeTabKey={activeTab}>
                         <TabSelectorBase
+                            contentContainerStyles={pageGutter}
                             tabs={tabs}
                             activeTabKey={activeTab}
                             onTabPress={handleTabPress}

@@ -34,6 +34,7 @@ import TagSelector from './TagSelector';
 import TaxRateSelector from './TaxRateSelector';
 import TypeSelector from './TypeSelector';
 import UserSelector from './UserSelector';
+import VendorSelector from './VendorSelector';
 import WorkspaceSelector from './WorkspaceSelector';
 
 type FilterKeys = Exclude<SearchFilter['key'], SearchDateFilterKeys | SearchAmountFilterKeys | SearchTextFilterKeys | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD>;
@@ -49,6 +50,8 @@ type ListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[
 type SingleSelectFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS;
 type SingleSelectListFilterContentProps = SearchFilterCommonProps<SearchAdvancedFiltersForm[SingleSelectFilterKeys] | undefined> & {
@@ -194,6 +197,7 @@ function ListFilterContent({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY: {
             const Component = {
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED]: FeedSelector,
@@ -203,6 +207,7 @@ function ListFilterContent({
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE]: TaxRateSelector,
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO]: ExportedToSelector,
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG]: TagSelector,
+                [CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR]: VendorSelector,
                 [CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY]: CategorySelector,
             }[baseFilterKey];
             content = (
@@ -250,6 +255,8 @@ function ListFilterContent({
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
             const isSingleSelectFilterValue = (v: ListFilterContentProps['value']): v is SingleSelectListFilterContentProps['value'] => {
@@ -292,6 +299,7 @@ function ListFilterContent({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
             content = (
                 <UserSelector

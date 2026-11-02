@@ -4,9 +4,12 @@ import type {BankAccountList, Policy, Report, ReportMetadata, Rule, Transaction,
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
+
 import {
     arePaymentsEnabled,
     canAdminPayReport,
+    getIntegrationAccountingMethod,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
@@ -22,13 +25,15 @@ import {
     getParentReport,
     hasExportError as hasExportErrorUtil,
     hasOnlyNonReimbursableTransactions,
+    isCardOnlyReport,
+    hasSettledZeroReimbursableSpend,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
     isInvoiceReport,
     isIOUReport,
     isOpenReport,
-    isPayBlockedByArchivedState,
+    isPayBlocked,
     isPayer,
     isProcessingReport,
     isReportApproved,
@@ -72,7 +77,10 @@ function canSubmit(
 
     const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
 
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+    // Mirrors the header's isSubmitAction gate: prevented self-approval hides Submit from everyone EXCEPT the submitter,
+    // who still gets the action so SubmitActionButton can mount and render it disabled. Dropping the !isSubmitter
+    // qualifier here would hide the preview's Submit entirely while the header shows a disabled one for the same report.
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isSubmitter) {
         return false;
     }
 
@@ -130,7 +138,7 @@ function canPay(
 ) {
     const isExpense = isExpenseReport(report);
 
-    if (isPayBlockedByArchivedState(report, policy, isReportArchived)) {
+    if (isPayBlocked(report, policy, isReportArchived)) {
         return false;
     }
 
@@ -145,7 +153,8 @@ function canPay(
     const isApproved = isReportApproved({report}) || isSubmittedWithoutApprovalsEnabled;
     const isClosed = isClosedReport(report);
     const isReportFinished = (isApproved || isClosed) && !report.isWaitingOnBankAccount;
-    const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const spendBreakdown = getMoneyRequestSpendBreakdown(report);
+    const {reimbursableSpend, nonReimbursableSpend} = spendBreakdown;
     const isReimbursed = isSettled(report);
 
     const isExported = report.isExportedToIntegration ?? false;
@@ -157,7 +166,9 @@ function canPay(
         canPayReport &&
         isPaymentsEnabled &&
         isReportFinished &&
-        (reimbursableSpend !== 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, transactions)))
+        (reimbursableSpend !== 0 ||
+            ((nonReimbursableSpend !== 0 || hasSettledZeroReimbursableSpend(spendBreakdown, report, transactions)) &&
+                !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report?.reportID, transactions))))
     ) {
         return !didExportFail;
     }
@@ -186,7 +197,7 @@ function canPay(
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
+function canExport(report: Report, currentUserLogin: string, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPreferredExporter(policy, currentUserLogin) : false;
     const isReimbursed = isSettled(report);
@@ -211,6 +222,10 @@ function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
 
     if (report.isWaitingOnBankAccount) {
         return false;
+    }
+
+    if (getIntegrationAccountingMethod(policy, connectedIntegration) === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH) {
+        return isReimbursed || ((isApproved || isClosed) && isCardOnlyReport(report, transactions));
     }
 
     return isApproved || isReimbursed || isClosed;
@@ -281,7 +296,7 @@ function getReportPreviewAction({
     if (canPay(report, isReportArchived, currentUserAccountID, currentUserLogin, bankAccountList, transactions, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, currentUserLogin, policy)) {
+    if (canExport(report, currentUserLogin, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 

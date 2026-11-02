@@ -1,5 +1,7 @@
 import type {MeasurableInput} from '@components/SelectionList/SelectionListWithSections/types';
 
+import type {ScrollableNodeHolder} from '@hooks/useVerticalScrollbarWidth/types';
+
 import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
@@ -40,6 +42,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** Reference to the underlying FlashList for programmatic control. */
     listRef: React.RefObject<FlashListRef<DataType> | null>;
 
+    /** Attached to the list alongside `listRef` so the table can measure the element that scrolls. */
+    measureScrollbarRef: (instance: ScrollableNodeHolder | null) => void;
+
     /** Ref for the view wrapping the table list; its top is the anchor used when scrolling a focused input above the keyboard. */
     listContainerRef: React.RefObject<ComponentRef<typeof View> | null>;
 
@@ -54,6 +59,15 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Whether or not selection is enabled for the table */
     selectionEnabled?: boolean;
+
+    /** The keys of the rows the selection currently covers. */
+    selectedKeys: string[];
+
+    /**
+     * Whether the floating bulk action bar is showing for the current selection. The list reads it too, because it has
+     * to reserve the space the bar floats over or its last rows sit behind the bar once scrolled to the bottom.
+     */
+    isBulkActionBarVisible: boolean;
 
     /** Whether the selection UX should key off the real screen size instead of shouldUseNarrowLayout (for tables inside a narrow pane modal / RHP) */
     shouldEnableSelectionInNarrowPaneModal?: boolean;
@@ -73,10 +87,13 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
      */
     dynamicGridTemplateColumns: string[] | undefined;
 
-    /** The width the rows need when the columns don't fit, which makes the list scroll horizontally too. `undefined` means they fit. */
-    scrollWidth: number | undefined;
+    /** Row width when the columns overflow and the list scrolls horizontally, or `undefined` when they fit. A CSS expression while resizable, so drags need no re-render. */
+    scrollWidth: number | string | undefined;
 
-    /** Measured width of the area the table lays out into. Content-sized columns only. `0` until the first layout. */
+    /** Row box width while resizable, so the row background follows a drag. `undefined` otherwise. */
+    rowWidth: string | undefined;
+
+    /** Width the rows are really given, so the measured area less any vertical scrollbar. `0` until the first layout. */
     tableWidth: number;
 
     /** Filter configuration for dropdown filters. */
@@ -131,6 +148,7 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
 const defaultTableContextValue: TableContextValue<TableData, string> = {
     listRef: React.createRef(),
+    measureScrollbarRef: () => {},
     listContainerRef: React.createRef(),
     trackScrollOffset: () => {},
     scrollInputIntoView: () => {},
@@ -139,6 +157,7 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     columns: [],
     dynamicGridTemplateColumns: undefined,
     scrollWidth: undefined,
+    rowWidth: undefined,
     tableWidth: 0,
     activeFilters: {},
     activeSorting: {
@@ -163,6 +182,8 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     },
     isEmptyResult: false,
     isDefaultViewEmpty: false,
+    selectedKeys: [],
+    isBulkActionBarVisible: false,
     shouldUseNarrowTableLayout: false,
     isMobileSelectionEnabled: false,
 };

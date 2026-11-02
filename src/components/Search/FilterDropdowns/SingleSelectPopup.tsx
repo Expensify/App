@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 
 import BasePopup from './BasePopup';
 
@@ -64,15 +64,15 @@ function SingleSelectPopup<T extends string>({
 }: SingleSelectPopupProps<T>) {
     const [selectedItem, setSelectedItem] = useState(value);
 
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         onChange(selectedItem);
         closeOverlay();
-    }, [closeOverlay, onChange, selectedItem]);
+    };
 
-    const resetChanges = useCallback(() => {
+    const resetChanges = () => {
         onChange(items.find((item) => item.value === defaultValue));
         closeOverlay();
-    }, [closeOverlay, onChange, defaultValue, items]);
+    };
 
     return (
         <BasePopup

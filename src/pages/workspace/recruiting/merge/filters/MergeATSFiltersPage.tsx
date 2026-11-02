@@ -2,7 +2,7 @@ import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateMergeATSFilters} from '@libs/actions/connections/merge/ATS';
 import {isMergeConnected} from '@libs/merge/MergeUtils';
-import {getMergeATSFilterValues, getConnectedATSProvider, getMergeATSFilterLabel} from '@libs/merge/RecruitingUtils';
+import {getConnectedATSProvider, getMergeATSFilterLabel} from '@libs/merge/RecruitingUtils';
 import type {MergeATSFilterType} from '@libs/merge/RecruitingUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -51,6 +51,9 @@ function MergeATSFiltersPage({
     const filters = useMergeATSFiltersDraftState(policyID);
     const {setFilter} = useMergeATSFiltersDraftActions();
 
+    // A freshly enabled dimension has no values yet, so a toggle is on when it has values or was switched on by the admin
+    const [switchedOnFilters, setSwitchedOnFilters] = useState<Partial<Record<MergeATSFilterType, boolean>>>({});
+
     const providerName = getConnectedATSProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_ats;
 
     const filterRows: Array<{filterType: MergeATSFilterType; toggleTitle: string; rowDescription: string}> = [
@@ -74,10 +77,8 @@ function MergeATSFiltersPage({
     const hasRequiredFilter = !!filters.tags?.length || !!filters.stages?.length;
 
     const toggleFilter = (filterType: MergeATSFilterType, isEnabled: boolean) => {
-        if (errorKey && isEnabled && filterType !== CONST.MERGE.ATS_FILTER_TYPE.OFFICES) {
-            setErrorKey(undefined);
-        }
-        setFilter(filterType, isEnabled ? getMergeATSFilterValues(filterType, mergeATS?.data) : []);
+        setSwitchedOnFilters((previous) => ({...previous, [filterType]: isEnabled}));
+        setFilter(filterType, []);
     };
 
     const handleSave = () => {
@@ -114,17 +115,17 @@ function MergeATSFiltersPage({
                                     title={toggleTitle}
                                     switchAccessibilityLabel={toggleTitle}
                                     toggleContainerStyles={[styles.pv3, styles.mh5]}
-                                    isActive={!!filters[filterType]?.length}
+                                    isActive={!!filters[filterType]?.length || !!switchedOnFilters[filterType]}
                                     onToggle={(isEnabled) => toggleFilter(filterType, isEnabled)}
                                     subMenuItems={
                                         <>
-                                            <MenuItemWithTopDescription
-                                                description={rowDescription}
-                                                title={getMergeATSFilterLabel(filterType, filters, mergeATS?.data, translate)}
-                                                shouldShowRightIcon
-                                                style={[styles.ph5, styles.mv3]}
-                                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.getRoute(policyID, filterType))}
-                                            />
+                                            <View style={styles.mv3}>
+                                                <MenuItemField
+                                                    name={rowDescription}
+                                                    value={getMergeATSFilterLabel(filterType, filters, mergeATS?.data, translate)}
+                                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_RECRUITING_MERGE_IMPORT_SETTINGS_FILTER.getRoute(policyID, filterType))}
+                                                />
+                                            </View>
                                             {index !== filterRows.length - 1 && <View style={[styles.sectionDividerLine, styles.mh5]} />}
                                         </>
                                     }
@@ -134,7 +135,7 @@ function MergeATSFiltersPage({
                     </OfflineWithFeedback>
                 </ScrollView>
                 <FixedFooter addBottomSafeAreaPadding>
-                    {!!errorKey && (
+                    {!!errorKey && !hasRequiredFilter && (
                         <FormHelpMessage
                             isError
                             message={translate(errorKey)}

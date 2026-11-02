@@ -1,3 +1,4 @@
+import {buildDeleteApprovalWorkflowRulesOnyxData} from '@libs/actions/Workflow';
 import {write} from '@libs/API';
 import type {ConnectPolicyToGustoParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -6,8 +7,9 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Rule from '@src/types/onyx/Rule';
 
-import type {OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
@@ -24,14 +26,17 @@ function getGustoSetupLink(policyID: string) {
 function updateGustoApprovalMode(
     policyID: string | undefined,
     approvalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE>,
-    currentApprovalMode?: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null,
+    currentApprovalMode: ValueOf<typeof CONST.GUSTO.APPROVAL_MODE> | null | undefined,
+    rules: OnyxCollection<Rule>,
 ) {
     if (!policyID) {
         return;
     }
 
+    // In every mode but custom, Gusto's syncs set the approvers, so the backend deletes the workspace's approval workflow rules
+    const approvalWorkflowRulesOnyxData = approvalMode === CONST.GUSTO.APPROVAL_MODE.CUSTOM ? undefined : buildDeleteApprovalWorkflowRulesOnyxData(policyID, rules);
     const previousApprovalMode = currentApprovalMode ?? null;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -47,8 +52,9 @@ function updateGustoApprovalMode(
                 },
             },
         },
+        ...(approvalWorkflowRulesOnyxData?.optimisticData ?? []),
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -63,8 +69,9 @@ function updateGustoApprovalMode(
                 },
             },
         },
+        ...(approvalWorkflowRulesOnyxData?.successData ?? []),
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -80,6 +87,7 @@ function updateGustoApprovalMode(
                 },
             },
         },
+        ...(approvalWorkflowRulesOnyxData?.failureData ?? []),
     ];
 
     write(WRITE_COMMANDS.UPDATE_GUSTO_APPROVAL_MODE, {policyID, approvalMode}, {optimisticData, successData, failureData});

@@ -37,7 +37,12 @@ final class HybridContactsModule: HybridContactsModuleSpec {
             return contacts
         }
     }
-    
+
+    // The system contact picker is only used on Android, where READ_CONTACTS can't be requested. iOS keeps using getAll.
+    func pick(keys: [ContactFields]) throws -> Promise<[Contact]> {
+        Promise.resolved(withResult: [])
+    }
+
     // This annotation forces the compiler to inline this function at every call site,
     // eliminating function call overhead for better performance during contact processing
     @inline(__always)

@@ -41,7 +41,7 @@ type PnrTraveler = {
     travelerInfo: Record<string, unknown>;
 
     /** Personal information of the traveler. */
-    personalInfo: {
+    personalInfo?: {
         /** Addresses of the traveler. */
         addresses: unknown[];
 
@@ -52,7 +52,7 @@ type PnrTraveler = {
         email: string;
 
         /** Name details of the traveler. */
-        name: {
+        name?: {
             /** Family name part 1. */
             family1: string;
             /** Family name part 2. */
@@ -84,7 +84,7 @@ type PnrData = {
     version: number;
 
     /** List of travelers associated with the PNR. */
-    travelers: Array<{
+    travelers?: Array<{
         travelerPersonalInfo: {
             /** Loyalty information for the traveler. */
             loyaltyInfos: unknown[];
@@ -309,9 +309,9 @@ type AirPnr = {
                 unit: string;
             };
             /** Duration of the flight. */
-            duration: {
+            duration?: {
                 /** ISO 8601 format. */
-                iso8601: string;
+                iso8601?: string;
             };
             /** Equipment details for the flight. */
             equipment: {
@@ -525,7 +525,7 @@ type AirPnr = {
         /** Special service request information for the traveler. */
         specialServiceRequestInfos: unknown[];
         /** Tickets associated with the traveler. */
-        tickets: Array<{
+        tickets?: Array<{
             /** Amount details for the ticket. */
             amount: {
                 /** Base fare details. */
@@ -600,7 +600,7 @@ type AirPnr = {
             /** Fare calculation details for the ticket. */
             fareCalculation: string;
             /** Flight coupons associated with the ticket. */
-            flightCoupons: Array<{
+            flightCoupons?: Array<{
                 /** Index of the flight. */
                 flightIdx: number;
                 /** Index of the leg. */
@@ -804,7 +804,7 @@ type AirPnr = {
         /** Last confirmed tickets before cancellation/voiding. */
         lastConfirmedTickets?: Array<{
             /** Flight coupons associated with the ticket. */
-            flightCoupons: Array<{
+            flightCoupons?: Array<{
                 /** Index of the flight. */
                 flightIdx: number;
                 /** Index of the leg. */
@@ -816,7 +816,7 @@ type AirPnr = {
         /** Index of the traveler. */
         travelerIdx: number;
         /** User ID associated with the traveler. */
-        userId: {
+        userId?: {
             id: string;
         };
     }>;
@@ -1123,12 +1123,12 @@ type HotelPnr = {
         /** Cancellation policy for the room. */
         cancellationPolicy: {
             /** Deadline for the cancellation. */
-            deadline: {
+            deadline?: {
                 /** ISO 8601 format. */
                 iso8601: string;
             };
             /** Deadline in UTC for the cancellation. */
-            deadlineUtc: {
+            deadlineUtc?: {
                 /** ISO 8601 format. */
                 iso8601: string;
             };
@@ -1138,7 +1138,7 @@ type HotelPnr = {
             /** Deadline in duration before the check-in date time. */
             durationBeforeArrivalDeadline?: {
                 /** ISO 8601 format. */
-                iso8601: string;
+                iso8601?: string;
             };
         };
         /** Guarantee type for the room. */
@@ -1349,13 +1349,13 @@ type HotelPnr = {
     /** Source status of the booking. */
     sourceStatus: string;
     /** Traveler information for the booking. */
-    travelerInfos: Array<{
+    travelerInfos?: Array<{
         /** Loyalty information for the traveler. */
         loyaltyInfos: unknown[];
         /** Index of the traveler. */
         travelerIdx: number;
         /** User ID associated with the traveler. */
-        userId: {
+        userId?: {
             id: string;
         };
     }>;
@@ -1370,12 +1370,12 @@ type HotelPnr = {
 /** Represents the structure of CarPnr. */
 type CarPnr = {
     /** Cancellation policy for the car booking. */
-    cancellationPolicy: {
+    cancellationPolicy?: {
         /** Policy details for the car booking. */
         policy: string;
 
         /** Deadline for the car booking. */
-        deadline: {
+        deadline?: {
             /** ISO 8601 format. */
             iso8601: string;
         };
@@ -1648,7 +1648,7 @@ type RailPnr = {
         /** Amenities available for the leg. */
         amenities: unknown[];
         /** Arrival time in ISO 8601 format. */
-        arriveAt: {
+        arriveAt?: {
             /** ISO 8601 format. */
             iso8601: string;
         };
@@ -1660,7 +1660,7 @@ type RailPnr = {
         carrierConfirmationNumber: string;
         co2EmissionGramsPerPassenger: number;
         /** Departure time in ISO 8601 format. */
-        departAt: {
+        departAt?: {
             /** ISO 8601 format. */
             iso8601: string;
         };
@@ -1671,7 +1671,7 @@ type RailPnr = {
         };
         /** Destination of the leg. */
         destination: string;
-        destinationInfo: {
+        destinationInfo?: {
             /** City code of the destination. */
             cityCode: string;
             /** City name of the destination. */
@@ -1713,16 +1713,16 @@ type RailPnr = {
             unit: string;
         };
         /** Duration of the leg in ISO 8601 format. */
-        duration: {
+        duration?: {
             /** ISO 8601 format. */
-            iso8601: string;
+            iso8601?: string;
         };
         /** Fare type for the leg. */
         fareType: string;
         legId: string;
         /** Origin of the leg. */
         origin: string;
-        originInfo: {
+        originInfo?: {
             /** City code of the origin. */
             cityCode: string;
             /** City name of the origin. */
@@ -1876,7 +1876,7 @@ type RailPnr = {
     };
 
     /** Passenger information for the rail booking. */
-    passengerInfos: Array<{
+    passengerInfos?: Array<{
         /** Type of the passenger (e.g., ADULT, CHILD). */
         passengerType: string;
 
@@ -1906,7 +1906,7 @@ type RailPnr = {
     }>;
 
     /** Tickets associated with the rail booking. */
-    tickets: Array<{
+    tickets?: Array<{
         /** Legs associated with the ticket. */
         legs: number[];
 

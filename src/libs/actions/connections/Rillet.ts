@@ -12,6 +12,7 @@ import type {
     UpdateRilletExporterParams,
     UpdateRilletExportToMultipleAccountsParams,
     UpdateRilletFieldMappingParams,
+    UpdateRilletFxExpenseAccountParams,
     UpdateRilletSettlementsAccountParams,
     UpdateRilletSubsidiaryParams,
     UpdateRilletSyncExpensifyCardSettlementsParams,
@@ -25,7 +26,7 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {RilletAutoSync, RilletCoding, RilletConnectionsConfig, RilletExport, RilletSync} from '@src/types/onyx/Policy';
+import type {RilletAccount, RilletAutoSync, RilletCoding, RilletConnectionsConfig, RilletExport, RilletSync} from '@src/types/onyx/Policy';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -706,6 +707,15 @@ function updateRilletBillPaymentAccount(policyID: string, billPaymentAccountCode
     write(WRITE_COMMANDS.UPDATE_RILLET_BILL_PAYMENT_ACCOUNT, parameters, onyxData);
 }
 
+function updateRilletFxExpenseAccount(policyID: string, fxExpenseAccountCode: RilletAccount['code'], oldFxExpenseAccountCode?: RilletSync['fxExpenseAccountCode']) {
+    const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.FX_EXPENSE_ACCOUNT_CODE, fxExpenseAccountCode, oldFxExpenseAccountCode ?? null);
+    const parameters: UpdateRilletFxExpenseAccountParams = {
+        policyID,
+        fxExpenseAccountCode,
+    };
+    write(WRITE_COMMANDS.UPDATE_RILLET_FX_EXPENSE_ACCOUNT, parameters, onyxData);
+}
+
 function updateRilletSyncExpensifyCardSettlements(policyID: string, enabled: RilletSync['syncExpensifyCardSettlements'], oldEnabled?: RilletSync['syncExpensifyCardSettlements']) {
     const onyxData = prepareRilletSyncOnyxData(policyID, CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS, enabled, oldEnabled ?? null);
     const parameters: UpdateRilletSyncExpensifyCardSettlementsParams = {
@@ -794,6 +804,7 @@ export {
     updateRilletAccountingMethod,
     updateRilletSyncReimbursedReports,
     updateRilletBillPaymentAccount,
+    updateRilletFxExpenseAccount,
     updateRilletSyncExpensifyCardSettlements,
     updateRilletSettlementsAccount,
     updateRilletSyncTravelBillingSettlements,

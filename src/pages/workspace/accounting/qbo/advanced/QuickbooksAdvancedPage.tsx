@@ -29,10 +29,10 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
-const reimbursementOrCollectionAccountIDs = [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID];
+const reimbursementAccountIDs = [CONST.QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID];
 const collectionAccountIDs = [CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID];
 const fxExpenseAccounts = [CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT];
 
@@ -49,25 +49,19 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const {bankAccounts, creditCards, expenseAccounts, otherCurrentAssetAccounts, vendors} = policy?.connections?.quickbooksOnline?.data ?? {};
     const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qboConfig?.nonReimbursableBillDefaultVendor);
 
-    const qboAccountOptions = useMemo(() => [...(bankAccounts ?? []), ...(creditCards ?? [])], [bankAccounts, creditCards]);
-    const invoiceAccountCollectionOptions = useMemo(() => [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])], [bankAccounts, otherCurrentAssetAccounts]);
+    const qboAccountOptions = [...(bankAccounts ?? []), ...(creditCards ?? [])];
+    const invoiceAccountCollectionOptions = [...(bankAccounts ?? []), ...(otherCurrentAssetAccounts ?? [])];
 
-    const isSyncReimbursedSwitchOn = useMemo(
-        () => !!qboConfig?.collectionAccountID || !!qboConfig?.reimbursementAccountID,
-        [qboConfig?.collectionAccountID, qboConfig?.reimbursementAccountID],
-    );
+    const isSyncReimbursedSwitchOn = !!qboConfig?.collectionAccountID || !!qboConfig?.reimbursementAccountID;
 
     const reimbursementAccountID = qboConfig?.reimbursementAccountID;
-    const selectedQboAccountName = useMemo(() => qboAccountOptions?.find(({id}) => id === reimbursementAccountID)?.name, [qboAccountOptions, reimbursementAccountID]);
+    const selectedQboAccountName = qboAccountOptions?.find(({id}) => id === reimbursementAccountID)?.name;
     const collectionAccountID = qboConfig?.collectionAccountID;
 
-    const selectedInvoiceCollectionAccountName = useMemo(
-        () => invoiceAccountCollectionOptions?.find(({id}) => id === collectionAccountID)?.name,
-        [invoiceAccountCollectionOptions, collectionAccountID],
-    );
+    const selectedInvoiceCollectionAccountName = invoiceAccountCollectionOptions?.find(({id}) => id === collectionAccountID)?.name;
 
     const fxExpenseAccount = qboConfig?.fxExpenseAccount;
-    const selectedFxExpenseAccountName = useMemo(() => expenseAccounts?.find(({id}) => id === fxExpenseAccount)?.name, [expenseAccounts, fxExpenseAccount]);
+    const selectedFxExpenseAccountName = expenseAccounts?.find(({id}) => id === fxExpenseAccount)?.name;
     const autoCreateVendorConst = CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR;
     const defaultVendorConst = CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR;
 
@@ -79,9 +73,9 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             title: selectedQboAccountName,
             description: translate('workspace.qbo.advancedConfig.qboBillPaymentAccount', integrationName),
             onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR.getRoute(policyID))),
-            subscribedSettings: reimbursementOrCollectionAccountIDs,
-            brickRoadIndicator: areSettingsInErrorFields(reimbursementOrCollectionAccountIDs, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            pendingAction: settingsPendingAction(reimbursementOrCollectionAccountIDs, qboConfig?.pendingFields),
+            subscribedSettings: reimbursementAccountIDs,
+            brickRoadIndicator: areSettingsInErrorFields(reimbursementAccountIDs, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+            pendingAction: settingsPendingAction(reimbursementAccountIDs, qboConfig?.pendingFields),
         },
         {
             key: 'qboInvoiceCollectionAccount',
@@ -184,6 +178,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="QuickbooksAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}

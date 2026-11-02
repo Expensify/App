@@ -112,7 +112,6 @@ function BaseTextInput({
 
     const {hasError = false} = inputProps;
     // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const initialValue = value || defaultValue || '';
     const initialActiveLabel = !!forceActiveLabel || initialValue.length > 0 || !!prefixCharacter || !!suffixCharacter;
     const isMultiline = multiline || autoGrowHeight;

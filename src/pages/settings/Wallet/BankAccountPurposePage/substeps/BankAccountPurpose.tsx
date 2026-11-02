@@ -4,12 +4,21 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
+import Navigation from '@navigation/Navigation';
 
 import variables from '@styles/variables';
 
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 
+import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import {isCollectingDepositAccountsSelector} from '@selectors/Policy';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -22,6 +31,16 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['BankCoin', 'WalletAlt2']);
+    const [isCollectingDepositAccounts = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isCollectingDepositAccountsSelector});
+
+    // A workspace collecting deposit accounts needs the bank details its country requires, which the wallet setup does not ask for.
+    const onGetReimbursedPressed = () => {
+        if (isCollectingDepositAccounts) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.COLLECT_DEPOSIT_ACCOUNT.getRoute()));
+            return;
+        }
+        openPersonalBankAccountSetupView({});
+    };
 
     return (
         <FullPageOfflineBlockingView>
@@ -32,7 +51,7 @@ function BankAccountPurpose({showCountrySelectionStep}: BankAccountPurposeProps)
                     title={translate('bankAccount.getReimbursed')}
                     description={translate('bankAccount.getReimbursedDescription')}
                     shouldShowRightIcon
-                    onPress={() => openPersonalBankAccountSetupView({})}
+                    onPress={onGetReimbursedPressed}
                     displayInDefaultIconColor
                     iconStyles={[styles.ml3, styles.mr2]}
                     iconWidth={variables.menuIconSize}

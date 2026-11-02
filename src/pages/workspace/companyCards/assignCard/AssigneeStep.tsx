@@ -14,6 +14,7 @@ import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import usePolicy from '@hooks/usePolicy';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setDraftInviteAccountID} from '@libs/actions/Card';
@@ -24,7 +25,15 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getSearchValueForPhoneOrEmail} from '@libs/OptionsListUtils';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
-import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {
+    canMemberWrite,
+    canRoleCreateExpenses,
+    filterGuideAndAccountManager,
+    getGuideAndAccountManagerInfo,
+    getIneligibleInvitees,
+    isDeletedPolicyEmployee,
+    shouldHideExpensifyTeamCardholder,
+} from '@libs/PolicyUtils';
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import sortAlphabetically from '@libs/sortAlphabetically';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -42,7 +51,7 @@ import type SCREENS from '@src/SCREENS';
 import type {AssignCardData} from '@src/types/onyx/AssignCard';
 
 import {Str} from 'expensify-common';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 type AssigneeStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE>;
@@ -59,6 +68,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const policy = usePolicy(policyID);
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
@@ -90,11 +100,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         excludedUsers[login] = true;
     }
 
-    const {
-        assignedGuideEmail,
-        accountManagerLogin,
-        exclusions: softExclusions,
-    } = useMemo(() => getGuideAndAccountManagerInfo(policy, account?.accountManagerAccountID, personalDetails), [policy, account?.accountManagerAccountID, personalDetails]);
+    const {assignedGuideEmail, accountManagerLogin, exclusions: softExclusions} = getGuideAndAccountManagerInfo(policy, account?.accountManagerAccountID, personalDetails);
 
     const {searchTerm, setSearchTerm, debouncedSearchTerm, availableOptions, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
@@ -132,8 +138,8 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 cardToAssign.cardName = assignCard.cardToAssign.cardName;
                 // Preserve any start date the user already picked based on the saved data rather than `isEditing`.
                 // `isEditing` is false on the header-back-then-Next round trip, so keying off it here would wipe the
-                // chosen date. In a fresh flow `startDate`/`dateOption` are undefined, so both helpers still fall back
-                // to today/CUSTOM.
+                // chosen date. In a fresh flow `useAssignCard` seeds FROM_BEGINNING for CSV feeds. For other feeds
+                // `startDate`/`dateOption` are undefined, so both helpers fall back to today/CUSTOM.
                 cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
                 cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
                 setAssignCardStepAndData({
@@ -213,10 +219,17 @@ function AssigneeStep({route}: AssigneeStepProps) {
         Navigation.goBack();
     };
 
+    // Hide Expensify staff from member and search results, but keep the current cardholder visible while editing.
+    const isHiddenExpensifyStaff = (login: string | null | undefined) => shouldHideExpensifyTeamCardholder(login, initialAssigneeEmail, policy?.owner, session?.email);
+
     const membersDetails: AssigneeListItem[] = [];
     if (policy?.employeeList) {
         for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
-            if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
+            if (isDeletedPolicyEmployee(policyEmployee, isOffline) || (policyEmployee.role && !canRoleCreateExpenses(policyEmployee.role))) {
+                continue;
+            }
+
+            if (isHiddenExpensifyStaff(email)) {
                 continue;
             }
 
@@ -263,11 +276,13 @@ function AssigneeStep({route}: AssigneeStepProps) {
               ]
             : filteredOptions;
 
-        assignees = options.map((option) => ({
-            ...option,
-            keyForList: option.keyForList ?? option.login ?? '',
-            isSelected: !!selectedAssignee?.login && selectedAssignee.login === option.login,
-        }));
+        assignees = options
+            .filter((option) => !isHiddenExpensifyStaff(option.login))
+            .map((option) => ({
+                ...option,
+                keyForList: option.keyForList ?? option.login ?? '',
+                isSelected: !!selectedAssignee?.login && selectedAssignee.login === option.login,
+            }));
     } else if (debouncedSearchTerm) {
         assignees = [];
     }
@@ -328,6 +343,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                     disableMaintainingScrollPosition
                     shouldUpdateFocusedIndex
                     addBottomSafeAreaPadding
+                    shouldFooterBeInsideList={shouldFooterBeInsideList}
                     footerContent={
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.next')}

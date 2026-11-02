@@ -8,6 +8,7 @@ import isPublicScreenRoute from '@libs/isPublicScreenRoute';
 import Log from '@libs/Log';
 import {setDeepLinkToOpenAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import {hasJoinWorkspaceTaskParam} from '@libs/Navigation/helpers/isJoinWorkspaceTaskPath';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
 import shouldOpenOnAdminRoom from '@libs/Navigation/helpers/shouldOpenOnAdminRoom';
@@ -33,7 +34,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import type {IntroSelected, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetailsList, Report, ReportNameValuePairs, Session} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -341,7 +342,7 @@ function getReportLinkRoute(
     }
 
     const backTo = Navigation.getActiveRoute();
-    const report = getReportOrDraftReport(reportRouteParams.reportID);
+    const report = getReportOrDraftReport({reportID: reportRouteParams.reportID});
     if (!reportRouteParams.reportActionID && isMoneyRequestReport(report)) {
         return ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportRouteParams.reportID, backTo});
     }
@@ -359,7 +360,7 @@ function getReportLinkRoute(
     return searchReportRoute;
 }
 
-function openLink(href: string, environmentURL: string, isAttachment = false) {
+function openLink(href: string, environmentURL: string, isAttachment: boolean, session: OnyxEntry<Session>) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
@@ -368,16 +369,17 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const isNarrowLayout = getIsNarrowLayout();
     const currentState = navigationRef.getRootState();
     const reportLinkRouteParams = getReportLinkRouteParams(href, internalNewExpensifyPath, hasSameOrigin, hasExpensifyOrigin);
-    const reportLinkRoute = getReportLinkRoute(reportLinkRouteParams, isNarrowLayout, currentState, isAnonymousUser());
+    const reportLinkRoute = getReportLinkRoute(reportLinkRouteParams, isNarrowLayout, currentState, isAnonymousUser(session));
     const focusedSearchReportActionRoute = getFocusedSearchReportActionRoute(reportLinkRouteParams, currentState);
     const routeToNavigate = reportLinkRoute ?? internalNewExpensifyPath;
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+    const isOnboardingTaskLink = !!routeToNavigate && hasJoinWorkspaceTaskParam(routeToNavigate);
     let shouldCloseRHP = false;
     if (!isNarrowLayout && isRHPOpen && !focusedSearchReportActionRoute) {
         const targetWillNavigateToRHP = willRouteNavigateToRHP(routeToNavigate as Route);
-        if (!targetWillNavigateToRHP) {
+        if (!targetWillNavigateToRHP && !isOnboardingTaskLink) {
             shouldCloseRHP = true;
-        } else if (hasSameOrigin) {
+        } else if (hasSameOrigin && !isOnboardingTaskLink) {
             // Cross-tab RHP→RHP: swap the background tab in place so the RHP stays mounted and the
             // user sees only the RHP content update + the underlying tab animate, no close+reopen
             // flicker (issue: https://github.com/Expensify/App/issues/89710).
@@ -386,7 +388,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     }
 
     if (reportLinkRoute) {
-        if (internalNewExpensifyPath && hasSameOrigin && isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
+        if (internalNewExpensifyPath && hasSameOrigin && isAnonymousUser(session) && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
             signOutAndRedirectToSignIn();
             return;
         }
@@ -404,7 +406,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalNewExpensifyPath && hasSameOrigin) {
-        if (isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
+        if (isAnonymousUser(session) && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
             signOutAndRedirectToSignIn();
             return;
         }
@@ -432,8 +434,10 @@ function openReportFromDeepLink(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     callerAccountID: number,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    conciergePersonalDetails: OnyxEntry<PersonalDetailsList>,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -565,9 +569,10 @@ function openReportFromDeepLink(
                         const state = navigationRef.getRootState();
                         const currentFocusedRoute = findFocusedRoute(state);
 
+                        const deeplinkRoute = route as Route;
+
                         const navigateHandler = (reportParam?: OnyxEntry<Report>) => {
                             // Skip if the user already is in the deeplinked route.
-                            const deeplinkRoute = route as Route;
                             if (deeplinkRoute && Navigation.isActiveRoute(deeplinkRoute)) {
                                 return;
                             }
@@ -576,14 +581,22 @@ function openReportFromDeepLink(
                             const report = reportParam ?? reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                             // If the report does not exist, navigate to the last accessed report or Concierge chat
                             if (reportID && (!report?.reportID || report.errorFields?.notFound)) {
-                                // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
-                                const lastAccessedReportID = findLastAccessedReport(false, undefined, shouldOpenOnAdminRoom(), reportID, reportNameValuePairs)?.reportID;
+                                // TODO: Pass guideAccountIDs in Phase B. findLastAccessedReport reaches hasExpensifyGuidesEmails, which falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+                                const lastAccessedReportID = findLastAccessedReport(false, undefined, isAnonymousUser(), shouldOpenOnAdminRoom(), reportID, reportNameValuePairs)?.reportID;
                                 if (lastAccessedReportID) {
                                     const lastAccessedReportRoute = ROUTES.REPORT_WITH_ID.getRoute(lastAccessedReportID);
                                     Navigation.navigate(lastAccessedReportRoute, {forceReplace: Navigation.getTopmostReportId() === reportID, waitForTransition: true});
                                     return;
                                 }
-                                navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, shouldDismissModal: false});
+                                navigateToConciergeChat({
+                                    conciergeReportID,
+                                    introSelected,
+                                    currentUserAccountID,
+                                    isSelfTourViewed,
+                                    hasCompletedGuidedSetupFlow,
+                                    conciergePersonalDetails,
+                                    shouldDismissModal: false,
+                                });
                                 return;
                             }
 
@@ -634,6 +647,20 @@ function openReportFromDeepLink(
                                             return;
                                         }
                                         Onyx.disconnect(loadingConnection);
+
+                                        // The concierge route is a URL entry page that redirects itself, and on wide layouts it slides in as a
+                                        // panel first, so open the chat the way the rest of the app does instead.
+                                        if (findFocusedRoute(getStateFromPath(deeplinkRoute))?.name === SCREENS.CONCIERGE) {
+                                            navigateToConciergeChat({
+                                                conciergeReportID,
+                                                introSelected,
+                                                currentUserAccountID,
+                                                isSelfTourViewed,
+                                                hasCompletedGuidedSetupFlow: hasCompletedGuidedSetupFlowSelector(val),
+                                                conciergePersonalDetails,
+                                            });
+                                            return;
+                                        }
                                         openDeepLink();
                                     },
                                 });
@@ -647,7 +674,9 @@ function openReportFromDeepLink(
                                 return;
                             }
 
-                            setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+                            if (hasCompletedGuidedSetupFlowSelector(val) === false) {
+                                setOnboardingErrorMessage('onboarding.purpose.errorBackButton');
+                            }
                             return;
                         }
 

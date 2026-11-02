@@ -4,12 +4,13 @@ import {
     browserProfilingIntegration,
     classCallCheckNoiseFilterIntegration,
     consoleIntegration,
+    googleTranslateRecursionNoiseFilterIntegration,
     navigationIntegration,
     reportingObserverIntegration,
     thirdPartyErrorFilterIntegration,
     tracingIntegration,
 } from '@libs/telemetry/integrations';
-import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
+import {processBeforeSendLogs, processBeforeSendSpan, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
 import getAppVersion from '@libs/VersionUtils';
 
 import CONFIG from '@src/CONFIG';
@@ -27,12 +28,12 @@ import makeDebugTransport from './debugTransport';
 const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i];
 
 /**
- * Ordered pair, not two independent entries: Sentry runs each integration's `processEvent` in list order, and
- * `classCallCheckNoiseFilterIntegration` reads the `third_party_code` tag `thirdPartyErrorFilterIntegration`
- * writes. Swapped, the filter goes inert with no type error to catch it - hence one constant that reorders as a
- * unit, with the order pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
+ * Ordered list, not independent entries: Sentry runs each integration's `processEvent` in list order, and the
+ * noise filters read the `third_party_code` tag `thirdPartyErrorFilterIntegration` writes. Moved ahead of it, a
+ * filter goes inert with no type error to catch it - hence one constant that reorders as a unit, with the order
+ * pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
  */
-const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration];
+const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration, googleTranslateRecursionNoiseFilterIntegration];
 
 function setupSentry(): void {
     const {semanticVersion, buildNumber} = getAppVersion(pkg.version);
@@ -56,7 +57,13 @@ function setupSentry(): void {
         tracesSampleRate: 1.0,
         enableAutoPerformanceTracing: true,
         enableUserInteractionTracing: true,
-        integrations,
+        // TurboModuleContext adds CPU cost to every RNSentry call on iOS, see https://github.com/Expensify/App/pull/103900
+        integrations: (defaultIntegrations) => {
+            // Read from the SDK, so the filter keeps working if Sentry renames the integration. Looked up here rather
+            // than at module load so importing this file does not call into the SDK.
+            const turboModuleContextIntegrationName = Sentry.turboModuleContextIntegration().name;
+            return [...defaultIntegrations.filter((integration) => integration.name !== turboModuleContextIntegrationName), ...integrations];
+        },
         environment: CONFIG.ENVIRONMENT,
         release: `${pkg.name}@${semanticVersion}`,
         dist: buildNumber,
@@ -82,6 +89,7 @@ function setupSentry(): void {
         ],
         denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,
+        beforeSendSpan: processBeforeSendSpan,
         enableLogs: true,
         beforeSendLog: processBeforeSendLogs,
         // Native SDK is initialized early in Application.onCreate (Android) and AppDelegate (iOS)
@@ -94,7 +102,7 @@ function setupSentry(): void {
             profilingOptions: {
                 // When updating the profile sample rate, make sure it will not blow up our current limit in Sentry.
                 // This option replaces `profilesSampleRate`
-                profileSessionSampleRate: 0.1,
+                profileSessionSampleRate: 0.5,
                 lifecycle: 'trace',
             },
         },
