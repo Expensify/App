@@ -1,9 +1,11 @@
+import {buildAccountIDToNameMap, getMentionedAccountIDs} from '@hooks/useAccountIDToNameMap';
+
 import Parser from '@libs/Parser';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
 import {getParsedComment} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+import type {PersonalDetailsList, ReportAction} from '@src/types/onyx';
 
 type ConciergeDraft = {
     /** Currently rendered markdown. Pusher pacing may intentionally lag this behind the latest server snapshot. */
@@ -33,7 +35,7 @@ type ConciergeDraft = {
 
 type BuildConciergeDraftReportActionParams = {
     actorAccountID?: number;
-    accountIDToName?: Record<string, string>;
+    personalDetailsList?: PersonalDetailsList;
     bodyMarkdown?: string;
     created: string;
     finalRenderedHTML?: string;
@@ -586,7 +588,7 @@ function stripIncompleteMarkdown(markdown: string): string {
 
 function buildConciergeDraftReportAction({
     actorAccountID,
-    accountIDToName,
+    personalDetailsList,
     bodyMarkdown,
     created,
     finalRenderedHTML,
@@ -603,6 +605,8 @@ function buildConciergeDraftReportAction({
     if (!html) {
         return null;
     }
+
+    const accountIDToName = personalDetailsList ? buildAccountIDToNameMap(personalDetailsList, getMentionedAccountIDs(html)) : undefined;
 
     // Default to Concierge so existing call sites that don't pass an actor stay byte-identical.
     const resolvedActorAccountID = actorAccountID ?? CONST.ACCOUNT_ID.CONCIERGE;
@@ -694,7 +698,7 @@ function applyConciergeDraftEvent(
     event: ConciergeDraftEvent,
     reportID: string,
     isGroupPolicyReport: boolean,
-    accountIDToName?: Record<string, string>,
+    personalDetailsList?: PersonalDetailsList,
 ): ConciergeDraft | null {
     if (event.reportID !== reportID) {
         return currentDraft;
@@ -717,7 +721,7 @@ function applyConciergeDraftEvent(
     const nextReportAction =
         buildConciergeDraftReportAction({
             actorAccountID: event.actorAccountID,
-            accountIDToName,
+            personalDetailsList,
             bodyMarkdown: event.bodyMarkdown,
             created: event.created,
             finalRenderedHTML: event.finalRenderedHTML,

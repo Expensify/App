@@ -4,15 +4,16 @@ import Composer from '@components/Composer';
 import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
-import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
+import {buildAccountIDToNameMap, getMentionedAccountIDs} from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
-import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
+import {buildReportIDToNameMap} from '@hooks/useReportIDToNameMap';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -294,8 +295,8 @@ function ComposerWithSuggestions({
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
-    const reportIDToName = useReportIDToNameMap();
-    const accountIDToName = useAccountIDToNameMap();
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [personalDetailsList] = useAllPersonalDetails();
 
     const commentRef = useRef(initialText);
 
@@ -623,7 +624,12 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? '', {reportIDToName, accountIDToName}), isOffline);
+                    const html = message?.html ?? '';
+                    const markdown = Parser.htmlToMarkdown(html, {
+                        reportIDToName: buildReportIDToNameMap(reports),
+                        accountIDToName: buildAccountIDToNameMap(personalDetailsList, getMentionedAccountIDs(html)),
+                    });
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, markdown, isOffline);
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -673,8 +679,8 @@ function ComposerWithSuggestions({
             lastReportAction,
             reportID,
             reportActions,
-            reportIDToName,
-            accountIDToName,
+            reports,
+            personalDetailsList,
             updateComment,
             setCurrentEditMessageSelection,
             isOffline,
