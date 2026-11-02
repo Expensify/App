@@ -12286,8 +12286,14 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
     },
     productMarketingWindow: {
-        heading: 'Collega Expensify a Claude',
-        body: 'Cerca, analizza e riassumi i dati delle spese direttamente in Claude.',
+        member: {
+            heading: 'Chilometraggio con il pilota automatico',
+            body: 'Vai direttamente ai tuoi viaggi frequenti e correggi la posizione di una tappa senza ricominciare da capo.',
+        },
+        admin: {
+            heading: 'Chilometraggio gestito automaticamente',
+            body: 'Tariffe chilometriche che si aggiornano da sole, più il pieno controllo su come vengono registrati i viaggi.',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Inizia <strong>qui!</strong></tooltip>',

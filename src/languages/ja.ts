@@ -12104,8 +12104,14 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
-        heading: 'ExpensifyをClaudeに接続',
-        body: '経費データをClaudeで直接検索・分析・要約できます。',
+        member: {
+            heading: '走行距離をオートパイロットで',
+            body: 'よく使う移動にすぐアクセスし、最初からやり直さずに移動の経由地を修正できます。',
+        },
+        admin: {
+            heading: '走行距離を自動で管理',
+            body: '常に最新の状態に保たれる走行距離レートに加え、移動の記録方法を完全にコントロールできます。',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>まずは<strong>こちらから！</strong></tooltip>',

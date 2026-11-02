@@ -12336,8 +12336,14 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
     },
     productMarketingWindow: {
-        heading: 'Expensify mit Claude verbinden',
-        body: 'Durchsuchen, analysieren und fassen Sie Ausgabendaten direkt in Claude zusammen.',
+        member: {
+            heading: 'Kilometer im Autopilot',
+            body: 'Springen Sie direkt zu Ihren häufigen Fahrten und korrigieren Sie den Standort eines Stopps, ohne von vorne zu beginnen.',
+        },
+        admin: {
+            heading: 'Kilometer automatisch erledigt',
+            body: 'Kilometersätze, die sich selbst aktuell halten, plus volle Kontrolle darüber, wie Fahrten erfasst werden.',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Beginne <strong>hier!</strong></tooltip>',

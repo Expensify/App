@@ -12281,8 +12281,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         },
     },
     productMarketingWindow: {
-        heading: 'Połącz Expensify z Claude',
-        body: 'Wyszukuj, analizuj i podsumowuj dane o wydatkach bezpośrednio w Claude.',
+        member: {
+            heading: 'Kilometrówka na autopilocie',
+            body: 'Przejdź od razu do częstych tras i popraw lokalizację przystanku bez zaczynania od nowa.',
+        },
+        admin: {
+            heading: 'Kilometrówka obsługiwana automatycznie',
+            body: 'Stawki za kilometr, które same się aktualizują, oraz pełna kontrola nad tym, jak rejestrowane są przejazdy.',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Rozpocznij <strong>tutaj!</strong></tooltip>',

@@ -12247,8 +12247,14 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
     },
     productMarketingWindow: {
-        heading: 'Conecte o Expensify ao Claude',
-        body: 'Pesquise, analise e resuma os dados de despesas diretamente no Claude.',
+        member: {
+            heading: 'Quilometragem no piloto automático',
+            body: 'Vá direto para suas viagens frequentes e corrija o local de uma parada sem começar do zero.',
+        },
+        admin: {
+            heading: 'Quilometragem gerenciada automaticamente',
+            body: 'Taxas de quilometragem que se mantêm atualizadas sozinhas, além de controle total sobre como as viagens são registradas.',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Comece <strong>aqui!</strong></tooltip>',
