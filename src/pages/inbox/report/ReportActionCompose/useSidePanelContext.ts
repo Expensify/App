@@ -5,8 +5,8 @@ import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 
-import getFocusedReportParams from '@libs/Navigation/helpers/getFocusedReportParams';
 import getFocusedWorkspacePolicyID from '@libs/Navigation/helpers/getFocusedWorkspacePolicyID';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -17,13 +17,7 @@ import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {NavigationState} from '@react-navigation/native';
-
 import {useRoute} from '@react-navigation/native';
-
-function getFocusedReportID(state: NavigationState | undefined): string | undefined {
-    return state ? getFocusedReportParams(state)?.reportID : undefined;
-}
 
 function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | undefined {
     const isInSidePanel = useIsInSidePanel();
@@ -32,7 +26,7 @@ function useSidePanelContext(reportID: string): OnyxTypes.SidePanelContext | und
     const {currentSearchQueryJSON} = useSearchQueryContext();
     const {selectedTransactionIDs, selectedTransactions, selectedReports} = useSearchSelectionContext();
     const focusedWorkspacePolicyID = useRootNavigationState(getFocusedWorkspacePolicyID);
-    const focusedReportID = useRootNavigationState(getFocusedReportID);
+    const focusedReportID = useRootNavigationState(Navigation.getFocusedReportId);
 
     // On native there is no side panel: the source report is threaded onto this Concierge screen's route params
     // (see SidePanelButton/index.native.tsx). Reading it here keeps it scoped to this navigation entry, so a second

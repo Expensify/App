@@ -46,7 +46,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('@hooks/useRootNavigationState', () => ({
     __esModule: true,
-    default: (selector: {name: string}) => (selector.name === 'getFocusedReportID' ? mockFocusedReportID : mockFocusedWorkspacePolicyID),
+    default: (selector: {name: string}) => (selector.name === 'getFocusedReportId' ? mockFocusedReportID : mockFocusedWorkspacePolicyID),
 }));
 
 jest.mock('@hooks/useCurrentReportID', () => ({
