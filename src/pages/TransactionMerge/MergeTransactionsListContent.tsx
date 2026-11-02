@@ -213,7 +213,7 @@ function MergeTransactionsListContent({transactionID, mergeTransaction}: MergeTr
     );
 
     const subTitleContent = (
-        <View style={[styles.renderHTML, styles.textNormal]}>
+        <View style={[styles.renderHTML, styles.textNormal, styles.textAlignCenter, styles.alignItemsCenter]}>
             <RenderHTML html={translate('transactionMerge.listPage.noEligibleExpenseFoundSubtitle')} />
         </View>
     );
