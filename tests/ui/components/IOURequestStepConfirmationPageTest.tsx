@@ -1,12 +1,13 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, renderHook, screen, waitFor} from '@testing-library/react-native';
 
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import * as ConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import type {ParticipantPickerProps} from '@components/ParticipantPicker/types';
 import ScreenWrapper from '@components/ScreenWrapper';
+
+import useConfirmationParticipantSelection from '@hooks/useConfirmationParticipantSelection';
 
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -111,43 +112,7 @@ jest.mock('@components/ProductTrainingContext', () => ({
     useProductTrainingContext: () => [false],
 }));
 
-// Stands in for the participant picker so a test can hand the page a selection without driving the real selector.
-// The picker is only rendered under the new manual expense flow beta, so this is inert for every other test here.
-let mockSelectedParticipants: Participant[] = [];
-let mockSelectedPolicy: OnyxEntry<Policy>;
-type MockParticipantPickerProps = Pick<ParticipantPickerProps, 'onParticipantsAdded' | 'isVisible' | 'onClose' | 'onCloseForReferralNavigation'>;
-jest.mock('@components/ParticipantPicker', () => {
-    const ReactModule = jest.requireActual<typeof React>('react');
-    const {Text, TouchableOpacity} = jest.requireActual<{
-        Text: React.ComponentType<{testID?: string; children?: React.ReactNode}>;
-        TouchableOpacity: React.ComponentType<{testID: string; onPress: () => void; children?: React.ReactNode}>;
-    }>('react-native');
-    return {
-        __esModule: true,
-        // `MockParticipantPickerVisible` stands in for the docked overlay itself, so tests can assert whether the picker
-        // is showing. `MockParticipantPickerReferralBanner` stands in for the referral CTA inside it, and
-        // `MockParticipantPickerDismiss` for a real dismissal (the back button), which must not arm the reopen.
-        default: ({onParticipantsAdded, isVisible, onClose, onCloseForReferralNavigation}: MockParticipantPickerProps) =>
-            ReactModule.createElement(
-                ReactModule.Fragment,
-                null,
-                ReactModule.createElement(
-                    TouchableOpacity,
-                    {testID: 'MockParticipantPicker', onPress: () => onParticipantsAdded(mockSelectedParticipants, mockSelectedPolicy)},
-                    ReactModule.createElement(Text, null, 'Select participant'),
-                ),
-                ReactModule.createElement(
-                    TouchableOpacity,
-                    {testID: 'MockParticipantPickerReferralBanner', onPress: () => onCloseForReferralNavigation?.()},
-                    ReactModule.createElement(Text, null, 'Referral banner'),
-                ),
-                ReactModule.createElement(TouchableOpacity, {testID: 'MockParticipantPickerDismiss', onPress: () => onClose?.()}, ReactModule.createElement(Text, null, 'Dismiss picker')),
-                isVisible ? ReactModule.createElement(Text, {testID: 'MockParticipantPickerVisible'}, 'Participant picker is open') : null,
-            ),
-    };
-});
-
-const {navigation: mockNavigation, emitScreenFocus, resetScreenFocusListeners} = createMockScreenNavigation();
+const {navigation: mockNavigation, resetScreenFocusListeners} = createMockScreenNavigation();
 jest.mock('@src/hooks/useResponsiveLayout');
 jest.mock('@libs/getCurrentPosition');
 jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
@@ -155,6 +120,7 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn(() => false));
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
     default: {
+        isReady: jest.fn(() => false),
         getCurrentRoute: jest.fn(() => ({
             name: 'Money_Request_Step_Confirmation',
             params: {},
@@ -2355,15 +2321,27 @@ describe('IOURequestStepConfirmationPageTest', () => {
         });
     });
 
-    describe('Referral banner inside the participant picker', () => {
+    describe('Participant picker auto-open', () => {
         beforeEach(async () => {
-            mockSelectedParticipants = [];
-            mockSelectedPolicy = undefined;
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         });
 
-        function confirmationScreen() {
-            return (
+        /** Renders the confirmation for a manual expense with the given recipients. */
+        async function renderManualConfirmation(participants: Participant[]) {
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
+                    transactionID: TRANSACTION_ID,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    amount: 1000,
+                    currency: 'USD',
+                    created: '2025-08-29',
+                    merchant: '(none)',
+                    isFromGlobalCreate: true,
+                    participants,
+                });
+            });
+
+            render(
                 <OnyxListItemProvider>
                     <HTMLProviderWrapper>
                         <CurrentUserPersonalDetailsProvider>
@@ -2384,100 +2362,41 @@ describe('IOURequestStepConfirmationPageTest', () => {
                             </LocaleContextProvider>
                         </CurrentUserPersonalDetailsProvider>
                     </HTMLProviderWrapper>
-                </OnyxListItemProvider>
+                </OnyxListItemProvider>,
             );
+            await waitForBatchedUpdatesWithAct();
         }
 
-        /** Renders the confirmation for a brand-new manual expense with no recipient yet, which auto-opens the picker. */
-        async function renderConfirmationWithOpenPicker() {
+        function getParticipantsPageNavigations() {
+            return jest.mocked(Navigation.navigate).mock.calls.filter(([route]) => route.includes('expense-participants'));
+        }
+
+        it('opens the participants page once, from the confirmation, when a new manual expense has no recipient', async () => {
+            // Given a new manual expense with no recipient and no default one to fall back to
+            await renderManualConfirmation([]);
+
+            // Then the participants page is opened on its own, flagged so a pick returns to this confirmation
+            const navigations = getParticipantsPageNavigations();
+            expect(navigations).toHaveLength(1);
+            const [participantsRoute] = navigations.at(0) ?? [];
+            expect(participantsRoute).toContain('isFromConfirmation=true');
+
+            // When the expense updates without gaining a recipient, e.g. after coming back from the page with no pick
             await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
-                    transactionID: TRANSACTION_ID,
-                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
-                    amount: 1000,
-                    currency: 'USD',
-                    created: '2025-08-29',
-                    merchant: '(none)',
-                    isFromGlobalCreate: true,
-                    participants: [],
-                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {merchant: 'Coffee'});
             });
-
-            render(confirmationScreen());
             await waitForBatchedUpdatesWithAct();
-        }
 
-        /** Replays what returning from another RHP does to this screen. */
-        async function returnToScreen() {
-            act(() => emitScreenFocus());
-            await waitForBatchedUpdatesWithAct();
-        }
-
-        it('reopens the picker when returning from the referral page, so back does not land on the expense form (#96562)', async () => {
-            // Given a new manual expense whose participant picker is open
-            await renderConfirmationWithOpenPicker();
-            expect(screen.getByTestId('MockParticipantPickerVisible')).toBeOnTheScreen();
-
-            // When the referral banner navigates away, the picker closes so it doesn't cover the referral RHP
-            fireEvent.press(screen.getByTestId('MockParticipantPickerReferralBanner'));
-            await waitForBatchedUpdatesWithAct();
-            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
-
-            // Then pressing back on the referral page refocuses this screen and brings the picker back
-            await returnToScreen();
-            expect(screen.getByTestId('MockParticipantPickerVisible')).toBeOnTheScreen();
+            // Then it is not opened again, since the user already dismissed it
+            expect(getParticipantsPageNavigations()).toHaveLength(1);
         });
 
-        it('leaves the picker closed on refocus when it was dismissed normally rather than by the referral banner', async () => {
-            // Given a new manual expense whose participant picker the user dismissed with the back button
-            await renderConfirmationWithOpenPicker();
-            expect(screen.getByTestId('MockParticipantPickerVisible')).toBeOnTheScreen();
+        it('does not open the participants page when the expense already has a recipient', async () => {
+            // Given a manual expense that already has a recipient
+            await renderManualConfirmation([{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}]);
 
-            fireEvent.press(screen.getByTestId('MockParticipantPickerDismiss'));
-            await waitForBatchedUpdatesWithAct();
-            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
-
-            // When the screen regains focus after some unrelated navigation
-            await returnToScreen();
-
-            // Then the picker stays closed, since only the referral navigation arms the reopen
-            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
-        });
-
-        it('leaves the picker closed on refocus once a recipient was picked', async () => {
-            // Given a new manual expense whose participant picker closed because the user picked a recipient
-            await renderConfirmationWithOpenPicker();
-            expect(screen.getByTestId('MockParticipantPickerVisible')).toBeOnTheScreen();
-
-            mockSelectedParticipants = [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}];
-            fireEvent.press(screen.getByTestId('MockParticipantPicker'));
-            await waitForBatchedUpdatesWithAct();
-            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
-
-            // When the screen regains focus after some unrelated navigation
-            await returnToScreen();
-
-            // Then the picker stays closed rather than covering a form the user is already filling in
-            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
-        });
-
-        it('does not reopen the picker on refocus when a recipient was resolved while the referral page was open', async () => {
-            // Given a new manual expense whose picker closed because the referral banner navigated away
-            await renderConfirmationWithOpenPicker();
-            fireEvent.press(screen.getByTestId('MockParticipantPickerReferralBanner'));
-            await waitForBatchedUpdatesWithAct();
-            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
-
-            // When the expense gains a recipient in the meantime (a deep link, or default participant resolution)
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
-                    participants: [{accountID: PARTICIPANT_ACCOUNT_ID, selected: true}],
-                });
-            });
-
-            // Then coming back leaves the picker closed, because there is nothing left to pick
-            await returnToScreen();
-            expect(screen.queryByTestId('MockParticipantPickerVisible')).toBeNull();
+            // Then there is nothing to pick, so the confirmation stays in front
+            expect(getParticipantsPageNavigations()).toHaveLength(0);
         });
     });
 
@@ -2503,8 +2422,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
         }
 
         beforeEach(async () => {
-            mockSelectedParticipants = [];
-            mockSelectedPolicy = undefined;
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
             await act(async () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SOURCE_POLICY_ID}`, {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Source policy'), id: SOURCE_POLICY_ID});
@@ -2591,11 +2508,33 @@ describe('IOURequestStepConfirmationPageTest', () => {
             });
         }
 
+        /** Picks the recipients the way the participants page does when it was opened from this confirmation. */
         async function selectParticipants(participants: Participant[]) {
-            mockSelectedParticipants = participants;
+            const transaction = await getDraftTransaction();
             // Mirror the real picker: resolve the chosen workspace's policy and pass it to onParticipantsAdded.
-            mockSelectedPolicy = await getPolicyByID(participants.at(0)?.policyID);
-            fireEvent.press(await screen.findByTestId('MockParticipantPicker'));
+            const selectedPolicy = await getPolicyByID(participants.at(0)?.policyID);
+            const {result} = renderHook(
+                () =>
+                    useConfirmationParticipantSelection({
+                        transaction,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        reportID: SOURCE_CHAT_REPORT_ID,
+                        policyID: SOURCE_POLICY_ID,
+                        isDistanceRequest: transaction?.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        blockDistanceRequestIfNeeded: () => false,
+                        onIOUTypeChange: jest.fn(),
+                    }),
+                {
+                    wrapper: ({children}) => (
+                        <OnyxListItemProvider>
+                            <CurrentUserPersonalDetailsProvider>{children}</CurrentUserPersonalDetailsProvider>
+                        </OnyxListItemProvider>
+                    ),
+                },
+            );
+            act(() => {
+                result.current.handleParticipantsAdded(participants, selectedPolicy);
+            });
             await waitForBatchedUpdatesWithAct();
         }
 
@@ -2827,7 +2766,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
         const CONFIRMATION_SCREEN_TEST_ID = 'IOURequestStepConfirmation';
 
         beforeEach(async () => {
-            mockSelectedParticipants = [];
             await signInWithTestUser(ACCOUNT_ID, ACCOUNT_LOGIN);
         });
 
@@ -2880,7 +2818,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await renderConfirmation({isEmbedded: true});
 
             // Then the confirmation content is on the screen
-            expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
+            expect(await screen.findByText(/^(Create|Split) /i)).toBeOnTheScreen();
 
             // And the only ScreenWrapper is the start page's, so no second FocusTrapForScreen is pushed onto the
             // shared trap stack to pause the trap holding the Back button and the tab bar
@@ -2893,7 +2831,7 @@ describe('IOURequestStepConfirmationPageTest', () => {
             await renderConfirmation({isEmbedded: true, iouType: 'split'});
 
             // Then the split manual tab is covered by the same fix
-            expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
+            expect(await screen.findByText(/^(Create|Split) /i)).toBeOnTheScreen();
             expect(screen.getByTestId(PARENT_SCREEN_TEST_ID)).toBeOnTheScreen();
             expect(screen.queryByTestId(CONFIRMATION_SCREEN_TEST_ID)).not.toBeOnTheScreen();
         });
