@@ -9895,11 +9895,11 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
         setCategoryName: (oldName: string, newName: string) => `heeft de categorie "${oldName}" hernoemd naar "${newName}"`,
         setCategoryVisibility: (members: string, categories: string) => `heeft ${members} zo ingesteld dat ze alleen ${categories} zien`,
-        changedCategoryVisibility: (members: string, categories: string) => `heeft ${members} zo gewijzigd dat ze alleen ${categories} zien`,
-        clearedCategoryVisibility: (members: string) => `heeft ${members} zo gewijzigd dat ze alle categorieën zien`,
+        changedCategoryVisibility: (members: string, categories: string) => `heeft ${members} gewijzigd zodat ze alleen ${categories} zien`,
+        clearedCategoryVisibility: (members: string) => `heeft ${members} gewijzigd zodat ze alle categorieën kunnen zien`,
         quotedCategoryName: (categoryName: string) => `"${categoryName}"`,
         oneCategory: (categoryName: string) => `de categorie ${categoryName}`,
-        someCategories: (categoryList: string) => `de categorieën ${categoryList}`,
+        someCategories: (categoryList: string) => `de ${categoryList} categorieën`,
         everyone: 'iedereen',
         categoryCount: ({count}: {count: number}) => ({
             one: '1 categorie',
@@ -9912,7 +9912,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         categoryVisibilityCategoriesList: (categoryList: string) => `Categorieën: ${categoryList}`,
         categoryVisibilityMembersList: (memberList: string) => `Leden: ${memberList}`,
         categoryVisibilityReasonDeleted: ', omdat hun enige categorie is verwijderd. Werk hun categoriezichtbaarheid bij indien nodig.',
-        categoryVisibilityReasonDisabled: ', omdat hun enige categorie is uitgeschakeld. Werk hun categoriezichtbaarheid bij indien nodig.',
+        categoryVisibilityReasonDisabled: ', omdat hun enige categorie was uitgeschakeld. Werk indien nodig hun categoriezichtbaarheid bij.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `heeft de beschrijvingshint "${oldValue}" verwijderd uit de categorie "${categoryName}"`;

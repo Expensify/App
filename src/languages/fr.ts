@@ -9998,24 +9998,24 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         setCategoryName: (oldName: string, newName: string) => `a renommé la catégorie « ${oldName} » en « ${newName} »`,
         setCategoryVisibility: (members: string, categories: string) => `a configuré ${members} pour ne voir que ${categories}`,
-        changedCategoryVisibility: (members: string, categories: string) => `a modifié ${members} pour ne voir que ${categories}`,
+        changedCategoryVisibility: (members: string, categories: string) => `a modifié ${members} pour qu’ils ne voient que ${categories}`,
         clearedCategoryVisibility: (members: string) => `a modifié ${members} pour voir toutes les catégories`,
         quotedCategoryName: (categoryName: string) => `« ${categoryName} »`,
         oneCategory: (categoryName: string) => `la catégorie ${categoryName}`,
         someCategories: (categoryList: string) => `les catégories ${categoryList}`,
         everyone: 'tout le monde',
         categoryCount: ({count}: {count: number}) => ({
-            one: `${count} catégorie`,
+            one: '1 catégorie',
             other: `${count} catégories`,
         }),
         memberCount: ({count}: {count: number}) => ({
-            one: `${count} membre`,
+            one: '1 membre',
             other: `${count} membres`,
         }),
-        categoryVisibilityCategoriesList: (categoryList: string) => `Catégories : ${categoryList}`,
-        categoryVisibilityMembersList: (memberList: string) => `Membres : ${memberList}`,
-        categoryVisibilityReasonDeleted: ', car leur seule catégorie a été supprimée. Mettez à jour leur visibilité des catégories si nécessaire.',
-        categoryVisibilityReasonDisabled: ', car leur seule catégorie a été désactivée. Mettez à jour leur visibilité des catégories si nécessaire.',
+        categoryVisibilityCategoriesList: (categoryList: string) => `Catégories : ${categoryList}`,
+        categoryVisibilityMembersList: (memberList: string) => `Membres : ${memberList}`,
+        categoryVisibilityReasonDeleted: ', car leur seule catégorie a été supprimée. Mettez à jour la visibilité de leur catégorie si nécessaire.',
+        categoryVisibilityReasonDisabled: ', car leur seule catégorie a été désactivée. Mettez à jour la visibilité de leurs catégories si nécessaire.',
         updatedDescriptionHint: (categoryName: string, newValue?: string, oldValue?: string) => {
             if (!newValue) {
                 return `a supprimé l’indication de description « ${oldValue} » de la catégorie « ${categoryName} »`;
