@@ -18,7 +18,6 @@ import WorkspaceWorkflowsPageRevamp from '@pages/workspace/workflows/WorkspaceWo
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Policy} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
@@ -54,7 +53,7 @@ async function setUp(approvalMode: ValueOf<typeof CONST.POLICY.APPROVAL_MODE>, i
             approvalMode,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
             employeeList: {[OWNER_EMAIL]: {email: OWNER_EMAIL, role: CONST.POLICY.ROLE.ADMIN, submitsTo: OWNER_EMAIL}},
-        } as Policy);
+        });
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[OWNER_ACCOUNT_ID]: TestHelper.buildPersonalDetails(OWNER_EMAIL, OWNER_ACCOUNT_ID, 'Owner')});
         await Onyx.set(ONYXKEYS.BETAS, isMultipleApproversBetaEnabled ? [CONST.BETAS.MULTIPLE_APPROVERS] : []);
     });
