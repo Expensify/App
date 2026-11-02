@@ -17,6 +17,7 @@ import type {DiscardChangesConfirmation} from './types';
 import type UseDiscardChangesConfirmationOptions from './types';
 
 import getDiscardChangesModalConfig from './getDiscardChangesModalConfig';
+import continueNavigationAfterDiscard from './navigationConfirmation';
 import runDiscardConfirmation from './runDiscardConfirmation';
 
 /**
@@ -30,24 +31,29 @@ function useDiscardChangesConfirmation({
     getHasUnsavedChanges,
     onCancel,
     onVisibilityChange,
+    shouldEnableNewFocusManagement,
     onConfirm,
     onTabSwitchDiscard,
+    shouldPromptWhenUnfocused = false,
+    shouldPromptForNavigationAction,
+    onConfirmWhenUnfocused,
 }: UseDiscardChangesConfirmationOptions): DiscardChangesConfirmation {
     const route = useRoute();
     const {translate} = useLocalize();
     const {showConfirmModal, closeModal} = useConfirmModal();
 
-    // Only the focused screen should prompt — a flow-leave reset fires `beforeRemove` for hidden siblings too.
+    // Only the focused screen should prompt unless configured to prompt when unfocused (e.g. parent screens in embedded flows) — a flow-leave reset fires `beforeRemove` for hidden siblings too.
     const isFocused = useIsFocused();
     const isSavingRef = useRef(false);
     useFocusEffect(() => {
         isSavingRef.current = false;
     });
-    const hasUnsavedChanges = () => isFocused && !isSavingRef.current && getHasUnsavedChanges();
+    const hasUnsavedChanges = () => (shouldPromptWhenUnfocused || isFocused) && !isSavingRef.current && getHasUnsavedChanges();
 
     useRegisterTabSwitchGuard(route.name, hasUnsavedChanges, onTabSwitchDiscard, onCancel);
 
     const blockedNavigationAction = useRef<NavigationAction>(undefined);
+    const navigationCallbackRef = useRef<(() => void) | undefined>(undefined);
     const shouldNavigateBack = useRef(false);
     const isDiscardModalOpen = useRef(false);
     const restoreState = useRef<RestoreState>({phase: 'idle'});
@@ -66,6 +72,7 @@ function useDiscardChangesConfirmation({
         onVisibilityChange?.(true);
         showConfirmModal({
             ...getDiscardChangesModalConfig(translate),
+            shouldEnableNewFocusManagement,
             shouldIgnoreBackHandlerDuringTransition: true,
             shouldHandleNavigationBack: false,
         }).then((result) => {
@@ -77,15 +84,39 @@ function useDiscardChangesConfirmation({
             onVisibilityChange?.(false);
             if (result.action !== ModalActions.CONFIRM) {
                 blockedNavigationAction.current = undefined;
+                navigationCallbackRef.current = undefined;
                 shouldNavigateBack.current = false;
                 onCancel?.();
                 return;
             }
             runDiscardConfirmation(
-                onConfirm,
-                () => setNavigationActionToMicrotaskQueue(navigateBack),
                 () => {
+                    // Some confirmation callbacks close or reset their flow. Suppress the guard before invoking
+                    // them so that cleanup navigation is not interpreted as a second attempt to discard changes.
+                    isSavingRef.current = true;
+                    return onConfirm?.();
+                },
+                () =>
+                    continueNavigationAfterDiscard({
+                        clearBlockedNavigation: () => {
+                            blockedNavigationAction.current = undefined;
+                            shouldNavigateBack.current = false;
+                        },
+                        continueNavigation: () => setNavigationActionToMicrotaskQueue(navigateBack),
+                        getNavigationCallback: () => navigationCallbackRef.current,
+                        isFocused,
+                        clearNavigationCallback: () => {
+                            navigationCallbackRef.current = undefined;
+                        },
+                        onConfirmWhenUnfocused,
+                        suppressDiscardPrompt: () => {
+                            isSavingRef.current = true;
+                        },
+                    }),
+                () => {
+                    isSavingRef.current = false;
                     blockedNavigationAction.current = undefined;
+                    navigationCallbackRef.current = undefined;
                     shouldNavigateBack.current = false;
                 },
             );
@@ -103,7 +134,7 @@ function useDiscardChangesConfirmation({
             return;
         }
 
-        if (!hasUnsavedChanges()) {
+        if (!hasUnsavedChanges() || shouldPromptForNavigationAction?.(e.data.action) === false) {
             return;
         }
 
@@ -131,6 +162,20 @@ function useDiscardChangesConfirmation({
         }
         showDiscardModal();
     });
+
+    const confirmNavigation = (navigationCallback: () => void) => {
+        if (!hasUnsavedChanges()) {
+            navigationCallback();
+            return;
+        }
+
+        if (isDiscardModalOpen.current) {
+            return;
+        }
+
+        navigationCallbackRef.current = navigationCallback;
+        showDiscardModal();
+    };
 
     // `closeModal` changes every render, so the once-registered popstate listener reads it through a ref
     const closeModalRef = useRef(closeModal);
@@ -166,7 +211,7 @@ function useDiscardChangesConfirmation({
         isSavingRef.current = shouldSuppress;
     };
 
-    return {suppressDiscardPrompt};
+    return {suppressDiscardPrompt, confirmNavigation};
 }
 
 export default useDiscardChangesConfirmation;

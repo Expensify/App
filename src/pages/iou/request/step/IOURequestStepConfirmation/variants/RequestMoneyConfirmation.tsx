@@ -26,7 +26,7 @@ type RequestMoneyConfirmationProps = ConfirmationVariantProps & {
  * Confirms an expense submitted through RequestMoney or through TrackExpense while "To" is the self DM or the expense is tracked.
  * Both submissions stay mounted so switching "To" doesn't remount the orchestrator and the list.
  */
-function RequestMoneyConfirmation({submissionPath, submissionParams, orchestratorProps, listProps}: RequestMoneyConfirmationProps) {
+function RequestMoneyConfirmation({submissionPath, submissionParams, orchestratorProps, listProps, suppressDiscardPrompt}: RequestMoneyConfirmationProps) {
     const {
         transaction,
         policy,
@@ -84,7 +84,10 @@ function RequestMoneyConfirmation({submissionPath, submissionParams, orchestrato
             {({onConfirm, isConfirming}) => (
                 <MoneyRequestConfirmationList
                     {...listProps}
-                    onConfirm={onConfirm}
+                    onConfirm={() => {
+                        suppressDiscardPrompt?.();
+                        onConfirm();
+                    }}
                     isConfirming={isConfirming}
                 />
             )}

@@ -153,6 +153,10 @@ function IOURequestStepConfirmationContent({
     isLoadingTransaction,
     shouldHideHeader = false,
     navigation,
+    onSignDirtyChange,
+    onInputFocus,
+    onInputBlur,
+    suppressDiscardPrompt,
 }: IOURequestStepConfirmationProps) {
     const {convertToDisplayString} = useCurrencyListActions();
     const params = route.params;
@@ -669,10 +673,13 @@ function IOURequestStepConfirmationContent({
         expensesNumber: transactions.length,
         isTimeRequest,
         shouldHideToSection,
+        onSignDirtyChange,
+        onInputFocus,
+        onInputBlur,
     };
 
     const renderSubmissionVariant = () => {
-        const variantProps = {submissionParams, orchestratorProps, listProps};
+        const variantProps = {submissionParams, orchestratorProps, listProps, suppressDiscardPrompt};
 
         switch (submissionPath) {
             case SUBMISSION_PATH.PAY:
@@ -798,9 +805,7 @@ function IOURequestStepConfirmationContent({
                                 dashedBorderStyles={[styles.dropzoneArea, styles.easeInOpacityTransition, styles.activeDropzoneDashedBorder(theme.receiptDropBorderColorActive, true)]}
                             />
                         </DragAndDropConsumer>
-
                         {renderSubmissionVariant()}
-
                         <ParticipantPicker
                             participants={participants}
                             iouType={participantPickerIOUType}

@@ -6,6 +6,7 @@ import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavig
 import getModalRouteOnTop from '@libs/Navigation/helpers/getModalRouteOnTop';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import hasNativeSwipeBackGesture from '@libs/Navigation/helpers/hasNativeSwipeBackGesture';
+import isNavigationStatePayload from '@libs/Navigation/helpers/isNavigationStatePayload';
 import {isFullScreenName, isPreMountBufferHostName} from '@libs/Navigation/helpers/isNavigatorName';
 import {isStaleWideTabPreMountPreloadedRouteKey, isStaleWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import {SIDEBAR_TO_SPLIT, SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
@@ -280,7 +281,7 @@ function getTargetTabRoute(
     // doesn't have nested routes (e.g. cold-start through a deep link that opens straight into a modal),
     // fall back to the split navigator's default sidebar route so there is still something to pop back to.
     let mergedNestedState = focusedTargetTab.state;
-    const existingNestedState = isNavigationStateWithRoutes(existingTabRoute?.state) ? existingTabRoute.state : undefined;
+    const existingNestedState = isNavigationStatePayload(existingTabRoute?.state) ? existingTabRoute.state : undefined;
     const existingNestedRoutes = existingNestedState?.routes;
     const newNestedRoutes = focusedTargetTab.state?.routes;
     const existingFirstRoute = existingNestedRoutes?.at(0);
@@ -523,9 +524,9 @@ function withFocusedTabInHistory(tabState: TabStateForReplacement): TabStateForR
 function withPreMountedDestination(builtTabState: TabStateForReplacement, existingTabState: NavigationState | undefined, preMountedRouteKey: string): TabStateForReplacement | undefined {
     const targetTabRoute = builtTabState.routes[builtTabState.index];
     const existingTargetTabRoute = existingTabState?.routes.find((route) => route.name === targetTabRoute?.name);
-    const existingNestedState = isNavigationStateWithRoutes(existingTargetTabRoute?.state) ? existingTargetTabRoute.state : undefined;
+    const existingNestedState = isNavigationStatePayload(existingTargetTabRoute?.state) ? existingTargetTabRoute.state : undefined;
     const preMountedRoute = existingNestedState?.routes.find((route) => route.key === preMountedRouteKey);
-    const builtNestedState = isNavigationStateWithRoutes(targetTabRoute?.state) ? targetTabRoute.state : undefined;
+    const builtNestedState = isNavigationStatePayload(targetTabRoute?.state) ? targetTabRoute.state : undefined;
     const builtDestination = builtNestedState?.routes.at(-1);
     if (!targetTabRoute || !preMountedRoute || !builtNestedState || builtDestination?.name !== preMountedRoute.name) {
         Log.hmmm('[Navigation] Wide pre-mount does not match the revealed destination, replacing without it', {preMountedRouteKey});

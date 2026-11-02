@@ -20,7 +20,7 @@ import type {ConfirmationVariantProps} from './types';
  * Confirms a distance expense, submitting through CreateDistanceRequest, or through TrackExpense while "To" is the
  * self DM. Both submissions stay mounted so switching "To" doesn't remount the orchestrator and the list.
  */
-function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
+function DistanceConfirmation({submissionParams, orchestratorProps, listProps, suppressDiscardPrompt}: ConfirmationVariantProps) {
     const {transaction, policy, iouType, isManualDistanceRequest, isOdometerDistanceRequest, isUnreported, isPolicyExpenseChat, isSelfDMDestination, submitLock} = submissionParams;
 
     const transactionTaxValues = getTransactionTaxValues({
@@ -60,7 +60,10 @@ function DistanceConfirmation({submissionParams, orchestratorProps, listProps}: 
             {({onConfirm, isConfirming}) => (
                 <MoneyRequestConfirmationList
                     {...listProps}
-                    onConfirm={onConfirm}
+                    onConfirm={() => {
+                        suppressDiscardPrompt?.();
+                        onConfirm();
+                    }}
                     isConfirming={isConfirming}
                 />
             )}

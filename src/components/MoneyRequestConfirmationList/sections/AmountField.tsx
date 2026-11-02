@@ -75,7 +75,21 @@ function AmountField({
     setFormError,
     isParticipantPickerVisible = false,
 }: AmountFieldProps) {
-    const {isEditingSplitBill, canEnterScanFieldsManually, isPolicyExpenseChat, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {
+        isEditingSplitBill,
+        canEnterScanFieldsManually,
+        isPolicyExpenseChat,
+        isReadOnly,
+        didConfirm,
+        transactionID,
+        action,
+        iouType,
+        reportID,
+        reportActionID,
+        onSignDirtyChange,
+        onInputFocus,
+        onInputBlur,
+    } = useConfirmationFields();
     // Filled by the forms that offer a receipt from beside the amount field rather than from a full-width empty
     // state, with their compact add-receipt button.
     const {amountTrailingAction, shouldUseDropdownRows} = useExpenseFormLayout();
@@ -93,6 +107,9 @@ function AmountField({
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
+    // Keep the sign baseline aligned with the persisted amount baseline. Falling back to `amount` supports
+    // drafts created before `initialAmount` was introduced without allowing later user edits to overwrite it.
+    const baselineIsNegativeRef = useRef((transactionSlice?.initialAmount ?? amount) < 0);
 
     const transactionForHandlers = transactionSlice as OnyxEntry<OnyxTypes.Transaction>;
     const amountIsMissing = transactionSlice?.isAmountMissing ?? false;
@@ -275,7 +292,6 @@ function AmountField({
         const updatedAmount = parsedAmount ?? amount;
 
         buildAndSaveSplitShares(updatedAmount, value);
-
         // Only save the currency while the amount is empty, since setMoneyRequestAmount sets isAmountSet and blocks Scan submission.
         if (parsedAmount === null && shouldShowEmptyAmount && !isEditingSplitBill) {
             setMoneyRequestCurrency(transactionID, value);
@@ -295,11 +311,19 @@ function AmountField({
     };
 
     const handleAmountChange = (newAmount: string) => {
+        const isNegative = newAmount.startsWith('-');
+        const isInputEmpty = newAmount.trim() === '';
+        const parsedAmount = getBackendAmountFromInput(newAmount);
+        const shouldResetSignDirty = isInputEmpty || (parsedAmount === null && transactionSlice?.isAmountSet === true);
+
+        // A standalone minus sign is dirty, but deleting a previously entered negative amount back to
+        // that sign clears the field and must reset the discard-confirmation state.
         if (!transactionID) {
             return;
         }
 
-        const parsedAmount = getBackendAmountFromInput(newAmount);
+        onSignDirtyChange?.(!shouldResetSignDirty && isNegative !== baselineIsNegativeRef.current);
+
         if (parsedAmount === null) {
             // User cleared the field — mark amount as unset so the field stays empty
             // and submission is blocked until a value is re-entered.
@@ -373,13 +397,16 @@ function AmountField({
                             onCurrencyButtonPress={showCurrencyPicker}
                             currencyButtonRef={currencyButtonRef}
                             onFocus={() => {
+                                onInputFocus?.(() => amountInputRef.current?.focus());
                                 setIsAmountInputFocused(true);
                             }}
                             onBlur={() => {
                                 setIsAmountInputFocused(false);
+                                onInputBlur?.();
                             }}
                             leadingRightHandSideComponent={shouldShowAutomaticHint ? <AutomaticFieldHint /> : undefined}
                             shouldUseBorderlessButtons
+                            shouldAllowFocusInLandscapeMode={!!onInputFocus}
                             disabled={isAmountFieldDisabled}
                         />
                     </View>

@@ -9,7 +9,7 @@ import React from 'react';
 import type {ConfirmationVariantProps} from './types';
 
 /** Confirms an invoice, submitting through SendInvoice. */
-function InvoiceConfirmation({submissionParams, orchestratorProps, listProps}: ConfirmationVariantProps) {
+function InvoiceConfirmation({submissionParams, orchestratorProps, listProps, suppressDiscardPrompt}: ConfirmationVariantProps) {
     const invoiceSubmission = useInvoiceSubmission(submissionParams);
 
     const createTransaction = guardSubmission(submissionParams.submitLock, invoiceSubmission.createTransaction);
@@ -22,7 +22,10 @@ function InvoiceConfirmation({submissionParams, orchestratorProps, listProps}: C
             {({onConfirm, isConfirming}) => (
                 <InvoiceConfirmationList
                     {...listProps}
-                    onConfirm={onConfirm}
+                    onConfirm={() => {
+                        suppressDiscardPrompt?.();
+                        onConfirm();
+                    }}
                     isConfirming={isConfirming}
                 />
             )}
