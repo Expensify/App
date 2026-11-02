@@ -14456,10 +14456,10 @@ function canBeExported(report: OnyxEntry<Report>) {
 }
 
 /**
- * Whether the current user can email the report to someone. The submitter, the approver and workspace admins can once the report is submitted.
+ * Whether the current user can email the report to someone. The submitter, the approver and workspace admins can.
  */
 function canShareReport(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number): boolean {
-    if (!isExpenseReport(report) || isOpenReport(report)) {
+    if (!isExpenseReport(report)) {
         return false;
     }
     return isCurrentUserSubmitter(report, currentUserAccountID) || report?.managerID === currentUserAccountID || isPolicyAdmin(policy);
