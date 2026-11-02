@@ -1,6 +1,5 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useOnyx from '@hooks/useOnyx';
-import usePrevious from '@hooks/usePrevious';
 import useRulesPrefetch from '@hooks/useRulesPrefetch';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
@@ -14,6 +13,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useState} from 'react';
 
 type UseTaxAmountParams = {
     /** Transaction whose tax we're computing */
@@ -77,7 +78,22 @@ function useTaxAmount({
     // The distance rate's default category is written by CategoryDefaultsSetter after this runs, so the rule is
     // resolved against the category the expense is about to carry rather than the empty one this render still sees.
     const category = transaction?.category || (isDistanceRequest ? (getDistanceRateCustomUnit(policy)?.defaultCategory ?? '') : '');
-    const previousCategory = usePrevious(category);
+    // The category whose rate the expense is currently carrying, which only moves on once a rate has been resolved
+    // for it. While the rules are loading nothing is resolved, so a category picked in that window stays pending
+    // here until they land. Tracking the last rendered category instead would let the change pass unseen, and the
+    // rate the old category left behind would then be held in place as though the user had chosen it.
+    // The category tracked here only moves on once a rate has been resolved for it. While the rules are loading
+    // nothing is resolved, so a category picked in that window stays pending until they land. Tracking the last
+    // rendered category instead would let the change pass unseen, and the rate the old category left behind would
+    // then be held in place as though the user had chosen it.
+    const [previousCategory, setPreviousCategory] = useState(category);
+    useEffect(() => {
+        if (areRulesLoading || previousCategory === category) {
+            return;
+        }
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- the category has to advance only once a render has resolved a rate for it, which is not knowable during that render
+        setPreviousCategory(category);
+    }, [areRulesLoading, category, previousCategory]);
     // Only the workspace default follows the currency, so after a currency change the selection is compared against that
     // default. The rest of the time it is compared against the rate the category asked for before this render, so that
     // changing category is not mistaken for a rate the user picked. Comparing against the new category's rule instead

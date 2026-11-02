@@ -18,9 +18,11 @@ jest.mock('@libs/PolicyUtils', () => ({
     getDistanceRateCustomUnit: jest.fn(),
 }));
 
+let mockAreRulesLoading: boolean;
+
 jest.mock('@hooks/useRulesPrefetch', () => ({
     __esModule: true,
-    default: () => ({areRulesLoading: false}),
+    default: () => ({areRulesLoading: mockAreRulesLoading}),
 }));
 
 jest.mock('@libs/DistanceRequestUtils', () => ({
@@ -74,6 +76,29 @@ const baseParams: Params = {
     previousTransactionCurrency: 'USD',
 };
 
+/**
+ * Renders the hook and records what every render reported. The rate is written by the render that resolves it, so a
+ * later render reporting that rate as settled does not undo the write, and asserting on the last render alone would
+ * miss it.
+ */
+function renderTaxAmountRenders(initialTransaction: Params['transaction']) {
+    const renders: Array<{defaultTaxCode: string; shouldKeepCurrentTaxSelection: boolean; areRulesLoading: boolean}> = [];
+    const {rerender} = renderHook(
+        (props: {transaction: Params['transaction']}) => {
+            const taxAmount = useTaxAmount({...baseParams, ...props});
+            renders.push({
+                defaultTaxCode: taxAmount.defaultTaxCode,
+                shouldKeepCurrentTaxSelection: taxAmount.shouldKeepCurrentTaxSelection,
+                areRulesLoading: taxAmount.areRulesLoading,
+            });
+            return taxAmount;
+        },
+        {initialProps: {transaction: initialTransaction}},
+    );
+
+    return {renders, rerenderWith: (transaction: Params['transaction']) => rerender({transaction})};
+}
+
 describe('useTaxAmount', () => {
     beforeEach(() => {
         mockConvertToDistanceInMeters.mockImplementation((distance: number) => distance);
@@ -81,6 +106,7 @@ describe('useTaxAmount', () => {
         mockGetTaxableAmount.mockReturnValue(100);
         mockGetDistanceRateCustomUnit.mockReturnValue(undefined);
         mockCategoryTaxCodes = {};
+        mockAreRulesLoading = false;
         mockHasTaxRateWithMatchingValue = false;
     });
 
@@ -246,12 +272,31 @@ describe('useTaxAmount', () => {
         const transaction = {...baseTransaction, category: 'Equipment', taxCode: 'tax_default'};
 
         // When the user switches to the category that carries the rule
-        const {result, rerender} = renderHook((props: Params['transaction']) => useTaxAmount({...baseParams, transaction: props}), {initialProps: transaction});
-        rerender({...transaction, category: 'Car'});
+        const {renders, rerenderWith} = renderTaxAmountRenders(transaction);
+        rerenderWith({...transaction, category: 'Car'});
 
         // Then the rate the old category left behind does not read as a selection, so the rule's rate is applied
-        expect(result.current.shouldKeepCurrentTaxSelection).toBe(false);
-        expect(result.current.defaultTaxCode).toBe('tax_category');
+        expect(renders).toContainEqual({defaultTaxCode: 'tax_category', shouldKeepCurrentTaxSelection: false, areRulesLoading: false});
+    });
+
+    it('applies the category rule when the category changed while the rules were loading', () => {
+        // Given an expense carrying the tax of a category with no rule, whose category is changed to one that has a
+        // rule before `GetRules` has answered
+        mockCategoryTaxCodes = {Car: 'tax_category'};
+        mockHasTaxRateWithMatchingValue = true;
+        mockAreRulesLoading = true;
+        const transaction = {...baseTransaction, category: 'Equipment', taxCode: 'tax_default'};
+        const {renders, rerenderWith} = renderTaxAmountRenders(transaction);
+        rerenderWith({...transaction, category: 'Car'});
+        // Nothing resolves the rate while the rules are loading, so further renders must not retire the change
+        rerenderWith({...transaction, category: 'Car'});
+
+        // When the rules land
+        mockAreRulesLoading = false;
+        rerenderWith({...transaction, category: 'Car'});
+
+        // Then the change is still seen, so the rate the old category left behind does not read as a selection
+        expect(renders).toContainEqual({defaultTaxCode: 'tax_category', shouldKeepCurrentTaxSelection: false, areRulesLoading: false});
     });
 
     it('applies the category rule to the distance rate default category', () => {
