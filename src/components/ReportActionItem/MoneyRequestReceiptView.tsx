@@ -733,8 +733,7 @@ function MoneyRequestReceiptView({
                     {hasReceipt && (
                         <View
                             ref={receiptContainerRef}
-                            // In the wide RHP the expense details column sits right of the receipt and brings its own gutter
-                            style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, isDisplayedInWideRHP && styles.mr0, showBorderlessLoading && styles.flex1]}
+                            style={[styles.getMoneyRequestViewImage(showBorderlessLoading), receiptStyle, showBorderlessLoading && styles.flex1]}
                             onMouseEnter={() => {
                                 if (isLoading) {
                                     return;

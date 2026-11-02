@@ -6824,6 +6824,8 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
             width: animatedReceiptPaneRHPWidth,
             height: '100%',
+            borderRightWidth: 1,
+            borderColor: theme.border,
         },
 
         wideRHPDropZoneContainer: {
