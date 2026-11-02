@@ -20,9 +20,10 @@ function HybridAppHandler() {
     const hasRequestedHybridAppSettingsRef = useRef(false);
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [credentials, credentialsMetadata] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const isLoadingTryNewDot = isLoadingOnyxValue(tryNewDotMetadata);
     const isLoadingCredentials = isLoadingOnyxValue(credentialsMetadata);
+    const isLoadingSession = isLoadingOnyxValue(sessionMetadata);
 
     const finalizeTransitionFromOldDot = (hybridAppSettings: HybridAppSettings) => {
         const loggedOutFromOldDot = !!hybridAppSettings.hybridApp.loggedOutFromOldDot;
@@ -40,7 +41,7 @@ function HybridAppHandler() {
     };
 
     useEffect(() => {
-        if (!CONFIG.IS_HYBRID_APP || isLoadingTryNewDot || isLoadingCredentials || hasRequestedHybridAppSettingsRef.current) {
+        if (!CONFIG.IS_HYBRID_APP || isLoadingTryNewDot || isLoadingCredentials || isLoadingSession || hasRequestedHybridAppSettingsRef.current) {
             return;
         }
 
@@ -82,7 +83,7 @@ function HybridAppHandler() {
 
             finalizeTransitionFromOldDot(hybridAppSettings);
         });
-    }, [finalizeTransitionFromOldDot, isLoadingTryNewDot, isLoadingCredentials, setSplashScreenState]);
+    }, [finalizeTransitionFromOldDot, isLoadingTryNewDot, isLoadingCredentials, isLoadingSession, setSplashScreenState]);
 
     return null;
 }
