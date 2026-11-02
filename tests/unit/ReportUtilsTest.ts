@@ -385,6 +385,7 @@ jest.mock('@libs/PolicyUtils', () => {
         // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
         // aren't on it yet. Spread them from their own modules, which load fully.
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/features'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
         isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
@@ -20877,7 +20878,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(regularChat, {});
+            const result = getViolatingReportIDForRBRInLHN(regularChat, {}, undefined);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -20896,7 +20897,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, {});
+            const result = getViolatingReportIDForRBRInLHN(chatReport, {}, undefined);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -20914,7 +20915,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, {});
+            const result = getViolatingReportIDForRBRInLHN(chatReport, {}, undefined);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -21001,7 +21002,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBe(expenseReportID);
 
             await Onyx.clear();
@@ -21090,14 +21091,14 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBeNull();
 
             // Positive control: the same violating transaction lights the RBR when it isn't pending deletion.
             // This proves the null above comes from the DELETE filter and not from some unrelated gate.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: null});
             await waitForBatchedUpdates();
-            expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+            expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
             await Onyx.clear();
         });
@@ -21206,7 +21207,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBe(expenseReportID);
 
             await Onyx.clear();
@@ -21294,7 +21295,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -21380,7 +21381,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -21467,7 +21468,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBe(expenseReportID);
 
             await Onyx.clear();
@@ -21572,7 +21573,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -21667,7 +21668,7 @@ describe('ReportUtils', () => {
                     await Onyx.clear();
 
                     // Given a submitted instant-submit report with only companyCardRequired
-                    const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                    const {chatReport, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                         `only-${violationType}`,
                         [{name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: violationType, showInReview: true}],
                         false,
@@ -21677,7 +21678,7 @@ describe('ReportUtils', () => {
 
                     // When the Inbox checks for the red dot
                     // Then the dot stays off, because the submitter cannot fix this after submit
-                    expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
+                    expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBeNull();
 
                     await Onyx.clear();
                 },
@@ -21686,13 +21687,13 @@ describe('ReportUtils', () => {
             it('should still surface RBR on an open expense report whose only violation is companyCardRequired', async () => {
                 await Onyx.clear();
 
-                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, expenseReportID, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'open',
                     [{name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                     true,
                 );
 
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21701,7 +21702,7 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
 
                 // Given a submitted instant-submit report with companyCardRequired and a violation the submitter can fix
-                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, expenseReportID, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'alongside-resolvable',
                     [
                         {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
@@ -21714,7 +21715,7 @@ describe('ReportUtils', () => {
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays on, because the fixable violation is still there
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21725,7 +21726,7 @@ describe('ReportUtils', () => {
                 // Given a submitted instant-submit report where the category violation is still hidden while it is being analyzed
                 const pendingAutoCategorizationTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
 
-                const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'alongside-hidden',
                     [
                         {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
@@ -21738,7 +21739,7 @@ describe('ReportUtils', () => {
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays off, because nothing left is something the submitter can fix
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBeNull();
 
                 await Onyx.clear();
             });
@@ -21747,7 +21748,7 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
 
                 // Given a submitted instant-submit report with only a modifiedAmount violation
-                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, expenseReportID, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'modified-amount-violation',
                     [{name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                     false,
@@ -21757,7 +21758,7 @@ describe('ReportUtils', () => {
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays on, because this modifiedAmount can still be fixed
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21766,13 +21767,13 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
 
                 // Given a submitted report that is not instant submit, with a violation the submitter can fix
-                const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario('submitted-non-instant', [
+                const {chatReport, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario('submitted-non-instant', [
                     {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
                 ]);
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays off, because only instant submit keeps Fix after submit
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBeNull();
 
                 await Onyx.clear();
             });
@@ -21781,7 +21782,7 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
 
                 // Given a draft report with a violation the submitter can fix
-                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, expenseReportID, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'draft-non-instant',
                     [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                     true,
@@ -21789,7 +21790,7 @@ describe('ReportUtils', () => {
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays on, because a draft can still be fixed
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21806,6 +21807,126 @@ describe('ReportUtils', () => {
                 expect(ViolationsUtils.hasVisibleViolationsForUser(expenseReport, transactionViolationsCollection, currentUserEmail, currentUserAccountID, policyData, [transaction])).toBe(
                     true,
                 );
+
+                await Onyx.clear();
+            });
+        });
+
+        /**
+         * The policy must come from the caller rather than the module-level `allPolicies` Onyx cache that
+         * ReportUtils used to read. Auto-categorization is the discriminator: with `autoCategorizeNewExpenses`
+         * off, `isCategoryBeingAnalyzed` bails out early and the `missingCategory` violation drives the RBR;
+         * with it on, the expense is still inside the grace period so the violation stays hidden. A stale
+         * cached policy would therefore flip the RBR either way. See https://github.com/Expensify/App/issues/66415.
+         */
+        describe('reads the policy from the caller, not the Onyx cache', () => {
+            function buildAutoCategorizePolicy(autoCategorizeNewExpenses: boolean): Policy {
+                return {
+                    id: 'placeholder',
+                    name: 'Auto Categorize Workspace',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: CONST.CURRENCY.USD,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    employeeList: {[currentUserEmail]: {role: CONST.POLICY.ROLE.ADMIN}},
+                    owner: currentUserEmail,
+                    autoCategorizeNewExpenses,
+                };
+            }
+
+            /**
+             * Builds an open expense report owned by the current user whose single uncategorized transaction sits
+             * inside the auto-categorization grace period and carries a `missingCategory` violation, and seeds
+             * `cachedPolicy` into Onyx as that workspace's policy.
+             */
+            async function setUpAutoCategorizeScenario(scenarioKey: string, cachedPolicy: Policy) {
+                const policyID = `policy-rbr-auto-categorize-${scenarioKey}`;
+                const chatReportID = `chat-rbr-auto-categorize-${scenarioKey}`;
+                const expenseReportID = `expense-rbr-auto-categorize-${scenarioKey}`;
+                const transactionID = `transaction-rbr-auto-categorize-${scenarioKey}`;
+
+                const chatReport: Report = {
+                    ...createPolicyExpenseChat(820),
+                    reportID: chatReportID,
+                    ownerAccountID: currentUserAccountID,
+                    policyID,
+                    iouReportID: expenseReportID,
+                    hasOutstandingChildRequest: true,
+                };
+
+                const expenseReport: Report = {
+                    ...createExpenseReport(821),
+                    reportID: expenseReportID,
+                    chatReportID,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: 42,
+                    policyID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    total: 5000,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                // Inside the 60-second auto-categorization grace period, so the category counts as still being analyzed.
+                const pendingAutoCategorizationTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
+                const transaction: Transaction = {
+                    ...createRandomTransaction(820),
+                    transactionID,
+                    reportID: expenseReportID,
+                    amount: 5000,
+                    currency: CONST.CURRENCY.USD,
+                    status: CONST.TRANSACTION.STATUS.POSTED,
+                    reimbursable: true,
+                    category: '',
+                    comment: {pendingAutoCategorizationTime},
+                };
+
+                const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as OnyxKey;
+                const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
+                    [transactionViolationsKey]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                };
+
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+                await waitForBatchedUpdates();
+
+                await Promise.all([
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...cachedPolicy, id: policyID}),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction),
+                    Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
+                ]);
+                await waitForBatchedUpdates();
+
+                return {chatReport, expenseReportID, transactionViolationsCollection};
+            }
+
+            it('hides the RBR when the passed policy auto-categorizes even though the cached policy does not', async () => {
+                // Given a workspace whose cached policy has auto-categorization off, which would surface the violation
+                await Onyx.clear();
+                const {chatReport, transactionViolationsCollection} = await setUpAutoCategorizeScenario('cached-off', buildAutoCategorizePolicy(false));
+
+                // When the caller passes the policy it actually holds, on which auto-categorization is on
+                const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, buildAutoCategorizePolicy(true));
+
+                // Then no RBR is reported, because the caller's policy decides and the stale cache is never consulted
+                expect(result).toBeNull();
+
+                await Onyx.clear();
+            });
+
+            it('shows the RBR when the passed policy does not auto-categorize even though the cached policy does', async () => {
+                // Given a workspace whose cached policy has auto-categorization on, which would hide the violation
+                await Onyx.clear();
+                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpAutoCategorizeScenario('cached-on', buildAutoCategorizePolicy(true));
+
+                // When the caller passes the policy it actually holds, on which auto-categorization is off
+                const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, buildAutoCategorizePolicy(false));
+
+                // Then the violating report surfaces, so a stale cache can never suppress a real RBR
+                expect(result).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21939,7 +22060,7 @@ describe('ReportUtils', () => {
         ]);
         await waitForBatchedUpdates();
 
-        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policy1);
         expect(shouldShowRBR).toBe(false);
 
         const reason = reasonForReportToBeInOptionList({
@@ -22058,7 +22179,7 @@ describe('ReportUtils', () => {
         ]);
         await waitForBatchedUpdates();
 
-        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policy1);
         expect(shouldShowRBR).toBe(false);
         await Onyx.clear();
     });
