@@ -4709,6 +4709,28 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 }
             },
         },
+        auRegistrationTitle: 'What is the business name and incorporation date?',
+        registeredTradeName: 'Registered business or trading name',
+        paymentsAndFunding: 'How will your business use Corpay?',
+        sourceOfFunds: 'Source of funds',
+        otherSourceOfFunds: 'Describe the other source of funds',
+        otherBusinessLegalStructure: 'Describe the other business legal structure',
+        monthlyTransactions: 'Expected number of transactions per month',
+        invalidMonthlyTransactions: 'Enter a valid number of transactions',
+        transactionFrequency: 'Expected frequency of transactions',
+        corpayAccountUse: 'How will you use your Corpay account?',
+        businessActivities: 'Does your business do any of the following?',
+        activities: {
+            charitableOrganization: 'Operate as a charitable organization',
+            preciousStonesOrMetals: 'Deal in precious stones or metals',
+            highValueDealer: 'Operate as a high-value dealer',
+            networkMarketing: 'Operate as a network marketing company',
+            realEstate: 'Operate in real estate',
+            travelOrTour: 'Operate a travel or tour company',
+            cannabis: 'Operate a cannabis-related business',
+            crypto: 'Operate a cryptocurrency-related business',
+            moneyServicesOrFinancialInstitution: 'Operate as a money services business or financial institution',
+        },
     },
     beneficialOwnerInfoStep: {
         doYouOwn25percent: (companyName: string) => `${companyName}の25％以上を所有していますか？`,
@@ -4784,6 +4806,11 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         codiceFiscale: '納税者番号／Tax ID',
         codiceFiscaleDescription:
             '署名担当者との現地訪問の様子、または録音済み通話の動画をアップロードしてください。担当者は以下の情報を提供する必要があります：氏名、生年月日、会社名、登記番号、納税者番号、登記住所、事業内容、および口座の目的。',
+        ownerDeclarations: 'Owner declarations',
+        anyUSCitizenOwners: 'Do any beneficial owners hold US citizenship?',
+        isPoliticallyExposed:
+            'Are any company personnel or signatories, their family members, or close associates a person who is or was entrusted with a prominent public function (for example, in government, the military, or the judiciary)?',
+        pepDetails: 'Name, position held, and dates from and to for each person',
     },
     completeVerificationStep: {
         completeVerification: '認証を完了',
