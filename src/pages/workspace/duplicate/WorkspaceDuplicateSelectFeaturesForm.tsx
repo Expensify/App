@@ -19,7 +19,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getExpenseDefaultRuleCount} from '@libs/ExpenseDefaultRuleUtils';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
-import {createFilteredMemberCountSelector, createInvoiceConfigurationTextSelector, getDistanceRateCustomUnit, getPerDiemCustomUnit, isCollectPolicy} from '@libs/PolicyUtils';
+import {
+    arePolicyRulesEnabled,
+    createFilteredMemberCountSelector,
+    createInvoiceConfigurationTextSelector,
+    getDistanceRateCustomUnit,
+    getPerDiemCustomUnit,
+    isCollectPolicy,
+} from '@libs/PolicyUtils';
 import {formatAddressToString} from '@libs/ReportActionsUtils';
 import {getReportFieldsByPolicyID} from '@libs/ReportUtils';
 
@@ -149,7 +156,8 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
                       alternateText: workflows?.join(', '),
                   }
                 : undefined,
-            rules && rules.length > 0 && !isCollect
+            // A Control workspace keeps its rule settings while Rules is turned off, so only offer to copy them when Rules is on.
+            rules && rules.length > 0 && !isCollect && arePolicyRulesEnabled(policy, policyCategories)
                 ? {
                       translation: translate('workspace.common.rules'),
                       value: 'rules',
@@ -198,7 +206,7 @@ function WorkspaceDuplicateSelectFeaturesForm({policyID}: WorkspaceDuplicateForm
         return result.filter((item): item is NonNullable<typeof item> => !!item);
     })();
 
-    // Merchant rules live under Rules, so they are copied only along with it. The Rules row is hidden when the source has no workspace-level rules, and merchant rules can then be copied on their own.
+    // Merchant rules live under Rules, so they are copied only along with it. The Rules row is hidden when the source has no workspace-level rules or has Rules turned off, and merchant rules can then be copied on their own.
     const hasRulesItem = items.some((item) => item.value === 'rules');
     const effectiveSelectedItems = hasRulesItem && !selectedItems.includes('rules') ? selectedItems.filter((value) => value !== 'codingRules') : selectedItems;
 
