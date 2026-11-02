@@ -128,8 +128,8 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                     isSupportalLogin,
                 });
 
-                // The sign-out keeps only the top route of the root stack. Pop what the outgoing account opened on top of this page
-                // while the prompt was open, so the route that survives is this one, with the link's params, instead of that screen.
+                // The sign-out keeps only the top route of the root stack, and the public transition page redeems the token from that
+                // route's params. Pop what the outgoing account opened on top of this page while the prompt was open, so this route survives.
                 const rootState = navigationRef.getRootState();
                 const topRootIndex = rootState.index ?? rootState.routes.length - 1;
                 const transitionIndex = rootState.routes.findLastIndex((rootRoute, idx) => idx < topRootIndex && rootRoute.name === SCREENS.TRANSITION_BETWEEN_APPS);
@@ -138,17 +138,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                 }
 
                 // We don't want to close react-native app in this particular case.
-                signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER)?.then(() => {
-                    // The public transition page only mounts when the URL path is still /transition. Anything that navigated while the prompt
-                    // was open has changed that path, so the token from the route params is redeemed here instead. HybridApp reads the link from
-                    // the native launch URL, which no navigation can change, so it keeps its own flow.
-                    if (CONFIG.IS_HYBRID_APP || shortLivedAuthToken === getLastShortAuthToken()) {
-                        return;
-                    }
-                    signInWithShortLivedAuthToken(shortLivedAuthToken, undefined, false, undefined, undefined).catch((error) =>
-                        Log.warn('Unable to sign in with shortLivedAuthToken', {error}),
-                    );
-                });
+                signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
             });
             return;
         }

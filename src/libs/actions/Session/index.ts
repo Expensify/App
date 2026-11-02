@@ -531,8 +531,7 @@ function signOutAndRedirectToSignIn(
                     });
                 });
             } else {
-                // Returned so callers can act once the clear has finished, such as redeeming a transition link for another account.
-                return redirectToSignIn(signOutReason).then(() => {
+                redirectToSignIn(signOutReason).then(() => {
                     Onyx.multiSet(onyxSetParams);
 
                     if (hasSwitchedAccountInHybridMode) {
