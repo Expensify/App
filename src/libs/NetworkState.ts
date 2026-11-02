@@ -137,7 +137,9 @@ function setSustainedFailures(active: boolean) {
         // A successful request proved connectivity — trigger reconnect to backfill
         // missed Onyx updates. Without this, a backend outage recovery (where NetInfo
         // never transitions false→true) would leave the UI online but stale.
-        // Duplicate reconnectApp() calls are safe — SQ deduplicates them.
+        // A reconnect that coincides with one already in flight is collapsed at push time by the
+        // reconnect coverage resolver (resolveReconnectDuplicationConflictAction): a redundant one is
+        // dropped, a wider one runs after. It consults the ongoing request and the waiting queue.
 
         // Jitter (0–5s) staggers reconnection across clients after a server-wide outage
         // to avoid a stampede of ReconnectApp calls hitting the backend simultaneously.

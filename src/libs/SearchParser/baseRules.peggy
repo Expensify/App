@@ -38,11 +38,17 @@ taxRate
 cardID
   = "cardID"
   / "card"i { return "cardID"; }
+bankAccount
+  = "bankAccount"
+  / "bank-account"i { return "bankAccount"; }
 from = "from"i { return "from"; }
 attendee = "attendee"i {return "attendee"}
 expenseType
   = "expenseType"
   / "expense-type"i { return "expenseType"; }
+receiptType
+  = "receiptType"
+  / "receipt-type"i { return "receiptType"; }
 withdrawalType
   = "withdrawalType"
   / "withdrawal-type"i { return "withdrawalType"; }
@@ -101,7 +107,7 @@ columnsValues
   / taxAmount
   / policyName
   / withdrawalId
-  / bankAccount
+  / bankAccountColumn
   / reportId
   / base62ReportId
   / exportedToColumnValue
@@ -131,7 +137,7 @@ taxAmount               = "tax"i &wordBoundary                      { return "ta
 taxRateValue            = "tax-rate"i &wordBoundary                 { return "taxrate"; }
 policyName              = "policy-name"i &wordBoundary              { return "policyname"; }
 withdrawalId            = "withdrawal-id"i &wordBoundary            { return "withdrawalID"; }
-bankAccount             = "bank-account"i &wordBoundary             { return "bankAccount"; }
+bankAccountColumn       = "bank-account"i &wordBoundary             { return "bankAccount"; }
 reportId                = "long-report-id"i &wordBoundary           { return "reportID"; }
 base62ReportId          = "report-id"i &wordBoundary                { return "base62ReportID"; }
 exportedToColumnValue   = "exported-to"i &wordBoundary              { return "exportedto"; }

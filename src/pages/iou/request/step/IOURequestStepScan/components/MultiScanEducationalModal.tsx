@@ -24,7 +24,6 @@ function MultiScanEducationalModal() {
         <FeatureTrainingModal
             title={translate('iou.scanMultipleReceipts')}
             image={lazyIllustrations.MultiScan}
-            shouldRenderSVG
             imageHeight={220}
             modalInnerContainerStyle={styles.pt0}
             illustrationOuterContainerStyle={styles.multiScanEducationalPopupImage}
@@ -33,7 +32,6 @@ function MultiScanEducationalModal() {
             confirmText={translate('common.buttonConfirm')}
             description={translate('iou.scanMultipleReceiptsDescription')}
             contentInnerContainerStyles={styles.mb6}
-            shouldGoBack={false}
         />
     );
 }

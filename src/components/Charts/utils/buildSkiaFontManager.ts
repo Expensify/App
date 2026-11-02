@@ -4,19 +4,19 @@ import type {ChartDefaultTypeface} from '@components/Charts/types/chartSkiaTypef
 import {CHART_FONT_MGR_FROM_TYPEFACES} from './chartFontConstants';
 
 function buildSkiaFontManager(typefaces: ChartDefaultTypeface): SkTypefaceFontProvider {
-    const fontMgr = Skia.TypefaceFontProvider.Make();
+    const fontManager = Skia.TypefaceFontProvider.Make();
 
     for (const [familyName, typefaceKeys] of Object.entries(CHART_FONT_MGR_FROM_TYPEFACES)) {
         for (const typefaceKey of typefaceKeys) {
             const typeface = typefaces[typefaceKey];
 
             if (typeface) {
-                fontMgr.registerFont(typeface, familyName);
+                fontManager.registerFont(typeface, familyName);
             }
         }
     }
 
-    return fontMgr;
+    return fontManager;
 }
 
 export default buildSkiaFontManager;

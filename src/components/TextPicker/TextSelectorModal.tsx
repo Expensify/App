@@ -1,4 +1,5 @@
 import {useFocusEffect} from '@react-navigation/native';
+import {SafeString} from 'expensify-common';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import type {TextInput as TextInputType} from 'react-native';
 import {Keyboard, View} from 'react-native';
@@ -17,7 +18,6 @@ import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
 import type {TextSelectorModalProps} from './types';
 
 function TextSelectorModal({

@@ -1,6 +1,6 @@
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor, within} from '@testing-library/react-native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 import ComposeProviders from '@components/ComposeProviders';
@@ -42,6 +42,19 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.MEMBERS, initialP
             </PortalProvider>
         </ComposeProviders>,
     );
+};
+
+const selectCheckboxByMemberName = (memberName: string) => {
+    const memberEmailByName: Record<string, string> = {
+        Owner: 'owner@gmail.com',
+        Admin: 'admin@example.com',
+        Auditor: 'auditor@example.com',
+        Member: 'user@example.com',
+        Self: 'test@example.com',
+    };
+    const displayName = memberName === 'Owner' || memberName === 'Self' ? memberName : `${memberName} User`;
+    const row = screen.getByLabelText(new RegExp(`^${displayName}, ${memberEmailByName[memberName]}`));
+    fireEvent.press(within(row).getByLabelText(TestHelper.translateLocal('common.select')));
 };
 
 describe('WorkspaceMembers', () => {
@@ -107,7 +120,7 @@ describe('WorkspaceMembers', () => {
     });
 
     describe('Changing roles options', () => {
-        it('should show Make member/auditor when admin is selected', async () => {
+        it('should show Make member/auditor/card admin when admin is selected', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -117,7 +130,7 @@ describe('WorkspaceMembers', () => {
             });
 
             // Select admin option by clicking the checkbox
-            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${ADMIN_OPTION}`));
+            selectCheckboxByMemberName('Admin');
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -147,6 +160,11 @@ describe('WorkspaceMembers', () => {
             const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
 
+            // Find and verify "Make card admin" dropdown menu item
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
+            const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
+            expect(makeCardAdminMenuItem).toBeOnTheScreen();
+
             // Find and verify "Make admin" dropdown menu item is not present
             const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
             const makeAdminMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`);
@@ -156,7 +174,7 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should show Make admin/auditor when member is selected', async () => {
+        it('should show Make admin/auditor/card admin when member is selected', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -166,7 +184,7 @@ describe('WorkspaceMembers', () => {
             });
 
             // Select member option by clicking the checkbox
-            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${USER_OPTION}`));
+            selectCheckboxByMemberName('Member');
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -196,6 +214,11 @@ describe('WorkspaceMembers', () => {
             const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
 
+            // Find and verify "Make card admin" dropdown menu item
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
+            const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
+            expect(makeCardAdminMenuItem).toBeOnTheScreen();
+
             // Find and verify "Make member" dropdown menu item is not present
             const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
             const makeMemberMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`);
@@ -205,7 +228,7 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should show Make member/admin when auditor is selected', async () => {
+        it('should show Make member/admin/card admin when auditor is selected', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -215,7 +238,7 @@ describe('WorkspaceMembers', () => {
             });
 
             // Select auditor option by clicking the checkbox
-            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${AUDITOR_OPTION}`));
+            selectCheckboxByMemberName('Auditor');
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -245,6 +268,11 @@ describe('WorkspaceMembers', () => {
             const makeAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAdminText}`);
             expect(makeAdminMenuItem).toBeOnTheScreen();
 
+            // Find and verify "Make card admin" dropdown menu item
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
+            const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
+            expect(makeCardAdminMenuItem).toBeOnTheScreen();
+
             // Find and verify "Make auditor" dropdown menu item is not present
             const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
             const makeAuditorMenuItem = screen.queryByTestId(`PopoverMenuItem-${makeAuditorText}`);
@@ -254,7 +282,7 @@ describe('WorkspaceMembers', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('should show Make member/admin/auditor when mix is selected', async () => {
+        it('should show Make member/admin/auditor/card admin when mix is selected', async () => {
             const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
             await waitForBatchedUpdatesWithAct();
 
@@ -267,8 +295,8 @@ describe('WorkspaceMembers', () => {
             });
 
             // Select options by clicking the checkboxes
-            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${AUDITOR_OPTION}`));
-            fireEvent.press(screen.getByTestId(`${CONST.SELECTION_BUTTON_TEST_ID}${ADMIN_OPTION}`));
+            selectCheckboxByMemberName('Auditor');
+            selectCheckboxByMemberName('Admin');
             const dropdownMenuButtonTestID = 'WorkspaceMembersPage-header-dropdown-menu-button';
 
             // Wait for selection mode to be active and click the dropdown menu button
@@ -303,6 +331,88 @@ describe('WorkspaceMembers', () => {
             const makeAuditorMenuItem = screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`);
             expect(makeAuditorMenuItem).toBeOnTheScreen();
 
+            // Find and verify "Make card admins" dropdown menu item (plural form for 2 selected items)
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 2});
+            const makeCardAdminMenuItem = screen.getByTestId(`PopoverMenuItem-${makeCardAdminText}`);
+            expect(makeCardAdminMenuItem).toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should only show member and auditor role actions for People Admin', async () => {
+            const peopleAdminPolicy = {
+                ...policy,
+                role: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+                employeeList: {
+                    ...policy.employeeList,
+                    [selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN},
+                },
+            };
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, peopleAdminPolicy);
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            });
+
+            selectCheckboxByMemberName('Member');
+            fireEvent.press(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
+            expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
+
+            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
+            expect(screen.getByTestId(`PopoverMenuItem-${makeAuditorText}`)).toBeOnTheScreen();
+
+            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`)).not.toBeOnTheScreen();
+
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeCardAdminText}`)).not.toBeOnTheScreen();
+
+            const makePeopleAdminText = TestHelper.translateLocal('workspace.people.makePeopleAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makePeopleAdminText}`)).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should let People Admin make auditors members', async () => {
+            const peopleAdminPolicy = {
+                ...policy,
+                role: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+                employeeList: {
+                    ...policy.employeeList,
+                    [selfEmail]: {email: selfEmail, role: CONST.POLICY.ROLE.PEOPLE_ADMIN},
+                },
+            };
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, peopleAdminPolicy);
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(AUDITOR_OPTION)).toBeOnTheScreen();
+            });
+
+            selectCheckboxByMemberName('Auditor');
+            fireEvent.press(screen.getByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
+            expect(screen.getByTestId(`PopoverMenuItem-${makeMemberText}`)).toBeOnTheScreen();
+
+            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`)).not.toBeOnTheScreen();
+
             unmount();
             await waitForBatchedUpdatesWithAct();
         });
@@ -316,7 +426,7 @@ describe('WorkspaceMembers', () => {
             await screen.findByText(ADMIN_OPTION);
 
             // Select all
-            fireEvent.press(screen.getByTestId('selection-list-select-all-checkbox'));
+            fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
 
             // Open dropdown
             fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
@@ -340,6 +450,29 @@ describe('WorkspaceMembers', () => {
             await waitFor(() => {
                 expect(screen.getByLabelText(confirmText)).toBeOnTheScreen();
             });
+
+            unmount();
+        });
+    });
+
+    describe('Role display on Submit workspaces', () => {
+        it('should show the workspace owner as Editor instead of Owner', async () => {
+            // Given a Submit workspace, where every member (including the owner) uses the flat Editor role
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {type: CONST.POLICY.TYPE.SUBMIT});
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the members list renders the owner row
+            const ownerRow = await screen.findByLabelText(new RegExp(`^Owner User, ${ownerEmail}`));
+
+            // Then the owner's role is displayed as Editor, not Owner
+            const editorLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.EDITOR);
+            const ownerLabel = TestHelper.translateLocal('workspace.common.roleName', CONST.POLICY.ROLE.OWNER);
+            expect(within(ownerRow).getByText(editorLabel)).toBeOnTheScreen();
+            expect(within(ownerRow).queryByText(ownerLabel)).not.toBeOnTheScreen();
 
             unmount();
         });

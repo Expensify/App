@@ -33,6 +33,7 @@ type EmptyStateComponentProps = {
     cardStyles?: StyleProp<ViewStyle>;
     cardContentStyles?: StyleProp<ViewStyle>;
     headerStyles?: StyleProp<ViewStyle>;
+    foregroundStyles?: StyleProp<ViewStyle>;
     headerContentStyles?: StyleProp<ViewStyle & ImageStyle>;
     minModalHeight?: number;
     subtitleText?: React.ReactNode;

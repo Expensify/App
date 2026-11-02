@@ -8,7 +8,6 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
 import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
-import useArchivedReportsIDSet from '@hooks/useArchivedReportsIDSet';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -47,15 +46,15 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rooms');
 
     const reportAttributes = useReportAttributes();
-    const archivedReportsIDSet = useArchivedReportsIDSet();
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const personalDetails = usePersonalDetails();
 
     const [policyReports] = useOnyx(
         ONYXKEYS.COLLECTION.REPORT,
         {
-            selector: policyChatRoomsSelector(policyID, archivedReportsIDSet),
+            selector: policyChatRoomsSelector(policyID, reportNameValuePairs),
         },
-        [policyID, archivedReportsIDSet],
+        [policyID, reportNameValuePairs],
     );
 
     // The newly created room reportID is stored in Onyx right before navigating back here so its row can play the highlight animation.

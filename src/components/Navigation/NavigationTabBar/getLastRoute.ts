@@ -10,7 +10,16 @@ function getLastRoute(rootState: NavigationState, navigator: ValueOf<typeof NAVI
     let lastNavigatorKey = rootState.routes.findLast((route) => route.name === navigator)?.key;
 
     if (!lastNavigatorKey) {
-        const rootTabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        let rootTabRoute = rootState.routes.findLast((route) => {
+            if (route.name !== NAVIGATORS.TAB_NAVIGATOR) {
+                return false;
+            }
+            const tabState = getTabState(route);
+            return tabState?.routes?.[tabState.index ?? 0]?.name === navigator;
+        });
+        if (!rootTabRoute) {
+            rootTabRoute = rootState.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
+        }
         const tabState = getTabState(rootTabRoute);
         lastNavigatorKey = tabState?.routes?.findLast((route) => route.name === navigator)?.key;
     }

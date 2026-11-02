@@ -32,9 +32,6 @@ type Onboarding = {
 
     /** A Boolean that tells whether the onboarding flow is loading */
     isLoading?: boolean;
-
-    /** A Boolean that tells whether the test drive modal has been dismissed */
-    testDriveModalDismissed?: boolean;
 };
 
 export default Onboarding;

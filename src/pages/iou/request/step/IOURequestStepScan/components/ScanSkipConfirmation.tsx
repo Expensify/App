@@ -15,6 +15,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSelfDMReport from '@hooks/useSelfDMReport';
+import useSkipConfirmationPreInsert from '@hooks/useSkipConfirmationPreInsert';
 import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/actions/IOU/MoneyRequest';
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
@@ -112,6 +113,9 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
     useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
+
+    const preInsertReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
+    useSkipConfirmationPreInsert(true, preInsertReportID);
 
     // Pre-fetch location if GPS is required and permission is already granted
     useEffect(() => {

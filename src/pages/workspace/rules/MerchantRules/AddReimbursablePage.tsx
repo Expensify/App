@@ -4,10 +4,10 @@ import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import MERCHANT_RULE_INPUT_IDS from '@src/types/form/MerchantRuleForm';
 
 type AddReimbursablePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_MERCHANT_REIMBURSABLE>;
 
@@ -27,7 +27,7 @@ function AddReimbursablePage({route}: AddReimbursablePageProps) {
 
     return (
         <RuleBooleanBase
-            fieldID={CONST.MERCHANT_RULES.FIELDS.REIMBURSABLE}
+            fieldID={MERCHANT_RULE_INPUT_IDS.REIMBURSABLE}
             formID={ONYXKEYS.FORMS.MERCHANT_RULE_FORM}
             titleKey="common.reimbursable"
             onSelect={onSelect}

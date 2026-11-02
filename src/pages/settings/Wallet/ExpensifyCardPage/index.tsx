@@ -5,6 +5,7 @@ import {View} from 'react-native';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import cardScarf from '@assets/images/card-scarf.svg';
+import ActivityIndicator from '@components/ActivityIndicator';
 import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
@@ -29,7 +30,6 @@ import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {freezeCard, unfreezeCard} from '@libs/actions/Card';
-import {resetValidateActionCodeSent} from '@libs/actions/User';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {
     formatCardExpiration,
@@ -63,6 +63,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {useExpensifyCardActions, useExpensifyCardState} from './ExpensifyCardContextProvider';
 
 type ExpensifyCardPageProps =
@@ -94,6 +95,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const cardList = useNonPersonalCardList();
+    const [, cardListResult] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardList?.[cardID]?.fundID}`);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -271,6 +275,27 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
     }, [currentCard, handleDismissUnfreezeModal, session?.accountID]);
 
     const navigateToTransactions = () => navigateToCardTransactions(cardID);
+
+    // Show the loading indicator instead of the NotFoundPage while the card could still arrive: Before the app has loaded for the first time (hasLoadedApp),
+    // while an OpenApp/reconnect is in flight (isLoadingApp), or while CARD_LIST is still hydrating.
+    const isLoadingCardData = !currentCard && (!hasLoadedApp || !!isLoadingApp || isLoadingOnyxValue(cardListResult));
+
+    if (isLoadingCardData) {
+        return (
+            <ScreenWrapper testID="ExpensifyCardPage">
+                <HeaderWithBackButton
+                    title={pageTitle}
+                    onBackButtonPress={() => Navigation.closeRHPFlow()}
+                />
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        reasonAttributes={{context: 'ExpensifyCardPage', isOffline, hasLoadedApp: !!hasLoadedApp, isLoadingApp: !!isLoadingApp}}
+                    />
+                </View>
+            </ScreenWrapper>
+        );
+    }
 
     if (!currentCard) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
@@ -453,13 +478,20 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 }
                                                 Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_DIGITAL_DETAILS_UPDATE_ADDRESS.getRoute(domain));
                                             }}
-                                            limitType={card?.nameValuePairs?.limitType}
-                                            cardHintText={getCardHintText(
-                                                card?.nameValuePairs?.validFrom,
-                                                card?.nameValuePairs?.validThru,
-                                                personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
-                                                translate,
-                                            )}
+                                            // The top-level "Limit type" row already shows the current card's limit. On combo card pages the
+                                            // revealed virtual card differs from the current (physical) card, so render its own limit here to
+                                            // avoid losing it; otherwise omit it to prevent a duplicate row for a single card.
+                                            limitType={card.cardID === currentCard.cardID ? undefined : card?.nameValuePairs?.limitType}
+                                            cardHintText={
+                                                card.cardID === currentCard.cardID
+                                                    ? undefined
+                                                    : getCardHintText(
+                                                          card?.nameValuePairs?.validFrom,
+                                                          card?.nameValuePairs?.validThru,
+                                                          personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.timezone?.selected,
+                                                          translate,
+                                                      )
+                                            }
                                         />
                                     ) : (
                                         <>
@@ -487,7 +519,6 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                                     return;
                                                                 }
 
-                                                                resetValidateActionCodeSent();
                                                                 if (route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL) {
                                                                     Navigation.navigate(ROUTES.SETTINGS_DOMAIN_CARD_CONFIRM_MAGIC_CODE.getRoute(String(card.cardID)));
                                                                     return;
@@ -606,7 +637,12 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                         showLockedAccountModal();
                                                         return;
                                                     }
-                                                    Navigation.navigate(ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(String(currentPhysicalCard?.cardID)));
+                                                    Navigation.navigate(
+                                                        ROUTES.SETTINGS_WALLET_REPORT_CARD_LOST_OR_DAMAGED.getRoute(
+                                                            String(currentPhysicalCard?.cardID),
+                                                            route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL,
+                                                        ),
+                                                    );
                                                 }}
                                             />
                                         )}
@@ -638,7 +674,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                     success
                     large
                     style={[styles.w100, styles.p5]}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID)))}
+                    onPress={() =>
+                        Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID), route.name === SCREENS.DOMAIN_CARD.DOMAIN_CARD_DETAIL))
+                    }
                     text={translate('activateCardPage.activatePhysicalCard')}
                 />
             )}

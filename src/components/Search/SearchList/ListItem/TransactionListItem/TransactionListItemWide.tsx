@@ -39,6 +39,7 @@ function TransactionListItemWide<TItem extends ListItem>({
     transactionPreviewData,
     exportedReportActions,
     policyCategories,
+    policyTagLists,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
     currentSearchHash,
@@ -96,7 +97,11 @@ function TransactionListItemWide<TItem extends ListItem>({
         if (isEditingCell) {
             return;
         }
-        if (isDeletedTransaction && !canSelectMultiple) {
+        // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
+        if (isDeletedTransaction) {
+            if (canSelectMultiple) {
+                onCheckboxPress?.(item);
+            }
             return;
         }
         onSelectRow(item, transactionPreviewData, event);
@@ -170,6 +175,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                         report={transactionItem.report}
                         policy={transactionItem.policy}
                         policyCategories={policyCategories}
+                        policyTagLists={policyTagLists}
                         shouldShowTooltip={showTooltip}
                         onButtonPress={handleActionButtonPress}
                         onCheckboxPress={() => onCheckboxPress?.(item)}

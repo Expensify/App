@@ -1,4 +1,4 @@
-import {checkIfShouldUseNewPartnerName, isAgentEmail, isLoggingInAsDelegate} from '@src/libs/SessionUtils';
+import {checkIfShouldUseNewPartnerName, getPartnerCredentials, isAgentEmail, isLoggingInAsDelegate} from '@src/libs/SessionUtils';
 
 function mockHybridAppConfig(isHybridApp: boolean): () => void {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -66,6 +66,30 @@ describe('SessionUtils', () => {
             ['should be case sensitive for expensify.cash- prefix when in HybridApp', true, 'EXPENSIFY.CASH-12345', false],
         ])('%s', (description, isHybridApp, partnerUserID, expectedResult) => {
             testPartnerNameBehavior(isHybridApp, partnerUserID, expectedResult);
+        });
+    });
+
+    describe('getPartnerCredentials', () => {
+        test.each([
+            ['should return new partner credentials when not in HybridApp', false, 'any-user-id'],
+            ['should return new partner credentials for expensify.cash- prefix when in HybridApp', true, 'expensify.cash-12345'],
+            ['should return legacy partner credentials for legacy partnerUserID when in HybridApp', true, 'legacy-user-12345'],
+        ])('%s', (_description, isHybridApp, partnerUserID) => {
+            const cleanup = mockHybridAppConfig(isHybridApp);
+
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                const CONFIG = require('@src/CONFIG');
+                const useNewPartnerName = checkIfShouldUseNewPartnerName(partnerUserID);
+                const {partnerName, partnerPassword} = getPartnerCredentials(partnerUserID);
+
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                expect(partnerName).toBe(useNewPartnerName ? CONFIG.default.EXPENSIFY.PARTNER_NAME : CONFIG.default.EXPENSIFY.LEGACY_PARTNER_NAME);
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+                expect(partnerPassword).toBe(useNewPartnerName ? CONFIG.default.EXPENSIFY.PARTNER_PASSWORD : CONFIG.default.EXPENSIFY.LEGACY_PARTNER_PASSWORD);
+            } finally {
+                cleanup();
+            }
         });
     });
 

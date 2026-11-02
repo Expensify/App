@@ -34,6 +34,7 @@ function FullName({onNext, onMove, isEditing}: SubPageProps) {
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
             formTitle={translate('personalInfoStep.enterYourLegalFirstAndLast')}
+            formSubtitle={translate('personalInfoStep.legalNameSubtitle')}
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
             firstNameInputID={PERSONAL_INFO_STEP_KEY.FIRST_NAME}

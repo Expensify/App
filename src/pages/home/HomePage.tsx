@@ -7,7 +7,6 @@ import TopBar from '@components/Navigation/TopBar';
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -35,10 +34,6 @@ function HomePage() {
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
     const receiptDropTargetRef = useRef<View>(null);
-
-    // This hook signals that the app is ready to be opened after HomePage mounts
-    // to make sure everything loads properly
-    useConfirmReadyToOpenApp();
 
     return (
         <View style={styles.flex1}>

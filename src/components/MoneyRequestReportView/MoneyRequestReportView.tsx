@@ -13,6 +13,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import MoneyRequestReceiptView from '@components/ReportActionItem/MoneyRequestReceiptView';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
+import useMarkOpenReportEndOnSkeleton from '@hooks/useMarkOpenReportEndOnSkeleton';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
@@ -28,11 +29,11 @@ import {getFilteredReportActionsForReportView, getOneTransactionThreadReportID} 
 import {getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
-import ReportActionsView from '@pages/inbox/report/ReportActionsView';
+import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportFooter from '@pages/inbox/report/ReportFooter';
+import UserTypingEventListener from '@pages/inbox/report/UserTypingEventListener';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -149,7 +150,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
     }, [reportID]);
 
     // Special case handling a report that is a transaction thread
-    // If true we will use standard `ReportActionsView` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
+    // If true we will use the standard `ReportActionsList` to display report data and a special header, anything else is handled via `MoneyRequestReportActionsList`
     const isTransactionThreadView = isReportTransactionThread(report);
 
     // Prevent the empty state flash by ensuring transaction data is fully loaded before deciding which view to render
@@ -200,12 +201,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         };
     }, [reportID]);
 
-    useEffect(() => {
-        if (!shouldShowOpenReportLoadingSkeleton || !report) {
-            return;
-        }
-        markOpenReportEnd(report, {warm: false});
-    }, [report, shouldShowOpenReportLoadingSkeleton]);
+    useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
 
     if (shouldShowOpenReportLoadingSkeleton) {
         const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
@@ -275,10 +271,13 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
                         {shouldDisplayMoneyRequestActionsList ? (
                             <MoneyRequestReportActionsList onLayout={onLayout} />
                         ) : (
-                            <ReportActionsView
-                                reportID={reportID}
-                                onLayout={onLayout}
-                            />
+                            <>
+                                <ReportActionsList
+                                    reportID={report.reportID}
+                                    onLayout={onLayout}
+                                />
+                                <UserTypingEventListener report={report} />
+                            </>
                         )}
                         {shouldDisplayReportFooter ? (
                             <>

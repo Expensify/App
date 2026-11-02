@@ -50,6 +50,9 @@ function ExpenseReportListItemRowWide({
 
     const currency = item.currency ?? CONST.CURRENCY.USD;
     const {totalDisplaySpend = 0, nonReimbursableSpend = 0, reimbursableSpend = 0, isAllScanning: isScanning = false} = item;
+    const submitterUserID = item.submitterUserID;
+    const submitterPayrollID = item.submitterPayrollID;
+    const orderDealNumbers = item.orderDealNumbers;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
@@ -175,6 +178,21 @@ function ExpenseReportListItemRowWide({
                     currency={currency}
                     isScanning={isScanning}
                 />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID)]}>
+                <TextCell text={submitterUserID} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID)]}>
+                <TextCell text={submitterPayrollID} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS)]}>
+                <TextCell text={orderDealNumbers} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (

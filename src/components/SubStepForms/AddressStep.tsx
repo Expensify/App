@@ -1,14 +1,14 @@
 import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
-import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef, FormValue} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
 import PatriotActLink from '@components/PatriotActLink';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
+import {getCountryZipRegexDetails, getFieldRequiredErrors, getInvalidAddressErrorTranslationPath, isValidZipCode, isValidZipCodeForCountry} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 import {setDraftValues} from '@userActions/FormActions';
@@ -31,6 +31,15 @@ type AddressInputIDs = {
     zipCode: string;
     country?: string;
 };
+
+function getStringFormValue<TFormID extends keyof OnyxFormValuesMapping>(values: FormOnyxValues<TFormID>, fieldID?: string): string {
+    if (!fieldID) {
+        return '';
+    }
+
+    const value = values[fieldID as keyof FormOnyxValues<TFormID>];
+    return typeof value === 'string' ? value : '';
+}
 
 type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProps &
     ForwardedFSClassProps & {
@@ -138,21 +147,29 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
         (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
             const errors = getFieldRequiredErrors(values, stepFields, translate);
 
-            const street = values[inputFieldsIDs.street as keyof typeof values];
-            if (street && !isValidAddress(street as FormValue)) {
+            const street = getStringFormValue(values, inputFieldsIDs.street);
+            const streetError = getInvalidAddressErrorTranslationPath(street);
+            if (street && streetError) {
                 // @ts-expect-error type mismatch to be fixed
-                errors[inputFieldsIDs.street] = translate('bankAccount.error.addressStreet');
+                errors[inputFieldsIDs.street] = translate(streetError);
             }
 
-            const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            if (shouldValidateZipCodeFormat && zipCode && (shouldDisplayCountrySelector ? !isValidZipCodeInternational(zipCode as string) : !isValidZipCode(zipCode as string))) {
+            const zipCode = getStringFormValue(values, inputFieldsIDs.zipCode);
+            const selectedCountry = (inputFieldsIDs.country ? getStringFormValue(values, inputFieldsIDs.country) : defaultValues.country) as Country | '';
+            const shouldValidateSelectedCountryZip = shouldDisplayCountrySelector && !!inputFieldsIDs.country;
+
+            if (zipCode && shouldValidateSelectedCountryZip && !isValidZipCodeForCountry(zipCode, selectedCountry)) {
+                const zipCodeSamples = getCountryZipRegexDetails(selectedCountry)?.samples;
+                // @ts-expect-error type mismatch to be fixed
+                errors[inputFieldsIDs.zipCode] = translate('privatePersonalDetails.error.incorrectZipFormat', zipCodeSamples);
+            } else if (zipCode && shouldValidateZipCodeFormat && !isValidZipCode(zipCode)) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }
 
             return errors;
         },
-        [inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, shouldValidateZipCodeFormat, stepFields, translate],
+        [defaultValues.country, inputFieldsIDs.country, inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, shouldValidateZipCodeFormat, stepFields, translate],
     );
 
     return (
@@ -180,7 +197,6 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
                     onCountryChange={onCountryChange}
                     shouldAllowCountryChange={shouldAllowCountryChange}
-                    shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
                     forwardedFSClass={forwardedFSClass}
                 />
                 {!!shouldShowHelpLinks && (

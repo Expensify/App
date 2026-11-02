@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
 
 type AddRenameMerchantPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_RENAME_MERCHANT>;
 
@@ -26,7 +27,7 @@ function AddRenameMerchantPage({route}: AddRenameMerchantPageProps) {
 
     return (
         <RuleTextBase
-            fieldID={CONST.EXPENSE_RULES.FIELDS.RENAME_MERCHANT}
+            fieldID={EXPENSE_RULE_INPUT_IDS.RENAME_MERCHANT}
             formID={ONYXKEYS.FORMS.EXPENSE_RULE_FORM}
             titleKey="common.merchant"
             testID="AddRenameMerchantPage"

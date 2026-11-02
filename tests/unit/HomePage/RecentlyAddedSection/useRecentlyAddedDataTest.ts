@@ -208,6 +208,49 @@ describe('useRecentlyAddedData — unreported expenses', () => {
     });
 });
 
+describe('useRecentlyAddedData — amount sign', () => {
+    it('preserves the negative sign for self-DM credits/refunds', () => {
+        setupSnapshot(
+            [makeTransaction({transactionID: 'selfDMCredit', reportID: 'selfDM', amount: 1000, inserted: '2026-06-01 10:00:00'})],
+            [makeReport('selfDM', ACCOUNT_ID, {type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM})],
+        );
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions.at(0)?.amount).toBe(-1000);
+    });
+
+    it('preserves the negative sign for unreported (tracked) credits/refunds', () => {
+        setupSnapshot([makeTransaction({transactionID: 'trackedCredit', reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: 1000, inserted: '2026-06-01 10:00:00'})], []);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions.at(0)?.amount).toBe(-1000);
+    });
+
+    it('negates the inverted sign of expense-report transactions', () => {
+        setupSnapshot(
+            [makeTransaction({transactionID: 'expense', reportID: 'report_owned', amount: 1000, inserted: '2026-06-01 10:00:00'})],
+            [makeReport('report_owned', ACCOUNT_ID, {type: CONST.REPORT.TYPE.EXPENSE})],
+        );
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions.at(0)?.amount).toBe(-1000);
+    });
+
+    it('returns the absolute amount for non self-DM, non expense-report transactions', () => {
+        setupSnapshot(
+            [makeTransaction({transactionID: 'iou', reportID: 'report_iou', amount: -1000, inserted: '2026-06-01 10:00:00'})],
+            [makeReport('report_iou', ACCOUNT_ID, {type: CONST.REPORT.TYPE.IOU})],
+        );
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions.at(0)?.amount).toBe(1000);
+    });
+});
+
 describe('useRecentlyAddedData — empty snapshot', () => {
     it('returns no expenses when the snapshot has not loaded yet', () => {
         delete onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`];

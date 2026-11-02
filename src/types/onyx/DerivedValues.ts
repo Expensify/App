@@ -94,15 +94,6 @@ type ReportTransactionsAndViolationsDerivedValue = Record<string, ReportTransact
 type OutstandingReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
 
 /**
- * The derived value for reports grouped by policy ID.
- * Groups reports by their policyID where:
- * - The report has a policyID
- * - The report is owned by the current user
- * - The report state is open or submitted (stateNum <= 1)
- */
-type OpenAndSubmittedReportsByPolicyIDDerivedValue = Record<string, OnyxCollection<Report>>;
-
-/**
  * The derived value for visible report actions.
  */
 type VisibleReportActionsDerivedValue = Record<string, Record<string, boolean>>;
@@ -239,51 +230,6 @@ type CardFeedErrorsDerivedValue = CardFeedErrors;
 type NonPersonalAndWorkspaceCardListDerivedValue = CardList;
 
 /**
- * Metadata for todo search results.
- */
-type TodoMetadata = {
-    /** Total number of transactions across all reports */
-    count: number;
-    /** Sum of all report totals (in cents) */
-    total: number;
-    /** Currency of the first report, used as reference currency */
-    currency: string | undefined;
-};
-
-/**
- * The derived value for todos.
- */
-type TodosDerivedValue = {
-    /** Reports that need to be submitted */
-    reportsToSubmit: Report[];
-    /** Reports that need to be approved */
-    reportsToApprove: Report[];
-    /** Reports that need to be paid */
-    reportsToPay: Report[];
-    /** Reports that need to be exported */
-    reportsToExport: Report[];
-    /** Transactions grouped by report ID */
-    transactionsByReportID: Record<string, Transaction[]>;
-};
-
-/**
- * The derived value for flagged expenses.
- *
- * Aggregates transactions on the current user's `OPEN`/`OPEN` expense reports that have
- * at least one transaction-level violation (excluding `showInReview === false` entries and
- * `REPORT_VIOLATIONS.FIELD_REQUIRED` entries that may slip into the collection).
- */
-type FlaggedExpensesDerivedValue = {
-    /** Ordered list of flagged transactions with their parent report IDs */
-    flaggedExpenses: Array<{
-        /** ID of the flagged transaction */
-        transactionID: string;
-        /** ID of the parent expense report */
-        reportID: string;
-    }>;
-};
-
-/**
  * The derived value for sorted report actions, last report actions, and cached transaction thread report IDs.
  */
 type SortedReportActionsDerivedValue = {
@@ -300,21 +246,26 @@ type SortedReportActionsDerivedValue = {
  */
 type PersonalAndWorkspaceCardListDerivedValue = CardList;
 
+/**
+ * The derived value mapping each user's login (lowercased) to their accountID.
+ *
+ * Replaces the imperative `emailToPersonalDetailsCache` login lookup that was built via `Onyx.connect`
+ * in `PersonalDetailsUtils` (see issue #66391). Keys are lowercased since logins/emails are case-insensitive.
+ */
+type LoginToAccountIDMapDerivedValue = Record<string, number>;
+
 export type {
     ReportAttributes,
     ReportAttributesDerivedValue,
     ReportTransactionsAndViolationsDerivedValue,
     ReportTransactionsAndViolations,
     OutstandingReportsByPolicyIDDerivedValue,
-    OpenAndSubmittedReportsByPolicyIDDerivedValue,
     VisibleReportActionsDerivedValue,
     SortedReportActionsDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
-    TodosDerivedValue,
-    TodoMetadata,
-    FlaggedExpensesDerivedValue,
+    LoginToAccountIDMapDerivedValue,
     CardFeedErrorsObject,
     CardFeedErrorState,
     CardFeedErrors,

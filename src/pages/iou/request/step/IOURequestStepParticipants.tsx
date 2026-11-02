@@ -149,6 +149,7 @@ function IOURequestStepParticipants({
                 isTimeRequest={isTime}
                 isWorkspacesOnly={isWorkspacesOnly}
                 isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
+                shouldExcludeP2P={(initialTransaction?.amount ?? 0) < 0}
                 initiallySelectedReportID={selectedParticipant?.reportID}
                 shouldMoveSelectedToTop
             />

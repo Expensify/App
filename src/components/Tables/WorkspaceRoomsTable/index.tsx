@@ -42,6 +42,7 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
             return;
         }
         tableRef.current?.scrollToItem({item: highlightedRoom, animated: false});
+        tableRef.current?.highlightItems([highlightedRoom.keyForList]);
     }, [highlightedReportID, rooms]);
 
     const columns: Array<TableColumn<WorkspaceRoomsTableColumnKey>> = [
@@ -67,7 +68,6 @@ function WorkspaceRoomsTable({rooms, highlightedReportID}: WorkspaceRoomsTablePr
             item={item}
             rowIndex={index}
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
-            shouldAnimateInHighlight={!!highlightedReportID && item.reportID === highlightedReportID}
         />
     );
 

@@ -29,6 +29,7 @@ function LegalName({isEditing, onNext, onMove, personalDetailsValues}: CustomSub
             onMove={onMove}
             formID={ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM}
             formTitle={translate('privatePersonalDetails.enterLegalName')}
+            formSubtitle={translate('personalInfoStep.legalNameSubtitle')}
             onSubmit={handleSubmit}
             stepFields={STEP_FIELDS}
             firstNameInputID={INPUT_IDS.LEGAL_FIRST_NAME}

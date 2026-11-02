@@ -32,6 +32,9 @@ type ParticipantSelectorFooterProps = {
 
     /** Callback to advance the flow when creating a new workspace (categorize/share) */
     onNewWorkspace: () => void;
+
+    /** Called right before the referral banner navigates — used to dismiss the participant picker overlay so the referral RHP isn't covered */
+    onCloseParticipantPicker?: () => void;
 };
 
 function ParticipantSelectorFooter({
@@ -43,6 +46,7 @@ function ParticipantSelectorFooter({
     isDismissedReferralBanner,
     onConfirmSelection,
     onNewWorkspace,
+    onCloseParticipantPicker,
 }: ParticipantSelectorFooterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -55,6 +59,7 @@ function ParticipantSelectorFooter({
                 <ReferralProgramCTA
                     referralContentType={CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SUBMIT_EXPENSE}
                     style={[styles.flexShrink0, !!selectedOptionsLength && !shouldShowSplitBillErrorMessage && styles.mb5]}
+                    onBeforeNavigate={onCloseParticipantPicker}
                 />
             )}
 

@@ -11,9 +11,11 @@ export default createOnyxDerivedValueConfig({
         if (!reports) {
             return {};
         }
-        const outstandingReportsByPolicyID = Object.entries(reports ?? {}).reduce<OutstandingReportsByPolicyIDDerivedValue>((acc, [reportID, report]) => {
+        const outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue = {};
+        for (const reportID of Object.keys(reports)) {
+            const report = reports[reportID];
             if (!report) {
-                return acc;
+                continue;
             }
 
             // Get all reports, which are the ones that are:
@@ -28,18 +30,11 @@ export default createOnyxDerivedValueConfig({
                 report?.pendingFields?.preview !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
                 (report.stateNum ?? CONST.REPORT.STATE_NUM.OPEN) <= CONST.REPORT.STATE_NUM.SUBMITTED
             ) {
-                if (!acc[report.policyID]) {
-                    acc[report.policyID] = {};
-                }
-
-                acc[report.policyID] = {
-                    ...acc[report.policyID],
-                    [reportID]: report,
-                };
+                const reportsForPolicy = outstandingReportsByPolicyID[report.policyID] ?? {};
+                reportsForPolicy[reportID] = report;
+                outstandingReportsByPolicyID[report.policyID] = reportsForPolicy;
             }
-
-            return acc;
-        }, {});
+        }
 
         return outstandingReportsByPolicyID;
     },

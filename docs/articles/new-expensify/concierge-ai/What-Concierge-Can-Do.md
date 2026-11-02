@@ -44,8 +44,8 @@ Examples:
 - “How do I change my Workspace settings?”  
 - “Why was this expense categorized as Travel?”  
 - “Why was my report submitted automatically?”  
-- “How do reimbursements work in my Workspace?”  
-- “Why isn’t my bank account syncing?”  
+- “How do reimbursements work in my Workspace?”
+- “Why did my credit card transactions stop importing?”
 
 Concierge will answer or connect you with a human if needed.
 
@@ -105,11 +105,32 @@ You can also upload or forward receipts, and Concierge will create the expense f
 Concierge can help you manage reports without navigating through menus.
 
 Examples:
-- “Submit my April expense report”  
-- “Approve Alice’s report”  
-- “Add this expense to my Chicago trip report”  
-- “Is this report reimbursable?”  
-- “Export this report”  
+- “Create a report for my Chicago trip”
+- “Create an expense report with all of my unsubmitted expenses”
+- “Submit my April expense report”
+- “Retract my submitted expense report”
+- “Approve Alice's report”
+- “Add this expense to my Chicago trip report”
+- “Is this report reimbursable?”
+- “Export this report”
+
+Concierge can create expense reports, submit expense reports, and retract submitted expense reports when you have permission to perform those actions.
+
+---
+
+## What Workspace tasks Concierge can help manage
+
+Workspace admins can ask Concierge to perform certain administrative tasks on their behalf.
+
+Examples:
+
+- “Add Sarah to the Marketing Workspace”
+- “Remove John from the Sales Workspace”
+- “Show me the current expense rules”
+- “Require receipts for expenses over $25”
+- “Update the approval workflow for this Workspace”
+
+Concierge can help manage Workspace members and configure supported expense rules based on your permissions.
 
 ---
 
@@ -135,7 +156,9 @@ You can describe a goal, and Concierge will help you figure out how to do it.
 Examples:
 - “I want to require receipts for all expenses over $25—how do I do that?”  
 - “How should I set up approvals for my team?”  
-- “What’s the best way to organize reports for travel?”  
+- “What’s the best way to organize reports for travel?”
+
+If Concierge can't perform the exact action you're looking for, or if you want to create specialized AI workflows for your organization, [learn how to create and use Agents](/articles/new-expensify/ai-agents/Create-and-Use-Custom-Agents). Agents can be configured to handle specific tasks, workflows, and business processes beyond Concierge's built-in capabilities.
 
 ---
 

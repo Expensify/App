@@ -101,6 +101,9 @@ type ButtonWithDropdownMenuProps<TValueType> = WithSentryLabel & {
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
 
+    /** Additional styles for the inner button when isSplitButton is false (wrapper uses style). */
+    buttonStyle?: StyleProp<ViewStyle>;
+
     /** Additional styles to add to the component when it's disabled */
     disabledStyle?: StyleProp<ViewStyle>;
 

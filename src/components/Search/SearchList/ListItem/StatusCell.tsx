@@ -4,7 +4,7 @@ import StatusBadge from '@components/StatusBadge';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getReportStatusColorStyle, getReportStatusTranslation, getStatusBadgeBackgroundColor} from '@libs/ReportUtils';
+import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, getStatusBadgeBackgroundColor} from '@libs/ReportUtils';
 
 type StatusCellProps = {
     /** The stateNum of the report */
@@ -36,6 +36,7 @@ function StatusCell({stateNum, statusNum, isPending, isDeleted, isSelected}: Sta
     }
 
     const backgroundColor = getStatusBadgeBackgroundColor(theme, stateNum, statusNum, isDeleted, isSelected);
+    const tooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, isDeleted, translate});
 
     return (
         <View style={[styles.w100, styles.justifyContentCenter, isPending && styles.offlineFeedbackPending]}>
@@ -43,6 +44,7 @@ function StatusCell({stateNum, statusNum, isPending, isDeleted, isSelected}: Sta
                 text={statusText}
                 backgroundColor={backgroundColor}
                 textColor={reportStatusColorStyle.textColor}
+                tooltipText={tooltipText}
             />
         </View>
     );

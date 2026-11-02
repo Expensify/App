@@ -75,7 +75,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
         const isCSV = fileName.endsWith('.csv');
         const secureType = isCSV ? CONST.SECURE_DOWNLOAD_TYPE.CSV_EXPORT : CONST.SECURE_DOWNLOAD_TYPE.PDF_REPORT;
         const url = buildSecureDownloadURL({baseURL, secureType, fileName, downloadName: fileName, email: currentUserLogin});
-        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName, '', isMobileSafari());
+        fileDownload(translate, addEncryptedAuthTokenToURL(url, encryptedAuthToken ?? '', true), fileName, '', isMobileSafari(), undefined, undefined, undefined, undefined, false);
     };
 
     useEffect(() => {

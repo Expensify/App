@@ -89,8 +89,8 @@ function SortableTableHeader({
                             sortOrder={sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC}
                             isActive={isActive}
                             sentryLabel={CONST.SENTRY_LABEL.SEARCH.SORTABLE_HEADER}
+                            innerContainerStyle={canEdit && styles.editableCellHeader}
                             containerStyle={[
-                                canEdit && styles.editableCellHeader,
                                 StyleUtils.getReportTableColumnStyles(columnName, {
                                     isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,

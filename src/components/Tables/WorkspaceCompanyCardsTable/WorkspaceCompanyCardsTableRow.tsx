@@ -10,18 +10,16 @@ import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {formatMaskedCardName} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardAssignmentData} from '@src/types/onyx/Card';
-import WorkspaceCompanyCardsTableSkeleton from './WorkspaceCompanyCardsTableSkeleton';
 
 type WorkspaceCompanyCardTableRowData = TableData &
     CardAssignmentData & {
@@ -41,9 +39,6 @@ type WorkspaceCompanyCardTableRowData = TableData &
 type WorkspaceCompanyCardTableRowProps = {
     /** The workspace company card table item */
     item: WorkspaceCompanyCardTableRowData;
-
-    /** Policy ID */
-    policyID: string;
 
     /** Selected card feed */
     feedName?: CompanyCardFeedWithDomainID;
@@ -73,7 +68,6 @@ type WorkspaceCompanyCardTableRowProps = {
 
 function WorkspaceCompanyCardTableRow({
     item,
-    policyID,
     feedName,
     CardFeedIcon,
     shouldUseNarrowTableLayout,
@@ -84,13 +78,10 @@ function WorkspaceCompanyCardTableRow({
 }: WorkspaceCompanyCardTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const Expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
     const {cardName, encryptedCardNumber, customCardName, cardholder, assignedCard, isAssigned, errors, pendingAction, isCardDeleted, onDismissError} = item;
-
-    const isDeleting = !isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
     const formattedCustomCardName = customCardName ?? '';
     const formattedCardDetails = formatMaskedCardName(cardName);
@@ -101,11 +92,6 @@ function WorkspaceCompanyCardTableRow({
 
     const memberColumnTitle = isAssigned ? Str.removeSMSDomain(cardholder?.displayName ?? '') : translate('workspace.moreFeatures.companyCards.unassignedCards');
     const memberCardSubtitle = shouldUseNarrowTableLayout ? narrowWidthCardName : cardholderLoginText;
-
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'WorkspaceCompanyCardsTableItem',
-        isDeleting,
-    };
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     const subscriptCardFeedIconSize = shouldUseNarrowTableLayout
@@ -131,18 +117,15 @@ function WorkspaceCompanyCardTableRow({
             return;
         }
 
-        return Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(policyID, feedName, cardID.toString()));
+        return Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARD_DETAILS.getRoute(feedName, cardID.toString())));
     };
 
     return (
         <Table.Row
             interactive
             rowIndex={rowIndex}
-            isLoading={isDeleting}
             disabled={isCardDeleted || !canPressRow}
-            skeletonReasonAttributes={reasonAttributes}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.COMPANY_CARDS.TABLE_ITEM}
-            LoadingComponent={WorkspaceCompanyCardsTableSkeleton}
             offlineWithFeedback={{errors, pendingAction, onClose: onDismissError, shouldHideOnDelete: false}}
             onPress={handleRowPress}
         >

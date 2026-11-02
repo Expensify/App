@@ -483,6 +483,7 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
+                    label: 'test',
                     filterType: 'single-select',
                     options: [
                         {label: 'All', value: 'all'},
@@ -719,6 +720,7 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
+                    label: 'test',
                     filterType: 'single-select',
                     options: [{label: 'All', value: 'all'}],
                     default: 'all',
@@ -778,6 +780,7 @@ describe('Table', () => {
 
             const filterConfig: FilterConfig = {
                 category: {
+                    label: 'test',
                     filterType: 'single-select',
                     options: [
                         {label: 'All', value: 'all'},

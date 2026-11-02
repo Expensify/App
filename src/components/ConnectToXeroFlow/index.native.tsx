@@ -1,40 +1,16 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import {WebView} from 'react-native-webview';
-import ActivityIndicator from '@components/ActivityIndicator';
-import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Modal from '@components/Modal';
+import {useEffect, useState} from 'react';
 import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAuthenticationModal';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
-import {getXeroSetupLink} from '@libs/actions/connections/Xero';
-import getUAForWebView from '@libs/getUAForWebView';
 import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {ConnectToXeroFlowProps} from './types';
 
 function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
-    const webViewRef = useRef<WebView>(null);
-    const [isWebViewOpen, setIsWebViewOpen] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const authToken = session?.authToken ?? null;
 
     const {is2FAEnabled, getTwoFactorAuthRoute} = useTwoFactorAuthRoute();
 
-    const renderLoading = () => (
-        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{context: 'ConnectToXeroFlow'}}
-            />
-        </View>
-    );
     const [isRequire2FAModalOpen, setIsRequire2FAModalOpen] = useState(false);
 
     useEffect(() => {
@@ -42,52 +18,27 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             setIsRequire2FAModalOpen(true);
             return;
         }
-        setIsWebViewOpen(true);
+        Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_SETUP.getRoute(policyID));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return (
-        <>
-            {!is2FAEnabled && (
-                <RequireTwoFactorAuthenticationModal
-                    onSubmit={() => {
-                        setIsRequire2FAModalOpen(false);
-                        Navigation.navigate(getTwoFactorAuthRoute());
-                    }}
-                    onCancel={() => setIsRequire2FAModalOpen(false)}
-                    isVisible={isRequire2FAModalOpen}
-                    description={translate('twoFactorAuth.twoFactorAuthIsRequiredDescription')}
-                />
-            )}
-            <Modal
-                onClose={() => setIsWebViewOpen(false)}
-                fullscreen
-                isVisible={isWebViewOpen}
-                type={CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE}
-            >
-                <HeaderWithBackButton
-                    title={translate('workspace.accounting.title')}
-                    onBackButtonPress={() => setIsWebViewOpen(false)}
-                    shouldDisplayHelpButton={false}
-                />
-                <FullPageOfflineBlockingView>
-                    <WebView
-                        ref={webViewRef}
-                        source={{
-                            uri: getXeroSetupLink(policyID),
-                            headers: {
-                                Cookie: `authToken=${authToken}`,
-                            },
-                        }}
-                        userAgent={getUAForWebView()}
-                        incognito
-                        startInLoadingState
-                        renderLoading={renderLoading}
-                    />
-                </FullPageOfflineBlockingView>
-            </Modal>
-        </>
-    );
+    if (!is2FAEnabled) {
+        return (
+            <RequireTwoFactorAuthenticationModal
+                onSubmit={() => {
+                    setIsRequire2FAModalOpen(false);
+                    Navigation.navigate(getTwoFactorAuthRoute());
+                }}
+                onCancel={() => {
+                    setIsRequire2FAModalOpen(false);
+                }}
+                isVisible={isRequire2FAModalOpen}
+                description={translate('twoFactorAuth.twoFactorAuthIsRequiredDescription')}
+            />
+        );
+    }
+
+    return null;
 }
 
 export default ConnectToXeroFlow;

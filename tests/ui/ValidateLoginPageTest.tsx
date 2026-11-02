@@ -8,6 +8,7 @@ import type {PublicScreensParamList} from '@libs/Navigation/types';
 import ValidateLoginPage from '@pages/ValidateLoginPage/index.web';
 import {handleExitToNavigation} from '@userActions/Session';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -238,7 +239,7 @@ describe('ValidateLoginPage', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: SCREENS.HOME}]});
+        expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
     });
 
     it('Should route an exitTo 2FA magic link to the sign-in page AND keep the deferred exitTo navigation', async () => {
@@ -266,7 +267,7 @@ describe('ValidateLoginPage', () => {
         });
         await waitForBatchedUpdatesWithAct();
 
-        expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: SCREENS.HOME}]});
+        expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
         expect(handleExitToNavigation).toHaveBeenCalledWith('concierge');
     });
 

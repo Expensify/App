@@ -24,9 +24,10 @@ function PublicScreens() {
     const StyleUtils = useStyleUtils();
     return (
         <RootStack.Navigator screenOptions={defaultScreenOptions}>
-            {/* The structure for the HOME route has to be the same in public and auth screens. That's why the name for SignInPage is SCREENS.HOME. */}
+            {/* SignInPage is registered under TAB_NAVIGATOR (the authenticated top-level navigator name) so the public and auth */}
+            {/* root structures match. TAB_NAVIGATOR has no path of its own, so the logged-out URL stays at the root "/". */}
             <RootStack.Screen
-                name={SCREENS.HOME}
+                name={NAVIGATORS.TAB_NAVIGATOR}
                 options={{
                     ...defaultScreenOptions,
                     // If you want to change this, make sure there aren't any animation bugs when signing out.

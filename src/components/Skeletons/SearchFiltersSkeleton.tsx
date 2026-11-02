@@ -31,7 +31,7 @@ function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84,
     const skeletonCount = new Array(itemCount).fill(0);
 
     return (
-        <View style={[styles.mh5, styles.mb4, styles.mt3]}>
+        <View>
             <SkeletonViewContentLoader
                 animate={shouldAnimate}
                 width={width}
@@ -54,7 +54,7 @@ function SearchFiltersSkeleton({shouldAnimate = true, itemCount = 5, width = 84,
             <View style={[styles.pAbsolute, styles.w100]}>
                 <SkeletonViewContentLoader
                     animate={shouldAnimate}
-                    height={40}
+                    height={28}
                     backgroundColor={theme.hoverComponentBG}
                     foregroundColor={theme.buttonHoveredBG}
                 >

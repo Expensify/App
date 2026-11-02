@@ -180,13 +180,8 @@ const transaction: OnyxEntry<OnyxTypes.Transaction> = {
         attendees: [
             {
                 email: 'a1@53019.com',
-                login: 'a1@53019.com',
                 displayName: 'a1',
                 avatarUrl: 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_9.png',
-                accountID: 32,
-                text: 'a1@53019.com',
-                selected: true,
-                reportID: '3634215302663162',
             },
         ],
     },

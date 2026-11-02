@@ -1,5 +1,12 @@
 import type {OnyxEntry} from 'react-native-onyx';
-import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsListByIDs, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {
+    getDisplayNameOrDefault,
+    getLoginByAccountID,
+    getLoginsByAccountIDs,
+    getPersonalDetailsByID,
+    getPersonalDetailsListByIDs,
+    newGetPersonalDetailsByIDs,
+} from '@libs/PersonalDetailsUtils';
 import CONST from '@src/CONST';
 import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -12,6 +19,8 @@ const personalDetailsListSelector = (accountIDs: Array<number | undefined> | und
     getPersonalDetailsListByIDs(accountIDs, personalDetailsList);
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
+
+const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
 
 const personalDetailsDisplayNameSelector = (accountID: number) => (personalDetails: OnyxEntry<PersonalDetailsList>) => getDisplayNameOrDefault(personalDetails?.[accountID]);
 
@@ -36,6 +45,11 @@ const createDisplayDetailsByAccountIDsSelector =
         }
         return result;
     };
+
+const doesPersonalDetailExistSelector =
+    (accountID: number | undefined) =>
+    (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean =>
+        accountID !== undefined && !!personalDetailsList?.[accountID];
 
 const accountIDToLoginSelector = (reportsToArchive: Report[]) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => {
     const map: Record<number, string> = {};
@@ -67,7 +81,9 @@ export {
     personalDetailsListSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
+    personalDetailsLoginsSelector,
     conciergePersonalDetailSelector,
+    doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
     isOptimisticPersonalDetailSelector,
     createDisplayDetailsByAccountIDsSelector,

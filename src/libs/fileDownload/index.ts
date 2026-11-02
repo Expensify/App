@@ -13,6 +13,8 @@ const fileDownload: FileDownload = (
     formData = undefined,
     requestType = 'get',
     onDownloadFailed?: () => void,
-) => fetchFileDownload(translate, url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed);
+    shouldUnlink = false,
+    appendTimestamp = true,
+) => fetchFileDownload(translate, url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed, shouldUnlink, appendTimestamp);
 
 export default fileDownload;

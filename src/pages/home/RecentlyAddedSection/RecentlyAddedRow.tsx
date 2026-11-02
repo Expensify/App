@@ -19,6 +19,9 @@ import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 /** Width of the date column, shared with the section's column header so labels line up with the values. */
 const DATE_COLUMN_WIDTH = 72;
 
+/** Wider date column used when a row's date includes the year (e.g. "Jun 7, 2025"), so it isn't truncated. */
+const DATE_COLUMN_WIDTH_WIDE = 102;
+
 type RecentlyAddedRowProps = {
     /** The expense to render */
     expense: RecentlyAddedExpense;
@@ -31,9 +34,12 @@ type RecentlyAddedRowProps = {
 
     /** Whether the hovered receipt preview may be shown. Becomes false once the screen blurs so the preview is dismissed after opening an expense. */
     shouldShowReceiptPreview: boolean;
+
+    /** Width of the date column, widened by the section when any visible expense's date includes the year. */
+    dateColumnWidth: number;
 };
 
-function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowReceiptPreview}: RecentlyAddedRowProps) {
+function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowReceiptPreview, dateColumnWidth}: RecentlyAddedRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -41,7 +47,10 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
     const {convertToDisplayString} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
 
-    const formattedDate = DateUtils.formatWithUTCTimeZone(expense.created, CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const formattedDate = DateUtils.formatWithUTCTimeZone(
+        expense.created,
+        DateUtils.doesDateBelongToAPastYear(expense.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+    );
 
     const formattedAmount = convertToDisplayString(expense.amount, expense.currency);
 
@@ -107,7 +116,7 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
                         shouldUseNarrowLayout={false}
                     />
                 </View>
-                <View style={StyleUtils.getWidthStyle(DATE_COLUMN_WIDTH)}>
+                <View style={StyleUtils.getWidthStyle(dateColumnWidth)}>
                     <Text numberOfLines={1}>{formattedDate}</Text>
                 </View>
                 <Text
@@ -137,4 +146,4 @@ function RecentlyAddedRow({expense, onPress, shouldShowSeparator, shouldShowRece
 }
 
 export default RecentlyAddedRow;
-export {DATE_COLUMN_WIDTH};
+export {DATE_COLUMN_WIDTH, DATE_COLUMN_WIDTH_WIDE};

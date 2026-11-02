@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import React, {useEffect, useRef} from 'react';
 import type {View} from 'react-native';
 import type {Attachment} from '@components/Attachments/types';
@@ -19,7 +20,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SafeString from '@src/utils/SafeString';
 
 function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreenProps<typeof SCREENS.REPORT_ATTACHMENTS>) {
     const {

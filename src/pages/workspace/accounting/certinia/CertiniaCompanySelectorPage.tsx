@@ -14,6 +14,7 @@ import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import {isCertiniaSRPConnection} from './utils';
 
 type CompanyListItem = ListItem & {
     value: string;
@@ -27,7 +28,6 @@ function CertiniaCompanySelectorPage({policy}: WithPolicyConnectionsProps) {
     const companyID = config?.credentials?.companyID;
     const companies = data?.companies ?? [];
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-    const shouldShowCompanySelector = !!config?.hasPSA && config?.hasPSAOnly === false;
 
     const dataOptions: CompanyListItem[] = companies.map((company) => ({
         value: company.id,
@@ -59,7 +59,7 @@ function CertiniaCompanySelectorPage({policy}: WithPolicyConnectionsProps) {
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="CertiniaCompanySelectorPage"
-            shouldBeBlocked={!shouldShowCompanySelector}
+            shouldBeBlocked={!isCertiniaSRPConnection(config)}
             data={dataOptions}
             onSelectRow={selectCompany}
             shouldSingleExecuteRowSelect

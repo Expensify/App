@@ -35,6 +35,9 @@ type MoneyRequestParticipantsSelectorProps = {
     /** Whether this is a transaction from a credit card import */
     isTransactionFromCreditCardImport?: boolean;
 
+    /** Whether to exclude P2P recipients (and the invite-by-email option) from the list. Used for negative amounts, which P2P chats don't support. */
+    shouldExcludeP2P?: boolean;
+
     /** Report ID of a pre-selected participant whose selection state can't be derived from the participants array (e.g. self DM with accountID 0) */
     initiallySelectedReportID?: string;
 
@@ -43,6 +46,9 @@ type MoneyRequestParticipantsSelectorProps = {
 
     /** Callback to handle restricted participant selection */
     onRestrictedParticipantSelected?: () => void;
+
+    /** Callback to dismiss the participant picker overlay before the referral banner navigates, so the referral RHP isn't covered */
+    onCloseParticipantPicker?: () => void;
 
     /** Reference to the outer element */
     ref?: Ref<InputFocusRef>;
@@ -63,9 +69,11 @@ function MoneyRequestParticipantsSelector({
     isTimeRequest = false,
     isWorkspacesOnly = false,
     isTransactionFromCreditCardImport = false,
+    shouldExcludeP2P = false,
     initiallySelectedReportID,
     shouldMoveSelectedToTop = false,
     onRestrictedParticipantSelected,
+    onCloseParticipantPicker,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
     const platform = getPlatform();
@@ -92,6 +100,7 @@ function MoneyRequestParticipantsSelector({
             isTimeRequest={isTimeRequest}
             isNative={isNative}
             isTransactionFromCreditCardImport={isTransactionFromCreditCardImport}
+            shouldExcludeP2P={shouldExcludeP2P}
             selectionListRef={selectionListRef}
             textInputAutoFocus={textInputAutoFocus}
             setTextInputAutoFocus={setTextInputAutoFocus}
@@ -100,6 +109,7 @@ function MoneyRequestParticipantsSelector({
             initiallySelectedReportID={initiallySelectedReportID}
             shouldMoveSelectedToTop={shouldMoveSelectedToTop}
             onRestrictedParticipantSelected={onRestrictedParticipantSelected}
+            onCloseParticipantPicker={onCloseParticipantPicker}
         />
     );
 }

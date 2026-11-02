@@ -20,7 +20,7 @@ type ChartYAxisLabelsProps = {
     fontSize: number;
 
     /** Font manager for Paragraph API rendering with multi-font fallback. */
-    fontMgr: SkTypefaceFontProvider;
+    fontManager: SkTypefaceFontProvider;
 
     /** Fill color for the label text. */
     labelColor: string;
@@ -32,13 +32,13 @@ type ChartYAxisLabelsProps = {
     leftAlign?: boolean;
 };
 
-function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontMgr, labelColor, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
+function ChartYAxisLabels({yTicks, yScale, chartBounds, fontSize, fontManager, labelColor, formatValue, leftAlign = false}: ChartYAxisLabelsProps) {
     const formattedLabels = yTicks.map((tick) => formatValue(tick));
 
-    const paragraphs = useChartParagraphs(formattedLabels, fontMgr, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
+    const paragraphs = useChartParagraphs(formattedLabels, fontManager, fontSize, labelColor, MAX_Y_AXIS_LABEL_WIDTH);
     const maxWidth = Math.max(0, ...paragraphs.map((item) => item.width));
 
-    const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
+    const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
     const lineHeight = ascent + descent;
 
     return yTicks.map((tick, i) => {

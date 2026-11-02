@@ -9,10 +9,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {goToWithdrawalAccountSetupStep, requestResetBankAccount, setBankAccountSubStep} from '@userActions/BankAccounts';
 import {navigateToConciergeChat} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -48,7 +48,12 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-    const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
+
+    useResetBankAccountModal({
+        reimbursementAccount,
+        isNonUSDWorkspace: false,
+        setUSDBankAccountStep,
+    });
 
     const handleNavigateToConciergeChat = () =>
         navigateToConciergeChat(
@@ -110,13 +115,6 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, policy, se
                 />
             </Section>
             {!requiresTwoFactorAuth && <Enable2FACard />}
-            {shouldShowResetModal && (
-                <WorkspaceResetBankAccountModal
-                    reimbursementAccount={reimbursementAccount}
-                    isNonUSDWorkspace={false}
-                    setUSDBankAccountStep={setUSDBankAccountStep}
-                />
-            )}
         </ScrollView>
     );
 }

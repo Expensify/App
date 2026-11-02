@@ -26,7 +26,7 @@ import {getCardFeedIcon, getPlaidInstitutionIconUrl, isCardConnectionBroken, isP
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
@@ -71,7 +71,7 @@ function PersonalCardDetailsPage({route}: PersonalCardDetailsPageProps) {
     // Personal cards always belong to the current user, so fall back to the current user's personal details
     // if the personal details list doesn't yet have an entry for the card's accountID.
     const cardholder = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID] ?? (isUserPersonalCard ? currentUserPersonalDetails : undefined);
-    const displayName = getDisplayNameOrDefault(cardholder);
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardholder, translate});
     const reimbursableSetting = card?.reimbursable ?? true;
     const isCSVImportedPersonalCard = !!(isUserPersonalCard && card && (card.bank === CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD || card.bank.includes(CONST.COMPANY_CARD.FEED_BANK_NAME.CSV)));
 

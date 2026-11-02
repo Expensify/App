@@ -35,7 +35,7 @@ type ChartXAxisLabelsProps = {
     fontSize: number;
 
     /** Font manager for Paragraph API rendering with multi-font fallback. */
-    fontMgr: SkTypefaceFontProvider;
+    fontManager: SkTypefaceFontProvider;
 
     /** Fill color for the label text. */
     labelColor: string;
@@ -57,7 +57,7 @@ function ChartXAxisLabels({
     labelRotation,
     labelSkipInterval,
     fontSize,
-    fontMgr,
+    fontManager,
     labelColor,
     xScale,
     chartBoundsBottom,
@@ -76,10 +76,10 @@ function ChartXAxisLabels({
         });
     })();
 
-    const paragraphs = useChartParagraphs(truncatedLabels, fontMgr, fontSize, labelColor, MAX_X_AXIS_LABEL_WIDTH);
+    const paragraphs = useChartParagraphs(truncatedLabels, fontManager, fontSize, labelColor, MAX_X_AXIS_LABEL_WIDTH);
 
     // Derive ascent/descent from the first available paragraph's line metrics.
-    const {ascent, descent} = getFontLineMetrics(fontMgr, fontSize);
+    const {ascent, descent} = getFontLineMetrics(fontManager, fontSize);
 
     const correction = rotatedLabelCenterCorrection(ascent, descent, angleRad);
     const labelY = chartBoundsBottom + VictoryTheme.axis.labelGap + rotatedLabelYOffset(ascent, descent, angleRad);

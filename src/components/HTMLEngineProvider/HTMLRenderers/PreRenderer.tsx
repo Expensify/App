@@ -2,6 +2,8 @@ import React from 'react';
 import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+import CopyTextToClipboard from '@components/CopyTextToClipboard';
+import Hoverable from '@components/Hoverable';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
@@ -39,6 +41,9 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
     const isInsideTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
     const fontSize = StyleUtils.getCodeFontSize(false, isInsideTaskTitle);
+    const codeText = HTMLEngineUtils.getCodeBlockText(defaultRendererProps.tnode);
+    // Multi-line code blocks get extra breathing room around the copy button, while single-line blocks keep it tight to the corner.
+    const isMultilineCodeBlock = codeText.trim().includes('\n');
 
     if (isChildOfTaskTitle) {
         return (
@@ -51,29 +56,46 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
 
     return (
         <View style={isLast ? styles.mt2 : styles.mv2}>
-            <PressableWithoutFeedback
-                sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.PRE}
-                onPress={onPressIn ?? (() => {})}
-                onPressIn={onPressIn}
-                onPressOut={onPressOut}
-                onLongPress={(event) => {
-                    onShowContextMenu(() => {
-                        if (isDisabled || !shouldDisplayContextMenu) {
-                            return;
-                        }
-                        return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID);
-                    });
-                }}
-                shouldUseHapticsOnLongPress
-                role={CONST.ROLE.PRESENTATION}
-                accessibilityLabel={translate('accessibilityHints.preStyledText')}
-            >
-                <View>
-                    <Text style={{fontSize}}>
-                        <TDefaultRenderer {...defaultRendererProps} />
-                    </Text>
-                </View>
-            </PressableWithoutFeedback>
+            <Hoverable>
+                {(isHovered) => (
+                    <View>
+                        <PressableWithoutFeedback
+                            sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.PRE}
+                            onPress={onPressIn ?? (() => {})}
+                            onPressIn={onPressIn}
+                            onPressOut={onPressOut}
+                            onLongPress={(event) => {
+                                onShowContextMenu(() => {
+                                    if (isDisabled || !shouldDisplayContextMenu) {
+                                        return;
+                                    }
+                                    return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID);
+                                });
+                            }}
+                            shouldUseHapticsOnLongPress
+                            role={CONST.ROLE.PRESENTATION}
+                            accessibilityLabel={translate('accessibilityHints.preStyledText')}
+                        >
+                            <View>
+                                <Text style={{fontSize}}>
+                                    <TDefaultRenderer {...defaultRendererProps} />
+                                </Text>
+                            </View>
+                        </PressableWithoutFeedback>
+                        {isHovered && !!codeText && (
+                            <View style={isMultilineCodeBlock ? styles.codeBlockCopyButtonWrapperMultiline : styles.codeBlockCopyButtonWrapper}>
+                                <CopyTextToClipboard
+                                    urlToCopy={codeText}
+                                    styles={styles.copyableTextFieldButton}
+                                    iconStyles={styles.t0}
+                                    shouldHaveActiveBackground
+                                    shouldUseButtonBackground
+                                />
+                            </View>
+                        )}
+                    </View>
+                )}
+            </Hoverable>
         </View>
     );
 }

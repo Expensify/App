@@ -37,7 +37,7 @@ type LayoutConfig = Omit<Parameters<typeof useChartLabelLayout>[0], 'measurement
 
 function renderLayout(config: LayoutConfig) {
     return renderHook(() => {
-        const measurements = useChartLabelMeasurements(config.data, config.fontMgr, config.fontSize);
+        const measurements = useChartLabelMeasurements(config.data, config.fontManager, config.fontSize);
         return useChartLabelLayout({...config, measurements});
     });
 }
@@ -58,23 +58,23 @@ describe('useChartLabelLayout', () => {
             ellipsisWidth: 0,
         };
 
-        it('returns defaults when fontMgr is null', () => {
-            const {result} = renderLayout({data: makeData('A', 'B'), fontMgr: null, fontSize: FONT_SIZE, tickSpacing: 50, labelAreaWidth: 100});
+        it('returns defaults when fontManager is null', () => {
+            const {result} = renderLayout({data: makeData('A', 'B'), fontManager: null, fontSize: FONT_SIZE, tickSpacing: 50, labelAreaWidth: 100});
             expect(result.current).toEqual(defaults);
         });
 
         it('returns defaults when data is empty', () => {
-            const {result} = renderLayout({data: [], fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 50, labelAreaWidth: 100});
+            const {result} = renderLayout({data: [], fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 50, labelAreaWidth: 100});
             expect(result.current).toEqual(defaults);
         });
 
         it('returns defaults when tickSpacing is 0', () => {
-            const {result} = renderLayout({data: makeData('A', 'B'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 0, labelAreaWidth: 100});
+            const {result} = renderLayout({data: makeData('A', 'B'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 0, labelAreaWidth: 100});
             expect(result.current).toEqual(defaults);
         });
 
         it('returns defaults when labelAreaWidth is 0', () => {
-            const {result} = renderLayout({data: makeData('A', 'B'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 50, labelAreaWidth: 0});
+            const {result} = renderLayout({data: makeData('A', 'B'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 50, labelAreaWidth: 0});
             expect(result.current).toEqual(defaults);
         });
     });
@@ -82,7 +82,7 @@ describe('useChartLabelLayout', () => {
     describe('rotation selection without edge constraints', () => {
         it('picks 0° when labels fit horizontally', () => {
             // "AAA" = 21px. 21+4=25 ≤ tickSpacing(30). maxVisibleCount(90,21)=3 ≥ 3
-            const {result} = renderLayout({data: makeData('AAA', 'BBB', 'CCC'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 30, labelAreaWidth: 90});
+            const {result} = renderLayout({data: makeData('AAA', 'BBB', 'CCC'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 30, labelAreaWidth: 90});
             expect(result.current.labelRotation).toBe(0);
             expect(result.current.xAxisLabelHeight).toBe(LINE_HEIGHT);
             expect(result.current.labelSkipInterval).toBe(1);
@@ -91,7 +91,7 @@ describe('useChartLabelLayout', () => {
         it('picks 45° when labels overflow horizontally but fit diagonally', () => {
             // "AAAAAA" = 42px. 42+4=46 > tickSpacing(40) → 0° fails.
             // At 45°: 42*SIN_45 ≈ 29.7, 29.7+4 ≤ 40 ✓
-            const {result} = renderLayout({data: makeData('AAAAAA', 'BBBBBB'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 40, labelAreaWidth: 400});
+            const {result} = renderLayout({data: makeData('AAAAAA', 'BBBBBB'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 40, labelAreaWidth: 400});
             expect(result.current.labelRotation).toBe(45);
             expect(result.current.xAxisLabelHeight).toBeCloseTo((42 + LINE_HEIGHT) * SIN_45, 5);
             expect(result.current.labelSkipInterval).toBe(1);
@@ -101,20 +101,20 @@ describe('useChartLabelLayout', () => {
             // "AAA" = 21px. tickSpacing=30: 21+4=25 ≤ 30 ✓ (tick check passes).
             // BUT labelAreaWidth=40: maxVisibleCount(40,21) = floor(40/25) = 1 < 3 → 0° fails.
             // At 45°: 21*SIN_45 ≈ 14.85, 14.85+4=18.85 ≤ 30 ✓ → 45° selected.
-            const {result} = renderLayout({data: makeData('AAA', 'BBB', 'CCC'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 30, labelAreaWidth: 40});
+            const {result} = renderLayout({data: makeData('AAA', 'BBB', 'CCC'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 30, labelAreaWidth: 40});
             expect(result.current.labelRotation).toBe(45);
         });
 
         it('picks 90° when labels overflow at all rotations', () => {
             // tickSpacing=20: 0° fails (46>20), 45° fails (29.7+4=33.7>20)
-            const {result} = renderLayout({data: makeData('AAAAAA', 'BBBBBB'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 20, labelAreaWidth: 400});
+            const {result} = renderLayout({data: makeData('AAAAAA', 'BBBBBB'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 20, labelAreaWidth: 400});
             expect(result.current.labelRotation).toBe(90);
         });
     });
 
     describe('backward compatibility', () => {
         it('produces identical result whether edge params are omitted or set to Infinity', () => {
-            const config = {data: makeData('AAAAAA', 'BBBBBB'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 40, labelAreaWidth: 400};
+            const config = {data: makeData('AAAAAA', 'BBBBBB'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 40, labelAreaWidth: 400};
             const {result: withoutEdge} = renderLayout(config);
             const {result: withEdge} = renderLayout({...config, firstTickLeftSpace: Infinity, lastTickRightSpace: Infinity});
             expect(withoutEdge.current).toEqual(withEdge.current);
@@ -123,7 +123,7 @@ describe('useChartLabelLayout', () => {
         it('Infinity edge space never constrains rotation', () => {
             const {result} = renderLayout({
                 data: makeData('AAAAAA', 'BBBBBB', 'CCCCCC'),
-                fontMgr: mockFontMgr,
+                fontManager: mockFontMgr,
                 fontSize: FONT_SIZE,
                 tickSpacing: 50,
                 labelAreaWidth: 150,
@@ -139,7 +139,7 @@ describe('useChartLabelLayout', () => {
             // "A".repeat(22) = 154px. firstMinTrunc = (10+3)*7 = 91px.
             // At 0°: centered overhang = 77px. firstTickLeftSpace=72 < 77 → 0° edge fails.
             // At 45° right-aligned: edgeMax = 72/SIN_45−8 ≈ 93.8 ≥ 91 → 45° edge fits.
-            const config = {data: makeData('A'.repeat(22), 'BB', 'CC'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 160, labelAreaWidth: 480};
+            const config = {data: makeData('A'.repeat(22), 'BB', 'CC'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 160, labelAreaWidth: 480};
 
             const {result: noEdge} = renderLayout(config);
             expect(noEdge.current.labelRotation).toBe(0);
@@ -154,7 +154,7 @@ describe('useChartLabelLayout', () => {
             // firstTickLeftSpace=5: at 45° right-aligned edgeMax = max(0, 5/SIN_45−8) = 0 < 42 → fails
             const {result} = renderLayout({
                 data: makeData('AAAAAA', 'BBBBBB'),
-                fontMgr: mockFontMgr,
+                fontManager: mockFontMgr,
                 fontSize: FONT_SIZE,
                 tickSpacing: 50,
                 labelAreaWidth: 200,
@@ -170,7 +170,7 @@ describe('useChartLabelLayout', () => {
             // Right-aligned first label: edgeMax = 72/SIN_45 - 8 ≈ 93.8 < 112 → constrained.
             const {result} = renderLayout({
                 data: makeData('A'.repeat(16), 'BB', 'CC'),
-                fontMgr: mockFontMgr,
+                fontManager: mockFontMgr,
                 fontSize: FONT_SIZE,
                 tickSpacing: 60,
                 labelAreaWidth: 360,
@@ -188,7 +188,7 @@ describe('useChartLabelLayout', () => {
             // tickMaxWidth = (200-4)/SIN_45+16 ≈ 293 > 112 → no tick constraint either.
             const {result} = renderLayout({
                 data: makeData('AA', 'BB', 'A'.repeat(16)),
-                fontMgr: mockFontMgr,
+                fontManager: mockFontMgr,
                 fontSize: FONT_SIZE,
                 tickSpacing: 200,
                 labelAreaWidth: 600,
@@ -205,13 +205,13 @@ describe('useChartLabelLayout', () => {
             // 10 labels, forced to 90°. At 90°, effectiveWidth = lineHeight = 16.
             // maxVisibleCount(100, 16) = floor(100/20) = 5 < 10 → skip = ceil(10/5) = 2
             const labels = Array.from({length: 10}, (_, i) => `L${String(i).padStart(4, '0')}`);
-            const {result} = renderLayout({data: makeData(...labels), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 10, labelAreaWidth: 100});
+            const {result} = renderLayout({data: makeData(...labels), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 10, labelAreaWidth: 100});
             expect(result.current.labelRotation).toBe(90);
             expect(result.current.labelSkipInterval).toBe(2);
         });
 
         it('returns skip interval 1 at 90° when labels fit', () => {
-            const {result} = renderLayout({data: makeData('AAAAAA', 'BBBBBB'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 10, labelAreaWidth: 400});
+            const {result} = renderLayout({data: makeData('AAAAAA', 'BBBBBB'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 10, labelAreaWidth: 400});
             expect(result.current.labelRotation).toBe(90);
             expect(result.current.labelSkipInterval).toBe(1);
             expect(result.current.xAxisLabelHeight).toBe(42);
@@ -220,7 +220,7 @@ describe('useChartLabelLayout', () => {
 
     describe('edge cases', () => {
         it('handles single data point', () => {
-            const {result} = renderLayout({data: makeData('AAA'), fontMgr: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 50, labelAreaWidth: 50});
+            const {result} = renderLayout({data: makeData('AAA'), fontManager: mockFontMgr, fontSize: FONT_SIZE, tickSpacing: 50, labelAreaWidth: 50});
             expect(result.current.labelRotation).toBe(0);
             expect(result.current.labelSkipInterval).toBe(1);
         });

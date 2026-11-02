@@ -173,7 +173,7 @@ function TaskView({report, parentReport, action}: TaskViewProps) {
                                     {({pressed}) => {
                                         const titleContent = (
                                             <>
-                                                <View style={[styles.flexRow, styles.flex1]}>
+                                                <View style={[styles.flexRow, styles.flex1, styles.textAlignLeft]}>
                                                     <RenderHTML html={taskTitle} />
                                                 </View>
                                                 {!isDisableInteractive && (

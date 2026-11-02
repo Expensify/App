@@ -3,7 +3,7 @@ import type {ChartDefaultTypeface} from './chartSkiaTypefaceTypes';
 
 type ChartFontsValue = {
     typefaces: ChartDefaultTypeface;
-    fontMgr: SkTypefaceFontProvider | null;
+    fontManager: SkTypefaceFontProvider | null;
 };
 
 export default ChartFontsValue;

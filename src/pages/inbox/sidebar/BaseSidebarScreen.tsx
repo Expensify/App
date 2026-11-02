@@ -6,7 +6,6 @@ import TabBarBottomContent from '@components/Navigation/TabBarBottomContent';
 import TopBarWithLoadingBar from '@components/Navigation/TopBarWithLoadingBar';
 import OptionsListSkeletonView from '@components/OptionsListSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -39,9 +38,6 @@ function BaseSidebarScreen() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowSkeleton = isLoadingApp && !hasEverFinishedLoading;
-    // Must be called unconditionally so openApp() can proceed even when
-    // the skeleton is shown and SidebarLinksData has not mounted yet.
-    useConfirmReadyToOpenApp();
 
     return (
         <ScreenWrapper

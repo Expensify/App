@@ -1,4 +1,4 @@
-import {BaseNavigationContainer, NavigationIndependentTree} from '@react-navigation/core';
+import {BaseNavigationContainer, NavigationIndependentTree, StackActions} from '@react-navigation/core';
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
 import React, {useEffect, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
@@ -117,7 +117,7 @@ function MultifactorAuthenticationModalNavigator() {
             return;
         }
         if (mfaNavigationRef.isReady() && mfaNavigationRef.canGoBack()) {
-            mfaNavigationRef.goBack();
+            mfaNavigationRef.dispatch(StackActions.popToTop());
         }
         backdropProgress.set(withTiming(0, {duration: CONST.ANIMATED_TRANSITION}));
         const handle = Navigation.runAfterUpcomingTransition(() => {

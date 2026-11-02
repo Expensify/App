@@ -1,4 +1,4 @@
-import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useMemo, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -48,7 +48,12 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
     const onyxValues = useMemo(
         () =>
             getSubStepValues(
-                {FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE, COMPANY_COUNTRY: COMPANY_COUNTRY_CODE, COMPANY_STATE},
+                {
+                    FORMATION_INCORPORATION_COUNTRY_CODE,
+                    FORMATION_INCORPORATION_STATE,
+                    COMPANY_COUNTRY: COMPANY_COUNTRY_CODE,
+                    COMPANY_STATE,
+                },
                 reimbursementAccountDraft,
                 reimbursementAccount,
             ),

@@ -43,9 +43,6 @@ type TransactionDetailsFieldsProps = {
     /** Per-field visibility decisions resolved by `computeFieldVisibility` */
     fieldVisibility: Pick<FieldVisibility, 'amount' | 'distance' | 'rate' | 'merchant' | 'time'>;
 
-    /** Triggers submit from inline inputs */
-    onSubmitForm?: () => void;
-
     /** Whether the parent-owned participant picker modal is currently open (new manual expense flow). Drives amount autofocus on picker close. */
     isParticipantPickerVisible: boolean;
 };
@@ -61,7 +58,6 @@ function TransactionDetailsFields({
     iouCurrencyCode,
     isCompactMode,
     fieldVisibility,
-    onSubmitForm,
     isParticipantPickerVisible,
 }: TransactionDetailsFieldsProps) {
     const {
@@ -135,7 +131,6 @@ function TransactionDetailsFields({
                 reportID={reportID}
                 reportActionID={reportActionID}
                 policy={policy}
-                onSubmitForm={onSubmitForm}
             />
 
             {fieldVisibility.distance && (
@@ -163,6 +158,9 @@ function TransactionDetailsFields({
                     distanceRateCurrency={distanceData.distanceRateCurrency}
                     unit={distanceData.unit}
                     rate={distanceData.rate}
+                    mileageRate={distanceData.mileageRate}
+                    expenseDate={distanceData.expenseDate}
+                    customUnitRateID={distanceData.customUnitRateID}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
                     isPolicyExpenseChat={isPolicyExpenseChat}

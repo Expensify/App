@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -32,6 +33,8 @@ function RulesMaxExpenseAgePage({
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const maxExpenseAgeDefaultValue = policy?.maxExpenseAge === CONST.DISABLED_MAX_EXPENSE_VALUE || !policy?.maxExpenseAge ? '' : `${policy?.maxExpenseAge}`;
 
@@ -56,7 +59,7 @@ function RulesMaxExpenseAgePage({
                 testID="RulesMaxExpenseAgePage"
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.rules.individualExpenseRules.maxExpenseAge')}
+                    title={translate(isRevamp ? 'workspace.rules.generalTab.expensesOlderThan' : 'workspace.rules.individualExpenseRules.maxExpenseAge')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <FormProvider

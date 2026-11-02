@@ -580,7 +580,15 @@ describe('actions/IOU/Hold', () => {
             };
         };
 
-        const buildScenario = (overrides: {total: number; nonReimbursableTotal: number; unheldTotal?: number; unheldNonReimbursableTotal?: number; heldAmount?: number}) => {
+        const buildScenario = (overrides: {
+            total: number;
+            nonReimbursableTotal: number;
+            unheldTotal?: number;
+            unheldNonReimbursableTotal?: number;
+            reimbursableTotal?: number;
+            unheldReimbursableTotal?: number;
+            heldAmount?: number;
+        }) => {
             const baseIouReport = buildOptimisticIOUReport(1, 2, overrides.total, '99', 'USD');
             const iouReport: Report = {
                 ...baseIouReport,
@@ -588,6 +596,8 @@ describe('actions/IOU/Hold', () => {
                 nonReimbursableTotal: overrides.nonReimbursableTotal,
                 unheldTotal: overrides.unheldTotal,
                 unheldNonReimbursableTotal: overrides.unheldNonReimbursableTotal,
+                reimbursableTotal: overrides.reimbursableTotal ?? overrides.total - overrides.nonReimbursableTotal,
+                unheldReimbursableTotal: overrides.unheldReimbursableTotal ?? (overrides.unheldTotal ?? 0) - (overrides.unheldNonReimbursableTotal ?? 0),
             };
             const chatReport: Report = {
                 reportID: '99',
@@ -645,7 +655,7 @@ describe('actions/IOU/Hold', () => {
                     });
                     const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
                     expect(totalsUpdate).toBeDefined();
-                    expect(totalsUpdate?.value).toEqual({total: 200, nonReimbursableTotal: 30});
+                    expect(totalsUpdate?.value).toEqual({total: 200, nonReimbursableTotal: 30, reimbursableTotal: 170});
                 });
         });
 
@@ -675,7 +685,7 @@ describe('actions/IOU/Hold', () => {
                         const value = entry.value as Partial<Report> | undefined;
                         return value?.total !== undefined || value?.nonReimbursableTotal !== undefined;
                     });
-                    expect(totalsRestore?.value).toEqual({total: 300, nonReimbursableTotal: 50});
+                    expect(totalsRestore?.value).toEqual({total: 300, nonReimbursableTotal: 50, reimbursableTotal: 250});
                 });
         });
 

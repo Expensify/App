@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import computeChartScale from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeChartScale';
 import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
@@ -12,16 +13,21 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 // Used instead of onLayout because Yoga inflates the container width to match the fixed-width chart child.
 const CHAT_MESSAGE_HORIZONTAL_PADDING = 92;
 
+/** @see POLAR_CONTAINER_HEIGHT_RATIO in VictoryChartContainerFixed */
+const POLAR_CONTAINER_HEIGHT_RATIO = 0.9;
+
 function VictoryChartContainer({children}: {children: React.ReactNode}) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
+    const {chartContentStyles, chartContainerStyles, type} = useVictoryChartContext();
     const {windowWidth} = useWindowDimensions();
     const {left: safeAreaLeft, right: safeAreaRight} = useSafeAreaInsets();
 
     const designWidth = typeof chartContentStyles.width === 'number' ? chartContentStyles.width : undefined;
     const designHeight = typeof chartContentStyles.height === 'number' ? chartContentStyles.height : undefined;
     const hasExplicitDimensions = designWidth !== undefined && designHeight !== undefined;
+    const isPolar = type === CHART_TYPE.POLAR;
+    const effectiveDesignHeight = isPolar && designHeight ? designHeight * POLAR_CONTAINER_HEIGHT_RATIO : designHeight;
 
     const availableWidth = windowWidth - safeAreaLeft - safeAreaRight - CHAT_MESSAGE_HORIZONTAL_PADDING;
     const scale = hasExplicitDimensions ? computeChartScale(designWidth, availableWidth) : 1;
@@ -34,8 +40,8 @@ function VictoryChartContainer({children}: {children: React.ReactNode}) {
         : [styles.chartContent, chartContentStyles, {backgroundColor, borderRadius, overflow: 'hidden' as const}];
 
     const containerStyle =
-        hasExplicitDimensions && designHeight && designWidth
-            ? [{width: designWidth * scale, height: designHeight * scale, alignSelf: 'flex-start' as const, overflow: 'hidden' as const}]
+        hasExplicitDimensions && effectiveDesignHeight && designWidth
+            ? [{width: designWidth * scale, height: effectiveDesignHeight * scale, alignSelf: 'flex-start' as const, overflow: 'hidden' as const, borderRadius}]
             : [styles.chartContainer, styles.mw100, layoutContainerStyles];
 
     return (

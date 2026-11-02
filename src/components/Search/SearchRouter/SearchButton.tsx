@@ -7,6 +7,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
@@ -40,7 +41,7 @@ function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) 
 
             startSearchPageVisibleSpan();
 
-            openSearchRouter();
+            openSearchRouter(undefined, isSearchTopmostFullScreenRoute());
         })();
     };
 

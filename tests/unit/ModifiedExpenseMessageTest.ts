@@ -893,6 +893,35 @@ describe('ModifiedExpenseMessage', () => {
             });
         });
 
+        describe('when the date change also changes the distance rate', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldMerchant: '56.36 mi @ $0.70 / mi',
+                    merchant: '56.36 mi @ $0.99 / mi',
+                    oldAmount: 3945,
+                    amount: 5580,
+                    oldCurrency: CONST.CURRENCY.USD,
+                    currency: CONST.CURRENCY.USD,
+                    oldCreated: '2025-06-19',
+                    created: '2026-06-19',
+                },
+            };
+
+            it('then the message reports both the rate change and the date change', () => {
+                const expectedResult = `changed the rate to ${reportAction.originalMessage.merchant} (previously ${reportAction.originalMessage.oldMerchant}), which updated the amount to $55.80 (previously $39.45)\nchanged the date to 2026-06-19 (previously 2025-06-19)`;
+                const result = getForReportAction({
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                });
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
         describe('when moving an expense', () => {
             it('returns the movedFromOrToReportMessage message when provided', () => {
                 const reportAction = {
@@ -1165,7 +1194,7 @@ describe('ModifiedExpenseMessage', () => {
                 environmentURL = await getEnvironmentURL();
             });
 
-            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true} as Policy;
+            const policyRulesPolicy = {id: policyRulesPolicyId, areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE} as Policy;
 
             beforeEach(() => {
                 // Default: current user has policy rule access (admin + rules enabled), so link points to workspace rules

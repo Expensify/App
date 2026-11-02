@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import React from 'react';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
 import useLocalize from '@hooks/useLocalize';
@@ -6,7 +7,6 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
 
 type DateOfBirthProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 

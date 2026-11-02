@@ -25,7 +25,7 @@ namespace margelo::nitro::utils {
    */
   struct JContact final: public jni::JavaClass<JContact> {
   public:
-    static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/utils/Contact;";
+    static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/Contact;";
 
   public:
     /**

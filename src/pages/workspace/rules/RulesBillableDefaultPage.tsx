@@ -7,6 +7,7 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -30,6 +31,8 @@ function RulesBillableDefaultPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const {isBetaEnabled} = usePermissions();
+    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const billableModes = [
         {
@@ -70,7 +73,7 @@ function RulesBillableDefaultPage({
                 testID="RulesBillableDefaultPage"
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.rules.individualExpenseRules.billableDefault')}
+                    title={translate(isRevamp ? 'workspace.rules.generalTab.billableExpenses' : 'workspace.rules.individualExpenseRules.billableDefault')}
                     onBackButtonPress={() => Navigation.goBack()}
                 />
                 <View style={[styles.flexRow, styles.renderHTML, styles.mt3, styles.mh5, styles.mb5]}>

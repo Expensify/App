@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import type {PropsWithChildren} from 'react';
 import React, {useEffect} from 'react';
@@ -63,19 +64,19 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(forwardTo, {forceReplace: true}));
     }, [domainAccountID, domain?.hasValidationSucceeded, forwardTo]);
 
-    useEffect(() => {
-        if (!doesDomainExist) {
+    useFocusEffect(() => {
+        if (!doesDomainExist || domain?.validated || domain?.validateCode || domain?.isValidateCodeLoading || domain?.validateCodeError) {
             return;
         }
         getDomainValidationCode(domainAccountID, domainName);
-    }, [domainAccountID, domainName, doesDomainExist]);
+    });
 
     useEffect(() => {
-        if (!doesDomainExist) {
+        if (!doesDomainExist || domain?.validated) {
             return;
         }
         resetDomainValidationError(domainAccountID);
-    }, [domainAccountID, doesDomainExist]);
+    }, [domainAccountID, doesDomainExist, domain?.validated]);
 
     const isLoadingDomain = isLoadingOnyxValue(domainMetadata);
     if (isLoadingDomain) {
@@ -88,6 +89,15 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
 
     if (!domain) {
         return <NotFoundPage onLinkPress={() => Navigation.dismissModal()} />;
+    }
+
+    if (domain.validated) {
+        return (
+            <NotFoundPage
+                onLinkPress={() => Navigation.dismissModal()}
+                shouldForceFullScreen
+            />
+        );
     }
 
     return (
@@ -131,6 +141,7 @@ function BaseVerifyDomainPage({domainAccountID, forwardTo}: BaseVerifyDomainPage
                                         <CopyableTextField
                                             value={domain.validateCode}
                                             isLoading={domain.isValidateCodeLoading}
+                                            style={styles.copyableTextFieldMinHeight}
                                         />
                                     )}
                                 </View>

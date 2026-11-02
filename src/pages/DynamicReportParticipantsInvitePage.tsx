@@ -47,7 +47,7 @@ function DynamicReportParticipantsInvitePage({report}: DynamicReportParticipants
         ...CONST.EXPENSIFY_EMAILS_OBJECT,
     };
     const participantsAccountIDs = getParticipantsAccountIDsForDisplay(report, false, true);
-    const loginsByAccountIDs = getLoginsByAccountIDs(participantsAccountIDs);
+    const loginsByAccountIDs = getLoginsByAccountIDs(participantsAccountIDs, personalDetailsList);
     for (const login of loginsByAccountIDs) {
         excludedUsers[login] = true;
     }

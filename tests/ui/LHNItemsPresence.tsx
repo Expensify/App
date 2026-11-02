@@ -426,10 +426,13 @@ describe('SidebarLinksData', () => {
         it('should display the unread report in the focus mode with the bold text', async () => {
             // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
+            // The last action must be by another user (account 2) so the report is genuinely unread.
+            // A report whose last action is the current user's own is treated as read (see isUnread in ReportUtils).
+            const OTHER_USER_ACCOUNT_ID = 2;
             const report: Report = {
                 ...createReport(undefined, undefined, undefined, undefined, undefined, true),
                 lastMessageText: 'fake last message',
-                lastActorAccountID: TEST_USER_ACCOUNT_ID,
+                lastActorAccountID: OTHER_USER_ACCOUNT_ID,
             };
 
             await initializeState({

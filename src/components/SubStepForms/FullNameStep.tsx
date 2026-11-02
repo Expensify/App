@@ -23,6 +23,9 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
         /** The title of the form */
         formTitle: string;
 
+        /** Subtitle text shown below the title */
+        formSubtitle?: string;
+
         /** The validation function to call when the form is submitted */
         customValidate?: (values: FormOnyxValues<TFormID>) => FormInputErrors<TFormID>;
 
@@ -63,6 +66,7 @@ type FullNameStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepPro
 function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
     formID,
     formTitle,
+    formSubtitle,
     customValidate,
     onSubmit,
     stepFields,
@@ -132,7 +136,8 @@ function FullNameStep<TFormID extends keyof OnyxFormValuesMapping>({
             enabledWhenOffline={enabledWhenOfflineProp}
         >
             <View>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{formTitle}</Text>
+                <Text style={[styles.textHeadlineLineHeightXXL, formSubtitle ? styles.mb3 : styles.mb6]}>{formTitle}</Text>
+                {!!formSubtitle && <Text style={[styles.mb5, styles.textSupporting]}>{formSubtitle}</Text>}
                 <InputWrapper
                     InputComponent={TextInput}
                     inputID={firstNameInputID}

@@ -198,6 +198,7 @@ function isSubmitAction({
     violations,
     currentUserLogin,
     currentUserAccountID,
+    ownerLogin,
 }: {
     report: Report;
     reportTransactions: Transaction[];
@@ -210,6 +211,7 @@ function isSubmitAction({
     violations?: OnyxCollection<TransactionViolation[]>;
     currentUserLogin?: string;
     currentUserAccountID: number;
+    ownerLogin: string | undefined;
 }): boolean {
     if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
@@ -258,7 +260,7 @@ function isSubmitAction({
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin);
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
@@ -978,6 +980,7 @@ function getSecondaryReportActions({
         reportActions,
         reportMetadata,
         isChatReportArchived,
+        ownerLogin: submitterLogin,
     });
 
     if (
@@ -993,6 +996,7 @@ function getSecondaryReportActions({
             violations,
             currentUserLogin,
             currentUserAccountID,
+            ownerLogin: submitterLogin,
         })
     ) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
@@ -1057,7 +1061,9 @@ function getSecondaryReportActions({
 
     options.push(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_PDF);
 
-    options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
+    if (!isOpenReportUtils(report)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.PRINT);
+    }
 
     if (isChangeWorkspaceAction(report, policies, currentUserLogin, submitterLogin, reportActions)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.CHANGE_WORKSPACE);

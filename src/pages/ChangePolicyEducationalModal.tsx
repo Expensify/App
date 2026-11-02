@@ -33,6 +33,7 @@ function ChangePolicyEducationalModal() {
         <CenteredModalLayout
             onBackdropPress={handleClose}
             width={variables.changePolicyEducationModalWidth}
+            contentStyle={[styles.pt0, styles.pb0]}
         >
             <FeatureTrainingContent
                 title={translate('iou.changePolicyEducational.title')}

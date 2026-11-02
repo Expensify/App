@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useReportTransactions from '@hooks/useReportTransactions';
-import {openPersonalBankAccountSetupView} from '@libs/actions/BankAccounts';
+import {openPersonalBankAccountSetupView, setPersonalBankAccountContinueKYCOnSuccess} from '@libs/actions/BankAccounts';
 import {completePaymentOnboarding, savePreferredPaymentMethod} from '@libs/actions/IOU/PayMoneyRequest';
 import {navigateToBankAccountRoute} from '@libs/actions/ReimbursementAccount';
 import {moveIOUReportToPolicy, moveIOUReportToPolicyAndInviteSubmitter} from '@libs/actions/Report';
@@ -25,7 +25,8 @@ import {setKYCWallSource} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import type {Route} from '@src/ROUTES';
+import {doesPersonalDetailExistSelector, personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {lastWorkspaceNumberSelector} from '@src/selectors/Policy';
 import type {BankAccountList, Policy} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
@@ -50,6 +51,7 @@ function KYCWall({
     enablePaymentsRoute,
     iouReport,
     onSelectPaymentMethod = () => {},
+    getPersonalBankAccountOnSuccessFallbackRoute,
     onSuccessfulKYC,
     shouldIncludeDebitCard = true,
     shouldListenForResize = false,
@@ -67,6 +69,7 @@ function KYCWall({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [employeeLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
+    const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesPersonalDetailExistSelector(iouReport?.ownerAccountID)}, [iouReport?.ownerAccountID]);
 
     const {formatPhoneNumber, translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -81,6 +84,9 @@ function KYCWall({
     const transferBalanceButtonRef = useRef<HTMLDivElement | View | null>(null);
 
     const [shouldShowAddPaymentMenu, setShouldShowAddPaymentMenu] = useState(false);
+    // Holds the fallback route while the add-payment menu is open. When the user picks "Personal bank account" from the menu,
+    // we pass this route into openPersonalBankAccountSetupView so the KYC flow can continue after the bank account is added.
+    const [pendingPersonalBankAccountOnSuccessFallbackRoute, setPendingPersonalBankAccountOnSuccessFallbackRoute] = useState<Route | null>(null);
 
     const [anchorPosition, setAnchorPosition] = useState({
         anchorPositionVertical: 0,
@@ -127,7 +133,7 @@ function KYCWall({
     }, [getAnchorPosition]);
 
     const selectPaymentMethod = useCallback(
-        (paymentMethod?: PaymentMethod, policy?: Policy) => {
+        (paymentMethod?: PaymentMethod, policy?: Policy, personalBankAccountOnSuccessFallbackRoute?: Route) => {
             const canLinkExistingBusinessBankAccount = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
             if (paymentMethod) {
@@ -135,7 +141,12 @@ function KYCWall({
             }
 
             if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
-                openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: isIOUReport(iouReport)});
+                const onSuccessFallbackRoute = getPersonalBankAccountOnSuccessFallbackRoute?.(paymentMethod) ?? personalBankAccountOnSuccessFallbackRoute;
+
+                openPersonalBankAccountSetupView({
+                    shouldSetUpUSBankAccount: isIOUReport(iouReport),
+                    onSuccessFallbackRoute,
+                });
             } else if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
                 Navigation.navigate(addDebitCardRoute ?? ROUTES.INBOX);
             } else if (paymentMethod === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT || policy) {
@@ -150,6 +161,7 @@ function KYCWall({
                             filteredReportActions,
                             currentUserAccountID,
                             employeeLogin,
+                            doesSubmitterPersonalDetailExist ?? false,
                             reportTransactions,
                         );
                         if (inviteResult?.policyExpenseChatReportID) {
@@ -226,6 +238,7 @@ function KYCWall({
         },
         [
             bankAccountList,
+            getPersonalBankAccountOnSuccessFallbackRoute,
             onSelectPaymentMethod,
             iouReport,
             addDebitCardRoute,
@@ -236,6 +249,7 @@ function KYCWall({
             currentUserAccountID,
             currentUserEmail,
             employeeLogin,
+            doesSubmitterPersonalDetailExist,
             introSelected,
             formatPhoneNumber,
             translate,
@@ -257,7 +271,7 @@ function KYCWall({
      */
     const continueAction = useCallback(
         (params?: ContinueActionParams) => {
-            const {event, iouPaymentType, paymentMethod, policy, goBackRoute} = params ?? {};
+            const {event, iouPaymentType, paymentMethod, policy, goBackRoute, personalBankAccountOnSuccessFallbackRoute} = params ?? {};
             const currentSource = walletTerms?.source ?? source;
 
             /**
@@ -268,6 +282,7 @@ function KYCWall({
 
             if (shouldShowAddPaymentMenu) {
                 setShouldShowAddPaymentMenu(false);
+                setPendingPersonalBankAccountOnSuccessFallbackRoute(null);
                 return;
             }
 
@@ -289,18 +304,19 @@ function KYCWall({
                 Log.info('[KYC Wallet] User does not have valid payment method');
 
                 if (!shouldIncludeDebitCard || (isFromWalletPage && !hasValidPaymentMethod)) {
-                    selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT);
+                    selectPaymentMethod(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, undefined, personalBankAccountOnSuccessFallbackRoute);
                     return;
                 }
 
                 if (paymentMethod || policy) {
                     setShouldShowAddPaymentMenu(false);
-                    selectPaymentMethod(paymentMethod, policy);
+                    selectPaymentMethod(paymentMethod, policy, personalBankAccountOnSuccessFallbackRoute);
                     return;
                 }
 
                 if (iouPaymentType && isExpenseReport) {
                     setShouldShowAddPaymentMenu(false);
+                    // Expense reports use a business bank account, so the personal bank account fallback route is not applicable.
                     selectPaymentMethod(CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT);
                     return;
                 }
@@ -309,6 +325,7 @@ function KYCWall({
                 const position = getAnchorPosition(clickedElementLocation);
 
                 setPositionAddPaymentMenu(position);
+                setPendingPersonalBankAccountOnSuccessFallbackRoute(personalBankAccountOnSuccessFallbackRoute ?? null);
                 setShouldShowAddPaymentMenu(true);
 
                 return;
@@ -320,6 +337,11 @@ function KYCWall({
                 if (!hasActivatedWallet && !policy) {
                     Log.info('[KYC Wallet] User does not have active wallet');
 
+                    // Save the fallback route so we can continue into KYC after the user adds a bank account on the enable payments screen
+                    if (personalBankAccountOnSuccessFallbackRoute) {
+                        setPersonalBankAccountContinueKYCOnSuccess(personalBankAccountOnSuccessFallbackRoute);
+                    }
+
                     // If the goBackRoute is the enablePaymentsRoute there's no need to directly navigate to it here
                     if (goBackRoute !== enablePaymentsRoute) {
                         Navigation.navigate(enablePaymentsRoute);
@@ -330,7 +352,7 @@ function KYCWall({
 
                 if (policy || (paymentMethod && (!hasActivatedWallet || paymentMethod !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT))) {
                     setShouldShowAddPaymentMenu(false);
-                    selectPaymentMethod(paymentMethod, policy);
+                    selectPaymentMethod(paymentMethod, policy, personalBankAccountOnSuccessFallbackRoute);
                     return;
                 }
             }
@@ -384,7 +406,10 @@ function KYCWall({
             <AddPaymentMethodMenu
                 isVisible={shouldShowAddPaymentMenu}
                 iouReport={iouReport}
-                onClose={() => setShouldShowAddPaymentMenu(false)}
+                onClose={() => {
+                    setShouldShowAddPaymentMenu(false);
+                    setPendingPersonalBankAccountOnSuccessFallbackRoute(null);
+                }}
                 anchorRef={anchorRef}
                 anchorPosition={{
                     vertical: anchorPosition.anchorPositionVertical,
@@ -393,7 +418,8 @@ function KYCWall({
                 anchorAlignment={anchorAlignment}
                 onItemSelected={(item: PaymentMethod) => {
                     setShouldShowAddPaymentMenu(false);
-                    selectPaymentMethod(item);
+                    selectPaymentMethod(item, undefined, pendingPersonalBankAccountOnSuccessFallbackRoute ?? undefined);
+                    setPendingPersonalBankAccountOnSuccessFallbackRoute(null);
                 }}
                 shouldShowPersonalBankAccountOption={shouldShowPersonalBankAccountOption}
             />

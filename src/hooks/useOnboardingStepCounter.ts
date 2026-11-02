@@ -14,6 +14,7 @@ function useOnboardingStepCounter(page: OnboardingScreen): OnboardingStepResult 
         hasAccessibleDomainPolicies: account?.hasAccessibleDomainPolicies,
         purposeSelected: purposeSelected ?? undefined,
         isMergeAccountStepSkipped: onboarding?.isMergeAccountStepSkipped,
+        isAccountValidated: !!account?.validated,
     });
 }
 

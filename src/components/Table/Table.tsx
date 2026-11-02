@@ -9,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import CONST from '@src/CONST';
 import useFiltering from './middlewares/filtering';
+import useHighlighting from './middlewares/highlight';
 import useSearching from './middlewares/searching';
 import useSelection from './middlewares/selection';
 import useSorting from './middlewares/sorting';
@@ -156,26 +157,27 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     ...listProps
 }: TableProps<DataType, ColumnKey, FilterKey>) {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
     const isMobileSelectionEnabled = useMobileSelectionMode();
+    const icons = useMemoizedLazyExpensifyIcons(['CheckSquare']);
+    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
 
     if (!columns || columns.length === 0) {
         throw new Error('Table columns must be provided');
     }
 
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    const originalSelectableCount = data.filter((item) => !item.disabled && !item.isSelectionDisabled).length;
 
-    const {middleware: filterMiddleware, currentFilters, methods: filterMethods} = useFiltering<DataType, FilterKey>({filters, isItemInFilter});
+    const {middleware: filterMiddleware, currentFilters, hasActiveFilters, methods: filterMethods} = useFiltering<DataType, FilterKey>({filters, isItemInFilter});
     const filteredData = filterMiddleware(data);
 
-    const {middleware: searchMiddleware, activeSearchString, methods: searchMethods} = useSearching<DataType>({isItemInSearch});
+    const {middleware: searchMiddleware, activeSearchString, methods: searchMethods, hasActiveSearchString} = useSearching<DataType>({isItemInSearch});
     const searchedData = searchMiddleware(filteredData);
 
     const {
-        middleware: sortMiddleware,
         activeSorting,
         methods: sortMethods,
+        middleware: sortMiddleware,
     } = useSorting<DataType, ColumnKey>({
         compareItems,
         initialSortColumn,
@@ -184,22 +186,15 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     });
     const sortedData = sortMiddleware(searchedData);
 
-    const hasActiveSearchString = activeSearchString.trim().length > 0;
-    const hasAppliedFilters = filters
-        ? (Object.keys(currentFilters) as FilterKey[]).some((key) => {
-              const filterValue = currentFilters[key];
-              const defaultValue = filters[key]?.default;
-              return filterValue !== defaultValue;
-          })
-        : false;
-
-    const originalSelectableCount = data.filter((item) => !item.disabled).length;
     const {
-        middleware: selectionMiddleware,
         methods: selectionMethods,
         mobileSelectionModalRowKey,
-    } = useSelection<DataType>({data: sortedData, originalSelectableCount, selectedKeys, onRowSelectionChange});
-    const processedData = selectionMiddleware(sortedData);
+        middleware: selectionMiddleware,
+    } = useSelection<DataType>({data: sortedData, originalSelectableCount, currentFilters, selectedKeys, onRowSelectionChange});
+    const selectionData = selectionMiddleware(sortedData);
+
+    const {methods: highlightingMethods, middleware: highlightMiddleware} = useHighlighting<DataType>();
+    const processedData = highlightMiddleware(selectionData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
 
@@ -208,6 +203,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         ...sortMethods,
         ...searchMethods,
         ...selectionMethods,
+        ...highlightingMethods,
     };
 
     /**
@@ -231,7 +227,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     });
 
     const originalDataLength = data?.length ?? 0;
-    const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasAppliedFilters);
+    const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
 
     const handleMobileSelectionPress = () => {
         turnOnMobileSelectionMode();
@@ -255,7 +251,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         activeSorting,
         activeSearchString,
         tableMethods,
-        hasActiveFilters: hasAppliedFilters,
+        hasActiveFilters,
         hasSearchString: hasActiveSearchString,
         isEmptyResult,
         shouldUseNarrowTableLayout,

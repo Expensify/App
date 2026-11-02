@@ -50,7 +50,7 @@ function SelectCountryStep({policyID}: CountryStepProps) {
         if (!currentCountry) {
             setHasError(true);
         } else {
-            if (addNewCard?.data.selectedCountry !== currentCountry) {
+            if (addNewCard?.data?.selectedCountry !== currentCountry) {
                 clearAddNewCardFlow();
             }
             setAddNewCompanyCardStepAndData({

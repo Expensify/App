@@ -12,7 +12,7 @@
  *   bun scripts/sentry/release-adoption-older-than.ts --threshold 9.3.79-4 --start 2026-05-22T00:00:00Z --end 2026-06-03T23:59:59Z
  *   bun scripts/sentry/release-adoption-older-than.ts --help
  */
-import CLI from '../utils/CLI';
+import CLI from 'expensify-common/CLI';
 
 const DEFAULT_ORG = 'expensify';
 const DEFAULT_PROJECT = 'app';
@@ -245,7 +245,14 @@ async function queryEventsTable({
     let cursor: string | null = null;
 
     do {
-        const params = buildEventsSearchParams({options, projectId, fields, query, sort, cursor});
+        const params = buildEventsSearchParams({
+            options,
+            projectId,
+            fields,
+            query,
+            sort,
+            cursor,
+        });
         params.append('per_page', '100');
 
         const {body, headers} = await sentryRequest<EventsTableResponse>(`/organizations/${options.org}/events/`, params, options);
@@ -433,7 +440,11 @@ async function main(): Promise<void> {
         countUniqueUsers({options, projectId, query: baseQuery}),
     ]);
 
-    const olderReleases = collectOlderReleases({releaseRows, options, threshold});
+    const olderReleases = collectOlderReleases({
+        releaseRows,
+        options,
+        threshold,
+    });
     const usersOnOlderReleases = await countUniqueUsersOnReleases({
         options,
         projectId,

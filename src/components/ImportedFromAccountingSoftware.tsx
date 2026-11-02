@@ -41,7 +41,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'GustoSquare']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare', 'GustoSquare']);
     const icon = getIntegrationIcon(connectedIntegration, expensifyIcons);
 
     if (!customTagName && shouldShow) {

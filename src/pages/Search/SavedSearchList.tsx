@@ -98,7 +98,7 @@ function buildSavedSearchMenuItem({
 
 function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const isFocused = useIsFocused();
@@ -110,6 +110,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const [workspaceCardList] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const feedKeysWithCards = useFeedKeysWithAssignedCards();
     const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const reportAttributes = useReportAttributes();
@@ -139,6 +140,7 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
         translate,
         feedKeysWithCards,
         reportAttributes,
+        bankAccountList,
     });
 
     const getOverflowMenu = (itemName: string, itemHash: number, itemQuery: string) =>
@@ -151,22 +153,24 @@ function SavedSearchList({hash, areAllSectionsExpanded}: SavedSearchListProps) {
     const tooltipWrapperStyle = [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper];
 
     const savedSearchesMenuItems = savedSearches
-        ? Object.entries(savedSearches).map(([key, item], index) =>
-              buildSavedSearchMenuItem({
-                  item,
-                  key,
-                  index,
-                  hash,
-                  title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
-                  getOverflowMenu,
-                  shouldShowSavedSearchTooltip,
-                  hideSavedSearchTooltip,
-                  renderSavedSearchTooltip,
-                  itemStyle,
-                  tooltipWrapperStyle,
-                  isCopied: copiedHash === Number(key),
-              }),
-          )
+        ? Object.entries(savedSearches)
+              .map(([key, item], index) =>
+                  buildSavedSearchMenuItem({
+                      item,
+                      key,
+                      index,
+                      hash,
+                      title: item.name === item.query ? (savedSearchTitles.get(item.query) ?? item.name) : item.name,
+                      getOverflowMenu,
+                      shouldShowSavedSearchTooltip,
+                      hideSavedSearchTooltip,
+                      renderSavedSearchTooltip,
+                      itemStyle,
+                      tooltipWrapperStyle,
+                      isCopied: copiedHash === Number(key),
+                  }),
+              )
+              .sort((a, b) => localeCompare(a.title ?? '', b.title ?? ''))
         : [];
 
     if (isVisuallyCollapsed) {

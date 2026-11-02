@@ -9,7 +9,7 @@ import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | typeof ROUTES.SETTINGS_ENABLE_PAYMENTS;
+type EnablePaymentsRoute = typeof ROUTES.ENABLE_PAYMENTS | typeof ROUTES.IOU_SEND_ENABLE_PAYMENTS | ReturnType<typeof ROUTES.SETTINGS_ENABLE_PAYMENTS.getRoute>;
 
 type PaymentActionParams = {
     paymentType?: PaymentMethodType;

@@ -1,8 +1,10 @@
+import type {TabRouterOptions} from '@react-navigation/native';
+
 const defaultScreenOptions = {
     animation: 'default',
 } as const;
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    defaultScreenOptions,
-};
+/** On native there is no browser history; hardware back returns to the initial tab first, per platform convention. */
+const backBehavior: NonNullable<TabRouterOptions['backBehavior']> = 'initialRoute';
+
+export {defaultScreenOptions, backBehavior};

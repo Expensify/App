@@ -239,13 +239,22 @@ function SubmitExpenseOrchestrator({
 
     const handleReportPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
+        const wasPreInserted = Navigation.getIsFullscreenPreInsertedUnderRHP();
         Navigation.clearFullscreenPreInsertedFlag();
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
-        dismissAfterEnsuringDestinationReportIsPreInserted(destinationReportID, () => {
+
+        const afterTransition = () => {
             createTransaction(locationPermissionGranted, false);
             setIsConfirming(false);
-        });
+        };
+
+        if (wasPreInserted) {
+            Navigation.dismissModal({afterTransition});
+            return;
+        }
+
+        dismissAfterEnsuringDestinationReportIsPreInserted(destinationReportID, afterTransition);
     };
 
     const handleDismissModalFastPath = (locationPermissionGranted = false) => {
@@ -277,7 +286,11 @@ function SubmitExpenseOrchestrator({
         const searchType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
         const isSameType = getCurrentSearchQueryJSON()?.type === searchType;
         const isNarrow = getIsNarrowLayout();
-        setPendingSubmitFollowUpAction(isSameType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
+        // When the query type matches AND Search is already visible, a simple dismiss suffices.
+        // When Search is not visible (e.g. submitting from Home/Settings), we must navigate there.
+        const isSearchVisible = isSearchTopmostFullScreenRoute();
+        const shouldNavigateToSearch = !isSameType || !isSearchVisible;
+        setPendingSubmitFollowUpAction(shouldNavigateToSearch ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
         const runAfterDismiss = () => {
@@ -302,7 +315,7 @@ function SubmitExpenseOrchestrator({
             });
         };
 
-        if (!isSameType && !isNarrow) {
+        if (shouldNavigateToSearch && !isNarrow) {
             dismissWideToNewSearchType(searchType, runAfterDismiss);
             return;
         }
@@ -310,8 +323,7 @@ function SubmitExpenseOrchestrator({
         Navigation.dismissModal({
             afterTransition: () => {
                 runAfterSearchDismissRecovery(() => {
-                    // Narrow fallback: pre-insert timer didn't fire, navigate after dismiss.
-                    if (isSameType) {
+                    if (!shouldNavigateToSearch) {
                         return;
                     }
 

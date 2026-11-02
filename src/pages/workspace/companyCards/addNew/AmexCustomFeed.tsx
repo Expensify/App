@@ -20,7 +20,7 @@ function AmexCustomFeed() {
     const styles = useThemeStyles();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [localTypeSelected, setLocalTypeSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>>();
-    const typeSelected = localTypeSelected ?? addNewCard?.data.selectedAmexCustomFeed;
+    const typeSelected = localTypeSelected ?? addNewCard?.data?.selectedAmexCustomFeed;
     const [hasError, setHasError] = useState(false);
 
     const submit = () => {
@@ -96,7 +96,7 @@ function AmexCustomFeed() {
                 confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 alternateNumberOfSupportedLines={3}
-                initiallyFocusedItemKey={addNewCard?.data.selectedAmexCustomFeed ?? undefined}
+                initiallyFocusedItemKey={addNewCard?.data?.selectedAmexCustomFeed ?? undefined}
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
             >

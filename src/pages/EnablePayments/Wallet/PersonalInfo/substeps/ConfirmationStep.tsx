@@ -2,7 +2,7 @@ import React, {useMemo} from 'react';
 import CommonConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getSubstepValues from '@pages/EnablePayments/Wallet/utils/getSubstepValues';
 import CONST from '@src/CONST';
@@ -12,7 +12,7 @@ import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.PERSONAL_INFO;
 
-function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
+function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);

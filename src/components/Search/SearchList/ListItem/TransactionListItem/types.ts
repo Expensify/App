@@ -3,7 +3,7 @@ import type {ListItemFocusEventHandler} from '@components/SelectionList/ListItem
 import type {ListItem} from '@components/SelectionList/types';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import type {CardList, PolicyCategories, ReportAction, TransactionViolation} from '@src/types/onyx';
+import type {CardList, PolicyCategories, PolicyTagLists, ReportAction, TransactionViolation} from '@src/types/onyx';
 
 type TransactionListItemSharedProps<TItem extends ListItem> = {
     item: TItem;
@@ -27,6 +27,7 @@ type TransactionListItemSharedProps<TItem extends ListItem> = {
     transactionPreviewData: TransactionPreviewData;
     exportedReportActions: ReportAction[];
     policyCategories?: PolicyCategories;
+    policyTagLists?: PolicyTagLists;
     nonPersonalAndWorkspaceCards?: CardList;
     isAttendeesEnabledForMovingPolicy?: boolean;
 };

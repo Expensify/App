@@ -17,7 +17,7 @@ import {
     isInvoiceReport as isInvoiceReportUtil,
     isIOUReport as isIOUReportUtil,
 } from '@libs/ReportUtils';
-import {useSettlementButtonPaymentMethods} from '@libs/SettlementButtonUtils';
+import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AccountData} from '@src/types/onyx';

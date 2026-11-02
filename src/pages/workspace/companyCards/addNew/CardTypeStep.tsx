@@ -84,7 +84,7 @@ function CardTypeStep() {
     const companyCardBankIcons = useCompanyCardBankIcons();
     const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
     const [localTypeSelected, setLocalTypeSelected] = useState<CardFeedProvider>();
-    const typeSelected = localTypeSelected ?? addNewCard?.data.feedType;
+    const typeSelected = localTypeSelected ?? addNewCard?.data?.feedType;
     const [isError, setIsError] = useState(false);
     const data = getAvailableCompanyCardTypes({
         translate,
@@ -95,7 +95,7 @@ function CardTypeStep() {
     const {bankName, selectedBank, feedType} = addNewCard?.data ?? {};
     const isOtherBankSelected = selectedBank === CONST.COMPANY_CARDS.BANKS.OTHER;
     const isNewCardTypeSelected = typeSelected !== feedType;
-    const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data.selectedCountry);
+    const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
 
     const submit = useCallback(() => {
         if (!typeSelected) {
@@ -155,7 +155,7 @@ function CardTypeStep() {
                 }}
                 confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedItemKey={addNewCard?.data.feedType}
+                initiallyFocusedItemKey={addNewCard?.data?.feedType}
                 shouldUpdateFocusedIndex
                 addBottomSafeAreaPadding
             >

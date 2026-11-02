@@ -26,11 +26,14 @@ import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 type ActivatePhysicalCardPageBaseProps = {
     cardID?: string;
     navigateBackTo?: Route;
+
+    /** Whether the flow was launched from the top-level DomainCard route (deep-linked from OldDot) rather than the Settings wallet card route */
+    isFromDomainCardDetail?: boolean;
 };
 
 const LAST_FOUR_DIGITS_LENGTH = 4;
 
-function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhysicalCardPageBaseProps) {
+function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo, isFromDomainCardDetail = false}: ActivatePhysicalCardPageBaseProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isExtraSmallScreenHeight} = useResponsiveLayout();
@@ -48,15 +51,18 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhy
     const activateCardCodeInputRef = useRef<MagicCodeInputHandle>(null);
 
     /**
-     * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, navigate to card details screen.
+     * If state of the card is CONST.EXPENSIFY_CARD.STATE.OPEN, return to the card details screen.
      */
     useEffect(() => {
         if (inactiveCard?.state !== CONST.EXPENSIFY_CARD.STATE.OPEN || inactiveCard?.isLoading) {
             return;
         }
 
-        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
-    }, [cardID, cardList, inactiveCard?.isLoading, inactiveCard?.state]);
+        // Collapse the activate flow back onto the existing card route instead of pushing a new one, so the user is not left
+        // with a duplicate card details screen and a stale route to back through.
+        const cardDetailRoute = isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID);
+        Navigation.goBack(cardDetailRoute, {compareParams: false});
+    }, [cardID, cardList, inactiveCard?.isLoading, inactiveCard?.state, isFromDomainCardDetail]);
 
     useEffect(() => {
         if (!inactiveCard?.cardID) {
@@ -100,7 +106,9 @@ function ActivatePhysicalCardPageBase({cardID = '', navigateBackTo}: ActivatePhy
     return (
         <IllustratedHeaderPageLayout
             title={translate('activateCardPage.activateCard')}
-            onBackButtonPress={() => Navigation.goBack(navigateBackTo ?? ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID))}
+            onBackButtonPress={() =>
+                Navigation.goBack(navigateBackTo ?? (isFromDomainCardDetail ? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID) : ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID)))
+            }
             backgroundColor={theme.PAGE_THEMES[SCREENS.SETTINGS.PREFERENCES.ROOT].backgroundColor}
             illustration={LottieAnimations.Magician}
             scrollViewContainerStyles={[styles.mnh100]}

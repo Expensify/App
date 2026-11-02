@@ -1,4 +1,4 @@
-import fastMerge from 'expensify-common/dist/fastMerge';
+import {fastMerge} from 'expensify-common';
 import type {OnyxCollection, OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ApiCommand} from '@libs/API/types';
@@ -49,9 +49,18 @@ function registerPaginationConfig<TResourceKey extends OnyxCollectionKey, TPageK
     nextCommand,
     ...config
 }: PaginationConfig<TResourceKey, TPageKey>): void {
-    paginationConfigs.set(initialCommand, {...config, type: 'initial'} as unknown as PaginationConfigMapValue);
-    paginationConfigs.set(previousCommand, {...config, type: 'previous'} as unknown as PaginationConfigMapValue);
-    paginationConfigs.set(nextCommand, {...config, type: 'next'} as unknown as PaginationConfigMapValue);
+    paginationConfigs.set(initialCommand, {
+        ...config,
+        type: 'initial',
+    } as unknown as PaginationConfigMapValue);
+    paginationConfigs.set(previousCommand, {
+        ...config,
+        type: 'previous',
+    } as unknown as PaginationConfigMapValue);
+    paginationConfigs.set(nextCommand, {
+        ...config,
+        type: 'next',
+    } as unknown as PaginationConfigMapValue);
     Onyx.connectWithoutView<OnyxCollectionKey>({
         key: config.resourceCollectionKey,
         waitForCollectionCallback: true,

@@ -1,4 +1,5 @@
 import {useRoute} from '@react-navigation/native';
+import reportByIDsSelector from '@selectors/ReportAttributes';
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import MoneyReportHeader from '@components/MoneyReportHeader';
@@ -16,7 +17,6 @@ import {getReportOfflinePendingActionAndErrors, isInvoiceReport, isMoneyRequestR
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import reportByIDsSelector from '@src/selectors/Attributes';
 import type * as OnyxTypes from '@src/types/onyx';
 import HeaderView from './HeaderView';
 

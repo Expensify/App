@@ -62,6 +62,19 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                     return;
                 }
 
+                // Use hasAuthToken() for the latest auth state at call time, since the isAuthenticated
+                // closure value may be stale on cold start (useOnyx reports 'loaded' before storage completes).
+                const isCurrentlyAuthenticated = hasAuthToken();
+
+                // Skip post-sign-out re-runs. On web, react-native-web caches Linking.getInitialURL()
+                // at JS bundle load, so after sign-out the cached URL still points at the previous
+                // session's path. Letting openReportFromDeepLink() see that stale URL would queue a
+                // waitForUserSignIn() callback that fires on the next sign-in and navigates the new
+                // account to a route it lacks access to.
+                if (!isCurrentlyAuthenticated && initialUrlProcessed.current) {
+                    return;
+                }
+
                 initialUrlProcessed.current = true;
                 onInitialUrl(url as Route);
 
@@ -72,9 +85,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                     if (introSelected === undefined) {
                         Log.info('[Deep link] introSelected is undefined when processing initial URL', false, {url});
                     }
-                    // Use hasAuthToken() for the latest auth state at call time, since the isAuthenticated
-                    // closure value may be stale on cold start (useOnyx reports 'loaded' before storage completes).
-                    const isCurrentlyAuthenticated = hasAuthToken();
                     openReportFromDeepLink(url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas);
                 } else {
                     Report.doneCheckingPublicRoom();

@@ -44,12 +44,11 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
 
     const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
     const currentColumns = !searchResults?.data
         ? []
-        : getColumnsToShow({currentAccountID: accountID, data: searchResults.data, visibleColumns, type: searchDataType, groupBy: groupBy?.value, policyCategories});
+        : getColumnsToShow({currentAccountID: accountID, data: searchResults.data, visibleColumns, type: searchDataType, groupBy: groupBy?.value});
     const sortableColumns = getSortByOptions(currentColumns, translate);
     const sortOrder = queryJSON.sortOrder;
 

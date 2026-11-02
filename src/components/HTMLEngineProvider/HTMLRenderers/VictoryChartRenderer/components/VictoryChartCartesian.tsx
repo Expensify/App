@@ -74,7 +74,7 @@ function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianPr
                 );
 
                 if (headless) {
-                    return overlayContent;
+                    return <ThemeContext.Provider value={theme}>{overlayContent}</ThemeContext.Provider>;
                 }
 
                 // React context does not propagate across the Skia renderOutside boundary.

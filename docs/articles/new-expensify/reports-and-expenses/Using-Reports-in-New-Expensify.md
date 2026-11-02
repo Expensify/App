@@ -70,6 +70,9 @@ You can choose from a wide range of columns, including:
 - **Total** – The total amount of the report or expense
 - **Workspace** – The workspace the report belongs to
 - **Action** – Shows available actions like approve or reject
+- **MCC** – The Merchant Category Code from the transaction
+- **Tax code** – The tax code applied to the expense
+- **Category GL code** – The general ledger (GL) code from the expense's category
 
 To view the full list of available columns, click the **Columns** icon in the **Spend** tab.
 
@@ -127,6 +130,8 @@ To view saved searches:
 
 - **Web:** Go to the **Saved** section in the left-hand sidebar.
 - **Mobile:** Tap the **Type** dropdown at the top and select **Saved**.
+
+Saved searches are listed in alphabetical order by name.
 
 To rename a saved search, click **Save** while viewing it and enter a new name. You can also rename, share, or delete a saved search by selecting the three dots **(⋮)** next to it. Selecting **Share** copies the search URL to your clipboard.
 

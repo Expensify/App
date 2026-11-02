@@ -33,8 +33,14 @@ type MoneyRequestReportPreviewProps = {
     /** The associated chatReport */
     chatReportID: string | undefined;
 
+    /** The chat report this preview belongs to */
+    chatReport: OnyxEntry<Report>;
+
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
+
+    /** The stabilized IOU report, provided by the parent so the preview does not re-subscribe to the churning report */
+    iouReport: OnyxEntry<Report>;
 
     /** Callback when the payment options popover is shown */
     onPaymentOptionsShow?: () => void;
@@ -53,7 +59,6 @@ type MoneyRequestReportPreviewProps = {
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {
-    chatReport: OnyxEntry<Report>;
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     iouReport: OnyxEntry<Report>;
     transactions: Transaction[];

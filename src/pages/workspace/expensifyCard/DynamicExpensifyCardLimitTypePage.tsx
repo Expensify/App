@@ -1,18 +1,19 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {format, toZonedTime} from 'date-fns-tz';
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import ConfirmModal from '@components/ConfirmModal';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues, FormRef} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import ValuePicker from '@components/ValuePicker';
+import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDefaultFundID from '@hooks/useDefaultFundID';
@@ -45,12 +46,18 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     const {convertToDisplayString} = useCurrencyListActions();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const formRef = useRef<FormRef | null>(null);
+    const {showConfirmModal} = useConfirmModal();
     const policy = usePolicy(policyID);
     const defaultFundID = useDefaultFundID(policyID);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCardsForWorkspace});
 
     const card = cardsList?.[cardID];
+    // Keep the latest card snapshot so a confirmation that resolves after the card refreshes (e.g. while the
+    // confirm modal is open) still sends/rolls back against current data instead of a stale optimistic snapshot.
+    const latestCardRef = useRef(card);
+    useEffect(() => {
+        latestCardRef.current = card;
+    }, [card]);
     const areApprovalsConfigured = getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const defaultLimitType = getDefaultExpensifyCardLimitType(policy);
     const initialLimitType = card?.nameValuePairs?.limitType ?? defaultLimitType;
@@ -60,7 +67,6 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
             : 'workspace.expensifyCard.changeCardMonthlyLimitTypeWarning';
 
     const [typeSelected, setTypeSelected] = useState(initialLimitType);
-    const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const [expirationToggle, setExpirationToggle] = useState(!!card?.nameValuePairs?.validFrom);
     const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
     const personalDetails = usePersonalDetails();
@@ -85,13 +91,12 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     useFocusEffect(fetchCardLimitTypeData);
 
     const updateCardLimitType = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM>) => {
-        setIsConfirmModalVisible(false);
         updateExpensifyCardLimitType(
             defaultFundID,
             Number(cardID),
             typeSelected,
             assigneeTimeZone,
-            card?.nameValuePairs,
+            latestCardRef.current?.nameValuePairs,
             values[INPUT_IDS.VALID_FROM],
             values[INPUT_IDS.VALID_THRU],
             !expirationToggle,
@@ -121,7 +126,19 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
         }
 
         if (shouldShowConfirmModal) {
-            setIsConfirmModalVisible(true);
+            showConfirmModal({
+                title: translate('workspace.expensifyCard.changeCardLimitType'),
+                prompt: translate(promptTranslationKey, convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency)),
+                confirmText: translate('workspace.expensifyCard.changeLimitType'),
+                cancelText: translate('common.cancel'),
+                danger: true,
+                shouldEnableNewFocusManagement: true,
+            }).then(({action}) => {
+                if (action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                updateCardLimitType(values);
+            });
         } else {
             updateCardLimitType(values);
         }
@@ -221,7 +238,6 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
                 />
                 <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                     <FormProvider
-                        ref={formRef}
                         formID={ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM}
                         submitButtonText={translate('common.save')}
                         shouldHideFixErrorsAlert
@@ -286,19 +302,6 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
                             </>
                         )}
                     </FormProvider>
-                    {/* We migrated https://github.com/Expensify/App/issues/83836 to a dynamic card limit type page.`ConfirmModal` is deprecated, so we temporarily disabled the ESLint warning for this component. */}
-                    {/* eslint-disable-next-line @typescript-eslint/no-deprecated */}
-                    <ConfirmModal
-                        title={translate('workspace.expensifyCard.changeCardLimitType')}
-                        isVisible={isConfirmModalVisible}
-                        onConfirm={() => formRef.current?.submit()}
-                        onCancel={() => setIsConfirmModalVisible(false)}
-                        prompt={translate(promptTranslationKey, convertToDisplayString(card?.nameValuePairs?.unapprovedExpenseLimit, currency))}
-                        confirmText={translate('workspace.expensifyCard.changeLimitType')}
-                        cancelText={translate('common.cancel')}
-                        danger
-                        shouldEnableNewFocusManagement
-                    />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

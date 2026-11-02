@@ -157,7 +157,8 @@ function BaseReportActionContextMenu({
     const [shouldKeepOpen, setShouldKeepOpen] = useState(false);
     const wrapperStyle = StyleUtils.getReportActionContextMenuStyles(isMini, shouldUseNarrowLayout);
     const {isOffline} = useNetwork();
-    const {isProduction} = useEnvironment();
+    const {isProduction, isDevelopment, environment} = useEnvironment();
+    const isStaging = environment === CONST.ENVIRONMENT.STAGING;
     const threeDotRef = useRef<View>(null);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
@@ -291,6 +292,8 @@ function BaseReportActionContextMenu({
                 isOffline: !!isOffline,
                 isMini,
                 isProduction,
+                isDevelopment,
+                isStaging,
                 moneyRequestReport,
                 moneyRequestAction,
                 moneyRequestPolicy,

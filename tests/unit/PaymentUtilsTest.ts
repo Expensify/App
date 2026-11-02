@@ -1,6 +1,5 @@
 import type {OnyxEntry} from 'react-native-onyx';
 import type {BankAccountMenuItem} from '@components/Search/types';
-import {setPersonalBankAccountContinueKYCOnSuccess} from '@libs/actions/BankAccounts';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePaymentType, getBusinessBankAccountOptions, handleUnvalidatedAccount, selectPaymentType} from '@libs/PaymentUtils';
@@ -22,10 +21,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 jest.mock('@libs/SubscriptionUtils', () => ({
     shouldRestrictUserBillableActions: jest.fn(),
-}));
-
-jest.mock('@libs/actions/BankAccounts', () => ({
-    setPersonalBankAccountContinueKYCOnSuccess: jest.fn(),
 }));
 
 jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
@@ -239,8 +234,12 @@ describe('PaymentUtils', () => {
 
             selectPaymentType(params);
 
-            expect(mockTriggerKYCFlow).toHaveBeenCalledWith({event: undefined, iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY, policy: testPolicy});
-            expect(setPersonalBankAccountContinueKYCOnSuccess).toHaveBeenCalledWith(ROUTES.ENABLE_PAYMENTS);
+            expect(mockTriggerKYCFlow).toHaveBeenCalledWith({
+                event: undefined,
+                iouPaymentType: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                policy: testPolicy,
+                personalBankAccountOnSuccessFallbackRoute: ROUTES.ENABLE_PAYMENTS,
+            });
         });
 
         it('should navigate to unvalidated account page for EXPENSIFY payment type when user is not validated', () => {
@@ -271,7 +270,6 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
-                policy: params.policy,
                 currentUserAccountIDParam: params.currentAccountID,
                 currentUserEmailParam: params.currentEmail,
                 hasViolations: params.hasViolations,
@@ -294,7 +292,6 @@ describe('PaymentUtils', () => {
             expect(approveMoneyRequest).toHaveBeenCalledWith({
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
-                policy: params.policy,
                 currentUserAccountIDParam: params.currentAccountID,
                 currentUserEmailParam: params.currentEmail,
                 hasViolations: params.hasViolations,

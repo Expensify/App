@@ -109,7 +109,7 @@ function TestDriveDemo() {
                 Navigation.goBack();
 
                 if (shouldOpenRHPVariant()) {
-                    Log.hmmm('[AdminTestDriveModal] User was redirected to Workspace Editor, skipping navigation to admin room');
+                    Log.hmmm('[TestDriveDemo] User was redirected to Workspace Editor, skipping navigation to admin room');
                     return;
                 }
                 if (isAdminRoom(onboardingReport)) {

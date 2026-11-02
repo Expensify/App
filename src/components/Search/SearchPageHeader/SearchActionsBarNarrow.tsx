@@ -21,7 +21,7 @@ function SearchActionsBarNarrow({queryJSON, searchResults, onSort}: SearchAction
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr5, styles.mb4]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter]}>
             <SearchAdvancedFiltersButton queryJSON={queryJSON} />
             <SearchSaveButton />
             <SearchDisplayDropdownButton

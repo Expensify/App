@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import EXPENSE_RULE_INPUT_IDS from '@src/types/form/ExpenseRuleForm';
 
 type AddReportPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.RULES.EDIT_REPORT>;
 
@@ -26,7 +27,7 @@ function AddReportPage({route}: AddReportPageProps) {
 
     return (
         <RuleTextBase
-            fieldID={CONST.EXPENSE_RULES.FIELDS.REPORT}
+            fieldID={EXPENSE_RULE_INPUT_IDS.REPORT}
             formID={ONYXKEYS.FORMS.EXPENSE_RULE_FORM}
             labelKey="common.reportName"
             titleKey="expenseRulesPage.addRule.addToReport"

@@ -75,6 +75,15 @@ function ConciergeSessionProvider({children}: PropsWithChildren) {
             if (prev && sessionCreatedAtRef.current) {
                 const elapsed = Date.now() - sessionCreatedAtRef.current;
                 if (elapsed < CONST.CONCIERGE_SESSION_EXPIRATION_MS) {
+                    // Within an active session, keep the existing boundary unless a better
+                    // (earlier) unread boundary resolves after the session was created. On a
+                    // cold open the session can lock to `now` before the unread anchor resolves;
+                    // when it arrives we pull sessionStartTime back so the notification message
+                    // isn't hidden behind "Show full history". The session age (sessionCreatedAtRef)
+                    // is unchanged — only the display boundary is refined.
+                    if (unreadBoundary && unreadBoundary < prev) {
+                        return unreadBoundary;
+                    }
                     return prev;
                 }
                 sessionExpired = true;

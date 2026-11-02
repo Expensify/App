@@ -533,6 +533,8 @@ jobs:
       - name: Submit previous production build to 100%
         run: bundle exec fastlane ios complete_hybrid_rollout
         continue-on-error: true
+        env:
+          APPLE_ID: ${{ vars.APPLE_ID }}
 
       - name: Submit production build for App Store review and a slow rollout
         run: bundle exec fastlane ios submit_hybrid_for_rollout
@@ -916,6 +918,12 @@ jobs:
                 --target "${{ env.DEPLOY_ENV }}"; then
                 break
               fi
+
+              # A transient GitHub error during create doesn't necessarily mean the release failed; it may have been created anyway, so a later "already exists" error means it's present.
+              if gh release view "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" &> /dev/null; then
+                echo "Release ${{ needs.prep.outputs.TAG }} exists despite a create error (likely a transient 502), treating as success."
+                break
+              fi
               if [[ $i -lt $CREATE_MAX_RETRIES ]]; then
                 echo "Failed to create release. Retrying in 3 seconds... ($((CREATE_MAX_RETRIES - i)) attempts left)"
                 sleep 3
@@ -997,6 +1005,68 @@ jobs:
               }]
             }
 
+  # Upload the production-bound binary to Sentry for size analysis.
+  # - Cherry-pick deploys build native in this run, so we pull the .aab/.ipa from the build artifact.
+  # - Re-promotion deploys don't build native, so we download from the matching `<TAG>-staging`
+  #   GitHub Release populated during the staging deploy of that version.
+  androidUploadSentry:
+    name: Upload Android build to Sentry for size analysis
+    needs: [prep, androidBuild, checkDeploymentSuccess]
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    if: >-
+      ${{ always()
+          && needs.prep.outputs.DEPLOY_ENV == 'production'
+          && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
+    continue-on-error: true
+    timeout-minutes: 10
+    outputs:
+      SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Upload to Sentry for size analysis
+        id: sentry-upload
+        uses: ./.github/actions/composite/uploadSentrySizeAnalysis
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        with:
+          platform: Android
+          asset-name: Expensify-release.aab
+          artifact-name: androidBuild-artifact
+          staging-release-tag: ${{ needs.prep.outputs.TAG }}-staging
+          is-cherry-pick: ${{ needs.prep.outputs.IS_CHERRY_PICK }}
+
+  iosUploadSentry:
+    name: Upload iOS build to Sentry for size analysis
+    needs: [prep, iosBuild, checkDeploymentSuccess]
+    runs-on: blacksmith-2vcpu-ubuntu-2404
+    if: >-
+      ${{ always()
+          && needs.prep.outputs.DEPLOY_ENV == 'production'
+          && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
+    continue-on-error: true
+    timeout-minutes: 10
+    outputs:
+      SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
+    steps:
+      - name: Checkout
+        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+
+      - name: Upload to Sentry for size analysis
+        id: sentry-upload
+        uses: ./.github/actions/composite/uploadSentrySizeAnalysis
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+        with:
+          platform: iOS
+          asset-name: Expensify.ipa
+          artifact-name: iosBuild-artifact
+          staging-release-tag: ${{ needs.prep.outputs.TAG }}-staging
+          is-cherry-pick: ${{ needs.prep.outputs.IS_CHERRY_PICK }}
+
   # Why is this necessary for CP-to-prod? Consider this scenario:
   #   1. You close a checklist and we create a new staging version `9.0.34-0` and a new checklist
   #   2. You then CP a PR to production, and in the process create `9.0.35-0`
@@ -1066,7 +1136,7 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
-    needs: [prep, checkDeploymentSuccess, createRelease, androidBuild, iosBuild]
+    needs: [prep, checkDeploymentSuccess, createRelease, androidBuild, iosBuild, androidUploadSentry, iosUploadSentry]
     secrets: inherit
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
@@ -1074,5 +1144,5 @@ jobs:
       android: ${{ needs.checkDeploymentSuccess.outputs.ANDROID_RESULT }}
       ios: ${{ needs.checkDeploymentSuccess.outputs.IOS_RESULT }}
       web: ${{ needs.checkDeploymentSuccess.outputs.WEB_RESULT }}
-      android_sentry_url: ${{ needs.androidBuild.outputs.SENTRY_URL }}
-      ios_sentry_url: ${{ needs.iosBuild.outputs.SENTRY_URL }}
+      android_sentry_url: ${{ needs.androidUploadSentry.outputs.SENTRY_URL }}
+      ios_sentry_url: ${{ needs.iosUploadSentry.outputs.SENTRY_URL }}

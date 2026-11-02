@@ -11,6 +11,7 @@ import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/Re
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStepDeprecated, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {ReportNextStep} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -95,6 +96,7 @@ describe('libs/NextStepUtils', () => {
                 const emptyReport = buildOptimisticEmptyReport(
                     'fake-empty-report-id-2',
                     currentUserAccountID,
+                    currentUserEmail,
                     {reportID: 'fake-parent-report-id-3'},
                     'fake-parent-report-action-id-4',
                     policy,
@@ -1284,6 +1286,123 @@ describe('libs/NextStepUtils', () => {
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 actorAccountID: report.ownerAccountID,
             });
+        });
+
+        it('returns the translatable next step over the deprecated one for the empty-report waiting-to-add-transactions case', () => {
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-5',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            const currentNextStep: ReportNextStepDeprecated = {
+                type: 'neutral',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [{text: 'Waiting for '}, {text: 'you', type: 'strong'}, {text: ' to '}, {text: 'add'}, {text: ' %expenses.'}],
+            };
+
+            const reportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const result = getReportNextStep(currentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            expect(result).toBe(reportNextStep);
+        });
+
+        it('falls back to the deprecated next step when the new next step has a different message key', () => {
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-6',
+                    policyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            const currentNextStep: ReportNextStepDeprecated = {
+                type: 'neutral',
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                message: [{text: 'Current next step'}],
+            };
+
+            const reportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            const result = getReportNextStep(currentNextStep, report, [], undefined, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            expect(result).toBe(currentNextStep);
+        });
+
+        it('prioritizes a higher-priority override over the new translatable next step', async () => {
+            const overridePolicyID = 'policy-override';
+            const policy: Policy = {
+                id: overridePolicyID,
+                name: 'Policy',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: currentUserEmail,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL,
+                approver: currentUserEmail,
+                preventSelfApproval: true,
+                employeeList: {
+                    [currentUserEmail]: {
+                        email: currentUserEmail,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        submitsTo: currentUserEmail,
+                    },
+                },
+            };
+
+            const report: Report = {
+                ...buildOptimisticExpenseReport({
+                    chatReportID: 'chat-7',
+                    policyID: overridePolicyID,
+                    payeeAccountID: 1,
+                    total: -500,
+                    currency: CONST.CURRENCY.USD,
+                    betas: [CONST.BETAS.ALL],
+                }),
+                ownerAccountID: currentUserAccountID,
+                policyID: overridePolicyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            } as Report;
+
+            const reportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_ADD_TRANSACTIONS,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${overridePolicyID}`, policy);
+            await waitForBatchedUpdates();
+
+            // Even though a translatable next step is supplied, the prevent-self-approval override must still win.
+            const result = getReportNextStep(undefined, report, [], policy, {}, currentUserEmail, currentUserAccountID, reportNextStep);
+            expect(result).toEqual(buildOptimisticNextStepForPreventSelfApprovalsEnabled());
         });
     });
 });

@@ -28,7 +28,9 @@ import {
     buildOptimisticSelfDMReport,
     generateReportID,
     getChatByParticipants,
+    getReimbursableTotal,
     getReportOrDraftReport,
+    getUnheldReimbursableTotal,
     isExpenseReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
@@ -387,15 +389,22 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
               })
             : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
     } else if (isPolicyExpenseChat) {
+        // Capture the previous reimbursable totals before the mutation so we can apply the diff
+        // consistently regardless of whether the freshly tracked field was already populated.
+        const previousReimbursableTotal = getReimbursableTotal(iouReport);
+        const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(iouReport);
         iouReport = {...iouReport};
         // Because of the Expense reports are stored as negative values, we subtract the total from the amount
         if (iouReport?.currency === currency) {
             if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                 iouReport.total -= amount;
+                // Per diems are reimbursable, so mirror the change on the freshly tracked reimbursable total.
+                iouReport.reimbursableTotal = previousReimbursableTotal - amount;
             }
 
             if (typeof iouReport.unheldTotal === 'number') {
                 iouReport.unheldTotal -= amount;
+                iouReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - amount;
             }
         }
     } else {

@@ -3,6 +3,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
 import useOnyx from '@hooks/useOnyx';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getLastShortAuthToken} from '@libs/Network/NetworkStore';
 import {isLoggingInAsDelegate as isLoggingInAsDelegateSessionUtils, isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Navigation from '@navigation/Navigation';
@@ -41,7 +42,12 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
         }
 
         if (isSupportalLogin) {
-            signInWithSupportAuthToken(shortLivedAuthToken);
+            // The public transition page may already have started this exact sign-in before the Public/Auth
+            // navigator swap re-mounted us here. Firing it again trips the support-token rate limit, so skip
+            // the duplicate but still finish navigating home.
+            if (shortLivedAuthToken !== getLastShortAuthToken()) {
+                signInWithSupportAuthToken(shortLivedAuthToken);
+            }
             Navigation.isNavigationReady().then(() => {
                 // We must call goBack() to remove the /transition route from history
                 Navigation.goBack();

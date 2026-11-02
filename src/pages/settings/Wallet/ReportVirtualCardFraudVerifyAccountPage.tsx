@@ -7,7 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {clearCardListErrors, reportVirtualExpensifyCardFraud} from '@libs/actions/Card';
-import {requestValidateCodeAction, resetValidateActionCodeSent} from '@libs/actions/User';
+import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -80,7 +80,6 @@ function ReportVirtualCardFraudVerifyAccountPage({
             validateError={{...cardError, ...codeError}}
             clearError={handleClearError}
             onClose={() => {
-                resetValidateActionCodeSent();
                 Navigation.goBack(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(cardID));
             }}
         />

@@ -21,6 +21,7 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
         DynCrossStack: {path: 'suffix-cross'},
     },
     screensWithOnyxTabNavigator: new Set(),
+    dynamicTabPatternToTabPaths: new Map(),
 }));
 
 jest.mock('@src/ROUTES', () => ({

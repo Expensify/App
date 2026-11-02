@@ -103,6 +103,7 @@ function DateField({
                 policy,
                 policyForTrackExpense,
                 lastSelectedDistanceRates,
+                isDraft: shouldUseTransactionDraft(action),
             });
         }
     };

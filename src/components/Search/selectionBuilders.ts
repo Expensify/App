@@ -1,11 +1,10 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
-import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import type {OutstandingReportsByPolicyIDDerivedValue, Report, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
 
@@ -25,8 +24,8 @@ type MapTransactionItemToSelectedEntryParams = {
     /** Account ID of the current user */
     currentUserAccountID: number;
 
-    /** Set of archived report IDs, used for the change-report eligibility check */
-    archivedReportsIDSet: ArchivedReportsIDSet;
+    /** Report name-value pairs collection, used for the change-report eligibility archived check */
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 
     /** Derived outstanding reports per policy, used for the change-report eligibility check */
     outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
@@ -55,7 +54,7 @@ function mapTransactionItemToSelectedEntry({
     originalItemTransaction,
     currentUserLogin,
     currentUserAccountID,
-    archivedReportsIDSet,
+    reportNameValuePairs,
     outstandingReportsByPolicyID,
     selfDMReport,
     isProduction,
@@ -86,7 +85,7 @@ function mapTransactionItemToSelectedEntry({
                 transaction: item,
                 report: item.report,
                 policy: item.policy,
-                archivedReportsIDSet,
+                reportNameValuePairs,
             }),
             action: item.action,
             groupCurrency: item.groupCurrency,
@@ -173,8 +172,8 @@ type PrepareTransactionsListParams = {
     /** Account ID of the current user */
     currentUserAccountID: number;
 
-    /** Set of archived report IDs, used for the change-report eligibility check */
-    archivedReportsIDSet: ArchivedReportsIDSet;
+    /** Report name-value pairs collection, used for the change-report eligibility archived check */
+    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
 
     /** Derived outstanding reports per policy, used for the change-report eligibility check */
     outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
@@ -200,7 +199,7 @@ function prepareTransactionsList({
     selectedTransactions,
     currentUserLogin,
     currentUserAccountID,
-    archivedReportsIDSet,
+    reportNameValuePairs,
     outstandingReportsByPolicyID,
     selfDMReport,
     isProduction,
@@ -218,7 +217,7 @@ function prepareTransactionsList({
         originalItemTransaction,
         currentUserLogin,
         currentUserAccountID,
-        archivedReportsIDSet,
+        reportNameValuePairs,
         outstandingReportsByPolicyID,
         selfDMReport,
         isProduction,
@@ -256,7 +255,11 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
             result.push({
                 reportID: item.reportID,
                 action: item.action ?? CONST.SEARCH.ACTION_TYPES.VIEW,
-                total: item.total ?? CONST.DEFAULT_NUMBER_ID,
+                total: getReimbursableTotal({
+                    total: item.total ?? CONST.DEFAULT_NUMBER_ID,
+                    nonReimbursableTotal: item.nonReimbursableTotal,
+                    reimbursableTotal: item.reimbursableTotal,
+                }),
                 policyID: item.policyID,
                 canPay: item.canPay,
                 canApprove: item.canApprove,

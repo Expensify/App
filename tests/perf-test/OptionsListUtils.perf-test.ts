@@ -3,7 +3,7 @@ import type * as NativeNavigation from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
-import {createFilteredOptionList, createOptionList, filterAndOrderOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
+import {createFilteredOptionList, filterAndOrderOptions, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -92,7 +92,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const options = createOptionList(personalDetails, EMPTY_PRIVATE_IS_ARCHIVED_MAP, reports, undefined);
+const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {isSearching: true});
 
 const ValidOptionsConfig = {
     betas: mockedBetas,

@@ -29,18 +29,28 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
         ? ('workspace.certinia.prerequisites.connectButton' as TranslationPaths)
         : (`workspace.certinia.prerequisites.${currentPageName}Confirm` as TranslationPaths);
 
-    const bundleInstallHref = CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION;
-
     let stepContent;
     if (currentPageName === pageNames.INSTALL_BUNDLE) {
         stepContent = (
             <View style={[styles.flex1, styles.mb3, styles.ph5]}>
-                <RenderHTML
-                    html={translate('workspace.certinia.prerequisites.installBundleDescription', {
-                        href: bundleInstallHref,
-                        version: CONST.CERTINIA_FFA_BUNDLE_VERSION,
-                    })}
-                />
+                <View>
+                    <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundlePSAHeader')}</Text>
+                    <RenderHTML
+                        html={translate('workspace.certinia.prerequisites.installBundlePSADescription', {
+                            href: CONST.CERTINIA_PSA_BUNDLE_INSTALL_URL.PRODUCTION,
+                            version: CONST.CERTINIA_PSA_BUNDLE_VERSION,
+                        })}
+                    />
+                </View>
+                <View style={styles.mt5}>
+                    <Text style={[styles.textStrong, styles.mb2]}>{translate('workspace.certinia.prerequisites.installBundleFFAHeader')}</Text>
+                    <RenderHTML
+                        html={translate('workspace.certinia.prerequisites.installBundleFFADescription', {
+                            href: CONST.CERTINIA_FFA_BUNDLE_INSTALL_URL.PRODUCTION,
+                            version: CONST.CERTINIA_FFA_BUNDLE_VERSION,
+                        })}
+                    />
+                </View>
             </View>
         );
     } else if (currentPageName === pageNames.SETUP_CONTACTS) {
@@ -71,7 +81,10 @@ function CertiniaPrerequisitesStep({onNext, currentPageName, onConnect}: Certini
         <View style={styles.flex1}>
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate(titleKey)}</Text>
             {stepContent}
-            <FixedFooter style={[styles.mtAuto]}>
+            <FixedFooter
+                style={[styles.mtAuto]}
+                addBottomSafeAreaPadding
+            >
                 <Button
                     success
                     large

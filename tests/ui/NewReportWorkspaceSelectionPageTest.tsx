@@ -13,7 +13,7 @@ import DynamicNewReportWorkspaceSelectionPage from '@pages/DynamicNewReportWorks
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
-import type {Policy, Report, TodosDerivedValue, Transaction} from '@src/types/onyx';
+import type {Policy, Report, Transaction} from '@src/types/onyx';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Report', () => ({
@@ -44,14 +44,6 @@ const EMAIL = 'test@example.com';
 const POLICY_ID = 'policy-1';
 const POLICY_NAME = 'Test Workspace';
 const REPORT_ID = 'report-1';
-
-const BASE_TODOS: TodosDerivedValue = {
-    reportsToSubmit: [],
-    reportsToApprove: [],
-    reportsToPay: [],
-    reportsToExport: [],
-    transactionsByReportID: {},
-};
 
 const Stack = createPlatformStackNavigator<NewReportWorkspaceSelectionNavigatorParamList>();
 
@@ -116,10 +108,9 @@ describe('NewReportWorkspaceSelectionPage', () => {
         jest.clearAllMocks();
     });
 
-    it('opens the empty-report confirmation when TODOS has no transactions for the user report', async () => {
+    it('opens the empty-report confirmation when there are no transactions for the user report', async () => {
         await act(async () => {
             await seedBaseOnyx();
-            await Onyx.set(ONYXKEYS.DERIVED.TODOS, BASE_TODOS);
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -133,7 +124,7 @@ describe('NewReportWorkspaceSelectionPage', () => {
         expect(mockCreateNewReport).not.toHaveBeenCalled();
     });
 
-    it('creates the report directly when TODOS has a live transaction for the user report', async () => {
+    it('creates the report directly when there is a live transaction for the user report', async () => {
         const transaction: Partial<Transaction> = {
             transactionID: 'txn-1',
             reportID: REPORT_ID,
@@ -141,10 +132,7 @@ describe('NewReportWorkspaceSelectionPage', () => {
         };
         await act(async () => {
             await seedBaseOnyx();
-            await Onyx.set(ONYXKEYS.DERIVED.TODOS, {
-                ...BASE_TODOS,
-                transactionsByReportID: {[REPORT_ID]: [transaction as Transaction]},
-            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction as Transaction);
         });
         await waitForBatchedUpdatesWithAct();
 

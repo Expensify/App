@@ -20,26 +20,6 @@ const FAKE_ACCOUNT_ID = 1;
 const FAKE_SECOND_ACCOUNT_ID = 2;
 
 /**
- * Mock the OptionListContextProvider to provide test data for the component.
- * This ensures consistent test data and isolates the component from external dependencies.
- */
-jest.mock('@components/OptionListContextProvider', () => ({
-    useOptionsList: () => ({
-        options: {
-            reports: [
-                {
-                    reportID: FAKE_REPORT_ID,
-                    text: 'Expense Report',
-                    keyForList: FAKE_REPORT_ID,
-                    brickRoadIndicator: 'error',
-                },
-            ],
-        },
-    }),
-    OptionsListContextProvider: ({children}: {children: React.ReactNode}) => children,
-}));
-
-/**
  * Helper function to render the IOURequestEditReportCommon component with required providers.
  * This encapsulates the component setup and makes tests more readable.
  */

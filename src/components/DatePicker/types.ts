@@ -59,6 +59,15 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * @default false
          */
         shouldDeferShowUntilPositioned?: boolean;
+
+        /**
+         * Blurs any focused text input and dismisses the keyboard when opening the picker, then prevents focus from
+         * returning when the picker closes. Use in multi-field forms where another text input may still be focused
+         * (e.g. a name field above the date picker) to avoid a brief keyboard flash after closing the calendar.
+         * The picker opens immediately after blur; keyboard dismissal runs in parallel rather than blocking the open.
+         * @default false
+         */
+        shouldDismissKeyboardBeforeShow?: boolean;
     };
 
 type DatePickerProps = {

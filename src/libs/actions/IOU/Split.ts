@@ -31,10 +31,12 @@ import {
     generateReportID,
     getChatByParticipants,
     getParsedComment,
+    getReimbursableTotal,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportTransactions,
     getTransactionDetails,
+    getUnheldReimbursableTotal,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isMoneyRequestReport as isMoneyRequestReportReportUtils,
@@ -1014,9 +1016,20 @@ function completeSplitBill(
                   })
                 : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
         } else if (isPolicyExpenseChat) {
-            if (typeof oneOnOneIOUReport?.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-                oneOnOneIOUReport.total -= splitAmount;
+            if (oneOnOneIOUReport) {
+                // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+                // not the oneOnOneIOUReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+                const previousReimbursableTotal = getReimbursableTotal(oneOnOneIOUReport);
+                const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(oneOnOneIOUReport);
+                if (typeof oneOnOneIOUReport.total === 'number') {
+                    // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+                    oneOnOneIOUReport.total -= splitAmount;
+                }
+                oneOnOneIOUReport.reimbursableTotal = previousReimbursableTotal - splitAmount;
+                if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
+                    oneOnOneIOUReport.unheldTotal -= splitAmount;
+                }
+                oneOnOneIOUReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - splitAmount;
             }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
@@ -1694,13 +1707,21 @@ function createSplitsAndOnyxData({
         } else if (isOwnPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
             if (oneOnOneIOUReport?.currency === currency) {
+                // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
+                // not the oneOnOneIOUReport already had reimbursableTotal/unheldReimbursableTotal populated locally.
+                const previousReimbursableTotal = getReimbursableTotal(oneOnOneIOUReport);
+                const previousUnheldReimbursableTotal = getUnheldReimbursableTotal(oneOnOneIOUReport);
                 if (typeof oneOnOneIOUReport.total === 'number') {
                     oneOnOneIOUReport.total -= splitAmount;
                 }
 
+                oneOnOneIOUReport.reimbursableTotal = previousReimbursableTotal - splitAmount;
+
                 if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
                     oneOnOneIOUReport.unheldTotal -= splitAmount;
                 }
+
+                oneOnOneIOUReport.unheldReimbursableTotal = previousUnheldReimbursableTotal - splitAmount;
             }
         } else {
             oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);

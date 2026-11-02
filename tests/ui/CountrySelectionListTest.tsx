@@ -59,7 +59,7 @@ jest.mock('@src/components/Text', () => jest.fn(() => null));
 
 describe('CountrySelectionList', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
-    const countries = Object.keys(CONST.ALL_COUNTRIES).slice(0, CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD + 2);
+    const countries = Object.keys(CONST.ALL_COUNTRIES).slice(0, CONST.STANDARD_LIST_ITEM_LIMIT + 2);
     const initialCountry = countries.at(-1) ?? '';
     const updatedCountry = countries.at(-2) ?? '';
 

@@ -1,3 +1,4 @@
+import {SafeString} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
@@ -17,7 +18,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import SafeString from '@src/utils/SafeString';
 
 const MAX_SKIP = 1;
 const SKIP_QUESTION_TEXT = 'Skip Question';

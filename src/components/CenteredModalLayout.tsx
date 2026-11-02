@@ -1,5 +1,4 @@
 import React from 'react';
-import type {MouseEvent} from 'react';
 import type {DimensionValue, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -8,10 +7,9 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import isInLandscapeModeUtil from '@libs/isInLandscapeMode';
-import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import CONST from '@src/CONST';
+import CenteredModalLayoutOverlay from './CenteredModalLayoutOverlay';
 import FocusTrapForScreen from './FocusTrap/FocusTrapForScreen';
-import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 
 type CenteredModalLayoutProps = {
     children: React.ReactNode;
@@ -42,27 +40,19 @@ function CenteredModalLayout({children, width, height, onBackdropPress, contentS
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, onBackdropPress, {shouldBubble: false});
 
-    const handleInnerClick = (e: MouseEvent) => e.stopPropagation();
-
     return (
         <>
-            <Overlay onPress={onBackdropPress} />
-            <PressableWithoutFeedback
-                onPress={onBackdropPress}
+            <CenteredModalLayoutOverlay onBackdropPress={onBackdropPress} />
+            <View
+                pointerEvents="box-none"
                 style={[styles.flex1, styles.alignItemsCenter, styles.getCenteredModalOuterView(shouldUseNarrowLayout)]}
-                accessible={false}
-                sentryLabel="CenteredModalLayout-backdrop"
             >
                 <FocusTrapForScreen>
-                    <View
-                        onStartShouldSetResponder={() => true}
-                        onClick={handleInnerClick}
-                        style={styles.getCenteredModalInnerView(shouldUseNarrowLayout, width, height)}
-                    >
+                    <View style={styles.getCenteredModalInnerView(shouldUseNarrowLayout, width, height)}>
                         <View style={safeAreaStyle}>{children}</View>
                     </View>
                 </FocusTrapForScreen>
-            </PressableWithoutFeedback>
+            </View>
         </>
     );
 }

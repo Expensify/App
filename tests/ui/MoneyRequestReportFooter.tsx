@@ -94,7 +94,17 @@ const renderMoneyRequestConfirmationListFooter = async (transaction: Transaction
         isPolicyExpenseChat: true,
         expenseMode: {isDistance: false, isTime: false, isInvoice: false, isPerDiem: false},
         distanceFlags: {isManualDistanceRequest: false, isOdometerDistanceRequest: false, isGPSDistanceRequest: false},
-        distanceData: {distance: 0, hasRoute: false, unit: undefined, rate: undefined, distanceRateName: undefined, distanceRateCurrency: 'USD'},
+        distanceData: {
+            distance: 0,
+            hasRoute: false,
+            unit: undefined,
+            rate: undefined,
+            distanceRateName: undefined,
+            distanceRateCurrency: 'USD',
+            mileageRate: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, currency: 'USD'},
+            expenseDate: undefined,
+            customUnitRateID: undefined,
+        },
         amountDisplay: {amount: 10000, formattedAmount: '100', formattedAmountPerAttendee: '50'},
         requiredFlags: {isCategoryRequired: false, isMerchantRequired: false, isDescriptionRequired: false},
         visibilityFlags: {
