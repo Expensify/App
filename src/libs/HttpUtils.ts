@@ -11,6 +11,7 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import {getRequestCredentials, requestCloudflareChallengeResolution} from './actions/CloudflareChallenge';
 import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
@@ -85,6 +86,8 @@ function processHTTPRequest<TKey extends OnyxKey>(
     body: FormData | null = null,
     abortSignal: AbortSignal | undefined = undefined,
     shouldSkipPrefetch = false,
+    credentials: NonNullable<Parameters<typeof nitroFetch>[1]>['credentials'] = getRequestCredentials(),
+    shouldSkipChallengeRetry = false,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
 
@@ -99,11 +102,10 @@ function processHTTPRequest<TKey extends OnyxKey>(
         method,
         body,
         headers: prefetchHeaders,
-        // On Web fetch already defaults to 'omit' for credentials, but it seems that this is not the case for the ReactNative implementation
-        // so to avoid sending cookies with the request we set it to 'omit' explicitly
-        // this avoids us sending specially the expensifyWeb cookie, which makes a CSRF token required
-        // more on that here: https://stackoverflowteams.com/c/expensify/questions/93
-        credentials: 'omit',
+        // Requests start with the 'omit' credentials mode so the expensifyWeb cookie is never sent, because the API
+        // requires a CSRF token when it is (https://stackoverflowteams.com/c/expensify/questions/93). After the user
+        // passes a Cloudflare challenge, requests switch to 'same-origin' so the cf_clearance cookie rides along.
+        credentials,
     };
 
     registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
@@ -148,6 +150,22 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 throw new HttpsError({
                     message: CONST.ERROR.FAILED_TO_FETCH,
                 });
+            }
+
+            // A Cloudflare rule answered with a challenge page instead of the API, so ask the user to pass the
+            // Turnstile check and retry. The retry must send cookies, because passing the check makes Cloudflare
+            // set a cf_clearance cookie that satisfies the rule. A retried request that is challenged again fails,
+            // so the user is never asked to solve the same challenge twice.
+            if (response.headers?.get(CONST.CLOUDFLARE_CHALLENGE.MITIGATED_HEADER) === CONST.CLOUDFLARE_CHALLENGE.MITIGATED.CHALLENGE) {
+                endSpan(downloadSpanId);
+                if (shouldSkipChallengeRetry) {
+                    throw new HttpsError({
+                        message: CONST.ERROR.EXPENSIFY_SERVICE_INTERRUPTED,
+                        status: response.status.toString(),
+                        title: 'Cloudflare challenge not solved',
+                    });
+                }
+                return requestCloudflareChallengeResolution(url).then(() => processHTTPRequest<TKey>(url, method, body, abortSignal, true, 'same-origin', true));
             }
 
             if (!response.ok) {
