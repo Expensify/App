@@ -9153,9 +9153,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 describeRuleForConcierge: 'Opisz swoją regułę, a Concierge ją utworzy',
                 gotIt: 'Jasne',
                 createRule: 'Utwórz regułę',
-                fallbackBanner:
-                    'To nie jest standardowa reguła, więc przygotowaliśmy ją jako regułę agenta. Reguły agenta działają po zmianie wydatku lub raportu, na przykład wstrzymując wydatek albo odrzucając raport.',
-                fallbackBannerWithExplanation: (explanation: string) => `To nie jest standardowa reguła, więc przygotowaliśmy ją jako regułę agenta. ${explanation}`,
+                fallbackBanner: 'To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta.',
+                fallbackBannerWithExplanation: (explanation: string) => `To nie jest standardowa reguła, więc przygotowaliśmy regułę agenta. ${explanation}`,
             },
             tabs: {
                 general: 'Ogólne',

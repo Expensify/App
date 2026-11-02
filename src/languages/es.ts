@@ -9207,9 +9207,8 @@ ${reportName}`,
                 describeRuleForConcierge: 'Describe tu regla y Concierge la creará',
                 gotIt: 'Entendido',
                 createRule: 'Crear regla',
-                fallbackBanner:
-                    'Esta no es una regla estándar, así que la redactamos como una regla de agente. Las reglas de agente actúan después de que un gasto o informe cambia, por ejemplo reteniendo el gasto o rechazando el informe.',
-                fallbackBannerWithExplanation: (explanation: string) => `Esta no es una regla estándar, así que la redactamos como una regla de agente. ${explanation}`,
+                fallbackBanner: 'Esta no es una regla estándar, así que redactamos una regla de agente.',
+                fallbackBannerWithExplanation: (explanation: string) => `Esta no es una regla estándar, así que redactamos una regla de agente. ${explanation}`,
             },
             tabs: {
                 general: 'General',
