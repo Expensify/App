@@ -3225,6 +3225,7 @@ ${amount} para ${merchant} - ${date}`,
         approverNotWorkspaceMember: 'Este aprobador ya no es miembro del espacio de trabajo. Elige un nuevo aprobador o elimina este flujo de trabajo.',
         defaultWorkflowApproverNotWorkspaceMember: 'Este aprobador ya no es miembro del espacio de trabajo. Elige un nuevo aprobador.',
         overLimitApproverNotWorkspaceMember: 'El aprobador adicional para los informes que superan el límite ya no es miembro del espacio de trabajo. Elige un nuevo aprobador adicional.',
+        overLimitApproverInWorkflow: 'El aprobador adicional para los informes que superan el límite ya es un aprobador en este flujo de trabajo. Elige un aprobador adicional diferente.',
         approverCircularReference: (name1, name2) =>
             `<strong>${name1}</strong> ya aprueba informes a <strong>${name2}</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`,
         emptyContent: {
@@ -3867,7 +3868,7 @@ ${amount} para ${merchant} - ${date}`,
 
                         1. Haz clic en *Espacios de trabajo*.
                         2. Selecciona tu espacio de trabajo.
-                        3. Haz clic en *Contabilidad*.
+                        3. Haz clic en *Conexiones*.
                         4. Busca ${integrationName}.
                         5. Haz clic en *Conectar*.
 
@@ -4964,6 +4965,7 @@ ${amount} para ${merchant} - ${date}`,
             roomType: 'Tipo de habitación',
             cancellation: 'Política de cancelación',
             cancellationUntil: 'Cancelación gratuita hasta el',
+            hotelLocalTime: 'hora local del hotel',
             confirmation: 'Número de confirmación',
             cancellationPolicies: {
                 unknown: 'Desconocido',
@@ -5086,8 +5088,9 @@ ${amount} para ${merchant} - ${date}`,
                 '¿Sabías que puedes reservar y gestionar viajes en grupo como este directamente en Expensify? Evita complicaciones la próxima vez y prueba nuestra herramienta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de viaje</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Los viajes no están habilitados',
-            message: 'Para reservar, habilita los viajes en tu espacio de trabajo predeterminado o cambia tu espacio de trabajo predeterminado a uno que tenga los viajes habilitados.',
+            title: 'Aún no puedes reservar viajes',
+            message:
+                'Eres miembro de un espacio de trabajo con viajes habilitados, pero no es tu espacio de trabajo predeterminado. Para reservar, habilita los viajes en tu espacio de trabajo predeterminado o cambia tu espacio de trabajo predeterminado a uno que tenga los viajes habilitados.',
         },
     },
     proactiveAppReview: {
@@ -5246,8 +5249,6 @@ ${amount} para ${merchant} - ${date}`,
             },
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Propietario';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrador del espacio de trabajo';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -5314,22 +5315,14 @@ ${amount} para ${merchant} - ${date}`,
             description: 'Excelentes noticias 🎉. Contáctanos si necesitan ayuda con la configuración.',
         },
         mcp: {
-            connectors: 'Conectores',
-            connectorsSubtitle: 'Conecta un asistente de IA a tu cuenta de Expensify.',
-            connect: 'Conectar',
-            helpPrompt: '¿Necesitas ayuda para conectar?',
-            helpLink: 'Lee nuestra guía.',
             claude: {
                 title: 'Claude',
-                subtitle: 'de Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'de Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'de OpenAI',
             },
         },
         connections: {
@@ -6895,10 +6888,6 @@ ${amount} para ${merchant} - ${date}`,
                 title: 'Organizar',
                 subtitle: 'Agrupa y analiza el gasto, registra cada impuesto pagado.',
             },
-            integrateSection: {
-                title: 'Integrar',
-                subtitle: 'Conecta Expensify a otros productos financieros populares.',
-            },
             distanceRates: {
                 title: 'Tasas de distancia',
                 subtitle: 'Añade, actualiza y haz cumplir las tasas.',
@@ -7143,25 +7132,19 @@ ${amount} para ${merchant} - ${date}`,
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Conecta un asistente de IA a tu cuenta de Expensify.',
             },
             receiptPartners: {
                 title: 'Socios de recibos',
-                subtitle: 'Importación automática de recibos.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',
                 featureEnabledText: 'Para activar o desactivar esta función, cambia la configuración de importación contable.',
-                disconnectText: 'Para desactivar la contabilidad, desconecta tu conexión contable del espacio de trabajo.',
                 manageSettings: 'Gestionar la configuración',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Desconectar Uber',
-                disconnectText: 'Para desactivar esta función, desconecta primero la integración de Uber for Business.',
                 description: '¿Está seguro de que desea desconectar esta integración?',
-                confirmText: 'Entendido',
             },
-            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para deshabilitar RR. HH., primero desconecta ${integration} de este espacio de trabajo.`},
             workflowWarningModal: {
                 featureEnabledTitle: 'No tan rápido...',
                 featureEnabledText:
@@ -7177,7 +7160,6 @@ ${amount} para ${merchant} - ${date}`,
                 subtitle: 'Establecer una tarifa por hora facturable para el seguimiento de tiempo.',
                 defaultHourlyRate: 'Tarifa por hora predeterminada',
             },
-            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `Para desactivar Recruiting, primero desconecta ${integration} de este espacio de trabajo.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Ejemplos:',
@@ -7616,7 +7598,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         accounting: {
             settings: 'configuración',
             title: 'Conexiones',
-            subtitle: 'Conecta tu software de contabilidad para una sincronización automática.',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7628,10 +7609,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chatea con tu ejecutivo de cuenta.',
-            talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
-            talkToConcierge: 'Chatear con Concierge.',
-            needAnotherAccounting: '¿Necesitas otro software de contabilidad? ',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -7680,7 +7657,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             disconnect: 'Desconectar',
             reinstall: 'Reinstalar el conector',
             disconnectTitle: (connectionName = 'integración') => `Desconectar ${connectionName}`,
-            connectTitle: (connectionName) => `Conectar ${connectionName}`,
             syncError: (connectionName) => `No se puede conectar a ${connectionName}`,
             accounts: 'Plan de cuentas',
             taxes: 'Impuestos',
@@ -7697,12 +7673,10 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Predeterminado del empleado NetSuite',
             },
             disconnectPrompt: (connectionName = 'integración') => `¿Estás seguro de que quieres desconectar ${connectionName}?`,
-            connectPrompt: (connectionName) => `¿Estás seguro de que quieres conectar a ${connectionName}? Esto eliminará cualquier conexión contable existente.`,
             enterCredentials: 'Ingresa tus credenciales',
             reconnect: 'Reconectar',
             updateCredentials: 'Actualizar credenciales',
             claimOffer: {
-                badgeText: '¡Oferta disponible!',
                 xero: {
                     headline: '¡Obtén Xero gratis por 6 meses!',
                     description:
@@ -8035,10 +8009,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             },
         },
         hr: {
-            title: 'HR',
             connectionsSubtitle:
                 'Conéctate a tu sistema de RR. HH. para sincronizar los datos de empleados, emparejar automáticamente los reembolsos con las personas correctas y mantener los gastos de tu equipo precisos sin trabajo manual.',
-            subtitle: 'Conecta herramientas de HR y mantén sincronizadas las aprobaciones de empleados.',
             alreadyConnectedTitle: 'No se puede conectar a varias plataformas de RR. HH.',
             alreadyConnectedPrompt: 'Debes desconectar tu plataforma de RR. HH. actual antes de conectar otra.',
             connectionDescription: (providerName: string) => `Conecta ${providerName} para mantener sincronizadas las aprobaciones de empleados con tu espacio de trabajo.`,
@@ -8101,7 +8073,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             },
         },
         recruiting: {
-            title: 'Reclutamiento',
             connectionsSubtitle:
                 'Conéctate a tu sistema de selección para sincronizar los datos de los candidatos, vincular automáticamente los reembolsos con las personas correctas y mantener los gastos de tu equipo precisos sin trabajo manual.',
             alreadyConnectedTitle: 'No se puede conectar a varias plataformas ATS',
@@ -8109,7 +8080,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             syncing: 'Sincronizando candidatos',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Conectado. ${setupLink ? `<a href="${setupLink}">Completar configuración</a>` : 'Completar configuración'} para importar candidatos.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>¿No ves tu ATS aquí? <a href="#">Pregunta a Concierge</a> y podremos añadirlo.</muted-text-label>`,
             importSettings: 'Importar ajustes',
             defaultApprover: 'Aprobador predeterminado',
             approverFields: {recruiter: 'Reclutador', recruitingCoordinator: 'Coordinador de selección', hiringManager: 'responsable de contratación'},
@@ -8135,7 +8105,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 },
                 enableJobStagesOrTags: 'Selecciona al menos una etapa de trabajo o etiqueta para continuar',
             },
-            subtitle: 'Conecta herramientas de selección y mantén sincronizadas las aprobaciones de candidatos.',
             syncResults: {
                 importedCount: () => ({
                     one: '1 candidato',
@@ -8159,9 +8128,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             },
         },
         merge: {
-            connections: 'Conexiones',
-            connect: 'Conectar',
-            findIntegration: 'Buscar integración',
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
             disconnectTitle: (providerName: string) => `Desconectar ${providerName}`,
@@ -10684,6 +10650,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semana',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Año',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprobador',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -10729,6 +10696,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Semanas',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Años',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprobadores',
         },
         moneyRequestReport: {emptyStateTitle: 'Aún no hay gastos', accessPlaceHolder: 'Abrir para ver detalles'},
         noCategory: 'Sin categoría',
@@ -12326,6 +12294,8 @@ ${reportName}`,
                 info: 'Ya puedes seguir utilizando tu(s) espacio(s) de trabajo en la modalidad de pago por uso.',
                 preventFutureActivity: (workspacesListRoute) =>
                     `Si quieres evitar actividad y cargos futuros, debes <a href="${workspacesListRoute}">eliminar tu(s) espacio(s) de trabajo.</a> Ten en cuenta que cuando elimines tu(s) espacio(s) de trabajo, se te cobrará cualquier actividad pendienteque se haya incurrido durante el mes en curso.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Para evitar actividad y cargos futuros, <a href="${workspacesListRoute}">archiva todos tus espacios de trabajo de pago</a>. Los espacios de trabajo archivados con actividad facturable durante el mes en curso seguirán incluidos en tu factura.`,
             },
             requestSubmitted: {
                 title: 'Solicitud enviada',

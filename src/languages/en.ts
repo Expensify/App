@@ -3550,6 +3550,7 @@ const translations = {
         approverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver or delete this workflow.',
         defaultWorkflowApproverNotWorkspaceMember: 'This approver is no longer a workspace member. Choose a new approver.',
         overLimitApproverNotWorkspaceMember: 'The additional approver for reports over the limit is no longer a workspace member. Choose a new additional approver.',
+        overLimitApproverInWorkflow: 'The additional approver for reports over the limit is already an approver in this workflow. Choose a different additional approver.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> already approves reports to <strong>${name2}</strong>. Please choose a different approver to avoid a circular workflow.`,
         emptyContent: {
@@ -4147,7 +4148,7 @@ const translations = {
 
                         1. Click *Workspaces*.
                         2. Select your workspace.
-                        3. Click *Accounting*.
+                        3. Click *Connections*.
                         4. Find ${integrationName}.
                         5. Click *Connect*.
 
@@ -5244,6 +5245,7 @@ const translations = {
             roomType: 'Room type',
             cancellation: 'Cancellation policy',
             cancellationUntil: 'Free cancellation until',
+            hotelLocalTime: "hotel's local time",
             confirmation: 'Confirmation number',
             cancellationPolicies: {
                 unknown: 'Unknown',
@@ -5318,8 +5320,9 @@ const translations = {
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Travel is not enabled',
-            message: 'To book, please enable travel on your default workspace or switch your default workspace to one that is travel-enabled.',
+            title: "You can't book travel yet",
+            message:
+                "You're a member of a travel-enabled workspace, but it's not your default workspace. To book, please enable travel on your default workspace or switch your default workspace to one that is travel-enabled.",
         },
         verifyCompany: {
             title: "We're reviewing your request...",
@@ -5547,8 +5550,6 @@ const translations = {
             },
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Owner';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Workspace admin';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -5608,22 +5609,14 @@ const translations = {
             description: 'Great news 🎉. Reach out to us if they need any help with the setup.',
         },
         mcp: {
-            connectors: 'Connectors',
-            connectorsSubtitle: 'Connect an AI assistant to your Expensify account.',
-            connect: 'Connect',
-            helpPrompt: 'Need help connecting?',
-            helpLink: 'Read our guide.',
             claude: {
                 title: 'Claude',
-                subtitle: 'by Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'by Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'by OpenAI',
             },
         },
         connections: {
@@ -7487,10 +7480,6 @@ const translations = {
                 title: 'Organize',
                 subtitle: 'Group and analyze spend, record every tax paid.',
             },
-            integrateSection: {
-                title: 'Integrate',
-                subtitle: 'Connect Expensify to popular financial products.',
-            },
             distanceRates: {
                 title: 'Distance rates',
                 subtitle: 'Add, update, and enforce rates.',
@@ -7731,29 +7720,18 @@ const translations = {
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Connect an AI assistant to your Expensify account.',
             },
             receiptPartners: {
                 title: 'Receipt partners',
-                subtitle: 'Automatically import receipts.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
                 featureEnabledText: "To enable or disable this feature, you'll need to change your accounting import settings.",
-                disconnectText: "To disable accounting, you'll need to disconnect your accounting connection from your workspace.",
                 manageSettings: 'Manage settings',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Disconnect Uber',
-                disconnectText: 'To disable this feature, please disconnect the Uber for Business integration first.',
                 description: 'Are you sure you want to disconnect this integration?',
-                confirmText: 'Got it',
-            },
-            hrWarningModal: {
-                disconnectText: ({integration}: {integration: string}) => `To disable HR, please disconnect ${integration} from this workspace first.`,
-            },
-            recruitingWarningModal: {
-                disconnectText: ({integration}: {integration: string}) => `To disable Recruiting, please disconnect ${integration} from this workspace first.`,
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Not so fast...',
@@ -8279,7 +8257,6 @@ const translations = {
         accounting: {
             settings: 'settings',
             title: 'Connections',
-            subtitle: 'Connect your accounting software for an automatic sync.',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -8295,10 +8272,6 @@ const translations = {
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chat with your account executive.',
-            talkYourAccountManager: 'Chat with your account manager.',
-            talkToConcierge: 'Chat with Concierge.',
-            needAnotherAccounting: 'Need another accounting software? ',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -8347,7 +8320,6 @@ const translations = {
             disconnect: 'Disconnect',
             reinstall: 'Reinstall connector',
             disconnectTitle: (connectionName = 'integration') => `Disconnect ${connectionName}`,
-            connectTitle: (connectionName: string) => `Connect ${connectionName}`,
 
             syncError: (connectionName: string) => `Can't connect to ${connectionName}`,
             accounts: 'Chart of accounts',
@@ -8365,7 +8337,6 @@ const translations = {
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite employee default',
             },
             disconnectPrompt: (connectionName = 'this integration') => `Are you sure you want to disconnect ${connectionName}?`,
-            connectPrompt: (connectionName: string) => `Are you sure you want to connect ${connectionName}? This will remove any existing accounting connections.`,
             reconnect: 'Reconnect',
             enterCredentials: 'Enter your credentials',
             updateCredentials: 'Update credentials',
@@ -8375,7 +8346,6 @@ const translations = {
             netSuiteOAuthMigrationRequiredUrgent: 'Your NetSuite connection requires immediate upgrade to OAuth 2.0.',
             netSuiteOAuthUpgradeNow: 'Upgrade now',
             claimOffer: {
-                badgeText: 'Offer available!',
                 xero: {
                     headline: 'Get Xero free for 6 months!',
                     description: '<muted-text><centered-text>New to Xero? Expensify customers get 6 months free. Claim your offer below.</centered-text></muted-text>',
@@ -8637,10 +8607,8 @@ const translations = {
             },
         },
         hr: {
-            title: 'HR',
             connectionsSubtitle:
                 "Connect to your HR system to sync employee data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
-            subtitle: 'Connect HR tools and keep employee approvals in sync.',
             alreadyConnectedTitle: 'Cannot connect to multiple HR platforms',
             alreadyConnectedPrompt: 'You must disconnect your current HR platform before connecting another.',
             connectionDescription: (providerName: string) => `Connect ${providerName} to keep employee approvals in sync with your workspace.`,
@@ -8702,8 +8670,6 @@ const translations = {
             },
         },
         recruiting: {
-            title: 'Recruiting',
-            subtitle: 'Connect Recruiting tools and keep candidate approvals in sync.',
             connectionsSubtitle:
                 "Connect to your recruiting system to sync candidate data, auto-match reimbursements to the right people, and keep your team's expenses accurate without the manual work.",
             alreadyConnectedTitle: 'Cannot connect to multiple ATS platforms',
@@ -8717,7 +8683,6 @@ const translations = {
             },
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Connected. ${setupLink ? `<a href="${setupLink}">Complete setup</a>` : 'Complete setup'} to import candidates.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>Don't see your ATS here? <a href="#">Ask Concierge</a> and we can add it.</muted-text-label>`,
             importSettings: 'Import settings',
             defaultApprover: 'Default approver',
             approverField: `First approver`,
@@ -8764,9 +8729,6 @@ const translations = {
             },
         },
         merge: {
-            connections: 'Connections',
-            connect: 'Connect',
-            findIntegration: 'Find integration',
             syncNow: 'Sync now',
             disconnect: 'Disconnect',
             disconnectTitle: (providerName: string) => `Disconnect ${providerName}`,
@@ -11117,6 +11079,7 @@ const translations = {
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Week',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Year',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarter',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approver',
             },
             feed: 'Feed',
             transactionStatus: {
@@ -11180,6 +11143,7 @@ const translations = {
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Weeks',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Years',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Quarters',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approvers',
         },
         moneyRequestReport: {
             emptyStateTitle: 'No expenses yet',
@@ -12425,6 +12389,8 @@ const translations = {
                 info: 'If you want to keep using your workspace(s) on a pay-per-use basis, you’re all set.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `If you'd like to prevent future activity and charges, you must <a href="${workspacesListRoute}">delete your workspace(s)</a>. Note that when you delete your workspace(s), you'll be charged for any outstanding activity that was incurred during the current calendar month.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `To prevent future activity and charges, <a href="${workspacesListRoute}">archive all your paid workspaces</a>. Archived workspaces with billable activity during the current month will still be included in your bill.`,
             },
             requestSubmitted: {
                 title: 'Request submitted',

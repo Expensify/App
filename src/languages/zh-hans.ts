@@ -3216,6 +3216,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         approverNotWorkspaceMember: '此审批人已不再是工作区成员。请选择新的审批人或删除此工作流程。',
         defaultWorkflowApproverNotWorkspaceMember: '此审批人已不再是工作区成员。请选择新的审批人。',
         overLimitApproverNotWorkspaceMember: '超出限额报告的额外审批人已不再是工作区成员。请选择新的额外审批人。',
+        overLimitApproverInWorkflow: '此限额以上报表的额外审批人已是此工作流中的审批人。请选择其他额外审批人。',
         approverCircularReference: (name1: string, name2: string) => `<strong>${name1}</strong> 已经将报表提交给 <strong>${name2}</strong> 审批。请选择其他审批人以避免形成循环审批流程。`,
         emptyContent: {
             title: '没有可显示的成员',
@@ -3833,7 +3834,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
 
                         1. 点击 *Workspaces*。
                         2. 选择您的工作区。
-                        3. 点击 *Accounting*。
+                        3. 点击 *连接*。
                         4. 找到 ${integrationName}。
                         5. 点击 *Connect*。
 
@@ -4887,6 +4888,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             roomType: '房型',
             cancellation: '取消政策',
             cancellationUntil: '免费取消截止至',
+            hotelLocalTime: '酒店当地时间',
             confirmation: '确认编号',
             cancellationPolicies: {
                 unknown: '未知',
@@ -5007,7 +5009,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             hotelBlockCard:
                 '你知道吗？你可以直接在 Expensify 中预订和管理像这样的团队行程。下次就不用再费心了，试试我们的 <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> 工具吧。',
         },
-        defaultWorkspaceTravelDisabled: {title: '差旅功能未启用', message: '如需预订，请在您的默认工作区中启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。'},
+        defaultWorkspaceTravelDisabled: {
+            title: '你目前还不能预订行程',
+            message: '您是已启用差旅功能的工作区成员，但该工作区不是您的默认工作区。要预订，请在您的默认工作区启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。',
+        },
     },
     workspace: {
         common: {
@@ -5135,8 +5140,6 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             guestAlternateText: '提交可见性受限的报表。',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return '所有者';
                     case CONST.POLICY.ROLE.ADMIN:
                         return '工作区管理员';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -5203,22 +5206,14 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             description: '好消息 🎉。如果他们在设置方面需要帮助，请联系我们。',
         },
         mcp: {
-            connectors: '连接器',
-            connectorsSubtitle: '将 AI 助手连接到您的 Expensify 账户。',
-            connect: '连接',
-            helpPrompt: '需要帮助连接吗？',
-            helpLink: '阅读我们的指南。',
             claude: {
                 title: 'Claude',
-                subtitle: '由 Anthropic 提供',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: '由 Anysphere 提供',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: '由 OpenAI 提供',
             },
         },
         connections: {
@@ -6758,10 +6753,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '整理',
                 subtitle: '分组并分析支出，记录每一笔已缴税款。',
             },
-            integrateSection: {
-                title: '集成',
-                subtitle: '将 Expensify 连接到常用的金融产品。',
-            },
             distanceRates: {
                 title: '距离费率',
                 subtitle: '添加、更新并执行费率。',
@@ -6969,23 +6960,18 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             },
             mcp: {
                 title: 'MCP',
-                subtitle: '将 AI 助手连接到您的 Expensify 账户。',
             },
             receiptPartners: {
                 title: '收据合作伙伴',
-                subtitle: '自动导入收据。',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: '别急……',
                 featureEnabledText: '若要启用或停用此功能，您需要更改会计导入设置。',
-                disconnectText: '要停用会计功能，您需要从工作区中断开您的会计连接。',
                 manageSettings: '管理设置',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: '断开与 Uber 的连接',
-                disconnectText: '若要禁用此功能，请先断开 Uber for Business 集成。',
                 description: '确定要断开与此集成的连接吗？',
-                confirmText: '明白了',
             },
             workflowWarningModal: {
                 featureEnabledTitle: '别急……',
@@ -7001,14 +6987,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 subtitle: '为时间跟踪设置可计费的小时费率。',
                 defaultHourlyRate: '默认时薪',
             },
-            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要禁用人力资源功能，请先将此工作区与 ${integration} 断开连接。`},
             vendors: {
                 title: '供应商',
                 subtitle: '将卡片报销与从您的会计软件导入的供应商进行匹配。',
                 disabledTitle: '别急...',
                 disabledMessage: '要启用或禁用此功能，您需要更改会计导入设置。',
             },
-            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `若要停用招聘功能，请先将此工作区与 ${integration} 断开连接。`},
         },
         reports: {
             reportsCustomTitleExamples: '示例：',
@@ -7497,7 +7481,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
         accounting: {
             settings: '设置',
             title: '连接',
-            subtitle: '连接您的会计软件以自动同步。',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7509,10 +7492,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: '与您的客户经理聊天。',
-            talkYourAccountManager: '与您的客户经理聊天。',
-            talkToConcierge: '与 Concierge 聊天。',
-            needAnotherAccounting: '需要其他会计软件吗？',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -7560,7 +7539,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             disconnect: '断开连接',
             reinstall: '重新安装连接器',
             disconnectTitle: (connectionName = '集成') => `断开连接 ${connectionName}`,
-            connectTitle: (connectionName) => `连接 ${connectionName}`,
             syncError: (connectionName) => `无法连接到 ${connectionName}`,
             accounts: '会计科目表',
             taxes: '税费',
@@ -7577,12 +7555,10 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite 员工默认值',
             },
             disconnectPrompt: (connectionName = '此集成') => `你确定要断开与 ${connectionName} 的连接吗？`,
-            connectPrompt: (connectionName) => `确定要连接 ${connectionName} 吗？这将删除所有现有的会计连接。`,
             enterCredentials: '请输入您的凭证',
             reconnect: '重新连接',
             updateCredentials: '更新凭证',
             claimOffer: {
-                badgeText: '优惠可用！',
                 xero: {
                     headline: '免费使用 Xero 长达 6 个月！',
                     description: '<muted-text><centered-text>第一次使用 Xero？Expensify 客户可享受 6 个月免费试用。请在下方领取优惠。</centered-text></muted-text>',
@@ -9012,9 +8988,7 @@ ${reportName}`,
             subscriptions: '订阅',
         },
         hr: {
-            title: '人力资源',
             connectionsSubtitle: '连接您的 HR 系统以同步员工数据，自动将报销匹配到正确的员工，并在无需手动操作的情况下保持团队报销的准确性。',
-            subtitle: '连接人力资源工具，保持员工审批同步。',
             alreadyConnectedTitle: '无法连接到多个人力资源平台',
             alreadyConnectedPrompt: '在连接其他人力资源平台之前，您必须先断开当前的人力资源平台。',
             connectionDescription: (providerName: string) => `连接 ${providerName}，以在您的工作区中同步员工审批。`,
@@ -9075,14 +9049,12 @@ ${reportName}`,
             },
         },
         recruiting: {
-            title: '招聘',
             connectionsSubtitle: '连接招聘系统以同步候选人数据，自动将报销匹配到正确的人员，并在无需手动操作的情况下保持团队报销数据的准确。',
             alreadyConnectedTitle: '无法连接到多个 ATS 平台',
             alreadyConnectedPrompt: '在连接其他 ATS 之前，必须先断开当前的 ATS。',
             syncing: '正在同步候选人',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>已连接。${setupLink ? `<a href="${setupLink}">完成设置</a>` : '完成设置'} 个可导入候选项。</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>没有看到你的 ATS？<a href="#">询问 Concierge</a>，我们可以帮你添加。</muted-text-label>`,
             importSettings: '导入设置',
             defaultApprover: '默认审批人',
             approverFields: {recruiter: '招聘人员', recruitingCoordinator: '招聘协调员', hiringManager: '招聘经理'},
@@ -9098,7 +9070,6 @@ ${reportName}`,
                 offices: {title: '办公室', description: '选择你想与此工作区同步的候选人办公地点', toggleTitle: '办公室', allSelected: '所有办公室'},
                 enableJobStagesOrTags: '请选择至少一个工作阶段或标签以继续',
             },
-            subtitle: '连接招聘工具并保持候选人审批同步。',
             syncResults: {
                 importedCount: () => ({
                     one: '1 名候选人',
@@ -9118,9 +9089,6 @@ ${reportName}`,
             approvalModeDescriptions: {basic: '选择单个审批人', advanced: `候选人的招聘人员或协调人将成为其报销审批人`, custom: '在 Expensify 中手动设置审批人'},
         },
         merge: {
-            connections: '连接',
-            connect: '连接',
-            findIntegration: '查找集成',
             syncNow: '立即同步',
             disconnect: '断开连接',
             disconnectTitle: (providerName: string) => `断开 ${providerName}`,
@@ -10358,6 +10326,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: '周',
                 [CONST.SEARCH.GROUP_BY.YEAR]: '年份',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: '审批人',
             },
             feed: '动态',
             withdrawalType: {
@@ -10411,6 +10380,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WEEK]: '周',
             [CONST.SEARCH.GROUP_BY.YEAR]: '年',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '季度',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: '审批人',
         },
         moneyRequestReport: {emptyStateTitle: '暂时没有报销费用', accessPlaceHolder: '展开查看详情'},
         noCategory: '无类别',
@@ -11618,6 +11588,8 @@ ${reportName}`,
                 info: '如果你想按次付费继续使用你的工作区，你就都准备好了。',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `如果你想阻止未来的活动和收费，你必须<a href="${workspacesListRoute}">删除你的工作区</a>。请注意，当你删除工作区时，你将被收取在当前日历月内产生的所有未结活动费用。`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `若要防止今后的活动和收费，请<a href="${workspacesListRoute}">将所有付费工作区归档</a>。本月内有可计费活动的已归档工作区仍会计入您的账单。`,
             },
             requestSubmitted: {
                 title: '请求已提交',
