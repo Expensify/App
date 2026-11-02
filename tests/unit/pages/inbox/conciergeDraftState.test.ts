@@ -120,14 +120,28 @@ describe('conciergeDraftState', () => {
         expect(getFirstMessageText(completedDraft)).toBe('<client team>');
     });
 
-    it('also waits at an ordinary ampersand until final HTML arrives', () => {
+    it('resumes a draft when later text resolves a trailing ampersand', () => {
+        // Given a draft ending with a possible entity opener
+        const initial = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Manufacturing &'}), REPORT_ID, false);
+        expect(getFirstMessageText(initial)).toBe('Manufacturing ');
+
+        // When later snapshots identify literal text and a query-string ampersand
+        const bodyMarkdown = 'Manufacturing & Wholesale, R&D expenses: https://example.com/?one=1&two=2';
+        const updated = applyConciergeDraftEvent(initial, createDraftEvent({sequence: 2, status: 'updated', bodyMarkdown}), REPORT_ID, false);
+
+        // Then the whole draft is visible before the completed event
+        expect(getFirstMessageText(updated)).toBe(bodyMarkdown);
+        expect(updated?.status).toBe('updated');
+    });
+
+    it('continues past an ordinary ampersand before final HTML arrives', () => {
         // Given an ordinary draft that contains an ampersand rather than an entity
         const bodyMarkdown = 'Lunch & dinner';
 
-        // When rendering Markdown, the same boundary avoids guessing which ampersands start entities
+        // When rendering Markdown, the following space identifies the ampersand as literal text
         const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown}), REPORT_ID, false);
         expect(draft?.bodyMarkdown).toBe(bodyMarkdown);
-        expect(getFirstMessageText(draft)).toBe('Lunch ');
+        expect(getFirstMessageText(draft)).toBe('Lunch & dinner');
 
         // Then final HTML reveals the complete text without truncation
         const completedDraft = applyConciergeDraftEvent(

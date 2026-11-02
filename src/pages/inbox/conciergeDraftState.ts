@@ -594,9 +594,9 @@ function buildConciergeDraftReportAction({
     reportID,
     isGroupPolicyReport,
 }: BuildConciergeDraftReportActionParams): ReportAction | null {
-    // ExpensiMark escapes entities that the server renders as literal text. Keep the
-    // canonical Markdown for pacing, but wait for final HTML from the first ampersand.
-    const ampersandIndex = bodyMarkdown?.indexOf('&') ?? -1;
+    // ExpensiMark escapes entities that the server renders as literal text. Buffer encoded
+    // entities and unfinished candidates, while allowing ordinary ampersands to stream.
+    const ampersandIndex = bodyMarkdown?.search(/&(?:[A-Za-z#][A-Za-z0-9#]*(?:;|$)|$)/) ?? -1;
     const visibleBodyMarkdown = ampersandIndex === -1 ? bodyMarkdown : bodyMarkdown?.slice(0, ampersandIndex);
     const html = finalRenderedHTML ?? (visibleBodyMarkdown ? getParsedComment(stripIncompleteMarkdown(visibleBodyMarkdown), {reportID}, undefined, undefined, isGroupPolicyReport) : '');
 
