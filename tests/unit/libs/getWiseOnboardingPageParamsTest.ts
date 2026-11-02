@@ -110,6 +110,19 @@ describe('getWiseOnboardingPageParams', () => {
         expect(params.documents).toBe(JSON.stringify({idDocument: []}));
     });
 
+    it('sends an empty list as the inputs of a page whose only answers are files', () => {
+        // Given a page that asks for nothing but a file, such as the source of funds document, answered with one new file
+        const page: DynamicFormPage = {key: 'BUSINESS_SOURCE_OF_WEALTH_PROOF', content: [{key: 'proofFile', type: 'file', required: true}]};
+        const proofFile = new File(['statement'], 'statement.pdf', {type: 'application/pdf'});
+
+        // When the page is turned into a save request
+        const params = getPageParams(BANK_ACCOUNT_ID, page, {proofFile: [proofFile]});
+
+        // Then inputs is `[]`, since the server rejects `{}` as "Inputs is not a valid json object", and the file still goes as its own part
+        expect(params.inputs).toBe('[]');
+        expect(params['proofFile[0]']).toBe(proofFile);
+    });
+
     it('gives nothing for a page whose key is not a step the server accepts', () => {
         // Given a page keyed by something other than a step, which the server would answer with 400 Invalid step
         const page: DynamicFormPage = {key: 'ownership', content: [{key: 'description', type: 'text', required: true}]};
