@@ -27,6 +27,8 @@ type BaseImageProps = {
     /** Called when the image starts to load. */
     onLoadStart?: () => void;
 
+    onError?: () => void;
+
     style?: StyleProp<ImageStyle>;
     cachePolicy?: ImagePrefetchOptions['cachePolicy'];
 
@@ -58,8 +60,6 @@ type ImageOwnProps = BaseImageProps & {
 
     /** Event for when the image finishes loading */
     onLoadEnd?: () => void;
-
-    onError?: () => void;
 
     /** Download progress. Not emitted on web, nor natively when the response has no Content-Length. */
     onProgress?: (event: {loaded: number; total: number}) => void;
