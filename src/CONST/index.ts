@@ -1472,6 +1472,7 @@ const CONST = {
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
+        SCAN_FLASH_TORCH: 'scanFlashTorch',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

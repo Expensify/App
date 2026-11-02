@@ -86,5 +86,34 @@ describe('captureReceipt', () => {
             expect(mockCapturePhotoToPath).not.toHaveBeenCalled();
             expect(mockCaptureSnapshotToPath).toHaveBeenCalledWith(camera, expect.stringMatching(/^\/receipts\/receipt_\d+_\d+\.jpg$/));
         });
+
+        it('takes a snapshot for a flash scan when the torch lights the preview', () => {
+            // Given a portrait flash scan where the torch is already lighting the receipt
+            // When the receipt is captured
+            captureReceiptAndroid(camera, photoOutput, {...BASE_OPTIONS, flash: true, isTorchOn: true});
+
+            // Then the fast snapshot is used instead of the slow flash photo
+            expect(mockCapturePhotoToPath).not.toHaveBeenCalled();
+            expect(mockCaptureSnapshotToPath).toHaveBeenCalled();
+        });
+
+        it('does not fire the flash for a landscape photo the torch already lights', () => {
+            // Given a landscape flash scan, which still needs a full photo, with the torch on
+            // When the receipt is captured
+            captureReceiptAndroid(camera, photoOutput, {...BASE_OPTIONS, flash: true, isInLandscapeMode: true, isTorchOn: true});
+
+            // Then the photo is taken without the flash, so it skips the slow pre-flash metering
+            expect(getSettings()).toEqual({flashMode: 'off', enableShutterSound: true});
+        });
+
+        it('keeps the flash photo when the torch is off', () => {
+            // Given a portrait flash scan without the torch, as on phones without one or outside the beta
+            // When the receipt is captured
+            captureReceiptAndroid(camera, photoOutput, {...BASE_OPTIONS, flash: true});
+
+            // Then the flash photo is used as before
+            expect(mockCaptureSnapshotToPath).not.toHaveBeenCalled();
+            expect(getSettings()).toEqual({flashMode: 'on', enableShutterSound: true});
+        });
     });
 });
