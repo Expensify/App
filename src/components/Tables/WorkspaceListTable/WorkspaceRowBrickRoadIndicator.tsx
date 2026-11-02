@@ -8,6 +8,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 
 import {isConnectionInProgress} from '@libs/actions/connections';
+import {getRetryWindow, hasFailedExportToRetryForPolicy} from '@libs/FailedExportRetryUtils';
+import type {RetryWindow} from '@libs/FailedExportRetryUtils';
 import {
     getPolicyBrickRoadIndicatorStatus,
     getUberConnectionErrorDirectlyFromPolicy,
@@ -20,10 +22,10 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {hasReimbursementAccountErrorsSelector} from '@src/selectors/ReimbursementAccount';
-import type {Policy, PolicyConnectionSyncProgress} from '@src/types/onyx';
+import type {Policy, PolicyConnectionSyncProgress, Report} from '@src/types/onyx';
 import type {CardFeedErrors} from '@src/types/onyx/DerivedValues';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -42,6 +44,11 @@ const createPolicyErrorsSelector = (connectionSyncProgress: OnyxEntry<PolicyConn
         shouldShowEmployeeListError(policy) ||
         getPolicyBrickRoadIndicatorStatus(policy, isConnectionInProgress(connectionSyncProgress, policy)) === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
 
+const getRetryWindowSelector = (policy: OnyxEntry<Policy>) => getRetryWindow(policy, CONST.POLICY.CONNECTIONS.FAILED_EXPORT_RETRY_DEFAULT_LOOKBACK_DAYS);
+
+const createHasFailedExportsToRetrySelector = (policyID: string, retryWindow: RetryWindow | undefined) => (reports: OnyxCollection<Report>) =>
+    hasFailedExportToRetryForPolicy(reports, policyID, retryWindow);
+
 /**
  * Error indicator of a workspaces list row. All of its subscriptions are narrow (booleans or a single
  * small entry), so a policy write re-evaluates only this row's selectors and re-renders at most this
@@ -59,10 +66,12 @@ function WorkspaceRowBrickRoadIndicator({policyID}: WorkspaceRowBrickRoadIndicat
     const [isHRCompleteSetupNeeded] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: isMergeHRCompleteSetupNeededSelector});
     const [isQBORefreshTokenExpiringSoon] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: isQBORefreshTokenExpiringSoonSelector});
     const hasApprovalWorkflowWithNonMemberApprover = useHasApprovalWorkflowWithNonMemberApprover(policyID);
+    const [retryWindow] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: getRetryWindowSelector});
+    const [hasFailedExportsToRetry] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: createHasFailedExportsToRetrySelector(policyID, retryWindow)});
 
     // All of the error sources resolve to ERROR or undefined. The HR setup check and the QBO token expiry
     // warning are the only INFO sources, and every error takes precedence over them.
-    const hasError = !!hasReimbursementAccountErrors || !!hasCardFeedErrors || !!hasPolicyErrors || hasApprovalWorkflowWithNonMemberApprover;
+    const hasError = !!hasReimbursementAccountErrors || !!hasCardFeedErrors || !!hasPolicyErrors || hasApprovalWorkflowWithNonMemberApprover || !!hasFailedExportsToRetry;
 
     if (!hasError && !isHRCompleteSetupNeeded && !isQBORefreshTokenExpiringSoon) {
         return null;

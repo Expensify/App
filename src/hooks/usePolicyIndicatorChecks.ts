@@ -1,5 +1,6 @@
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {getDomainsWithErrors, hasPendingDomainAdminRequestsToReview} from '@libs/DomainUtils';
+import {getFailedExportReportsByPolicyID, getFailedExportsToRetry, getRetryWindow} from '@libs/FailedExportRetryUtils';
 import {isMergeHRCompleteSetupNeeded, shouldShowHRConnectionError} from '@libs/merge/HRUtils';
 import {
     getUberConnectionErrorDirectlyFromPolicy,
@@ -47,6 +48,7 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
     const {isBetaEnabled} = usePermissions();
     const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const [allRules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [failedExportReportsByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: getFailedExportReportsByPolicyID});
 
     const hasPendingDomainAdminRequests = Object.entries(allDomains ?? {}).some(([key, domain]) =>
         hasPendingDomainAdminRequestsToReview(domain, currentUserAccountID, allDomainPendingActions?.[key.replace(ONYXKEYS.COLLECTION.DOMAIN, ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS)]),
@@ -69,6 +71,16 @@ function usePolicyIndicatorChecks(): PolicyIndicatorChecksResult {
             ),
         ],
         [CONST.INDICATOR_STATUS.HAS_QBO_EXPORT_ERROR, cleanPolicies.find(shouldShowQBOReimbursableExportDestinationAccountError)],
+        [
+            CONST.INDICATOR_STATUS.HAS_FAILED_EXPORTS_TO_RETRY,
+            cleanPolicies.find(
+                (policy) =>
+                    !!policy &&
+                    isPolicyAdmin(policy) &&
+                    getFailedExportsToRetry(failedExportReportsByPolicyID?.[policy.id], getRetryWindow(policy, CONST.POLICY.CONNECTIONS.FAILED_EXPORT_RETRY_DEFAULT_LOOKBACK_DAYS)).length >
+                        0,
+            ),
+        ],
         [CONST.INDICATOR_STATUS.HAS_UBER_CREDENTIALS_ERROR, cleanPolicies.find(getUberConnectionErrorDirectlyFromPolicy)],
         [CONST.INDICATOR_STATUS.HAS_POLICY_ADMIN_CARD_FEED_ERRORS, isAdminOfPolicyWithCardFeedErrors ? policiesWithCardFeedErrors.at(0) : undefined],
         [

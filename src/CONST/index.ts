@@ -2016,6 +2016,7 @@ const CONST = {
             PENDING_RTER: 'pendingRTER',
             PENDING_TRANSACTIONS: 'pendingTransactions',
             SCANNING_RECEIPT: 'scanningReceipt',
+            FAILED_EXPORT_TO_RETRY: 'failedExportToRetry',
         },
         REPORT_PREVIEW_ACTIONS: {
             VIEW: 'view',
@@ -5650,6 +5651,10 @@ const CONST = {
                 EXPIRING_SOON: 'expiringSoon',
                 EXPIRED: 'expired',
             },
+            /** How many days back the app looks for failed exports to offer again after a successful sync */
+            FAILED_EXPORT_RETRY_DEFAULT_LOOKBACK_DAYS: 30,
+            /** The lookback periods, in days, that an admin can pick when they review failed exports */
+            FAILED_EXPORT_RETRY_LOOKBACK_DAYS_OPTIONS: [7, 30, 60, 90],
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',
@@ -9695,6 +9700,7 @@ const CONST = {
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
         HAS_QBO_EXPORT_ERROR: 'hasQBOExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
+        HAS_FAILED_EXPORTS_TO_RETRY: 'hasFailedExportsToRetry',
         HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
         HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
         HAS_LOGIN_LIST_ERROR: 'hasLoginListError',
@@ -10850,6 +10856,7 @@ const CONST = {
                 EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
+                RECONNECT_BUTTON: 'WorkspaceAccounting-ReconnectButton',
             },
             CONNECTIONS: {
                 CARD: 'WorkspaceConnections-Card',

@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useFailedExportsToRetry from '@hooks/useFailedExportsToRetry';
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import useHasApprovalWorkflowWithNonMemberApprover from '@hooks/useHasApprovalWorkflowWithNonMemberApprover';
 import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
@@ -97,6 +98,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const policy = policyDraft?.id ? policyDraft : policyProp;
+    const {hasFailedExportsToRetry} = useFailedExportsToRetry(policy);
     const policyID = policy?.id;
     const routePolicyID = route.params?.policyID;
 
@@ -215,6 +217,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         isVendorMatchingBetaEnabled: isBetaEnabled(CONST.BETAS.VENDOR_MATCHING),
         isRecruitingBetaEnabled: isBetaEnabled(CONST.BETAS.MERGE_ATS),
         isUnifiedConnectionsBetaEnabled,
+        hasFailedExportsToRetry,
         convertToDisplayString,
     }).map((item) => ({
         ...item,
