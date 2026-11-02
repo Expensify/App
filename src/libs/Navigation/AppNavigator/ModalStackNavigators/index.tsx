@@ -1033,9 +1033,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryExpensifyCardSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryTravelInvoicingSettlementAccountPage').default,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryTravelBillingSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_TRAVEL_BILLING_PAYABLE_ACCOUNT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryTravelInvoicingPayableAccountPage').default,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/advanced/DualEntryTravelBillingPayableAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireSetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXISTING_CONNECTIONS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/CampfireExistingConnectionsPage').default,
@@ -1064,9 +1064,9 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireExpensifyCardSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireTravelInvoicingSettlementAccountPage').default,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireTravelBillingSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CAMPFIRE_TRAVEL_BILLING_PAYABLE_ACCOUNT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireTravelInvoicingPayableAccountPage').default,
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/campfire/advanced/CampfireTravelBillingPayableAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_PREREQUISITES]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralPrerequisitesPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.BUSINESS_CENTRAL_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/businessCentral/BusinessCentralSetupPage').default,

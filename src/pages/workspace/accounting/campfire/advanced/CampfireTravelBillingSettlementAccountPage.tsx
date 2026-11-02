@@ -10,7 +10,7 @@ import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
-import {clearDualEntryErrorField, updateDualEntryTravelBillingSettlementsAccount} from '@libs/actions/connections/DualEntry';
+import {clearCampfireErrorField, updateCampfireTravelBillingSettlementsAccount} from '@libs/actions/connections/Campfire';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -24,35 +24,35 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {DualEntryAccount} from '@src/types/onyx/Policy';
+import type {CampfireAccount} from '@src/types/onyx/Policy';
 
 import React from 'react';
 import {View} from 'react-native';
 
 type AccountListItem = ListItem & {
-    value: DualEntryAccount['id'];
+    value: CampfireAccount['id'];
 };
 
-function DualEntryTravelInvoicingSettlementAccountPage({policy}: WithPolicyConnectionsProps) {
+function CampfireTravelBillingSettlementAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const policyID = policy?.id;
-    const dualentryConfig = policy?.connections?.dualEntry?.config;
-    const dualentryData = policy?.connections?.dualEntry?.data;
-    const travelInvoicingSettlementsBankAccountID = dualentryConfig?.sync?.travelInvoicingSettlementsBankAccountID;
-    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_DUALENTRY_ADVANCED.getRoute(policyID) : undefined;
+    const campfireConfig = policy?.connections?.campfire?.config;
+    const campfireData = policy?.connections?.campfire?.data;
+    const travelInvoicingSettlementsBankAccountID = campfireConfig?.sync?.travelInvoicingSettlementsBankAccountID;
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_CAMPFIRE_ADVANCED.getRoute(policyID) : undefined;
 
     const travelBillingFundID = useTravelBillingFundID(policyID);
     const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
-    const syncTravelInvoicingSettlements = dualentryConfig?.sync?.syncTravelInvoicingSettlements ?? true;
+    const syncTravelInvoicingSettlements = campfireConfig?.sync?.syncTravelInvoicingSettlements ?? true;
     const shouldBeBlocked = !isTravelBillingEnabled || !syncTravelInvoicingSettlements;
 
     const data: AccountListItem[] =
-        dualentryData?.accounts
-            ?.filter((accountItem) => accountItem.isActive && accountItem.accountType === CONST.DUALENTRY_ACCOUNT_TYPE.BANK && accountItem.currency === CONST.CURRENCY.USD)
+        campfireData?.accounts
+            ?.filter((accountItem) => accountItem.isActive && accountItem.accountSubtype === CONST.CAMPFIRE_ACCOUNT_SUBTYPE.BANK && accountItem.currency === CONST.CURRENCY.USD)
             .map((accountItem) => ({
                 value: accountItem.id,
                 text: `${accountItem.id} ${accountItem.name}`,
@@ -63,7 +63,7 @@ function DualEntryTravelInvoicingSettlementAccountPage({policy}: WithPolicyConne
 
     const headerContent = (
         <View>
-            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.dualEntry.travelBillingSettlementAccount.description')}</Text>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.campfire.travelBillingSettlementAccount.description')}</Text>
         </View>
     );
 
@@ -72,15 +72,15 @@ function DualEntryTravelInvoicingSettlementAccountPage({policy}: WithPolicyConne
             icon={illustrations.Telescope}
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
-            title={translate('workspace.dualEntry.noAccountsFound')}
-            subtitle={translate('workspace.dualEntry.noAccountsFoundDescription')}
+            title={translate('workspace.campfire.noAccountsFound')}
+            subtitle={translate('workspace.campfire.noAccountsFoundDescription')}
             containerStyle={styles.pb10}
         />
     );
 
-    const setTravelInvoicingSettlementsAccount = (item: AccountListItem) => {
+    const setTravelBillingSettlementsAccount = (item: AccountListItem) => {
         if (item.value !== travelInvoicingSettlementsBankAccountID && policyID) {
-            updateDualEntryTravelBillingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
+            updateCampfireTravelBillingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
         }
         Navigation.goBack(backPath);
     };
@@ -91,23 +91,23 @@ function DualEntryTravelInvoicingSettlementAccountPage({policy}: WithPolicyConne
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             shouldBeBlocked={shouldBeBlocked}
-            displayName="DualEntryTravelInvoicingSettlementAccountPage"
-            title="workspace.dualEntry.travelBillingSettlementAccount.label"
+            displayName="CampfireTravelBillingSettlementAccountPage"
+            title="workspace.campfire.travelBillingSettlementAccount.label"
             data={filteredData}
             textInputOptions={textInputOptions}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
-            onSelectRow={setTravelInvoicingSettlementsAccount}
+            onSelectRow={setTravelBillingSettlementsAccount}
             shouldSingleExecuteRowSelect
             initiallyFocusedOptionKey={travelInvoicingSettlementsBankAccountID}
             onBackButtonPress={() => Navigation.goBack(backPath)}
-            connectionName={CONST.POLICY.CONNECTIONS.NAME.DUALENTRY}
-            pendingAction={settingsPendingAction([CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], dualentryConfig?.pendingFields)}
-            errors={getLatestErrorField(dualentryConfig, CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID)}
+            connectionName={CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE}
+            pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], campfireConfig?.pendingFields)}
+            errors={getLatestErrorField(campfireConfig, CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => policyID && clearDualEntryErrorField(policyID, CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID)}
+            onClose={() => policyID && clearCampfireErrorField(policyID, CONST.CAMPFIRE_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID)}
         />
     );
 }
 
-export default withPolicyConnections(DualEntryTravelInvoicingSettlementAccountPage);
+export default withPolicyConnections(CampfireTravelBillingSettlementAccountPage);

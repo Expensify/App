@@ -35,7 +35,7 @@ function DynamicSageIntacctTravelBillingPayableAccountSelectPage({policy}: WithP
     return (
         <TravelBillingPayableAccountSelectPage
             policyID={policyID}
-            displayName="SageIntacctTravelInvoicingPayableAccountSelectPage"
+            displayName="SageIntacctTravelBillingPayableAccountSelectPage"
             title="workspace.sageIntacct.creditCardAccount"
             data={data}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
