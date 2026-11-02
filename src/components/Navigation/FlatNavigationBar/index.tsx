@@ -14,7 +14,6 @@ import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,7 +49,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const navigationBarWidth = useNavigationBarWidth();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
-    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'ReceiptMultiple', 'PieChart', 'Buildings']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
@@ -120,15 +118,13 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
                                 onPress={navigateToSearch}
                             />
-                            {isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE) && (
-                                <FlatNavItem
-                                    label={translate('common.insights')}
-                                    icon={icons.PieChart}
-                                    isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
-                                    sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
-                                    onPress={navigateToInsights}
-                                />
-                            )}
+                            <FlatNavItem
+                                label={translate('common.insights')}
+                                icon={icons.PieChart}
+                                isSelected={selectedTab === NAVIGATION_TABS.INSIGHTS}
+                                sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INSIGHTS}
+                                onPress={navigateToInsights}
+                            />
                             <FlatNavDivider />
                             <FlatNavItem
                                 label={translate('common.workspacesTabTitle')}

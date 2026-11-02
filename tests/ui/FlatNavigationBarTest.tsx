@@ -29,7 +29,6 @@ const mockNavigateToInbox = jest.fn();
 const mockNavigateToSearch = jest.fn();
 const mockNavigateToInsights = jest.fn();
 const mockNavigateToWorkspaces = jest.fn();
-let mockEnabledBetas: string[] = [];
 let mockInboxIndicator = NO_INDICATOR;
 let mockWorkspacesIndicator = NO_INDICATOR;
 
@@ -37,7 +36,6 @@ jest.mock('@components/Navigation/NavigationTabBar/useWideInboxNavigation', () =
 jest.mock('@components/Navigation/NavigationTabBar/useSearchTabNavigation', () => () => mockNavigateToSearch);
 jest.mock('@components/Navigation/NavigationTabBar/useInsightsTabNavigation', () => () => mockNavigateToInsights);
 jest.mock('@hooks/useRestoreWorkspacesTabOnNavigate', () => () => mockNavigateToWorkspaces);
-jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabled: (beta: string) => mockEnabledBetas.includes(beta)}));
 jest.mock('@hooks/useInboxTabIndicatorStatus', () => () => mockInboxIndicator);
 jest.mock('@hooks/useWorkspacesTabIndicatorStatus', () => () => mockWorkspacesIndicator);
 jest.mock('@components/Navigation/FlatNavigationBar/FlatNavCreateMenuButtons', () => () => null);
@@ -73,7 +71,6 @@ describe('FlatNavigationBar', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockEnabledBetas = [CONST.BETAS.FLAT_NAV, CONST.BETAS.INSIGHTS_PAGE];
         mockInboxIndicator = NO_INDICATOR;
         mockWorkspacesIndicator = NO_INDICATOR;
         await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
@@ -145,19 +142,6 @@ describe('FlatNavigationBar', () => {
 
         // Then it does not navigate, because the user is already in settings
         expect(Navigation.navigate).not.toHaveBeenCalled();
-    });
-
-    it('hides the Insights row without the Insights beta', async () => {
-        // Given a user on the flatNav beta but not on the Insights beta
-        mockEnabledBetas = [CONST.BETAS.FLAT_NAV];
-
-        // When the bar renders
-        renderBar(NAVIGATION_TABS.HOME);
-        await waitForBatchedUpdatesWithAct();
-
-        // Then Insights is missing, as it is from the icon bar today, while the other rows stay
-        expect(screen.queryByRole(CONST.ROLE.TAB, {name: 'Insights'})).not.toBeOnTheScreen();
-        expect(getRow('Spend')).toBeOnTheScreen();
     });
 
     it('flags Inbox and Workspaces when they need the user', async () => {
