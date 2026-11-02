@@ -8799,6 +8799,9 @@ describe('ReportActionsUtils', () => {
     describe('pay failure mirrored onto a chat report preview', () => {
         const PAY_FAILURE_KEY = CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY;
         const PAY_FAILURE_MESSAGE = 'The payment failed because the expense report was deleted.';
+        // A real error is keyed on microseconds. Named so the key stays a computed one, which the naming-convention rule requires.
+        const OTHER_ERROR_KEY = 1700000000000000;
+        const OTHER_ERROR_MESSAGE = 'Unexpected error. Please try again later.';
 
         function buildReportPreview(isDeleted: boolean, errors?: ReportAction['errors']): ReportAction {
             return {
@@ -8839,7 +8842,7 @@ describe('ReportActionsUtils', () => {
 
             it('does not match a deleted preview whose errors are ordinary', () => {
                 // Given a deleted preview carrying a microsecond-keyed error rather than the mirror
-                const action = buildReportPreview(true, {1700000000000000: 'Unexpected error. Please try again later.'});
+                const action = buildReportPreview(true, {[OTHER_ERROR_KEY]: OTHER_ERROR_MESSAGE});
 
                 // When callers ask whether this is the deleted-preview case
                 const result = ReportActionsUtils.isDeletedReportPreviewWithError(action);
@@ -8865,14 +8868,14 @@ describe('ReportActionsUtils', () => {
                 // Given a live preview that picked up a genuine error as well as the mirror
                 const action = buildReportPreview(false, {
                     [PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE,
-                    1700000000000000: 'Unexpected error. Please try again later.',
+                    [OTHER_ERROR_KEY]: OTHER_ERROR_MESSAGE,
                 });
 
                 // When a consumer asks for the errors it should act on
                 const result = ReportActionsUtils.getVisibleReportActionErrors(action);
 
                 // Then only the mirror is dropped, because hiding it must not silence unrelated failures
-                expect(result).toEqual({1700000000000000: 'Unexpected error. Please try again later.'});
+                expect(result).toEqual({[OTHER_ERROR_KEY]: OTHER_ERROR_MESSAGE});
             });
 
             it('exposes the mirror once the preview is deleted', () => {

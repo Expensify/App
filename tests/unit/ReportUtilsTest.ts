@@ -18115,6 +18115,8 @@ describe('ReportUtils', () => {
         describe('a pay failure mirrored onto the chat report preview', () => {
             const PAY_FAILURE_KEY = CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY;
             const PAY_FAILURE_MESSAGE = 'The payment failed because the expense report was deleted.';
+            // A real error is keyed on microseconds. Named so the key stays a computed one, which the naming-convention rule requires.
+            const OTHER_ERROR_KEY = 1700000000000000;
 
             function buildReportPreview(isDeleted: boolean, errors?: ReportAction['errors']): ReportAction {
                 return {
@@ -18170,7 +18172,7 @@ describe('ReportUtils', () => {
                     reportID: report.reportID,
                     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                     message: [],
-                    errors: {1700000000000000: 'Unexpected error. Please try again later.'},
+                    errors: {[OTHER_ERROR_KEY]: 'Unexpected error. Please try again later.'},
                 };
 
                 // When the LHN aggregates the chat's errors
