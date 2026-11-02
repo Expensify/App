@@ -2,6 +2,7 @@ import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar'
 import Hoverable from '@components/Hoverable';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
+import useAccountTabNavigation from '@components/Navigation/NavigationTabBar/useAccountTabNavigation';
 import useInsightsTabNavigation from '@components/Navigation/NavigationTabBar/useInsightsTabNavigation';
 import useSearchTabNavigation from '@components/Navigation/NavigationTabBar/useSearchTabNavigation';
 import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useWideInboxNavigation';
@@ -19,7 +20,6 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
-import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
 import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButton';
@@ -49,7 +49,6 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const StyleUtils = useStyleUtils();
     const navigationBarWidth = useNavigationBarWidth();
     const {translate} = useLocalize();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'ReceiptMultiple', 'PieChart', 'Buildings']);
@@ -74,14 +73,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
         Navigation.navigate(ROUTES.HOME);
     };
 
-    const navigateToAccount = () => {
-        if (isAccountSelected) {
-            return;
-        }
-        interceptAnonymousUser(() => {
-            Navigation.navigate(ROUTES.SETTINGS);
-        }, session);
-    };
+    const navigateToAccount = useAccountTabNavigation(isAccountSelected);
 
     const accountLabel = currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : translate('initialSettingsPage.account');
 
@@ -155,9 +147,9 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                             <FlatNavDivider />
                             <FlatNavItem
                                 label={accountLabel}
-                                leftElement={<AccountNavigationAvatar isSelected={isAccountSelected} />}
+                                leftElement={<AccountNavigationAvatar />}
                                 isSelected={isAccountSelected}
-                                accessibilityLabel={getAccessibilityLabel(`${translate('initialSettingsPage.account')}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus)}
+                                accessibilityLabel={getAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus)}
                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
                                 onPress={navigateToAccount}
                             />

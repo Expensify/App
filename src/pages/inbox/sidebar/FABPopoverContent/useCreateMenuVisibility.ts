@@ -21,20 +21,13 @@ function useCreateMenuVisibility() {
         setIsCreateMenuActive(false);
     };
 
-    /**
-     * Closes an open menu, otherwise opens it.
-     * @param beforeShow runs first when opening, e.g. to measure where the menu goes; the menu opens once it settles
-     */
-    const toggleCreateMenu = (beforeShow?: () => Promise<unknown>) => {
+    /** Closes an open menu, otherwise opens it. */
+    const toggleCreateMenu = () => {
         if (isCreateMenuActive) {
             hideCreateMenu();
             return;
         }
-        if (!beforeShow) {
-            showCreateMenu();
-            return;
-        }
-        beforeShow().then(showCreateMenu);
+        showCreateMenu();
     };
 
     // Close the menu when the screen loses focus (e.g. navigating away)

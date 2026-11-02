@@ -135,6 +135,18 @@ describe('FlatNavigationBar', () => {
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
+    it('leaves pressing the current Account row as a no-op', async () => {
+        // Given the bar on the Account tab
+        renderBar(NAVIGATION_TABS.SETTINGS);
+        await waitForBatchedUpdatesWithAct();
+
+        // When the Account row is pressed
+        fireEvent.press(getRow('Account, My settings'));
+
+        // Then it does not navigate, because the user is already in settings
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
     it('hides the Insights row without the Insights beta', async () => {
         // Given a user on the flatNav beta but not on the Insights beta
         mockEnabledBetas = [CONST.BETAS.FLAT_NAV];

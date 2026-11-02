@@ -70,31 +70,6 @@ describe('useCreateMenuVisibility', () => {
         expect(result.current.isCreateMenuActive).toBe(false);
     });
 
-    it('opens only after the step that runs before showing settles', async () => {
-        // Given a button that has to measure where the menu goes before opening it
-        const {result} = renderHook(() => useCreateMenuVisibility());
-        let finishMeasuring: () => void = () => {};
-        const measure = () =>
-            new Promise<void>((resolve) => {
-                finishMeasuring = resolve;
-            });
-
-        // When it toggles the menu
-        act(() => result.current.toggleCreateMenu(measure));
-
-        // Then the menu waits for the measurement, so it never opens at a stale position
-        expect(result.current.isCreateMenuActive).toBe(false);
-
-        // When the measurement finishes
-        await act(async () => {
-            finishMeasuring();
-            await Promise.resolve();
-        });
-
-        // Then the menu opens
-        expect(result.current.isCreateMenuActive).toBe(true);
-    });
-
     it('does not open on a narrow layout while the screen is out of focus', () => {
         // Given a narrow layout whose screen is not focused
         mockScreen({shouldUseNarrowLayout: true, isFocused: false});

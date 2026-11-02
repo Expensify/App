@@ -24,7 +24,7 @@ const CREATE_MENU_ANCHOR_POSITION: AnchorPosition = {
     vertical: (variables.flatNavigationBarHeaderHeight + variables.componentSizeNormal) / 2 + variables.spacing2,
 };
 
-/** The receipt and create buttons in the flat navigation bar's header, with the create menu opening below the header. */
+/** The receipt and create buttons in the flat navigation bar's header, with the create menu opening just below the buttons. */
 function FlatNavCreateMenuButtons() {
     const styles = useThemeStyles();
     const {isCreateMenuActive, isCreateMenuVisible, hideCreateMenu, toggleCreateMenu} = useCreateMenuVisibility();
@@ -42,7 +42,7 @@ function FlatNavCreateMenuButtons() {
             <FABButtons
                 isActive={isCreateMenuActive}
                 fabRef={fabRef}
-                onPress={() => toggleCreateMenu()}
+                onPress={toggleCreateMenu}
             />
         </View>
     );
