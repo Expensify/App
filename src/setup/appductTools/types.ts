@@ -1,11 +1,5 @@
-/**
- * Result envelope every tool returns. The contract is defined by the CI caller
- * and mirrored in each tool's description.
- *
- * `ok: true` means the guaranteed state was read back inside the app before
- * returning, never just dispatched. `already: true` means the state held before
- * the call, so nothing was done. `ok: false` always carries a `reason`.
- */
+// ok:true means the state was read back inside the app, never just dispatched. already:true means
+// it held before the call. ok:false always carries a reason.
 type ToolResult = {
     ok: boolean;
     already?: boolean;
@@ -13,10 +7,8 @@ type ToolResult = {
     reason?: string;
 };
 
-/** Raw JSON Schema objects are accepted by both Appduct SDK entries. */
 type ToolSchema = Record<string, unknown>;
 
-/** The `ToolResult` envelope as a schema; every tool declares it as its output. */
 const TOOL_RESULT_SCHEMA: ToolSchema = {
     type: 'object',
     properties: {
@@ -30,11 +22,7 @@ const TOOL_RESULT_SCHEMA: ToolSchema = {
 
 type ToolHandler = (input: Record<string, unknown>) => Promise<ToolResult>;
 
-/**
- * One tool as the shared module describes it. `inputSchema` and `outputSchema`
- * are required so the Appduct SDK infers `Record<string, unknown>` on both sides
- * of the handler instead of widening through an optional property.
- */
+// Both schemas are required so the SDK infers Record<string, unknown> on both sides of the handler.
 type AppductTool = {
     name: string;
     description: string;
@@ -44,7 +32,6 @@ type AppductTool = {
     handler: ToolHandler;
 };
 
-/** What a platform entry hands the shared module: Appduct's `registerTool`. */
 type RegisterTool = (tool: AppductTool) => void;
 
 export {TOOL_RESULT_SCHEMA};

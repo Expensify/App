@@ -19,16 +19,6 @@ import {currentAccountID, isCompleteGuidedSetupQueued, isSignedIn, onboardingCom
 import {TOOL_RESULT_SCHEMA} from './types';
 import waitFor from './waitFor';
 
-/**
- * Finish first-run onboarding with minimal choices: the LOOKING_AROUND purpose
- * ("Something else"), the given first and last name, no workspace. The contract
- * is defined by the CI caller and mirrored in the description below.
- *
- * The guarantee is the *stored* flag, not the dispatch: `completeOnboarding`
- * resolves when the CompleteGuidedSetup request is queued and flips the flag
- * optimistically, so the tool waits for the sequential queue to drain, re-reads
- * the raw flag, and only then dismisses the onboarding modal and navigates.
- */
 function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => void) {
     const preconditionFailure = (timeoutMs: number) =>
         `onboarding preconditions never held within ${timeoutMs}ms: ` +
@@ -52,8 +42,7 @@ function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => voi
         outputSchema: TOOL_RESULT_SCHEMA,
         timeoutMs: 180_000,
         handler: async (input) => {
-            // Defensive reads: the raw JSON Schema drives export, the handler is
-            // the last place a malformed call can be turned into a reason.
+            // The input schema is not enforced at call time.
             const firstName = typeof input.firstName === 'string' ? input.firstName.trim() : '';
             const lastName = typeof input.lastName === 'string' ? input.lastName.trim() : '';
             if (!firstName || !lastName) {
@@ -61,19 +50,14 @@ function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => voi
             }
             const budget = typeof input.timeoutMs === 'number' ? input.timeoutMs : 60_000;
 
-            // Signed in, app finished loading, and nvp_onboarding loaded. The
-            // flag must be read as loaded before `false` can be told apart
-            // from "not loaded yet".
+            // The flag must be loaded before `false` can be told apart from "not loaded yet".
             const ready = await waitFor(() => isSignedIn() && state.isLoadingApp === false && onboardingCompletedFlag() !== null, budget);
             if (!ready) {
                 return {ok: false, reason: preconditionFailure(budget)};
             }
 
-            // A request still queued from an earlier call: do not post a second
-            // CompleteGuidedSetup, wait for that one instead. With nothing queued,
-            // a completed flag means a previous call or the UI already did the
-            // work; the exit below still runs so a modal left mounted by an
-            // interrupted exit gets closed.
+            // A queued request from an earlier call is waited for, never posted twice. A completed flag still
+            // runs the exit below, so a modal left mounted by an interrupted exit gets closed.
             let already = false;
             if (isCompleteGuidedSetupQueued()) {
                 const drained = await waitFor(() => !isCompleteGuidedSetupQueued() && onboardingCompletedFlag() === true, budget);
@@ -137,7 +121,6 @@ function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => voi
     });
 }
 
-/** Run the UI's post-onboarding exit: dismiss the modal, land on the right screen. */
 function exitOnboardingNavigation() {
     // The second argument (canUseDefaultRooms) is the UI's isBetaEnabled(DEFAULT_ROOMS).
     // A fresh CI account carries no betas, so false matches what the page would compute;
@@ -146,7 +129,6 @@ function exitOnboardingNavigation() {
     navigateAfterOnboardingWithMicrotaskQueue(getIsSmallScreenWidth(), false, state.conciergeReportID, undefined, false, state.onboardingPolicyID, undefined, false);
 }
 
-/** True once the onboarding modal navigator is no longer in the root stack. */
 function onboardingModalClosed(): boolean {
     if (!navigationRef.isReady()) {
         return true;

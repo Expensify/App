@@ -156,7 +156,6 @@ export default function () {
     // Perform any other platform-specific setup
     platformSetup();
 
-    // CI pre-start: register the app-state tools (dev builds only; inert elsewhere).
     registerAppductTools();
 
     addUtilsToWindow();

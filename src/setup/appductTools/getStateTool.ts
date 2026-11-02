@@ -7,15 +7,8 @@ import type {AppductTool} from './types';
 import {currentAccountID, isSignedIn, onboardingCompletedFlag, sessionLogin, state} from './appductState';
 import {TOOL_RESULT_SCHEMA} from './types';
 
-/**
- * Report the identity's state without acting. The contract is defined by the CI
- * caller and mirrored in the description below.
- *
- * The login prefers the current personal details (what the profile shows) and
- * falls back to the session/credentials copies: the signed-in email lives in
- * all three and a fresh sign-up fills them in at different times.
- */
 function registerGetStateTool(registerTool: (tool: AppductTool) => void) {
+    // Personal details first: a fresh sign-up fills them, the session and the credentials at different times.
     const currentLogin = () => getPersonalDetail(currentAccountID())?.login ?? sessionLogin() ?? null;
 
     registerTool({

@@ -1,10 +1,7 @@
 import {registerTool} from '@appduct/react-native';
 
-// Native entry. The native module ships only in debug builds (the package's
-// build.gradle adds `core` to the debug source set and a no-op to release),
-// and the JS entry routes registrations to that no-op when the TurboModule is
-// absent, so production registers nothing. The __DEV__ guard keeps tool code
-// out of release startup work too.
+// The native module is debug-only and a no-op in release; the __DEV__ guard also keeps the tool
+// code out of release startup.
 import type {RegisterTool} from './types';
 
 import registerStateTools from './registerStateTools';

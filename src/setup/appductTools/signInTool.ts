@@ -6,16 +6,8 @@ import {currentAccountID, isSignedIn, sessionLogin, state} from './appductState'
 import {TOOL_RESULT_SCHEMA} from './types';
 import waitFor from './waitFor';
 
-/**
- * Sign the app in as an identity through the same actions the sign-in form
- * performs (BeginSignIn, then SignUpUser for a new account). The contract is
- * defined by the CI caller and mirrored in the description below.
- *
- * The form resolves the pressed element into a snapshot ref, and that ref goes
- * stale when the signed-in tree re-renders between capture and press. This tool
- * calls the button handlers directly, with no snapshot in the path, and waits
- * for the session token instead of returning at dispatch.
- */
+// Calls the form's actions directly: a snapshot ref of the pressed button goes stale when the
+// signed-in tree re-renders between capture and press.
 function registerSignInTool(registerTool: (tool: AppductTool) => void) {
     const accountSnapshot = () => ({
         isLoading: state.account?.isLoading ?? null,
@@ -47,8 +39,7 @@ function registerSignInTool(registerTool: (tool: AppductTool) => void) {
         outputSchema: TOOL_RESULT_SCHEMA,
         timeoutMs: 120_000,
         handler: async (input) => {
-            // Defensive reads: the raw JSON Schema drives export, the handler is
-            // the last place a malformed call can be turned into a reason.
+            // The input schema is not enforced at call time.
             const email = typeof input.email === 'string' ? input.email.trim() : '';
             if (!email) {
                 return {ok: false, reason: 'email is required and must be a string'};

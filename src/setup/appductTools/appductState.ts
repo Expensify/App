@@ -1,8 +1,5 @@
-// Module-level Onyx reads for the app-state tools. Registration is not tied to
-// any mounted component (same reasoning as setup/addUtilsToWindow.ts), and the
-// lint rule rulesdir/no-onyx-connect enforces the non-view form outside React.
-// The snapshots are read-only: the tools act through the same actions the UI
-// calls, never by writing these keys directly.
+// Read outside React, so rulesdir/no-onyx-connect requires connectWithoutView. Read-only: the tools
+// act through the same actions the UI calls.
 import {isAnonymousUser} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,9 +37,7 @@ Onyx.connectWithoutView({
 });
 Onyx.connectWithoutView({key: ONYXKEYS.PERSISTED_REQUESTS, callback: (value) => (state.persistedRequests = value ?? undefined)});
 
-// The Concierge report lives in a collection keyed once its ID is known. The ID
-// arrives from OpenApp after sign-in, so the member connection opens when it
-// does and re-opens if a different ID ever takes its place.
+// The Concierge report ID arrives from OpenApp after sign-in, so its member key is connected late.
 let conciergeChatConnection: Connection | undefined;
 let conciergeChatKey: string | undefined;
 Onyx.connectWithoutView({
@@ -70,32 +65,24 @@ Onyx.connectWithoutView({
     },
 });
 
-/** The account ID, from the session or, before the session carries it, the credentials. */
 function currentAccountID(): number | undefined {
     return state.session?.accountID ?? state.credentials?.accountID;
 }
 
-/** The signed-in login, from the session or, before the session carries it, the credentials. */
 function sessionLogin(): string | undefined {
     return state.session?.email ?? state.credentials?.login;
 }
 
-/** A real (non-anonymous) session token. */
 function isSignedIn(): boolean {
     return !!state.session?.authToken && !isAnonymousUser(state.session);
 }
 
-/**
- * The raw stored onboarding flag: true, false, or null while `nvp_onboarding`
- * has not loaded. `hasCompletedGuidedSetupFlowSelector` is deliberately not
- * used: it returns true for an empty or unloaded value (src/selectors/Onboarding.ts).
- */
+// Not hasCompletedGuidedSetupFlowSelector: it returns true for an empty or unloaded value.
 function onboardingCompletedFlag(): boolean | null {
     const value = state.onboarding?.hasCompletedGuidedSetupFlow;
     return typeof value === 'boolean' ? value : null;
 }
 
-/** Whether a CompleteGuidedSetup write is queued or in flight in this client. */
 function isCompleteGuidedSetupQueued(): boolean {
     return (state.persistedRequests ?? []).some((request) => request.command === 'CompleteGuidedSetup');
 }
