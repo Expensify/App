@@ -1,23 +1,23 @@
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
-import * as AppUpdate from '@libs/actions/AppUpdate';
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import {getForReportAction} from '@libs/ModifiedExpenseMessage';
 import NotificationPermission from '@libs/Notification/notificationPermission';
 import {format} from '@libs/NumberFormatUtils';
-import {getTextFromHtml} from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getTextFromHtml} from '@libs/ReportActionMessageUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CurrencyList, Report, ReportAction, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {CurrencyList, Report, ReportAction} from '@src/types/onyx';
 
 import type {ImageSourcePropType} from 'react-native';
 
@@ -147,8 +147,9 @@ export default {
         report: Report,
         reportAction: ReportAction,
         onClick: LocalNotificationClickHandler,
+        derivedReportName: string | undefined,
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
         usesIcon = false,
-        reportAttributes?: ReportAttributesDerivedValue['reports'],
     ) {
         let title;
         let body;
@@ -157,7 +158,7 @@ export default {
         const isRoomOrGroupChat = ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isGroupChat(report);
 
         const {person, message} = reportAction;
-        const plainTextPerson = person?.map((f) => Str.removeSMSDomain(f.text ?? '')).join() ?? '';
+        const plainTextPerson = person?.map((f) => (Str.isSMSLogin(f.text ?? '') ? formatPhoneNumber(f.text ?? '') : (f.text ?? ''))).join() ?? '';
 
         // Specifically target the comment part of the message
         let plainTextMessage = '';
@@ -168,7 +169,7 @@ export default {
         }
 
         if (isRoomOrGroupChat) {
-            const roomName = deprecatedGetReportName(report, reportAttributes);
+            const roomName = getReportName(report, derivedReportName);
             title = roomName;
             body = `${plainTextPerson}: ${plainTextMessage}`;
         } else {
@@ -194,7 +195,8 @@ export default {
         policy,
         currentUserAccountID,
         currentUserLogin,
-        reportAttributes,
+        derivedMovedFromReportName,
+        formatPhoneNumber,
     }: LocalNotificationModifiedExpensePushParams) {
         const title = reportAction.person?.map((f) => f.text).join(', ') ?? '';
         const bodyWithHTML = getForReportAction({
@@ -207,7 +209,8 @@ export default {
             policyTags,
             currentUserAccountID,
             currentUserLogin,
-            reportAttributes,
+            movedFromReportName: derivedMovedFromReportName,
+            formatPhoneNumber,
         });
         // Strip HTML tags for plain text notification body
         const body = getTextFromHtml(bodyWithHTML);
@@ -216,23 +219,6 @@ export default {
             reportID: report.reportID,
         };
         push(title, body, icon, data, onClick);
-    },
-
-    /**
-     * Create a notification to indicate that an update is available.
-     */
-    pushUpdateAvailableNotification() {
-        push(
-            'Update available',
-            'A new version of this app is available!',
-            '',
-            {},
-            () => {
-                AppUpdate.triggerUpdateAvailable();
-            },
-            false,
-            'UpdateAvailable',
-        );
     },
 
     /**

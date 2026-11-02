@@ -1,9 +1,13 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 
 import useIsAgentAccount from '@hooks/useIsAgentAccount';
+import useOnyx from '@hooks/useOnyx';
 
+import getTopmostFullScreenRoute from '@libs/Navigation/helpers/getTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
+import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {useFocusEffect, useIsFocused} from '@react-navigation/native';
@@ -17,8 +21,10 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
             ProtectedComponent = (props) => {
                 const isAgent = useIsAgentAccount();
                 const isFocused = useIsFocused();
+                const [isSwitchingToDelegator] = useOnyx(ONYXKEYS.IS_SWITCHING_TO_DELEGATOR);
                 const isAlreadyOnRedirectTarget = Navigation.isActiveRoute(ROUTES.SETTINGS_PROFILE.route);
                 const shouldRedirect = isAgent === true && !isAlreadyOnRedirectTarget;
+                const shouldShowNotFoundPage = !isSwitchingToDelegator && isAgent === true;
 
                 const redirectAgentAway = useCallback(() => {
                     if (isAgent !== true) {
@@ -36,7 +42,19 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                         // forceReplace REPLACEs the stale guarded central-pane route instead of PUSHing Profile on
                         // top of it, so back from Profile pops to the unguarded Account sidebar rather than the
                         // guarded route that would re-fire this redirect.
-                        const redirectToProfile = () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(), {forceReplace: true});
+                        const redirectToProfile = () => {
+                            Navigation.popRootToTop();
+                            Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(), {
+                                forceReplace: true,
+                            });
+                        };
+                        const resetWorkspaceTabAndNavigateToHome = () => {
+                            Navigation.popRootToTop();
+                            Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(), {
+                                forceReplace: true,
+                                afterTransition: () => Navigation.navigate(ROUTES.HOME),
+                            });
+                        };
 
                         // The guarded screen can be open inside a modal/RHP (e.g. the agent-edit page the owner was
                         // on when they tapped "Copilot into account"), or an unguarded RHP (e.g. the agent DM) can be
@@ -47,6 +65,12 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                         // can't rely on its guard to redirect).
                         if (Navigation.isTopmostRouteModalScreen()) {
                             Navigation.dismissModal({afterTransition: redirectToProfile});
+                            return;
+                        }
+
+                        const topmostFullScreenRoute = getTopmostFullScreenRoute();
+                        if (topmostFullScreenRoute?.name === NAVIGATORS.WORKSPACE_NAVIGATOR || topmostFullScreenRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
+                            resetWorkspaceTabAndNavigateToHome();
                             return;
                         }
 
@@ -76,7 +100,7 @@ function withAgentAccessDenied(getComponent: () => React.ComponentType): () => R
                 if (isAgent === undefined || shouldRedirect) {
                     return null;
                 }
-                if (isAgent === true) {
+                if (shouldShowNotFoundPage) {
                     return (
                         <FullPageNotFoundView
                             shouldShow

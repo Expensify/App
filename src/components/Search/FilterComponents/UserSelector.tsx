@@ -8,6 +8,7 @@ import useInitialValue from '@hooks/useInitialValue';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
@@ -31,6 +32,7 @@ type UserSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
 
 function UserSelector({value = [], isNegatable, policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const styles = useThemeStyles();
+    const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -47,7 +49,8 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         return acc;
     }, new Set<string>());
 
-    const expensifyTeamExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email);
+    // getExpensifyTeamExclusions walks every personal detail, so it is skipped while the selector withholds its options.
+    const expensifyTeamExclusions = ready ? getExpensifyTeamExclusions(personalDetails, policies, currentUserPersonalDetails.email) : CONST.EMPTY_OBJECT;
 
     // Snapshot the pre-selected accountIDs from when the filter first opened so they can be floated to the
     // top on first render without repinning rows that are toggled afterwards.
@@ -84,7 +87,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         return logins.size ? logins : undefined;
     })();
 
-    const {searchTerm, setSearchTerm, availableOptions, totalOptionsCount, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
+    const {searchTerm, setSearchTerm, selectedOptions, availableOptions, totalOptionsCount, toggleSelection, areOptionsInitialized} = usePersonalDetailSearchSelector({
         selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
         initialSelected: initialSelectedAccountIDs,
         excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
@@ -97,10 +100,14 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
         shouldKeepSelectedInAvailableOptions: true,
     });
 
-    // The current user is excluded from personalDetails, so include it (when present) in the list. moveInitialSelectionToTop
-    // keys on `value`, so map each option's accountID (keyForList) onto it. Pre-selected rows are moved to the top,
+    // The current user and selected public-profile users without a login are excluded from personalDetails, so include them in the list when present.
+    const availablePersonalDetails = availableOptions.currentUserOption ? [availableOptions.currentUserOption, ...availableOptions.personalDetails] : availableOptions.personalDetails;
+    const availableAccountIDs = new Set(availablePersonalDetails.map((option) => option.accountID));
+    const selectedPublicProfileOptions = selectedOptions.filter((option) => !option.login && !availableAccountIDs.has(option.accountID));
+    const baseListData = [...selectedPublicProfileOptions, ...availablePersonalDetails];
+
+    // moveInitialSelectionToTop keys on `value`, so map each option's accountID (keyForList) onto it. Pre-selected rows are moved to the top,
     // leaving the current user just below them in its natural sorted position.
-    const baseListData = availableOptions.currentUserOption ? [availableOptions.currentUserOption, ...availableOptions.personalDetails] : availableOptions.personalDetails;
     const listData = moveInitialSelectionToTop(
         baseListData.map((option) => ({...option, value: option.keyForList})),
         initialSelectedValues,
@@ -145,6 +152,7 @@ function UserSelector({value = [], isNegatable, policyID, selectionListTextInput
                 shouldShowLoadingPlaceholder={!areOptionsInitialized || !ready}
                 style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
                 footerContent={footer}
+                shouldFooterBeInsideList={shouldFooterBeInsideList}
             />
         </ListFilterWrapper>
     );

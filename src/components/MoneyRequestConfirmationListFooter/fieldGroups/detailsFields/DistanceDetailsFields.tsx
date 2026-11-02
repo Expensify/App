@@ -24,12 +24,15 @@ type DistanceDetailsFieldsProps = {
     /** Whether a description is required by the selected category */
     isDescriptionRequired: boolean;
 
+    /** The selected category's description hint */
+    descriptionHint: string;
+
     /** Error state surfaced into Amount */
     errorState: ErrorState;
 };
 
 /** The expense-type-driven fields for a distance confirmation, shared by the map, manual and odometer variants. */
-function DistanceDetailsFields({policy, amountDisplay, distanceData, isDescriptionRequired, errorState}: DistanceDetailsFieldsProps) {
+function DistanceDetailsFields({policy, amountDisplay, distanceData, isDescriptionRequired, descriptionHint, errorState}: DistanceDetailsFieldsProps) {
     const {fieldVisibility, iouCurrencyCode, shouldNavigateToUpgradePath, shouldSelectPolicy} = useDetailsFields();
 
     return (
@@ -49,6 +52,7 @@ function DistanceDetailsFields({policy, amountDisplay, distanceData, isDescripti
 
             <DescriptionField
                 isDescriptionRequired={isDescriptionRequired}
+                descriptionHint={descriptionHint}
                 policy={policy}
             />
 

@@ -1,14 +1,14 @@
 # `@react-navigation` patches
 
 ### @react-navigation+package-name+7+fix-failing-jest-by-disabling-esmodule.patch
-#### [@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.15.5+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+core+7.21.12+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.21.12+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.14+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.4.19+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.14.5+002+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.1.33+002+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+bottom-tabs+7.19.2+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+bottom-tabs+7.19.2+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+core+7.22.1+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+core+7.22.1+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+elements+2.9.43+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+elements+2.9.43+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+material-top-tabs+7.7.2+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+material-top-tabs+7.7.2+001+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+native-stack+7.19.2+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native-stack+7.19.2+002+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+native+7.4.1+002+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+native+7.4.1+002+fix-failing-jest-by-disabling-esmodule.patch)
 #### [@react-navigation+routers+7.6.4+001+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+routers+7.6.4+001+fix-failing-jest-by-disabling-esmodule.patch)
-#### [@react-navigation+stack+7.8.5+004+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+stack+7.8.5+004+fix-failing-jest-by-disabling-esmodule.patch)
+#### [@react-navigation+stack+7.11.2+004+fix-failing-jest-by-disabling-esmodule.patch](@react-navigation+stack+7.11.2+004+fix-failing-jest-by-disabling-esmodule.patch)
 
 - Reason: Necessary to run Jest with the obligatory `--experimental-vm-modules` flag. Currently we transpile all the code to `commonjs`, but Jest looks up to individual `package.jsons` to see whether the package is `commonjs` or `ESModule`. That causes a conflict, which can be solved by removing `{"type":"module"}` from `lib/module/package.json`. This might be an issue with Jest, but it would require much more investigation. More: https://github.com/react-navigation/react-navigation/issues/12637
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/12637
@@ -16,54 +16,91 @@
 - PR Introducing Patch: [#64155](https://github.com/Expensify/App/pull/64155)
 - PR Updating Patch: N/A
 
-### [@react-navigation+core+7.21.12+002+platform-navigation-stack-types.patch](@react-navigation+core+7.21.12+002+platform-navigation-stack-types.patch)
+### [@react-navigation+core+7.22.1+002+platform-navigation-stack-types.patch](@react-navigation+core+7.22.1+002+platform-navigation-stack-types.patch)
 
 - Reason: Enables passing custom `ScreenOptions` and adjusts typing to have everything fully type-checked and make sure only the proper (common) platform-specific options are passed
 - Upstream PR/issue: N/A
 - E/App issue: [#29948](https://github.com/Expensify/App/issues/29948)
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
-- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155), [#98097](https://github.com/Expensify/App/pull/98097)
+- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155), [#98097](https://github.com/Expensify/App/pull/98097), [#101715](https://github.com/Expensify/App/issues/101715)
+- Note: Re-ported onto 7.22.1. Every hunk applied without changes.
+- Note: Core 7.22.0 made `useNavigationBuilder` return a `render` callback and deprecated the `NavigationContent` output it returned before. Our only builder call site, `createPlatformStackNavigatorComponent` (shared by `createRootStackNavigator`, `createRightModalNavigator`, `createSplitNavigator` and `createSearchFullscreenNavigator`), still uses `NavigationContent`, and the `convertCustomScreenOptions` argument this patch adds has no upstream equivalent, so switch to `render` and re-check both together when `NavigationContent` eventually disappears.
 
-### [@react-navigation+native+7.1.33+001+initial.patch](@react-navigation+native+7.1.33+001+initial.patch)
+### [@react-navigation+core+7.22.1+003+root-state-not-undefined.patch](@react-navigation+core+7.22.1+003+root-state-not-undefined.patch)
+
+- Reason: Keep `NavigationContainerRef.getRootState()` typed as `NavigationState` instead of `NavigationState | undefined`. Types only, no runtime change: the implementation already returned `undefined` before the container ref mounted in 7.21.12, the type just did not admit it. Around 120 call sites in `src/` alone (plus examples such as `navigationRef.current?.getRootState().routes` in the navigation tests) hand the result straight to helpers that require a state object, and they all run behind the app's readiness gate (`NavigationRoot`'s `onReady`, `navigationRef.isReady()`), so guarding each one is a separate refactor rather than part of an upgrade.
+- Upstream PR/issue: https://github.com/react-navigation/react-navigation/commit/4e6eaaac6fad57d09ab5a828484b8ffeb4cfc6e5 (core 7.21.13, "fix return type of getRootState")
+- E/App issue: [#101715](https://github.com/Expensify/App/issues/101715)
+- PR Introducing Patch: N/A
+- Note: Drop this patch once call sites handle the missing state explicitly (a guarded `getRootState()` helper in `src/libs/Navigation` would cover most of them). Until then, calling `getRootState()` before the container mounts logs react-navigation's `NOT_INITIALIZED_ERROR` and returns `undefined` at runtime while the type claims otherwise, same as before the upgrade.
+
+### [@react-navigation+native+7.4.1+001+initial.patch](@react-navigation+native+7.4.1+001+initial.patch)
 
 - Reason: Allows us to use some more advanced navigation actions without messing up the browser history
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/12751 (`route.history` + `pushParams`, added upstream for this use case); originating issue https://github.com/react-navigation/react-navigation/issues/12460. On the v8 upgrade, evaluate adopting `pushParams` to shrink this patch.
 - E/App issue: [#21356](https://github.com/Expensify/App/issues/21356)
 - PR Introducing Patch: [#24165](https://github.com/Expensify/App/pull/24165)
-- PR Updating Patch: [#32087](https://github.com/Expensify/App/pull/32087) [#42465](https://github.com/Expensify/App/pull/42465) [#64155](https://github.com/Expensify/App/pull/64155)
+- PR Updating Patch: [#32087](https://github.com/Expensify/App/pull/32087) [#42465](https://github.com/Expensify/App/pull/42465) [#64155](https://github.com/Expensify/App/pull/64155) [#103346](https://github.com/Expensify/App/pull/103346) [#101715](https://github.com/Expensify/App/issues/101715)
+- Note: Re-ported onto 7.4.1. `createMemoryHistory` and `useLinking` were refactored upstream (`getPathWithoutHash`, `getHistoryLength`, `pendingPopStateDelta`, `isPoppingLastEntry`), so the hunks were re-anchored instead of applied verbatim: `backIndex` keeps upstream's hash handling and adds the focused-route-key match, and `useLinking` keeps upstream's `pendingPopStateDelta` guard and `getHistoryLength` delta while re-adding `historyDeltaByKeys`/`getStaleHistoryDiff`. Two parts of the old patch became redundant and were dropped: the `findFocusedRouteKey` helper file now matches upstream's own module, and the extra `history.replace` right after `history.go(nextIndex - currentIndex)` duplicated the replace that upstream already runs at the end of the same `try` block.
+- Note: The `popstate` listener skips upstream's `isPoppingLastEntry` → `GO_BACK` shortcut when the last root history entry is a custom string entry (e.g. a `useSyncModalWithHistory` back-guard). No router can pop such an entry with `GO_BACK`, so it falls back to `resetRoot(record.state)` (the pre-7.3 behavior), which drops the entry and lets the modal close on browser Back.
 
-### [@react-navigation+stack+7.8.5+001+edge-drag-gesture.patch](@react-navigation+stack+7.8.5+001+edge-drag-gesture.patch)
+### [@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch](@react-navigation+stack+7.11.2+001+edge-drag-gesture.patch)
 
 - Reason: Adds `edgeDragGestureMonitor` implementation
 - Upstream PR/issue: N/A
 - E/App issue: [#15849](https://github.com/Expensify/App/issues/15849)
 - PR Introducing Patch: [#18402](https://github.com/Expensify/App/pull/18402)
-- PR Updating Patch: [#22678](https://github.com/Expensify/App/pull/22678) [#22437](https://github.com/Expensify/App/pull/22437) [#64155](https://github.com/Expensify/App/pull/64155)
+- PR Updating Patch: [#22678](https://github.com/Expensify/App/pull/22678) [#22437](https://github.com/Expensify/App/pull/22437) [#64155](https://github.com/Expensify/App/pull/64155) [#101715](https://github.com/Expensify/App/issues/101715)
+- Note: Re-ported onto 7.11.2. The added and removed lines are unchanged. Only the surrounding context moved, because 7.10.x wrapped the gesture animation in `animationIdRef`/`isAnimatingRef` guards. 7.11.2 did not touch `Card.js` or `CardStack.js`, so the patch body is identical to the 7.11.1 one. `resetExpectingTouchendWithDelay()` still runs after those guards, so a stale animation callback that returns early no longer resets the monitor.
 
-### [@react-navigation+stack+7.8.5+002+dontDetachScreen.patch](@react-navigation+stack+7.8.5+002+dontDetachScreen.patch)
+### [@react-navigation+stack+7.11.2+002+dontDetachScreen.patch](@react-navigation+stack+7.11.2+002+dontDetachScreen.patch)
 - Reason: Prevents the second screen in the stack from being detached too early.  
   Additionally, setting `zIndex: Platform.OS === 'web' ? 'auto' : undefined` helps avoid issues in Safari where the home screen might be hidden due to `overflow: hidden`.
 - Upstream PR/issue: N/A
 - E/App issue: [#22372](https://github.com/Expensify/App/issues/22372)
 - PR Introducing Patch: [#22437](https://github.com/Expensify/App/pull/22437)
-- PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155) [#65119](https://github.com/Expensify/App/issues/65119)
+- PR Updating Patch: [#33280](https://github.com/Expensify/App/pull/33280) [#37421](https://github.com/Expensify/App/pull/37421) [#49539](https://github.com/Expensify/App/pull/49539) [#64155](https://github.com/Expensify/App/pull/64155) [#65119](https://github.com/Expensify/App/issues/65119) [#101715](https://github.com/Expensify/App/issues/101715)
 - Note: Not fully covered by the public `detachPreviousScreen` option (this also forces `activityState`). v8 replaces `detachInactiveScreens`/`detachPreviousScreen`/`freezeOnBlur` with a single `inactiveBehavior` option — re-evaluate this patch then.
+- Note: Re-ported onto 7.11.2. `STATE_TRANSITIONING_OR_BELOW_TOP` is now a module-level constant upstream, so the patch no longer declares it. 7.11.2 (https://github.com/react-navigation/react-navigation/pull/13255) removed the `overflow: active ? undefined : 'hidden'` line from `CardA11yWrapper`, so the `zIndex` hunk was re-anchored on the line above it. The added lines are unchanged. With that `overflow: hidden` gone from `CardA11yWrapper`, the Safari case the `zIndex` part was added for may no longer happen. That has not been verified, so the `zIndex` part stays.
 
-### [@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch](@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch)
+### [@react-navigation+bottom-tabs+7.19.2+002+active-indicator-color-precedence.patch](@react-navigation+bottom-tabs+7.19.2+002+active-indicator-color-precedence.patch)
 
-- Reason:
+- Reason: `tabBarActiveIndicatorColor` was never applied on the native Android tab bar: a missing pair of parentheses made `??` bind to the `typeof` check, so the indicator always got `tabBarActiveTintColor` at 10% alpha. The patch restores the intended precedence, so the active indicator pill takes the color from the design. **This patch can be removed on the upgrade to React Navigation v8**, whose rewritten native tab view no longer has the bug.
+- Upstream PR/issue: not reported, because the v8 branch already fixes it and the fix only matters until the App moves to v8. Still present on the `7.x` branch as of 7.20.0.
+- E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
+- PR Introducing Patch: [#101339](https://github.com/Expensify/App/pull/101339)
+- PR Updating Patch: N/A
 
-    ```
-    createMemoryHistory.go() waits for the browser's popstate after history.go(n) but gives up
-    after a 100ms fallback timer and deletes its pending record of the traversal. Firefox can
-    take 500ms+ to deliver the popstate when the main thread is busy (e.g. rendering the newly
-    created group chat report). Once the record is deleted, the late popstate is misclassified
-    by listen() as a user-initiated back/forward navigation and react-navigation resets state
-    to the previous route. Raising the timeout to 1000ms keeps the pending record alive until
-    the traversal actually settles. Fixes group/DM creation not opening the new report on
-    Firefox (#94571).
-    ```
+### [@react-navigation+bottom-tabs+7.19.2+003+hidden-tab-items.patch](@react-navigation+bottom-tabs+7.19.2+003+hidden-tab-items.patch)
 
-- Upstream PR/issue: https://github.com/react-navigation/react-navigation/issues/11145
-- E/App issue: [#94571](https://github.com/Expensify/App/issues/94571)
-- PR Introducing Patch: [#95980](https://github.com/Expensify/App/pull/95980)
+- Reason: Adds a `tabBarItemHidden` option to the native bottom tabs. The App registers six tabs but the native bar can show at most five (Material's `BottomNavigationView` throws past five, and `UITabBar` folds the rest into a "More" tab), and which five depends on the Insights beta: Insights with it, Account without it. A native tab bar cannot hide one of its items, so a route with `tabBarItemHidden` gets no `Tabs.Screen` at all. When such a route is focused, it is drawn in JS over the native host with the tab bar hidden, while the host keeps the last focused visible tab selected underneath. A hidden route stays mounted once visited. Nothing native changes. The host's selection is derived from the tab history, skipping routes that are hidden by then, so a beta change that hides the selected route cannot leave the host pointing at a removed tab. A route that moves between hidden and visible is remounted, and a hidden route ignores preloading and emits no transition events. Native reporting the tab that sits under a focused hidden route, as Android does when it rejects an unchanged request as repeated on a re-render, confirms the state instead of moving JS to that tab, so the hidden route stays open. The patch also forwards a `tabBarAccessibilityLabel` option to RNScreens' `tabBarItemAccessibilityLabel`. The iOS tab labels are drawn into the icon images, so without it VoiceOver announces the tabs with no name. **This part can be removed on the upgrade to React Navigation v8**, which forwards the same option. The `tabBarItemHidden` part has no upstream counterpart and stays.
+- Upstream PR/issue: not reported, because hiding an item from a native tab bar has no native counterpart and this works around it in JS for the App's tab set; the accessibility label part is already in v8.
+- E/App issue: [#101169](https://github.com/Expensify/App/issues/101169)
+- PR Introducing Patch: [#101339](https://github.com/Expensify/App/pull/101339)
+- PR Updating Patch: N/A
+
+### [@react-navigation+bottom-tabs+7.19.2+004+stable-native-tab-identity.patch](@react-navigation+bottom-tabs+7.19.2+004+stable-native-tab-identity.patch)
+
+- Reason: Identifies each native tab by its route name instead of its route key. The App gives the focused tab route a new key on purpose when it pre-inserts a screen under the RHP (`markFocusedTabRouteForRemount` in `GetStateForActionHandlers.ts`, #90985), so the split navigator remounts without a push-transition flash. Keyed by route key, that new key replaced the whole `Tabs.Screen`. Android never removes the old one: `TabsHostViewManager` does not override `getChildAt`/`getChildCount`, so Fabric's `removeViewAt` finds no child at that index ("view already removed from parent!") and skips `TabsHost.unmountReactSubviewAt`, while the insert goes through. The bar then shows the tab twice, and the stale copy opens a blank page. With this patch the native tab (`key`, `screenKey`, `navStateRequest.selectedScreenKey` and the selection events) uses the route name, which stays the same, and only the tab's content is keyed by the route key, so a re-keyed route still remounts its content inside the same native tab. **Remove this patch** once react-native-screens removes Android tabs correctly and React Navigation's native tab view no longer recreates a tab when its route key changes.
+- Upstream PR/issue: not reported yet. The Android removal bug belongs to react-native-screens (`TabsHostViewManager`).
+- E/App issue: [#104230](https://github.com/Expensify/App/issues/104230), [#104233](https://github.com/Expensify/App/issues/104233)
+- PR Introducing Patch: [#104238](https://github.com/Expensify/App/pull/104238)
+- PR Updating Patch: N/A
+
+### [@react-navigation+bottom-tabs+7.19.2+005+hidden-tab-under-tab-bar.patch](@react-navigation+bottom-tabs+7.19.2+005+hidden-tab-under-tab-bar.patch)
+
+- Reason: Keeps the native tab bar, with no item drawn as selected, while a `tabBarItemHidden` route (patch 003) is focused. This replaces two parts of patch 003: the hidden routes are drawn inside the first visible tab instead of over the host with the tab bar hidden, and the host selects that first visible tab instead of the last visible one in the tab history. The user tapping that tab leaves the hidden route, while native reporting it on its own still confirms the state as in patch 003. The RNScreens prop that hides the selection is added by its patch 007.
+- Upstream PR/issue: not reported, because it builds on patch 003, which has no upstream counterpart.
+- E/App issue: [#104197](https://github.com/Expensify/App/issues/104197)
+- PR Introducing Patch: [#104491](https://github.com/Expensify/App/pull/104491)
+- PR Updating Patch: N/A
+
+### Removed patches
+
+- `@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch` was dropped: upstream raised the `createMemoryHistory.go()` fallback timeout from 100ms to 1000ms in 7.3.18 (https://github.com/react-navigation/react-navigation/pull/13217), with the same Firefox rationale as our patch. Original context: [#94571](https://github.com/Expensify/App/issues/94571) / [#95980](https://github.com/Expensify/App/pull/95980), upstream issue https://github.com/react-navigation/react-navigation/issues/11145.
+
+  One behaviour difference is worth a Firefox regression check on #94571: when the timeout does fire, upstream removes its own `popstate` listener and rejects the `go()` promise if the browser hasn't landed on the expected entry (`window.history.state?.id !== targetId`), whereas it used to resolve. That check came from 7.3.8 (https://github.com/react-navigation/react-navigation/commit/788d7c565554d85fc7d3c3b9d1a7829e1847b8da), not from the timeout change. Rejecting skips the trailing `history.replace`, which upstream documents as deliberate: the entry we are on may not be the one we intended to land on. Both variants still deliver a late `popstate` to external listeners, so this only changes what happens to the history record in the >1s case.
+
+  `tests/unit/Navigation/createMemoryHistoryTest.ts` covered the old contract and now asserts the new one: a timed-out traversal rejects, and the in-time case points `window.history.state` at the target entry first, the way a real traversal does.
+
+- `@react-navigation+stack+7.8.5+005+clip-inactive-card-inside-card.patch` was dropped: upstream shipped the same fix in `@react-navigation/stack` 7.11.2 (https://github.com/react-navigation/react-navigation/pull/13255, reported in https://github.com/react-navigation/react-navigation/issues/13254). The patch came from [#101093](https://github.com/callstack-internal/Expensify-App/pull/101093) to keep the shadow of the card under the focused one on the web floating RHP. Upstream drops `overflow` from `CardA11yWrapper` and clips inactive cards in `CardContent` through `pageOverflowEnabled: active && headerMode !== 'float' && presentation !== 'modal'`, so the stacked RHP shadow survives the same way. The clip sits one level below where our patch put it, so the built-in `styles.shadow` edge view inside `Card` is no longer clipped on inactive cards. The active card covers that edge.

@@ -29,6 +29,7 @@ groupCurrency
   / "group-currency"i { return "groupCurrency"; }
 tag = "tag"i { return "tag"; }
 category = "category"i { return "category"; }
+vendor = "vendor"i { return "vendor"; }
 to = "to"i { return "to"; }
 exporter = "exporter"i { return "exporter"; }
 payer = "payer"i { return "payer"; }
@@ -52,6 +53,9 @@ expenseType
 receiptType
   = "receiptType"
   / "receipt-type"i { return "receiptType"; }
+transactionStatus
+  = "transactionStatus"
+  / "transaction-status"i { return "transactionStatus"; }
 withdrawalType
   = "withdrawalType"
   / "withdrawal-type"i { return "withdrawalType"; }
@@ -65,6 +69,8 @@ withdrawalID
   = "withdrawalID"i
   / "withdrawal-id"i { return "withdrawalID"; }
 billable = "billable"i { return "billable"; }
+declined = "declined"i { return "declined"; }
+held = "held"i { return "held"; }
 reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
 status = "status"i { return "status"; }
@@ -79,6 +85,9 @@ policyID
   / "workspace"i { return "policyID"; }
 submitted = "submitted"i { return "submitted"; }
 approved = "approved"i { return "approved"; }
+anyApproval
+  = "anyApproval"i { return "anyApproval"; }
+  / "any-approval"i { return "anyApproval"; }
 paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
@@ -90,6 +99,7 @@ title = "title"i { return "title"; }
 submitterUserID = "submitterUserID"i / "submitter-user-id"i { return "submitterUserID"; }
 submitterPayrollID = "submitterPayrollID"i / "submitter-payroll-id"i { return "submitterPayrollID"; }
 orderDealNumbers = "orderDealNumbers"i / "order-deal-numbers"i { return "orderDealNumbers"; }
+approver = "approver"i { return "approver"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
@@ -105,6 +115,7 @@ columns = "columns"i {
   return "columns";
 }
 view = "view"i {return "view"}
+compare = "compare"i {return "compare"}
 
 // Value transformation rules
 values
@@ -140,10 +151,12 @@ columnsValues
   / groupCategory
   / groupTag
   / groupMerchant
+  / groupDay
   / groupMonth
   / groupWeek
   / groupYear
   / groupQuarter
+  / groupApprover
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
@@ -178,14 +191,17 @@ amountReimbursedColumn  = "amount-reimbursed"i &wordBoundary        { return "am
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
 groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
 groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }
+groupDay                = "group-day"i &wordBoundary               { return "groupday"; }
 groupMonth              = "group-month"i &wordBoundary              { return "groupmonth"; }
 groupWeek               = "group-week"i &wordBoundary               { return "groupweek"; }
 groupYear               = "group-year"i &wordBoundary               { return "groupyear"; }
 groupQuarter            = "group-quarter"i &wordBoundary            { return "groupquarter"; }
+groupApprover           = "group-approver"i &wordBoundary           { return "groupApprover"; }
 
 
 operator "operator"
-  = (":" / "=") { return "eq"; }
+  = "*:" { return "contains"; }
+  / (":" / "=") { return "eq"; }
   / "!=" { return "neq"; }
   / ">=" { return "gte"; }
   / ">" { return "gt"; }
@@ -195,7 +211,7 @@ operator "operator"
 filterOperator
   = o:operator {
       if (nameOperator) {
-        expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found
+        expectingNestedQuote = (o === "eq" || o === "contains");
       }
       isColumnsContext = false;
       return o;
@@ -207,7 +223,7 @@ escapedChar = "\\" c:[,"”“\\] { return c; }
 
 alphanumeric "word" = chars:(escapedChar / [^ ,\t\n\r\xA0])+ { return chars.join("").trim(); } //handle no-breaking space
 
-logicalAnd = _ { 
+logicalAnd = _ {
   isColumnsContext = false;
   return "and";
 }
@@ -246,3 +262,8 @@ validClosingCondition
 wordBoundary
   = [ \t\n\r\xA0,]  // whitespace or comma
   / !.              // or end of input
+
+// Spend footer display selections. Root keys, not filters: they change what the footer shows, never which rows match.
+footerCount = ("footerCount"i / "footer-count"i) { return "footerCount"; }
+footerCurrency = ("footerCurrency"i / "footer-currency"i) { return "footerCurrency"; }
+footerTotal = ("footerTotal"i / "footer-total"i) { return "footerTotal"; }

@@ -1,0 +1,80 @@
+diff --git a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+index 88ca8b1..085c819 100644
+--- a/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
++++ b/node_modules/@shopify/flash-list/dist/recyclerview/RecyclerView.js
+@@ -382,16 +382,15 @@ const RecyclerViewComponent = (props, ref) => {
+         }
+         return onScrollHandler;
+     }, [onScrollHandler, scrollY, stickyHeaders, stickyHeaderUseNativeDriver]);
+-    const shouldMaintainVisibleContentPosition = recyclerViewManager.shouldMaintainVisibleContentPosition();
+     const maintainVisibleContentPositionInternal = useMemo(() => {
+-        if (shouldMaintainVisibleContentPosition) {
++        if (maintainVisibleContentPosition != null && !maintainVisibleContentPosition.disabled) {
+             return {
+                 ...maintainVisibleContentPosition,
+                 minIndexForVisible: 0,
+             };
+         }
+         return undefined;
+-    }, [maintainVisibleContentPosition, shouldMaintainVisibleContentPosition]);
++    }, [maintainVisibleContentPosition]);
+     const shouldRenderFromBottom = recyclerViewManager.getDataLength() > 0 &&
+         ((_e = maintainVisibleContentPosition === null || maintainVisibleContentPosition === void 0 ? void 0 : maintainVisibleContentPosition.startRenderingFromBottom) !== null && _e !== void 0 ? _e : false);
+     // Create view for measuring bounded size
+@@ -403,11 +402,11 @@ const RecyclerViewComponent = (props, ref) => {
+             }, ref: firstChildViewRef }));
+     }, [horizontal, stickyHeaderOffset]);
+     const scrollAnchor = useMemo(() => {
+-        if (shouldMaintainVisibleContentPosition) {
++        if (maintainVisibleContentPosition != null) {
+             return (React.createElement(ScrollAnchor, { horizontal: Boolean(horizontal), scrollAnchorRef: scrollAnchorRef }));
+         }
+         return null;
+-    }, [horizontal, shouldMaintainVisibleContentPosition]);
++    }, [horizontal, maintainVisibleContentPosition]);
+     // console.log("render", recyclerViewManager.getRenderStack());
+     // Render the main RecyclerView structure
+     return (React.createElement(RecyclerViewContextProvider, { value: recyclerViewContext },
+diff --git a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+index c09ba9b..974b485 100644
+--- a/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
++++ b/node_modules/@shopify/flash-list/src/recyclerview/RecyclerView.tsx
+@@ -575,18 +575,15 @@ const RecyclerViewComponent = <T,>(
+     return onScrollHandler;
+   }, [onScrollHandler, scrollY, stickyHeaders, stickyHeaderUseNativeDriver]);
+ 
+-  const shouldMaintainVisibleContentPosition =
+-    recyclerViewManager.shouldMaintainVisibleContentPosition();
+-
+   const maintainVisibleContentPositionInternal = useMemo(() => {
+-    if (shouldMaintainVisibleContentPosition) {
++    if (maintainVisibleContentPosition != null && !maintainVisibleContentPosition.disabled) {
+       return {
+         ...maintainVisibleContentPosition,
+         minIndexForVisible: 0,
+       };
+     }
+     return undefined;
+-  }, [maintainVisibleContentPosition, shouldMaintainVisibleContentPosition]);
++  }, [maintainVisibleContentPosition]);
+ 
+   const shouldRenderFromBottom =
+     recyclerViewManager.getDataLength() > 0 &&
+@@ -607,7 +604,7 @@ const RecyclerViewComponent = <T,>(
+   }, [horizontal, stickyHeaderOffset]);
+ 
+   const scrollAnchor = useMemo(() => {
+-    if (shouldMaintainVisibleContentPosition) {
++    if (maintainVisibleContentPosition != null) {
+       return (
+         <ScrollAnchor
+           horizontal={Boolean(horizontal)}
+@@ -616,7 +613,7 @@ const RecyclerViewComponent = <T,>(
+       );
+     }
+     return null;
+-  }, [horizontal, shouldMaintainVisibleContentPosition]);
++  }, [horizontal, maintainVisibleContentPosition]);
+ 
+   // console.log("render", recyclerViewManager.getRenderStack());
+ 

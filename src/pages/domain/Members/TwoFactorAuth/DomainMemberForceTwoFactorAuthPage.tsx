@@ -1,4 +1,5 @@
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
@@ -13,7 +14,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {domainMemberSettingsSelector} from '@selectors/Domain';
-import {personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useEffect} from 'react';
 
 type DomainMemberForceTwoFactorAuthPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.MEMBER_FORCE_TWO_FACTOR_AUTH>;
@@ -21,9 +21,7 @@ type DomainMemberForceTwoFactorAuthPageProps = PlatformStackScreenProps<Settings
 function DomainMemberForceTwoFactorAuthPage({route}: DomainMemberForceTwoFactorAuthPageProps) {
     const {domainAccountID, accountID} = route.params;
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsSelector(accountID),
-    });
+    const [personalDetails] = usePersonalDetail(accountID);
     const memberLogin = personalDetails?.login ?? '';
     const [domainSettings] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${domainAccountID}`, {
         selector: domainMemberSettingsSelector,

@@ -61,7 +61,6 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: [],
-        combinedUniqueExportTemplates: [],
         connectedIntegrationNames: new Set<string>(),
     }),
 }));
@@ -140,7 +139,6 @@ function SearchAutocompleteInputWrapper() {
             <SearchAutocompleteInput
                 value={value}
                 onSearchQueryChange={(searchTerm) => setValue(searchTerm)}
-                isFullWidth={false}
                 substitutionMap={CONST.EMPTY_OBJECT}
             />
         </ComposeProviders>

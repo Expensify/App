@@ -7,7 +7,6 @@
 
 import UIKit
 import React
-import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import Firebase
 internal import Expo
@@ -45,6 +44,12 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   var window: UIWindow?
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
+  private var privacyOverlay: UIView?
+  private weak var responderBeforePrivacyOverlay: UIResponder?
+  private var selectedTextRangeBeforePrivacyOverlay: UITextRange?
+
+  /// Read back by `SceneDelegate`, which starts React Native once a scene exists.
+  var launchOptions: [UIApplication.LaunchOptionsKey: Any]?
 
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
     // Initialize Sentry before any native telemetry (e.g. certificate pinning monitor reports).
@@ -63,12 +68,10 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     reactNativeDelegate = delegate
     reactNativeFactory = factory
 
-    window = UIWindow(frame: UIScreen.main.bounds)
-    factory.startReactNative(
-      withModuleName: "NewExpensify",
-      in: window,
-      launchOptions: launchOptions
-    )
+    // No scene exists yet: `SceneDelegate` owns the window, the RN surface and the boot splash,
+    // and picks the factory up from here.
+    self.launchOptions = launchOptions
+
     // Configure firebase
     FirebaseApp.configure()
 
@@ -77,10 +80,6 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     RCTI18nUtil.sharedInstance().forceRTL(false)
 
     _ = super.application(application, didFinishLaunchingWithOptions: launchOptions)
-
-    if let rootView = self.window?.rootViewController?.view as? RCTRootView {
-        RCTBootSplash.initWithStoryboard("BootSplash", rootView: rootView) // <- initialization using the storyboard file name
-    }
 
     // Define UNUserNotificationCenter
     let center = UNUserNotificationCenter.current()
@@ -106,6 +105,70 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     return true
   }
 
+  // Cover the UI before the OS captures the app-switcher snapshot, so sensitive data never ends up on disk.
+  // Called by `SceneDelegate`, UIKit doesn't send the app-level active/resign callbacks under the scene lifecycle.
+  func showPrivacyOverlay() {
+    guard privacyOverlay == nil, let window else {
+      return
+    }
+
+    // Store the first responder and its selected text range, then dismiss the keyboard
+    let focusedResponder = findFirstResponder(in: window)
+    responderBeforePrivacyOverlay = focusedResponder
+    selectedTextRangeBeforePrivacyOverlay = (focusedResponder as? UITextInput)?.selectedTextRange
+    window.endEditing(true)
+
+    guard
+      let overlay = UIStoryboard(name: "BootSplash", bundle: nil)
+        .instantiateInitialViewController()?.view
+    else {
+      return
+    }
+    overlay.frame = window.bounds
+    overlay.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+    window.addSubview(overlay)
+    privacyOverlay = overlay
+  }
+
+  func hidePrivacyOverlay() {
+    privacyOverlay?.removeFromSuperview()
+    privacyOverlay = nil
+    restoreResponderBeforePrivacyOverlay()
+  }
+
+  // Give focus (and the caret position) back to whatever showPrivacyOverlay dismissed
+  private func restoreResponderBeforePrivacyOverlay() {
+    let responder = responderBeforePrivacyOverlay
+    let selectedTextRange = selectedTextRangeBeforePrivacyOverlay
+    responderBeforePrivacyOverlay = nil
+    selectedTextRangeBeforePrivacyOverlay = nil
+
+    // The view can be gone (or detached) by the time we come back
+    guard let responder, responder.canBecomeFirstResponder else {
+      return
+    }
+    if let view = responder as? UIView, view.window == nil {
+      return
+    }
+    guard responder.becomeFirstResponder() else {
+      return
+    }
+    if let selectedTextRange, let textInput = responder as? UITextInput {
+      textInput.selectedTextRange = selectedTextRange
+    }
+  }
+
+  private func findFirstResponder(in view: UIView) -> UIResponder? {
+    if view.isFirstResponder {
+      return view
+    }
+    for subview in view.subviews {
+      if let responder = findFirstResponder(in: subview) {
+        return responder
+      }
+    }
+    return nil
+  }
 
   override func applicationWillTerminate(_ application: UIApplication) {
     if #available(iOS 16.2, *) {
@@ -117,6 +180,8 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     }
   }
 
+  // UIKit routes links to `SceneDelegate`, which calls back into these so `RCTLinkingManager`,
+  // Expo subscribers and any `UIApplicationDelegate` swizzling all see the same events.
   override func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
       return RCTLinkingManager.application(application, open: url, options: options)
   }

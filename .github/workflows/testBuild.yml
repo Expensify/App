@@ -6,11 +6,13 @@ on:
       # If not specified, only build iOS and Android apps from the main branch of Expensify/App
       APP_PULL_REQUEST_URL:
         description: The Expensify/App pull request URL (e.g., https://github.com/Expensify/App/pull/12345). Defaults to main.
+        type: string
         required: false
         default: ''
-      # Pull Request URL from Mobile-Expensify repo for correct placement of OD app. It will take precedence over MOBILE-EXPENSIFY from App's PR description if both are specified. If nothing is specified defaults to Mobile-Expensify's main
+      # Mobile-Expensify is resolved in this order: MOBILE_EXPENSIFY_PULL_REQUEST_URL, then MOBILE_EXPENSIFY_MAIN, then a MOBILE-EXPENSIFY entry in App's PR description (Mobile-Expensify main if that PR is already merged), then the commit pinned by the App submodule.
       MOBILE_EXPENSIFY_PULL_REQUEST_URL:
-        description: The Expensify/Mobile-Expensify pull request URL. Defaults to main. Overrides MOBILE-EXPENSIFY set in App's PR description.
+        description: The Expensify/Mobile-Expensify pull request URL. Defaults to the pinned submodule commit. Overrides MOBILE-EXPENSIFY set in App's PR description. Cannot be combined with MOBILE_EXPENSIFY_MAIN.
+        type: string
         required: false
         default: ''
       REVIEWED_CODE:
@@ -34,6 +36,10 @@ on:
         description: Force a full native build, bypassing Rock remote cache
         type: boolean
         default: false
+      MOBILE_EXPENSIFY_MAIN:
+        description: Build against the tip of Mobile-Expensify main instead of the commit pinned by the submodule. Overrides MOBILE-EXPENSIFY set in App's PR description. Cannot be combined with MOBILE_EXPENSIFY_PULL_REQUEST_URL.
+        type: boolean
+        default: false
 
 jobs:
   # Validates the actor and that they reviewed the PR before any token is used or untrusted code is checked out.
@@ -52,18 +58,21 @@ jobs:
     with:
       APP_PULL_REQUEST_URL: ${{ inputs.APP_PULL_REQUEST_URL }}
       MOBILE_EXPENSIFY_PULL_REQUEST_URL: ${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_URL }}
+      MOBILE_EXPENSIFY_MAIN: ${{ inputs.MOBILE_EXPENSIFY_MAIN }}
     secrets:
       OS_BOTIFY_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
   buildApps:
     needs: [prep, resolveRefs]
+    # Preserve the default token scopes while adding OIDC access for the called workflow
+    permissions: write-all
     uses: ./.github/workflows/buildAdHoc.yml
     with:
       # Fall back to App main when nothing is resolved (test builds default to the latest NewDot).
       APP_REF: ${{ needs.resolveRefs.outputs.APP_REF || 'main' }}
       APP_PR_NUMBER: ${{ needs.resolveRefs.outputs.APP_PR_NUMBER }}
-      # Fall back to Mobile-Expensify main when nothing is resolved (test builds track the latest OldDot).
-      MOBILE_EXPENSIFY_REF: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF || 'main' }}
+      # resolveRefs returns an empty ref when MOBILE_EXPENSIFY_MAIN is set, so `main` is used then. Empty means the pinned submodule commit, so the fingerprint matches the builds `testBuildOnPush.yml` seeds the cache from.
+      MOBILE_EXPENSIFY_REF: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_REF || (inputs.MOBILE_EXPENSIFY_MAIN && 'main' || '') }}
       MOBILE_EXPENSIFY_PR: ${{ needs.resolveRefs.outputs.MOBILE_EXPENSIFY_PR }}
       BUILD_WEB: ${{ inputs.WEB && 'true' || 'false' }}
       BUILD_IOS: ${{ inputs.IOS && 'true' || 'false' }}

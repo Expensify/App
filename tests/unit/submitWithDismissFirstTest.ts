@@ -12,7 +12,9 @@ const mockDismissModal = jest.fn<ReturnType<DismissModal>, Parameters<DismissMod
 const mockRevealRouteBeforeDismissingModal = jest.fn<ReturnType<RevealRouteBeforeDismissingModal>, Parameters<RevealRouteBeforeDismissingModal>>();
 const mockGetIsFullscreenPreInsertedUnderRHP = jest.fn<boolean, []>();
 const mockGetIsNarrowLayout = jest.fn<boolean, []>();
-const mockReserveDeferredWriteChannel = jest.fn();
+const mockMarkPendingSearchWrite = jest.fn();
+const mockGetPreMountedFullscreenRouteKey = jest.fn<string | undefined, []>();
+const mockClearFullscreenPreInsertedFlag = jest.fn();
 const mockStartTracking = jest.fn();
 const mockSetFastPath = jest.fn();
 const mockSetPendingSubmitFollowUpAction = jest.fn();
@@ -23,13 +25,14 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: mockDismissModal,
     revealRouteBeforeDismissingModal: mockRevealRouteBeforeDismissingModal,
     getIsFullscreenPreInsertedUnderRHP: () => mockGetIsFullscreenPreInsertedUnderRHP() as unknown,
-    clearFullscreenPreInsertedFlag: jest.fn(),
+    getPreMountedFullscreenRouteKey: () => mockGetPreMountedFullscreenRouteKey(),
+    clearFullscreenPreInsertedFlag: () => mockClearFullscreenPreInsertedFlag() as unknown,
+}));
+jest.mock('@libs/pendingSearchWrite', () => ({
+    markPendingSearchWrite: (...args: unknown[]) => mockMarkPendingSearchWrite(...args) as unknown,
 }));
 jest.mock('@libs/ReportUtils', () => ({
     getReportOrDraftReport: (id: string) => mockGetReportOrDraftReport(id) as unknown,
-}));
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    reserveDeferredWriteChannel: (...args: unknown[]) => mockReserveDeferredWriteChannel(...args) as unknown,
 }));
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     startTracking: (...args: unknown[]) => mockStartTracking(...args) as unknown,
@@ -55,10 +58,11 @@ describe('submitWithDismissFirst', () => {
         mockGetReportOrDraftReport.mockReturnValue(undefined);
         mockGetIsFullscreenPreInsertedUnderRHP.mockReturnValue(false);
         mockGetIsNarrowLayout.mockReturnValue(false);
+        mockGetPreMountedFullscreenRouteKey.mockReturnValue(undefined);
     });
 
     describe('Search-topmost branch', () => {
-        it('reserves deferred write channel and dismisses modal when Search is topmost', () => {
+        it('raises the pending Search write signal and dismisses modal when Search is topmost', () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
             const executeWrite = jest.fn();
 
@@ -68,7 +72,7 @@ describe('submitWithDismissFirst', () => {
                 telemetryContext: TELEMETRY_CONTEXT,
             });
 
-            expect(mockReserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            expect(mockMarkPendingSearchWrite).toHaveBeenCalled();
             expect(mockDismissModal).toHaveBeenCalledTimes(1);
             expect(executeWrite).not.toHaveBeenCalled();
         });
@@ -104,6 +108,28 @@ describe('submitWithDismissFirst', () => {
             dismissOptions.afterTransition();
 
             expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: false});
+        });
+    });
+
+    describe('Pre-inserted destination branch', () => {
+        it('on wide layout reveals the destination report instead of clearing the pre-mount', () => {
+            // Given a wide pre-mount, which a plain dismiss would never show, so the user would stay on the page they started from
+            mockGetIsFullscreenPreInsertedUnderRHP.mockReturnValue(true);
+            mockGetPreMountedFullscreenRouteKey.mockReturnValue('TabNavigator-pre-mount-1');
+            mockGetReportOrDraftReport.mockReturnValue({reportID: 'report123'});
+            const executeWrite = jest.fn();
+
+            // When the expense is submitted
+            submitWithDismissFirst({
+                executeWrite,
+                destinationReportID: 'report123',
+                telemetryContext: TELEMETRY_CONTEXT,
+            });
+
+            // Then the destination report is revealed, which consumes the pre-mount, and the flag is not cleared first
+            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledTimes(1);
+            expect(mockClearFullscreenPreInsertedFlag).not.toHaveBeenCalled();
+            expect(mockDismissModal).not.toHaveBeenCalled();
         });
     });
 

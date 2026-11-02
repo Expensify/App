@@ -35,6 +35,7 @@
 - [Object / Array Methods](#object--array-methods)
 - [Asynchronous code](#asynchronous-code)
 - [Accessing Object Properties and Default Values](#accessing-object-properties-and-default-values)
+  - [When `||` is the right operator](#when--is-the-right-operator)
 - [JSDocs](#jsdocs)
 - [Component props](#component-props)
 - [Destructuring](#destructuring)
@@ -892,6 +893,33 @@ const name = user?.name || "default name";
 const name = user?.name ?? "default name";
 ```
 
+### When `||` is the right operator
+
+`??` only falls back on `null` and `undefined`. Use `||` when an empty string, `0` or `false` must fall back too, and leave a comment saying why.
+
+This comes up often because many API fields represent "unset" as an empty string rather than `null`:
+
+```ts
+// GOOD - `exporter` is an empty string on a fresh connection, so it has to fall through
+const exporter = exportConfig?.exporter || policy?.owner;
+```
+
+It is required when an ID is interpolated into an Onyx key, because an empty string subscribes to the whole collection instead of one record. Normalize it to `undefined` first — see [Default value for inexistent IDs](#default-value-for-inexistent-IDs):
+
+```ts
+// GOOD - `|| undefined` stops an empty reportID subscribing to every report
+const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`);
+```
+
+`||` is also correct when the expression is a boolean OR rather than a default, since `??` does not short circuit on `false`:
+
+```ts
+// GOOD
+return disabled || shouldBeDisabledByScreenReader || isExecuting;
+```
+
+[`@typescript-eslint/prefer-nullish-coalescing`](https://typescript-eslint.io/rules/prefer-nullish-coalescing/) only reports `||` where the left operand cannot be `''`, `0` or `false` — that is, where the two operators are provably equivalent. The cases above are judgment calls it cannot make, so they are not reported and do not need a suppression.
+
 ## JSDocs
 
 - Omit comments that are redundant with TypeScript. Do not declare types in `@param` or `@return` blocks. Do not write `@implements`, `@enum`, `@private`, `@override`. eslint: [`jsdoc/no-types`](https://github.com/gajus/eslint-plugin-jsdoc/blob/main/.README/rules/no-types.md)
@@ -1026,7 +1054,7 @@ So, if a new language feature isn't something we have agreed to support it's off
 
 ## React Coding Standards
 
-For additional React best practices and patterns that are automatically enforced during code review, see the [Coding Standards](../.claude/skills/coding-standards/SKILL.md).
+For additional React best practices and patterns that are automatically enforced during code review, see the [App Coding Standards](../.claude/skills/app-coding-standards/SKILL.md).
 
 ### Code Documentation
 

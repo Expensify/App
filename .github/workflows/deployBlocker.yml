@@ -8,6 +8,7 @@ on:
 jobs:
   updateChecklist:
     if: github.event.label.name == 'DeployBlockerCash'
+    cache-mode: read
     uses: ./.github/workflows/createDeployChecklist.yml
     secrets: inherit
 

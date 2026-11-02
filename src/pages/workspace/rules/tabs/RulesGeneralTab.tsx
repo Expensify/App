@@ -2,7 +2,6 @@ import AgentPromotionalBanner from '@components/AgentPromotionalBanner';
 import ScrollView from '@components/ScrollView';
 
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -29,8 +28,6 @@ function RulesGeneralTab({policyID, canWriteRules, isAgentsRulesBannerDismissed,
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
-    const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
 
     // The tab owns the scroll so the selector scrolls with the content, matching the table tabs where it is the list's
     // header. The page's buttons sit above this and stay pinned.
@@ -47,7 +44,7 @@ function RulesGeneralTab({policyID, canWriteRules, isAgentsRulesBannerDismissed,
                     policyID={policyID}
                     canWriteRules={canWriteRules}
                 />
-                {isCustomAgentBetaEnabled && !isAgentsRulesBannerDismissed && (
+                {!isAgentsRulesBannerDismissed && (
                     <AgentPromotionalBanner
                         title={translate('workspace.rules.agentsPromoBanner.title')}
                         subtitle={translate('workspace.rules.agentsPromoBanner.subtitle')}

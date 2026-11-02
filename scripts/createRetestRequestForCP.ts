@@ -34,6 +34,14 @@ const WHITELIST_ENTRY_REGEX = /'github'\s*=>\s*'([^']+)'[\s\S]{0,400}?'slack'\s*
 // Marker left on a PR after we file its retest request, so a re-run of the deploy doesn't file a duplicate.
 const getRetestMarker = (tag: string) => `<!-- retest-requested:${tag} -->`;
 
+const DEPLOYER_CHANNEL_ID = 'C07J32337';
+const RETESTS_CHANNEL_ID = 'C09V78U42D8';
+const SLACK_HISTORY_PAGE_SIZE = 100;
+const CHERRY_PICK_REQUEST_HISTORY_MAX_PAGES = 20;
+const RETEST_MESSAGE_HISTORY_MAX_PAGES = 1;
+const RETEST_MESSAGE_LOOKUP_ATTEMPTS = 6;
+const RETEST_MESSAGE_LOOKUP_DELAY_MS = 5000;
+
 type RetestHit = {
     prNumber: number;
     prURL: string;
@@ -49,6 +57,61 @@ type CherryPick = {
     sourceSHA: string;
     actor: string;
 };
+
+type SlackMessage = {
+    text?: string;
+    ts: string;
+    thread_ts?: string;
+};
+
+type SlackResponse = {
+    ok: boolean;
+    error?: string;
+};
+
+type SlackHistoryResponse = SlackResponse & {
+    messages?: SlackMessage[];
+    response_metadata?: {
+        next_cursor?: string;
+    };
+};
+
+type SlackPermalinkResponse = SlackResponse & {
+    permalink?: string;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null;
+}
+
+function isSlackResponse(value: unknown): value is SlackResponse {
+    return isRecord(value) && typeof value.ok === 'boolean' && (value.error === undefined || typeof value.error === 'string');
+}
+
+function isSlackMessage(value: unknown): value is SlackMessage {
+    return (
+        isRecord(value) &&
+        typeof value.ts === 'string' &&
+        (value.text === undefined || typeof value.text === 'string') &&
+        (value.thread_ts === undefined || typeof value.thread_ts === 'string')
+    );
+}
+
+function isSlackHistoryResponse(value: unknown): value is SlackHistoryResponse {
+    if (!isRecord(value)) {
+        return false;
+    }
+    const messages = value.messages;
+    const metadata = value.response_metadata;
+    return (
+        (messages === undefined || (Array.isArray(messages) && messages.every(isSlackMessage))) &&
+        (metadata === undefined || (isRecord(metadata) && (metadata.next_cursor === undefined || typeof metadata.next_cursor === 'string')))
+    );
+}
+
+function isSlackPermalinkResponse(value: unknown): value is SlackPermalinkResponse {
+    return isRecord(value) && (value.permalink === undefined || typeof value.permalink === 'string');
+}
 
 /**
  * List the commit messages deployed since the previous staging release.
@@ -165,6 +228,11 @@ function getSlackAuthor(githubLogin: string, slackIDsByGithubLogin: Map<string, 
     return slackIDsByGithubLogin.get(githubLogin) ?? githubLogin;
 }
 
+/** Keep each automated retest distinguishable while it is being posted to Slack. */
+function getRetestRequestReference(hit: RetestHit, deployTag: string): string {
+    return `Retest ID: ${deployTag} / App PR #${hit.prNumber}`;
+}
+
 /** Pull every App issue number linked anywhere in a PR body. */
 function getLinkedIssueNumbers(prBody: string | null): number[] {
     if (!prBody) {
@@ -186,11 +254,11 @@ async function isRetestAlreadyRequested(prNumber: number, deployTag: string): Pr
 }
 
 /** Map a hit to the flat string payload the Slack workflow webhook expects. */
-function buildRetestPayload(hit: RetestHit): Record<string, string> {
+function buildRetestPayload(hit: RetestHit, deployTag: string): Record<string, string> {
     return {
         isDb: 'dbTrue',
         whereToRetest: 'Staging',
-        notes: `Auto-filed after cherry-pick to staging: "${hit.prTitle}"`,
+        notes: `Auto-filed after cherry-pick to staging: "${hit.prTitle}"\n\n${getRetestRequestReference(hit, deployTag)}`,
         ghIssueLink: hit.blockerIssueURLs.join(' '),
         adhocLink: EMPTY,
         requesterName: hit.prAuthor || EMPTY,
@@ -201,8 +269,8 @@ function buildRetestPayload(hit: RetestHit): Record<string, string> {
 }
 
 /** POST the retest request to the Slack workflow webhook. */
-async function fireRetestRequest(hit: RetestHit, webhookURL: string): Promise<void> {
-    const payload = buildRetestPayload(hit);
+async function fireRetestRequest(hit: RetestHit, deployTag: string, webhookURL: string): Promise<void> {
+    const payload = buildRetestPayload(hit, deployTag);
 
     const response = await fetch(webhookURL, {
         method: 'POST',
@@ -212,6 +280,161 @@ async function fireRetestRequest(hit: RetestHit, webhookURL: string): Promise<vo
     if (!response.ok) {
         throw new Error(`Slack webhook returned ${response.status} ${response.statusText}: ${await response.text()}`);
     }
+}
+
+function isTopLevelSlackMessage(message: SlackMessage): boolean {
+    return !message.thread_ts || message.thread_ts === message.ts;
+}
+
+/** Match the Cherry Pick Request that caused this staging deployment. */
+function isCherryPickRequest(message: SlackMessage, hit: RetestHit): boolean {
+    const text = message.text ?? '';
+    return isTopLevelSlackMessage(message) && text.includes('Cherry Pick Request') && text.includes(hit.prURL) && /\*?Where\*?:\*?\s*staging(?:\s+and\s+production)?\b/i.test(text);
+}
+
+/** Call a Slack Web API method without ever including the token in an error message. */
+async function callSlackAPI(method: string, token: string, params: Record<string, string>): Promise<SlackResponse> {
+    const response = await fetch(`https://slack.com/api/${method}`, {
+        method: 'POST',
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json; charset=utf-8',
+        },
+        body: JSON.stringify(params),
+    });
+    if (!response.ok) {
+        throw new Error(`Slack ${method} returned ${response.status} ${response.statusText}`);
+    }
+
+    const result: unknown = await response.json();
+    if (!isSlackResponse(result)) {
+        throw new Error(`Slack ${method} returned an invalid response.`);
+    }
+    if (!result.ok) {
+        throw new Error(`Slack ${method} failed: ${result.error ?? 'unknown error'}`);
+    }
+    return result;
+}
+
+/** Search a channel from newest to oldest, stopping once a matching Slack message is found. */
+async function findSlackMessage(
+    channelID: string,
+    token: string,
+    predicate: (message: SlackMessage) => boolean,
+    maxPages = CHERRY_PICK_REQUEST_HISTORY_MAX_PAGES,
+): Promise<SlackMessage | undefined> {
+    let cursor: string | undefined;
+    for (let page = 0; page < maxPages; page++) {
+        const params: Record<string, string> = {
+            channel: channelID,
+            limit: String(SLACK_HISTORY_PAGE_SIZE),
+        };
+        if (cursor) {
+            params.cursor = cursor;
+        }
+        const result = await callSlackAPI('conversations.history', token, params);
+        if (!isSlackHistoryResponse(result)) {
+            throw new Error('Slack conversations.history returned an invalid response.');
+        }
+        const match = result.messages?.find(predicate);
+        if (match) {
+            return match;
+        }
+        cursor = result.response_metadata?.next_cursor;
+        if (!cursor) {
+            return undefined;
+        }
+    }
+    return undefined;
+}
+
+/** Slack Workflow Builder posts asynchronously, so wait briefly for the retest request to appear. */
+async function findRetestRequestMessage(hit: RetestHit, deployTag: string, token: string): Promise<SlackMessage | undefined> {
+    const reference = getRetestRequestReference(hit, deployTag);
+    for (let attempt = 1; attempt <= RETEST_MESSAGE_LOOKUP_ATTEMPTS; attempt++) {
+        const message = await findSlackMessage(
+            RETESTS_CHANNEL_ID,
+            token,
+            (candidate) => isTopLevelSlackMessage(candidate) && candidate.text?.includes(reference) === true,
+            RETEST_MESSAGE_HISTORY_MAX_PAGES,
+        );
+        if (message) {
+            return message;
+        }
+        if (attempt < RETEST_MESSAGE_LOOKUP_ATTEMPTS) {
+            await new Promise((resolve) => {
+                setTimeout(resolve, RETEST_MESSAGE_LOOKUP_DELAY_MS);
+            });
+        }
+    }
+    return undefined;
+}
+
+async function getSlackPermalink(channelID: string, messageTS: string, token: string): Promise<string | undefined> {
+    const result = await callSlackAPI('chat.getPermalink', token, {
+        channel: channelID,
+        message_ts: messageTS,
+    });
+    if (!isSlackPermalinkResponse(result)) {
+        throw new Error('Slack chat.getPermalink returned an invalid response.');
+    }
+    return result.permalink;
+}
+
+/** Check the existing Cherry Pick Request replies before adding the retest link on a deploy re-run. */
+async function isRetestRequestLinked(cherryPickRequest: SlackMessage, retestPermalink: string, token: string): Promise<boolean> {
+    const result = await callSlackAPI('conversations.replies', token, {
+        channel: DEPLOYER_CHANNEL_ID,
+        ts: cherryPickRequest.ts,
+        limit: String(SLACK_HISTORY_PAGE_SIZE),
+    });
+    if (!isSlackHistoryResponse(result)) {
+        throw new Error('Slack conversations.replies returned an invalid response.');
+    }
+    return result.messages?.some((message) => message.text?.includes(retestPermalink)) ?? false;
+}
+
+function buildRetestLinkReply(threadTS: string, retestPermalink: string): Record<string, string> {
+    return {
+        thread_ts: threadTS,
+        text: `🔁 Automated retest request: <${retestPermalink}|Open retest request>.`,
+    };
+}
+
+/** Add the retest request link to the Cherry Pick Request that triggered the deploy. */
+async function postRetestRequestLink(hit: RetestHit, deployTag: string, token: string, deployerWebhookURL: string): Promise<void> {
+    const retestRequest = await findRetestRequestMessage(hit, deployTag, token);
+    if (!retestRequest) {
+        console.warn(`Could not find the retest request for PR #${hit.prNumber} on ${deployTag}.`);
+        return;
+    }
+
+    const retestPermalink = await getSlackPermalink(RETESTS_CHANNEL_ID, retestRequest.ts, token);
+    if (!retestPermalink) {
+        console.warn(`Could not get a permalink for the retest request for PR #${hit.prNumber} on ${deployTag}.`);
+        return;
+    }
+
+    const cherryPickRequest = await findSlackMessage(DEPLOYER_CHANNEL_ID, token, (candidate) => isCherryPickRequest(candidate, hit));
+    if (!cherryPickRequest) {
+        console.warn(`Could not find the Cherry Pick Request thread for PR #${hit.prNumber}.`);
+        return;
+    }
+
+    if (await isRetestRequestLinked(cherryPickRequest, retestPermalink, token)) {
+        console.log(`The Cherry Pick Request thread for PR #${hit.prNumber} already links to its retest request.`);
+        return;
+    }
+
+    const response = await fetch(deployerWebhookURL, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(buildRetestLinkReply(cherryPickRequest.ts, retestPermalink)),
+    });
+    if (!response.ok) {
+        throw new Error(`Slack deployer webhook returned ${response.status} ${response.statusText}: ${await response.text()}`);
+    }
+    console.log(`Added the retest request link to the Cherry Pick Request thread for PR #${hit.prNumber}.`);
 }
 
 async function run(): Promise<void> {
@@ -230,6 +453,8 @@ async function run(): Promise<void> {
     if (!webhookURL) {
         throw new Error('SLACK_RETEST_WEBHOOK is required');
     }
+    const slackToken = process.env.SLACK_RETEST_USER_TOKEN;
+    const deployerWebhookURL = process.env.SLACK_WEBHOOK;
 
     const commitMessages = await getDeployedCommitMessages(deploySHA, deployTag);
     const cherryPicks = getCherryPicks(commitMessages);
@@ -282,11 +507,6 @@ async function run(): Promise<void> {
             continue;
         }
 
-        if (await isRetestAlreadyRequested(prNumber, deployTag)) {
-            console.log(`Retest for PR #${prNumber} on ${deployTag} was already filed, skipping.`);
-            continue;
-        }
-
         hits.push({
             prNumber,
             prURL: pull.html_url,
@@ -303,14 +523,29 @@ async function run(): Promise<void> {
     }
 
     for (const hit of hits) {
-        await fireRetestRequest(hit, webhookURL);
-        const blockerList = hit.blockerIssueURLs.join(', ');
-        await GithubUtils.createComment(
-            CONST.APP_REPO,
-            hit.prNumber,
-            `${getRetestMarker(deployTag)}\n🔁 Filed a Staging retest request for deploy blockers ${blockerList} after this PR was cherry-picked to staging.`,
-        );
-        console.log(`Filed retest request for PR #${hit.prNumber} (blockers ${blockerList}).`);
+        if (!(await isRetestAlreadyRequested(hit.prNumber, deployTag))) {
+            await fireRetestRequest(hit, deployTag, webhookURL);
+            const blockerList = hit.blockerIssueURLs.join(', ');
+            await GithubUtils.createComment(
+                CONST.APP_REPO,
+                hit.prNumber,
+                `${getRetestMarker(deployTag)}\n🔁 Filed a Staging retest request for deploy blockers ${blockerList} after this PR was cherry-picked to staging.`,
+            );
+            console.log(`Filed retest request for PR #${hit.prNumber} (blockers ${blockerList}).`);
+        } else {
+            console.log(`Retest for PR #${hit.prNumber} on ${deployTag} was already filed, checking its Cherry Pick Request thread.`);
+        }
+
+        if (!slackToken || !deployerWebhookURL) {
+            console.warn(`Cannot add the retest request link for PR #${hit.prNumber}: ${!slackToken ? 'SLACK_RETEST_USER_TOKEN' : 'SLACK_WEBHOOK'} is not configured.`);
+            continue;
+        }
+        try {
+            await postRetestRequestLink(hit, deployTag, slackToken, deployerWebhookURL);
+        } catch (error) {
+            // The retest has already been filed. Keep a Slack lookup or reply failure from marking the deploy unsuccessful.
+            console.warn(`Could not add the retest request link to the Cherry Pick Request thread for PR #${hit.prNumber}.`, error);
+        }
     }
 }
 
@@ -322,5 +557,5 @@ if (require.main === module) {
 }
 
 export default run;
-export {getCherryPicks, getLinkedIssueNumbers, buildRetestPayload, getRetestMarker, getSlackAuthor};
-export type {RetestHit};
+export {getCherryPicks, getLinkedIssueNumbers, buildRetestPayload, buildRetestLinkReply, getRetestMarker, getRetestRequestReference, getSlackAuthor, isCherryPickRequest};
+export type {RetestHit, SlackMessage};

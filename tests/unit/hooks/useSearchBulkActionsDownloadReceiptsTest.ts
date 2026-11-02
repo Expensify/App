@@ -8,6 +8,7 @@ import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 
 import {exportReceiptsToZip} from '@libs/actions/Export';
+import type * as SearchActions from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,12 +32,21 @@ jest.mock('@hooks/useNetwork', () => ({
     default: () => ({isOffline: mockIsOffline}),
 }));
 
+const mockShowDecisionModal = jest.fn();
+jest.mock('@hooks/useDecisionModal', () => ({
+    __esModule: true,
+    default: () => ({showDecisionModal: mockShowDecisionModal}),
+}));
+
 jest.mock('@hooks/useEnvironment', () => ({
     __esModule: true,
     default: () => ({isProduction: false, isDevelopment: true, environment: 'development'}),
 }));
 
 jest.mock('@libs/actions/Search', () => ({
+    // The hook and shouldShowDeleteOption resolve report actions through this helper, so the real implementation has to stay available
+    getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
+    openSearchCardFiltersPage: jest.fn(),
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
@@ -65,7 +75,8 @@ jest.mock('@libs/actions/Search', () => ({
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
-        translate: (key: string) => key,
+        // Echo the plural count so tests can assert which form a label asks for.
+        translate: (key: string, params?: {count?: number}) => (params?.count === undefined ? key : `${key}:${params.count}`),
         localeCompare: (first: string, second: string) => first.localeCompare(second),
         formatPhoneNumber: (phone: string) => phone,
     }),
@@ -276,6 +287,9 @@ describe('useSearchBulkActions - Download receipts', () => {
             await waitFor(() => {
                 expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)).toBeDefined();
             });
+
+            // The selected report has one receipt, so the label must ask for the singular "Download receipt".
+            expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)?.text).toBe('common.downloadReceipt:1');
         });
 
         it('hides the option when no selected report has a receipt', async () => {
@@ -311,6 +325,9 @@ describe('useSearchBulkActions - Download receipts', () => {
                 expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)).toBeDefined();
             });
 
+            // Two reports are selected but only one carries a receipt, so the label counts receipts, not reports.
+            expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)?.text).toBe('common.downloadReceipt:1');
+
             await act(async () => {
                 await getDownloadReceiptsOption(result.current.headerButtonsOptions)?.onSelected?.();
             });
@@ -336,7 +353,7 @@ describe('useSearchBulkActions - Download receipts', () => {
             });
 
             expect(exportReceiptsToZip).not.toHaveBeenCalled();
-            expect(result.current.isOfflineModalVisible).toBe(true);
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
         });
     });
 
@@ -349,6 +366,9 @@ describe('useSearchBulkActions - Download receipts', () => {
             await waitFor(() => {
                 expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)).toBeDefined();
             });
+
+            // Two selected expenses carry receipts, so the label must ask for the plural "Download receipts".
+            expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)?.text).toBe('common.downloadReceipt:2');
 
             await act(async () => {
                 await getDownloadReceiptsOption(result.current.headerButtonsOptions)?.onSelected?.();
@@ -440,7 +460,7 @@ describe('useSearchBulkActions - Download receipts', () => {
             });
 
             expect(exportReceiptsToZip).not.toHaveBeenCalled();
-            expect(result.current.isOfflineModalVisible).toBe(true);
+            expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.youAppearToBeOffline', prompt: 'common.offlinePrompt'}));
         });
     });
 });

@@ -2,8 +2,9 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import UserAvatar from '@components/Avatar/UserAvatar';
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
-import Header from '@components/Header';
+import HeaderTitle from '@components/HeaderTitle';
 import Icon from '@components/Icon';
+import AccountAvatarButton from '@components/Navigation/AccountAvatarButton';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
@@ -11,6 +12,7 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 
+import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -32,7 +34,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {SvgProps} from 'react-native-svg';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {Keyboard, StyleSheet, View} from 'react-native';
 
 import type HeaderWithBackButtonProps from './types';
@@ -84,6 +86,7 @@ function HeaderWithBackButton({
     shouldOverlay = false,
     shouldNavigateToTopMostReport = false,
     shouldDisplayHelpButton = false,
+    shouldDisplayAccountButton = false,
     shouldDisplaySearchRouter = false,
     style,
     subTitleLink = '',
@@ -101,54 +104,44 @@ function HeaderWithBackButton({
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {contentHeaderHeightStyle} = useContentHeaderHeight();
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
-    const middleContent = useMemo(() => {
-        const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
-        if (shouldShowReportAvatarWithDisplay) {
-            return (
-                <AvatarWithDisplayName
-                    report={report}
-                    shouldDisplayStatus={shouldDisplayStatus}
-                    shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
-                    openParentReportInCurrentTab={openParentReportInCurrentTab}
-                />
-            );
-        }
-
-        return (
-            <Header
-                title={title}
-                subtitle={stepCounterTranslation ?? subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
-                subTitleLink={subTitleLink}
-                numberOfTitleLines={numberOfTitleLines}
-                isScreenHeader
-                shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
+    let middleContent;
+    const stepCounterTranslation = stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : undefined;
+    if (shouldShowReportAvatarWithDisplay) {
+        middleContent = (
+            <AvatarWithDisplayName
+                report={report}
+                shouldDisplayStatus={shouldDisplayStatus}
+                shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
+                openParentReportInCurrentTab={openParentReportInCurrentTab}
             />
         );
-    }, [
-        StyleUtils,
-        subTitleLink,
-        shouldUseHeadlineHeader,
-        report,
-        shouldEnableDetailPageNavigation,
-        shouldShowReportAvatarWithDisplay,
-        stepCounter,
-        styles.textHeadlineH2,
-        subtitle,
-        title,
-        titleColor,
-        titleStyles,
-        numberOfTitleLines,
-        translate,
-        openParentReportInCurrentTab,
-        shouldDisplayStatus,
-        shouldSkipFocusAfterTransition,
-    ]);
-    const ThreeDotMenuButton = useMemo(() => {
-        if (shouldShowThreeDotsButton) {
-            return threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
+    } else {
+        const resolvedSubtitle = stepCounterTranslation ?? subtitle;
+        middleContent = (
+            <HeaderTitle
+                dialogLabel={title}
+                shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
+            >
+                {!!title && (
+                    <HeaderTitle.Text
+                        numberOfLines={numberOfTitleLines}
+                        style={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
+                    >
+                        {title}
+                    </HeaderTitle.Text>
+                )}
+                {!!resolvedSubtitle && <HeaderTitle.Subtitle>{resolvedSubtitle}</HeaderTitle.Subtitle>}
+                {!!subTitleLink && <HeaderTitle.SubtitleLink>{subTitleLink}</HeaderTitle.SubtitleLink>}
+            </HeaderTitle>
+        );
+    }
+    let ThreeDotMenuButton;
+    if (shouldShowThreeDotsButton) {
+        ThreeDotMenuButton =
+            threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton ? (
                 <Tooltip text={threeDotsMenuItems.at(0)?.text}>
                     <PressableWithoutFeedback
                         onPress={threeDotsMenuItems.at(0)?.onSelected}
@@ -177,28 +170,15 @@ function HeaderWithBackButton({
                     sentryLabel={CONST.SENTRY_LABEL.HEADER.MORE_BUTTON}
                 />
             );
-        }
-        return null;
-    }, [
-        shouldShowThreeDotsButton,
-        threeDotsMenuItems,
-        shouldMinimizeMenuButton,
-        styles.touchableButtonImage,
-        theme.icon,
-        threeDotsMenuIcon,
-        threeDotsMenuIconFill,
-        shouldDisableThreeDotsButton,
-        onThreeDotsButtonPress,
-        shouldOverlayDots,
-        threeDotsAnchorAlignment,
-        shouldSetModalVisibility,
-    ]);
+    } else {
+        ThreeDotMenuButton = null;
+    }
 
     return (
         <View
             style={[
                 styles.headerBar,
-                shouldUseHeadlineHeader && styles.headerBarHeight,
+                contentHeaderHeightStyle,
                 shouldShowBorderBottom && styles.borderBottom,
                 shouldShowBackButton && [styles.pl2],
                 shouldOverlay && StyleSheet.absoluteFill,
@@ -336,6 +316,7 @@ function HeaderWithBackButton({
                 </View>
                 {shouldDisplaySearchRouter && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
+                {shouldDisplayAccountButton && <AccountAvatarButton />}
             </View>
         </View>
     );

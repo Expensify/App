@@ -6,20 +6,24 @@ import useOnyx from '@hooks/useOnyx';
 import {downloadExpensifyCardStatementPDF} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
 
-import PDFDownloadModal from './PDFDownloadModal';
+import type {ModalProps} from './Modal/Global/ModalContext';
 
-type ExpensifyCardStatementPDFDownloadModalProps = {
+import FileDownloadModalWrapper from './Modal/Global/FileDownloadModalWrapper';
+
+type ExpensifyCardStatementPDFDownloadModalProps = ModalProps & {
     statementParams: ExpensifyCardStatementParams;
-    isVisible: boolean;
-    onClose: () => void;
-    onModalHide?: () => void;
 };
 
-function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onClose, onModalHide}: ExpensifyCardStatementPDFDownloadModalProps) {
+/**
+ * Rendered by the global modal stack, so its Onyx subscription lives as long as the modal does. The caller that opened
+ * it can unmount while the statement is generating and the modal still picks up the file.
+ */
+function ExpensifyCardStatementPDFDownloadModal({statementParams, closeModal, resolveModal}: ExpensifyCardStatementPDFDownloadModalProps) {
     const [expensifyCardStatement] = useOnyx(ONYXKEYS.EXPENSIFY_CARD_STATEMENT);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
@@ -32,18 +36,17 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
     const isGeneratingPDF = expensifyCardStatement?.isGenerating === true;
     const statementFileName = statementKey ? expensifyCardStatement?.[statementKey] : undefined;
     const hasFinishedPDFDownload = !!statementKey && !isGeneratingPDF && typeof statementFileName === 'string' && statementFileName.length > 0;
-    const message = hasFinishedPDFDownload ? translate('reportDetailsPage.successPDF') : translate('reportDetailsPage.waitForPDF');
 
     return (
-        <PDFDownloadModal
-            isVisible={isVisible}
-            onClose={onClose}
-            onModalHide={onModalHide}
-            hasFinishedPDFDownload={hasFinishedPDFDownload}
-            message={message}
+        <FileDownloadModalWrapper
+            closeModal={closeModal}
+            resolveModal={resolveModal}
+            title={translate('reportDetailsPage.generatingPDF')}
+            status={hasFinishedPDFDownload ? CONST.FILE_DOWNLOAD_STATUS.READY : CONST.FILE_DOWNLOAD_STATUS.GENERATING}
+            message={hasFinishedPDFDownload ? translate('reportDetailsPage.successPDF') : translate('reportDetailsPage.waitForPDF')}
             shouldCloseOnDownload
             shouldUseSuccessButton
-            onDownloadPDF={() => {
+            onDownload={() => {
                 if (!statementKey || typeof statementFileName !== 'string') {
                     return;
                 }
@@ -53,6 +56,5 @@ function ExpensifyCardStatementPDFDownloadModal({statementParams, isVisible, onC
     );
 }
 
-ExpensifyCardStatementPDFDownloadModal.displayName = 'ExpensifyCardStatementPDFDownloadModal';
-
 export default ExpensifyCardStatementPDFDownloadModal;
+export type {ExpensifyCardStatementPDFDownloadModalProps};

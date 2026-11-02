@@ -19,7 +19,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {FeatureListItem} from './FeatureList';
@@ -39,23 +39,20 @@ function MigratedUserWelcomeModal() {
     const illustrations = useMemoizedLazyIllustrations(['ChatBubbles', 'ConciergeBot', 'PlanetWithMobileApp', 'MagnifyingGlassReceipt']);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
-    const ExpensifyFeatures = useMemo<FeatureListItem[]>(
-        () => [
-            {
-                icon: illustrations.MagnifyingGlassReceipt,
-                translationKey: 'migratedUserWelcomeModal.features.search',
-            },
-            {
-                icon: illustrations.ConciergeBot,
-                translationKey: 'migratedUserWelcomeModal.features.concierge',
-            },
-            {
-                icon: illustrations.ChatBubbles,
-                translationKey: 'migratedUserWelcomeModal.features.chat',
-            },
-        ],
-        [illustrations.ChatBubbles, illustrations.ConciergeBot, illustrations.MagnifyingGlassReceipt],
-    );
+    const ExpensifyFeatures: FeatureListItem[] = [
+        {
+            icon: illustrations.MagnifyingGlassReceipt,
+            translationKey: 'migratedUserWelcomeModal.features.search',
+        },
+        {
+            icon: illustrations.ConciergeBot,
+            translationKey: 'migratedUserWelcomeModal.features.concierge',
+        },
+        {
+            icon: illustrations.ChatBubbles,
+            translationKey: 'migratedUserWelcomeModal.features.chat',
+        },
+    ];
 
     const persistDismissal = () => {
         Log.hmmm('[MigratedUserWelcomeModal] dismissing product training');
@@ -65,7 +62,7 @@ function MigratedUserWelcomeModal() {
     useBeforeRemove(persistDismissal);
 
     const handleClose = () => {
-        const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})});
+        const spendRoute = ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}), searchKey: CONST.SEARCH.SEARCH_KEYS.REPORTS});
         Navigation.goBack(undefined, {
             afterTransition: () => Navigation.navigate(spendRoute),
         });

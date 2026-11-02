@@ -59,9 +59,9 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                     {shouldUseNarrowTableLayout && (
                         <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                             <ReportAvatar
-                                noRightMarginOnSubscriptContainer
                                 singleAvatarContainerStyle={styles.mr0}
-                                subscriptAvatarBorderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
+                                subscriptAvatarContainerStyle={styles.mr0}
+                                backdropColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                                 reportID={item.reportID}
                                 size={CONST.AVATAR_SIZE.DEFAULT}
                             />
@@ -95,9 +95,9 @@ function WorkspaceRoomsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: Wo
                                 {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                             >
                                 <ReportAvatar
-                                    noRightMarginOnSubscriptContainer
                                     singleAvatarContainerStyle={styles.mr0}
-                                    subscriptAvatarBorderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
+                                    subscriptAvatarContainerStyle={styles.mr0}
+                                    backdropColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                                     reportID={item.reportID}
                                     size={CONST.AVATAR_SIZE.SMALL}
                                 />

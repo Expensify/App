@@ -7,10 +7,11 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
+import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getAllExpensesToHoldIfApplicable} from '@libs/ReportPrimaryActionUtils';
-import {changeMoneyRequestHoldStatus, getLinkedIOUTransaction} from '@libs/ReportUtils';
+import {getLinkedIOUTransaction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +23,7 @@ import type {SimpleActionProps} from './types';
 
 import useTransactionThreadData from './useTransactionThreadData';
 
-function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
+function RemoveHoldPrimaryAction({reportID, chatReportID, isDisabled}: SimpleActionProps) {
     const {translate} = useLocalize();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -41,6 +42,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
     return (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
+            isDisabled={isDisabled}
             onPress={() => {
                 if (isDelegateAccessRestricted) {
                     showDelegateNoAccessModal();
@@ -57,6 +59,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                         changeMoneyRequestHoldStatus(
                             action,
                             linkedTransaction,
+                            policy,
                             isOffline,
                             currentUserLogin ?? '',
                             currentUserAccountID,
@@ -79,6 +82,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
                 changeMoneyRequestHoldStatus(
                     moneyRequestAction,
                     linkedTransaction,
+                    policy,
                     isOffline,
                     currentUserLogin ?? '',
                     currentUserAccountID,

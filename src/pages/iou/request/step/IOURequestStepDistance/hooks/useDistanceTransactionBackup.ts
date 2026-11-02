@@ -1,13 +1,18 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useOnyx from '@hooks/useOnyx';
 
 import {openReport} from '@libs/actions/Report';
 import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup} from '@libs/actions/TransactionEdit';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasRoute} from '@libs/TransactionUtils';
 
-import type {Beta, IntroSelected, Report, Transaction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {IntroSelected, Report, Transaction} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
+import {getReportPolicyID} from '@selectors/Report';
 import {useEffect} from 'react';
 
 type UseDistanceTransactionBackupParams = {
@@ -25,9 +30,6 @@ type UseDistanceTransactionBackupParams = {
 
     /** The current user's onboarding selection — used by the offline-recovery `openReport` call. */
     introSelected: OnyxEntry<IntroSelected>;
-
-    /** The current user's enabled betas — used by the offline-recovery `openReport` call. */
-    betas: OnyxEntry<Beta[]>;
 
     /** The Concierge chat report */
     conciergeChat: OnyxEntry<Report>;
@@ -48,13 +50,16 @@ function useDistanceTransactionBackup({
     isEditingSplit,
     isDraft,
     introSelected,
-    betas,
     conciergeChat,
     isSelfTourViewed,
     hasCompletedGuidedSetupFlow,
     transactionWasSavedRef,
 }: UseDistanceTransactionBackupParams): void {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [reportPolicyID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {selector: getReportPolicyID});
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(reportPolicyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     // This effect runs when the component is mounted and unmounted. It's purpose is to be able to properly
     // discard changes if the user cancels out of making any changes. This is accomplished by backing up the
     // original transaction, letting the user modify the current transaction, and then if the user ever
@@ -84,11 +89,11 @@ function useDistanceTransactionBackup({
                 reportID: transaction?.reportID,
                 introSelected,
                 conciergeChat,
-                betas,
                 hasReportActions: true,
                 currentUserAccountID,
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
+                fullPolicySnapshot: reportPolicyID && fullPolicySnapshotLastModified ? {policyID: reportPolicyID, lastModified: fullPolicySnapshotLastModified} : undefined,
             });
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount-only effect: backup on mount, restore-or-drop on unmount, never re-runs

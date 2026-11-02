@@ -5,15 +5,18 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useHoldMenuModal from '@hooks/useHoldMenuModal';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import getHoldMenuAmounts from '@libs/HoldMenuUtils';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
@@ -24,6 +27,7 @@ import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
@@ -32,6 +36,7 @@ import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAn
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
 function PayActionButton() {
+    const {isBetaEnabled} = usePermissions();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -45,10 +50,12 @@ function PayActionButton() {
 
     const {iouReportID, chatReportID, chatReport, transactions} = useReportPreviewData();
     const {isPaidAnimationRunning, isApprovedAnimationRunning} = useReportPreviewAnimationState();
-    const {stopAnimation, startAnimation, onPaymentOptionsShow, onPaymentOptionsHide, onHoldMenuOpen} = useReportPreviewActions();
+    const {stopAnimation, startAnimation, onPaymentOptionsShow, onPaymentOptionsHide} = useReportPreviewActions();
+    const {showHoldMenu} = useHoldMenuModal();
     const {buttonMaxWidth} = useReportPreviewUIState();
     const {reportPreviewAction, canIOUBePaid, onlyShowPayElsewhere, shouldShowPayButton} = useReportPreviewActionState();
 
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
@@ -57,7 +64,6 @@ function PayActionButton() {
     const {iouReport, policy, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
@@ -72,6 +78,24 @@ function PayActionButton() {
 
     const formattedAmount = getTotalAmountForIOUReportPreviewButton(iouReport, policy, reportPreviewAction, transactions, convertToDisplayString);
 
+    // Only the pay flow opens this menu. Approve surfaces its partial/full choice in the approve dropdown instead.
+    const openHoldMenu = (paymentType: PaymentMethodType, methodID?: number) => {
+        if (!iouReport) {
+            return;
+        }
+        // Wait one frame so the current touch animation finishes before the modal opens
+        requestAnimationFrame(() => {
+            showHoldMenu({
+                reportID: iouReportID,
+                chatReportID,
+                paymentType,
+                methodID,
+                ...getHoldMenuAmounts(iouReport, shouldShowPayButton, transactions, convertToDisplayString),
+                onConfirm: startAnimation,
+            });
+        });
+    };
+
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type) {
             return;
@@ -79,16 +103,19 @@ function PayActionButton() {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
         } else if (hasHeldExpensesReportUtils(transactions)) {
-            onHoldMenuOpen(type, shouldShowPayButton, methodID);
+            openHoldMenu(type, methodID);
         } else if (chatReport && iouReport) {
             const currentChatReport = getReportOrDraftReport(chatReportID) ?? chatReport;
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
                 payInvoice({
+                    bankAccountList,
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentMethodType: type,
                     chatReport: currentChatReport,
                     invoiceReport: iouReport,
+                    invoiceReportTransactions: transactions,
                     introSelected,
                     currentUserAccountIDParam: currentUserAccountID,
                     currentUserEmailParam: currentUserEmail,
@@ -99,9 +126,8 @@ function PayActionButton() {
                     paymentMethod,
                     activePolicy,
                     conciergeChat,
-                    betas,
                     isSelfTourViewed,
-                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
+                    defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, currentUserDetails.displayName, lastWorkspaceNumber, translate),
                     chatReportActions: getChatReportActions(payAsBusiness),
                     delegateAccountID,
                     isTrackIntentUser,
@@ -109,22 +135,25 @@ function PayActionButton() {
                 });
             } else {
                 payMoneyRequest({
+                    bankAccountList,
+                    isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                     getCurrencyDecimals,
                     paymentType: type,
                     chatReport: currentChatReport,
                     iouReport,
+                    iouReportTransactions: transactions,
                     introSelected,
                     currentUserAccountID,
                     currentUserLogin: currentUserDetails.login ?? '',
                     activePolicy,
                     policy,
                     chatReportPolicy,
-                    betas,
                     isSelfTourViewed,
                     userBillingGracePeriodEnds,
                     amountOwed,
                     ownerBillingGracePeriodEnd,
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                    isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
                     delegateAccountID,

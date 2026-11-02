@@ -1,5 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
-import Text from '@components/Text';
+import FixedFooter from '@components/FixedFooter';
 import TextLink from '@components/TextLink';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -14,7 +14,12 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-function PersonalCardsErrorConfirmation() {
+type PersonalCardsErrorConfirmationProps = {
+    /** Backend-supplied bank connection error message to display */
+    errorMessage?: string;
+};
+
+function PersonalCardsErrorConfirmation({errorMessage}: PersonalCardsErrorConfirmationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['QuestionMark']);
@@ -25,6 +30,7 @@ function PersonalCardsErrorConfirmation() {
     };
 
     const openPlaidLink = () => {
+        clearAddNewPersonalCardErrors();
         setAddNewPersonalCardStepAndData({
             step: CONST.PERSONAL_CARDS.STEP.PLAID_CONNECTION,
             data: {
@@ -37,10 +43,15 @@ function PersonalCardsErrorConfirmation() {
     };
 
     return (
-        <ConfirmationPage
-            heading={translate('personalCard.bankConnectionError')}
-            description={
-                <Text style={[styles.textSupporting, styles.textAlignCenter]}>
+        <ConfirmationPage>
+            <ConfirmationPage.Content>
+                <ConfirmationPage.Illustration
+                    illustration={illustrations.QuestionMark}
+                    illustrationStyle={styles.errorStateCardIllustration}
+                />
+                <ConfirmationPage.Heading>{translate('personalCard.bankConnectionError')}</ConfirmationPage.Heading>
+                <ConfirmationPage.Description style={styles.textSupporting}>
+                    {!!errorMessage && `${errorMessage} `}
                     {translate('personalCard.bankConnectionDescription')}{' '}
                     <TextLink
                         style={[styles.link]}
@@ -48,15 +59,15 @@ function PersonalCardsErrorConfirmation() {
                     >
                         {translate('personalCard.connectWithPlaid')}
                     </TextLink>
-                </Text>
-            }
-            illustration={illustrations.QuestionMark}
-            shouldShowButton
-            illustrationStyle={styles.errorStateCardIllustration}
-            onButtonPress={onButtonPress}
-            buttonText={translate('common.buttonConfirm')}
-            containerStyle={styles.h100}
-        />
+                </ConfirmationPage.Description>
+            </ConfirmationPage.Content>
+            <FixedFooter>
+                <ConfirmationPage.PrimaryButton
+                    text={translate('common.buttonConfirm')}
+                    onPress={onButtonPress}
+                />
+            </FixedFooter>
+        </ConfirmationPage>
     );
 }
 

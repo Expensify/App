@@ -28,7 +28,7 @@ import ROUTES from '@src/ROUTES';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import TestDriveBanner from './TestDriveBanner';
 
@@ -42,7 +42,6 @@ function TestDriveDemo() {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [hasConciergeReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {selector: Boolean});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {
         taskReport: viewTourTaskReport,
@@ -70,7 +69,6 @@ function TestDriveDemo() {
                 openReport({
                     reportID: conciergeReportID,
                     introSelected,
-                    betas,
                     conciergeChat,
                     hasReportActions: hasConciergeReportActions,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
@@ -108,7 +106,6 @@ function TestDriveDemo() {
         conciergeReportID,
         conciergeChat,
         introSelected,
-        betas,
     ]);
 
     useEffect(() => {
@@ -119,7 +116,7 @@ function TestDriveDemo() {
         return () => handle.cancel();
     }, []);
 
-    const closeModal = useCallback(() => {
+    const closeModal = () => {
         setIsVisible(false);
         TransitionTracker.runAfterTransitions({
             callback: () => {
@@ -135,7 +132,7 @@ function TestDriveDemo() {
             },
             waitForUpcomingTransition: true,
         });
-    }, [onboardingReport]);
+    };
 
     return (
         <SafeAreaConsumer>

@@ -11,17 +11,7 @@ jest.mock('@libs/actions/OnyxUpdates');
 jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 
 const AppImplementation = jest.requireActual<typeof AppImport>('@libs/actions/App');
-const {
-    setLocale,
-    setSidebarLoaded,
-    setUpPoliciesAndNavigate,
-    openApp,
-    handleRestrictedEvent,
-    finalReconnectAppAfterActivatingReliableUpdates,
-    createWorkspaceWithPolicyDraftAndNavigateToIt,
-    updateLastVisitedPath,
-    KEYS_TO_PRESERVE,
-} = AppImplementation;
+const {setLocale, setSidebarLoaded, openApp, handleRestrictedEvent, finalReconnectAppAfterActivatingReliableUpdates, updateLastVisitedPath, KEYS_TO_PRESERVE} = AppImplementation;
 
 type AppMockValues<TKey extends OnyxKey = never> = {
     missingOnyxUpdatesToBeApplied: Array<OnyxUpdatesFromServer<TKey>> | undefined;
@@ -85,11 +75,9 @@ export {
     // Actual App implementation
     setLocale,
     setSidebarLoaded,
-    setUpPoliciesAndNavigate,
     openApp,
     handleRestrictedEvent,
     finalReconnectAppAfterActivatingReliableUpdates,
-    createWorkspaceWithPolicyDraftAndNavigateToIt,
     updateLastVisitedPath,
     KEYS_TO_PRESERVE,
 };

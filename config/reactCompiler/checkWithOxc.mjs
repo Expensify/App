@@ -2,7 +2,8 @@
  * React Compiler analysis via oxc-transform-react (sync).
  *
  * Shared 3-state API for the ESLint processor and the CI compliance check.
- * Mirrors web build options from config/rsbuild/rsbuild.common.ts.
+ * Options come from config/babel/oxcReactCompilerConfig.js, the same object the build lanes compile
+ * with. Only `panicThreshold` differs here, for the reason below.
  *
  * `panicThreshold: 'critical_errors'` is what splits the two kinds of diagnostic apart:
  * a Rules-of-React violation aborts the whole transform, while a
@@ -11,7 +12,7 @@
  *
  * A file where one function violates the Rules of React reports `memoized: false`,
  * rather than the partial memoization the compiler would otherwise emit for its remaining functions.
- * `didBothCompilersMemoizeFile` relies on that, since it will only suppress manual-memoization lint rules when the whole file is memoized.
+ * The ESLint processor relies on that, since it will only suppress manual-memoization lint rules when the whole file is memoized.
  *
  * `status` and `memoized` answer different questions and are derived separately. `memoized` comes
  * only from the emitted memo cache: targeting React 19 the compiler can memoize solely by importing
@@ -19,10 +20,12 @@
  * additionally counts a file the compiler rewrote without memoizing it as `compiled`. Deriving
  * `memoized` from that same rewrite would overstate it -- the compiler perturbs output for reasons
  * that have nothing to do with memoization, such as expanding a concise arrow body or dropping a
- * comment, and Babel reports no memo blocks for every file in `src/` where it does.
+ * comment.
  */
 import path from 'node:path';
 import {transformSync} from 'oxc-transform-react';
+
+import oxcReactCompilerConfig from '../babel/oxcReactCompilerConfig.js';
 
 // Any file compiled by React Compiler will have a _c marker in it
 const REACT_COMPILER_MARKER_PATTERN = /_c\(|react\/compiler-runtime/;
@@ -75,13 +78,10 @@ function checkReactCompilerWithOxc(source, filename) {
     const lang = getLang(ext);
     const transformOptions = {
         lang,
-        reactCompiler: {
-            target: '19',
+        reactCompiler: oxcReactCompilerConfig({
+            // 'critical_errors' splits the two kinds of diagnostic apart; the builds use 'none'.
             panicThreshold: 'critical_errors',
-            // Kept in sync with the web build: see the `eslintSuppressionRules` comment in
-            // config/rsbuild/rsbuild.common.ts.
-            eslintSuppressionRules: [],
-        },
+        }),
     };
 
     try {
@@ -137,4 +137,27 @@ function checkReactCompilerWithOxc(source, filename) {
     }
 }
 
+/**
+ * Paths lint never compiles: tests and node_modules. Shared by the lint pipeline, its worker and the
+ * oxlint gate so every caller skips the same files.
+ * @param {string} filename
+ * @returns {boolean}
+ */
+function shouldSkipReactCompiler(filename) {
+    const normalized = filename.split(path.sep).join('/');
+    return normalized.includes('/tests/') || normalized.startsWith('tests/') || normalized.includes('node_modules/');
+}
+
+/**
+ * The one memoization verdict lint uses: false for skipped paths, otherwise whether the compiler
+ * emitted a memo cache for the whole file.
+ * @param {string} source
+ * @param {string} filename
+ * @returns {boolean}
+ */
+function isFileMemoized(source, filename) {
+    return !shouldSkipReactCompiler(filename) && checkReactCompilerWithOxc(source, filename).memoized;
+}
+
+export {isFileMemoized, shouldSkipReactCompiler};
 export default checkReactCompilerWithOxc;

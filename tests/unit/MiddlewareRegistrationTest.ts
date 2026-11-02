@@ -11,6 +11,8 @@ import {
     Pagination,
     Reauthentication,
     RecordFullReconnectTime,
+    ReconcileBulkEditReportAction,
+    ReplaceOptimisticAgentAccountID,
     SaveResponseInOnyx,
     SentryServerTiming,
     SupportalPermission,
@@ -18,6 +20,8 @@ import {
 import registerMiddlewares from '@libs/Middleware/register';
 import type * as RequestModule from '@libs/Request';
 import {addMiddleware} from '@libs/Request';
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({isHybridApp: () => false}));
 
 jest.mock('@libs/Request', () => ({
     ...jest.requireActual<typeof RequestModule>('@libs/Request'),
@@ -33,11 +37,13 @@ const EXPECTED_ORDER: RequestModule.Middleware[] = [
     SupportalPermission,
     GlobalReimbursementPayError,
     HandleUnusedOptimisticID,
+    ReplaceOptimisticAgentAccountID,
     Pagination,
     SentryServerTiming,
     RecordFullReconnectTime,
     LoadPostDataForOpenOrReconnect,
     HandleMovedScanFailedExpenses,
+    ReconcileBulkEditReportAction,
     SaveResponseInOnyx,
     FraudMonitoring,
 ];
@@ -54,9 +60,9 @@ describe('Middleware registration', () => {
         expect(registered).toEqual(EXPECTED_ORDER);
     });
 
-    it('registers all 15 middlewares with no duplicates', () => {
-        expect(registered).toHaveLength(15);
-        expect(new Set(registered).size).toBe(15);
+    it('registers all 17 middlewares with no duplicates', () => {
+        expect(registered).toHaveLength(17);
+        expect(new Set(registered).size).toBe(17);
     });
 
     it('keeps SaveResponseInOnyx after every other Onyx-writing middleware and before FraudMonitoring', () => {
@@ -66,6 +72,7 @@ describe('Middleware registration', () => {
         expect(indexOf(RecordFullReconnectTime)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(LoadPostDataForOpenOrReconnect)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(HandleMovedScanFailedExpenses)).toBeLessThan(indexOf(SaveResponseInOnyx));
+        expect(indexOf(ReconcileBulkEditReportAction)).toBeLessThan(indexOf(SaveResponseInOnyx));
         expect(indexOf(FraudMonitoring)).toBeGreaterThan(indexOf(SaveResponseInOnyx));
     });
 });

@@ -1,8 +1,8 @@
 ---
 title: Set Distance Rates
 description: Set and manage rates for distance reimbursement in your Expensify workspace.
-keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, IRS standard rate, mileage rates, distance bands]
-internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates, does not cover creating distance expenses.
+keywords: [New Expensify, distance rates, mileage reimbursement, enable distance rates, workspace settings, bulk edit rates, auto-update government rate, EUR government mileage rates, IRS standard rate, mileage rates, distance bands, auto-generated rate, lightning bolt icon, default currency change, miles kilometers unit, require GPS or map entry, disable manual distance, disable odometer entry, restrict distance expense types]
+internalScope: Audience is workspace admins. Covers configuring and auto-updating distance rates and requiring GPS or map entry, does not cover creating distance expenses.
 ---
 
 # Set Distance Rates
@@ -15,7 +15,7 @@ Distance rates determine how much members are reimbursed for distance-based trav
 
 Workspace admins can configure distance rates for a workspace.
 
-Automatic updates are available for Control workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
+Automatic updates are available for Control workspaces with a default currency of USD, CAD, GBP, AUD, EUR, NOK, SEK, or ZAR.
 
 ---
 
@@ -71,6 +71,8 @@ Once **Track tax** is enabled, you can assign a tax rate and tax reclaimable amo
    - **Tax reclaimable** (if enabled)
 5. Select **Save**.
 
+On the web, you can also edit a rate's **Name** or **Rate** directly from the table. Hover over the value and click the pencil icon that appears to edit it inline.
+
 ---
 
 ## How to disable or delete distance rates
@@ -94,7 +96,7 @@ Expensify can automatically update distance rates in your workspace when the sta
 
 When **Auto-update government rate** is enabled, Expensify adds a new effective-dated distance rate when a supported government publishes a new rate. This means admins don't need to manually update the standard rate each time it changes.
 
-Automatic updates are available for workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
+Expensify uses the workspace default currency to determine which government publishes the rate: USD for the United States, CAD for Canada, GBP for Great Britain, AUD for Australia, NOK for Norway, SEK for Sweden, and ZAR for South Africa. Because several countries use EUR, workspaces with a default currency of EUR select the country instead: Austria, Belgium, Finland, Germany, the Netherlands, Portugal, or Spain.
 
 To enable automatic updates:
 
@@ -102,6 +104,9 @@ To enable automatic updates:
 2. Select **Distance rates**.
 3. Select **Settings**.
 4. Enable **Auto-update government rate**.
+5. If the workspace default currency is EUR, select a country and click **Save**.
+
+To change the country later, select **Country** under **Auto-update government rate**.
 
 ---
 
@@ -119,6 +124,27 @@ Workspace admins can still edit or disable an automatically added rate.
 
 ---
 
+## How to tell which distance rates Expensify created automatically
+
+On the **Distance rates** page, a rate that Expensify created from a published government rate shows a lightning bolt icon next to its amount. Hovering the icon shows the message **This rate is auto-generated.**
+
+A rate keeps the lightning bolt icon only while its amount, **Start date**, and **End date** still match the government rate it was created from. When a workspace admin edits any of those three values, the rate is no longer an unchanged copy of the government rate and the lightning bolt icon is removed.
+
+Changes Expensify makes on its own, such as converting a rate between **Miles** and **Kilometers**, do not count as an edit. Those rates keep the lightning bolt icon.
+
+---
+
+## What happens to distance rates when you change the workspace default currency
+
+Expensify determines the publishing government from the workspace default currency, so changing the default currency changes which government rate applies. When **Auto-update government rate** is enabled and you change the default currency to another supported currency (if you change it to EUR, you'll select a country first):
+
+- Expensify adds a new government rate for the new currency's country, with the lightning bolt icon.
+- Expensify sets the workspace **Unit** to the unit that country publishes in: **Miles** for the United States and Great Britain, and **Kilometers** for all other supported countries.
+- Government rates created before the change remain in the workspace, converted to the new **Unit** so every rate is shown in the same unit.
+- Those earlier rates keep the lightning bolt icon, because converting a rate to a different unit is not a manual edit. Rates that an admin edited stay without the icon.
+
+---
+
 ## How Expensify selects a distance rate based on the expense date
 
 When a workspace has more than one distance rate, Expensify uses effective dates to determine which rate applies to an expense. This allows a workspace to keep multiple rates active, such as a previous year's rate and a new rate.
@@ -126,6 +152,27 @@ When a workspace has more than one distance rate, Expensify uses effective dates
  - When a member creates a distance expense, Expensify selects the rate whose **Start date** and **End date** include the expense date, using the most narrow and most recent date range if multiple apply,
  - If a member manually selects a rate that isn't valid for the expense date, the expense shows a violation indicating that the rate doesn't match the selected date. 
  - Setting effective dates is optional. Rates without a **Start date** or **End date** continue to apply without an effective-date restriction.
+
+---
+
+## How to require GPS or map entry for distance expenses
+
+Workspace admins can control how members log trips by requiring a map-based route or a GPS-tracked trip on every distance expense. When **Require GPS or map entry** is enabled, manual and odometer entry are disabled for the workspace.
+
+To require GPS or map entry:
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), select **Workspaces > [workspace name]**.
+2. Select **Distance rates**.
+3. Select **Settings**.
+4. Enable **Require GPS or map entry**.
+
+After you enable it:
+
+- Members creating a distance expense on the workspace see only the **Map** and **GPS** options. **Manual** and **Odometer** are hidden.
+- If a member tries to create a manual or odometer distance expense on the workspace, Expensify shows a message that the workspace requires either map-based or GPS-tracked distance expenses.
+- Existing distance expenses are not changed, and members can still edit them.
+
+**Exclude commutes** also requires GPS or map entry, because commute exclusions are calculated from the trip's route. While **Exclude commutes** is set to anything other than **Do not exclude commute**, manual and odometer entry are disabled and **Require GPS or map entry** stays on and locked. To turn off **Require GPS or map entry**, first set **Exclude commutes** to **Do not exclude commute**.
 
 ---
 
@@ -153,7 +200,9 @@ Deleted distance rates are permanently removed from the workspace and cannot be 
 
 ## Can I change the reimbursement rate for existing distance expenses?
 
-No. Updating a distance rate only affects future distance expenses. Existing expenses keep the rate that was applied when the expense was created.
+No. Editing a distance rate only affects future distance expenses. Existing expenses keep the rate that was applied when the expense was created.
+
+Moving an expense or report to another workspace is the one exception: the original workspace's rates don't exist in the destination, so Expensify selects a rate from the destination workspace and recalculates the amount. [Learn what happens to a distance expense that moves to another workspace](/articles/new-expensify/reports-and-expenses/Distance-Expenses).
 
 ## Do I need at least one distance rate?
 
@@ -161,4 +210,16 @@ Yes. When **Distance rates** is enabled, the workspace must always have at least
 
 ## Why isn't Auto-update government rate turned on for my workspace?
 
-**Auto-update government rate** is turned on by default only for new workspaces. Existing workspaces are opted out by default, so you'll need to turn it on manually. It's also only available for workspaces with a default currency of USD, CAD, GBP, AUD, or NZD.
+**Auto-update government rate** is turned on by default only for new workspaces. Existing workspaces are opted out by default, so you'll need to turn it on manually. It's also only available for workspaces with a default currency of USD, CAD, GBP, AUD, EUR, NOK, SEK, or ZAR.
+
+## Why did the lightning bolt icon disappear from one of my distance rates?
+
+The lightning bolt icon means the rate still matches the government rate it was created from. It's removed once a workspace admin changes the rate amount, **Start date**, or **End date**. A rate that Expensify converted between **Miles** and **Kilometers** on its own keeps the icon.
+
+## Why did my workspace switch between Miles and Kilometers?
+
+When **Auto-update government rate** is enabled, Expensify sets the workspace **Unit** to the unit used by the government that publishes rates for your default currency. Changing the workspace default currency can therefore change the **Unit**. Existing rates are converted so they're all shown in the same unit.
+
+## Can I keep government rates for more than one country?
+
+Yes. Government rates added before you changed the workspace default currency remain in the workspace and can still be selected on distance expenses. All rates are shown in the workspace's current **Unit**.

@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 
 import type {GroupChildrenContentProps, TransactionListItemType} from './types';
 
@@ -108,18 +108,16 @@ function GroupChildrenContent({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isScreenFocused]);
 
-    const filteredViolations: Record<string, TransactionViolation[]> = useMemo(() => {
-        if (!snapshotData) {
-            return {};
-        }
-
+    let filteredViolations: Record<string, TransactionViolation[]>;
+    if (!snapshotData) {
+        filteredViolations = {};
+    } else {
         const groupViolations: Record<string, TransactionViolations | undefined> = {};
         for (const [key, value] of Object.entries(snapshotData)) {
             if (key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS)) {
                 groupViolations[key] = value as TransactionViolations;
             }
         }
-
         const result: Record<string, TransactionViolation[]> = {};
         for (const key of Object.keys(snapshotData)) {
             if (!key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)) {
@@ -129,10 +127,8 @@ function GroupChildrenContent({
             if (!snapshotTransaction || typeof snapshotTransaction !== 'object' || !('transactionID' in snapshotTransaction) || !('reportID' in snapshotTransaction)) {
                 continue;
             }
-
             const report = snapshotData[`${ONYXKEYS.COLLECTION.REPORT}${snapshotTransaction.reportID}`];
             const policy = snapshotData[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-
             if (report && policy) {
                 const transactionViolations = groupViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${snapshotTransaction.transactionID}`];
                 if (transactionViolations) {
@@ -151,8 +147,8 @@ function GroupChildrenContent({
                 }
             }
         }
-        return result;
-    }, [snapshotData, currentUserDetails.email, currentUserDetails.accountID]);
+        filteredViolations = result;
+    }
 
     const onExpandedRowLongPress = (transaction: TransactionListItemType) => {
         onLongPressRow?.(transaction);
@@ -183,6 +179,7 @@ function GroupChildrenContent({
             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
             onUndelete={onUndelete}
             hideSearchTableHeader
+            syncScrollKey={groupItem.groupKeyForList}
         />
     );
 }

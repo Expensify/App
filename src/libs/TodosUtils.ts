@@ -4,12 +4,12 @@ import type {BankAccountList, PersonalDetailsList, Policy, Report, ReportActions
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import type {SearchKey} from './SearchUIUtils';
+import type {SearchKey} from './SearchKeyUtils';
 
 import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isGroupPolicy} from './PolicyUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from './ReportPrimaryActionUtils';
-import {didCurrentUserPlaceHoldOnReportExpense, hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions, isArchivedReport, isOpenReport} from './ReportUtils';
+import {didCurrentUserPlaceHoldOnReportExpense, hasOnlyHeldExpenses, isArchivedReport, isOpenReport, isPayOptional} from './ReportUtils';
 
 type CreateTodosReportsAndTransactionsParams = {
     /** Every report, keyed by report Onyx key - iterated to find the expense reports that belong in a to-do bucket */
@@ -73,6 +73,9 @@ type TodoBucketContext = {
     /** The report's name-value pair (looked up by `chatReportID`) - feeds the submit/pay workflow checks */
     reportNameValuePair: OnyxEntry<ReportNameValuePairs>;
 
+    /** The expense report's own name-value pair - the export predicate reads its archive flag, as the server does */
+    expenseReportNameValuePair: OnyxEntry<ReportNameValuePairs>;
+
     /** The report's transactions - inspected for amount, reimbursability, and hold status */
     reportTransactions: Transaction[];
 
@@ -118,6 +121,7 @@ function reportMatchesTodoBucket(
     {
         policy,
         reportNameValuePair,
+        expenseReportNameValuePair,
         reportTransactions,
         reportMetadata,
         allReportActions,
@@ -157,13 +161,16 @@ function reportMatchesTodoBucket(
                     bankAccountList,
                     policy,
                     reportNameValuePairs: reportNameValuePair,
+                    // A failed export only demotes Pay to a secondary action on the report page. The report is still
+                    // payable, so keep it in the pay to-do to match the server's action:pay results.
+                    isSecondaryAction: true,
                 }) &&
-                !hasOnlyNonReimbursableTransactions(report.reportID, reportTransactions) &&
+                !isPayOptional(report, reportTransactions) &&
                 (!allExpensesHeld || currentUserPlacedHold)
             );
         case CONST.SEARCH.SEARCH_KEYS.EXPORT: {
             const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? []);
-            return isExportAction(report, login, policy, reportActions) && policy?.exporter === login;
+            return isExportAction(report, login, policy, reportActions, {shouldAllowAdmin: false, reportNameValuePairs: expenseReportNameValuePair, reportTransactions});
         }
         default:
             return false;
@@ -210,6 +217,7 @@ function createTodosReportsAndTransactions({
         const context: TodoBucketContext = {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
             reportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`],
+            expenseReportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`],
             reportTransactions,
             reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             allReportActions,
@@ -274,6 +282,7 @@ function getTodoReportsForSearchKey(
         const context: TodoBucketContext = {
             policy: allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
             reportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.chatReportID}`],
+            expenseReportNameValuePair: allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`],
             reportTransactions,
             reportMetadata: allReportMetadata?.[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report.reportID}`],
             allReportActions,

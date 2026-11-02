@@ -13,7 +13,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
-import WorkspaceWorkflowsPage from '@pages/workspace/workflows/WorkspaceWorkflowsPage';
+import WorkspaceWorkflowsPageRevamp from '@pages/workspace/workflows/WorkspaceWorkflowsPageRevamp';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -111,7 +111,7 @@ const renderPage = () =>
                         <Stack.Navigator initialRouteName={SCREENS.WORKSPACE.WORKFLOWS}>
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.WORKFLOWS}
-                                component={WorkspaceWorkflowsPage}
+                                component={WorkspaceWorkflowsPageRevamp}
                                 // Approval workflow cards live on the Approvals tab, so deep-link straight to it.
                                 initialParams={{policyID: POLICY_ID, tab: CONST.TAB.WORKFLOWS.APPROVALS}}
                             />
@@ -125,7 +125,7 @@ const renderPage = () =>
 const loadMoreLabel = (count: number) => TestHelper.translateLocal('workflowsPage.loadMoreWorkflows', {count});
 const countWorkflowCards = () => screen.queryAllByText(TestHelper.translateLocal('workflowsExpensesFromPage.title')).length;
 
-describe('WorkspaceWorkflowsPage - Approvals Load more', () => {
+describe('WorkspaceWorkflowsPageRevamp - Approvals Load more', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });

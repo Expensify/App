@@ -1,26 +1,27 @@
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {getForReportAction, getMovedFromOrToReportMessage, getMovedReportID} from '@libs/ModifiedExpenseMessage';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {escapeTagName, isPolicyAdmin} from '@libs/PolicyUtils';
 // eslint-disable-next-line no-restricted-imports -- this is required to allow mocking
 import * as ReportNameUtils from '@libs/ReportNameUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
+import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
 import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
 
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createMock from '../utils/createMock';
-import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Mock PolicyUtils so isPolicyAdmin are controllable in tests. ModifiedExpenseMessage
 // uses named imports from this module; spies alone do not affect those references, so we need a module mock.
 jest.mock('@libs/PolicyUtils', () => ({
-    ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
-    isPolicyAdmin: jest.fn(),
+    ...jest.requireActual<{escapeTagName: typeof escapeTagName; isPolicyAdmin: typeof isPolicyAdmin}>('@libs/PolicyUtils'),
+    isPolicyAdmin: jest.fn<ReturnType<typeof isPolicyAdmin>, Parameters<typeof isPolicyAdmin>>(),
 }));
 
 // Mock ReportNameUtils so buildReportNameFromParticipantNames is controllable.
@@ -46,6 +47,149 @@ describe('ModifiedExpenseMessage', () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+    });
+
+    describe('rule field presence and ordering', () => {
+        let environmentURL: string;
+        const rulesPolicy = createMock<Policy>({id: '1234', areRulesEnabled: true, type: CONST.POLICY.TYPE.CORPORATE});
+
+        beforeAll(async () => {
+            environmentURL = await getEnvironmentURL();
+        });
+
+        function formatRulesAction(originalMessage: OriginalMessageModifiedExpense, policy: Policy | undefined = rulesPolicy): string {
+            return getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction: {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE, originalMessage},
+                policy,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+                movedFromReportName: undefined,
+            });
+        }
+
+        it('groups standalone personal fields before the ordered list and takes precedence over policy rules', () => {
+            // Given interleaved personal list and standalone fields plus policy fields on the same action
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({
+                policyID: '1234',
+                personalRulesModifiedFields: {
+                    merchant: 'Cafe',
+                    reportName: 'Trips',
+                    tax: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention -- matches the persisted tax field name
+                        field_id_TAX: {name: 'VAT', externalID: '', value: '10'},
+                    },
+                    reimbursable: false,
+                    category: 'Food &amp; Drink',
+                    billable: false,
+                    comment: 'Dinner',
+                    description: 'Receipt',
+                },
+                policyRulesModifiedFields: {merchant: 'Ignored policy merchant'},
+            });
+
+            // When the real formatter builds the action message
+            const result = formatRulesAction(originalMessage);
+
+            // Then standalone ordering, list-only first positioning, decoding and personal precedence survive
+            expect(result).toBe(
+                `moved this expense to report "Trips", marked the expense as "non-reimbursable", marked the expense as "non-billable", set the merchant to "Cafe", tax rate to "VAT", category to "Food & Drink", description to "Dinner", and description to "Receipt" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`,
+            );
+        });
+
+        it('decodes producer-escaped tag delimiters, empty entries and HTML through the real decoder', () => {
+            // Given a tag escaped by the same producer used by Policy Tag actions
+            const tag = `${escapeTagName('Department:West')}:Tag &amp; Travel::${String.raw`Path\\Folder`}`;
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({personalRulesModifiedFields: {tag}});
+
+            // When the rule formatter processes the stored colon-delimited tag
+            const result = formatRulesAction(originalMessage);
+
+            // Then escaped colons stay within a tag, empty tags disappear and HTML decodes
+            expect(result).toBe(
+                `set the tag to "${String.raw`Department:West, Tag & Travel, Path\\Folder`}" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`,
+            );
+        });
+
+        it('retains the existing decoder behavior for placeholder character collisions', () => {
+            // Given tag names containing the characters used internally by getTagArrayFromName
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({personalRulesModifiedFields: {tag: '☢:☠'}});
+
+            // When the real formatter passes them through the existing decoder
+            const result = formatRulesAction(originalMessage);
+
+            // Then the existing collision output is retained without replacing the decoder
+            expect(result).toBe(`set the tag to "${String.raw`:, \\`}" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`);
+        });
+
+        it('keeps explicitly undefined fragments while omitted fields produce no fragment', () => {
+            // Given the other optional values present with undefined to distinguish presence from omission
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({
+                personalRulesModifiedFields: {
+                    reportName: undefined,
+                    reimbursable: undefined,
+                    billable: undefined,
+                    merchant: undefined,
+                    tax: undefined,
+                    category: undefined,
+                    comment: undefined,
+                    description: undefined,
+                },
+            });
+
+            // When the formatter reads keys by presence rather than dropping undefined values
+            const result = formatRulesAction(originalMessage);
+            const emptyResult = formatRulesAction(createMock<OriginalMessageModifiedExpense>({personalRulesModifiedFields: {}}));
+
+            // Then string interpolation, boolean truthiness, tax/category fallback and omission remain distinct
+            expect(result).toBe(
+                `moved this expense to report "undefined", marked the expense as "non-reimbursable", marked the expense as "non-billable", set the merchant to "undefined", tax rate to "", category to "", description to "undefined", and description to "undefined" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`,
+            );
+            expect(emptyResult).toBe('');
+        });
+
+        it('preserves present empty strings and renders a present undefined tag as empty', () => {
+            // Given empty optional strings and an undefined tag that must remain a visible fragment
+            const emptyMessage = createMock<OriginalMessageModifiedExpense>({
+                personalRulesModifiedFields: {reportName: '', merchant: '', category: '', tag: '', comment: '', description: ''},
+            });
+            const undefinedTag = createMock<OriginalMessageModifiedExpense>({personalRulesModifiedFields: {merchant: 'Cafe', tag: undefined}});
+
+            // When the real formatter is invoked for each producer outcome
+            const emptyResult = formatRulesAction(emptyMessage);
+            const undefinedResult = formatRulesAction(undefinedTag);
+
+            // Then present empty and undefined tags render without dropping their list position
+            expect(emptyResult).toBe(
+                `moved this expense to report "", set the merchant to "", category to "", tag to "", description to "", and description to "" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`,
+            );
+            expect(undefinedResult).toBe(`set the merchant to "Cafe" and tag to "" via <a href="${environmentURL}/${ROUTES.SETTINGS_RULES}">personal expense rules</a>`);
+        });
+
+        it.each([true, false])('preserves full policy messages and route precedence for admin access %s', (isAdminAccessAllowed) => {
+            // Given mixed policy standalone/list fields and an admin access decision
+            jest.mocked(isPolicyAdmin).mockReturnValue(isAdminAccessAllowed);
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({
+                policyID: '1234',
+                policyRulesModifiedFields: {
+                    tax: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention -- matches the persisted tax field name
+                        field_id_TAX: {name: 'VAT', externalID: '', value: '10'},
+                    },
+                    billable: false,
+                    merchant: 'Cafe',
+                },
+            });
+
+            // When policy rules format with or without workspace rule access
+            const result = formatRulesAction(originalMessage);
+
+            // Then the tax is first only within the list and route selection follows access
+            const route = isAdminAccessAllowed ? `${environmentURL}/workspaces/1234/rules` : CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL;
+            expect(result).toBe(`marked the expense as "non-billable", set the tax rate to "VAT", and merchant to "Cafe" via <a href="${route}">workspace rules</a>`);
+        });
     });
 
     describe('getMovedReportID', () => {
@@ -112,7 +256,7 @@ describe('ModifiedExpenseMessage', () => {
         describe('when moving to a report', () => {
             it('returns "moved expense to personal space" message when moving an expense to selfDM', () => {
                 const selfDMReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM);
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, selfDMReport, CURRENT_USER_ACCOUNT_ID, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, formatPhoneNumber, undefined, selfDMReport, CURRENT_USER_ACCOUNT_ID, undefined, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
                 expect(result).toEqual(expectedResult);
             });
@@ -126,13 +270,13 @@ describe('ModifiedExpenseMessage', () => {
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, selfDMReport, CURRENT_USER_ACCOUNT_ID, policy);
+                const result = getMovedFromOrToReportMessage(translateLocal, formatPhoneNumber, undefined, selfDMReport, CURRENT_USER_ACCOUNT_ID, policy, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedToPersonalSpace');
                 expect(result).toEqual(expectedResult);
             });
             it('returns "moved expense from personal space to chat with reportName" message when moving an expense to policy expense chat with only reportName', () => {
                 const policyExpenseReport = createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, formatPhoneNumber, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, undefined, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName);
                 expect(result).toEqual(expectedResult);
             });
@@ -141,7 +285,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     policyName: 'Policy',
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, formatPhoneNumber, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, undefined, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName, policyExpenseReport.policyName);
                 expect(result).toEqual(expectedResult);
             });
@@ -158,7 +302,7 @@ describe('ModifiedExpenseMessage', () => {
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, policy);
+                const result = getMovedFromOrToReportMessage(translateLocal, formatPhoneNumber, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, policy, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName, policy.name);
                 expect(result).toEqual(expectedResult);
             });
@@ -167,7 +311,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
                     reportName: '',
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, formatPhoneNumber, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, undefined, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.changedTheExpense');
                 expect(result).toEqual(expectedResult);
             });
@@ -185,7 +329,7 @@ describe('ModifiedExpenseMessage', () => {
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, policy);
+                const result = getMovedFromOrToReportMessage(translateLocal, formatPhoneNumber, undefined, policyExpenseReport, CURRENT_USER_ACCOUNT_ID, policy, undefined);
                 // When a valid policy provides a name, the movedFromPersonalSpace message is returned
                 // even if the report has no reportName, because policyName is sufficient.
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', policyExpenseReport.reportName, policy.name);
@@ -202,7 +346,7 @@ describe('ModifiedExpenseMessage', () => {
                     return '';
                 });
 
-                const result = getMovedFromOrToReportMessage(translateLocal, undefined, dmReport, CURRENT_USER_ACCOUNT_ID, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, formatPhoneNumber, undefined, dmReport, CURRENT_USER_ACCOUNT_ID, undefined, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', dmReportName);
                 expect(result).toEqual(expectedResult);
             });
@@ -214,7 +358,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns "moved expense from reportName" message', () => {
-                const result = getMovedFromOrToReportMessage(translateLocal, movedFromReport, undefined, CURRENT_USER_ACCOUNT_ID, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, formatPhoneNumber, movedFromReport, undefined, CURRENT_USER_ACCOUNT_ID, undefined, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', movedFromReport.reportName ?? '');
                 expect(result).toEqual(expectedResult);
             });
@@ -228,7 +372,7 @@ describe('ModifiedExpenseMessage', () => {
                     owner: CURRENT_USER_LOGIN,
                     outputCurrency: CONST.CURRENCY.USD,
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, movedFromReport, undefined, CURRENT_USER_ACCOUNT_ID, policy);
+                const result = getMovedFromOrToReportMessage(translateLocal, formatPhoneNumber, movedFromReport, undefined, CURRENT_USER_ACCOUNT_ID, policy, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', movedFromReport.reportName ?? '');
                 expect(result).toEqual(expectedResult);
             });
@@ -238,7 +382,7 @@ describe('ModifiedExpenseMessage', () => {
                     ...createRandomReport(1, undefined),
                     reportName: '',
                 };
-                const result = getMovedFromOrToReportMessage(translateLocal, reportWithoutName, undefined, CURRENT_USER_ACCOUNT_ID, undefined);
+                const result = getMovedFromOrToReportMessage(translateLocal, formatPhoneNumber, reportWithoutName, undefined, CURRENT_USER_ACCOUNT_ID, undefined, undefined);
                 const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReportNoName');
 
                 expect(result).toEqual(expectedResult);
@@ -246,12 +390,104 @@ describe('ModifiedExpenseMessage', () => {
         });
 
         it('returns undefined when neither movedToReport nor movedFromReport is provided', () => {
-            const result = getMovedFromOrToReportMessage(translateLocal, undefined, undefined, CURRENT_USER_ACCOUNT_ID, undefined);
+            const result = getMovedFromOrToReportMessage(translateLocal, formatPhoneNumber, undefined, undefined, CURRENT_USER_ACCOUNT_ID, undefined, undefined);
             expect(result).toBeUndefined();
         });
     });
 
     describe('getForAction', () => {
+        describe('when a receipt is added', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    transactionID: '1234',
+                    receiptAdded: true,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual('added a receipt');
+            });
+
+            it('takes precedence over the field fragments when other fields are also present', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction: {
+                        ...reportAction,
+                        originalMessage: {...reportAction.originalMessage, oldComment: 'old', newComment: 'new'},
+                    },
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual('added a receipt');
+            });
+        });
+
+        describe('when a receipt is removed', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    transactionID: '1234',
+                    receiptRemoved: true,
+                },
+            };
+
+            it('returns the correct text message', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual('removed a receipt');
+            });
+
+            it('takes precedence over the field fragments when other fields are also present', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction: {
+                        ...reportAction,
+                        originalMessage: {...reportAction.originalMessage, oldComment: 'old', newComment: 'new'},
+                    },
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual('removed a receipt');
+            });
+        });
+
         describe('when the amount is changed', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
@@ -275,6 +511,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -304,6 +542,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -332,6 +572,39 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when confirming a failed-scan placeholder amount (oldAmount and oldCurrency both absent)', () => {
+            // Matches the actual shape returned by the backend for this edit (see #98783): only amount/currency are
+            // persisted, oldAmount/oldCurrency are never included since there's no real previous value to report.
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    amount: 0,
+                    currency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('returns "set the amount" instead of falling back to the generic "changed the expense"', () => {
+                const expectedResult = 'set the amount to $0.00';
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    movedFromReportName: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -362,6 +635,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -393,6 +668,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -426,6 +703,76 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    movedFromReportName: undefined,
+                    formatPhoneNumber,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when only the rate of a distance expense changes', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    merchant: '1,234.56 mi @ $0.70 / mi',
+                    oldMerchant: '1,234.56 mi @ $0.67 / mi',
+                    amount: 86419,
+                    currency: CONST.CURRENCY.USD,
+                    oldAmount: 82716,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            // The backend groups the distance with a thousands separator, so the merchant only matches
+            // DISTANCE_MERCHANT once that separator is allowed. Without it the message wrongly says "distance".
+            it('says the rate changed even when the distance carries a thousands separator', () => {
+                const expectedResult = 'changed the rate to 1,234.56 mi @ $0.70 / mi (previously 1,234.56 mi @ $0.67 / mi), which updated the amount to $864.19 (previously $827.16)';
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    movedFromReportName: undefined,
+                    formatPhoneNumber,
+                });
+
+                expect(result).toEqual(expectedResult);
+            });
+        });
+
+        describe('when only the distance of a distance expense changes', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    merchant: '2,345.67 mi @ $0.67 / mi',
+                    oldMerchant: '1,234.56 mi @ $0.67 / mi',
+                    amount: 157159,
+                    currency: CONST.CURRENCY.USD,
+                    oldAmount: 82716,
+                    oldCurrency: CONST.CURRENCY.USD,
+                },
+            };
+
+            it('says the distance changed', () => {
+                const expectedResult = 'changed the distance to 2,345.67 mi @ $0.67 / mi (previously 1,234.56 mi @ $0.67 / mi), which updated the amount to $1,571.59 (previously $827.16)';
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    movedFromReportName: undefined,
+                    formatPhoneNumber,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -457,6 +804,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -493,6 +842,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -527,6 +878,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -554,6 +907,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -581,6 +936,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -608,6 +965,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -635,6 +994,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -662,6 +1023,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -691,6 +1054,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -722,6 +1087,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -749,6 +1116,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -778,6 +1147,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -809,6 +1180,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -836,6 +1209,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -862,6 +1237,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -892,7 +1269,38 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
+                expect(result).toEqual(expectedResult);
+            });
+
+            it('uses the current currency for the old amount when oldCurrency is missing', () => {
+                const reportActionWithoutOldCurrency = {
+                    ...createRandomReportAction(1),
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    originalMessage: {
+                        oldMerchant: '1.00 km @ €0.70 / km',
+                        merchant: '10.00 km @ €0.70 / km',
+                        oldAmount: 70,
+                        amount: 700,
+                        currency: CONST.CURRENCY.EUR,
+                    },
+                };
+                const expectedResult = `changed the distance to ${reportActionWithoutOldCurrency.originalMessage.merchant} (previously ${reportActionWithoutOldCurrency.originalMessage.oldMerchant}), which updated the amount to €7.00 (previously €0.70)`;
+
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction: reportActionWithoutOldCurrency,
+                    policy: undefined,
+                    policyTags: undefined,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    movedFromReportName: undefined,
+                    formatPhoneNumber,
+                });
+
                 expect(result).toEqual(expectedResult);
             });
         });
@@ -921,6 +1329,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
                 expect(result).toEqual(expectedResult);
             });
@@ -952,6 +1362,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
                 expect(result).toEqual(expectedResult);
             });
@@ -980,6 +1392,8 @@ describe('ModifiedExpenseMessage', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
                     movedFromReport,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
                 expect(result).toEqual(expectedResult);
             });
@@ -1007,6 +1421,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1035,6 +1451,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1063,6 +1481,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1091,6 +1511,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1119,6 +1541,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1138,7 +1562,7 @@ describe('ModifiedExpenseMessage', () => {
                     outputCurrency: 'USD',
                 };
 
-                jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
+                jest.mocked(isPolicyAdmin).mockReturnValue(true);
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -1148,6 +1572,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 // Verify the policyID in the URL exactly matches the policy.id (case-preserved)
@@ -1179,6 +1605,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1207,6 +1635,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1234,6 +1664,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1262,6 +1694,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1280,7 +1714,7 @@ describe('ModifiedExpenseMessage', () => {
 
             beforeEach(() => {
                 // Default: current user has policy rule access (admin + rules enabled), so link points to workspace rules
-                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(true);
+                jest.mocked(isPolicyAdmin).mockReturnValue(true);
             });
 
             it('returns the correct text message with multiple overrides', () => {
@@ -1306,6 +1740,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 const expectedResult = `marked the expense as "billable", marked the expense as "reimbursable", set the category to "Travel", and merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
@@ -1340,6 +1776,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 const expectedResult = `set the tax rate to "New Tax Rate" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
@@ -1367,6 +1805,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 const expectedResult = `set the tax rate to "" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
@@ -1394,6 +1834,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 const expectedResult = `set the category to "Travel" and merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
@@ -1421,6 +1863,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 const expectedResult = `marked the expense as "billable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
@@ -1449,6 +1893,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 const expectedResult = `marked the expense as "reimbursable" and marked the expense as "billable" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
@@ -1457,7 +1903,7 @@ describe('ModifiedExpenseMessage', () => {
             });
 
             it('returns the correct text message with help link for non-admin', () => {
-                jest.mocked(PolicyUtils.isPolicyAdmin).mockReturnValue(false);
+                jest.mocked(isPolicyAdmin).mockReturnValue(false);
 
                 const reportAction = {
                     ...createRandomReportAction(1),
@@ -1479,6 +1925,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toContain(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL);
@@ -1508,6 +1956,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1536,6 +1986,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1567,6 +2019,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1590,6 +2044,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1618,6 +2074,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1644,6 +2102,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual('set the amount to $18.00');
@@ -1669,6 +2129,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual('changed the amount to $25.00 (previously $18.00)');
@@ -1700,6 +2162,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1727,6 +2191,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1754,6 +2220,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1781,6 +2249,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1804,6 +2274,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1832,6 +2304,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1855,6 +2329,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1883,13 +2359,15 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
             });
 
             it('returns the non-admin MCC message when a valid policy is provided but user is not an admin', () => {
-                jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(false);
+                jest.mocked(isPolicyAdmin).mockReturnValue(false);
 
                 const expectedResult = `changed the category based on workspace rule to "Travel" (previously "Food")`;
 
@@ -1908,6 +2386,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 expect(result).toEqual(expectedResult);
@@ -1923,7 +2403,7 @@ describe('ModifiedExpenseMessage', () => {
                     outputCurrency: 'USD',
                 };
 
-                jest.spyOn(PolicyUtils, 'isPolicyAdmin').mockReturnValue(true);
+                jest.mocked(isPolicyAdmin).mockReturnValue(true);
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -1933,6 +2413,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
 
                 // Verify the policyID in the URL exactly matches the policy.id (case-preserved)
@@ -1966,6 +2448,8 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
                 expect(result).toEqual(expectedResult);
             });
@@ -1994,421 +2478,608 @@ describe('ModifiedExpenseMessage', () => {
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: 'test@example.com',
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
                 expect(result).toEqual(expectedResult);
             });
+        });
 
-            it('returns the movedFromReport message unchanged when a policy is provided (policy does not affect the movedFrom path)', () => {
-                const reportAction = {
-                    ...createRandomReportAction(1),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                };
+        it('returns the movedFromReport message unchanged when a policy is provided (policy does not affect the movedFrom path)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            };
 
-                const movedFromReport = {
-                    ...createRandomReport(1, undefined),
-                    reportName: 'Some Report',
-                };
+            const movedFromReport = {
+                ...createRandomReport(1, undefined),
+                reportName: 'Some Report',
+            };
 
-                const policy: Policy = {
+            const policy: Policy = {
+                id: '123',
+                name: 'My Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: CURRENT_USER_LOGIN,
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                movedFromReport,
+                policy,
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
+            });
+            const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', 'Some Report');
+            expect(result).toEqual(expectedResult);
+        });
+
+        it('returns "moved from personal space to workspaceName" using the policy name when moving to a policy expense chat with a valid policy', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            };
+
+            const movedToReport = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyName: 'Old Workspace Name',
+            };
+
+            const policy: Policy = {
+                id: '123',
+                name: 'My Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.TEAM,
+                owner: CURRENT_USER_LOGIN,
+                outputCurrency: CONST.CURRENCY.USD,
+            };
+
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                movedToReport,
+                policy,
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
+            });
+            const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', movedToReport.reportName, policy.name);
+            expect(result).toEqual(expectedResult);
+        });
+
+        it('returns "moved from personal space to workspaceName" using the report policyName when no policy object is provided', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            };
+
+            const movedToReport = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                policyName: 'Report Workspace',
+            };
+
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                movedToReport,
+                policy: undefined,
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
+            });
+            const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', movedToReport.reportName, movedToReport.policyName);
+            expect(result).toEqual(expectedResult);
+        });
+    });
+
+    describe('when the report action is not a modified expense action', () => {
+        const reportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        };
+
+        it('returns an empty string', () => {
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: undefined,
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
+            });
+
+            expect(result).toEqual('');
+        });
+
+        it('returns an empty string even when a valid policy is provided', () => {
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: {
                     id: '123',
                     name: 'My Workspace',
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
-                    owner: CURRENT_USER_LOGIN,
+                    owner: 'test@example.com',
                     outputCurrency: CONST.CURRENCY.USD,
-                };
-
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    movedFromReport,
-                    policy,
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromReport', 'Some Report');
-                expect(result).toEqual(expectedResult);
+                },
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
             });
 
-            it('returns "moved from personal space to workspaceName" using the policy name when moving to a policy expense chat with a valid policy', () => {
-                const reportAction = {
-                    ...createRandomReportAction(1),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                };
+            expect(result).toEqual('');
+        });
+    });
 
-                const movedToReport = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                    policyName: 'Old Workspace Name',
-                };
+    describe('when there are no changes in the original message', () => {
+        const reportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            originalMessage: {},
+        };
 
-                const policy: Policy = {
+        it('returns the generic changed expense message', () => {
+            const expectedResult = 'changed the expense';
+
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: undefined,
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
+            });
+
+            expect(result).toEqual(expectedResult);
+        });
+
+        it('returns the generic changed expense message even when a valid policy is provided', () => {
+            const expectedResult = 'changed the expense';
+
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: {
                     id: '123',
                     name: 'My Workspace',
                     role: CONST.POLICY.ROLE.ADMIN,
                     type: CONST.POLICY.TYPE.TEAM,
-                    owner: CURRENT_USER_LOGIN,
+                    owner: 'test@example.com',
                     outputCurrency: CONST.CURRENCY.USD,
-                };
-
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    movedToReport,
-                    policy,
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', movedToReport.reportName, policy.name);
-                expect(result).toEqual(expectedResult);
+                },
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
             });
 
-            it('returns "moved from personal space to workspaceName" using the report policyName when no policy object is provided', () => {
-                const reportAction = {
-                    ...createRandomReportAction(1),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                };
+            expect(result).toEqual(expectedResult);
+        });
+    });
 
-                const movedToReport = {
-                    ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
-                    policyName: 'Report Workspace',
-                };
+    describe('when the billable field is changed', () => {
+        const reportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            originalMessage: {
+                oldBillable: 'nonBillable',
+                billable: 'billable',
+            },
+        };
 
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    movedToReport,
-                    policy: undefined,
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
-                const expectedResult = translate(CONST.LOCALES.EN as 'en', 'iou.movedFromPersonalSpace', movedToReport.reportName, movedToReport.policyName);
-                expect(result).toEqual(expectedResult);
+        it('returns the correct translated text message', () => {
+            const expectedResult = 'changed the expense to "billable" (previously "non-billable")';
+
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: undefined,
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
             });
+
+            expect(result).toEqual(expectedResult);
         });
 
-        describe('when the report action is not a modified expense action', () => {
-            const reportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-            };
+        it('returns the same message when a valid policy is provided (policy does not affect billable changes)', () => {
+            const expectedResult = 'changed the expense to "billable" (previously "non-billable")';
 
-            it('returns an empty string', () => {
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    policy: undefined,
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
-
-                expect(result).toEqual('');
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: {
+                    id: '123',
+                    name: 'My Workspace',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    owner: 'test@example.com',
+                    outputCurrency: CONST.CURRENCY.USD,
+                },
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
             });
 
-            it('returns an empty string even when a valid policy is provided', () => {
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    policy: {
-                        id: '123',
-                        name: 'My Workspace',
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        type: CONST.POLICY.TYPE.TEAM,
-                        owner: 'test@example.com',
-                        outputCurrency: CONST.CURRENCY.USD,
-                    },
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
+            expect(result).toEqual(expectedResult);
+        });
+    });
 
-                expect(result).toEqual('');
+    describe('when the reimbursable field is changed', () => {
+        const reportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            originalMessage: {
+                oldReimbursable: 'reimbursable',
+                reimbursable: 'nonReimbursable',
+            },
+        };
+
+        it('returns the correct translated text message', () => {
+            const expectedResult = 'changed the expense to "non-reimbursable" (previously "reimbursable")';
+
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: undefined,
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
             });
+
+            expect(result).toEqual(expectedResult);
         });
 
-        describe('when there are no changes in the original message', () => {
-            const reportAction = {
-                ...createRandomReportAction(1),
-                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                originalMessage: {},
-            };
+        it('returns the same message when a valid policy is provided (policy does not affect reimbursable changes)', () => {
+            const expectedResult = 'changed the expense to "non-reimbursable" (previously "reimbursable")';
 
-            it('returns the generic changed expense message', () => {
-                const expectedResult = 'changed the expense';
-
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    policy: undefined,
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
-
-                expect(result).toEqual(expectedResult);
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: {
+                    id: '123',
+                    name: 'My Workspace',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    owner: 'test@example.com',
+                    outputCurrency: CONST.CURRENCY.USD,
+                },
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
             });
 
-            it('returns the generic changed expense message even when a valid policy is provided', () => {
-                const expectedResult = 'changed the expense';
+            expect(result).toEqual(expectedResult);
+        });
+    });
 
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    policy: {
-                        id: '123',
-                        name: 'My Workspace',
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        type: CONST.POLICY.TYPE.TEAM,
-                        owner: 'test@example.com',
-                        outputCurrency: CONST.CURRENCY.USD,
-                    },
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
+    describe('when there are no changes but aiGenerated is true', () => {
+        const reportAction = {
+            ...createRandomReportAction(1),
+            actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+            originalMessage: {aiGenerated: true},
+        };
 
-                expect(result).toEqual(expectedResult);
+        it('returns the AI-attributed message', () => {
+            const expectedResult = 'changed the expense based on past activity';
+
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: undefined,
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
             });
+
+            expect(result).toEqual(expectedResult);
         });
 
-        describe('when the billable field is changed', () => {
+        it('returns the same AI-attributed message when a valid policy is provided', () => {
+            const expectedResult = 'changed the expense based on past activity';
+
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: {
+                    id: '123',
+                    name: 'My Workspace',
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    owner: 'test@example.com',
+                    outputCurrency: CONST.CURRENCY.USD,
+                },
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: 'test@example.com',
+                formatPhoneNumber,
+                movedFromReportName: undefined,
+            });
+
+            expect(result).toEqual(expectedResult);
+        });
+    });
+
+    describe('when attendees are changed', () => {
+        it('returns the correct message with old and new attendees in the right order', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 originalMessage: {
-                    oldBillable: 'nonBillable',
-                    billable: 'billable',
+                    oldAttendees: [{email: 'alice@example.com', displayName: 'Alice', avatarUrl: ''}],
+                    newAttendees: [
+                        {email: 'alice@example.com', displayName: 'Alice', avatarUrl: ''},
+                        {email: 'bob@example.com', displayName: 'Bob', avatarUrl: ''},
+                    ],
                 },
             };
 
-            it('returns the correct translated text message', () => {
-                const expectedResult = 'changed the expense to "billable" (previously "non-billable")';
-
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    policy: undefined,
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
-
-                expect(result).toEqual(expectedResult);
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: undefined,
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+                movedFromReportName: undefined,
             });
 
-            it('returns the same message when a valid policy is provided (policy does not affect billable changes)', () => {
-                const expectedResult = 'changed the expense to "billable" (previously "non-billable")';
-
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    policy: {
-                        id: '123',
-                        name: 'My Workspace',
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        type: CONST.POLICY.TYPE.TEAM,
-                        owner: 'test@example.com',
-                        outputCurrency: CONST.CURRENCY.USD,
-                    },
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
-
-                expect(result).toEqual(expectedResult);
-            });
+            expect(result).toEqual('changed the attendees to Alice, Bob (previously Alice)');
         });
 
-        describe('when the reimbursable field is changed', () => {
+        it('returns "set" message when attendees are added from empty', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 originalMessage: {
-                    oldReimbursable: 'reimbursable',
-                    reimbursable: 'nonReimbursable',
+                    oldAttendees: [],
+                    newAttendees: [{email: 'alice@example.com', displayName: 'Alice', avatarUrl: ''}],
                 },
             };
 
-            it('returns the correct translated text message', () => {
-                const expectedResult = 'changed the expense to "non-reimbursable" (previously "reimbursable")';
-
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    policy: undefined,
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
-
-                expect(result).toEqual(expectedResult);
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: undefined,
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+                movedFromReportName: undefined,
             });
 
-            it('returns the same message when a valid policy is provided (policy does not affect reimbursable changes)', () => {
-                const expectedResult = 'changed the expense to "non-reimbursable" (previously "reimbursable")';
-
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    policy: {
-                        id: '123',
-                        name: 'My Workspace',
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        type: CONST.POLICY.TYPE.TEAM,
-                        owner: 'test@example.com',
-                        outputCurrency: CONST.CURRENCY.USD,
-                    },
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
-
-                expect(result).toEqual(expectedResult);
-            });
+            expect(result).toEqual('set the attendees to Alice');
         });
 
-        describe('when there are no changes but aiGenerated is true', () => {
+        it('returns "removed" message when attendees are cleared', () => {
             const reportAction = {
                 ...createRandomReportAction(1),
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                originalMessage: {aiGenerated: true},
+                originalMessage: {
+                    oldAttendees: [{email: 'alice@example.com', displayName: 'Alice', avatarUrl: ''}],
+                    newAttendees: [],
+                },
             };
 
-            it('returns the AI-attributed message', () => {
-                const expectedResult = 'changed the expense based on past activity';
-
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    policy: undefined,
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
-
-                expect(result).toEqual(expectedResult);
+            const result = getForReportAction({
+                convertToDisplayString,
+                translate: translateLocal,
+                reportAction,
+                policy: undefined,
+                policyTags: undefined,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                currentUserLogin: CURRENT_USER_LOGIN,
+                formatPhoneNumber,
+                movedFromReportName: undefined,
             });
 
-            it('returns the same AI-attributed message when a valid policy is provided', () => {
-                const expectedResult = 'changed the expense based on past activity';
-
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    policy: {
-                        id: '123',
-                        name: 'My Workspace',
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        type: CONST.POLICY.TYPE.TEAM,
-                        owner: 'test@example.com',
-                        outputCurrency: CONST.CURRENCY.USD,
-                    },
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: 'test@example.com',
-                });
-
-                expect(result).toEqual(expectedResult);
-            });
+            expect(result).toEqual('removed the attendees (previously Alice)');
         });
+    });
 
-        describe('when attendees are changed', () => {
-            it('returns the correct message with old and new attendees in the right order', () => {
-                const reportAction = {
-                    ...createRandomReportAction(1),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    originalMessage: {
-                        oldAttendees: [{email: 'alice@example.com', displayName: 'Alice', avatarUrl: ''}],
-                        newAttendees: [
-                            {email: 'alice@example.com', displayName: 'Alice', avatarUrl: ''},
-                            {email: 'bob@example.com', displayName: 'Bob', avatarUrl: ''},
+    describe('vendor changes', () => {
+        // QBO policy with two named vendors used by the resolver. No `config` block — the resolver
+        // must look up vendors regardless of the workspace's current export mode so historical
+        // chat entries keep rendering the vendor name after an admin switches export modes away
+        // from CC/DC. The fourth case below omits a vendor from the list to exercise the
+        // externalID fallback path.
+        const policyWithVendors = createMock<Policy>({
+            id: 'p-1',
+            name: 'My Workspace',
+            role: CONST.POLICY.ROLE.ADMIN,
+            type: CONST.POLICY.TYPE.TEAM,
+            owner: 'test@example.com',
+            outputCurrency: CONST.CURRENCY.USD,
+            connections: {
+                quickbooksOnline: {
+                    data: {
+                        vendors: [
+                            {id: 'v-acme', name: 'Acme', currency: 'USD', email: ''},
+                            {id: 'v-office', name: 'Office Supplies', currency: 'USD', email: ''},
                         ],
                     },
-                };
+                },
+            },
+        });
 
+        describe('when the vendor is set for the first time (oldVendor key stripped by Onyx null-merge)', () => {
+            // Onyx merges with `shouldRemoveNestedNulls: true`, so the optimistic
+            // `oldVendor: null` we write is stripped from storage. The rendered action
+            // must still treat the missing key as a "set" rather than falling back to
+            // the generic "changed the expense" message.
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    vendor: {externalID: 'v-acme', wasManuallySet: true},
+                },
+            };
+
+            it('renders "set the vendor to X"', () => {
                 const result = getForReportAction({
                     convertToDisplayString,
                     translate: translateLocal,
                     reportAction,
-                    policy: undefined,
+                    policy: policyWithVendors,
                     policyTags: undefined,
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
-
-                expect(result).toEqual('changed the attendees to Alice, Bob (previously Alice)');
-            });
-
-            it('returns "set" message when attendees are added from empty', () => {
-                const reportAction = {
-                    ...createRandomReportAction(1),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    originalMessage: {
-                        oldAttendees: [],
-                        newAttendees: [{email: 'alice@example.com', displayName: 'Alice', avatarUrl: ''}],
-                    },
-                };
-
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    policy: undefined,
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: CURRENT_USER_LOGIN,
-                });
-
-                expect(result).toEqual('set the attendees to Alice');
-            });
-
-            it('returns "removed" message when attendees are cleared', () => {
-                const reportAction = {
-                    ...createRandomReportAction(1),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    originalMessage: {
-                        oldAttendees: [{email: 'alice@example.com', displayName: 'Alice', avatarUrl: ''}],
-                        newAttendees: [],
-                    },
-                };
-
-                const result = getForReportAction({
-                    convertToDisplayString,
-                    translate: translateLocal,
-                    reportAction,
-                    policy: undefined,
-                    policyTags: undefined,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    currentUserLogin: CURRENT_USER_LOGIN,
-                });
-
-                expect(result).toEqual('removed the attendees (previously Alice)');
+                expect(result).toEqual('set the vendor to "Acme"');
             });
         });
 
-        describe('vendor changes', () => {
-            // QBO policy with two named vendors used by the resolver. No `config` block — the resolver
-            // must look up vendors regardless of the workspace's current export mode so historical
-            // chat entries keep rendering the vendor name after an admin switches export modes away
-            // from CC/DC. The fourth case below omits a vendor from the list to exercise the
-            // externalID fallback path.
-            const policyWithVendors = createMock<Policy>({
+        describe('when the vendor is changed from one to another', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldVendor: {externalID: 'v-acme', wasManuallySet: false},
+                    vendor: {externalID: 'v-office', wasManuallySet: true},
+                },
+            };
+
+            it('renders "changed the vendor to Y (previously X)"', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyWithVendors,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+                expect(result).toEqual('changed the vendor to "Office Supplies" (previously "Acme")');
+            });
+        });
+
+        describe('when the vendor is removed (vendor key stripped by Onyx null-merge)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    oldVendor: {externalID: 'v-acme', wasManuallySet: true},
+                },
+            };
+
+            it('renders "removed the vendor X"', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyWithVendors,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+                expect(result).toEqual('removed the vendor (previously "Acme")');
+            });
+        });
+
+        describe('when the vendor is set to an ID no longer in the QBO vendor list (e.g. deleted from QBO)', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    vendor: {externalID: 'v-deleted', wasManuallySet: false},
+                },
+            };
+
+            it('falls back to rendering the externalID so the fragment still identifies which vendor was set', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyWithVendors,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+                expect(result).toEqual('set the vendor to "v-deleted"');
+            });
+        });
+
+        describe('when the vendor is no longer in the list but a display name was persisted on the action', () => {
+            const reportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                originalMessage: {
+                    vendor: {externalID: 'v-deleted', name: 'Amazon', wasManuallySet: false},
+                },
+            };
+
+            it('renders the persisted name instead of the raw externalID', () => {
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyWithVendors,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
+                });
+                expect(result).toEqual('set the vendor to "Amazon"');
+            });
+        });
+
+        describe('Xero vendor changes (R4)', () => {
+            // Xero policy with two named supplier contacts. The resolver reads
+            // `connections.xero.data.contacts` (keyed Record).
+            const policyWithXeroSuppliers = createMock<Policy>({
                 id: 'p-1',
                 name: 'My Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
@@ -2416,221 +3087,92 @@ describe('ModifiedExpenseMessage', () => {
                 owner: 'test@example.com',
                 outputCurrency: CONST.CURRENCY.USD,
                 connections: {
-                    quickbooksOnline: {
+                    xero: {
+                        config: {isConfigured: true},
                         data: {
-                            vendors: [
-                                {id: 'v-acme', name: 'Acme', currency: 'USD', email: ''},
-                                {id: 'v-office', name: 'Office Supplies', currency: 'USD', email: ''},
-                            ],
+                            contacts: {
+                                xcAcme: {id: 'xcAcme', name: 'Acme Xero', email: 'acme@example.com'},
+                                xcOffice: {id: 'xcOffice', name: 'Office Supplies Xero', email: 'office@example.com'},
+                            },
                         },
                     },
                 },
             });
 
-            describe('when the vendor is set for the first time (oldVendor key stripped by Onyx null-merge)', () => {
-                // Onyx merges with `shouldRemoveNestedNulls: true`, so the optimistic
-                // `oldVendor: null` we write is stripped from storage. The rendered action
-                // must still treat the missing key as a "set" rather than falling back to
-                // the generic "changed the expense" message.
+            it('renders "set the vendor to X" for a Xero workspace when the vendor is set for the first time', () => {
+                // Given a Xero expense whose vendor is set for the first time
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        vendor: {externalID: 'v-acme', wasManuallySet: true},
+                        vendor: {externalID: 'xcAcme', wasManuallySet: true},
                     },
                 };
-
-                it('renders "set the vendor to X"', () => {
-                    const result = getForReportAction({
-                        convertToDisplayString,
-                        translate: translateLocal,
-                        reportAction,
-                        policy: policyWithVendors,
-                        policyTags: undefined,
-                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                        currentUserLogin: CURRENT_USER_LOGIN,
-                    });
-                    expect(result).toEqual('set the vendor to "Acme"');
+                // When the modified expense message is built
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyWithXeroSuppliers,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
+                // Then it says "vendor" like every other integration
+                expect(result).toEqual('set the vendor to "Acme Xero"');
             });
 
-            describe('when the vendor is changed from one to another', () => {
+            it('renders "changed the vendor to Y (previously X)" when the vendor is changed on a Xero workspace', () => {
+                // Given a Xero expense whose vendor is changed from one contact to another
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        oldVendor: {externalID: 'v-acme', wasManuallySet: false},
-                        vendor: {externalID: 'v-office', wasManuallySet: true},
+                        oldVendor: {externalID: 'xcAcme', wasManuallySet: false},
+                        vendor: {externalID: 'xcOffice', wasManuallySet: true},
                     },
                 };
-
-                it('renders "changed the vendor to Y (previously X)"', () => {
-                    const result = getForReportAction({
-                        convertToDisplayString,
-                        translate: translateLocal,
-                        reportAction,
-                        policy: policyWithVendors,
-                        policyTags: undefined,
-                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                        currentUserLogin: CURRENT_USER_LOGIN,
-                    });
-                    expect(result).toEqual('changed the vendor to "Office Supplies" (previously "Acme")');
+                // When the modified expense message is built
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyWithXeroSuppliers,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
+                // Then it says "vendor" like every other integration
+                expect(result).toEqual('changed the vendor to "Office Supplies Xero" (previously "Acme Xero")');
             });
 
-            describe('when the vendor is removed (vendor key stripped by Onyx null-merge)', () => {
+            it('falls back to rendering the externalID for a Xero vendor no longer in the contacts list', () => {
+                // Given a Xero expense whose vendor was removed from the synced contacts
                 const reportAction = {
                     ...createRandomReportAction(1),
                     actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                     originalMessage: {
-                        oldVendor: {externalID: 'v-acme', wasManuallySet: true},
+                        vendor: {externalID: 'xcDeleted', wasManuallySet: false},
                     },
                 };
-
-                it('renders "removed the vendor X"', () => {
-                    const result = getForReportAction({
-                        convertToDisplayString,
-                        translate: translateLocal,
-                        reportAction,
-                        policy: policyWithVendors,
-                        policyTags: undefined,
-                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                        currentUserLogin: CURRENT_USER_LOGIN,
-                    });
-                    expect(result).toEqual('removed the vendor (previously "Acme")');
+                // When the modified expense message is built
+                const result = getForReportAction({
+                    convertToDisplayString,
+                    translate: translateLocal,
+                    reportAction,
+                    policy: policyWithXeroSuppliers,
+                    policyTags: undefined,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
+                    movedFromReportName: undefined,
                 });
-            });
-
-            describe('when the vendor is set to an ID no longer in the QBO vendor list (e.g. deleted from QBO)', () => {
-                const reportAction = {
-                    ...createRandomReportAction(1),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    originalMessage: {
-                        vendor: {externalID: 'v-deleted', wasManuallySet: false},
-                    },
-                };
-
-                it('falls back to rendering the externalID so the fragment still identifies which vendor was set', () => {
-                    const result = getForReportAction({
-                        convertToDisplayString,
-                        translate: translateLocal,
-                        reportAction,
-                        policy: policyWithVendors,
-                        policyTags: undefined,
-                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                        currentUserLogin: CURRENT_USER_LOGIN,
-                    });
-                    expect(result).toEqual('set the vendor to "v-deleted"');
-                });
-            });
-
-            describe('when the vendor is no longer in the list but a display name was persisted on the action', () => {
-                const reportAction = {
-                    ...createRandomReportAction(1),
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    originalMessage: {
-                        vendor: {externalID: 'v-deleted', name: 'Amazon', wasManuallySet: false},
-                    },
-                };
-
-                it('renders the persisted name instead of the raw externalID', () => {
-                    const result = getForReportAction({
-                        convertToDisplayString,
-                        translate: translateLocal,
-                        reportAction,
-                        policy: policyWithVendors,
-                        policyTags: undefined,
-                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                        currentUserLogin: CURRENT_USER_LOGIN,
-                    });
-                    expect(result).toEqual('set the vendor to "Amazon"');
-                });
-            });
-
-            describe('Xero supplier changes (R4)', () => {
-                // Xero policy with two named supplier contacts. The resolver reads
-                // `connections.xero.data.contacts` (keyed Record), and the label switches to
-                // "supplier" instead of "vendor" because the policy is on Xero.
-                const policyWithXeroSuppliers = createMock<Policy>({
-                    id: 'p-1',
-                    name: 'My Workspace',
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    owner: 'test@example.com',
-                    outputCurrency: CONST.CURRENCY.USD,
-                    connections: {
-                        xero: {
-                            config: {isConfigured: true},
-                            data: {
-                                contacts: {
-                                    xcAcme: {id: 'xcAcme', name: 'Acme Xero', email: 'acme@example.com'},
-                                    xcOffice: {id: 'xcOffice', name: 'Office Supplies Xero', email: 'office@example.com'},
-                                },
-                            },
-                        },
-                    },
-                });
-
-                it('renders "set the supplier to X" for a Xero workspace when the supplier is set for the first time', () => {
-                    const reportAction = {
-                        ...createRandomReportAction(1),
-                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                        originalMessage: {
-                            vendor: {externalID: 'xcAcme', wasManuallySet: true},
-                        },
-                    };
-                    const result = getForReportAction({
-                        convertToDisplayString,
-                        translate: translateLocal,
-                        reportAction,
-                        policy: policyWithXeroSuppliers,
-                        policyTags: undefined,
-                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                        currentUserLogin: CURRENT_USER_LOGIN,
-                    });
-                    expect(result).toEqual('set the supplier to "Acme Xero"');
-                });
-
-                it('renders "changed the supplier to Y (previously X)" when the supplier is changed on a Xero workspace', () => {
-                    const reportAction = {
-                        ...createRandomReportAction(1),
-                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                        originalMessage: {
-                            oldVendor: {externalID: 'xcAcme', wasManuallySet: false},
-                            vendor: {externalID: 'xcOffice', wasManuallySet: true},
-                        },
-                    };
-                    const result = getForReportAction({
-                        convertToDisplayString,
-                        translate: translateLocal,
-                        reportAction,
-                        policy: policyWithXeroSuppliers,
-                        policyTags: undefined,
-                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                        currentUserLogin: CURRENT_USER_LOGIN,
-                    });
-                    expect(result).toEqual('changed the supplier to "Office Supplies Xero" (previously "Acme Xero")');
-                });
-
-                it('falls back to rendering the externalID for a Xero supplier no longer in the contacts list', () => {
-                    const reportAction = {
-                        ...createRandomReportAction(1),
-                        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                        originalMessage: {
-                            vendor: {externalID: 'xcDeleted', wasManuallySet: false},
-                        },
-                    };
-                    const result = getForReportAction({
-                        convertToDisplayString,
-                        translate: translateLocal,
-                        reportAction,
-                        policy: policyWithXeroSuppliers,
-                        policyTags: undefined,
-                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                        currentUserLogin: CURRENT_USER_LOGIN,
-                    });
-                    expect(result).toEqual('set the supplier to "xcDeleted"');
-                });
+                // Then it shows the externalID under the "vendor" wording
+                expect(result).toEqual('set the vendor to "xcDeleted"');
             });
         });
     });

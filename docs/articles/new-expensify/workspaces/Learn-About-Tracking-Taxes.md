@@ -46,4 +46,4 @@ When a rule applies, it overrides the Workspace default tax rate.
 
  - [Learn how to configure Category tax rules](/articles/new-expensify/workspaces/Create-expense-categories#how-to-configure-category-rules). 
  - [Learn how to configure tax rates for Distance expenses](/articles/new-expensify/reports-and-expenses/Distance-Expenses)
- - [Learn how to configure Workspace Merchant Rules for tax rates](/articles/new-expensify/workspaces/Workspace-Merchant-Rules#how-to-create-workspace-merchant-rules).
+ - [Learn how to configure Workspace Merchant Rules for tax rates](/articles/new-expensify/workspaces/Workspace-Merchant-Rules#how-to-create-a-single-merchant-rule).

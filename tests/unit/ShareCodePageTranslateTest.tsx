@@ -1,5 +1,6 @@
 import {render} from '@testing-library/react-native';
 
+import ContextMenuItem from '@components/ContextMenuItem';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
@@ -34,8 +35,6 @@ jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: Rea
 jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
 jest.mock('@components/QRShare/QRShareWithDownload', () => jest.fn(() => null));
 jest.mock('@components/ContextMenuItem', () => jest.fn(() => null));
-jest.mock('@components/MenuItem', () => jest.fn(() => null));
-jest.mock('@components/MenuItem/presets/MenuItemNavigation', () => jest.fn(() => null));
 
 jest.mock('@libs/Avatars/AvatarLookup', () => ({
     ...jest.requireActual<typeof AvatarLookup>('@libs/Avatars/AvatarLookup'),
@@ -56,6 +55,7 @@ jest.mock('@libs/ReportUtils', () => {
 const mockGetDisplayNameForParticipant = jest.mocked(getDisplayNameForParticipant);
 const mockFindLocalAvatarForURL = jest.mocked(findLocalAvatarForURL);
 const mockQRShareWithDownload = jest.mocked(QRShareWithDownload);
+const mockContextMenuItem = jest.mocked(ContextMenuItem);
 
 const PARTICIPANT_A = 717001;
 const PARTICIPANT_B = 717002;
@@ -89,7 +89,35 @@ describe('ShareCodePage', () => {
         await waitForBatchedUpdates();
 
         // Each participant's name resolves via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({hiddenTranslation: 'common.hidden'}));
+    });
+
+    it('hides the rows under the QR code when only the QR code is asked for', async () => {
+        // Given a report, whose share code page normally lists Copy URL under the QR code
+        const report: Report = {reportID: '717200', type: CONST.REPORT.TYPE.EXPENSE};
+        mockContextMenuItem.mockClear();
+        render(
+            <OnyxListItemProvider>
+                <ShareCodePage report={report} />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+        expect(mockContextMenuItem).toHaveBeenCalled();
+
+        // When the page opens from the Share menu, which already has Copy URL and Refer a friend
+        mockContextMenuItem.mockClear();
+        render(
+            <OnyxListItemProvider>
+                <ShareCodePage
+                    report={report}
+                    shouldShowQRCodeOnly
+                />
+            </OnyxListItemProvider>,
+        );
+        await waitForBatchedUpdates();
+
+        // Then only the QR code shows
+        expect(mockContextMenuItem).not.toHaveBeenCalled();
     });
 
     describe('profile QR code avatar logo', () => {

@@ -1,6 +1,6 @@
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-import type {RefObject} from 'react';
+import type {ComponentRef, RefObject} from 'react';
 import type {View} from 'react-native';
 
 type ActiveIntegration = {
@@ -14,7 +14,7 @@ type ActiveIntegrationState = ActiveIntegration & {key: number};
 
 type AccountingStateContextType = {
     activeIntegration?: ActiveIntegration;
-    popoverAnchorRefs: RefObject<Record<string, RefObject<View | null>>>;
+    popoverAnchorRefs: RefObject<Record<string, RefObject<ComponentRef<typeof View> | null>>>;
 };
 
 type AccountingActionsContextType = {

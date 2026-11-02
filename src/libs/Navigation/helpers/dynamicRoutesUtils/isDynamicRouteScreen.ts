@@ -1,6 +1,5 @@
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 
-import type {DynamicRouteSuffix} from '@src/ROUTES';
 import type {Screen} from '@src/SCREENS';
 
 import {dynamicRoutePaths} from './isDynamicRouteSuffix';
@@ -17,7 +16,7 @@ function isDynamicRouteScreen(screenName: Screen): boolean {
         return false;
     }
 
-    return dynamicRoutePaths.has(screenPath as DynamicRouteSuffix);
+    return dynamicRoutePaths.has(screenPath);
 }
 
 export default isDynamicRouteScreen;

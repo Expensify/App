@@ -39,7 +39,7 @@ import type SCREENS from '@src/SCREENS';
 import type {UnassignedCard} from '@src/types/onyx/Card';
 
 import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type CardSelectionStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_CARD_SELECTION>;
@@ -48,7 +48,7 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const policyID = route.params.policyID;
     const feed = route.params.feed;
     const cardID = route.params.cardID;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -61,7 +61,10 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
     const plaidUrl = getPlaidInstitutionIconUrl(feed);
 
     const isEditing = assignCard?.isEditing;
-    const assigneeDisplayName = usePersonalDetailByLogin(assignCard?.cardToAssign?.email ?? '', (personalDetails) => Str.removeSMSDomain(personalDetails?.displayName ?? ''));
+    const assigneeDisplayName = usePersonalDetailByLogin(assignCard?.cardToAssign?.email ?? '', (personalDetails) => {
+        const displayName = personalDetails?.displayName ?? '';
+        return Str.isSMSLogin(displayName) ? formatPhoneNumber(displayName) : displayName;
+    });
     const filteredCardList = getFilteredCardList(list, cardFeeds?.[feed]?.accountList, workspaceCardFeeds, feed);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.cardToAssign?.encryptedCardNumber ?? '');
@@ -131,22 +134,17 @@ function CardSelectionStep({route}: CardSelectionStepProps) {
         });
     };
 
-    const searchedListOptions = useMemo(() => {
-        return tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
-    }, [searchText, cardListOptions]);
+    const searchedListOptions = tokenizedSearch(cardListOptions, searchText, (option) => [option.text]);
 
     const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
 
-    const textInputOptions = useMemo(
-        () => ({
-            headerMessage: searchedListOptions.length ? undefined : translate('common.noResultsFound'),
-            label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
-            value: searchText,
-            onChangeText: setSearchText,
-            shouldBeInsideList: true,
-        }),
-        [cardListOptions.length, searchText, searchedListOptions.length, translate],
-    );
+    const textInputOptions = {
+        headerMessage: searchedListOptions.length ? undefined : translate('common.noResultsFound'),
+        label: cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD ? translate('common.search') : undefined,
+        value: searchText,
+        onChangeText: setSearchText,
+        shouldBeInsideList: true,
+    };
 
     const customListHeader = (
         <View>

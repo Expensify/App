@@ -135,6 +135,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            isVendorMatchingBetaEnabled: false,
             conciergeChat: undefined,
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
@@ -150,7 +151,6 @@ describe('MoneyRequest', () => {
             allTransactionDrafts: {},
             selfDMReport,
             isSelfTourViewed: false,
-            betas: [CONST.BETAS.ALL],
             personalDetails: {},
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionIDs: ['mock-txn-id'],
@@ -761,8 +761,10 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            isVendorMatchingBetaEnabled: false,
             iouType: CONST.IOU.TYPE.CREATE,
             report: fakeReport,
+            moneyRequestReportTransactions: [],
             policy: fakePolicy,
             transaction: fakeTransaction,
             reportID: '1',
@@ -783,7 +785,6 @@ describe('MoneyRequest', () => {
             translate: jest.fn().mockReturnValue('Pending...'),
             quickAction: fakeQuickAction,
             selfDMReport,
-            betas: [CONST.BETAS.ALL],
             recentWaypoints: [] as RecentWaypoint[],
             optimisticTransactionID: 'mock-txn-id',
             optimisticChatReportID: 'mock-chat-id',
@@ -812,6 +813,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             }),
             participantsPolicyTags: {},
             rules: undefined,
@@ -1265,6 +1267,38 @@ describe('MoneyRequest', () => {
 
             expect(Navigation.navigate).toHaveBeenCalledWith(
                 ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, baseParams.transactionID, baseParams.reportID, baseParams.backToReport),
+            );
+        });
+
+        it('should pass backToReport to navigateToConfirmationPage when provided', async () => {
+            // Given backToReport parameter for distance navigation
+            const backToReport = 'test-back-to-report';
+
+            // When distance navigation handles the request
+            handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                backToReport,
+                shouldSkipConfirmation: false,
+                iouType: CONST.IOU.TYPE.SUBMIT,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+
+            await waitForBatchedUpdates();
+
+            // Then it should pass backToReport to navigate to confirmation page
+            expect(Navigation.navigate).toHaveBeenCalledWith(
+                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                    CONST.IOU.ACTION.CREATE,
+                    CONST.IOU.TYPE.SUBMIT,
+                    baseParams.transactionID,
+                    baseParams.reportID,
+                    backToReport,
+                    undefined,
+                    undefined,
+                ),
             );
         });
 
@@ -1742,6 +1776,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
         });
@@ -1760,6 +1795,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
         });
@@ -1778,6 +1814,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             // For policy expense chat, participants have accountID 0 and go through getReportOption
             // which uses conciergeReportID for identifying concierge chat
@@ -1799,6 +1836,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
         });
@@ -1821,6 +1859,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
         });
@@ -1839,6 +1878,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
@@ -1859,6 +1899,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);
@@ -1879,6 +1920,7 @@ describe('MoneyRequest', () => {
                 translate: translateLocal,
                 convertToDisplayString,
                 dateFnsLocale: undefined,
+                formatPhoneNumber,
             });
             expect(Array.isArray(participants)).toBe(true);
             expect(participants.length).toBeGreaterThan(0);

@@ -1,17 +1,18 @@
 import {PressableWithFeedback} from '@components/Pressable';
 
+import useInboxTabIndicatorStatus from '@hooks/useInboxTabIndicatorStatus';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useRootNavigationState from '@hooks/useRootNavigationState';
-import {useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getTabNavigatorStateKey, isReportsTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import Navigation, {startOpenReportSpan} from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {isDeletedAction} from '@libs/ReportActionsUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
+import {getSpan} from '@libs/telemetry/activeSpans';
+import {startNavigateToInboxTabSpan} from '@libs/telemetry/startTabNavigationSpans';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -27,18 +28,14 @@ import {TabActions} from '@react-navigation/native';
 import React, {useEffect, useRef} from 'react';
 
 import getLastRoute from './getLastRoute';
-import getReusableReportsTabStateKey, {getTabNavigatorStateKey} from './getReusableReportsTabStateKey';
+import getReusableReportsTabStateKey from './getReusableReportsTabStateKey';
 import getStringParam from './getStringParam';
+import navigateToInboxTab from './navigateToInboxTab';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 
-function startNavigateToInboxTabSpan({isWideLayout}: {isWideLayout: boolean}) {
-    startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB, {
-        name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-        op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB,
-        forceTransaction: true,
-        attributes: {[CONST.TELEMETRY.ATTRIBUTE_WIDE_LAYOUT]: isWideLayout},
-    });
+function markNavigateToInboxTabWaitedOnOpenReport() {
+    getSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB)?.setAttribute(CONST.TELEMETRY.ATTRIBUTE_WAITED_ON_OPEN_REPORT, true);
 }
 
 type InboxTabButtonProps = {
@@ -119,10 +116,19 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                 const backTo = getStringParam(lastRoute.params, 'backTo');
                 const tabNavigatorStateKey = getTabNavigatorStateKey(rootState);
                 const reusableReportsTabStateKey = getReusableReportsTabStateKey(rootState, reportID, reportActionID, doesLastReportActionExist);
-                const shouldDeferReportActions = !hasVisitedInboxTab.current;
+                // A preloaded tab already rendered the report, so there is nothing left to defer. Passing nested params
+                // here would change the route and fire a second OpenReport. The reusable key is part of the check
+                // because preloadedRouteKeys alone can outlive the mounted report route when the TAB_NAVIGATOR remounts,
+                // and skipping the defer for a screen that is not actually mounted would jank the tab switch.
+                const isPreloaded = isReportsTabPreloaded(rootState) && !!reusableReportsTabStateKey;
+                const shouldDeferReportActions = !hasVisitedInboxTab.current && !isPreloaded;
                 const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(reportID, doesLastReportActionExist ? reportActionID : undefined, referrer, backTo);
 
                 if (reusableReportsTabStateKey && !shouldDeferReportActions) {
+                    if (isPreloaded) {
+                        // The preloaded ReportScreen held its OpenReport until the tab is opened, so this tap triggers it.
+                        markNavigateToInboxTabWaitedOnOpenReport();
+                    }
                     // Focusing the existing tab without nested params preserves the mounted ReportScreen and
                     // avoids rebuilding its cached report list as part of the tab navigation commit.
                     navigationRef.dispatch({
@@ -132,6 +138,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                     return;
                 }
                 if (tabNavigatorStateKey && reportID) {
+                    markNavigateToInboxTabWaitedOnOpenReport();
                     startOpenReportSpan(reportRoute);
                     navigationRef.dispatch({
                         ...TabActions.jumpTo(NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, {
@@ -148,6 +155,7 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
                     });
                     return;
                 }
+                markNavigateToInboxTabWaitedOnOpenReport();
                 Navigation.navigate(reportRoute);
                 return;
             }
@@ -196,17 +204,9 @@ function WideInboxTabButton({selectedTab, statusIndicatorColor, accessibilityLab
 
 function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
-    const {chatTabBrickRoad} = useSidebarOrderedReportsState();
+    const {status: chatTabBrickRoad, indicatorColor: statusIndicatorColor} = useInboxTabIndicatorStatus();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Inbox']);
-
-    let statusIndicatorColor: string | undefined;
-    if (chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO) {
-        statusIndicatorColor = theme.iconSuccessFill;
-    } else if (chatTabBrickRoad) {
-        statusIndicatorColor = theme.danger;
-    }
 
     const accessibilityLabel = chatTabBrickRoad ? `${translate('common.inbox')}. ${translate('common.yourReviewIsRequired')}` : translate('common.inbox');
 
@@ -224,9 +224,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
         if (selectedTab === NAVIGATION_TABS.INBOX) {
             return;
         }
-
-        startNavigateToInboxTabSpan({isWideLayout: false});
-        Navigation.navigate(ROUTES.INBOX);
+        navigateToInboxTab();
     };
 
     return (
@@ -235,7 +233,7 @@ function InboxTabButton({selectedTab, isWideLayout}: InboxTabButtonProps) {
             role={CONST.ROLE.TAB}
             accessibilityLabel={accessibilityLabel}
             accessibilityState={{selected: selectedTab === NAVIGATION_TABS.INBOX}}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={styles.navigationTabBarSlot}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.INBOX}
         >

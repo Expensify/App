@@ -26,7 +26,7 @@ import type {AccountData, BankAccount} from '@src/types/onyx';
 import type {BankName} from '@src/types/onyx/Bank';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useMemo} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type BankAccountListItem = ListItem & {
@@ -64,48 +64,68 @@ function ChooseTransferAccountPage() {
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const selectedAccountID = walletTransfer?.selectedAccountID;
-    const bankAccountOptions = useMemo(() => {
-        const options = Object.values(bankAccountsList ?? {}).map((bankAccount, index): BankAccountListItem => {
-            const bankName = (bankAccount.accountData?.additionalData?.bankName ?? '') as BankName;
-            const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
-            const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
-            const {icon, iconSize, iconStyles} = getBankIcon({bankName, styles});
-            return {
-                value: bankAccountID,
-                text: bankAccount.title,
-                leftElement: icon ? (
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
-                        <Icon
-                            src={icon}
-                            width={iconSize}
-                            height={iconSize}
-                            additionalStyles={iconStyles}
-                        />
-                    </View>
-                ) : null,
-                alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
-                keyForList: `${bankAccountID}-${index}`,
-                isSelected: bankAccountID?.toString() === selectedAccountID,
-                bankAccount,
-            };
-        });
-        return options;
-    }, [bankAccountsList, selectedAccountID, styles, translate]);
 
-    const initiallyFocusedItemKey = useMemo(() => {
-        if (!selectedAccountID) {
-            return undefined;
-        }
+    const [draftAccountID, setDraftAccountID] = useState<string>();
+    const currentSelectedAccountID = draftAccountID ?? selectedAccountID;
+
+    const options = Object.values(bankAccountsList ?? {}).map((bankAccount, index): BankAccountListItem => {
+        const bankName = (bankAccount.accountData?.additionalData?.bankName ?? '') as BankName;
+        const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
+        const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
+        const {icon, iconSize, iconStyles} = getBankIcon({
+            bankName,
+            styles,
+        });
+        return {
+            value: bankAccountID,
+            text: bankAccount.title,
+            leftElement: icon ? (
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mr3]}>
+                    <Icon
+                        src={icon}
+                        width={iconSize}
+                        height={iconSize}
+                        additionalStyles={iconStyles}
+                    />
+                </View>
+            ) : null,
+            alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(bankAccountNumber)}`,
+            keyForList: `${bankAccountID}-${index}`,
+            isSelected: bankAccountID?.toString() === currentSelectedAccountID,
+            bankAccount,
+        };
+    });
+    const bankAccountOptions = options;
+
+    let initiallyFocusedItemKey;
+    if (!selectedAccountID) {
+        initiallyFocusedItemKey = undefined;
+    } else {
         const selectedOption = bankAccountOptions.find((option) => option.value?.toString() === selectedAccountID.toString());
-        return selectedOption?.keyForList;
-    }, [bankAccountOptions, selectedAccountID]);
+        initiallyFocusedItemKey = selectedOption?.keyForList;
+    }
+
+    const saveTransferAccount = () => {
+        const selectedOption = bankAccountOptions.find((option) => option.value?.toString() === currentSelectedAccountID);
+        selectAccountAndNavigateBack(selectedOption?.bankAccount?.accountType, selectedOption?.bankAccount?.accountData);
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveTransferAccount,
+        isDisabled: !currentSelectedAccountID || currentSelectedAccountID === selectedAccountID,
+    };
 
     if (isLoadingOnyxValue(walletTransferResult)) {
-        return <FullscreenLoadingIndicator />;
+        return <FullscreenLoadingIndicator onGoBack={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE)} />;
     }
 
     return (
-        <ScreenWrapper testID="ChooseTransferAccountPage">
+        <ScreenWrapper
+            testID="ChooseTransferAccountPage"
+            enableEdgeToEdgeBottomSafeAreaPadding
+        >
             <HeaderWithBackButton
                 title={translate('chooseTransferAccountPage.chooseAccount')}
                 onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_TRANSFER_BALANCE)}
@@ -114,14 +134,12 @@ function ChooseTransferAccountPage() {
             <SelectionList
                 data={bankAccountOptions}
                 ListItem={SingleSelectListItem}
-                onSelectRow={(value) => {
-                    const accountType = value?.bankAccount?.accountType;
-                    const accountData = value?.bankAccount?.accountData;
-                    selectAccountAndNavigateBack(accountType, accountData);
-                }}
+                onSelectRow={(value) => setDraftAccountID(value?.value?.toString())}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 shouldUpdateFocusedIndex
                 initiallyFocusedItemKey={initiallyFocusedItemKey}
+                addBottomSafeAreaPadding
                 listFooterContent={
                     <MenuItemAction
                         onPress={navigateToAddPaymentMethodPage}

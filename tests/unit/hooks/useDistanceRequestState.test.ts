@@ -4,6 +4,7 @@ import useDistanceRequestState from '@components/MoneyRequestConfirmationList/ho
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import createMock from '../../utils/createMock';
@@ -25,6 +26,9 @@ jest.mock('@libs/DistanceRequestUtils', () => ({
             };
         },
         convertToDistanceInMeters: (distance: number): number => distance,
+        isCommuterExclusionApplicableToRequestType: (iouRequestType: string | undefined): boolean => iouRequestType !== 'distance-manual' && iouRequestType !== 'distance-odometer',
+        hasCommuterExclusionPreviewForPolicy: (transaction: {commuterExclusionPreview?: {policyID: string}} | undefined, policy: {id?: string} | undefined): boolean =>
+            !!policy?.id && transaction?.commuterExclusionPreview?.policyID === policy.id,
     },
 }));
 
@@ -42,11 +46,40 @@ const baseParams: Params = {
     policyForMovingExpenses: undefined,
     isMovingTransactionFromTrackExpense: false,
     isDistanceRequest: true,
+    isPolicyExpenseChat: false,
     iouAmount: 0,
     iouCurrencyCode: 'USD',
 };
 
 describe('useDistanceRequestState', () => {
+    // A home and office exclusion is decided server-side, so the confirmation screen waits for the preview rather
+    // than showing an amount the commute has not been taken off yet. The cases that can never receive a
+    // preview must not wait forever.
+    it.each([
+        ['waits while the preview for this workspace has not arrived yet', {}, true, true],
+        [
+            'stops waiting once the preview for this workspace arrives',
+            {commuterExclusionPreview: {policyID: 'policy1', hasExclusion: false, isWholeTripExcluded: false, commuteDistanceMeters: 0}},
+            true,
+            false,
+        ],
+        ['stops waiting when the route errored, so no preview can arrive', {errorFields: {route: {error: 'oops'}}}, true, false],
+        ['does not wait for a personal expense, which no workspace exclusion governs', {}, false, false],
+        ['does not wait for a manually entered distance, which describes no route to recognize a commute in', {iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL}, true, false],
+        ['does not wait for an odometer distance either', {iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}, true, false],
+    ])('%s', (_caseName, transactionOverrides, isPolicyExpenseChat, expected) => {
+        const {result} = renderHook(() =>
+            useDistanceRequestState({
+                ...baseParams,
+                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {customUnit: {routeDistanceMeters: 10}}, ...transactionOverrides}),
+                policy: createMock<OnyxTypes.Policy>({id: 'policy1', commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE}}),
+                isPolicyExpenseChat,
+            }),
+        );
+
+        expect(result.current.isDistanceRequestWithPendingRoute).toBe(expected);
+    });
+
     it('shouldCalculateDistanceAmount is true on initial mount when iouAmount is 0', () => {
         const {result} = renderHook(() => useDistanceRequestState(baseParams));
         expect(result.current.shouldCalculateDistanceAmount).toBe(true);

@@ -57,7 +57,9 @@ describe('ReportTypingIndicator', () => {
         await waitForBatchedUpdates();
 
         // The typing user's name resolves via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: TYPING_ACCOUNT_ID, shouldFallbackToHidden: false, translate: mockTranslate}));
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(
+            expect.objectContaining({accountID: TYPING_ACCOUNT_ID, shouldFallbackToHidden: false, hiddenTranslation: 'common.hidden'}),
+        );
         expect(screen.getByText('SPY_NAME')).toBeOnTheScreen();
     });
 });

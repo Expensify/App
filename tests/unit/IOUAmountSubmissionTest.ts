@@ -168,6 +168,7 @@ describe('AmountSubmission', () => {
                 localCurrencyCode: CONST.CURRENCY.USD,
             };
             return {
+                isVendorMatchingBetaEnabled: false,
                 report: baseReport,
                 translate: translateLocal,
                 dateFnsLocale: undefined,
@@ -212,8 +213,7 @@ describe('AmountSubmission', () => {
                 duplicateTransactions: {},
                 duplicateTransactionViolations: {},
                 reportAttributesDerivedValue: undefined,
-                betas: [],
-                betaConfiguration: undefined,
+                isASAPSubmitBetaEnabled: false,
                 quickAction: undefined,
                 onboarding: undefined,
                 introSelected: undefined,

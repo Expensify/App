@@ -1,8 +1,10 @@
 import DateUtils from '@libs/DateUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isCurrentActionUnread, isReportPreviewAction} from '@libs/ReportActionsUtils';
-import {isArchivedNonExpenseReport, isUnread} from '@libs/ReportUtils';
+import {getReportNotificationPreference, isArchivedNonExpenseReport, isUnread} from '@libs/ReportUtils';
+import {getLHNUnreadState} from '@libs/SidebarUtils';
 import Visibility from '@libs/Visibility';
 
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
@@ -16,26 +18,83 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useCallback, useEffect, useEffectEvent, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 
 import useAppFocusEvent from './useAppFocusEvent';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsAnonymousUser from './useIsAnonymousUser';
+import useIsHiddenWideTabPreMount from './useIsHiddenWideTabPreMount';
 import useIsReportActionsLoaded from './useIsReportActionsLoaded';
+import useIsReportOutOfSight from './useIsReportOutOfSight';
+import {useDerivedIsEmptyReport} from './useReportAttributes';
 import useReportIsArchived from './useReportIsArchived';
 
 // useRef gets reset when the reportID changes (the list reuses the same instance per report),
-// so we use a module-level variable to track the previous report across re-instantiations.
-let prevReportID: string | null = null;
+// so we use a module-level map to track the previous report across re-instantiations.
+// Keyed by scope so two lists mounted at the same time (the chat list and the money-request
+// table view) don't clobber each other's tracking. Within a scope the entries form a stack of
+// hook instances, because the same scope can also be mounted twice at once (e.g. a money-request
+// list in the RHP over another one in the central pane). The newest instance owns the scope and
+// releases it on unmount, so the list underneath keeps working instead of being left with a
+// stale report ID.
+type ScopeOwner = {instanceID: number; reportID: string | null};
+
+const scopeOwners = new Map<string, ScopeOwner[]>();
+
+let lastInstanceID = 0;
+
+function getScopeReportID(scopeKey: string): string | null | undefined {
+    return scopeOwners.get(scopeKey)?.at(-1)?.reportID;
+}
+
+function claimScope(scopeKey: string, instanceID: number, reportID: string | null) {
+    const owners = scopeOwners.get(scopeKey) ?? [];
+    const owner = owners.find((entry) => entry.instanceID === instanceID);
+
+    if (owner) {
+        owner.reportID = reportID;
+    } else {
+        owners.push({instanceID, reportID});
+    }
+
+    scopeOwners.set(scopeKey, owners);
+}
+
+function releaseScope(scopeKey: string, instanceID: number) {
+    const owners = scopeOwners.get(scopeKey)?.filter((entry) => entry.instanceID !== instanceID);
+
+    if (!owners?.length) {
+        scopeOwners.delete(scopeKey);
+        return;
+    }
+
+    scopeOwners.set(scopeKey, owners);
+}
+
+/** Test-only: clears the module-level scope tracking so state doesn't leak between test cases. */
+function resetMarkAsReadScopes() {
+    scopeOwners.clear();
+    lastInstanceID = 0;
+}
 
 type UseMarkAsReadParams = {
     reportID: string;
     report: OnyxEntry<OnyxTypes.Report>;
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
+
+    /** All sorted actions (the full chain), scanned for unread messages when the app regains focus. Defaults to the visible actions. */
+    sortedReportActions?: OnyxTypes.ReportAction[];
+
     isScrolledToEnd: boolean;
     hasNewerActions: boolean;
+
+    /** Identifies the list surface consuming the hook, so unrelated surfaces don't share previous-report tracking. */
+    scopeKey?: string;
+
+    /** Skips marking as read on report change while the screen is mounted but not navigation-focused (e.g. behind a modal or details screen) */
+    shouldRequireScreenFocus?: boolean;
 };
 
 type UseMarkAsReadResult = {
@@ -46,13 +105,28 @@ type UseMarkAsReadResult = {
     completeSkippedMarkAsRead: () => void;
 };
 
-function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisibleReportActions, isScrolledToEnd, hasNewerActions}: UseMarkAsReadParams): UseMarkAsReadResult {
+function useMarkAsRead({
+    reportID,
+    report,
+    transactionThreadReport,
+    sortedVisibleReportActions,
+    sortedReportActions,
+    isScrolledToEnd,
+    hasNewerActions,
+    scopeKey = 'default',
+    shouldRequireScreenFocus = false,
+}: UseMarkAsReadParams): UseMarkAsReadResult {
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isFocused = useIsFocused();
     const isReportArchived = useReportIsArchived(reportID);
+    const derivedIsEmptyReport = useDerivedIsEmptyReport(reportID);
     const isReportActionsLoaded = useIsReportActionsLoaded(reportID);
+    // A preloaded tab or a hidden wide submit pre-mount mounts this screen before the user sees it. Marking read assumes the
+    // user is looking, so hold every readNewestAction until the tab is focused or the pre-mount is revealed.
+    const isHiddenFromUser = useIsReportOutOfSight();
+    const isHiddenPreMount = useIsHiddenWideTabPreMount();
 
     const [isVisible, setIsVisible] = useState(Visibility.isVisible);
     useEffect(() => {
@@ -65,7 +139,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     // A visible browser window can regain OS focus without any visibility change, and nothing else re-runs the
     // read catch-up in that case, so bump a counter on app focus to re-run it.
     const [appFocusCount, setAppFocusCount] = useState(0);
-    useAppFocusEvent(useCallback(() => setAppFocusCount((count) => count + 1), []));
+    useAppFocusEvent(() => setAppFocusCount((count) => count + 1));
 
     const readActionSkippedRef = useRef(false);
     const userActiveSince = useRef<string>(DateUtils.getDBTime());
@@ -73,13 +147,27 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     const didMarkReportAsReadInitially = useRef(false);
 
     const lastAction = sortedVisibleReportActions.at(0);
-    const isReportUnreadValue = isUnread(report, transactionThreadReport, isReportArchived) || (!!lastAction && isCurrentActionUnread(report, lastAction));
+    const isReportUnreadValue = isUnread(report, transactionThreadReport, isReportArchived, derivedIsEmptyReport) || (!!lastAction && isCurrentActionUnread(report, lastAction));
+
+    const [instanceID] = useState(() => {
+        lastInstanceID += 1;
+        return lastInstanceID;
+    });
 
     useEffect(() => {
         userActiveSince.current = DateUtils.getDBTime();
         didMarkReportAsReadInitially.current = false;
-        prevReportID = reportID;
-    }, [reportID]);
+    }, [reportID, scopeKey, instanceID]);
+
+    useEffect(() => {
+        // A hidden pre-mount must not take the scope from the visible report, so it claims it on reveal.
+        if (isHiddenPreMount) {
+            return;
+        }
+        claimScope(scopeKey, instanceID, reportID);
+    }, [reportID, scopeKey, instanceID, isHiddenPreMount]);
+
+    useEffect(() => () => releaseScope(scopeKey, instanceID), [scopeKey, instanceID]);
 
     useEffect(() => {
         if (isAnonymousUser) {
@@ -92,26 +180,92 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
         return () => subscription.remove();
     }, [reportID, isAnonymousUser]);
 
+    // Telemetry for reports that had unread messages but the LHN did not show as unread before they were opened.
+    // Runs once per opened report, before the initial mark-as-read merges a new lastReadTime, and relies only on the
+    // report's own fields so a wrong derived or LHN value cannot hide the mismatch.
     useEffect(() => {
+        if (isHiddenFromUser || isAnonymousUser || !report?.reportID) {
+            return;
+        }
+
+        const notificationPreference = getReportNotificationPreference(report);
+        const isUnreadByReportFields =
+            report.type === CONST.REPORT.TYPE.CHAT &&
+            !!report.lastVisibleActionCreated &&
+            report.lastVisibleActionCreated > (report.lastReadTime ?? '') &&
+            !!report.lastActorAccountID &&
+            report.lastActorAccountID !== currentUserAccountID &&
+            notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.MUTE &&
+            notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN;
+        if (!isUnreadByReportFields) {
+            return;
+        }
+
+        const lhnUnreadState = getLHNUnreadState(report.reportID);
+        if (lhnUnreadState === 'unread') {
+            return;
+        }
+
+        Log.info('[LHNUnread] Opened unread report that LHN did not show as unread', false, {
+            reportID: report.reportID,
+            lhnUnreadState,
+            derivedIsEmptyReport,
+            hasLastMessageText: !!report.lastMessageText,
+            lastVisibleActionCreated: report.lastVisibleActionCreated,
+            lastReadTime: report.lastReadTime,
+            notificationPreference,
+        });
+        // Only the report ID and hidden flag should re-run this. The report fields are read as of the open.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportID, isHiddenFromUser]);
+
+    useEffect(() => {
+        // Skip while preloaded without latching, so the effect re-runs and marks read once the tab is focused.
+        if (isHiddenFromUser) {
+            return;
+        }
+
         if (!isReportUnreadValue || didMarkReportAsReadInitially.current) {
             didMarkReportAsReadInitially.current = true;
             return;
         }
 
         didMarkReportAsReadInitially.current = true;
+
+        if (hasNewerActions || !isScrolledToEnd) {
+            return;
+        }
+
         readNewestAction(reportID, isReportActionsLoaded);
-    }, [isReportUnreadValue, reportID, isReportActionsLoaded]);
+
+        // `hasNewerActions` and `isScrolledToEnd` are read but intentionally left out of the deps: this effect is the
+        // one-shot initial mark-as-read, and re-running it whenever the user scrolls or pagination state changes would
+        // mark the report as read long after mount.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isHiddenFromUser, isReportUnreadValue, reportID, isReportActionsLoaded]);
 
     const didMarkOnReportChangeRef = useRef(false);
 
     const handleReportChangeMarkAsRead = useEffectEvent(() => {
         didMarkOnReportChangeRef.current = false;
-        if (reportID !== prevReportID) {
+
+        // Same hold as the initial pass: a preloaded tab can satisfy the visible+focus guard while hidden, and cached
+        // actions make isReportActionsLoaded true, so without this it marks the report read before opening. The hold
+        // sits below the reset so a held pass cannot leave a stale true behind for handleAppVisibilityMarkAsRead.
+        if (isHiddenFromUser) {
+            return;
+        }
+
+        if (reportID !== getScopeReportID(scopeKey)) {
+            return;
+        }
+
+        if (shouldRequireScreenFocus && !isFocused) {
             return;
         }
 
         const isLastActionUnread = !!lastAction && isCurrentActionUnread(report, lastAction, sortedVisibleReportActions);
-        if (!isUnread(report, transactionThreadReport, isReportArchived) && !isLastActionUnread) {
+        if (!isUnread(report, transactionThreadReport, isReportArchived, derivedIsEmptyReport) && !isLastActionUnread) {
             return;
         }
         const isFromNotification = route?.params?.referrer === CONST.REFERRER.NOTIFICATION;
@@ -130,9 +284,12 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
     });
 
     // Only re-run on newest-action changes; otherwise any report update can prematurely consume unread state.
+    // isHiddenFromUser is safe to add because it flips once, when the user opens the tab or sees the revealed
+    // pre-mount, and re-running there is the point: the held pass clears a notification referrer and latches a
+    // skipped read.
     useEffect(() => {
         handleReportChangeMarkAsRead();
-    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isReportActionsLoaded]);
+    }, [report?.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, reportID, isVisible, isReportActionsLoaded, isHiddenFromUser]);
 
     // isFocused is passed as an arg because the Effect Event closure can be stale (stuck true) on frozen screens,
     // re-marking a just-unread report as read on report switch
@@ -141,7 +298,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
             didMarkOnReportChangeRef.current = false;
             return;
         }
-        if (reportID !== prevReportID) {
+        if (reportID !== getScopeReportID(scopeKey)) {
             return;
         }
 
@@ -163,7 +320,7 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 
         const isArchivedReport = isArchivedNonExpenseReport(report, isReportArchived);
         const hasNewMessagesInView = isScrolledToEnd;
-        const hasUnreadReportAction = sortedVisibleReportActions.some(
+        const hasUnreadReportAction = (sortedReportActions ?? sortedVisibleReportActions).some(
             (reportAction) =>
                 newMessageTimeReference &&
                 newMessageTimeReference < reportAction.created &&
@@ -199,3 +356,4 @@ function useMarkAsRead({reportID, report, transactionThreadReport, sortedVisible
 }
 
 export default useMarkAsRead;
+export {resetMarkAsReadScopes};

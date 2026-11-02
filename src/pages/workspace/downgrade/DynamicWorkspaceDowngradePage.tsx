@@ -11,7 +11,6 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCompanyFeeds} from '@libs/CardUtils';
@@ -22,7 +21,6 @@ import {arePolicyRulesEnabled, canModifyPlan, isCollectPolicy} from '@libs/Polic
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
-import CONST from '@src/CONST';
 import {downgradeToTeam} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -32,7 +30,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import DowngradeConfirmation from './DowngradeConfirmation';
@@ -47,7 +45,7 @@ function DynamicWorkspaceDowngradePage({route}: DynamicWorkspaceDowngradePagePro
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const ownerPoliciesSelectorWithAccountID = useCallback((policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID), [accountID]);
+    const ownerPoliciesSelectorWithAccountID = (policies: OnyxCollection<Policy>) => ownerPoliciesSelector(policies, accountID);
     const [ownerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: ownerPoliciesSelectorWithAccountID,
     });
@@ -56,8 +54,6 @@ function DynamicWorkspaceDowngradePage({route}: DynamicWorkspaceDowngradePagePro
     const {showConfirmModal, closeModal} = useConfirmModal();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const canPerformDowngrade = () => canModifyPlan(ownerPolicies, policy);
     const isDowngraded = isCollectPolicy(policy);
@@ -102,7 +98,7 @@ function DynamicWorkspaceDowngradePage({route}: DynamicWorkspaceDowngradePagePro
             Navigation.dismissModal();
             return;
         }
-        downgradeToTeam(policy.id, policy.type, policy.isAttendeeTrackingEnabled, isRulesRevampEnabled && arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled));
+        downgradeToTeam(policy.id, policy.type, policy.isAttendeeTrackingEnabled, arePolicyRulesEnabled(policy, policyCategories));
     };
 
     if (!canPerformDowngrade()) {

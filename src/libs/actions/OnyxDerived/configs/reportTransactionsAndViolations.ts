@@ -5,10 +5,10 @@ import type {TransactionViolation} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import {shallowEqual} from 'fast-equals';
+
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
 let transactionReportIDMapping: Record<string, string> = {};
-
-let transactionToReportIDMap: Record<string, string> = {};
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
@@ -63,7 +63,9 @@ export default createOnyxDerivedValueConfig({
 
         for (const transactionKey of transactionsToProcess) {
             const transaction = transactions[transactionKey];
-            const reportID = transaction?.reportID;
+            // A reject the server refused leaves a stale local copy behind. Show it on the original report so the
+            // user can see the error and dismiss it.
+            const reportID = transaction?.rejectFailedFromReportID ?? transaction?.reportID;
 
             // If the reportID of the transaction has changed (e.g. the transaction was split into multiple reports), we need to delete the transaction from the previous reportID and the violations from the previous reportID
             const previousReportID = transactionReportIDMapping[transactionKey];
@@ -81,8 +83,8 @@ export default createOnyxDerivedValueConfig({
                 delete transactionReportIDMapping[transactionKey];
             }
 
-            if (!reportID) {
-                delete transactionToReportIDMap[transactionKey];
+            if (!transaction || !reportID) {
+                delete transactionReportIDMapping[transactionKey];
                 continue;
             }
 
@@ -117,12 +119,15 @@ export default createOnyxDerivedValueConfig({
 
         previousViolations = violations;
 
-        return reportTransactionsAndViolations;
+        // Consumers of this key compare by reference, so handing back `currentValue` when nothing moved keeps them
+        // from re-rendering, and lets the engine skip the write entirely. Shallow is the right granularity because
+        // every report entry this compute changes is cloned first (see `ensureCloned`), so an entry that kept its
+        // reference is an entry nothing happened to.
+        return currentValue && shallowEqual(currentValue, reportTransactionsAndViolations) ? currentValue : reportTransactionsAndViolations;
     },
     // On cache clear, drop the cross-compute state so the map is rebuilt from scratch (see the engine's resetForClear).
     onReset: () => {
         previousViolations = {};
         transactionReportIDMapping = {};
-        transactionToReportIDMap = {};
     },
 });

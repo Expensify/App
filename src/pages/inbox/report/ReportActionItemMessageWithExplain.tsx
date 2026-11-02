@@ -1,4 +1,4 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -43,10 +43,10 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
     const {translate} = useLocalize();
     const personalDetail = useCurrentUserPersonalDetails();
     const {environmentURL} = useEnvironment();
+    const session = useSession();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const delegateAccountID = useDelegateAccountID();
@@ -66,7 +66,6 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
                 translate,
                 currentUserAccountID: personalDetail.accountID,
                 introSelected,
-                betas,
                 conciergeChat,
                 isSelfTourViewed,
                 delegateAccountID,
@@ -77,7 +76,7 @@ function ReportActionItemMessageWithExplain({message, action, childReport, origi
         }
 
         // For all other links, use the default link handler
-        openLink(href, environmentURL);
+        openLink(href, environmentURL, false, session);
     };
 
     return (

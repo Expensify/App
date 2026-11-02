@@ -1,18 +1,35 @@
+import Log from '@libs/Log';
 import {clearPreInsertedOriginalTabRoute, getPreInsertedOriginalTabRoute} from '@libs/Navigation/AppNavigator/createRootStackNavigator/GetStateForActionHandlers';
 import navigationRef from '@libs/Navigation/navigationRef';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
 import {CommonActions, TabActions} from '@react-navigation/native';
 import {DeviceEventEmitter} from 'react-native';
 
 import hasNativeSwipeBackGesture from './hasNativeSwipeBackGesture';
+import {isPreMountBufferHostName} from './isNavigatorName';
+import {cancelWideTabPreMount, isWideTabPreMountInTopFullscreen} from './wideTabPreMount';
 
 // Always set and cleared together - the route name is only meaningful while the flag is true.
 let isFullscreenPreInsertedUnderRHP = false;
 let preInsertedFullscreenRouteName: string | undefined;
+
+// Wide layout keeps the screen beside the RHP visible, so the destination is pre-mounted as a hidden screen in TAB_NAVIGATOR.
+// Its key lets the reveal show it or the cancel remove it, and the route makes sure it is only revealed for the destination
+// it was built for.
+let preMountedFullscreen: {routeKey: string; route: Route} | undefined;
+
+// True from the reveal until the RHP dismiss ends. The revealed screen's focus effects read it to avoid
+// work that would block the RHP slide.
+let isRevealingPreMountedFullscreen = false;
+
+// Resets the revealing flag if the reveal never ends it (e.g. its callback threw), so Search does not skip its overlay for good.
+const REVEALING_SAFETY_TIMEOUT_MS = 5 * CONST.MAX_TRANSITION_DURATION_MS;
+let revealingSafetyTimeoutID: ReturnType<typeof setTimeout> | undefined;
 
 // Set while a neutral placeholder route sits directly under the RHP, so a native swipe-dismiss
 // reveals that placeholder instead of the real destination underneath.
@@ -123,8 +140,7 @@ function captureBufferTransaction(stateAfter: ReturnType<typeof navigationRef.ge
     }
     const rhpRoute = stateAfter.routes.at(-1);
     const bufferRoute = stateAfter.routes.at(-2);
-    const isTopModalBufferHost = rhpRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || rhpRoute?.name === NAVIGATORS.SHARE_MODAL_NAVIGATOR;
-    if (!isTopModalBufferHost || bufferRoute?.name !== SCREENS.PRE_MOUNT_BUFFER) {
+    if (!isPreMountBufferHostName(rhpRoute?.name) || bufferRoute?.name !== SCREENS.PRE_MOUNT_BUFFER) {
         return;
     }
 
@@ -175,11 +191,14 @@ function removeBufferRouteOnly() {
  *
  * Defaults to true (assume dismissible) when the state can't be read, so the buffer never gets
  * silently skipped on uncertain data.
+ *
+ * The Share modal is a flat stack, so the nested probe below only sees a depth when a focused Share screen
+ * renders its own navigator. A pre-insert from a Share screen with inner tabs would then skip the buffer.
  */
 function canNativeSwipeDismissRHP(): boolean {
     const rootState = navigationRef.getRootState();
     const rhpRoute = rootState?.routes.at(-1);
-    if (rhpRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+    if (!isPreMountBufferHostName(rhpRoute?.name)) {
         return true;
     }
 
@@ -193,9 +212,47 @@ function canNativeSwipeDismissRHP(): boolean {
 }
 
 /** Records that `preInsertFullscreenUnderRHP` landed a destination under the RHP, so the cleanup helpers know what to remove later. */
-function markFullscreenPreInsertedUnderRHP(routeName: string | undefined) {
+function markFullscreenPreInsertedUnderRHP(routeName: string | undefined, preMounted?: {routeKey: string; route: Route}) {
     isFullscreenPreInsertedUnderRHP = true;
     preInsertedFullscreenRouteName = routeName;
+    preMountedFullscreen = preMounted;
+}
+
+/** Returns the key of the live wide pre-mount, if any. With `route`, only if the pre-mount was built for that route. */
+function getPreMountedFullscreenRouteKey(route?: Route) {
+    if (!preMountedFullscreen) {
+        return undefined;
+    }
+    return route === undefined || preMountedFullscreen.route === route ? preMountedFullscreen.routeKey : undefined;
+}
+
+/** Returns the pre-mount's key if it can be revealed for `route` and marks it as revealing. Otherwise removes it and returns undefined. */
+function takePreMountedFullscreenForReveal(route: Route): string | undefined {
+    if (!preMountedFullscreen) {
+        return undefined;
+    }
+    const isInTopFullscreen = isWideTabPreMountInTopFullscreen();
+    if (preMountedFullscreen.route !== route || !isInTopFullscreen) {
+        // Built for another route, or covered by a tab navigator pushed later (e.g. a Cmd+K result): fall back to a regular reveal.
+        Log.hmmm('[preMountBuffer] Wide pre-mount dropped before reveal', {preMountedRoute: preMountedFullscreen.route, route, isInTopFullscreen});
+        removePreInsertedFullscreenIfNeeded();
+        return undefined;
+    }
+    const {routeKey} = preMountedFullscreen;
+    preMountedFullscreen = undefined;
+    clearFullscreenPreInsertedFlag();
+    setIsRevealingPreMountedFullscreen(true);
+    return routeKey;
+}
+
+function setIsRevealingPreMountedFullscreen(value: boolean) {
+    clearTimeout(revealingSafetyTimeoutID);
+    revealingSafetyTimeoutID = value ? setTimeout(() => setIsRevealingPreMountedFullscreen(false), REVEALING_SAFETY_TIMEOUT_MS) : undefined;
+    isRevealingPreMountedFullscreen = value;
+}
+
+function getIsRevealingPreMountedFullscreen() {
+    return isRevealingPreMountedFullscreen;
 }
 
 function getIsFullscreenPreInsertedUnderRHP() {
@@ -206,11 +263,18 @@ function getPreInsertedFullscreenRouteName() {
     return preInsertedFullscreenRouteName;
 }
 
-/** Called once the pre-inserted destination is confirmed, so it should stay - only the Buffer route in front of it needs cleaning up. */
+/**
+ * Clears the pre-insert before a plain dismiss that skips the reveal. On narrow the route under the RHP is already the
+ * destination, so only Buffer is removed. On wide the hidden pre-mount is removed, since a plain dismiss would not show it.
+ */
 function clearFullscreenPreInsertedFlag() {
+    if (preMountedFullscreen) {
+        removePreInsertedFullscreenIfNeeded();
+    }
     removeBufferRouteOnly();
     isFullscreenPreInsertedUnderRHP = false;
     preInsertedFullscreenRouteName = undefined;
+    preMountedFullscreen = undefined;
     clearPreInsertedOriginalTabRoute();
 }
 
@@ -226,9 +290,18 @@ function removePreInsertedFullscreenIfNeeded() {
     }
 
     const routeNameToRemove = preInsertedFullscreenRouteName;
+    const preMountedRouteKey = preMountedFullscreen?.routeKey;
 
     isFullscreenPreInsertedUnderRHP = false;
     preInsertedFullscreenRouteName = undefined;
+    preMountedFullscreen = undefined;
+
+    // A pre-mount key exists only on wide layout, where the destination is a hidden screen in TAB_NAVIGATOR,
+    // so removing it is the whole cleanup.
+    if (preMountedRouteKey) {
+        cancelWideTabPreMount();
+        return;
+    }
 
     DeviceEventEmitter.emit(CONST.MODAL_EVENTS.RESTORE_RHP_ANIMATION);
 
@@ -238,9 +311,9 @@ function removePreInsertedFullscreenIfNeeded() {
     }
 
     const topRoute = rootState.routes.at(-1);
-    const isRHPStillOnTop = topRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
+    const isModalHostStillOnTop = isPreMountBufferHostName(topRoute?.name);
 
-    if (isRHPStillOnTop && routeNameToRemove) {
+    if (isModalHostStillOnTop && routeNameToRemove) {
         // Call this before dispatching below, so its listener teardown happens before this dispatch
         // can trigger it.
         removeBufferRouteOnly();
@@ -303,8 +376,12 @@ export {
     captureBufferTransaction,
     clearFullscreenPreInsertedFlag,
     getIsFullscreenPreInsertedUnderRHP,
+    getIsRevealingPreMountedFullscreen,
     getPreInsertedFullscreenRouteName,
+    getPreMountedFullscreenRouteKey,
     markFullscreenPreInsertedUnderRHP,
     recoverFromPreMountBuffer,
     removePreInsertedFullscreenIfNeeded,
+    setIsRevealingPreMountedFullscreen,
+    takePreMountedFullscreenForReveal,
 };

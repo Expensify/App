@@ -1,13 +1,12 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {LoginToAccountIDMapDerivedValue, PersonalDetailsList, PolicyCategories, PolicyCategory} from '@src/types/onyx';
+import type {LoginToAccountIDMapDerivedValue, PersonalDetailsList, PolicyCategories} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {sortAlphabetically} from './OptionsListUtils';
+import sortAlphabetically from './sortAlphabetically';
 
 function getNormalizedString(value?: string): string | undefined {
     const normalizedValue = value?.trim();
@@ -34,29 +33,6 @@ function normalizeAttendees(attendees: Attendee[] | undefined): Attendee[] {
     return (attendees ?? []).map(normalizeAttendee);
 }
 
-/** Formats the title for requiredFields menu item based on which fields are enabled in the policy category */
-function formatRequiredFieldsTitle(translate: LocaleContextProps['translate'], policyCategory: PolicyCategory, isAttendeeTrackingEnabled = false): string {
-    const enabledFields: string[] = [];
-
-    // Attendees field should show first when both are selected and attendee tracking is enabled
-    if (isAttendeeTrackingEnabled && policyCategory.areAttendeesRequired) {
-        enabledFields.push(translate('iou.attendees'));
-    }
-
-    if (policyCategory.areCommentsRequired) {
-        enabledFields.push(translate('common.description'));
-    }
-
-    if (enabledFields.length === 0) {
-        return '';
-    }
-
-    const [first, ...rest] = enabledFields;
-    const capitalizedFirst = first.charAt(0).toUpperCase() + first.slice(1);
-    const lowercasedRest = rest.map((field) => field.charAt(0).toLowerCase() + field.slice(1));
-    return [capitalizedFirst, ...lowercasedRest].join(', ');
-}
-
 /**
  * Converts raw attendees value to an array.
  * Onyx may deserialize arrays as plain objects, so both shapes are handled.
@@ -71,12 +47,24 @@ function convertAttendeesToArray(rawAttendees: unknown): Attendee[] {
     return [];
 }
 
+/**
+ * Counts the attendees other than the expense owner. The backend leaves out the report owner rather than the viewer, so this does the same.
+ * If the owner is unknown, assumes they're one of the attendees.
+ */
+function getAttendeesMinusOwnerCount(attendees: Attendee[], ownerLogin: string | null | undefined): number {
+    if (!ownerLogin) {
+        return Math.max(0, attendees.length - 1);
+    }
+    const normalizedOwnerLogin = ownerLogin.toLowerCase();
+    return attendees.filter((attendee) => attendee?.email?.toLowerCase() !== normalizedOwnerLogin).length;
+}
+
 /** Returns whether there are missing attendees for the given category */
 function getIsMissingAttendeesViolation(
     policyCategories: PolicyCategories | undefined,
     category: string,
     iouAttendees: Attendee[] | string | undefined,
-    userPersonalDetails: CurrentUserPersonalDetails,
+    ownerLogin: string | undefined,
     isAttendeeTrackingEnabled = false,
     isControlPolicy = false,
 ) {
@@ -91,16 +79,8 @@ function getIsMissingAttendeesViolation(
         return false;
     }
 
-    const creatorLogin = userPersonalDetails.login ?? '';
-    const creatorEmail = userPersonalDetails.email ?? '';
     const attendees = convertAttendeesToArray(iouAttendees);
-    // Check both login and email since attendee objects may have identifier in either property
-    const attendeesMinusCreatorCount = attendees.filter((a) => {
-        const attendeeIdentifier = a?.email;
-        return attendeeIdentifier !== creatorLogin && attendeeIdentifier !== creatorEmail;
-    }).length;
-
-    if (attendees.length === 0 || attendeesMinusCreatorCount === 0) {
+    if (attendees.length === 0 || getAttendeesMinusOwnerCount(attendees, ownerLogin) === 0) {
         return true;
     }
 
@@ -117,7 +97,7 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
     policyCategories: PolicyCategories | undefined,
     category: string,
     attendees: Attendee[] | undefined,
-    userPersonalDetails: CurrentUserPersonalDetails,
+    ownerLogin: string | undefined,
     isAttendeeTrackingEnabled: boolean,
     isControlPolicy: boolean,
     isInvoice = false,
@@ -129,7 +109,7 @@ function syncMissingAttendeesViolation<T extends {name: string}>(
 
     const hasMissingAttendeesViolation = violations.some((v) => v.name === CONST.VIOLATIONS.MISSING_ATTENDEES);
     const shouldShowMissingAttendees =
-        isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], userPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy);
+        isControlPolicy && getIsMissingAttendeesViolation(policyCategories ?? {}, category ?? '', attendees ?? [], ownerLogin, isAttendeeTrackingEnabled, isControlPolicy);
 
     if (!hasMissingAttendeesViolation && shouldShowMissingAttendees) {
         // Add violation when it should show but isn't present from BE
@@ -172,9 +152,9 @@ function enrichAndSortAttendees(
             return {
                 ...a,
                 accountID,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
+                // intentional || to fall back when personalDetails has an empty string
                 displayName: pd?.displayName || a?.displayName,
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- intentional || to fall back when personalDetails has an empty string
+                // intentional || to fall back when personalDetails has an empty string
                 avatarUrl: freshAvatar || a?.avatarUrl,
             };
         }),
@@ -183,4 +163,4 @@ function enrichAndSortAttendees(
     );
 }
 
-export {enrichAndSortAttendees, formatRequiredFieldsTitle, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation, convertAttendeesToArray};
+export {enrichAndSortAttendees, getAttendeesMinusOwnerCount, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation, convertAttendeesToArray};

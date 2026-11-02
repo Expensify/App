@@ -15,11 +15,19 @@ import {
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
 } from '@libs/actions/Policy/Category';
+import {
+    buildOptimisticMccGroup,
+    buildOptimisticPolicyCategories,
+    buildOptimisticPolicyWithExistingCategories,
+    DEFAULT_MCC_GROUP,
+    isDefaultMccGroupID,
+} from '@libs/actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategory} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -56,7 +64,7 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            setWorkspaceRequiresCategory(policyData.current, true);
+            setWorkspaceRequiresCategory(policyData.current, true, false);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -148,10 +156,14 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            renamePolicyCategory(policyData.current, {
-                oldName: oldCategoryName ?? '',
-                newName: newCategoryName,
-            });
+            renamePolicyCategory(
+                policyData.current,
+                {
+                    oldName: oldCategoryName ?? '',
+                    newName: newCategoryName,
+                },
+                false,
+            );
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -202,6 +214,7 @@ describe('actions/PolicyCategory', () => {
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
             setWorkspaceCategoryEnabled({
+                isVendorMatchingBetaEnabled: false,
                 policyData: policyData.current,
                 categoriesToUpdate,
                 isSetupCategoriesTaskParentReportArchived: false,
@@ -255,7 +268,7 @@ describe('actions/PolicyCategory', () => {
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
 
             const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-            deleteWorkspaceCategories(policyData.current, categoriesToDelete, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false, undefined);
+            deleteWorkspaceCategories(policyData.current, categoriesToDelete, false, undefined, undefined, CONST.DEFAULT_NUMBER_ID, false, undefined, false);
             await waitForBatchedUpdates();
             await new Promise<void>((resolve) => {
                 const connection = Onyx.connect({
@@ -305,7 +318,7 @@ describe('actions/PolicyCategory', () => {
             });
 
             // Then disable the categories feature
-            enablePolicyCategories({...policyData.current, categories: fakeCategories}, false, false);
+            enablePolicyCategories({...policyData.current, categories: fakeCategories}, false, false, false);
 
             // Then verify the categories feature are disabled and all the lists are disabled too (offline + online behaviour)
             await waitForBatchedUpdates();
@@ -366,7 +379,7 @@ describe('actions/PolicyCategory', () => {
             });
 
             // Then enable the categories feature
-            enablePolicyCategories({...policyData.current, categories: fakeCategories}, true, false);
+            enablePolicyCategories({...policyData.current, categories: fakeCategories}, true, false, false);
 
             // Then verify the categories feature are enabled and all the lists are enabled too (offline + online behaviour)
             await waitForBatchedUpdates();
@@ -694,6 +707,77 @@ describe('actions/PolicyCategory', () => {
 
             expect(importFinalModal.promptKey).toStrictEqual('spreadsheet.importCategoriesNoneAddedOrUpdated');
         });
+
+        it('Sends payroll code and category rule fields to the API', async () => {
+            // Given a category import that maps every Classic category column
+            const fakePolicy = createRandomPolicy(0);
+            const categoriesToImport: PolicyCategory[] = [
+                {
+                    name: 'Travel',
+                    enabled: true,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'GL Code': '6000',
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Payroll Code': 'P100',
+                    areCommentsRequired: true,
+                    commentHint: 'Add the trip purpose',
+                    expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY,
+                    maxExpenseAmount: 5000,
+                },
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the categories are imported
+            await importPolicyCategories(fakePolicy.id, categoriesToImport);
+
+            // Then the new fields are passed through to the backend instead of being dropped from the payload
+            TestHelper.expectAPICommandToHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET, 0, {
+                policyID: fakePolicy.id,
+                categories: JSON.stringify([
+                    {
+                        name: 'Travel',
+                        enabled: true,
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'GL Code': '6000',
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        'Payroll Code': 'P100',
+                        areCommentsRequired: true,
+                        commentHint: 'Add the trip purpose',
+                        expenseLimitType: CONST.POLICY.EXPENSE_LIMIT_TYPES.DAILY,
+                        maxExpenseAmount: 5000,
+                    },
+                ]),
+            });
+        });
+
+        it('Counts a category as updated when only its payroll code or description hint changes', async () => {
+            // Given existing categories whose GL code and enabled state will not change
+            const fakePolicy = createRandomPolicy(0);
+            const existingCategories = {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                Travel: {name: 'Travel', enabled: true, 'GL Code': '6000', 'Payroll Code': 'P100'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                Meals: {name: 'Meals', enabled: true, 'GL Code': '6001', commentHint: 'Old hint'},
+            };
+            const categoriesToImport: PolicyCategory[] = [
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Travel', enabled: true, 'GL Code': '6000', 'Payroll Code': 'P200'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {name: 'Meals', enabled: true, 'GL Code': '6001', commentHint: 'New hint'},
+            ];
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await waitForBatchedUpdates();
+
+            // When the categories are imported
+            const importFinalModal = await importPolicyCategories(fakePolicy.id, categoriesToImport, existingCategories);
+
+            // Then both categories are reported as updated in the confirmation modal
+            expect(importFinalModal.promptKey).toBe('spreadsheet.importCategoriesUpdated');
+            expect(importFinalModal.promptKeyParams).toStrictEqual({count: 2});
+        });
     });
 
     describe('setPolicyCategoryReceiptsAndItemizedReceiptRequired', () => {
@@ -727,7 +811,7 @@ describe('actions/PolicyCategory', () => {
             await waitForBatchedUpdates();
 
             // When setting receipt required to Never, which should cascade itemized receipt to Never as well
-            setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData.current, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE, CONST.DISABLED_MAX_EXPENSE_VALUE);
+            setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData.current, categoryName, CONST.DISABLED_MAX_EXPENSE_VALUE, CONST.DISABLED_MAX_EXPENSE_VALUE, false);
             await waitForBatchedUpdates();
 
             // Then both fields should be optimistically updated to Never (DISABLED_MAX_EXPENSE_VALUE) with pending state
@@ -800,7 +884,7 @@ describe('actions/PolicyCategory', () => {
             await waitForBatchedUpdates();
 
             // When setting itemized receipt required to Always, which should cascade receipt required to Always as well
-            setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData.current, categoryName, 0, 0);
+            setPolicyCategoryReceiptsAndItemizedReceiptRequired(policyData.current, categoryName, 0, 0, false);
             await waitForBatchedUpdates();
 
             // Then both fields should be optimistically updated to Always (0) with pending state
@@ -841,6 +925,133 @@ describe('actions/PolicyCategory', () => {
                     },
                 });
             });
+        });
+    });
+
+    describe('OptimisticPolicyCategoriesAndMccGroups', () => {
+        it('buildOptimisticPolicyCategories adds each category, clears the draft and clears the pending action on success', () => {
+            const policyID = 'policy1';
+
+            const onyxData = buildOptimisticPolicyCategories(policyID, ['Advertising', 'Benefits']);
+
+            expect(onyxData.optimisticData).toStrictEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy1`,
+                    value: {
+                        Advertising: {name: 'Advertising', enabled: true, errors: null, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                        Benefits: {name: 'Benefits', enabled: true, errors: null, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}policy1`,
+                    value: null,
+                },
+            ]);
+
+            expect(onyxData.successData).toStrictEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy1`,
+                    value: {
+                        Advertising: {errors: null, pendingAction: null},
+                        Benefits: {errors: null, pendingAction: null},
+                    },
+                },
+            ]);
+
+            const failureUpdate = onyxData.failureData?.[0];
+            expect(onyxData.failureData).toHaveLength(1);
+            expect(failureUpdate?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect(failureUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy1`);
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- MERGE value is a partial policy categories patch
+            const failureCategories = failureUpdate && 'value' in failureUpdate ? (failureUpdate.value as PolicyCategories) : undefined;
+            expect(Object.keys(failureCategories ?? {})).toStrictEqual(['Advertising', 'Benefits']);
+            expect(Object.keys(failureCategories?.Advertising?.errors ?? {})).toHaveLength(1);
+            expect(Object.keys(failureCategories?.Benefits?.errors ?? {})).toHaveLength(1);
+        });
+
+        it('buildOptimisticPolicyWithExistingCategories keeps every category field and skips the ones pending delete', () => {
+            const policyID = 'policy2';
+            const categories: PolicyCategories = {
+                Advertising: {name: 'Advertising', enabled: true, areCommentsRequired: true},
+                Travel: {name: 'Travel', enabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            };
+
+            const onyxData = buildOptimisticPolicyWithExistingCategories(policyID, categories);
+
+            expect(onyxData.optimisticData).toStrictEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy2`,
+                    value: {
+                        Advertising: {name: 'Advertising', enabled: true, areCommentsRequired: true, errors: null, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}policy2`,
+                    value: null,
+                },
+            ]);
+
+            expect(onyxData.successData).toStrictEqual([
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy2`,
+                    value: {
+                        Advertising: {errors: null, pendingAction: null},
+                        Travel: {errors: null, pendingAction: null},
+                    },
+                },
+            ]);
+
+            const failureUpdate = onyxData.failureData?.[0];
+            expect(onyxData.failureData).toHaveLength(1);
+            expect(failureUpdate?.onyxMethod).toBe(Onyx.METHOD.MERGE);
+            expect(failureUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}policy2`);
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- MERGE value is a partial policy categories patch
+            const failureCategories = failureUpdate && 'value' in failureUpdate ? (failureUpdate.value as PolicyCategories) : undefined;
+            expect(Object.keys(failureCategories ?? {})).toStrictEqual(['Advertising', 'Travel']);
+            expect(Object.keys(failureCategories?.Advertising?.errors ?? {})).toHaveLength(1);
+            expect(Object.keys(failureCategories?.Travel?.errors ?? {})).toHaveLength(1);
+        });
+
+        it('DEFAULT_MCC_GROUP mirrors the default MCC groups with a pending add action', () => {
+            for (const [groupID, definition] of Object.entries(CONST.POLICY.DEFAULT_MCC_GROUPS)) {
+                expect(DEFAULT_MCC_GROUP[groupID]).toStrictEqual({...definition, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD});
+            }
+        });
+
+        it('buildOptimisticMccGroup returns copies of the default groups so callers cannot mutate the shared constant', () => {
+            const mccGroupData = buildOptimisticMccGroup();
+
+            expect(Object.keys(mccGroupData.optimisticData.mccGroup)).toStrictEqual(Object.keys(DEFAULT_MCC_GROUP));
+
+            for (const groupID of Object.keys(DEFAULT_MCC_GROUP)) {
+                expect(mccGroupData.optimisticData.mccGroup[groupID]).toStrictEqual(DEFAULT_MCC_GROUP[groupID]);
+                expect(mccGroupData.optimisticData.mccGroup[groupID]).not.toBe(DEFAULT_MCC_GROUP[groupID]);
+            }
+
+            expect(mccGroupData.successData.mccGroup).toStrictEqual(Object.fromEntries(Object.keys(DEFAULT_MCC_GROUP).map((groupID) => [groupID, {pendingAction: null}])));
+            expect(mccGroupData.failureData).toStrictEqual({mccGroup: null});
+        });
+
+        it('isDefaultMccGroupID only accepts IDs present in the default MCC groups', () => {
+            // Given the default MCC group IDs from CONST
+            for (const groupID of Object.keys(CONST.POLICY.DEFAULT_MCC_GROUPS)) {
+                // When the ID is checked
+                // Then it is recognized as a default group ID
+                expect(isDefaultMccGroupID(groupID)).toBe(true);
+            }
+
+            // Given an ID that is not a default MCC group
+            // When it is checked
+            // Then it is rejected
+            expect(isDefaultMccGroupID('notAMccGroupID')).toBe(false);
         });
     });
 });

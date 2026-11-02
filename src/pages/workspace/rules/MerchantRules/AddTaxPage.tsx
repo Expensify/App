@@ -4,12 +4,11 @@ import RuleTaxesDisabledEmptyState from '@components/Rule/RuleTaxesDisabledEmpty
 import useOnyx from '@hooks/useOnyx';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
-import {hasUsableTaxRates, isCategoryRuleDraft} from '@libs/CategoryTaxRulesUtils';
+import {hasUsableTaxRates, isCategoryRuleDraft, isSelectableTaxRate} from '@libs/CategoryTaxRulesUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -38,14 +37,14 @@ function AddTaxPage({route}: AddTaxPageProps) {
     // showing an empty picker.
     const areTaxesEnabled = hasUsableTaxRates(policy);
 
-    // Writing the workspace default rate deletes the rule, so offering it here would remove rather than save.
     const isCategoryRule = isCategoryRuleDraft(form, categoryName);
-    const defaultExternalID = policy?.taxRates?.defaultExternalID;
-    const shouldHideTax = (taxKey: string) => isCategoryRule && taxKey === defaultExternalID;
 
     const taxes = policy?.taxRates?.taxes ?? {};
     const taxItems = Object.entries(taxes)
-        .filter(([taxKey, tax]) => !tax.isDisabled && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !shouldHideTax(taxKey))
+        // The rate the rule already holds always stays listed, whatever state it is in now. A rate can be disabled,
+        // or become the workspace default, after a rule chose it, and dropping it here left the picker with nothing
+        // marked selected, so the admin couldn't tell what the rule applies, only that it wasn't any of the options.
+        .filter(([taxKey, tax]) => taxKey === form?.tax || isSelectableTaxRate(policy, taxKey, tax, isCategoryRule))
         .map(([taxKey, tax]) => ({
             name: `${tax.name} (${tax.value})`,
             value: taxKey,

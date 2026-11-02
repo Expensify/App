@@ -3,6 +3,7 @@ import type {MultifactorAuthenticationChallengeObject} from '@libs/MultifactorAu
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
+import type {VacationDelegatePolicyDiff} from './VacationDelegate';
 
 /** Model of commands data */
 type Data = {
@@ -11,6 +12,9 @@ type Data = {
 
     /** Collection of auth write requests */
     authWriteCommands: string[];
+
+    /** Workspaces the vacation delegate is missing from, returned with jsonCode 305 by SetVacationDelegate */
+    policyDiff?: VacationDelegatePolicyDiff;
 };
 
 /** Model of server response */
@@ -31,6 +35,12 @@ type Response<TKey extends OnyxKey> = {
     requestID?: string;
 
     reportID?: string;
+
+    /** Authoritative transaction thread for an edit; 0 means Auth has no thread for the expense. */
+    transactionThreadReportID?: number | string;
+
+    /** Null means no action is included in this response; an action saved by an earlier retry may still exist. */
+    modifiedExpenseReportAction?: Record<string, unknown> | null;
 
     /**
      * Whether the sequential queue should not send any requests to the server.
@@ -122,6 +132,15 @@ type Response<TKey extends OnyxKey> = {
 
     /** Cache key returned from GetExpensifyCardStatementPDF */
     statementKey?: string;
+
+    /** Whether the ParseExpenseFilters command successfully parsed the natural-language query */
+    success?: boolean;
+
+    /** Search URL returned by ParseExpenseFilters on success */
+    searchURL?: string;
+
+    /** Human-readable summary of the parsed filters returned by ParseExpenseFilters on success */
+    humanReadableSummary?: string;
 };
 
 export default Response;

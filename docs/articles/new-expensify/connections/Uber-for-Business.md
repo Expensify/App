@@ -41,14 +41,16 @@ As an admin, you can also automatically keep your Uber for Business roster in sy
 - Invite new workspace members to Uber for Business
 - Deactivate removed workspace members from Uber for Business
 
-## Configure a Centralized Billing Account (Optional)
+## How to choose the central billing account for Uber receipts
 
 We will automatically detect if your Uber for Business organization uses centralized billing, but you’ll still need to choose which Expensify account should receive the receipts:
 
-1. Go to **Workspaces > Receipt partners > Uber for Business**.
-2. Click **Edit** next to **Central billing account**.
-3. Select a workspace member (The workspace owner is selected by default).
-4. Save your changes.
+1. Go to **Workspaces > [Workspace Name] > Receipt partners**.
+2. Click **Central billing account**.
+3. Select a workspace member (the workspace owner is selected by default).
+4. Click **Save**.
+
+Selecting a member only highlights that member — the change isn’t applied until you click **Save**. **Save** stays disabled until you select a different member, and if you leave the page without clicking **Save**, the central billing account stays unchanged.
 
 # Disconnect Uber for Business
 

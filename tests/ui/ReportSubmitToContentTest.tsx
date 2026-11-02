@@ -65,12 +65,10 @@ jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
 // flag, billing/violations, country code) is deliberately `undefined` so a newly added dependency fails loudly here
 // rather than silently receiving the submitter login.
 jest.mock('@hooks/useOnyx', () =>
-    jest.fn((key: string, options?: {selector?: unknown}) => {
+    jest.fn((key: string) => {
         switch (key) {
             case mockPersonalDetailsListKey:
-                // With a selector this read is `submitterLogin` (the report owner's login); without one it is the
-                // full personal-details map.
-                return options?.selector ? ['submitter@example.com'] : [mockPersonalDetailsList];
+                return [mockPersonalDetailsList];
             case mockLoginsKey:
                 return [{}];
             default:
@@ -78,7 +76,7 @@ jest.mock('@hooks/useOnyx', () =>
         }
     }),
 );
-jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: jest.fn(() => false)})));
+jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: jest.fn(() => false), isBetaEnabledOrUnknown: jest.fn(() => false)})));
 jest.mock('@hooks/useSearchShouldCalculateTotals', () => jest.fn(() => false));
 jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getMinimumHeight: () => ({})})));
 jest.mock('@hooks/useThemeStyles', () => jest.fn(() => new Proxy({}, {get: () => ({})})));
@@ -88,10 +86,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({dismissToPreviousRHP: jest.fn()
 jest.mock('@libs/OptionsListUtils', () => ({
     getSearchValueForPhoneOrEmail: jest.fn((value: string) => value),
     getUserToInviteOption: jest.fn(() => null),
-    sortAlphabetically: jest.fn((items: unknown[]) => items),
 }));
 jest.mock('@libs/PersonalDetailsUtils', () => ({
     getKnownAccountIDByLogin: jest.fn(() => undefined),
+    getLoginByAccountID: jest.fn(() => 'submitter@example.com'),
     getPersonalDetailsByID: jest.fn(() => undefined),
 }));
 jest.mock('@libs/PolicyUtils', () => ({
@@ -107,7 +105,14 @@ jest.mock('@libs/PolicyUtils', () => ({
 jest.mock('@libs/ReportUtils', () => ({
     hasViolations: jest.fn(() => false),
     isExpenseReport: jest.fn(() => true),
+    hasReportBeenRejectedToSubmitter: jest.fn(() => false),
     isMoneyRequestReportPendingDeletion: jest.fn(() => false),
+    shouldShowMarkAsDone: jest.fn(() => false),
+}));
+// useTransactionsAndViolationsForReport reads this context; the recipient-selection paths under test don't
+// exercise any transaction/violation, so the default (no reports loaded yet) is sufficient here.
+jest.mock('@components/OnyxListItemProvider', () => ({
+    useAllReportsTransactionsAndViolations: jest.fn(() => undefined),
 }));
 jest.mock('@libs/tokenizedSearch', () => jest.fn(() => []));
 jest.mock('@libs/UserUtils', () => ({expensifyLoginsSelector: jest.fn()}));
@@ -118,7 +123,6 @@ jest.mock('@userActions/IOU/ReportWorkflow', () => ({submitReport: jest.fn()}));
 
 jest.mock('@selectors/Account', () => ({delegateEmailSelector: jest.fn()}));
 jest.mock('@selectors/Onboarding', () => ({isTrackIntentUserSelector: jest.fn()}));
-jest.mock('@src/selectors/PersonalDetails', () => ({personalDetailsLoginSelector: jest.fn(() => jest.fn())}));
 
 // Read the props off the real `SelectionList` mock (no re-derived narrowed shape), so the test stops compiling if a
 // prop it reads (`confirmButtonOptions`, `listEmptyContent`, `textInputOptions`, `children`…) is renamed or retyped.
@@ -133,13 +137,14 @@ const policy = {
     },
 };
 
-function renderContent() {
+function renderContent(overrideProps?: {shouldResolveAcknowledgedViolations?: boolean; onSubmitWithManagerEmail?: jest.Mock}) {
     return render(
         <ReportSubmitToContent
             report={report}
             policy={policy}
             isLoadingReportData={false}
             onDismiss={jest.fn()}
+            {...overrideProps}
         />,
     );
 }

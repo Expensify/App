@@ -15,7 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 import {useTravelCVVActions, useTravelCVVState} from './TravelCVVContextProvider';
 
@@ -33,9 +33,9 @@ function TravelCVVVerifyAccountPage() {
     const primaryLogin = usePrimaryContactMethod();
     const travelCard = getTravelBillingCard(cardList);
 
-    const navigateBack = useCallback(() => {
+    const navigateBack = () => {
         Navigation.goBack(ROUTES.SETTINGS_WALLET_TRAVEL_CVV);
-    }, []);
+    };
 
     const handleRevealCardDetails = (validateCode: string) => {
         if (!travelCard?.cardID) {

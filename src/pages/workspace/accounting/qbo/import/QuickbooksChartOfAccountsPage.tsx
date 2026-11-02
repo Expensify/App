@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
@@ -21,6 +22,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
+import {View} from 'react-native';
 
 function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -51,12 +53,14 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
                 disabled
                 showLockIcon
             />
-            <MenuItemWithTopDescription
-                interactive={false}
-                title={translate('workspace.common.categories')}
-                description={translate('workspace.common.displayedAs')}
-                wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt2]}
-            />
+            <View style={styles.mt2}>
+                <MenuItemSectionRoot>
+                    <MenuItemField.Row
+                        name={translate('workspace.common.displayedAs')}
+                        value={translate('workspace.common.categories')}
+                    />
+                </MenuItemSectionRoot>
+            </View>
             <Text style={styles.pv5}>{translate('workspace.qbo.accountsSwitchTitle')}</Text>
             <ToggleSettingOptionRow
                 title={translate('workspace.common.enabled')}

@@ -21,7 +21,7 @@ jest.mock('@libs/actions/Report', () => {
     return {
         ...actual,
         editReportComment: jest.fn(),
-        clearReportActionDrafts: jest.fn(),
+        clearAllReportActionDrafts: jest.fn(),
     };
 });
 
@@ -58,9 +58,10 @@ jest.mock('@hooks/useReportIsArchived', () => ({
     default: () => false,
 }));
 
+const mockScrollToBottom = jest.fn();
 jest.mock('@hooks/useReportScrollManager', () => ({
     __esModule: true,
-    default: () => ({scrollToIndex: jest.fn()}),
+    default: () => ({scrollToBottom: mockScrollToBottom}),
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -98,6 +99,7 @@ describe('useEditMessage', () => {
             await Onyx.clear();
         });
         jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     function renderUseEditMessage(overrides?: Partial<HookProps>) {
@@ -141,5 +143,63 @@ describe('useEditMessage', () => {
 
         const args = mockShowDeleteModal.mock.calls.at(0);
         expect(args?.[1]?.reportActionID).toBe(props.reportAction?.reportActionID);
+    });
+
+    it('scrolls to the bottom after deleting the newest message draft without a list-specific callback', () => {
+        // Given the newest message uses the list registered with the scroll manager.
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true});
+
+        // When deleting the draft closes its editor.
+        act(() => {
+            hook.result.current.publishDraft('   ');
+        });
+        act(() => {
+            mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
+        });
+
+        // Then the list receives the request immediately and owns its layout scheduling.
+        expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses the list-specific scroll after deleting the newest message draft', () => {
+        // Given the list supplies its own edit-scroll request handler.
+        const scrollToLastMessage = jest.fn();
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true, scrollToLastMessage});
+
+        // When deleting the draft closes its editor.
+        act(() => {
+            hook.result.current.publishDraft('   ');
+        });
+        act(() => {
+            mockShowDeleteModal.mock.calls.at(0)?.[3]?.();
+        });
+
+        // Then scheduling belongs to that list instead of a callback on the unmounting editor.
+        expect(scrollToLastMessage).toHaveBeenCalledTimes(1);
+        expect(mockScrollToBottom).not.toHaveBeenCalled();
+    });
+
+    it('requests the newest action after saving without scheduling an editor frame', () => {
+        // Given a draft on the newest action.
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: true});
+
+        // When the edit is submitted and the editor closes.
+        act(() => hook.result.current.publishDraft('Updated message'));
+        expect(mockEditReportComment).toHaveBeenCalledTimes(1);
+
+        // Then the list already owns the scroll request before the editor can unmount.
+        expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not scroll after deleting a non-newest message draft', () => {
+        const scrollToLastMessage = jest.fn();
+        const {hook} = renderUseEditMessage({shouldScrollToLastMessage: false, scrollToLastMessage});
+
+        act(() => {
+            hook.result.current.deleteDraft();
+        });
+
+        expect(scrollToLastMessage).not.toHaveBeenCalled();
+        expect(mockScrollToBottom).not.toHaveBeenCalled();
     });
 });

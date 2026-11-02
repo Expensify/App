@@ -6,6 +6,7 @@ import {
     buildTemplateReminderMessage,
     SUBSTANTIVE_EDIT_MESSAGE_PREFIX,
     SUBSTANTIVE_EDIT_MESSAGE_REGEX,
+    stripSubstantiveEditBanner,
 } from '@prompts/proposalPolice/messages';
 
 const PROPOSAL = ['## Proposal', '', '### What is the root cause of that problem?', 'Some root cause'].join('\n');
@@ -32,6 +33,31 @@ describe('SUBSTANTIVE_EDIT_MESSAGE_REGEX', () => {
 
     it('starts with the prefix used to detect an already-bannered comment', () => {
         expect(buildSubstantiveEditMessage('2026-01-01 00:00:00 UTC').startsWith(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)).toBe(true);
+    });
+});
+
+describe('stripSubstantiveEditBanner', () => {
+    it('returns the proposal from a bannered comment', () => {
+        const bannered = `${buildSubstantiveEditMessage('2026-01-01 00:00:00 UTC')}\n\n${PROPOSAL}`;
+
+        expect(stripSubstantiveEditBanner(bannered)).toBe(PROPOSAL);
+    });
+
+    it('leaves a never-bannered comment byte-for-byte unchanged', () => {
+        expect(stripSubstantiveEditBanner(`\n${PROPOSAL}\n`)).toBe(`\n${PROPOSAL}\n`);
+    });
+
+    it('still finds a banner hidden behind leading whitespace', () => {
+        const bannered = `\n${buildSubstantiveEditMessage('2026-01-01 00:00:00 UTC')}\n\n${PROPOSAL}`;
+
+        expect(stripSubstantiveEditBanner(bannered)).toBe(PROPOSAL);
+    });
+
+    it('leaves a prefix that is missing the trailing newline unchanged', () => {
+        // The regex requires the blank line that separates a real banner from the proposal
+        const lookalike = `${SUBSTANTIVE_EDIT_MESSAGE_PREFIX} not a real banner`;
+
+        expect(stripSubstantiveEditBanner(lookalike)).toBe(lookalike);
     });
 });
 

@@ -3,6 +3,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -27,14 +28,13 @@ import {View} from 'react-native';
 
 import type ReportScreenNavigationProps from './types';
 
-import AccountManagerBanner from './AccountManagerBanner';
 import {ActionListContextProvider} from './ActionListContext';
 import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import {ConciergeDraftProvider} from './ConciergeDraftContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import useDeferNonEssentials from './hooks/useDeferNonEssentials';
-import useFlushDeferredWriteOnFocus from './hooks/useFlushDeferredWriteOnFocus';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
+import OneTransactionThreadRedirectHandler from './OneTransactionThreadRedirectHandler';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionCompose from './report/ReportActionCompose/ReportActionCompose';
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
@@ -76,6 +76,7 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
 function ReportScreen({route, navigation, shouldDeferReportActions = false}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+    const {shouldCenterWelcomeWithComposer} = useConciergeAskState(reportIDFromRoute);
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const viewportOffsetTop = useViewportOffsetTop();
@@ -89,8 +90,6 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
         reportIDFromRoute,
         CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS,
     );
-
-    useFlushDeferredWriteOnFocus(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
 
     const [reportPendingActionAndErrors] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {
         selector: (r) => ({
@@ -123,6 +122,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                 <>
                                     <DeleteTransactionNavigateBackHandler />
                                     <ReportRouteParamHandler />
+                                    <OneTransactionThreadRedirectHandler />
                                     <ReportFetchHandler />
                                     <ReportNavigateAwayHandler />
                                 </>
@@ -133,7 +133,6 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                         {!shouldDeferNonEssentials && <ReportLifecycleHandler reportID={reportIDFromRoute} />}
                                         <CollapsibleHeaderOnKeyboard>
                                             <ReportHeader />
-                                            {!shouldDeferNonEssentials && <AccountManagerBanner reportID={reportIDFromRoute} />}
                                         </CollapsibleHeaderOnKeyboard>
                                         <OfflineWithFeedback
                                             pendingAction={reportPendingAction}
@@ -149,7 +148,11 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                                 <AgentZeroStatusProvider reportID={reportIDFromRoute}>
                                                     <ConciergeDraftProvider reportID={reportIDFromRoute}>
                                                         <View
-                                                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                                            style={[
+                                                                styles.flex1,
+                                                                shouldCenterWelcomeWithComposer ? styles.justifyContentCenter : styles.justifyContentEnd,
+                                                                styles.overflowHidden,
+                                                            ]}
                                                             testID="report-actions-view-wrapper"
                                                         >
                                                             <ReportActionsWithInboxTabDeferredMount

@@ -155,6 +155,35 @@ describe('AddExistingExpense', () => {
 
             expect(getEligibleTransactionIDs([matchingTransaction, differentWorkspaceTransaction], {policy})).toEqual(['matchingPerDiem']);
         });
+
+        test.each([
+            {timeTrackingState: 'enabled', units: {time: {enabled: true}}, expected: ['regular', 'time']},
+            {timeTrackingState: 'disabled', units: {time: {enabled: false}}, expected: ['regular']},
+            {timeTrackingState: 'not set up', units: undefined, expected: ['regular']},
+        ])('should handle time expenses when time tracking is $timeTrackingState on the target workspace', ({units, expected}) => {
+            // Given a regular expense, a time expense, and a target workspace with time tracking in the given state
+            const regularTransaction = generateTransaction({transactionID: 'regular'});
+            const timeTransaction = generateTransaction({transactionID: 'time', iouRequestType: CONST.IOU.REQUEST_TYPE.TIME});
+            const policy: Policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), units};
+
+            // When the list of expenses that the user can add to the report is built
+            const eligibleTransactionIDs = getEligibleTransactionIDs([regularTransaction, timeTransaction], {policy});
+
+            // Then the time expense appears only when the workspace accepts time expenses, and the regular expense always appears
+            expect(eligibleTransactionIDs).toEqual(expected);
+        });
+
+        it('should exclude time expenses from IOU reports', () => {
+            // Given a time expense with a positive amount, which otherwise qualifies for an IOU report
+            const timeTransaction = generateTransaction({transactionID: 'time', amount: -1000, iouRequestType: CONST.IOU.REQUEST_TYPE.TIME});
+            const report = {reportID: TARGET_REPORT_ID, type: CONST.REPORT.TYPE.IOU} as Report;
+
+            // When the list is built for an IOU report, which has no workspace with time tracking
+            const eligibleTransactionIDs = getEligibleTransactionIDs([timeTransaction], {report});
+
+            // Then the time expense does not appear, because time expenses can only go to workspaces with time tracking enabled
+            expect(eligibleTransactionIDs).toEqual([]);
+        });
     });
 
     describe('createUnreportedExpenses', () => {

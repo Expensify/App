@@ -12,7 +12,8 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getNetSuiteVendorOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNetSuiteVendorOptions} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -26,7 +27,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 function DynamicNetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -41,36 +42,42 @@ function DynamicNetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConne
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT.path);
 
     const config = policy?.connections?.netsuite?.options.config;
-    const netsuiteVendorOptions = useMemo<SelectorType[]>(() => getNetSuiteVendorOptions(policy ?? undefined, config?.defaultVendor), [config?.defaultVendor, policy]);
+    const vendorOptions: SelectorType[] = getNetSuiteVendorOptions(policy ?? undefined, config?.defaultVendor);
+    const clearOption: SelectorType = {
+        value: '',
+        text: translate('common.none'),
+        keyForList: '',
+        isSelected: !config?.defaultVendor,
+    };
+    const shouldShowClearOption = !!config?.defaultVendor || vendorOptions.length > 0;
+    const netsuiteVendorOptions: SelectorType[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
 
-    const initiallyFocusedOptionKey = useMemo(() => netsuiteVendorOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteVendorOptions]);
+    const initiallyFocusedOptionKey = netsuiteVendorOptions?.find((mode) => mode.isSelected)?.keyForList;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const updateDefaultVendor = useCallback(
-        ({value}: SelectorType) => {
-            if (config?.defaultVendor !== value && policyID) {
-                updateNetSuiteDefaultVendor(policyID, value, config?.defaultVendor);
-            }
-            goBack();
-        },
-        [config?.defaultVendor, policyID, goBack],
-    );
+    const updateDefaultVendor = ({value}: SelectorType) => {
+        const isAlreadySelected = value === config?.defaultVendor || (!value && !config?.defaultVendor);
+        if (isAlreadySelected) {
+            return;
+        }
+        if (policyID) {
+            updateNetSuiteDefaultVendor(policyID, value, config?.defaultVendor);
+        }
+        goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.netsuite.noVendorsFound')}
-                subtitle={translate('workspace.netsuite.noVendorsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.netsuite.noVendorsFound')}
+            subtitle={translate('workspace.netsuite.noVendorsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

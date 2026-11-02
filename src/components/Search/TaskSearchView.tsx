@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useImperativeHandle} from 'react';
+import React from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps} from './searchViewProps';
@@ -36,6 +36,7 @@ function TaskSearchView({
     columns,
     canSelectMultiple,
     isActionColumnWide,
+    columnSizeOptions,
     isMobileSelectionModeEnabled,
     SearchTableHeader: searchTableHeader,
     tableHeaderVisible,
@@ -46,9 +47,9 @@ function TaskSearchView({
     onEndReached,
     onLayout,
     onScroll,
+    onViewableItemsChanged,
     contentContainerStyle,
     containerStyle,
-    ref,
 }: TaskSearchViewProps) {
     const {type} = queryJSON;
 
@@ -62,10 +63,7 @@ function TaskSearchView({
     const selectedItemsLength = data.reduce((acc, item) => acc + (item.keyForList && selectedTransactions[item.keyForList]?.isSelected ? 1 : 0), 0);
     const totalItems = data.filter((item) => !isRowDeleted(item)).length;
 
-    // Flat data maps 1:1 to the rendered list, so highlight-scroll-to-index is the same as scroll-to-data-index.
-    useImperativeHandle(ref, () => ({scrollToIndex: scrollToListIndex}), [scrollToListIndex]);
-
-    const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => (
+    const renderItem = (item: SearchListItem, index: number, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => (
         // Task rows never animate their exit (only grouped expenses do), so the wrapper just preserves the overflow clip.
         <AnimatedExitRow
             shouldApplyAnimation={false}
@@ -73,7 +71,6 @@ function TaskSearchView({
         >
             <TaskListItem
                 showTooltip
-                isFocused={isItemFocused}
                 onSelectRow={handleSelectRow}
                 onLongPressRow={onLongPressRow}
                 canSelectMultiple={canSelectMultiple}
@@ -88,37 +85,41 @@ function TaskSearchView({
     const isSelectAllChecked = selectedItemsLength > 0 && selectedItemsLength === totalItems && hasLoadedAllTransactions;
     const selectAllButtonVisible = canSelectMultiple && !searchTableHeader;
 
+    const selectionTopBar = tableHeaderVisible ? (
+        <SelectionTopBar
+            isLargeScreenWidth={isLargeScreenWidth}
+            shouldSplitGroups={false}
+            canSelectMultiple={canSelectMultiple}
+            isSelectAllChecked={isSelectAllChecked}
+            selectedItemsLength={selectedItemsLength}
+            totalItems={totalItems}
+            hasLoadedAllTransactions={hasLoadedAllTransactions}
+            selectAllButtonVisible={selectAllButtonVisible}
+            onAllCheckboxPress={toggleAll}
+            SearchTableHeader={searchTableHeader}
+        />
+    ) : undefined;
+
     return (
         <SearchListViewLayout
             columns={columns}
             type={type}
             isActionColumnWide={isActionColumnWide}
+            columnSizeOptions={columnSizeOptions}
             isHeaderVisible={!!searchTableHeader}
             dataKey={data}
             isKeyboardShown={isKeyboardShown}
             safeAreaPaddingBottomStyle={safeAreaPaddingBottomStyle}
             containerStyle={containerStyle}
         >
-            {tableHeaderVisible && (
-                <SelectionTopBar
-                    isLargeScreenWidth={isLargeScreenWidth}
-                    shouldSplitGroups={false}
-                    canSelectMultiple={canSelectMultiple}
-                    isSelectAllChecked={isSelectAllChecked}
-                    selectedItemsLength={selectedItemsLength}
-                    totalItems={totalItems}
-                    hasLoadedAllTransactions={hasLoadedAllTransactions}
-                    selectAllButtonVisible={selectAllButtonVisible}
-                    onAllCheckboxPress={toggleAll}
-                    SearchTableHeader={searchTableHeader}
-                />
-            )}
             <BaseSearchList
+                selectionTopBar={selectionTopBar}
                 data={data}
                 renderItem={renderItem}
                 onSelectRow={handleSelectRow}
                 keyExtractor={keyExtractor}
                 onScroll={onScroll}
+                onViewableItemsChanged={onViewableItemsChanged}
                 showsVerticalScrollIndicator={false}
                 ref={listRef}
                 columns={columns}

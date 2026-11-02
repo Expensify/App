@@ -12,9 +12,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
 
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 
 type SearchSelectAllMenuProps = {
     isSelectAllChecked: boolean | undefined;
@@ -31,34 +32,31 @@ function SearchSelectAllMenu({isSelectAllChecked, isIndeterminate, selectedItems
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark', 'CheckSquare']);
     const {currentSearchResults} = useSearchResultsContext();
     const {selectAllMatchingItems} = useSearchSelectionActions();
-    const selectAllAnchorRef = useRef<View>(null);
+    const selectAllAnchorRef = useRef<ComponentRef<typeof View>>(null);
     const [isSelectAllMenuVisible, setIsSelectAllMenuVisible] = useState(false);
     const [selectAllMenuPosition, setSelectAllMenuPosition] = useState({horizontal: 0, vertical: 0});
     const {calculatePopoverPosition} = usePopoverPosition();
 
     const shouldOpenSelectAllMenu = selectedItemsLength === 0 && !!currentSearchResults?.search?.hasMoreResults;
 
-    const closeSelectAllMenu = useCallback(() => setIsSelectAllMenuVisible(false), []);
+    const closeSelectAllMenu = () => setIsSelectAllMenuVisible(false);
 
-    const selectAllOnPage = useCallback(() => {
+    const selectAllOnPage = () => {
         closeSelectAllMenu();
         onAllCheckboxPress();
-    }, [closeSelectAllMenu, onAllCheckboxPress]);
+    };
 
-    const selectAllMatching = useCallback(() => {
+    const selectAllMatching = () => {
         closeSelectAllMenu();
         selectAllMatchingItems(true);
-    }, [closeSelectAllMenu, selectAllMatchingItems]);
+    };
 
-    const selectAllMenuItems = useMemo(
-        (): PopoverMenuItem[] => [
-            {icon: expensifyIcons.Checkmark, text: translate('search.exportAll.selectAllOnThisPage'), onSelected: selectAllOnPage},
-            {icon: expensifyIcons.CheckSquare, text: translate('workspace.people.selectAll'), onSelected: selectAllMatching},
-        ],
-        [expensifyIcons.CheckSquare, expensifyIcons.Checkmark, selectAllMatching, selectAllOnPage, translate],
-    );
+    const selectAllMenuItems: PopoverMenuItem[] = [
+        {icon: expensifyIcons.Checkmark, text: translate('search.exportAll.selectAllOnThisPage'), onSelected: selectAllOnPage},
+        {icon: expensifyIcons.CheckSquare, text: translate('workspace.people.selectAll'), onSelected: selectAllMatching},
+    ];
 
-    const showSelectAllMenu = useCallback(() => {
+    const showSelectAllMenu = () => {
         if (!selectAllAnchorRef.current) {
             return;
         }
@@ -70,16 +68,16 @@ function SearchSelectAllMenu({isSelectAllChecked, isIndeterminate, selectedItems
             setSelectAllMenuPosition(position);
             setIsSelectAllMenuVisible(true);
         });
-    }, [calculatePopoverPosition]);
+    };
 
-    const handleSelectAllPress = useCallback(() => {
+    const handleSelectAllPress = () => {
         if (shouldOpenSelectAllMenu) {
             showSelectAllMenu();
             return;
         }
 
         onAllCheckboxPress();
-    }, [onAllCheckboxPress, shouldOpenSelectAllMenu, showSelectAllMenu]);
+    };
 
     return (
         <>

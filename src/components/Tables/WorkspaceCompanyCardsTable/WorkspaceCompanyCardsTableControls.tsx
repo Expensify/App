@@ -6,6 +6,7 @@ import {useTableContext} from '@components/Table/TableContext';
 
 import type {UseCompanyCardsResult} from '@hooks/useCompanyCards';
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -14,9 +15,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {unassignWorkspaceCompanyCard} from '@libs/actions/CompanyCards';
 import navigateToCardTransactions from '@libs/CardNavigationUtils';
 import {formatMaskedCardName} from '@libs/CardUtils';
+import escapeCsvField from '@libs/escapeCsvField';
 import localFileDownload from '@libs/localFileDownload';
+import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 
 import {format, parseISO} from 'date-fns';
 import React from 'react';
@@ -24,12 +28,13 @@ import {View} from 'react-native';
 
 import type {WorkspaceCompanyCardTableItemData} from './WorkspaceCompanyCardsTableRow';
 
-type WorkspaceCompanyCardBulkActionType = 'unassign' | 'viewTransactions' | 'exportCSV';
+type WorkspaceCompanyCardBulkActionType = 'editTransactionStartDate' | 'unassign' | 'viewTransactions' | 'exportCSV';
 
 type WorkspaceCompanyCardsTableControlsProps = {
     policyID: string;
     domainOrWorkspaceAccountID: number;
     bankName: UseCompanyCardsResult['bankName'];
+    feedName: UseCompanyCardsResult['feedName'];
 
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
@@ -41,28 +46,20 @@ type WorkspaceCompanyCardsTableControlsProps = {
     isSelectionModeEnabled: boolean;
 };
 
-const CSV_FORMULA_PREFIX_REGEXP = /^(?:[\t\r\n]|\s*[=+\-@])/;
-
-function escapeCsvField(value: string): string {
-    const safeValue = CSV_FORMULA_PREFIX_REGEXP.test(value) ? `'${value}` : value;
-    if (safeValue.includes('"') || safeValue.includes(',') || safeValue.includes('\n') || safeValue.includes('\r')) {
-        return `"${safeValue.replaceAll('"', '""')}"`;
-    }
-    return safeValue;
-}
-
 function WorkspaceCompanyCardsTableControls({
     policyID,
     domainOrWorkspaceAccountID,
     bankName,
+    feedName,
     canWriteCompanyCards,
     clearCardSelection,
     isSelectionModeEnabled,
 }: WorkspaceCompanyCardsTableControlsProps) {
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {translate, getLocalDateFromDatetime} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const icons = useMemoizedLazyExpensifyIcons(['Export', 'MoneySearch', 'RemoveMembers']);
+    const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Export', 'MoneySearch', 'RemoveMembers']);
     const {processedData, shouldUseNarrowTableLayout} = useTableContext<WorkspaceCompanyCardTableItemData>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
@@ -146,6 +143,23 @@ function WorkspaceCompanyCardsTableControls({
         clearCardSelection();
     };
 
+    const editSelectedCardTransactionStartDates = () => {
+        if (!feedName) {
+            return;
+        }
+
+        const selectedCardIDs = selectedAssignedCards
+            .map((card) => card.assignedCard?.cardID)
+            .filter((cardID): cardID is number => cardID !== undefined)
+            .map(String);
+        const [selectedCardID] = selectedCardIDs;
+        if (!selectedCardID) {
+            return;
+        }
+
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_BULK_EDIT_TRANSACTION_START_DATE.getRoute(policyID, feedName, selectedCardIDs));
+    };
+
     const getBulkActionOptions = (): Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> => {
         const options: Array<DropdownOption<WorkspaceCompanyCardBulkActionType>> = [];
 
@@ -159,13 +173,20 @@ function WorkspaceCompanyCardsTableControls({
                     onSelected: confirmBulkUnassign,
                 });
             }
-
             options.push({
                 icon: icons.MoneySearch,
                 text: translate('workspace.common.viewTransactions'),
                 value: 'viewTransactions',
                 onSelected: viewSelectedCardTransactions,
             });
+            if (canWriteCompanyCards) {
+                options.push({
+                    icon: icons.CalendarSolid,
+                    text: translate('workspace.moreFeatures.companyCards.bulkUpdateTransactionStartDate'),
+                    value: 'editTransactionStartDate',
+                    onSelected: editSelectedCardTransactionStartDates,
+                });
+            }
         }
 
         options.push({
@@ -184,7 +205,7 @@ function WorkspaceCompanyCardsTableControls({
     return (
         <>
             {shouldShowBulkActions && (
-                <View style={[styles.w100, styles.ph5, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
+                <View style={[styles.w100, pageGutter, styles.pb3, !shouldUseNarrowTableLayout && styles.flexRow]}>
                     <ButtonWithDropdownMenu<WorkspaceCompanyCardBulkActionType>
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={() => {}}

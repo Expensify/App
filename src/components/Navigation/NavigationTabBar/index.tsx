@@ -29,6 +29,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import InboxTabButton from './InboxTabButton';
+import InsightsTabButton from './InsightsTabButton';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
 import TabBarItem from './TabBarItem';
@@ -40,6 +41,7 @@ type NavigationTabBarProps = {
 };
 
 function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: NavigationTabBarProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
@@ -62,7 +64,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
         }
         interceptAnonymousUser(() => {
             Navigation.navigate(ROUTES.SETTINGS);
-        });
+        }, session);
     };
 
     // shouldShowFloatingButtons is false for the swipe-back duplicate tab bar rendered via
@@ -119,6 +121,10 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                                     selectedTab={selectedTab}
                                     isWideLayout
                                 />
+                                <InsightsTabButton
+                                    selectedTab={selectedTab}
+                                    isWideLayout
+                                />
                                 <WorkspacesTabButton
                                     selectedTab={selectedTab}
                                     isWideLayout
@@ -151,7 +157,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     onPress={navigateToNewDotHome}
                     role={CONST.ROLE.TAB}
                     accessibilityLabel={translate('common.home')}
-                    wrapperStyle={styles.flex1}
+                    wrapperStyle={styles.navigationTabBarSlot}
                     style={styles.navigationTabBarItem}
                     sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.HOME}
                 >
@@ -159,6 +165,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                         icon={expensifyIcons.Home}
                         label={translate('common.home')}
                         isSelected={selectedTab === NAVIGATION_TABS.HOME}
+                        numberOfLines={1}
                     />
                 </PressableWithFeedback>
                 <InboxTabButton
@@ -169,14 +176,13 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
                     selectedTab={selectedTab}
                     isWideLayout={false}
                 />
-                <WorkspacesTabButton
+                <InsightsTabButton
                     selectedTab={selectedTab}
                     isWideLayout={false}
                 />
-                <NavigationTabBarAvatar
-                    style={styles.navigationTabBarItem}
-                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
-                    onPress={navigateToSettings}
+                <WorkspacesTabButton
+                    selectedTab={selectedTab}
+                    isWideLayout={false}
                 />
             </View>
 

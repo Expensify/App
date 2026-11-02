@@ -1,5 +1,4 @@
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
 
@@ -53,25 +52,4 @@ function getLastFullReconnectTimeToRecord(serverReconnectCutoff: string): string
     return now >= serverReconnectCutoff ? now : serverReconnectCutoff;
 }
 
-/**
- * The response can deliver a newer cutoff than the one known when the request was built, and the
- * held cutoff can be newer still (a Pusher update can overtake an in-flight response), so the
- * recorded time satisfies whichever of the two is later. A time below either would read as stale
- * and fire an extra reconnect right after the full download.
- *
- * The entry goes right before the delivered cutoff entry, so the reconnect subscription never sees
- * a new cutoff next to an old reconnect time. That assumes Onyx broadcasts a batch's merges in
- * array order: true today because both keys are cache-resident (see subscribeToFullReconnect.ts),
- * and pinned by the SubscribeToFullReconnect e2e test. If it ever broke, the worst case is one
- * transient extra reconnect, never a loop.
- */
-function recordFullReconnectTimeFromResponse(responseOnyxData: AnyOnyxUpdate[], knownServerReconnectCutoff: string): void {
-    const cutoffIndex = responseOnyxData.findIndex((update) => update.key === ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE);
-    const deliveredCutoffValue: unknown = cutoffIndex === -1 ? undefined : responseOnyxData.at(cutoffIndex)?.value;
-    const deliveredCutoff = typeof deliveredCutoffValue === 'string' ? deliveredCutoffValue : '';
-    const cutoffToSatisfy = deliveredCutoff > knownServerReconnectCutoff ? deliveredCutoff : knownServerReconnectCutoff;
-    const insertionIndex = cutoffIndex === -1 ? responseOnyxData.length : cutoffIndex;
-    responseOnyxData.splice(insertionIndex, 0, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.LAST_FULL_RECONNECT_TIME, value: getLastFullReconnectTimeToRecord(cutoffToSatisfy)});
-}
-
-export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord, getServerReconnectCutoff, recordFullReconnectTimeFromResponse};
+export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord, getServerReconnectCutoff};

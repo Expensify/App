@@ -3,6 +3,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import openPrivatePersonalDetailsPage from '@libs/Navigation/helpers/openPrivatePersonalDetailsPage';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 import {isCommuterExclusionEnabled, isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
+import {getEffectiveWorkArrangement} from '@libs/WorkArrangementUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -11,8 +12,6 @@ import type Policy from '@src/types/onyx/Policy';
 import type PrivatePersonalDetails from '@src/types/onyx/PrivatePersonalDetails';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-
-import {useCallback} from 'react';
 
 import useConfirmModal from './useConfirmModal';
 import {useMemoizedLazyIllustrations} from './useLazyAsset';
@@ -38,8 +37,8 @@ type UseBlockDistanceRequestParams = {
 };
 
 type PolicyRequiringMapOrGPS = {
-    /** Only set when commuter exclusions are configured, since the method is what decides the home address prompt */
-    commuterExclusionMethod?: NonNullable<Policy['commuterExclusions']>['method'];
+    /** Whether the workspace measures this member's commute from their home, which is what makes the address mandatory */
+    isCommuteMeasuredFromHome: boolean;
     name: Policy['name'];
 };
 
@@ -48,19 +47,29 @@ type PoliciesRequiringMapOrGPS = Record<string, PolicyRequiringMapOrGPS>;
 type BlockDistanceRequestReason = 'mapOrGpsRequired' | 'homeAddressRequired';
 
 // Commuter exclusions are derived from the mapped route, so they require map or GPS on their own. The
-// `requireMapOrGPS` setting requires it without any exclusion configured, hence no method for those policies.
-const policiesRequiringMapOrGPSSelector = (policies: OnyxCollection<Policy>): PoliciesRequiringMapOrGPS =>
-    Object.values(policies ?? {}).reduce<PoliciesRequiringMapOrGPS>((acc, policy) => {
-        if (!policy?.id || !isMapOrGPSRequired(policy)) {
-            return acc;
-        }
+// `requireMapOrGPS` setting requires it without any exclusion configured, so those policies measure no commute.
+// Only the homeAndOffice method measures one against a home address, and only for an office-based member, which
+// their own arrangement decides before the workspace default does.
+const createPoliciesRequiringMapOrGPSSelector =
+    (currentUserEmail: string | undefined) =>
+    (policies: OnyxCollection<Policy>): PoliciesRequiringMapOrGPS =>
+        Object.values(policies ?? {}).reduce<PoliciesRequiringMapOrGPS>((acc, policy) => {
+            if (!policy?.id || !isMapOrGPSRequired(policy)) {
+                return acc;
+            }
 
-        acc[policy.id] = {
-            commuterExclusionMethod: isCommuterExclusionEnabled(policy) ? policy.commuterExclusions.method : undefined,
-            name: policy.name,
-        };
-        return acc;
-    }, {});
+            acc[policy.id] = {
+                isCommuteMeasuredFromHome:
+                    isCommuterExclusionEnabled(policy) &&
+                    policy.commuterExclusions.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE &&
+                    getEffectiveWorkArrangement(
+                        currentUserEmail ? policy.employeeList?.[currentUserEmail]?.hasOfficeWorkArrangement : undefined,
+                        policy.commuterExclusions.isOfficeWorkArrangement,
+                    ),
+                name: policy.name,
+            };
+            return acc;
+        }, {});
 
 const hasHomeAddressSelector = (privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>) => !!getCurrentAddress(privatePersonalDetails)?.street?.trim();
 
@@ -83,79 +92,71 @@ function useBlockDistanceRequest({
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
     const illustrations = useMemoizedLazyIllustrations(['HouseWithMap']);
-    const [policiesRequiringMapOrGPS] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: policiesRequiringMapOrGPSSelector});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [policiesRequiringMapOrGPS] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createPoliciesRequiringMapOrGPSSelector(session?.email)});
     const [hasHomeAddress] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {selector: hasHomeAddressSelector});
 
-    const getBlockReason = useCallback(
-        (policyIDToCheck: string | undefined): BlockDistanceRequestReason | undefined => {
-            if (!policyIDToCheck || !policiesRequiringMapOrGPS?.[policyIDToCheck] || isEditingExistingDistanceRequest) {
-                return;
-            }
+    const getBlockReason = (policyIDToCheck: string | undefined): BlockDistanceRequestReason | undefined => {
+        if (!policyIDToCheck || !policiesRequiringMapOrGPS?.[policyIDToCheck] || isEditingExistingDistanceRequest) {
+            return;
+        }
 
-            if (isManualDistanceRequest || isOdometerDistanceRequest) {
-                return 'mapOrGpsRequired';
-            }
+        if (isManualDistanceRequest || isOdometerDistanceRequest) {
+            return 'mapOrGpsRequired';
+        }
 
-            if (isDistanceRequest && policiesRequiringMapOrGPS[policyIDToCheck].commuterExclusionMethod === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && !hasHomeAddress) {
-                return 'homeAddressRequired';
-            }
-        },
-        [hasHomeAddress, isDistanceRequest, isManualDistanceRequest, isOdometerDistanceRequest, isEditingExistingDistanceRequest, policiesRequiringMapOrGPS],
-    );
+        if (isDistanceRequest && policiesRequiringMapOrGPS[policyIDToCheck].isCommuteMeasuredFromHome && !hasHomeAddress) {
+            return 'homeAddressRequired';
+        }
+    };
 
-    const showBlockModal = useCallback(
-        (reason: BlockDistanceRequestReason, policyIDToCheck: string | undefined) => {
-            const baseModalProps = {
-                image: illustrations.HouseWithMap,
-                titleStyles: styles.textHeadline,
-                titleContainerStyles: styles.mb2,
-                promptStyles: [styles.textSupporting, styles.mb4],
-                shouldShowCancelButton: false,
-                shouldUseSuccessStyleForConfirm: true,
-                shouldFitImageToContainer: true,
-                imageStyles: [styles.mt5, styles.mh5],
-                imageWidth: styles.commuterExclusionStaticIllustration.width,
-                imageHeight: styles.commuterExclusionStaticIllustration.height,
-                shouldShowDismissIcon: false,
-            };
-            if (reason === 'homeAddressRequired') {
-                showConfirmModal({
-                    ...baseModalProps,
-                    title: translate('iou.homeAddressRequired.title'),
-                    prompt: translate('iou.homeAddressRequired.prompt', {workspaceName: policyIDToCheck ? (policiesRequiringMapOrGPS?.[policyIDToCheck]?.name ?? '') : ''}),
-                    confirmText: translate('iou.homeAddressRequired.cta'),
-                }).then(({action: modalAction}) => {
-                    if (modalAction !== ModalActions.CONFIRM) {
-                        return;
-                    }
-                    openPrivatePersonalDetailsPage(INPUT_IDS.ADDRESS_LINE_1);
-                });
-                return;
-            }
-
+    const showBlockModal = (reason: BlockDistanceRequestReason, policyIDToCheck: string | undefined) => {
+        const baseModalProps = {
+            image: illustrations.HouseWithMap,
+            titleStyles: styles.textHeadline,
+            titleContainerStyles: styles.mb2,
+            promptStyles: [styles.textSupporting, styles.mb4],
+            shouldShowCancelButton: false,
+            shouldUseSuccessStyleForConfirm: true,
+            shouldFitImageToContainer: true,
+            imageStyles: [styles.mt5, styles.mh5],
+            imageWidth: styles.commuterExclusionStaticIllustration.width,
+            imageHeight: styles.commuterExclusionStaticIllustration.height,
+            shouldShowDismissIcon: false,
+        };
+        if (reason === 'homeAddressRequired') {
             showConfirmModal({
                 ...baseModalProps,
-                title: translate('distance.error.mapOrGpsDistanceRequired.title'),
-                prompt: translate('distance.error.mapOrGpsDistanceRequired.description'),
-                confirmText: translate('common.buttonConfirm'),
+                title: translate('iou.homeAddressRequired.title'),
+                prompt: translate('iou.homeAddressRequired.prompt', {workspaceName: policyIDToCheck ? (policiesRequiringMapOrGPS?.[policyIDToCheck]?.name ?? '') : ''}),
+                confirmText: translate('iou.homeAddressRequired.cta'),
+            }).then(({action: modalAction}) => {
+                if (modalAction !== ModalActions.CONFIRM) {
+                    return;
+                }
+                openPrivatePersonalDetailsPage(INPUT_IDS.ADDRESS_LINE_1);
             });
-        },
-        [illustrations.HouseWithMap, policiesRequiringMapOrGPS, showConfirmModal, styles, translate],
-    );
+            return;
+        }
 
-    const blockDistanceRequestIfNeeded = useCallback(
-        (...policyIDsToCheck: [string?]) => {
-            const policyIDToCheck = policyIDsToCheck.length > 0 ? policyIDsToCheck[0] : policyID;
-            const reason = getBlockReason(policyIDToCheck);
-            if (!reason) {
-                return false;
-            }
+        showConfirmModal({
+            ...baseModalProps,
+            title: translate('distance.error.mapOrGpsDistanceRequired.title'),
+            prompt: translate('distance.error.mapOrGpsDistanceRequired.description'),
+            confirmText: translate('common.buttonConfirm'),
+        });
+    };
 
-            showBlockModal(reason, policyIDToCheck);
-            return true;
-        },
-        [getBlockReason, policyID, showBlockModal],
-    );
+    const blockDistanceRequestIfNeeded = (...policyIDsToCheck: [string?]) => {
+        const policyIDToCheck = policyIDsToCheck.length > 0 ? policyIDsToCheck[0] : policyID;
+        const reason = getBlockReason(policyIDToCheck);
+        if (!reason) {
+            return false;
+        }
+
+        showBlockModal(reason, policyIDToCheck);
+        return true;
+    };
 
     return blockDistanceRequestIfNeeded;
 }

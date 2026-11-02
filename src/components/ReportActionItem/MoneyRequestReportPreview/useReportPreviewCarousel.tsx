@@ -3,7 +3,7 @@ import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsFocusedRef from '@hooks/useIsFocusedRef';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import shouldAdjustScroll from '@libs/shouldAdjustScroll';
@@ -11,15 +11,14 @@ import {compareByRBR} from '@libs/TransactionPreviewUtils';
 import {getCreated} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, Report, Transaction} from '@src/types/onyx';
+import type {ViewToken} from '@src/types/utils/ReactNativeCompat';
 
 import type {FlashListRef, ListRenderItem, ListRenderItemInfo} from '@shopify/flash-list';
-import type {ViewToken} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {MoneyRequestReportPreviewStyleType} from './types';
@@ -82,13 +81,13 @@ function useReportPreviewCarousel({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const currentUserDetails = useCurrentUserPersonalDetails();
-    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
+    const [ownerLogin] = usePersonalDetail(iouReport?.ownerAccountID, loginSelector);
     const isFocusedRef = useIsFocusedRef();
 
-    const sortedTransactions = useMemo(() => {
-        if (shouldShowAccessPlaceHolder) {
-            return [];
-        }
+    let sortedTransactions: Transaction[];
+    if (shouldShowAccessPlaceHolder) {
+        sortedTransactions = [];
+    } else {
         const sorted = [...transactions].sort((a, b) => {
             const rbrComparison = compareByRBR(
                 a,
@@ -106,10 +105,10 @@ function useReportPreviewCarousel({
             // Tiebreak by date (ascending — oldest first) so position is stable across RBR state changes
             return localeCompare(getCreated(a), getCreated(b));
         });
-        return sorted;
-    }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, ownerLogin, policy, localeCompare]);
+        sortedTransactions = sorted;
+    }
 
-    const carouselTransactions = useMemo(() => sortedTransactions.slice(0, MAX_PREVIEWS_NUMBER + 1), [sortedTransactions]);
+    const carouselTransactions = sortedTransactions.slice(0, MAX_PREVIEWS_NUMBER + 1);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
@@ -130,9 +129,9 @@ function useReportPreviewCarousel({
 
     // Expose a callback ref instead of the ref object so the ref does not flow through the hook's return value
     // (React Compiler forbids reading/passing refs during render).
-    const setCarouselRef = useCallback((node: FlashListRef<Transaction> | null) => {
+    const setCarouselRef = (node: FlashListRef<Transaction> | null) => {
         carouselRef.current = node;
-    }, []);
+    };
     const prevTransactionCountForScroll = useRef(carouselTransactions.length);
     const [carouselKey, setCarouselKey] = useState(0);
 
@@ -148,15 +147,11 @@ function useReportPreviewCarousel({
         prevTransactionCountForScroll.current = carouselTransactions.length;
     }, [carouselTransactions.length]);
 
-    const visibleItemsOnEndCount = useMemo(() => {
-        const lastItemWidth = transactions.length > MAX_PREVIEWS_NUMBER ? footerWidth : reportPreviewStyles.transactionPreviewCarouselStyle.width;
-        const lastItemWithGap = lastItemWidth + styles.gap2.gap;
-        const itemWithGap = reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.gap2.gap;
-        return Math.floor((currentWidth - 2 * styles.pl2.paddingLeft - lastItemWithGap) / itemWithGap) + 1;
-    }, [transactions.length, footerWidth, reportPreviewStyles.transactionPreviewCarouselStyle.width, styles.gap2.gap, styles.pl2.paddingLeft, currentWidth]);
-    const viewabilityConfig = useMemo(() => {
-        return {itemVisiblePercentThreshold: 100};
-    }, []);
+    const lastItemWidth = transactions.length > MAX_PREVIEWS_NUMBER ? footerWidth : reportPreviewStyles.transactionPreviewCarouselStyle.width;
+    const lastItemWithGap = lastItemWidth + styles.gap2.gap;
+    const itemWithGap = reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.gap2.gap;
+    const visibleItemsOnEndCount = Math.floor((currentWidth - 2 * styles.pl2.paddingLeft - lastItemWithGap) / itemWithGap) + 1;
+    const viewabilityConfig = {itemVisiblePercentThreshold: 100};
 
     const carouselTransactionsRef = useRef(carouselTransactions);
 
@@ -194,14 +189,14 @@ function useReportPreviewCarousel({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [newTransactionIDs]);
 
-    const onViewableItemsChanged = useCallback(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
+    const onViewableItemsChanged = ({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
         if (typeof newIndex === 'number') {
             setCurrentIndex(newIndex);
         }
-        const viewableItemsIndexes = viewableItems.map((item) => item.index).filter((item): item is number => item !== null);
+        const viewableItemsIndexes = viewableItems.map((item) => item.index).filter((item): item is number => typeof item === 'number');
         setCurrentVisibleItems(viewableItemsIndexes);
-    }, []);
+    };
 
     const snapOffsets = carouselTransactions.map((_, index) => index * (reportPreviewStyles.transactionPreviewCarouselStyle.width + styles.transactionsCarouselGap.width));
 
@@ -267,7 +262,7 @@ function useReportPreviewCarousel({
         setOptimisticIndex(undefined);
     }, [carouselTransactions.length, currentIndex, currentVisibleItems, currentVisibleItems.length, optimisticIndex, visibleItemsOnEndCount]);
 
-    const adjustScroll = useCallback(() => {
+    const adjustScroll = () => {
         // Workaround for a known React Native bug on Android (https://github.com/facebook/react-native/issues/27504):
         // When the FlatList is scrolled to the end and the last item is deleted, a blank space is left behind.
         // To fix this, we detect when onEndReached is triggered due to an item deletion,
@@ -277,7 +272,7 @@ function useReportPreviewCarousel({
         }
         prevCarouselTransactionLength.current = carouselTransactions.length;
         carouselRef.current?.scrollToEnd();
-    }, [carouselTransactions.length]);
+    };
 
     const renderSeparator = () => <View style={styles.transactionsCarouselGap} />;
 

@@ -70,5 +70,9 @@ function agentZeroProcessingAgentIDsSelector(reportNameValuePairs: OnyxEntry<Rep
         .sort((a, b) => a - b);
 }
 
-export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, reportNameValuePairsArchivedSelector};
+function latestCalendlyCallSelector(reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) {
+    return reportNameValuePairs?.calendlyCalls?.at(-1);
+}
+
+export {getAgentZeroProcessingLabel, agentZeroProcessingAgentIDsSelector, latestCalendlyCallSelector, reportNameValuePairsArchivedSelector};
 export type {ReportNameValuePairsArchivedState};

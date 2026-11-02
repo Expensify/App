@@ -1,12 +1,20 @@
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
+import usePolicyCategoriesForConfirmation from '@components/MoneyRequestConfirmationList/hooks/usePolicyCategoriesForConfirmation';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
+import useReopenAfterReturn from '@hooks/useReopenAfterReturn';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import {hasEnabledOptions} from '@libs/OptionsListUtils';
+import {canCreateCategoryInSitu} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
@@ -16,8 +24,13 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React from 'react';
+import React, {useRef} from 'react';
 
+import type {ExpenseFieldDropdownHandle} from './ExpenseFieldDropdown';
+
+import CategoryFieldDropdown from './CategoryFieldDropdown';
+import ExpenseFieldDropdown from './ExpenseFieldDropdown';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {categoryStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -50,20 +63,36 @@ function CategoryField({
     shouldNavigateToUpgradePath,
     shouldSelectPolicy,
 }: CategoryFieldProps) {
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
+    const {isEditingSplitBill} = useConfirmationFields();
+    const {isBetaEnabled} = usePermissions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles']);
+    const currentUserLogin = useCurrentUserPersonalDetails().login;
+    const dropdownRef = useRef<ExpenseFieldDropdownHandle>(null);
 
     const categoryState = useTransactionSelector(transactionID, categoryStateSelector);
+    const policyCategories = usePolicyCategoriesForConfirmation(policy?.id);
+    const hasEnabledCategories = hasEnabledOptions(Object.values(policyCategories ?? {}));
 
     const shouldDisplayCategoryError = formError === 'violations.categoryOutOfPolicy';
     const iouCategory = categoryState?.category ?? '';
     const willAutoFill = categoryState?.willAutoFill ?? false;
+    const isAutoFillFromReceipt = categoryState?.isAutoFillFromReceipt ?? false;
     const decodedCategoryName = getDecodedLeafCategoryName(iouCategory);
+    // The list marks and clears by the stored category name, not by the leaf name the row shows.
+    const selectedCategory = isCategoryMissing(iouCategory) ? '' : iouCategory;
 
-    const getCategoryRightLabelIcon = () => (willAutoFill ? icons.Sparkles : undefined);
+    // Categorization comes from the workspace, so there is nothing to promise without one. The setting itself defaults to on.
+    const isAutoCategorizationEnabled = !!policy && policy.autoCategorizeNewExpenses !== false;
+    // Invoices are never auto-categorized, so the row must not promise a category it will never get.
+    const isInvoice = iouType === CONST.IOU.TYPE.INVOICE;
+    const shouldPromiseAutomaticCategory = isAutoCategorizationEnabled && !isInvoice && willAutoFill && (isAutoFillFromReceipt || !isCategoryRequired);
+
+    const getCategoryRightLabelIcon = () => (shouldPromiseAutomaticCategory ? icons.Sparkles : undefined);
     const getCategoryRightLabel = () => {
-        if (willAutoFill) {
+        if (shouldPromiseAutomaticCategory) {
             return translate('common.automatic');
         }
         if (isCategoryRequired) {
@@ -72,40 +101,101 @@ function CategoryField({
         return '';
     };
 
+    const canSaveFromThisForm = action !== CONST.IOU.ACTION.EDIT || isEditingSplitBill;
+    const canUseAnchoredFieldDropdowns = isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS);
+    const isCreatingExpense = action === CONST.IOU.ACTION.CREATE;
+    // While creating, the list loads the categories itself and shows its own empty state, so it never needs the full page.
+    const canShowCategories = isCreatingExpense || hasEnabledCategories;
+    const shouldOpenInDropdown =
+        canUseAnchoredFieldDropdowns && !!transactionID && !!policy && !shouldNavigateToUpgradePath && !shouldSelectPolicy && canShowCategories && canSaveFromThisForm;
+    // The one condition both the row and the effect below open on, so the effect never asks the row to open a
+    // list it would refuse and fall back to the full page for.
+    const canOpenListInPlace = shouldOpenInDropdown && !isReadOnly && !didConfirm;
+    const canAddCategory = canCreateCategoryInSitu(policy, currentUserLogin);
+    const canOpenInDropdownAfterWorkspaceStep = canUseAnchoredFieldDropdowns && shouldUseDropdownRows && isCreatingExpense;
+
+    // The row sent the user to create or pick a workspace, and the upgrade step was told to only go back (`shouldReturnToConfirmation`).
+    // Once the form is focused again with a workspace, open the list in place. Backing out without one leaves nothing to list.
+    const {setIsDeparting} = useReopenAfterReturn({
+        onReturn: () => dropdownRef.current?.open(),
+        shouldCancel: shouldNavigateToUpgradePath || shouldSelectPolicy,
+        canReopen: canOpenListInPlace,
+    });
+
+    const getCategoryStepRoute = (currentTransactionID: string) =>
+        createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID: currentTransactionID, reportID, reportActionID}));
+
+    const openCategoryPage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        setIsDeparting((shouldNavigateToUpgradePath || (!policy && shouldSelectPolicy)) && canOpenInDropdownAfterWorkspaceStep);
+        if (shouldNavigateToUpgradePath) {
+            Navigation.navigate(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action,
+                        iouType,
+                        transactionID,
+                        reportID,
+                        upgradeBackTo: getCategoryStepRoute(transactionID),
+                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                        shouldReturnToConfirmation: canOpenInDropdownAfterWorkspaceStep,
+                    }),
+                ),
+            );
+        } else if (!policy && shouldSelectPolicy) {
+            // Without `navigateTo`, the page goes back to this form once a workspace is picked, and the list opens here.
+            const categoryStepRoute = canOpenInDropdownAfterWorkspaceStep ? undefined : getCategoryStepRoute(transactionID);
+            Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(categoryStepRoute));
+        } else {
+            Navigation.navigate(getCategoryStepRoute(transactionID));
+        }
+    };
+
+    if (shouldUseDropdownRows) {
+        return (
+            <ExpenseFieldDropdown
+                ref={dropdownRef}
+                name={translate('common.category')}
+                value={decodedCategoryName}
+                numberOfLinesValue={2}
+                rightLabel={getCategoryRightLabel()}
+                rightLabelIcon={getCategoryRightLabelIcon()}
+                // On a scan, `Automatic` describes the category Concierge picked, so it has to outlive the field
+                // being filled in. On a manual expense it only promises a category for a field that is still
+                // empty, so there it goes the moment the field holds one, the same way `Required` does.
+                shouldKeepRightLabelWhenFilled={shouldPromiseAutomaticCategory && isAutoFillFromReceipt}
+                errorText={shouldDisplayCategoryError ? translate(formError as TranslationPaths) : ''}
+                onPress={openCategoryPage}
+                shouldOpenInDropdown={canOpenListInPlace}
+                listHeaderHeight={canAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0}
+                renderDropdown={(dropdownProps) =>
+                    !!transactionID && (
+                        <CategoryFieldDropdown
+                            {...dropdownProps}
+                            transactionID={transactionID}
+                            policy={policy}
+                            selectedCategory={selectedCategory}
+                            canAddCategory={canAddCategory}
+                        />
+                    )
+                }
+                isDisabled={didConfirm}
+                isInteractive={!isReadOnly}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.CATEGORY_FIELD}
+            />
+        );
+    }
+
     return (
         <MenuItemWithTopDescription
             shouldShowRightIcon={!isReadOnly}
             title={decodedCategoryName}
             description={translate('common.category')}
             numberOfLinesTitle={2}
-            onPress={() => {
-                if (!transactionID) {
-                    return;
-                }
-
-                if (shouldNavigateToUpgradePath) {
-                    Navigation.navigate(
-                        createDynamicRoute(
-                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                action,
-                                iouType,
-                                transactionID,
-                                reportID,
-                                upgradeBackTo: createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID})),
-                                upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                            }),
-                        ),
-                    );
-                } else if (!policy && shouldSelectPolicy) {
-                    Navigation.navigate(
-                        ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID})),
-                        ),
-                    );
-                } else {
-                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID})));
-                }
-            }}
+            onPress={openCategoryPage}
             style={[styles.moneyRequestMenuItem]}
             titleStyle={styles.flex1}
             disabled={didConfirm}

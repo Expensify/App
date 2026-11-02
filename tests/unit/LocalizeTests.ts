@@ -12,8 +12,6 @@ type EnvironmentConfig = {
     isStaging: boolean;
 };
 
-type SessionEmail = string | null;
-
 jest.mock('@src/libs/Log');
 
 function mockEnvironmentConfig(config: EnvironmentConfig): () => void {
@@ -34,17 +32,10 @@ function mockEnvironmentConfig(config: EnvironmentConfig): () => void {
     };
 }
 
-async function setupSession(email: SessionEmail): Promise<void> {
-    await Onyx.merge(ONYXKEYS.SESSION, email ? {email} : null);
-    await waitForBatchedUpdates();
-}
-
-async function testMissingTranslationBehavior(environmentConfig: EnvironmentConfig, sessionEmail: SessionEmail, expectedResult: string): Promise<void> {
+async function testMissingTranslationBehavior(environmentConfig: EnvironmentConfig, expectedResult: string): Promise<void> {
     const cleanup = mockEnvironmentConfig(environmentConfig);
 
     try {
-        await setupSession(sessionEmail);
-
         // @ts-expect-error This scenario intentionally exercises runtime handling of a key absent from TranslationPaths.
         const result = Localize.translate(CONST.LOCALES.EN, 'missing.translation.key');
         expect(result).toBe(expectedResult);
@@ -66,6 +57,20 @@ describe('localize', () => {
     });
 
     afterEach(() => Onyx.clear());
+
+    it.each([
+        [1, 'pokaż 1 aktualizację'],
+        [2, 'pokaż 2 aktualizacje'],
+        [12, 'pokaż 12 aktualizacji'],
+        [22, 'pokaż 22 aktualizacje'],
+    ])('uses Polish plural categories for %s collapsed updates', async (count, expected) => {
+        // Given the Polish locale loaded through the real localization store
+        await IntlStore.load(CONST.LOCALES.PL);
+        // When the summary is translated, its plural handler receives a numeric count
+        const message = Localize.translate(CONST.LOCALES.PL, 'report.collapsedSystemMessages', {count});
+        // Then few and many forms are selected without a handwritten modulo expression
+        expect(message).toBe(expected);
+    });
 
     describe('formatList', () => {
         test.each([
@@ -118,34 +123,11 @@ describe('localize', () => {
         });
 
         test.each([
-            // [description, environment, sessionEmail, expectedResult]
-            [
-                'should return MISSING_TRANSLATION for missing key when user has expensify email in production environment',
-                {isProduction: true, isStaging: false},
-                'user@expensify.com',
-                CONST.MISSING_TRANSLATION,
-            ],
-            [
-                'should return MISSING_TRANSLATION for missing key when user has expensify email in staging environment',
-                {isProduction: false, isStaging: true},
-                'test@expensify.com',
-                CONST.MISSING_TRANSLATION,
-            ],
-            [
-                'should return key string for missing key when user has external email in production environment',
-                {isProduction: true, isStaging: false},
-                'user@external.com',
-                'missing.translation.key',
-            ],
-            [
-                'should return key string for missing key when user has external email in staging environment',
-                {isProduction: false, isStaging: true},
-                'user@external.com',
-                'missing.translation.key',
-            ],
-            ['should return key string for missing key when user has no email in production environment', {isProduction: true, isStaging: false}, null, 'missing.translation.key'],
-        ])('%s', async (description, environmentConfig, sessionEmail, expectedResult) => {
-            await testMissingTranslationBehavior(environmentConfig, sessionEmail, expectedResult);
+            // [description, environment, expectedResult]
+            ['should return key string for missing key when user is in production environment', {isProduction: true, isStaging: false}, 'missing.translation.key'],
+            ['should return key string for missing key when user is in staging environment', {isProduction: false, isStaging: true}, 'missing.translation.key'],
+        ])('%s', async (description, environmentConfig, expectedResult) => {
+            await testMissingTranslationBehavior(environmentConfig, expectedResult);
         });
     });
 });

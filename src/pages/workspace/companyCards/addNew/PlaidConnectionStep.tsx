@@ -29,7 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type PlaidConnectionStepProps = {
@@ -53,8 +53,6 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
     const plaidDataErrorMessage = !isEmptyObject(plaidErrors) ? (Object.values(plaidErrors).at(0) ?? '') : '';
     const {isOffline} = useNetwork();
     const domain = getDomainNameForPolicy(policyID);
-
-    const isAuthenticatedWithPlaid = useCallback(() => !!plaidData?.bankAccounts?.length || !isEmptyObject(plaidData?.errors), [plaidData?.bankAccounts?.length, plaidData?.errors]);
 
     /**
      * Blocks the keyboard shortcuts that can navigate
@@ -87,27 +85,25 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
     useEffect(() => {
         subscribeToNavigationShortcuts();
 
-        // If we're coming from Plaid OAuth flow then we need to reuse the existing plaidLinkToken
-        if (isAuthenticatedWithPlaid()) {
-            return unsubscribeToNavigationShortcuts;
-        }
+        // Always request a fresh link token. The response re-derives isPlaidDisabled from the server-side throttle state,
+        // so any error or throttle state left in Onyx by an earlier attempt is replaced instead of trusted.
         if (addNewCard?.data?.selectedCountry) {
             openPlaidCompanyCardLogin(addNewCard.data.selectedCountry, domain, feed);
-            return unsubscribeToNavigationShortcuts;
         }
+        return unsubscribeToNavigationShortcuts;
 
         // disabling this rule, as we want this to run only on the first render
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     useEffect(() => {
-        // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
+        // If we are coming back from offline we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
-        if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid() && addNewCard?.data?.selectedCountry) {
+        if (previousNetworkState.current && !isOffline && addNewCard?.data?.selectedCountry) {
             openPlaidCompanyCardLogin(addNewCard.data.selectedCountry, domain, feed);
         }
         previousNetworkState.current = isOffline;
-    }, [addNewCard?.data?.selectedCountry, domain, feed, isAuthenticatedWithPlaid, isOffline]);
+    }, [addNewCard?.data?.selectedCountry, domain, feed, isOffline]);
 
     const handleBackButtonPress = () => {
         if (feed) {
@@ -116,9 +112,9 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
         }
         setAddNewCompanyCardStepAndData({step: isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
-    const handlePlaidLinkError = useCallback((error: ErrorEvent | null) => {
+    const handlePlaidLinkError = (error: ErrorEvent | null) => {
         Log.hmmm('[PlaidLink] Error: ', error?.message);
-    }, []);
+    };
 
     const renderPlaidLink = () => {
         if (plaidLinkToken) {
@@ -148,6 +144,7 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
                                     JSON.stringify(metadata.accounts),
                                     '',
                                     splitCardFeedWithDomainID(feed)?.domainID,
+                                    true,
                                 );
                             }
                             setAssignCardStepAndData({

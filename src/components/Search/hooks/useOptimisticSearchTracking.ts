@@ -1,12 +1,11 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {flushPendingSearchWrite, getSearchWriteWatchKey, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {isSearchDataLoaded, isTransactionSearchType} from '@libs/SearchUIUtils';
+import {isReportActionEntry, isSearchDataLoaded, isTransactionEntry, isTransactionSearchType} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type SearchResults from '@src/types/onyx/SearchResults';
@@ -42,8 +41,8 @@ type UseOptimisticSearchTrackingParams = {
 function useOptimisticSearchTracking({searchResults, queryJSON, transactions, reportActions}: UseOptimisticSearchTrackingParams) {
     const {type} = queryJSON;
 
-    const hasPendingWriteOnMount = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-    const initialWatchKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+    const hasPendingWriteOnMount = hasPendingSearchWrite();
+    const initialWatchKey = hasPendingWriteOnMount ? getSearchWriteWatchKey() : undefined;
 
     const mutableRef = useRef<TrackingMutableState>({
         hasPendingWriteOnMount,
@@ -88,7 +87,7 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
     useEffect(
         () => () => {
             if (getPendingSubmitFollowUpAction()?.followUpAction !== CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH) {
-                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+                flushPendingSearchWrite();
             }
             if (mutableRef.current.rollbackTimeout) {
                 clearTimeout(mutableRef.current.rollbackTimeout);
@@ -110,7 +109,7 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
         // Step 1: resolve watch key if not yet available.
         if (!optimisticWatchKey) {
             const cleanup = resolveWatchKey(tracking, setOptimisticWatchKey);
-            if (!cleanup && !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+            if (!cleanup && !hasPendingSearchWrite()) {
                 clearOptimisticTracking();
             }
             return cleanup;
@@ -125,7 +124,7 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
         if (tracking.hasSwappedFromParent) {
             return;
         }
-        const watchedTx = transactions?.[optimisticWatchKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`];
+        const watchedTx = transactions?.[optimisticWatchKey];
         if (watchedTx?.reportID !== CONST.REPORT.SPLIT_REPORT_ID) {
             return;
         }
@@ -135,7 +134,10 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
         if (!childEntry) {
             return;
         }
-        const childKey = childEntry[0] as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+        const childKey = childEntry[0];
+        if (!isTransactionEntry(childKey)) {
+            return;
+        }
         tracking.optimisticWatchKey = childKey;
         tracking.hasSwappedFromParent = true;
         const rafID = requestAnimationFrame(() => setOptimisticWatchKey(childKey));
@@ -149,21 +151,19 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
             return searchData;
         }
 
-        const optimisticTransactionKey = optimisticWatchKey.startsWith(ONYXKEYS.COLLECTION.TRANSACTION)
-            ? (optimisticWatchKey as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`)
-            : undefined;
+        const optimisticTransactionKey = isTransactionEntry(optimisticWatchKey) ? optimisticWatchKey : undefined;
         const optimisticTransaction = optimisticTransactionKey ? transactions?.[optimisticTransactionKey] : undefined;
         if (!optimisticTransactionKey || !optimisticTransaction?.transactionID || searchData[optimisticTransactionKey] || optimisticTransaction.reportID === CONST.REPORT.SPLIT_REPORT_ID) {
             return searchData;
         }
 
-        const nextSearchData = {
+        const nextSearchData: SearchResults['data'] = {
             ...searchData,
             [optimisticTransactionKey]: optimisticTransaction,
-        } as SearchResults['data'];
+        };
 
         for (const [reportActionsKey, actions] of Object.entries(reportActions ?? {})) {
-            if (!actions) {
+            if (!actions || !isReportActionEntry(reportActionsKey)) {
                 continue;
             }
 
@@ -178,7 +178,7 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
                 continue;
             }
 
-            nextSearchData[reportActionsKey as `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}`] = actions;
+            nextSearchData[reportActionsKey] = actions;
         }
 
         return nextSearchData;
@@ -186,7 +186,7 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
 
     /**
      * Re-arms optimistic tracking for subsequent expense creations while Search
-     * stays mounted. Called from useFocusEffect when hasDeferredWrite is detected
+     * stays mounted. Called from useFocusEffect when hasPendingWrite is detected
      * on re-focus.
      *
      * Safe to call setState here: useFocusEffect only fires while the component
@@ -200,7 +200,7 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
         tracking.cachedOptimisticItem = null;
         setIsOptimisticTrackingCleared(false);
         setShowPendingExpensePlaceholder(true);
-        const latestKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        const latestKey = getSearchWriteWatchKey();
         tracking.optimisticWatchKey = latestKey;
         setOptimisticWatchKey(latestKey);
     };

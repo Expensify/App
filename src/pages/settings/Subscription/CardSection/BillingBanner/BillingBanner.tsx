@@ -1,6 +1,7 @@
 import Icon from '@components/Icon';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,7 +16,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type BillingBannerProps = {
@@ -39,6 +40,9 @@ type BillingBannerProps = {
     onRightIconPress?: () => void;
     rightIconAccessibilityLabel?: string;
 
+    /** Text of the tooltip shown on hover of the right icon button. No tooltip is shown when omitted. */
+    rightIconTooltipText?: string;
+
     /** Sentry label for the right icon button. Defaults to `CONST.SENTRY_LABEL.BILLING_BANNER.RIGHT_ICON`. */
     rightIconSentryLabel?: string;
 
@@ -57,6 +61,7 @@ function BillingBanner({
     rightIcon,
     onRightIconPress,
     rightIconAccessibilityLabel,
+    rightIconTooltipText,
     rightIconSentryLabel,
     rightComponent,
 }: BillingBannerProps) {
@@ -65,9 +70,10 @@ function BillingBanner({
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
-    const rightIconComponent = useMemo(() => {
-        if (rightIcon) {
-            return onRightIconPress && rightIconAccessibilityLabel ? (
+    let rightIconComponent;
+    if (rightIcon) {
+        if (onRightIconPress && rightIconAccessibilityLabel) {
+            const rightIconButton = (
                 <PressableWithoutFeedback
                     onPress={onRightIconPress}
                     style={[styles.touchableButtonImage, styles.threeDotsMenuIconWidth]}
@@ -80,35 +86,24 @@ function BillingBanner({
                         fill={theme.icon}
                     />
                 </PressableWithoutFeedback>
-            ) : (
+            );
+            rightIconComponent = rightIconTooltipText ? <Tooltip text={rightIconTooltipText}>{rightIconButton}</Tooltip> : rightIconButton;
+        } else {
+            rightIconComponent = (
                 <Icon
                     src={rightIcon}
                     fill={theme.icon}
                 />
             );
         }
-
-        return (
-            !!brickRoadIndicator && (
-                <Icon
-                    src={expensifyIcons.DotIndicator}
-                    fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
-                />
-            )
+    } else {
+        rightIconComponent = !!brickRoadIndicator && (
+            <Icon
+                src={expensifyIcons.DotIndicator}
+                fill={brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR ? theme.danger : theme.success}
+            />
         );
-    }, [
-        brickRoadIndicator,
-        onRightIconPress,
-        rightIcon,
-        rightIconAccessibilityLabel,
-        rightIconSentryLabel,
-        styles.touchableButtonImage,
-        styles.threeDotsMenuIconWidth,
-        theme.danger,
-        theme.icon,
-        theme.success,
-        expensifyIcons.DotIndicator,
-    ]);
+    }
 
     return (
         <View style={[styles.pv4, styles.ph5, styles.flexRow, styles.flexWrap, styles.gap3, styles.w100, styles.alignItemsCenter, styles.trialBannerBackgroundColor, style]}>

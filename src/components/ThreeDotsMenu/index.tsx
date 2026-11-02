@@ -23,7 +23,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
+import type {ComponentRef} from 'react';
+
+import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ThreeDotsMenuProps from './types';
@@ -65,7 +67,7 @@ function ThreeDotsMenu({
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [position, setPosition] = useState<AnchorPosition>();
-    const buttonRef = useRef<View>(null);
+    const buttonRef = useRef<ComponentRef<typeof View>>(null);
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
@@ -74,16 +76,16 @@ function ThreeDotsMenu({
         setPopupMenuVisible(true);
     };
 
-    const hidePopoverMenu = useCallback((selectedItem?: PopoverMenuItem) => {
+    const hidePopoverMenu = (selectedItem?: PopoverMenuItem) => {
         if (selectedItem?.shouldKeepModalOpen || selectedItem?.shouldCloseModalOnSelect === false) {
             return;
         }
         setPopupMenuVisible(false);
-    }, []);
+    };
 
     const {calculatePopoverPosition} = usePopoverPosition();
 
-    const calculateAndSetThreeDotsMenuPosition = useCallback(() => calculatePopoverPosition(buttonRef, anchorAlignment), [anchorAlignment, calculatePopoverPosition]);
+    const calculateAndSetThreeDotsMenuPosition = () => calculatePopoverPosition(buttonRef, anchorAlignment);
 
     const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
 

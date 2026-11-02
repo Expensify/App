@@ -22,7 +22,7 @@
 * [Expensify Code of Conduct](CODE_OF_CONDUCT.md)
 * [Contributor License Agreement](CLA.md)
 * [React StrictMode](contributingGuides/STRICT_MODE.md)
-* [Left Hand Navigation(LHN)](contributingGuides/LEFT_HAND_NAVIGATION.md)
+* [Left Hand Navigation (LHN)](contributingGuides/LEFT_HAND_NAVIGATION.md)
 * [HybridApp - additional info & troubleshooting](contributingGuides/HYBRID_APP.md)
 
 ----
@@ -35,6 +35,8 @@ These instructions should get you set up ready to work on New Expensify 🙌
 2. Install `watchman`: `brew install watchman`
 3. Install dependencies: `npm install`
 4. Run the specific platform with the following command: `npm run <platform>`, e.g. `npm run web`
+
+For web, normal setup also installs the Cloudflare Worker tooling. After the [HTTPS/hosts setup](contributingGuides/SETUP_WEB.md), `npm run web` serves the app through the local Worker at `https://dev.new.expensify.com:8082/`, with CSP, security headers, React Fast Refresh, and automatic Worker source reload. No ngrok, Cloudflare account, or web build is required.
 
 You can use any IDE or code editing tool for developing on any platform. Use your favorite!
 
@@ -78,6 +80,10 @@ variables referenced here get updated since your local `.env` file is ignored.
 - `USE_WEB_PROXY`⚠️- Used in web development, it starts a server along the local development server to proxy
    requests to the backend. External contributors should set this to `true` otherwise they'll have CORS errors.
    If you don't want to start the proxy server set this explicitly to `false`
+- `USE_CLOUDFLARE_WORKER` - Defaults to `true` for `npm run web`. Set to `false` to serve Rsbuild directly over HTTPS. This does not disable the API proxy.
+- `WEB_PORT` - Browser-facing development port (default: the first free port from `8082`). An explicit port must be free.
+- `WEB_INTERNAL_PORT` - Internal loopback HTTP Rsbuild port when the Worker is enabled (default: the next free port after `WEB_PORT`).
+- `WEB_OPEN` - Set to `false` to suppress automatic browser opening, for example in browser automation.
 - `CAPTURE_METRICS` (optional) - Set this to `true` to capture performance metrics and see them in Flipper
    see [PERFORMANCE.md](contributingGuides/PERFORMANCE.md#performance-metrics-opt-in-on-local-release-builds) for more information
 - `ONYX_METRICS` (optional) - Set this to `true` to capture even more performance metrics and see them in Flipper
@@ -88,6 +94,7 @@ variables referenced here get updated since your local `.env` file is ignored.
 ----
 
 # Running the tests
+
 ## Unit tests
 Unit tests are valuable when you want to test one component. They should be short, fast, and ideally only test one thing.
 Often times in order to write a unit test, you may need to mock data, a component, or library. We use the library [Jest](https://jestjs.io/)

@@ -1,5 +1,4 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -7,12 +6,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
+import useAlertModals from '@hooks/useAlertModals';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {close} from '@libs/actions/Modal';
@@ -41,7 +40,7 @@ import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 type ImportTagsOptionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS_IMPORT_OPTIONS>;
 
@@ -49,119 +48,77 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const backTo = route.params.backTo;
-    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const isQuickSettingsFlow = !!backTo;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
+    const {showDownloadErrorModal} = useAlertModals();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['MultiTag', 'Tag']);
 
-    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    // The download link lives inside a confirm modal prompt, so close that modal first. Otherwise it stays under the alert and reappears after the alert is dismissed.
+    const showDownloadErrorModalAfterClose = () => {
+        close(() => showDownloadErrorModal());
+    };
+
     const [shouldRunPostUpgradeFlow, setShouldRunPostUpgradeFlow] = useState(false);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const workspaceTagsImportPath = createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_TAGS_IMPORT.path, ROUTES.WORKSPACE_TAGS.getRoute(policyID));
-    const [policyTagLists, isMultiLevelTags, hasDependentTags] = useMemo(
-        () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
-        [policy, policyTags],
-    );
+    const [policyTagLists, isMultiLevelTags, hasDependentTags] = [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)];
     // If required tags was enabled before clearing tags for a level switch, the next first tag should restore that setting.
     const shouldRestoreRequiresTagAfterTagCreate = (policy?.requiresTag ?? false) || policyTagLists.some((policyTagList) => policyTagList.required);
 
-    const hasVisibleTags = useMemo(() => {
-        if (isMultiLevelTags) {
-            return policyTagLists.some((policyTagList) => Object.values(policyTagList.tags ?? {}).some((tag) => tag.enabled));
-        }
-
+    let hasVisibleTags;
+    if (isMultiLevelTags) {
+        hasVisibleTags = policyTagLists.some((policyTagList) => Object.values(policyTagList.tags ?? {}).some((tag) => tag.enabled));
+    } else {
         const singleLevelTags = policyTagLists.at(0)?.tags ?? {};
-        return Object.values(singleLevelTags).some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    }, [isMultiLevelTags, policyTagLists]);
+        hasVisibleTags = Object.values(singleLevelTags).some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    }
 
-    const overrideMultiTagPrompt = useMemo(
-        () => (
-            <Text>
-                {translate('workspace.tags.overrideMultiTagWarning.prompt1')}
-                <>
-                    {translate('workspace.tags.overrideMultiTagWarning.prompt2')}
-                    <TextLink
-                        onPress={() => {
-                            if (isMultiLevelTags) {
-                                downloadMultiLevelTagsCSV(
-                                    policyID,
-                                    () => {
-                                        close(() => {
-                                            setIsDownloadFailureModalVisible(true);
-                                        });
-                                    },
-                                    hasDependentTags,
-                                    translate,
-                                );
-                            } else {
-                                downloadTagsCSV(
-                                    policyID,
-                                    () => {
-                                        close(() => {
-                                            setIsDownloadFailureModalVisible(true);
-                                        });
-                                    },
-                                    translate,
-                                );
-                            }
-                        }}
-                    >
-                        {translate('workspace.tags.overrideMultiTagWarning.prompt3')}
-                    </TextLink>
-                    {translate('workspace.tags.overrideMultiTagWarning.prompt4')}
-                </>
-            </Text>
-        ),
-        [translate, isMultiLevelTags, policyID, hasDependentTags],
-    );
-
-    const switchSingleToMultiLevelTagPrompt = useMemo(
-        () => (
-            <Text>
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
+    const overrideMultiTagPrompt = (
+        <Text>
+            {translate('workspace.tags.overrideMultiTagWarning.prompt1')}
+            <>
+                {translate('workspace.tags.overrideMultiTagWarning.prompt2')}
                 <TextLink
                     onPress={() => {
                         if (isMultiLevelTags) {
-                            downloadMultiLevelTagsCSV(
-                                policyID,
-                                () => {
-                                    close(() => {
-                                        setIsDownloadFailureModalVisible(true);
-                                    });
-                                },
-                                hasDependentTags,
-                                translate,
-                            );
+                            downloadMultiLevelTagsCSV(policyID, showDownloadErrorModalAfterClose, hasDependentTags, translate);
                         } else {
-                            downloadTagsCSV(
-                                policyID,
-                                () => {
-                                    close(() => {
-                                        setIsDownloadFailureModalVisible(true);
-                                    });
-                                },
-                                translate,
-                            );
+                            downloadTagsCSV(policyID, showDownloadErrorModalAfterClose, translate);
                         }
                     }}
                 >
-                    {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
+                    {translate('workspace.tags.overrideMultiTagWarning.prompt3')}
                 </TextLink>
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
-                <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
-                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
-            </Text>
-        ),
-        [translate, policyID, hasDependentTags, isMultiLevelTags],
+                {translate('workspace.tags.overrideMultiTagWarning.prompt4')}
+            </>
+        </Text>
     );
 
-    const startMultiLevelTagImportFlow = useCallback(async () => {
+    const switchSingleToMultiLevelTagPrompt = (
+        <Text>
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt1')}
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt2')}
+            <TextLink
+                onPress={() => {
+                    if (isMultiLevelTags) {
+                        downloadMultiLevelTagsCSV(policyID, showDownloadErrorModalAfterClose, hasDependentTags, translate);
+                    } else {
+                        downloadTagsCSV(policyID, showDownloadErrorModalAfterClose, translate);
+                    }
+                }}
+            >
+                {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt3')}
+            </TextLink>
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt4')}
+            <TextLink href={CONST.IMPORT_SPREADSHEET.TAGS_ARTICLE_LINK}>{translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt5')}</TextLink>
+            {translate('workspace.tags.switchSingleToMultiLevelTagWarning.prompt6')}
+        </Text>
+    );
+
+    const startMultiLevelTagImportFlow = async () => {
         setImportedSpreadsheetIsImportingMultiLevelTags(true);
         if (hasVisibleTags) {
             if (isMultiLevelTags) {
@@ -199,19 +156,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         } else {
             Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : workspaceTagsImportPath);
         }
-    }, [
-        hasVisibleTags,
-        isMultiLevelTags,
-        showConfirmModal,
-        translate,
-        overrideMultiTagPrompt,
-        isQuickSettingsFlow,
-        policyID,
-        shouldRestoreRequiresTagAfterTagCreate,
-        backTo,
-        switchSingleToMultiLevelTagPrompt,
-        workspaceTagsImportPath,
-    ]);
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -295,15 +240,6 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     />
                 </FullPageOfflineBlockingView>
             </ScreenWrapper>
-            <DecisionModal
-                title={translate('common.downloadFailedTitle')}
-                prompt={translate('common.downloadFailedDescription')}
-                isSmallScreenWidth={isSmallScreenWidth}
-                onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                secondOptionText={translate('common.buttonConfirm')}
-                isVisible={isDownloadFailureModalVisible}
-                onClose={() => setIsDownloadFailureModalVisible(false)}
-            />
         </AccessOrNotFoundWrapper>
     );
 }
