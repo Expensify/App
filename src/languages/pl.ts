@@ -6498,7 +6498,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 },
             },
             syncReimbursedReports: 'Synchronizuj rozliczone raporty',
-            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, w tym koncie zostanie wygenerowana płatność rachunku.',
+            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, na tym koncie zostanie wygenerowana płatność.',
             syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
             settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Rillet.'},
             syncTravelBillingSettlements: 'Synchronizuj rozliczenia skonsolidowanego fakturowania podróży',
@@ -6650,7 +6650,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 },
             },
             syncReimbursedReports: 'Synchronizuj rozliczone raporty',
-            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, na tym koncie zostanie wygenerowana płatność.',
+            syncReimbursedReportsDescription: 'Gdy raport zostanie opłacony przez ACH, w tym koncie zostanie wygenerowana płatność rachunku.',
             billPaymentAccount: {label: 'Konto do płatności rachunków', description: 'Wybierz, z którego konta chcesz opłacać rachunki, a my utworzymy płatność w DualEntry.'},
             fxExpenseAccount: {
                 label: 'Konto opłaty za przewalutowanie DualEntry',
