@@ -6527,7 +6527,7 @@ const rejectMoneyRequestReason = (reportAction: OnyxEntry<ReportAction>): void =
 /**
  * Gets all transactions on an IOU report with a receipt
  */
-function getTransactionsWithReceipts(iouReportID: string | undefined, reportTransactions: Transaction[] = getReportTransactions(iouReportID)): Transaction[] {
+function getTransactionsWithReceipts(reportTransactions: Transaction[]): Transaction[] {
     return reportTransactions.filter((transaction) => hasReceiptTransactionUtils(transaction));
 }
 
@@ -6538,12 +6538,8 @@ function getTransactionsWithReceipts(iouReportID: string | undefined, reportTran
  * or as soon as one receipt request is done scanning, we have at least one
  * "ready" expense, and we remove this indicator to show the partial report total.
  */
-function areAllRequestsBeingSmartScanned(
-    iouReportID: string | undefined,
-    reportPreviewAction: OnyxEntry<ReportAction>,
-    reportTransactions: Transaction[] = getReportTransactions(iouReportID),
-): boolean {
-    const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, reportTransactions);
+function areAllRequestsBeingSmartScanned(reportPreviewAction: OnyxEntry<ReportAction>, reportTransactions: Transaction[]): boolean {
+    const transactionsWithReceipts = getTransactionsWithReceipts(reportTransactions);
     // If we have more requests than requests with receipts, we have some manual requests
     if (getNumberOfMoneyRequests(reportPreviewAction) > transactionsWithReceipts.length) {
         return false;
