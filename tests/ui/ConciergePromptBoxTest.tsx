@@ -242,7 +242,7 @@ function pressEnter(options?: {shiftKey?: boolean}) {
 }
 
 function pasteImage() {
-    fireEvent(getInput(), 'paste', {nativeEvent: {items: [{type: 'image/png', data: 'file:///image.png'}]}});
+    fireEvent(getInput(), 'paste', {nativeEvent: {files: [{uri: 'file:///image.png', type: 'image/png', name: 'image.png', size: 1024}]}});
 }
 
 function typeText(text: string) {

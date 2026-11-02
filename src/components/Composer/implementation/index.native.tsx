@@ -10,14 +10,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
-import {getExtensionFromMimeType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
 import Parser from '@libs/Parser';
 
-import getFileSize from '@pages/Share/getFileSize';
-
 import CONST from '@src/CONST';
-import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {MarkdownStyle, MarkdownTextInput} from '@expensify/react-native-live-markdown';
 import type {NativeSyntheticEvent, TextInputChangeEvent} from 'react-native';
@@ -25,10 +21,13 @@ import type {NativeSyntheticEvent, TextInputChangeEvent} from 'react-native';
 import React, {useEffect, useRef} from 'react';
 import {StyleSheet} from 'react-native';
 
+// Files copied to temporary paths by the `onPaste` support patched into React Native's TextInput
 type TextInputPasteEvent = NativeSyntheticEvent<{
-    items: Array<{
+    files: Array<{
+        uri: string;
         type: string;
-        data: string;
+        name: string;
+        size: number;
     }>;
 }>;
 
@@ -103,21 +102,11 @@ function Composer({
         onClearProp(nativeEvent.text);
     };
 
-    const pasteFile = (e: TextInputPasteEvent) => {
-        const clipboardContent = e.nativeEvent.items.at(0);
-        if (clipboardContent?.type === 'text/plain') {
+    const pasteFile = ({nativeEvent}: TextInputPasteEvent) => {
+        if (nativeEvent.files.length === 0) {
             return;
         }
-        const mimeType = clipboardContent?.type ?? '';
-        const fileURI = clipboardContent?.data;
-        const baseFileName = fileURI?.split('/').pop() ?? 'file';
-        const {fileName: stem, fileExtension: originalFileExtension} = splitExtensionFromFileName(baseFileName);
-        const fileExtension = originalFileExtension || (getExtensionFromMimeType(mimeType) ?? 'bin');
-        const fileName = `${stem}.${fileExtension}`;
-        let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
-        getFileSize(file.uri ?? '')
-            .then((size) => (file = {...file, size}))
-            .finally(() => onPasteFile(file));
+        onPasteFile(nativeEvent.files);
     };
 
     const maxHeightStyle = StyleUtils.getComposerMaxHeightStyle(isInLandscapeMode ? CONST.COMPOSER.MAX_LINES_LANDSCAPE_MODE : maxLines, isComposerFullSize);
