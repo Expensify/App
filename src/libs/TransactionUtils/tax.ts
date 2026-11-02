@@ -266,10 +266,54 @@ function getCategoryTaxCode(category: string, transaction: OnyxEntry<Transaction
     return getSelectableCategoryTaxCode(policy, rules, category, getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction)));
 }
 
+/**
+ * The tax a category's rule puts on an expense, as the three fields a transaction stores it in.
+ *
+ * A split draft never gets a server response, so it sends whatever tax it already holds. The rate has to be
+ * resolved here rather than left to the confirmation page, which only writes to the money request draft.
+ */
+function getCategoryTaxDetails(
+    category: string,
+    transaction: OnyxEntry<Transaction>,
+    policy: OnyxEntry<Policy>,
+    rules: OnyxCollection<Rule>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    currency?: string,
+) {
+    const unresolvedTaxDetails = {categoryTaxCode: undefined, categoryTaxAmount: undefined, categoryTaxValue: undefined};
+
+    // Distance tax is charged on the taxable portion of the mileage rate rather than the full amount, so reuse the
+    // rate-aware calculation instead of taxing the expense amount.
+    if (isDistanceRequest(transaction)) {
+        const {
+            categoryTaxCode: distanceCategoryTaxCode,
+            taxAmount,
+            taxValue,
+        } = getDistanceRateTaxUpdates(policy, transaction, getRateID(transaction), rules, getCurrencyDecimals, undefined, category);
+        if (!distanceCategoryTaxCode) {
+            return unresolvedTaxDetails;
+        }
+        return {categoryTaxCode: distanceCategoryTaxCode, categoryTaxAmount: taxAmount, categoryTaxValue: taxValue};
+    }
+
+    const categoryTaxCode = getCategoryTaxCode(category, transaction, policy, rules, currency);
+    if (!categoryTaxCode) {
+        return unresolvedTaxDetails;
+    }
+
+    const categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode);
+    const categoryTaxAmount = categoryTaxPercentage
+        ? convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrencyDecimals(getCurrency(transaction))))
+        : undefined;
+
+    return {categoryTaxCode, categoryTaxAmount, categoryTaxValue: categoryTaxPercentage};
+}
+
 export {
     calculateTaxAmount,
     getCalculatedTaxAmount,
     getCategoryTaxCode,
+    getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceRateTaxUpdates,
     getEnabledTaxRateCount,

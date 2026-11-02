@@ -15,6 +15,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
+import useRulesPrefetch from '@hooks/useRulesPrefetch';
 
 import {getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
@@ -25,7 +26,7 @@ import {getSelectedWorkspacePolicyID, pickReportForPolicy} from '@libs/IOUUtils'
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasTags} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, hasTags} from '@libs/PolicyUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 
@@ -99,6 +100,9 @@ function DynamicIOURequestStepCategoryCreate({
     const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID ?? transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    // A split's category tax is resolved when the category is written, so the rules have to be on their way before
+    // the user creates one. Nothing recomputes it afterwards, because a split draft gets no server response.
+    useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
     const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportReal?.parentReportID ?? reportDraft?.parentReportID)}`);
     const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
@@ -165,7 +169,7 @@ function DynamicIOURequestStepCategoryCreate({
         };
 
         if (isEditingSplit && transaction) {
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, getCurrencyDecimals, getCurrencySymbol, policy);
+            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, getCurrencyDecimals, getCurrencySymbol, policy, undefined, undefined, rules);
         } else if (isEditing && report) {
             updateMoneyRequestCategory({
                 isVendorMatchingBetaEnabled,

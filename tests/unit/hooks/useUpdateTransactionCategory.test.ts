@@ -68,7 +68,8 @@ describe('useUpdateTransactionCategory', () => {
 
         // Then only the split draft is written, and the caller is told this is not a money request draft write
         expect(setDraftSplitTransaction).toHaveBeenCalledTimes(1);
-        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, undefined, {category: CATEGORY}, expect.any(Function), expect.any(Function), policy);
+        // The rules collection goes along, since a split draft has to resolve the category's tax rate itself
+        expect(setDraftSplitTransaction).toHaveBeenCalledWith(TRANSACTION_ID, undefined, {category: CATEGORY}, expect.any(Function), expect.any(Function), policy, undefined, undefined, {});
         expect(updateMoneyRequestCategory).not.toHaveBeenCalled();
         expect(setMoneyRequestCategory).not.toHaveBeenCalled();
         expect(result.current.isDraftUpdate).toBe(false);

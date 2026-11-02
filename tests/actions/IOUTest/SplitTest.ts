@@ -24,7 +24,15 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import updateSplitTransactionsFromSplitExpensesFlow from '@pages/iou/updateSplitTransactionsFromSplitExpensesFlow';
 
-import {completeSplitBill, createDistanceRequest, resolveOptimisticSplitChatReportID, splitBill, splitBillAndOpenReport, startSplitBill} from '@userActions/IOU/Split';
+import {
+    completeSplitBill,
+    createDistanceRequest,
+    resolveOptimisticSplitChatReportID,
+    setDraftSplitTransaction,
+    splitBill,
+    splitBillAndOpenReport,
+    startSplitBill,
+} from '@userActions/IOU/Split';
 import {
     addSplitExpenseField,
     evenlyDistributeSplitExpenseAmounts,
@@ -61,7 +69,7 @@ import Onyx from 'react-native-onyx';
 import type {MockFetch} from '../../utils/TestHelper';
 
 import createPersonalDetails from '../../utils/collections/personalDetails';
-import createRandomPolicy from '../../utils/collections/policies';
+import createRandomPolicy, {createCategoryTaxRulesCollection} from '../../utils/collections/policies';
 import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport, createSelfDM} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
@@ -12829,5 +12837,66 @@ describe('updateSplitTransactions - emptied expense reports', () => {
         expect(reportBAfter?.total).toBe(-7500);
         const reportCAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportC.reportID}`);
         expect(reportCAfter?.total).toBe(-7500);
+    });
+});
+
+describe('setDraftSplitTransaction', () => {
+    const splitTransactionID = '1';
+    const splitPolicyID = '2';
+    const category = 'Advertising';
+    const ruleTaxCode = 'id_TAX_RATE_1';
+
+    const buildSplitPolicy = (): Policy => ({...createRandomPolicy(Number(splitPolicyID)), taxRates: CONST.DEFAULT_TAX});
+
+    const buildSplitDraft = (): Transaction => ({...createRandomTransaction(1), taxCode: 'id_TAX_EXEMPT', taxAmount: 0, amount: 100});
+
+    it('writes the tax the category rule asks for', async () => {
+        // Given a split draft on a policy whose expense default puts a tax rate on the category
+        const policy = buildSplitPolicy();
+        const draftTransaction = buildSplitDraft();
+        const rules = createCategoryTaxRulesCollection(splitPolicyID, category, ruleTaxCode);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
+
+        // When that category is written to the split
+        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        await waitForBatchedUpdates();
+
+        // Then the rule's rate is on the draft, because a split is sent with whatever tax it holds
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(updatedTransaction?.taxCode).toBe(ruleTaxCode);
+        expect(updatedTransaction?.taxAmount).toBe(5);
+    });
+
+    it('leaves the tax alone when the policy has no expense default', async () => {
+        // Given a split draft on a policy with no expense defaults at all
+        const policy = buildSplitPolicy();
+        const draftTransaction = buildSplitDraft();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
+
+        // When a category is written to the split
+        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, {});
+        await waitForBatchedUpdates();
+
+        // Then the tax it already carried is kept, since no rule asked for a different one
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(updatedTransaction?.taxCode).toBe('id_TAX_EXEMPT');
+        expect(updatedTransaction?.taxAmount).toBe(0);
+    });
+
+    it('leaves the tax alone when the category is not the field being changed', async () => {
+        // Given a split draft on a policy whose expense default puts a tax rate on a category
+        const policy = buildSplitPolicy();
+        const draftTransaction = buildSplitDraft();
+        const rules = createCategoryTaxRulesCollection(splitPolicyID, category, ruleTaxCode);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
+
+        // When a field other than the category is written
+        setDraftSplitTransaction(splitTransactionID, draftTransaction, {comment: 'Updated'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        await waitForBatchedUpdates();
+
+        // Then the rate is left as it was, because no category change can have brought a different rule into play
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(updatedTransaction?.taxCode).toBe('id_TAX_EXEMPT');
+        expect(updatedTransaction?.taxAmount).toBe(0);
     });
 });
