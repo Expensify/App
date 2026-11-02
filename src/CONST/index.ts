@@ -4941,6 +4941,7 @@ const CONST = {
             SCANNING: 'SCANNING',
             SCAN_COMPLETE: 'SCANCOMPLETE',
             SCAN_FAILED: 'SCANFAILED',
+            DELETED: 'DELETED',
         },
         FILE_TYPES: {
             HTML: 'html',
