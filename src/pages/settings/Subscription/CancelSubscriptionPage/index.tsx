@@ -14,6 +14,7 @@ import useCancellationType from '@hooks/useCancellationType';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {cancelBillingSubscription} from '@libs/actions/Subscription';
@@ -34,6 +35,8 @@ function CancelSubscriptionPage() {
     const workspacesListRoute = `${environmentURL}/${ROUTES.WORKSPACES_LIST.route}`;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+    const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
     const [privateSubscription, privateSubscriptionResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [firstDayFreeTrial, firstDayFreeTrialResult] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial, lastDayFreeTrialResult] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
@@ -115,7 +118,14 @@ function CancelSubscriptionPage() {
                                     <Text style={[styles.mt1, styles.textNormalThemeText]}>{translate('subscription.cancelSubscription.subscriptionCanceled.subtitle')}</Text>
                                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.cancelSubscription.subscriptionCanceled.info')}</Text>
 
-                                    <RenderHTML html={translate('subscription.cancelSubscription.subscriptionCanceled.preventFutureActivity', workspacesListRoute)} />
+                                    <RenderHTML
+                                        html={translate(
+                                            canArchivePolicies
+                                                ? 'subscription.cancelSubscription.subscriptionCanceled.preventFutureActivityWithArchive'
+                                                : 'subscription.cancelSubscription.subscriptionCanceled.preventFutureActivity',
+                                            workspacesListRoute,
+                                        )}
+                                    />
                                 </View>
                                 <FixedFooter style={styles.ph0}>
                                     <Button
