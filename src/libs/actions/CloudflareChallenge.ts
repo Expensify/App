@@ -62,13 +62,20 @@ function resolveCloudflareChallenge() {
  * while the check is pending waits on the same promise. Rejects when the challenge cannot be solved, so the
  * caller fails the request the same way as before this handling existed.
  */
-function requestCloudflareChallengeResolution(): Promise<void> {
+function requestCloudflareChallengeResolution(challengedRequestURL: string): Promise<void> {
+    // The widget needs a browser, and the native cookie jar cannot hold the cf_clearance cookie
+    if (getPlatform() !== CONST.PLATFORM.WEB) {
+        return Promise.reject(createUnsolvedChallengeError());
+    }
+    // A cross-origin request cannot be solved either. Cloudflare serves the challenge page without our CORS headers,
+    // so such a request can never even read the header, and a third-party clearance cookie would not ride along on
+    // later requests anyway.
+    const isSameOriginRequest = new URL(challengedRequestURL, window.location.href).origin === window.location.origin;
+    if (!isSameOriginRequest || !isChallengeModalMounted) {
+        return Promise.reject(createUnsolvedChallengeError());
+    }
     if (challengeResolution) {
         return challengeResolution.promise;
-    }
-    // Only browsers can render the Turnstile widget, and the native cookie jar cannot hold the cf_clearance cookie
-    if (getPlatform() !== CONST.PLATFORM.WEB || !isChallengeModalMounted) {
-        return Promise.reject(createUnsolvedChallengeError());
     }
     challengeResolution = Promise.withResolvers<void>();
     setIsCloudflareChallengeModalOpen(true);
