@@ -20,11 +20,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getTitleFieldWithFallback} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-
-import variables from '@styles/variables';
 
 import {clearPolicyTitleFieldError, setPolicyDefaultReportTitle} from '@userActions/Policy/Policy';
 
@@ -56,10 +55,13 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     ] as const satisfies string[];
 
     const titleField = getTitleFieldWithFallback(policy);
-    const customNameDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
+    // The default report title is a single-line value, so show any title saved with line breaks on one line.
+    const customNameDefaultValue = StringUtils.lineBreaksToSpaces(Str.htmlDecode(titleField?.defaultValue ?? ''));
 
-    const validateCustomName = ({defaultTitle}: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
+    const validateCustomName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM> = {};
+        // Validate the same single-line value that submitForm saves.
+        const defaultTitle = StringUtils.lineBreaksToSpaces(values.defaultTitle).trim();
         if (!defaultTitle) {
             errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.fieldRequired');
         } else if (defaultTitle.length > CONST.REPORT_TITLE_FORMULA_LIMIT) {
@@ -78,7 +80,9 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     });
 
     const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
-        setPolicyDefaultReportTitle(policyID, values.defaultTitle, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE], getReviewWorkspaceSettingsTaskCompletion());
+        // The input can wrap to multiple lines while editing, but the title is a single-line value. Squash any pasted line breaks before saving.
+        const defaultTitle = StringUtils.lineBreaksToSpaces(values.defaultTitle).trim();
+        setPolicyDefaultReportTitle(policyID, defaultTitle, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE], getReviewWorkspaceSettingsTaskCompletion());
         Navigation.goBack();
     };
 
@@ -125,10 +129,9 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
                             defaultValue={customNameDefaultValue}
                             label={translate('workspace.reports.customNameInputLabel')}
                             aria-label={translate('workspace.reports.customNameInputLabel')}
-                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             spellCheck={false}
                             autoFocus
-                            autoGrowHeight
+                            autoGrowSingleLine
                             ref={(el: BaseTextInputRef | null): void => {
                                 if (!isInputInitializedRef.current) {
                                     updateMultilineInputRange(el);
