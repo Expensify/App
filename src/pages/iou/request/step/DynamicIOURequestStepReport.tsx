@@ -27,6 +27,7 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
     const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     useRestartOnReceiptFailure(transaction, reportIDFromRoute, iouType, action);
+
     const handleGoBack = () => {
         if (isEditing) {
             Navigation.dismissToSuperWideRHP();
