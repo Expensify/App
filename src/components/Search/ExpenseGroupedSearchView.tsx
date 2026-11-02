@@ -193,7 +193,6 @@ function ExpenseGroupedSearchView({
         ownerBillingGracePeriodEnd,
         handleUndelete,
         onLongPressRow,
-        modal,
         handleSelectRow,
         scrollToListIndex,
     } = useSearchListViewState({data, listData, isMobileSelectionModeEnabled, onSelectRow});
@@ -379,7 +378,6 @@ function ExpenseGroupedSearchView({
                 disabledIndexes={shouldSplit ? childrenContainerIndices : undefined}
                 overrideItemLayout={shouldSplit ? overrideItemLayout : undefined}
             />
-            {modal}
         </SearchListViewLayout>
     );
 }
