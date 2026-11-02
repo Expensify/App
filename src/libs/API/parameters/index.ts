@@ -644,6 +644,7 @@ export type {default as AddWorkEmailParams} from './AddWorkEmailParams';
 export type {default as MergeIntoAccountAndLogInParams} from './MergeIntoAccountAndLogInParams';
 export type {default as GetValidateCodeForAccountMergeParams} from './GetValidateCodeForAccountMerge';
 export type {default as MergeWithValidateCodeParams} from './MergeWithValidateCode';
+export type {default as MergeAccountWithSAMLParams} from './MergeAccountWithSAMLParams';
 export type {default as OpenWorkspacePlanPageParams} from './OpenWorkspacePlanPage';
 export type {default as ResetSMSDeliveryFailureStatusParams} from './ResetSMSDeliveryFailureStatusParams';
 export type {default as CreatePerDiemRequestParams} from './CreatePerDiemRequestParams';

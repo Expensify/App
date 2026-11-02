@@ -7411,6 +7411,9 @@ const CONST = {
         ERR_MERGE_SELF: 'err_merge_self',
         TOO_MANY_ATTEMPTS: 'too_many_attempts',
         ACCOUNT_UNVALIDATED: 'account_unvalidated',
+        ADMIN_APPROVAL_REQUESTED: 'admin_approval_requested',
+        ADMIN_APPROVAL_SUCCESS: 'admin_approval_success',
+        ADMIN_APPROVAL_FAILED: 'admin_approval_failed',
     },
     DELEGATE_ROLE: {
         ALL: 'all',
@@ -7937,6 +7940,7 @@ const CONST = {
 
     // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
     MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
+    MERGE_ACCOUNT_ADMIN_APPROVAL_REQUIRED_ERROR: '402 Requires email verification',
     MERGE_ACCOUNT_2FA_ERROR: 'is a login for an Expensify account with Two-Factor Authentication (2FA) enabled',
     MERGE_ACCOUNT_SINGLE_SIGN_ON_ERROR: 'is a login for an Expensify account with Single Sign-On (SSO/SAML) enabled',
 

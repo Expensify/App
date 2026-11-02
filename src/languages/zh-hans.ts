@@ -2516,6 +2516,16 @@ const translations: TranslationDeepObject<typeof en> = {
         mergeFailureSelfMerge: {
             description: '您不能将一个账户与其自身合并。',
         },
+        mergeAdminApprovalRequested: {
+            heading: '等待管理员批准',
+            description: '我们已向您的域管理员发送邮件以确认合并这两个账户。管理员批准后，您的账户将立即合并。',
+        },
+        mergeAdminApprovalSuccess: {
+            description: (email: string) => `<muted-text><centered-text>账户已合并到 <strong>${email}</strong>。</centered-text></muted-text>`,
+        },
+        mergeAdminApprovalFailed: {
+            description: '此合并链接无效或已过期。请确认您已以该域的技术联系人身份登录，或请用户重新发起合并请求。',
+        },
         mergeFailureGenericHeading: '无法合并账号',
     },
     lockAccountPage: {

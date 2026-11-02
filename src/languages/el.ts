@@ -2658,6 +2658,18 @@ const translations: TranslationDeepObject<typeof en> = {
         mergeFailureSelfMerge: {
             description: 'Δεν μπορείτε να συγχωνεύσετε έναν λογαριασμό με τον εαυτό του.',
         },
+        mergeAdminApprovalRequested: {
+            heading: 'Αναμονή έγκρισης διαχειριστή',
+            description:
+                'Στείλαμε email στον διαχειριστή του τομέα σας για να επιβεβαιώσει τη συγχώνευση αυτών των δύο λογαριασμών. Οι λογαριασμοί σας θα συγχωνευτούν μόλις δώσει το πράσινο φως.',
+        },
+        mergeAdminApprovalSuccess: {
+            description: (email: string) => `<muted-text><centered-text>Οι λογαριασμοί συγχωνεύτηκαν σε <strong>${email}</strong>.</centered-text></muted-text>`,
+        },
+        mergeAdminApprovalFailed: {
+            description:
+                'Αυτός ο σύνδεσμος συγχώνευσης δεν είναι έγκυρος ή έχει λήξει. Βεβαιωθείτε ότι έχετε συνδεθεί ως το τεχνικό άτομο επικοινωνίας του τομέα, ή ζητήστε από τον χρήστη να επανυποβάλει το αίτημα συγχώνευσης.',
+        },
         mergeFailureGenericHeading: 'Δεν είναι δυνατή η συγχώνευση λογαριασμών',
     },
     lockAccountPage: {

@@ -2608,6 +2608,18 @@ const translations: TranslationDeepObject<typeof en> = {
         mergeFailureSelfMerge: {
             description: 'Ein Konto kann nicht mit sich selbst zusammengeführt werden.',
         },
+        mergeAdminApprovalRequested: {
+            heading: 'Warten auf Administrator-Freigabe',
+            description:
+                'Wir haben Ihrem Domain-Administrator eine E-Mail gesendet, um die Zusammenführung dieser beiden Konten zu bestätigen. Ihre Konten werden zusammengeführt, sobald er grünes Licht gibt.',
+        },
+        mergeAdminApprovalSuccess: {
+            description: (email: string) => `<muted-text><centered-text>Die Konten wurden in <strong>${email}</strong> zusammengeführt.</centered-text></muted-text>`,
+        },
+        mergeAdminApprovalFailed: {
+            description:
+                'Dieser Zusammenführungslink ist ungültig oder abgelaufen. Stellen Sie sicher, dass Sie als technischer Kontakt der Domain angemeldet sind, oder bitten Sie den Benutzer, die Zusammenführung erneut anzufordern.',
+        },
         mergeFailureGenericHeading: 'Konten können nicht zusammengeführt werden',
     },
     lockAccountPage: {

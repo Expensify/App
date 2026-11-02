@@ -2510,6 +2510,18 @@ const translations: TranslationDeepObject<typeof en> = {
         mergeFailureSelfMerge: {
             description: 'No puedes combinar una cuenta consigo misma.',
         },
+        mergeAdminApprovalRequested: {
+            heading: 'Esperando la aprobación del administrador',
+            description:
+                'Hemos enviado un correo al administrador de tu dominio para confirmar que es correcto fusionar estas dos cuentas. Las cuentas se fusionarán en cuanto den luz verde.',
+        },
+        mergeAdminApprovalSuccess: {
+            description: (email: string) => `<muted-text><centered-text>Las cuentas se han fusionado en <strong>${email}</strong>.</centered-text></muted-text>`,
+        },
+        mergeAdminApprovalFailed: {
+            description:
+                'Este enlace de fusión no es válido o ha caducado. Asegúrate de haber iniciado sesión como el contacto técnico del dominio, o pide al usuario que solicite la fusión de nuevo.',
+        },
         mergeFailureGenericHeading: 'No se pueden fusionar cuentas',
     },
     lockAccountPage: {
