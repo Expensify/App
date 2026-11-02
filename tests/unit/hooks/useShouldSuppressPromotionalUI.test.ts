@@ -158,4 +158,17 @@ describe('useShouldSuppressPromotionalUI', () => {
         // Then the account that stayed signed in gets its promotional UI back
         expect(result.current).toBe(false);
     });
+
+    it('fails closed (returns true) while navigation is not ready for a transition link for another account', () => {
+        // Given the app launched on a transition link for another account, before the navigation state exists
+        mockUseOnyx([false, LOADED], [false, LOADED], OUTGOING_EMAIL);
+        mockedUseInitialURLState.mockReturnValue({initialURL: OTHER_ACCOUNT_TRANSITION_URL, isLoadingInitialURL: false, isAuthenticatedAtStartup: false});
+        mockedUseRootNavigationState.mockImplementation((selector: (state: NavigationState | undefined) => unknown) => selector(undefined));
+
+        // When the hook is read
+        const {result} = renderHook(() => useShouldSuppressPromotionalUI());
+
+        // Then promotional UI waits, so nothing opens before the switch prompt can show
+        expect(result.current).toBe(true);
+    });
 });
