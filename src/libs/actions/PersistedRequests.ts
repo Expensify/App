@@ -1,3 +1,4 @@
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import Log from '@libs/Log';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
 
@@ -56,6 +57,30 @@ function onCrossTabRequestsMerged(callbackFunction: () => void) {
     crossTabRequestsCallback = callbackFunction;
 }
 
+function adoptLeaderDeletions(diskRequests: AnyRequest[]) {
+    if (isClientTheLeader()) {
+        return;
+    }
+    const diskIDs = new Set<number>();
+    for (const r of diskRequests) {
+        const requestIndex = getClientRequestIndex(r);
+        if (requestIndex != null) {
+            diskIDs.add(requestIndex);
+        }
+    }
+    const previousLength = persistedRequests.length;
+    persistedRequests = persistedRequests.filter((r) => {
+        const requestIndex = getClientRequestIndex(r);
+        return requestIndex == null || diskIDs.has(requestIndex);
+    });
+    if (persistedRequests.length !== previousLength) {
+        Log.info('[PersistedRequests] Reconciled deletions from leader tab', false, {
+            removedCount: previousLength - persistedRequests.length,
+            remainingCount: persistedRequests.length,
+        });
+    }
+}
+
 // We have opted for connectWithoutView here as this module is strictly non-UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSISTED_REQUESTS,
@@ -89,35 +114,13 @@ Onyx.connectWithoutView({
                     }
                 }
                 persistedRequests = [...persistedRequests, ...newFromOtherTabs];
-                trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests));
                 crossTabRequestsCallback?.();
                 return;
             }
 
-            // Reconcile deletions from the leader tab. When pendingOnyxWrites > 0,
-            // the callback may be a stale own-write (broadcastUpdate fires synchronously
-            // inside Onyx.set) — skip to preserve Issue 4 protection. When counter is 0,
-            // the callback is from a cross-tab storage event, safe to remove from memory
-            // any requests the leader already processed.
-            if (pendingOnyxWrites === 0) {
-                const diskIDs = new Set<number>();
-                for (const r of val) {
-                    const requestIndex = getClientRequestIndex(r);
-                    if (requestIndex != null) {
-                        diskIDs.add(requestIndex);
-                    }
-                }
-                const previousLength = persistedRequests.length;
-                persistedRequests = persistedRequests.filter((r) => {
-                    const requestIndex = getClientRequestIndex(r);
-                    return requestIndex == null || diskIDs.has(requestIndex);
-                });
-                if (persistedRequests.length !== previousLength) {
-                    Log.info('[PersistedRequests] Reconciled deletions from leader tab', false, {
-                        removedCount: previousLength - persistedRequests.length,
-                        remainingCount: persistedRequests.length,
-                    });
-                }
+            const isCrossTabWrite = pendingOnyxWrites === 0;
+            if (isCrossTabWrite) {
+                adoptLeaderDeletions(val);
             }
             return;
         }
