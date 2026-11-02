@@ -85,7 +85,6 @@ namespace margelo::nitro::utils {
       auto __value = std::move(__result.value());
       return __value;
     }
-
     inline std::shared_ptr<Promise<std::vector<Contact>>> pick(const std::vector<ContactFields>& keys) override {
       auto __result = _swiftPart.pick(keys);
       if (__result.hasError()) [[unlikely]] {
