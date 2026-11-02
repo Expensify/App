@@ -139,6 +139,19 @@ describe('PR-testing Worker deployment', () => {
             }
         });
 
+        test('preserves an older queued main build without replacing a newer preview request', async () => {
+            // Given a manual preview registered while an earlier push-to-main build was still queued
+            const {controller, state} = previewService();
+            await controller.register(123, 'feature/worker', '101', '1');
+            state.refs.set(SHA, SHA);
+            // When the queued push is finally prepared
+            const request = await controller.register(123, SHA, '100', '1', true);
+            // Then its web build can use the pinned SHA without deploying over the newer preview
+            expect(request).toEqual({sha: SHA, deploymentID: ''});
+            expect(state.deployments).toHaveLength(1);
+            expect(state.deployments[0].payload.runID).toBe('101');
+        });
+
         test('cannot publish using another PR deployment record', async () => {
             // Given a legitimate build record belonging to PR 123
             const {controller, state} = previewService();

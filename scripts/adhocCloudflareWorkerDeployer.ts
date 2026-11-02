@@ -55,7 +55,7 @@ class AdhocCloudflareWorkerDeployer {
 
     // GitHub REST request properties use their API's snake_case spelling.
     /* eslint-disable @typescript-eslint/naming-convention */
-    async register(prNumber: number, ref: string, runID: string, runAttempt: string) {
+    async register(prNumber: number, ref: string, runID: string, runAttempt: string, isPushBuild = false) {
         const target = getTarget(prNumber);
         // Closed PRs can retain and rebuild their previews, but the PR must belong to App.
         await this.github.pulls.get({...REPOSITORY, pull_number: prNumber});
@@ -65,6 +65,10 @@ class AdhocCloudflareWorkerDeployer {
         const {data: latest} = await this.github.repos.listDeployments({...REPOSITORY, environment: target.environment, per_page: 1});
         const previousDeployment = latest.at(0);
         if (previousDeployment && isNewerRequest(getPayloadIdentity(previousDeployment.payload), identity)) {
+            // Queued main builds still need artifacts for bisection, even if a newer manual preview already exists.
+            if (isPushBuild) {
+                return {sha: identity.sha, deploymentID: ''};
+            }
             throw new Error('A newer ad-hoc build was already requested');
         }
         const {data: deployment} = await this.github.repos.createDeployment({
@@ -218,7 +222,7 @@ async function main(): Promise<void> {
     const runID = requireString(process.env.GITHUB_RUN_ID, 'GITHUB_RUN_ID');
     if (options.command === 'register') {
         const runAttempt = requireString(process.env.GITHUB_RUN_ATTEMPT, 'GITHUB_RUN_ATTEMPT');
-        const result = await deployer.register(prNumber, options.ref, runID, runAttempt);
+        const result = await deployer.register(prNumber, options.ref, runID, runAttempt, process.env.GITHUB_EVENT_NAME === 'push');
         await appendFile(
             requireString(process.env.GITHUB_OUTPUT, 'GITHUB_OUTPUT'),
             `PR_NUMBER=${prNumber}\nSHA=${result.sha}\nDEPLOYMENT_ID=${result.deploymentID}\nREQUEST_ATTEMPT=${runAttempt}\n`,
