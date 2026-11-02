@@ -362,42 +362,19 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     // Prefer live Onyx errors so the message goes away once the error is dismissed in the report
     const hasReportErrors = !isEmptyObject(parentReport ? parentReport.errors : item.errors);
 
-    let getDescription;
+    // A rejected report can still have errors (for example, after a failed resubmit), so build the messages together
+    const descriptionMessages: string[] = [];
     if (reportItem?.isRejectedReport) {
-        getDescription = (
-            <View
-                style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
-                dataSet={{
-                    [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
-                }}
-            >
-                <Icon
-                    src={expensifyIcons.DotIndicator}
-                    fill={theme.danger}
-                    additionalStyles={[styles.mr1]}
-                    width={12}
-                    height={12}
-                />
-                <Text
-                    style={[
-                        isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel,
-                        {
-                            color: theme.textError,
-                        },
-                    ]}
-                >
-                    {translate('iou.rejectReport.rejectedReportMessage')}
-                </Text>
-            </View>
-        );
-    } else if (shouldShowViolationsMessage || hasReportErrors) {
-        const descriptionMessages: string[] = [];
-        if (shouldShowViolationsMessage) {
-            descriptionMessages.push(translate('reportViolations.reportContainsExpensesWithViolations'));
-        }
-        if (hasReportErrors) {
-            descriptionMessages.push(translate('reportViolations.reportHasErrors'));
-        }
+        descriptionMessages.push(translate('iou.rejectReport.rejectedReportMessage'));
+    } else if (shouldShowViolationsMessage) {
+        descriptionMessages.push(translate('reportViolations.reportContainsExpensesWithViolations'));
+    }
+    if (hasReportErrors) {
+        descriptionMessages.push(translate('reportViolations.reportHasErrors'));
+    }
+
+    let getDescription;
+    if (descriptionMessages.length > 0) {
         getDescription = (
             <View
                 style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
