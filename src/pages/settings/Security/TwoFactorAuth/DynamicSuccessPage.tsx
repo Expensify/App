@@ -44,6 +44,9 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const focusedRoute = baseState ? findFocusedRoute(baseState) : undefined;
     const isUSDBankAccountFlow = focusedRoute?.name === SCREENS.REIMBURSEMENT_ACCOUNT;
     const isSecuritySettingsFlow = focusedRoute?.name === SCREENS.SETTINGS.SECURITY;
+    // The require-2FA overlay opens setup on settings/security?forceSetup=true. The base route's query params are merged
+    // into this screen's params and survive the Onyx clear in validateTwoFactorAuth, unlike account flags.
+    const isForcedSetupFlow = isSecuritySettingsFlow && route.params?.forceSetup === 'true';
 
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -76,9 +79,21 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         });
     };
 
+    const sendForcedSetupUserHome = () => {
+        Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
+            afterTransition: () => {
+                clearTwoFactorAuthData(is2FAEnabled, true);
+            },
+        });
+    };
+
     const goBack = () => {
         if (shouldReturnToOnboardingAfter2FA) {
             completeForcedOnboarding2FAHandoff();
+            return;
+        }
+        if (isForcedSetupFlow) {
+            sendForcedSetupUserHome();
             return;
         }
         if (isUSDBankAccountFlow) {
@@ -104,6 +119,10 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         }
         if (shouldReturnToOnboardingAfter2FA) {
             completeForcedOnboarding2FAHandoff();
+            return;
+        }
+        if (isForcedSetupFlow) {
+            sendForcedSetupUserHome();
             return;
         }
         // For the Settings > Security entry, keep the 2FA RHP open on the Enabled page instead of dismissing it
