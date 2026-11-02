@@ -756,6 +756,38 @@ const searchResultsGroupByCategory: OnyxTypes.SearchResults = {
     },
 };
 
+const groupedApproverAccountID = 22982540;
+const searchResultsGroupByApprover: OnyxTypes.SearchResults = {
+    data: {
+        personalDetailsList: {
+            [groupedApproverAccountID]: {
+                accountID: groupedApproverAccountID,
+                displayName: 'Approver',
+                login: 'approver@policy.com',
+            },
+        },
+        [`${CONST.SEARCH.GROUP_PREFIX}${groupedApproverAccountID}` as const]: {
+            accountID: groupedApproverAccountID,
+            count: 3,
+            currency: 'USD',
+            total: 150,
+        },
+    },
+    search: {
+        count: 3,
+        currency: 'USD',
+        hasMoreResults: false,
+        hasResults: true,
+        offset: 0,
+        hash: 0,
+        sortBy: 'date',
+        sortOrder: 'desc',
+        total: 150,
+        isLoading: false,
+        type: 'expense',
+    },
+};
+
 const withoutReportActionErrors = <T extends OnyxTypes.ReportAction>(reportAction: T): Omit<T, 'errors'> => {
     const reportActionWithoutErrors = {...reportAction};
     delete reportActionWithoutErrors.errors;
@@ -4050,6 +4082,50 @@ describe('SearchUIUtils', () => {
             expect(categorySection.transactionsQueryJSON?.groupBy).toBeUndefined();
             expect(categorySection.transactionsQueryJSON?.limit).toBeUndefined();
             expect(categorySection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+        });
+
+        it('should build an approver drill-down for an approver group', () => {
+            // Given an approver-grouped query whose limit is meant to bound how many groups are shown
+            const parsedQuery = buildSearchQueryJSON(`type:expense group-by:${CONST.SEARCH.GROUP_BY.APPROVER} limit:10`);
+            if (!parsedQuery) {
+                throw new Error('Failed to parse approver grouped search query');
+            }
+            expect(parsedQuery.limit).toBe(10);
+
+            // When the approver sections are built
+            const [sections] = getSectionsByType(
+                SearchUIUtils.getSections({
+                    dateFnsLocale: undefined,
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    data: searchResultsGroupByApprover.data,
+                    currentAccountID: 2074551,
+                    currentUserEmail: '',
+                    translate: translateLocal,
+                    formatPhoneNumber,
+                    bankAccountList: {},
+                    rules: undefined,
+                    groupBy: CONST.SEARCH.GROUP_BY.APPROVER,
+                    conciergeReportID: undefined,
+                    convertToDisplayString,
+                    reportAttributesDerivedValue: {},
+                    queryJSON: {...parsedQuery},
+                }),
+                SearchUIUtils.isTransactionApproverGroupListItemType,
+            );
+
+            // Then the per-group query drops the grouping and limit, and filters by the approver as a syntax filter
+            const approverSection = sections.at(0);
+            if (!approverSection) {
+                throw new Error('Expected an approver group section');
+            }
+            expect(approverSection.transactionsQueryJSON?.groupBy).toBeUndefined();
+            expect(approverSection.transactionsQueryJSON?.limit).toBeUndefined();
+            expect(approverSection.transactionsQueryJSON?.inputQuery).not.toContain('limit:');
+            expect(approverSection.transactionsQueryJSON?.filters).toEqual({
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
+                right: String(groupedApproverAccountID),
+            });
         });
 
         // Every date granularity drills down through the same `buildDateRangeGroupQuery` builder, so they are
@@ -12726,6 +12802,17 @@ describe('SearchUIUtils', () => {
     });
 
     describe('Test getColumnsToShow', () => {
+        test('Should only return default expense columns that the table header renders', () => {
+            // Given the column headings the expense table renders
+            const headerColumns = new Set(getExpenseHeaders().map((header) => header.columnName));
+
+            // When the default expense columns are resolved, with no columns picked
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [createRandomTransaction(1)], type: CONST.SEARCH.DATA_TYPES.EXPENSE});
+
+            // Then each has a heading, since the table is sized from these columns and one that renders nothing leaves empty room in every row
+            expect(columns.filter((column) => !headerColumns.has(column))).toEqual([]);
+        });
+
         test('Should show the vendor column on Search only when picked, and in the report view when an expense has a vendor assigned', () => {
             const transactionWithoutVendor = createRandomTransaction(1);
             const transactionWithVendor = {...createRandomTransaction(2), comment: {vendor: {externalID: 'qbo-1', name: 'Acme Tools', wasManuallySet: true}}};
@@ -15996,6 +16083,102 @@ describe('SearchUIUtils', () => {
         });
     });
 
+    describe('getGroupColumnWidthFlags', () => {
+        const yearFlags = ['shouldShowYear', 'shouldShowYearSubmitted', 'shouldShowYearApproved', 'shouldShowYearPaid', 'shouldShowYearPosted', 'shouldShowYearExported'] as const;
+        const withoutYear = (transaction: TransactionListItemType): TransactionListItemType => ({
+            ...transaction,
+            ...Object.fromEntries(yearFlags.map((flag) => [flag, false])),
+        });
+
+        it.each(yearFlags)('widens the %s column of an expanded group when one of its transactions needs the year', (flag) => {
+            // Given a group where only the second transaction has a date from a past year in this column, as a group
+            // of expenses paid last year and this year would
+            const transactions = [withoutYear(getTransactionListItem(0)), {...withoutYear(getTransactionListItem(1)), [flag]: true}];
+
+            // When the group's column widths are computed for its rows and its sub-header
+            const flags = SearchUIUtils.getGroupColumnWidthFlags(transactions);
+
+            // Then that date column is wide enough for the year, so the date isn't truncated, and the other date columns stay narrow
+            for (const otherFlag of yearFlags) {
+                expect(flags[otherFlag]).toBe(otherFlag === flag);
+            }
+        });
+
+        it('widens every column once one transaction needs them all, without checking the rest of the group', () => {
+            // Given a group whose first transaction already needs every wide column, followed by one that needs none
+            const widestTransaction = {
+                ...getTransactionListItem(0),
+                ...Object.fromEntries(yearFlags.map((flag) => [flag, true])),
+                isAmountColumnWide: true,
+                isTaxAmountColumnWide: true,
+                isActionColumnWide: true,
+            };
+            const transactions = [widestTransaction, withoutYear(getTransactionListItem(1))];
+
+            // When the group's column widths are computed
+            const flags = SearchUIUtils.getGroupColumnWidthFlags(transactions);
+
+            // Then every column is wide, since a later narrow transaction can't make a column narrow again
+            expect(Object.values(flags).every(Boolean)).toBe(true);
+        });
+
+        it('keeps every date column narrow when all the dates are from this year', () => {
+            // Given a group whose transactions have no date from a past year
+            const transactions = [withoutYear(getTransactionListItem(0)), withoutYear(getTransactionListItem(1))];
+
+            // When the group's column widths are computed
+            const flags = SearchUIUtils.getGroupColumnWidthFlags(transactions);
+
+            // Then no date column reserves room for a year it doesn't show
+            for (const flag of yearFlags) {
+                expect(flags[flag]).toBe(false);
+            }
+        });
+    });
+
+    describe('getGroupTableScrollLayout', () => {
+        const dateColumns = [
+            CONST.SEARCH.TABLE_COLUMNS.DATE,
+            CONST.SEARCH.TABLE_COLUMNS.SUBMITTED,
+            CONST.SEARCH.TABLE_COLUMNS.APPROVED,
+            CONST.SEARCH.TABLE_COLUMNS.PAID,
+            CONST.SEARCH.TABLE_COLUMNS.POSTED,
+            CONST.SEARCH.TABLE_COLUMNS.EXPORTED,
+        ];
+        const narrowFlags = SearchUIUtils.getGroupColumnWidthFlags([]);
+        const wideFlags = {
+            ...narrowFlags,
+            shouldShowYear: true,
+            shouldShowYearSubmitted: true,
+            shouldShowYearApproved: true,
+            shouldShowYearPaid: true,
+            shouldShowYearPosted: true,
+            shouldShowYearExported: true,
+        };
+
+        it('reserves the wide width for date columns that show the year, so the table scrolls before they are clipped', () => {
+            // Given a window that fits the group's date columns at their narrow estimates
+            const narrowLayout = SearchUIUtils.getGroupTableScrollLayout(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, narrowFlags, 10000, true);
+            const windowWidth = narrowLayout.minTableWidth + 1;
+
+            // When the same columns show the year
+            const wideLayout = SearchUIUtils.getGroupTableScrollLayout(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, wideFlags, windowWidth, true);
+
+            // Then each one counts at its wide width, and the table scrolls instead of overflowing the window
+            expect(wideLayout.minTableWidth).toBeGreaterThan(narrowLayout.minTableWidth);
+            expect(wideLayout.shouldScrollHorizontally).toBe(true);
+        });
+
+        it('keeps the existing estimate when no date shows the year', () => {
+            // Given the group's date columns all show this year's dates
+            // When the scroll layout is computed
+            const layout = SearchUIUtils.getGroupTableScrollLayout(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, narrowFlags, 10000, true);
+
+            // Then the minimum width is the same as the shared table estimate, so narrow groups scroll exactly as before
+            expect(layout.minTableWidth).toBe(SearchUIUtils.getTableMinWidth(dateColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, false));
+        });
+    });
+
     describe('vendor column label', () => {
         test('Should label the vendor column as Vendor', () => {
             expect(SearchUIUtils.getSearchColumnTranslationKey(CONST.SEARCH.TABLE_COLUMNS.VENDOR)).toBe('common.vendor');
@@ -16732,6 +16915,25 @@ describe('hasFilterContentValuesChanged', () => {
         if (ignored) {
             expect(SearchUIUtils.hasFilterContentValuesChanged(filterKey, ignored.at(0), ignored.at(1))).toBe(false);
         }
+    });
+});
+
+describe('getGroupBySections', () => {
+    function getGroupByValues() {
+        return SearchUIUtils.getGroupBySections(translateLocal)
+            .flatMap((section) => section.options)
+            .map((option) => option.value);
+    }
+
+    it('always offers approver grouping alongside from and card', () => {
+        // Given the Display menu group-by sections
+        // When they are built
+        const options = getGroupByValues();
+
+        // Then approver is offered with the other person groupings, with no has-filter requirement
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.FROM);
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.CARD);
+        expect(options).toContain(CONST.SEARCH.GROUP_BY.APPROVER);
     });
 });
 
