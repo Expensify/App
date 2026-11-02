@@ -1,6 +1,6 @@
 # `@sentry/browser-utils` patches
 
-### [@sentry+browser-utils+10.75.0+001+data-sentry-label.patch](@sentry+browser-utils+10.75.0+001+data-sentry-label.patch)
+### [@sentry+browser-utils+10.76.2+001+data-sentry-label.patch](@sentry+browser-utils+10.76.2+001+data-sentry-label.patch)
 
 - Reason: Enhances the `htmlTreeAsString` function to support `data-sentry-label` attributes for better element identification in Sentry spans. The patch:
   - Always includes `data-sentry-label` in the list of checked attributes for each DOM element
