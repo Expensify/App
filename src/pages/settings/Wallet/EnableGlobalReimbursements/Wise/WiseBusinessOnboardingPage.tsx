@@ -157,12 +157,23 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, missingPrefill);
     }, [isPrefillPending, missingPrefill]);
 
-    // The business page's save answers with the requirements Expensify collects before Submit, such as enhanced due diligence for a high-risk industry
-    const kycRequirements = businessAccount?.data?.bankAccountID === bankAccountID ? businessAccount.data.wise?.kycRequirements : undefined;
+    // The business page's save returns the requirements Expensify collects before Submit, such as enhanced due diligence for a high-risk industry
+    const isBusinessAccountForThisBank = businessAccount?.data?.bankAccountID === bankAccountID;
+    const kycRequirements = isBusinessAccountForThisBank ? businessAccount?.data?.wise?.kycRequirements : undefined;
+
+    // A reload or a direct link on one of the pages skips the visit's read, so this bank account's requirements are read without holding up the flow
+    const shouldReadRequirements = isPrefillDone && !isNewVisit && !isOffline && !isBusinessAccountForThisBank;
+    useEffect(() => {
+        if (!shouldReadRequirements) {
+            return;
+        }
+        openReimbursementAccountPage({bankAccountID});
+    }, [shouldReadRequirements, bankAccountID]);
+
     const form = getWiseOnboardingForm(kycRequirements);
     const buildRoute = (pageName: string, action?: 'edit') => createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageName, action), introPath);
 
-    // Next on the business page reaches the confirmation page before its save answers, so a requirement that arrives later takes the user to its page
+    // Next on the business page reaches the confirmation page before its save returns, so a requirement that arrives later takes the user to its page
     const unansweredRequirementPageKey =
         isPrefillDone && route.params.subPage === CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY ? getFirstUnansweredRequirementPageKey(form, toDynamicFormValues(draft)) : undefined;
     useEffect(() => {

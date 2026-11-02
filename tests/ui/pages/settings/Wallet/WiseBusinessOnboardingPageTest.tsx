@@ -459,11 +459,28 @@ describe('WiseBusinessOnboardingPage', () => {
         // Given requirements the device holds for another bank account
         const otherAccount: BusinessReimbursementAccount = {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: 2, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}};
 
-        // When the page opens for this bank account
-        await renderPage({reimbursementAccount: otherAccount, subPage: 'business'});
+        // When the page opens for this bank account and its read has not returned yet
+        await renderPage({reimbursementAccount: otherAccount, subPage: 'business', shouldLeaveReadRunning: true});
 
         // Then only the profile pages are asked
         expect(getFlowPageKeys()).toEqual(['representative', 'business']);
+    });
+
+    it('reads this bank account on a direct link to the confirmation page and takes the user to the requirement it returns', async () => {
+        // Given a device that holds another bank account's details, so a reload on the confirmation page has no requirements for this one
+        const otherAccount: BusinessReimbursementAccount = {achData: {...REIMBURSEMENT_ACCOUNT.achData, bankAccountID: 2}};
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+        // When the confirmation page opens and the read returns this bank account with enhanced due diligence
+        await renderPage({
+            reimbursementAccount: otherAccount,
+            readResponse: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {kycRequirements: ENHANCED_DUE_DILIGENCE}}},
+            subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY,
+        });
+
+        // Then the page reads this bank account and sends the user to the source of funds page, so Submit cannot skip it
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID});
+        expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining('business-onboarding/business-source-of-wealth-info'), {forceReplace: true});
     });
 
     it('takes the user from the confirmation page to the source of funds page when the requirements arrive', async () => {

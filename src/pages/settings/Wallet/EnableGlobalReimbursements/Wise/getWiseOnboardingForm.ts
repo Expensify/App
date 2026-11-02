@@ -1,3 +1,5 @@
+/** Builds the Wise business onboarding form from the US profile pages and the KYC requirements the App collects itself, and maps its URL pages back to save steps */
+
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAnswerKeys from '@components/DynamicForm/utils/getAnswerKeys';
 import getContentFields from '@components/DynamicForm/utils/getContentFields';
