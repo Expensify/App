@@ -9,6 +9,7 @@ import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
+import createRandomTransaction from '../utils/collections/transaction';
 import {getFakePolicy, getFakeReport} from '../utils/LHNTestUtils';
 import {translateLocal} from '../utils/TestHelper';
 
@@ -115,7 +116,7 @@ describe('PerDiemRequestUtils', () => {
     });
 
     describe('getSubratesFields', () => {
-        const customUnit = {
+        const customUnit: CustomUnit = {
             customUnitID: 'unit',
             name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
             rates: {
@@ -128,11 +129,11 @@ describe('PerDiemRequestUtils', () => {
                     ],
                 },
             },
-        } as unknown as CustomUnit;
+        };
 
         it('returns one empty subrate row before a destination is picked', () => {
             // Given a per diem draft that has no destination yet, as the form now opens before one is picked
-            const transaction = {comment: {customUnit: {}}} as unknown as Transaction;
+            const transaction: Transaction = {...createRandomTransaction(1), comment: {customUnit: {}}};
 
             // When the subrate rows are computed
             const fields = getSubratesFields(customUnit, transaction);
@@ -144,7 +145,7 @@ describe('PerDiemRequestUtils', () => {
         it('adds an empty row after the picked subrates while the destination has more to pick', () => {
             // Given a draft with one of the destination's two subrates already picked
             const pickedSubrate = {id: 'fullDay', name: 'Full day', rate: 100, quantity: 1};
-            const transaction = {comment: {customUnit: {customUnitRateID: 'japan', subRates: [pickedSubrate]}}} as unknown as Transaction;
+            const transaction: Transaction = {...createRandomTransaction(1), comment: {customUnit: {customUnitRateID: 'japan', subRates: [pickedSubrate]}}};
 
             // When the subrate rows are computed
             const fields = getSubratesFields(customUnit, transaction);

@@ -62,11 +62,7 @@ function DynamicIOURequestStepDestination({
 
     const updateDestination = (destination: ListItem & {currency: string}) => {
         // A new expense is only blocked once the user starts filling it in, which on the per diem form is the destination.
-        if (
-            action === CONST.IOU.ACTION.CREATE &&
-            policy &&
-            shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)
-        ) {
+        if (action === CONST.IOU.ACTION.CREATE && policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
             Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
             return;
         }

@@ -182,7 +182,6 @@ function useReportPickerActions({
         isEditing,
         isASAPSubmitBetaEnabled,
         session,
-        transactionID,
         personalPolicyID,
         handleGoBack: goBack,
         shouldWriteAfterTransition,

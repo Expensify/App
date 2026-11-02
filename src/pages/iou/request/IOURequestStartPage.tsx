@@ -230,8 +230,7 @@ function IOURequestStartPage({
     // shouldAvoidScrollOnVirtualViewport (true by default here) it gates useTackInputFocus on mobile WebKit. Same
     // condition the standalone confirmation uses - mobile Safari opts out, and canUseTouchScreen() is false on desktop.
     // The per diem tab embeds the confirmation too, unless it is showing the workspace selector first.
-    const isEmbeddedConfirmationTab =
-        !shouldUseTab || selectedTab === CONST.TAB_REQUEST.MANUAL || (selectedTab === CONST.TAB_REQUEST.PER_DIEM && !shouldShowWorkspaceSelectForPerDiem);
+    const isEmbeddedConfirmationTab = !shouldUseTab || selectedTab === CONST.TAB_REQUEST.MANUAL || (selectedTab === CONST.TAB_REQUEST.PER_DIEM && !shouldShowWorkspaceSelectForPerDiem);
     const shouldEnableEmbeddedConfirmationMaxHeight = shouldEmbedConfirmation && isEmbeddedConfirmationTab && canUseTouchScreen() && !isMobileSafari();
 
     let manualContent: React.ReactNode;

@@ -54,9 +54,6 @@ type UseReportSelectionActionsParams = {
     /** Current user session — provides accountID and email for the changeTransactionsReport call. */
     session: OnyxEntry<Session>;
 
-    /** Route param: the transactionID being acted upon. */
-    transactionID: string;
-
     /** ID of the user's personal policy — used by `removeFromReport` to look up the personal-policy tag list. */
     personalPolicyID: string | undefined;
 
@@ -90,7 +87,6 @@ function useReportSelectionActions({
     isEditing,
     isASAPSubmitBetaEnabled,
     session,
-    transactionID,
     personalPolicyID,
     handleGoBack,
     shouldWriteAfterTransition = true,

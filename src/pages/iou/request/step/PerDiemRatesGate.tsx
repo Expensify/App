@@ -19,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ReactNode} from 'react';
 
@@ -46,11 +45,11 @@ function PerDiemRatesGate({policyID, backToRoute, children}: PerDiemRatesGatePro
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
-    const [policy, policyMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const customUnit = getPerDiemCustomUnit(policy);
     const hasRates = !isEmptyObject(customUnit?.rates);
 
-    const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
+    const isLoading = !isOffline && !customUnit?.rates;
     const shouldShowEmptyState = !hasRates && !isOffline && !isLoading;
     const shouldShowOfflineView = !hasRates && isOffline;
 
