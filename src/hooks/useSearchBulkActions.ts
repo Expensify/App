@@ -7,17 +7,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {getSearchGroupCountByKey} from '@components/Search/selectionBuilders';
-import type {
-    ASTNode,
-    BulkPaySelectionData,
-    PaymentData,
-    QueryFilterKey,
-    SearchColumnType,
-    SearchGroupBy,
-    SearchQueryJSON,
-    SelectedReports,
-    SelectedTransactions,
-} from '@components/Search/types';
+import type {ASTNode, BulkPaySelectionData, PaymentData, SearchColumnType, SearchGroupBy, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getAccountingIntegrationDisplayName, getExportLabelForConnection, isIntuitEnterpriseSuiteConnection} from '@libs/AccountingUtils';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
@@ -92,7 +82,7 @@ import {
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, queryHasViolationFilter, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
-import type {SearchGroupKey} from '@libs/SearchUIUtils';
+import type {SearchDateRange, SearchGroupKey, SelectedGroupValueFilter} from '@libs/SearchUIUtils';
 import {
     getColumnsToShow,
     getSearchColumnTranslationKey,
@@ -335,14 +325,10 @@ function getGroupKeysSelectedViaGroup(selectedTransactions: SelectedTransactions
 }
 
 /**
- * Scopes a time-grouped query to the dates of the selected groups.
- *
- * The query text can only AND date bounds, so a selection with a gap (e.g. August and October without September) cannot be
- * written as text. The export filters on the `filters` AST instead, which supports OR, so each selected group's range is
- * ORed there and the result is ANDed with the rest of the query. That AND also keeps any date filter the user already has.
- * The text, flatFilters and hash are left as they were, so anything that rebuilds the query from its text loses this scope.
+ * Scopes a time-grouped query to the selected groups' dates by ORing their ranges into the `filters` AST.
+ * Only `filters` changes, so rebuilding the query from its text drops this scope.
  */
-function addSelectedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: Array<{start: string; end: string}>): SearchQueryJSON {
+function addSelectedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: SearchDateRange[]): SearchQueryJSON {
     const [firstRangeNode, ...otherRangeNodes] = dateRanges.map(
         (range): ASTNode => ({
             operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
@@ -359,29 +345,30 @@ function addSelectedDateRangesFilter(queryJSON: SearchQueryJSON, dateRanges: Arr
     return {...queryJSON, filters};
 }
 
-function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON {
+/**
+ * Scopes a group export to the selected groups. Returns undefined unless every group can be scoped,
+ * because their row IDs aren't sent, so an unscoped group would be exported wrongly or dropped.
+ */
+function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON | undefined {
     const {groupBy} = queryJSON;
     if (!groupBy || !searchData) {
-        return queryJSON;
+        return undefined;
     }
 
     const groupKeys = getGroupKeysSelectedViaGroup(selectedTransactions);
     if (groupKeys.length === 0) {
-        return queryJSON;
+        return undefined;
     }
 
-    const filterEntries: Array<{key: QueryFilterKey; value: string | number}> = [];
-    const dateRanges: Array<{start: string; end: string}> = [];
+    const filterEntries: SelectedGroupValueFilter[] = [];
+    const dateRanges: SearchDateRange[] = [];
     for (const key of groupKeys) {
         const group = searchData[key as keyof SearchResultDataType];
-        if (!group) {
-            continue;
-        }
-        const entry = getSelectedGroupFilterEntry(groupBy, group);
+        const entry = group ? getSelectedGroupFilterEntry(groupBy, group) : undefined;
         if (!entry) {
-            continue;
+            return undefined;
         }
-        if ('dateRange' in entry) {
+        if (entry.kind === 'dateRange') {
             dateRanges.push(entry.dateRange);
         } else {
             filterEntries.push(entry);
@@ -392,13 +379,9 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
         return addSelectedDateRangesFilter(queryJSON, dateRanges);
     }
 
-    if (filterEntries.length === 0) {
-        return queryJSON;
-    }
-
     const filterKey = filterEntries.at(0)?.key;
     if (!filterKey) {
-        return queryJSON;
+        return undefined;
     }
     const newFlatFilters = queryJSON.flatFilters.filter((filter) => filter.key !== filterKey);
     newFlatFilters.push({
@@ -406,7 +389,7 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
         filters: filterEntries.map((e) => ({operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: e.value})),
     });
 
-    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters: newFlatFilters})) ?? queryJSON;
+    return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters: newFlatFilters}));
 }
 
 /**
@@ -436,10 +419,7 @@ function getUngroupedTemplateExportQuery(queryJSON: SearchQueryJSON): SearchQuer
  */
 function getTemplateGroupExportQuery(queryJSON: SearchQueryJSON, selectedTransactions: SelectedTransactions, searchData: SearchResultDataType | undefined): SearchQueryJSON | undefined {
     const groupFilteredQueryJSON = addSelectedGroupsFilter(queryJSON, selectedTransactions, searchData);
-    if (groupFilteredQueryJSON === queryJSON) {
-        return undefined;
-    }
-    return getUngroupedTemplateExportQuery(groupFilteredQueryJSON);
+    return groupFilteredQueryJSON ? getUngroupedTemplateExportQuery(groupFilteredQueryJSON) : undefined;
 }
 
 function getAllMatchingExportQueryAndExclusions(
@@ -448,7 +428,7 @@ function getAllMatchingExportQueryAndExclusions(
     searchData: SearchResultDataType | undefined,
 ): {queryJSON: SearchQueryJSON; excludedTransactionIDList: string[]} | undefined {
     const excludedTransactionIDList: string[] = [];
-    const excludedGroupEntries: Array<{key: QueryFilterKey; value: string | number}> = [];
+    const excludedGroupEntries: SelectedGroupValueFilter[] = [];
 
     for (const key of Object.keys(excludedTransactions)) {
         if (!isGroupEntry(key)) {
@@ -458,8 +438,8 @@ function getAllMatchingExportQueryAndExclusions(
 
         const group = searchData?.[key];
         const groupEntry = queryJSON.groupBy && group ? getSelectedGroupFilterEntry(queryJSON.groupBy, group) : undefined;
-        // Excluding a date group needs "before its start OR after its end", which only the `filters` AST can express, and this path scopes through flatFilters
-        if (!groupEntry || 'dateRange' in groupEntry) {
+        // Excluding a date group needs an OR, which flatFilters can't express
+        if (groupEntry?.kind !== 'value') {
             return undefined;
         }
         excludedGroupEntries.push(groupEntry);
@@ -508,8 +488,7 @@ function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransacti
 
 /**
  * The groupings whose selected groups `getSelectedGroupFilterEntry` can turn into a query filter, which a template export needs.
- * Keep this in sync with that function. Time-based groupings are left out because their groups are scoped only in the `filters`
- * AST (see addSelectedDateRangesFilter), and the template export rebuilds the query from its text, which would drop that scope.
+ * Keep this in sync with that function. Time-based groupings are left out because the template export would drop their date scope.
  */
 const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
     CONST.SEARCH.GROUP_BY.FROM,
@@ -1381,9 +1360,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             let didFail = false;
             const reportIDList = selectedReports.length > 0 ? selectedReportIDs : selectedTransactionReportIDs;
             const queryJSONToExport = isGroupExport && queryJSON ? addSelectedGroupsFilter(queryJSON, selectedTransactions, currentSearchResults?.data) : queryJSON;
-            // The IDs of rows selected through a group were dropped in favour of the group filter, so exporting an unscoped
-            // query here would export every group in the search, including the ones the user did not select.
-            if (isGroupExport && queryJSONToExport === queryJSON) {
+            if (isGroupExport && !queryJSONToExport) {
                 showDownloadErrorModal();
                 return;
             }

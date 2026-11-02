@@ -16,7 +16,7 @@ describe('getSelectedGroupFilterEntry', () => {
         const entry = getSelectedGroupFilterEntry(groupBy, group);
 
         // Then it is the group's inclusive date range, because the search syntax has no exact-match filter for a period
-        expect(entry).toEqual({dateRange});
+        expect(entry).toEqual({kind: 'dateRange', dateRange});
     });
 
     it('returns no filter for a time-based group that is missing its date fields', () => {

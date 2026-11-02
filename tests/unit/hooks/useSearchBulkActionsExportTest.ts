@@ -15,6 +15,7 @@ import {
     queueExportSearchWithTemplate,
 } from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
+import {buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getSelectedGroupFilterEntry} from '@libs/SearchUIUtils';
 import type * as SearchUIUtilsModule from '@libs/SearchUIUtils';
 
@@ -1518,7 +1519,7 @@ describe('useSearchBulkActions - export options', () => {
         const searchResults = makeSearchResults([]);
         Object.assign(searchResults.data, {[`${CONST.SEARCH.GROUP_PREFIX}category`]: {category: 'Travel'}});
         mockCurrentSearchResults = searchResults;
-        jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'Travel'});
+        jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'Travel'});
 
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
@@ -1577,6 +1578,42 @@ describe('useSearchBulkActions - export options', () => {
         await waitFor(() => {
             expect(getExportOptionTexts(result.current.headerButtonsOptions)).toEqual(['export.currentView', 'export.currentViewGroupsOnly']);
         });
+    });
+
+    it('exports the selected group when the search is already filtered to that group', async () => {
+        // Given a search filtered to Food and grouped by category, built from a normalized query like the filter bar does,
+        // so adding the group's filter rebuilds the same string and the query cache returns the same object
+        const queryJSON = buildSearchQueryJSON(buildSearchQueryString(buildSearchQueryJSON('type:expense category:Food groupBy:category')));
+        if (!queryJSON) {
+            throw new Error('Expected the category query to parse');
+        }
+
+        // Given the Food group ticked through its header
+        const FOOD_GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}Food`;
+        mockSelectedTransactions = {[FOOD_GROUP_KEY]: makeSelectedTransaction()};
+        const searchResults = makeSearchResults([]);
+        Object.assign(searchResults.data, {[FOOD_GROUP_KEY]: {category: 'Food'}});
+        mockCurrentSearchResults = searchResults;
+        jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'Food'});
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        // When the user exports the current view
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        // Then the Food group is exported instead of showing the download error, because the query is already scoped to it
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+        const {isGroupExport, transactionIDList, query} = getLastCSVExportParameters();
+        expect(isGroupExport).toBe(true);
+        expect(transactionIDList).toEqual([]);
+        expect(JSON.stringify(query)).toContain('Food');
+        expect(mockShowDecisionModal).not.toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle'}));
     });
 
     // Regression tests for https://github.com/Expensify/App/issues/104843: a selected date group added no filter to the
@@ -1692,6 +1729,26 @@ describe('useSearchBulkActions - export options', () => {
             await runCurrentViewExport();
 
             // Then nothing is exported, because the unscoped query would export every month in the search
+            await waitFor(() => {
+                expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedDescription'}));
+            });
+            expect(exportSearchItemsToCSV).not.toHaveBeenCalled();
+        });
+
+        it('shows the download error instead of dropping a selected month that is missing from the snapshot', async () => {
+            // Given August and September ticked while the snapshot only has a row for August
+            const searchResults = makeSearchResults([]);
+            Object.assign(searchResults.data, {[AUGUST_GROUP_KEY]: {year: 2026, month: 8}});
+            mockCurrentSearchResults = searchResults;
+            mockSelectedTransactions = {
+                [AUGUST_GROUP_KEY]: makeSelectedTransaction(),
+                [SEPTEMBER_GROUP_KEY]: makeSelectedTransaction(),
+            };
+
+            // When the user exports the current view
+            await runCurrentViewExport();
+
+            // Then nothing is exported, because exporting only August would leave September out without telling the user
             await waitFor(() => {
                 expect(mockShowDecisionModal).toHaveBeenCalledWith(expect.objectContaining({title: 'common.downloadFailedTitle', prompt: 'common.downloadFailedDescription'}));
             });
@@ -1848,7 +1905,7 @@ describe('useSearchBulkActions - export options', () => {
             // Given the card group row as it arrives in the search snapshot, which the group's filter entry is derived from
             Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
             mockCurrentSearchResults = searchResults;
-            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
 
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
@@ -1888,7 +1945,7 @@ describe('useSearchBulkActions - export options', () => {
             const searchResults = makeSearchResults([]);
             Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
             mockCurrentSearchResults = searchResults;
-            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
 
             // Given a limit on the grouped search, because it caps the number of card groups and would cap the exported expenses once groupBy is gone
             const limitedCardGroupedQueryJSON: SearchQueryJSON = {...cardGroupedExpenseQueryJSON, inputQuery: `${cardGroupedExpenseQueryJSON.inputQuery} limit:1`, limit: 1};
@@ -1999,7 +2056,7 @@ describe('useSearchBulkActions - export options', () => {
             const searchResults = makeSearchResults([]);
             Object.assign(searchResults.data, {[CARD_GROUP_KEY]: {cardID: 1234}});
             mockCurrentSearchResults = searchResults;
-            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
+            jest.mocked(getSelectedGroupFilterEntry).mockReturnValue({kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: 1234});
 
             const {result} = renderHook(() => useSearchBulkActions({queryJSON: cardGroupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 

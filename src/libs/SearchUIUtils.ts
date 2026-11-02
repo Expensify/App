@@ -598,6 +598,17 @@ type ViolationKey = `${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${strin
 
 type SearchGroupKey = `${typeof CONST.SEARCH.GROUP_PREFIX}${string}`;
 
+/** Inclusive yyyy-MM-dd bounds */
+type SearchDateRange = {start: string; end: string};
+
+/** Scopes a query to one selected group by an exact match on a filter, e.g. `category:Travel` */
+type SelectedGroupValueFilter = {kind: 'value'; key: QueryFilterKey; value: string | number};
+
+/** Scopes a query to one selected time-based group, which has no exact-match filter and is matched by its dates instead */
+type SelectedGroupDateRangeFilter = {kind: 'dateRange'; dateRange: SearchDateRange};
+
+type SelectedGroupFilterEntry = SelectedGroupValueFilter | SelectedGroupDateRangeFilter;
+
 type SavedSearchMenuItem = MenuItemWithLink & {
     key: string;
     hash: string;
@@ -3183,7 +3194,7 @@ function getReportSections({
 }
 
 /** The inclusive yyyy-MM-dd range a time-based group covers, or undefined for any other grouping or a group missing its date fields. */
-function getGroupDateRange(groupBy: string, groupData: unknown): {start: string; end: string} | undefined {
+function getGroupDateRange(groupBy: string, groupData: unknown): SearchDateRange | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.DAY: {
             const day = typeof groupData === 'object' && groupData && 'day' in groupData ? groupData.day : undefined;
@@ -3210,29 +3221,26 @@ function getGroupDateRange(groupBy: string, groupData: unknown): {start: string;
     }
 }
 
-/**
- * The filter that scopes a query to one selected group. Time-based groups return a date range instead of a value,
- * because the search syntax has no exact-match filter for a day, week, month, quarter, or year.
- */
-function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key: QueryFilterKey; value: string | number} | {dateRange: {start: string; end: string}} | undefined {
+/** The filter that scopes a query to one selected group, or undefined when the grouping or the group's data can't be turned into one. */
+function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): SelectedGroupFilterEntry | undefined {
     switch (groupBy) {
         case CONST.SEARCH.GROUP_BY.FROM:
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, value: (groupData as SearchMemberGroup).accountID};
         case CONST.SEARCH.GROUP_BY.CARD:
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: (groupData as SearchCardGroup).cardID};
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, value: (groupData as SearchCardGroup).cardID};
         case CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID:
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, value: (groupData as SearchWithdrawalIDGroup).entryID};
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID, value: (groupData as SearchWithdrawalIDGroup).entryID};
         case CONST.SEARCH.GROUP_BY.CATEGORY: {
             const category = (groupData as SearchCategoryGroup).category;
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: !category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : category};
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: !category ? CONST.SEARCH.CATEGORY_EMPTY_VALUE : category};
         }
         case CONST.SEARCH.GROUP_BY.MERCHANT: {
             const merchant = (groupData as SearchMerchantGroup).merchant;
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchant};
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT, value: merchant === '' ? CONST.SEARCH.MERCHANT_EMPTY_VALUE : merchant};
         }
         case CONST.SEARCH.GROUP_BY.TAG: {
             const tag = (groupData as SearchTagGroup).tag;
-            return {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: tag === '' || tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tag};
+            return {kind: 'value', key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG, value: tag === '' || tag === '(untagged)' ? CONST.SEARCH.TAG_EMPTY_VALUE : tag};
         }
         case CONST.SEARCH.GROUP_BY.DAY:
         case CONST.SEARCH.GROUP_BY.WEEK:
@@ -3240,7 +3248,7 @@ function getSelectedGroupFilterEntry(groupBy: string, groupData: unknown): {key:
         case CONST.SEARCH.GROUP_BY.QUARTER:
         case CONST.SEARCH.GROUP_BY.YEAR: {
             const dateRange = getGroupDateRange(groupBy, groupData);
-            return dateRange ? {dateRange} : undefined;
+            return dateRange ? {kind: 'dateRange', dateRange} : undefined;
         }
         default:
             return undefined;
@@ -7904,4 +7912,15 @@ export {
     SKIPPED_SEARCH_FILTERS,
     SEARCH_TYPE_MENU_ICON_NAMES,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem, SearchDateModifier, SearchDateModifierLower, SearchGroupKey, GroupBySection, SearchFilter};
+export type {
+    SavedSearchMenuItem,
+    SearchTypeMenuSection,
+    SearchTypeMenuItem,
+    SearchDateModifier,
+    SearchDateModifierLower,
+    SearchGroupKey,
+    GroupBySection,
+    SearchFilter,
+    SearchDateRange,
+    SelectedGroupValueFilter,
+};
