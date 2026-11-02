@@ -74,6 +74,19 @@ describe('Wise business onboarding dynamic routes', () => {
         expect(stripDynamicRouteSuffixFromPath(route, DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path)).toBe(confirmationPath);
     });
 
+    it.each(ENTRY_POINTS)('opens more info needed on top of the confirmation page from %s', (_label, basePath) => {
+        // Given more info needed replaced the terms, so its suffix sits on the onboarding's confirmation page
+        const confirmationPath = createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY), getIntroPath(basePath));
+        const route = createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, confirmationPath);
+
+        // When the URL is parsed into navigation state, as on a refresh
+        const focusedRoute = getFocusedRoute(getStateFromPath(route));
+
+        // Then more info needed is focused instead of the not found page
+        expect(focusedRoute.name).toBe(SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED);
+        expect(focusedRoute.params).toMatchObject({bankAccountID: String(BANK_ACCOUNT_ID)});
+    });
+
     it.each(ENTRY_POINTS)('goes back from the onboarding to the intro from %s', (_label, basePath) => {
         // Given a page of the onboarding opened on top of the intro
         const introPath = getIntroPath(basePath);

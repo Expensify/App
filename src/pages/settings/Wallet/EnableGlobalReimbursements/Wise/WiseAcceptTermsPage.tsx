@@ -87,7 +87,7 @@ function WiseAcceptTermsPage() {
         }
         clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         // TODO: Remove once SubmitWiseBusinessOnboarding decides when Wise needs more details
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path), {forceReplace: true});
     };
 
     if (!isWiseReimbursementsBetaEnabled) {

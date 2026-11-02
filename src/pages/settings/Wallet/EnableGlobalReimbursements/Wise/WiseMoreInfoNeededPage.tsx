@@ -14,6 +14,7 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {getWiseGlobalReimbursementsEntryPath} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import openExternalLink from '@libs/openExternalLink';
 
@@ -34,7 +35,8 @@ type WiseMoreInfoNeededPageProps = PlatformStackScreenProps<SettingsNavigatorPar
 /** Sends the user to Wise's own page for the details only Wise can collect */
 function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
-    const termsPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path);
+    const wiseFlowPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path);
+    const entryPath = getWiseGlobalReimbursementsEntryPath(wiseFlowPath);
     const [embeddedLink] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK);
 
     const {translate} = useLocalize();
@@ -44,14 +46,15 @@ function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['UserShield']);
 
-    const goBackToTerms = () => Navigation.goBack(termsPath);
+    // The flow is finished on our side, so back leaves it instead of reopening the form
+    const goBackToEntryPoint = () => Navigation.goBack(entryPath);
 
     useEffect(() => {
         if (isWiseReimbursementsBetaEnabled !== false) {
             return;
         }
-        goBackToTerms();
-    }, [isWiseReimbursementsBetaEnabled, goBackToTerms]);
+        goBackToEntryPoint();
+    }, [isWiseReimbursementsBetaEnabled, goBackToEntryPoint]);
 
     // Only a link asked for on this visit redirects, so a fetch that returns after an earlier visit closed does not
     const [hasRequestedLink, setHasRequestedLink] = useState(false);
@@ -76,7 +79,7 @@ function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
             shouldShowOfflineIndicatorInWideScreen
         >
             <Header>
-                <Header.BackButton onPress={goBackToTerms} />
+                <Header.BackButton onPress={goBackToEntryPoint} />
                 <Header.Title title={translate('walletPage.wiseOnboarding.moreInfoNeeded.headerTitle')} />
             </Header>
             <ConfirmationPage>

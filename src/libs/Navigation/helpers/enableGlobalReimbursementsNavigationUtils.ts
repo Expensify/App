@@ -10,6 +10,7 @@ import SCREENS from '@src/SCREENS';
 import createDynamicRoute from './dynamicRoutesUtils/createDynamicRoute';
 import findAllMatchingDynamicSuffixes from './dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from './dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import stripDynamicRouteSuffixFromPath from './dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import findFocusedRouteWithOnyxTabGuard from './findFocusedRouteWithOnyxTabGuard';
 import getStateFromPath from './getStateFromPath';
 
@@ -113,11 +114,19 @@ function isWiseGlobalReimbursementsIntroOverPayReportScreen(introBackPath: strin
     return shouldUseDynamicEnableGlobalReimbursementsBase(introBackPath, PAY_REPORT_ENTRY_SCREENS);
 }
 
+/** The screen the Wise flow was opened from, under the intro, the onboarding form and the terms (unless they were replaced) */
+function getWiseGlobalReimbursementsEntryPath(wiseFlowPath: string): Route {
+    const confirmationPath = stripDynamicRouteSuffixFromPath(wiseFlowPath, DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path);
+    const introPath = stripDynamicRouteSuffixFromPath(confirmationPath, DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.path);
+    return stripDynamicRouteSuffixFromPath(introPath, DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
+}
+
 export type {EnableGlobalReimbursementsRouteParams};
 export {
     getDynamicBasePathFromNavigationPath,
     getEnableGlobalReimbursementsBusinessNavigationRoute,
     getEnableGlobalReimbursementsRootBackPath,
+    getWiseGlobalReimbursementsEntryPath,
     getWiseGlobalReimbursementsIntroNavigationRoute,
     isWiseGlobalReimbursementsIntroOverPayReportScreen,
     shouldUseDynamicEnableGlobalReimbursementsBase,

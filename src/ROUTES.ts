@@ -244,7 +244,7 @@ const DYNAMIC_ROUTES = {
     },
     WISE_MORE_INFO_NEEDED: {
         path: 'more-info-needed',
-        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS],
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS, SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING],
     },
     BANK_ACCOUNT_LINK_PLAID: {
         path: ':bankAccountID/link-plaid',
