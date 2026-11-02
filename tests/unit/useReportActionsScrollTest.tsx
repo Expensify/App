@@ -325,13 +325,18 @@ describe('useReportActionsScroll', () => {
             expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 1});
         });
 
-        it('top-aligns a linked report action when later actions follow it', async () => {
-            // Given a linked action followed by another action in chronological order.
+        it('prefers a linked action over a later unread marker', async () => {
+            // Given a linked action followed by an unread action in chronological order.
             mockRouteParams = {reportActionID: LINKED_ACTION_ID};
-            const actions = [makeAction(LINKED_ACTION_ID), makeAction('999')];
+            const actions = [makeAction(LINKED_ACTION_ID), makeAction(UNREAD_ACTION_ID)];
 
             // When the list chooses its initial position.
-            const {result} = await renderScroll({sortedVisibleReportActions: actions.toReversed(), renderedVisibleReportActions: actions});
+            const {result} = await renderScroll({
+                sortedVisibleReportActions: actions.toReversed(),
+                renderedVisibleReportActions: actions,
+                unreadMarkerReportActionID: UNREAD_ACTION_ID,
+                unreadMarkerReportActionIndex: 1,
+            });
 
             // Then the linked action is aligned below the header.
             expect(result.current.initialScrollIndex).toBe(0);
@@ -351,6 +356,43 @@ describe('useReportActionsScroll', () => {
             // Then the start of the action and its New marker remain visible.
             expect(result.current.initialScrollIndex).toBe(0);
             expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        });
+
+        it.each([undefined, ''])('opens at the unread boundary when the route link is %p', async (reportActionID) => {
+            // Given unread content before the newest message and no message targeted by the route.
+            mockRouteParams = {reportActionID};
+            const actions = [makeAction('1'), makeAction(UNREAD_ACTION_ID), makeAction('2')];
+
+            // When reopening the chat, including after sending a message cleared its previous link.
+            const {result} = await renderScroll({
+                sortedVisibleReportActions: actions.toReversed(),
+                renderedVisibleReportActions: actions,
+                unreadMarkerReportActionID: UNREAD_ACTION_ID,
+                unreadMarkerReportActionIndex: 1,
+            });
+
+            // Then initial placement preserves the unread boundary instead of starting at the newest message.
+            expect(result.current.initialScrollIndex).toBe(1);
+            expect(result.current.initialScrollIndexParams).toEqual({viewPosition: 0, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET});
+        });
+
+        it('ignores unread positioning in a money request report after its link is cleared', async () => {
+            // Given a money request whose unread action follows its topmost action.
+            mockIsMoneyRequestReport = true;
+            mockRouteParams = {reportActionID: ''};
+            const actions = [makeAction('1'), makeAction(UNREAD_ACTION_ID)];
+
+            // When opening the report without a message link, its report layout still owns the initial position.
+            const {result} = await renderScroll({
+                sortedVisibleReportActions: actions.toReversed(),
+                renderedVisibleReportActions: actions,
+                unreadMarkerReportActionID: UNREAD_ACTION_ID,
+                unreadMarkerReportActionIndex: 1,
+            });
+
+            // Then unread content does not replace the report's required top alignment.
+            expect(result.current.initialScrollIndex).toBe(0);
+            expect(result.current.initialScrollIndexParams).toBeUndefined();
         });
 
         it('uses the rendered summary as the initial scroll target when the unread action is collapsed', async () => {

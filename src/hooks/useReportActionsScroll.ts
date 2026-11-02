@@ -193,8 +193,9 @@ function useReportActionsScroll({
 
     // When the report is aligned to the top, only the linked action should drive the initial scroll position and the unread marker must be ignored.
     // Otherwise, prefer the linked action and fall back to the unread marker.
+    // Sending from a link clears the route param to an empty string, which must not suppress unread positioning.
     let initialScrollKey = linkedReportActionID;
-    if (!shouldBeAlignedToTop && linkedReportActionID === undefined && unreadMarkerReportActionID) {
+    if (!shouldBeAlignedToTop && !linkedReportActionID && unreadMarkerReportActionID) {
         initialScrollKey = unreadMarkerReportActionID;
     }
 
