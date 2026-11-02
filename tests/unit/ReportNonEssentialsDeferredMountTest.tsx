@@ -24,9 +24,10 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
 }));
 
 let mockIsFocused = true;
+const mockUseIsFocused = jest.fn(() => mockIsFocused);
 
 jest.mock('@react-navigation/native', () => ({
-    useIsFocused: () => mockIsFocused,
+    useIsFocused: () => mockUseIsFocused(),
 }));
 
 const transitionTracker = createTransitionTrackerHarness();
@@ -149,9 +150,10 @@ describe('ReportNonEssentialsDeferredMount', () => {
         // When the report mounts its non-essential UI
         renderDeferredMount(reportID);
 
-        // Then there is nothing to defer for, so the UI mounts with the report and no transition wait is scheduled
+        // Then there is nothing to defer for, so the UI mounts with the report without a transition wait or a focus subscription
         expect(screen.getByTestId('non-essentials')).toBeTruthy();
         expect(screen.queryByTestId('placeholder')).toBeNull();
         expect(TransitionTracker.runAfterTransitions).not.toHaveBeenCalled();
+        expect(mockUseIsFocused).not.toHaveBeenCalled();
     });
 });

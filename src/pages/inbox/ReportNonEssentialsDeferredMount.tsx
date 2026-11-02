@@ -29,27 +29,34 @@ function isOpeningReportAfterSubmit(reportID: string | undefined): boolean {
     return pending?.followUpAction === CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT && pending?.reportID === reportID;
 }
 
-function ReportNonEssentialsDeferredMount({reportID, placeholder, children}: ReportNonEssentialsDeferredMountProps): ReactNode {
-    // Read once at mount: the pending action is cleared when the report gains focus, which must not cut the deferral short.
-    const [shouldDefer] = useState(() => isOpeningReportAfterSubmit(reportID));
+type FocusGatedDeferredMountProps = Omit<ReportNonEssentialsDeferredMountProps, 'reportID'>;
+
+/** Starts the deferred mount on first focus, so a report mounted under the RHP also waits for the dismiss. */
+function FocusGatedDeferredMount({placeholder, children}: FocusGatedDeferredMountProps): ReactNode {
     const isFocused = useIsFocused();
 
     // Latched so a later blur does not unmount the deferred UI once it has started mounting.
     const [hasBeenFocused, setHasBeenFocused] = useState(isFocused);
-    if (shouldDefer && isFocused && !hasBeenFocused) {
+    if (isFocused && !hasBeenFocused) {
         setHasBeenFocused(true);
     }
 
-    if (!shouldDefer) {
-        return children;
-    }
-
-    // The report can mount under the RHP before the dismiss starts, so the wait starts on focus to cover the dismiss too.
     if (!hasBeenFocused) {
         return placeholder;
     }
 
     return <NavigationDeferredMount placeholder={placeholder}>{children}</NavigationDeferredMount>;
+}
+
+function ReportNonEssentialsDeferredMount({reportID, placeholder, children}: ReportNonEssentialsDeferredMountProps): ReactNode {
+    // Read once at mount: the pending action is cleared when the report gains focus, which must not cut the deferral short.
+    const [shouldDefer] = useState(() => isOpeningReportAfterSubmit(reportID));
+
+    if (!shouldDefer) {
+        return children;
+    }
+
+    return <FocusGatedDeferredMount placeholder={placeholder}>{children}</FocusGatedDeferredMount>;
 }
 
 export default ReportNonEssentialsDeferredMount;
