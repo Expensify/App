@@ -3039,11 +3039,11 @@ describe('ReportActionsUtils', () => {
         });
 
         it.each([
-            [CONST.REPORT.TYPE.BILL, true],
+            [CONST.REPORT.TYPE.BILL, false],
             [CONST.REPORT.TYPE.INVOICE, true],
             [CONST.REPORT.TYPE.EXPENSE, false],
         ] as const)('shows a NewDot REIMBURSED action on a %s report: %s', async (reportType, isVisible) => {
-            // Given a NewDot payment action on a report. Bills and invoices are paid without an IOU PAY action.
+            // Given a NewDot payment action on a report. Paying a bill adds no IOU PAY action to its invoice.
             const reportID = '9001';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: reportType});
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> = {
@@ -3057,16 +3057,16 @@ describe('ReportActionsUtils', () => {
             // When the action's visibility is checked for its report
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
 
-            // Then only bills and invoices show it, because other reports show their IOU PAY action instead
+            // Then only invoices show it, because other reports show their IOU PAY action instead
             expect(actual).toBe(isVisible);
         });
 
         it.each([
-            [CONST.REPORT.TYPE.BILL, true],
+            [CONST.REPORT.TYPE.BILL, false],
             [CONST.REPORT.TYPE.INVOICE, true],
             [CONST.REPORT.TYPE.EXPENSE, false],
         ] as const)('shows a NewDot MARKED_REIMBURSED action that Auth hides on a %s report: %s', async (reportType, isVisible) => {
-            // Given a report marked as paid from NewDot. Auth sets shouldShow to false on it, because expense reports show an IOU PAY action instead.
+            // Given a report marked as paid from NewDot. Auth sets shouldShow to false on it, because expense reports and bills show an IOU PAY action instead.
             const reportID = '9002';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {reportID, type: reportType});
             const reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
@@ -3081,7 +3081,7 @@ describe('ReportActionsUtils', () => {
             // When the action's visibility is checked for its report
             const actual = ReportActionsUtils.shouldReportActionBeVisible(reportAction, reportAction.reportActionID, true, undefined, reportID);
 
-            // Then only bills and invoices show it, because MarkReimbursed adds no IOU PAY action to them
+            // Then only invoices show it, because marking a bill as paid adds no IOU PAY action to its invoice
             expect(actual).toBe(isVisible);
         });
 
