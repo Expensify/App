@@ -79,7 +79,8 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
         };
 
         const isExpenseType = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
-        const isTripType = queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
+        // Trip rooms have no group-by, so only a trip search without the TravelApproval beta offers it
+        const isTripType = queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP && !shouldReturnTripRooms;
         const sortByValue = queryJSON.sortBy;
         const sortOrderValue = queryJSON.sortOrder;
         const groupByValue = searchAdvancedFilters[CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY];
@@ -103,7 +104,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                         value={validGroupByValue ? translate(`search.filters.groupBy.${validGroupByValue}`) : undefined}
                     />
                 )}
-                {!!groupBy && (
+                {!!groupBy && !shouldReturnTripRooms && (
                     <MenuItemField
                         name={translate('common.groupCurrency')}
                         onPress={() => setSelectedDisplayFilter(CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY)}

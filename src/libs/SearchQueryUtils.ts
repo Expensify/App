@@ -795,6 +795,17 @@ function getFooterSelectionFromQuery(queryJSON: SearchQueryJSON | undefined) {
     };
 }
 
+/** The query without its group-by, and without the group sort that came with it, for searches that can't be grouped. */
+function getQueryWithoutGroupBy(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
+    const isGroupSort = queryJSON.sortBy.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX);
+    return buildSearchQueryString({
+        ...queryJSON,
+        groupBy: undefined,
+        sortBy: isGroupSort ? CONST.SEARCH.TABLE_COLUMNS.DATE : queryJSON.sortBy,
+        sortOrder: isGroupSort ? CONST.SEARCH.SORT_ORDER.DESC : queryJSON.sortOrder,
+    });
+}
+
 /**
  * The query the Spend footer's selections produce, built from the query the footer is showing. Only `footerTotal`
  * changes what the backend returns. The other two ride along so the selection is restored with the search.
@@ -3270,6 +3281,7 @@ export {
     getDefaultFooterCount,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
+    getQueryWithoutGroupBy,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
     isSearchDatePreset,

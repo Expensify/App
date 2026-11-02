@@ -17084,6 +17084,62 @@ describe('Trip search', () => {
         expect(options.map((option) => option.text)).not.toContain(translateLocal('iou.endDate'));
     });
 
+    it('maps the current and past statuses to upcoming and done', () => {
+        // Given statuses a saved trip search used before trip rooms, next to one trip rooms use
+        // When they're normalized for trip rooms
+        // Then current and past mean upcoming and done, and duplicates collapse
+        expect(SearchUIUtils.normalizeTripStatuses([CONST.SEARCH.STATUS.TRIP.CURRENT, CONST.SEARCH.STATUS.TRIP.PAST, CONST.SEARCH.TRIP_STATUS.UPCOMING])).toEqual([
+            CONST.SEARCH.TRIP_STATUS.UPCOMING,
+            CONST.SEARCH.TRIP_STATUS.DONE,
+        ]);
+        expect(SearchUIUtils.normalizeTripStatuses([CONST.SEARCH.TRIP_STATUS.CANCELED])).toEqual([CONST.SEARCH.TRIP_STATUS.CANCELED]);
+    });
+
+    it('offers upcoming, done and canceled as trip room statuses', () => {
+        // Given a trip search with and without the TravelApproval beta
+        const getStatusValues = (shouldReturnTripRooms: boolean) =>
+            SearchUIUtils.getMultiSelectFilterOptions(FILTER_KEYS.STATUS, CONST.SEARCH.DATA_TYPES.TRIP, translateLocal, undefined, undefined, shouldReturnTripRooms).map(
+                (option) => option.value,
+            );
+
+        // When the Status filter options are built
+        // Then trip rooms offer their own statuses, and the expense search keeps current and past
+        expect(getStatusValues(true)).toEqual([CONST.SEARCH.TRIP_STATUS.UPCOMING, CONST.SEARCH.TRIP_STATUS.DONE, CONST.SEARCH.TRIP_STATUS.CANCELED]);
+        expect(getStatusValues(false)).toEqual([CONST.SEARCH.STATUS.TRIP.CURRENT, CONST.SEARCH.STATUS.TRIP.PAST]);
+    });
+
+    it('labels both the trip room and the older trip statuses in filter chips', () => {
+        // Given trip queries with a trip room status and with a status from before trip rooms
+        const getStatusLabel = (status: string) =>
+            SearchUIUtils.mapFiltersFormToLabelValueList(
+                {type: CONST.SEARCH.DATA_TYPES.TRIP, status: [status]},
+                new Set(),
+                undefined,
+                translateLocal,
+                undefined,
+                localeCompare,
+                (amount: number) => `${amount}`,
+            ).find((filter) => filter.key === FILTER_KEYS.STATUS)?.value;
+
+        // When the chips are labelled
+        // Then both show their name, so a saved search with an older status still reads right
+        expect(getStatusLabel(CONST.SEARCH.TRIP_STATUS.UPCOMING)).toBe(translateLocal('search.trip.status.upcoming'));
+        expect(getStatusLabel(CONST.SEARCH.STATUS.TRIP.CURRENT)).toBe(translateLocal('search.filters.current'));
+    });
+
+    it('shows the trip room status in the chip of a saved search with an older status', () => {
+        // Given a trip rooms query saved with current, which trip rooms read as upcoming
+        const form = SearchUIUtils.getFiltersFormWithTripRoomStatuses({type: CONST.SEARCH.DATA_TYPES.TRIP, status: [CONST.SEARCH.STATUS.TRIP.CURRENT, CONST.SEARCH.TRIP_STATUS.UPCOMING]});
+
+        // When the chips are labelled
+        const statusLabel = SearchUIUtils.mapFiltersFormToLabelValueList(form, new Set(), undefined, translateLocal, undefined, localeCompare, (amount: number) => `${amount}`).find(
+            (filter) => filter.key === FILTER_KEYS.STATUS,
+        )?.value;
+
+        // Then the chip reads Upcoming once, matching the Status filter
+        expect(statusLabel).toBe(translateLocal('search.trip.status.upcoming'));
+    });
+
     it('labels the date sort as Start date only for trip rooms', () => {
         // Given the canned trip search's date sort
         // When its label is read with and without the TravelApproval beta

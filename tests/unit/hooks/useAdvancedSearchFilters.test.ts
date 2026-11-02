@@ -66,6 +66,12 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
+const mockUseShouldReturnTripRooms = jest.fn<boolean, [string | undefined]>(() => false);
+jest.mock('@hooks/useShouldReturnTripRooms', () => ({
+    __esModule: true,
+    default: (type: string | undefined) => mockUseShouldReturnTripRooms(type),
+}));
+
 function wrapper({children}: {children: React.ReactNode}) {
     return React.createElement(LocaleContextProvider, null, children);
 }
@@ -589,6 +595,51 @@ describe('useAdvancedSearchFilters', () => {
             await waitFor(() => {
                 expect(result.current.at(1)?.slice(0, 2)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL, CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT]);
                 expect(result.current.at(2)).toEqual([CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID]);
+            });
+        });
+    });
+
+    describe('trip filters', () => {
+        beforeEach(async () => {
+            // Two workspaces so the Workspace filter shows
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicy(1, {role: CONST.POLICY.ROLE.ADMIN}));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}2`, buildPolicy(2, {role: CONST.POLICY.ROLE.ADMIN}));
+        });
+
+        afterEach(() => {
+            mockUseShouldReturnTripRooms.mockReset();
+            mockUseShouldReturnTripRooms.mockReturnValue(false);
+        });
+
+        it('only offers Status, Date, Workspace and From for trip rooms', async () => {
+            // Given a trip search with the TravelApproval beta, which returns trip rooms
+            mockUseShouldReturnTripRooms.mockReturnValue(true);
+
+            // When the filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.TRIP), {wrapper});
+
+            // Then only the filters a trip row has are offered, next to the type
+            await waitFor(() => {
+                expect(result.current.flat()).toEqual([
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                    CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+                ]);
+            });
+        });
+
+        it('keeps the expense filters for a trip search without the beta', async () => {
+            // Given a trip search without the TravelApproval beta, which is still an expense search
+            mockUseShouldReturnTripRooms.mockReturnValue(false);
+
+            // When the filters are listed
+            const {result} = renderHook(() => useAdvancedSearchFilters(CONST.SEARCH.DATA_TYPES.TRIP), {wrapper});
+
+            // Then the expense filters like Merchant stay
+            await waitFor(() => {
+                expect(result.current.flat()).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT);
             });
         });
     });

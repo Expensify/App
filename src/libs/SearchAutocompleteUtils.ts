@@ -183,6 +183,7 @@ const userFriendlyStatusList = Object.values({
     ...CONST.SEARCH.STATUS.EXPENSE,
     ...CONST.SEARCH.STATUS.INVOICE,
     ...CONST.SEARCH.STATUS.TRIP,
+    ...CONST.SEARCH.TRIP_STATUS,
     ...CONST.SEARCH.STATUS.TASK,
 }).map((value) => getUserFriendlyValue(value));
 
@@ -206,6 +207,7 @@ function filterOutRangesWithCorrectValue(
     exportedToList: SharedValue<string[]>,
     currentType: string,
     hasExplicitType: boolean,
+    shouldReturnTripRooms: boolean,
 ) {
     'worklet';
 
@@ -289,6 +291,9 @@ function filterOutRangesWithCorrectValue(
             if (currentType !== CONST.SEARCH.DATA_TYPES.EXPENSE && currentType !== CONST.SEARCH.DATA_TYPES.INVOICE && currentType !== CONST.SEARCH.DATA_TYPES.TRIP) {
                 return false;
             }
+            if (shouldReturnTripRooms) {
+                return false;
+            }
             return groupByList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW:
             return viewList.includes(range.value);
@@ -351,6 +356,7 @@ function parseForLiveMarkdown(
     categoryList: SharedValue<string[]>,
     tagList: SharedValue<string[]>,
     exportedToList: SharedValue<string[]>,
+    isTravelApprovalBetaEnabled = false,
 ): MarkdownRange[] {
     'worklet';
 
@@ -363,9 +369,10 @@ function parseForLiveMarkdown(
     // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
     const typeRange = ranges.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
+    const shouldReturnTripRooms = currentType === CONST.SEARCH.DATA_TYPES.TRIP && isTravelApprovalBetaEnabled;
 
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, exportedToList, currentType, !!typeRange))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, exportedToList, currentType, !!typeRange, shouldReturnTripRooms))
         .map((range) => {
             const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
