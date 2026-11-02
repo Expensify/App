@@ -14,6 +14,7 @@ type MockConnectOptions = {
 
 const mockLogHmmm = jest.fn();
 const mockConnectWithoutView = jest.fn<void, [MockConnectOptions]>();
+const mockGetSortedReportActionsForDisplay = jest.fn((reportActions: Record<string, ReportAction>) => Object.values(reportActions));
 
 jest.mock('@libs/Log', () => ({
     __esModule: true,
@@ -25,7 +26,7 @@ jest.mock('@libs/Log', () => ({
 }));
 
 jest.mock('@libs/ReportActionsUtils', () => ({
-    getSortedReportActionsForDisplay: (reportActions: Record<string, ReportAction>) => Object.values(reportActions),
+    getSortedReportActionsForDisplay: (reportActions: Record<string, ReportAction>) => mockGetSortedReportActionsForDisplay(reportActions),
 }));
 
 jest.mock('@libs/ReportUtils', () => ({
@@ -116,6 +117,7 @@ describe('Pagination middleware registration readiness', () => {
         mockLogHmmm.mockReset();
         mockConnectWithoutView.mockReset();
         mockConnectWithoutView.mockImplementation(({callback}) => callback({}));
+        mockGetSortedReportActionsForDisplay.mockImplementation((reportActions) => Object.values(reportActions));
     });
 
     it('registers the report actions pagination config only once', async () => {
@@ -127,6 +129,56 @@ describe('Pagination middleware registration readiness', () => {
         expect(secondReadyPromise).toBe(firstReadyPromise);
         await firstReadyPromise;
         expect(mockConnectWithoutView).toHaveBeenCalledTimes(4);
+    });
+
+    it('leaves app-only DEW routed actions out of the pages and the newer actions cursor', async () => {
+        // Given a response whose newest action is a DEW forward, which the display sort follows with an app-only routed action
+        const forwardedAction: ReportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            created: '2026-08-21 11:00:00.000',
+            reportActionID: '3',
+        };
+        const routedAction: ReportAction = {
+            actionName: CONST.REPORT.ACTIONS.TYPE.DYNAMIC_EXTERNAL_WORKFLOW_ROUTED,
+            created: '2026-08-21 11:00:00.001',
+            reportActionID: '3DEW',
+        };
+        mockGetSortedReportActionsForDisplay.mockImplementation((reportActions) =>
+            [routedAction, forwardedAction, REPORT_ACTION].filter((reportAction) => Object.hasOwn(reportActions, reportAction.reportActionID.replace('DEW', ''))),
+        );
+        const {default: registerReportActionsPaginationConfig} = await import('@libs/registerReportActionsPagination');
+        const {Pagination} = await loadPaginationModule();
+        await registerReportActionsPaginationConfig();
+        const response: Response<ReportActionsKey> = {
+            hasNewerActions: true,
+            hasOlderActions: false,
+            onyxData: [
+                {
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`,
+                    onyxMethod: 'merge',
+                    value: {[REPORT_ACTION.reportActionID]: REPORT_ACTION, [forwardedAction.reportActionID]: forwardedAction},
+                },
+            ],
+        };
+
+        // When the pagination middleware processes the response
+        const result = await Pagination(Promise.resolve(response), createRequest(), false);
+
+        // Then the page and the cursor use only real action IDs, because the API rejects the routed action ID
+        expect(result?.onyxData).toEqual(
+            expect.arrayContaining([
+                {
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${REPORT_ID}`,
+                    onyxMethod: 'set',
+                    value: [[forwardedAction.reportActionID, REPORT_ACTION.reportActionID, CONST.PAGINATION_END_ID]],
+                },
+                {
+                    key: `${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${REPORT_ID}`,
+                    onyxMethod: 'merge',
+                    value: {newestFetchedReportActionID: forwardedAction.reportActionID},
+                },
+            ]),
+        );
     });
 
     it('processes responses with a synchronously registered config', async () => {
