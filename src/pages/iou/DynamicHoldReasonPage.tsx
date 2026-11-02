@@ -90,6 +90,7 @@ function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
             initialReportID: holdReportID,
             initialReport: report,
             transactionReport,
+            transactionReportActions: parentReportActions,
             isOffline,
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,

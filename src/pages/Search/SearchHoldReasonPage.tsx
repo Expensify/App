@@ -1,6 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -44,6 +44,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
     const backTo = isBulkHold ? dynamicBackPath : route.params.backTo;
     const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
+    const {currentSearchResults} = useSearchResultsContext();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
@@ -93,6 +94,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 allReports: relevantReports,
                 comment,
                 reportID,
+                reportActions,
                 isOffline,
                 currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID,
@@ -110,6 +112,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                 const transactionThreadReportID = selectedTransactions[transactionID].reportAction?.childReportID;
                 const transactionViolations = selectedTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
                 const transaction = relevantTransactions.find((t) => t.transactionID === transactionID) ?? selectedTransactions[transactionID].transaction;
+                const transactionReportActions = currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transaction?.reportID}`];
 
                 putOnHold({
                     transactionID,
@@ -118,6 +121,7 @@ function SearchHoldReasonPage({route}: SearchHoldReasonPageProps) {
                     initialReportID: transactionThreadReportID,
                     initialReport: relevantReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`],
                     transactionReport: relevantReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+                    transactionReportActions,
                     isOffline,
                     currentUserLogin: currentUserLogin ?? '',
                     currentUserAccountID,
