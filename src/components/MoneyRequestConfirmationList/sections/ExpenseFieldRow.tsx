@@ -207,6 +207,7 @@ function ExpenseFieldRow({
         <Animated.View style={[styles.moneyRequestFieldRowFill, backgroundStyle]}>
             <MenuItem.Root
                 style={[styles.moneyRequestFieldRow, !isInteractive && styles.moneyRequestFieldRowDisabled, !!errorText && styles.borderColorDanger]}
+                hoveredStyle={styles.highlightBG}
                 // A locked field has nothing to open, so it is handed no press handler at all: `MenuItem.Root`
                 // reads that as a non-interactive row and drops the button role and the focus stop with it.
                 // Otherwise the press is guarded like every other `MenuItem` preset, so an anonymous user gets
