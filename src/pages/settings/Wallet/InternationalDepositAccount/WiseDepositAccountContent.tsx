@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 
-import {clearWiseBankAccountFields, getWiseBankAccountFields} from '@userActions/BankAccounts';
+import {clearWiseBankAccountFields, createWiseBankAccount, getWiseBankAccountFields} from '@userActions/BankAccounts';
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
@@ -36,6 +36,7 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     const styles = useThemeStyles();
     const [wiseBankAccountFields] = useOnyx(ONYXKEYS.WISE_BANK_ACCOUNT_FIELDS);
     const [draftValues] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM_DRAFT);
+    const [formState] = useOnyx(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM);
     const [country] = useOnyx(ONYXKEYS.COUNTRY);
     const [selectedCountry, setSelectedCountry] = useState(wiseBankAccountFields?.country ?? country ?? '');
     const errorMessage = getLatestErrorMessage(wiseBankAccountFields);
@@ -80,7 +81,14 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
         getWiseBankAccountFields(selectedCountry, currency, answers);
     };
 
-    const submitForm = () => leaveFlow();
+    // LOCAL TEST ONLY: a second submit after a verification-of-payee prompt confirms it
+    const submitForm = () => {
+        const hasVerificationOfPayee = !!(formState as Record<string, unknown> | undefined)?.verificationOfPayee;
+        if (hasVerificationOfPayee) {
+            console.log('[Wise test] verificationOfPayee', (formState as Record<string, unknown>).verificationOfPayee);
+        }
+        createWiseBankAccount(selectedCountry, wiseBankAccountFields?.currency, {...(draftValues ?? {})}, hasVerificationOfPayee);
+    };
 
     if (wiseBankAccountFields?.isLoading) {
         return (
