@@ -603,8 +603,8 @@ describe('useSelectionModeReportActions', () => {
 
         it('keeps the payment method the hold menu was opened with, so paying via ABA downloads the ABA file', () => {
             // Given selection mode on a report
-            const {result} = renderSelectionModeHook();
-            const {onHoldMenuOpen} = jest.mocked(useSelectionModePayment).mock.calls.at(-1)?.at(0) ?? {};
+            renderSelectionModeHook();
+            const {onHoldMenuOpen} = jest.mocked(useSelectionModePayment).mock.calls.at(-1)?.[0] ?? {};
 
             // When its hold menu opens for paying via ABA
             act(() => {
@@ -612,8 +612,7 @@ describe('useSelectionModeReportActions', () => {
             });
 
             // Then the hold menu gets the ABA payment method along with the payment type
-            expect(result.current.isHoldMenuVisible).toBe(true);
-            expect(result.current.paymentMethod).toBe(CONST.PAYMENT_METHODS.ABA);
+            expect(mockShowHoldMenu).toHaveBeenCalledWith(expect.objectContaining({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, paymentMethod: CONST.PAYMENT_METHODS.ABA}));
         });
     });
 

@@ -1,5 +1,3 @@
-import type {PaymentMethod} from '@components/KYCWall/types';
-
 import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useReportTransactionViolations from '@hooks/useReportTransactionViolations';

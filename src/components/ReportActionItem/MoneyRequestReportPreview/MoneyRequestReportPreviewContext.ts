@@ -1,5 +1,3 @@
-import type {PaymentMethod} from '@components/KYCWall/types';
-
 import type CONST from '@src/CONST';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ConnectionName} from '@src/types/onyx/Policy';
