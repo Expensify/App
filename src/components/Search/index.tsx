@@ -914,7 +914,6 @@ function Search({
         ],
     );
 
-    // Rows receive this by reference, so it keeps the identity of selectRow and hides its Promise from the void-returning prop
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
             selectRow(item, transactionPreviewData, event);
