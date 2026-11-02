@@ -1773,11 +1773,11 @@ function shouldReportActionBeVisible(
     }
 
     // Hide REIMBURSED and MARKED_REIMBURSED actions created from NewDot since an IOU PAY action is displayed instead.
-    // ReimburseReport and MarkReimbursed add no IOU PAY action when they pay a bill or its invoice, so the payment action stays visible on bills and invoices.
-    // Auth sets shouldShow to false on MARKED_REIMBURSED actions created from NewDot for the same reason, so bills and invoices ignore it too.
+    // ReimburseReport and MarkReimbursed add no IOU PAY action to an invoice, and neither does paying its linked bill, so the payment action stays visible on invoices.
+    // Auth sets shouldShow to false on MARKED_REIMBURSED actions created from NewDot for the same reason, so invoices ignore it too.
     if (isPaymentRecordedByReimbursedAction(reportAction)) {
         const originalMessage = getOriginalMessage(reportAction);
-        if (!isBillOrInvoiceReportID(reportID) && (originalMessage?.isNewDot || reportAction.shouldShow === false)) {
+        if (!isInvoiceReportID(reportID) && (originalMessage?.isNewDot || reportAction.shouldShow === false)) {
             return false;
         }
 
@@ -3427,14 +3427,13 @@ function isPaymentRecordedByReimbursedAction(
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED);
 }
 
-function isBillOrInvoiceReportID(reportID: string | undefined): boolean {
-    const reportType = reportID ? getReportOrDraftReport(reportID)?.type : undefined;
-    return reportType === CONST.REPORT.TYPE.BILL || reportType === CONST.REPORT.TYPE.INVOICE;
+function isInvoiceReportID(reportID: string | undefined): boolean {
+    return !!reportID && getReportOrDraftReport(reportID)?.type === CONST.REPORT.TYPE.INVOICE;
 }
 
 /**
  * Whether the action's visibility depends on its report's type, which the cached visibility can't track because
- * it updates only when report actions change. A NewDot payment action is hidden on most reports but shown on bills and invoices.
+ * it updates only when report actions change. A NewDot payment action is hidden on most reports but shown on invoices.
  */
 function isNewDotPaymentAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return isPaymentRecordedByReimbursedAction(reportAction) && !!getOriginalMessage(reportAction)?.isNewDot;
