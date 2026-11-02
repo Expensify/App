@@ -42,7 +42,7 @@ jest.mock('react-native-gesture-handler', () => {
     };
 });
 jest.mock('react-native-worklets', () => ({
-    ...jest.requireActual<typeof Worklets>('react-native-worklets'),
+    ...jest.requireActual<typeof Worklets>('react-native-worklets/src/mock'),
     scheduleOnRN: <Args extends unknown[], Result>(callback: (...args: Args) => Result, ...args: Args) => callback(...args),
 }));
 
