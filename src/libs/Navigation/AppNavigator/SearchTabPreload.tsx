@@ -4,7 +4,8 @@ import useOnyx from '@hooks/useOnyx';
 
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getPlatform from '@libs/getPlatform';
-import {getTabPreloadTarget, isTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
+import {setIdlePreloadedSearchTabRouteKey} from '@libs/Navigation/helpers/searchTabPreloadStore';
+import {getTabNavigatorState, getTabPreloadTarget, isTabPreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {Scheduler} from '@libs/Scheduler';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -47,9 +48,15 @@ function SearchTabPreload({isLoadingApp, tabNavigatorStateKey}: SearchTabPreload
         if (!target || isTabPreloaded(rootState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)) {
             return;
         }
+        // Key of the Spend route the preload marks.
+        const searchTabRouteKey = getTabNavigatorState(rootState)?.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR)?.key;
+        if (!searchTabRouteKey) {
+            return;
+        }
 
         const {query, ...params} = getSearchTabRouteParams(rootState, lastSearchParams, lastExpensesSearchQuery);
         startSpan(CONST.TELEMETRY.SPAN_PRELOAD_SEARCH_TAB, {name: CONST.TELEMETRY.SPAN_PRELOAD_SEARCH_TAB, op: CONST.TELEMETRY.SPAN_PRELOAD_SEARCH_TAB, forceTransaction: true});
+        setIdlePreloadedSearchTabRouteKey(searchTabRouteKey);
         navigationRef.dispatch({...CommonActions.preload(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, {screen: SCREENS.SEARCH.ROOT, params: {q: query, ...params}}), target});
     });
 

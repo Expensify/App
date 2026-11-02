@@ -3,6 +3,7 @@ import {render} from '@testing-library/react-native';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getPlatform from '@libs/getPlatform';
 import SearchTabPreload from '@libs/Navigation/AppNavigator/SearchTabPreload';
+import {clearIdlePreloadedSearchTabRouteKey, isIdlePreloadedSearchTabRoute} from '@libs/Navigation/helpers/searchTabPreloadStore';
 import {Scheduler} from '@libs/Scheduler';
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
@@ -92,6 +93,7 @@ describe('SearchTabPreload', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        clearIdlePreloadedSearchTabRouteKey();
         jest.spyOn(Scheduler, 'scheduleWhenIdle').mockImplementation((callback) => {
             callback();
             return {cancel: jest.fn()};
@@ -134,6 +136,9 @@ describe('SearchTabPreload', () => {
 
         // And the background build is timed, so production shows what the preload costs
         expect(jest.mocked(startSpan)).toHaveBeenCalledWith(CONST.TELEMETRY.SPAN_PRELOAD_SEARCH_TAB, expect.objectContaining({name: CONST.TELEMETRY.SPAN_PRELOAD_SEARCH_TAB}));
+
+        // And the mark counts as the idle preload's
+        expect(isIdlePreloadedSearchTabRoute({routes: [], preloadedRouteKeys: ['search-1']}, 'search-1')).toBe(true);
     });
 
     it('does not preload the Spend tab when it is the focused tab', async () => {
@@ -157,6 +162,9 @@ describe('SearchTabPreload', () => {
         // Then no second preload or second span goes out
         expectNoSpendPreload();
         expect(jest.mocked(startSpan)).not.toHaveBeenCalled();
+
+        // And a mark this preload did not add, like a submit pre-mount's, does not count
+        expect(isIdlePreloadedSearchTabRoute({routes: [], preloadedRouteKeys}, 'search-1')).toBe(false);
     });
 
     it('does not preload the Spend tab in a narrow window', async () => {

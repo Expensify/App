@@ -3,8 +3,14 @@ import {PreloadedTabContentReadyContext} from '@hooks/useMarkPreloadedTabContent
 import useShouldMountPreloadedTabContent from '@hooks/useShouldMountPreloadedTabContent';
 
 import useSplitNavigatorScreenOptions from '@libs/Navigation/AppNavigator/useSplitNavigatorScreenOptions';
-import {clearSearchTabContentReady, getIsSearchTabHovered, markSearchTabContentReady, subscribeToSearchTabHover} from '@libs/Navigation/helpers/searchTabPreloadStore';
-import {isTabRoutePreloaded} from '@libs/Navigation/helpers/tabNavigatorUtils';
+import {
+    clearIdlePreloadedSearchTabRouteKey,
+    clearSearchTabContentReady,
+    getIsSearchTabHovered,
+    isIdlePreloadedSearchTabRoute,
+    markSearchTabContentReady,
+    subscribeToSearchTabHover,
+} from '@libs/Navigation/helpers/searchTabPreloadStore';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList, TabNavigatorParamList} from '@libs/Navigation/types';
@@ -30,8 +36,8 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<TabNavigato
     // These options can be used here because the full screen navigator has the same structure as the split navigator in terms of the central screens, but it does not have a sidebar.
     const {centralScreen: centralScreenOptions} = useSplitNavigatorScreenOptions();
 
-    // True from the idle preload until the tab is first opened. The page holds its request while it is set.
-    const isInPreloadedTab = useNavigationState((tabState) => isTabRoutePreloaded(tabState, route.key));
+    // True from the idle preload until the tab is first opened. Ignores marks from a submit pre-mount or a history restore.
+    const isInPreloadedTab = useNavigationState((tabState) => isIdlePreloadedSearchTabRoute(tabState, route.key));
 
     const shouldRenderContent = useShouldMountPreloadedTabContent(isInPreloadedTab);
 
@@ -55,18 +61,20 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<TabNavigato
         cancelSpan(CONST.TELEMETRY.SPAN_PRELOAD_SEARCH_TAB);
     }, [isInPreloadedTab, isPreloadedContentReady]);
 
-    // Once opened, a later tap no longer reveals a preloaded tab.
+    // Clears the idle preload state once the tab is opened.
     useEffect(() => {
         if (isInPreloadedTab) {
             return;
         }
         clearSearchTabContentReady();
+        clearIdlePreloadedSearchTabRouteKey();
     }, [isInPreloadedTab]);
 
     // Unmounted before its first content was on screen, e.g. on sign out, nothing else would end the preload span.
     useEffect(
         () => () => {
             clearSearchTabContentReady();
+            clearIdlePreloadedSearchTabRouteKey();
             cancelSpan(CONST.TELEMETRY.SPAN_PRELOAD_SEARCH_TAB);
         },
         [route.key],
