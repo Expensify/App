@@ -30,11 +30,11 @@
     paused stream delivers nothing, so the `keypress` listener never fires, the `process.on('SIGINT')`
     handler next to it is unreachable, and the process keeps serving bundles until something external
     kills it. The `r` / `d` / `j` / `a` shortcuts are dead in the same session for the same reason.
-    This patch adds the `process.stdin.resume()` Metro does after entering raw mode.
+    This patch adds the `process.stdin.resume()` that `@rock-js/plugin-metro` does after entering raw mode.
     ```
 
 - Reproduced and verified in a pseudo-terminal with real control bytes injected, against the published 5.4.1 tarball: before the patch the process is alive 4s after Ctrl+C with `stdin.isPaused() === true` and `r` does nothing; after the patch stdin flows, Ctrl+C exits the process, and `r` runs `onReload`.
-- Does not restore `Ctrl+Z` or `Ctrl+\`. Re.Pack maps `Ctrl+Z` to `process.emit('SIGTSTP')`, an emitter event with no listener anywhere in the package, so nothing suspends the process; `Ctrl+\` has no keypress mapping at all. Both need key handling upstream to add, separate from the paused stream this patch fixes.
+- Does not restore `Ctrl+Z` or `Ctrl+\`. Re.Pack maps `Ctrl+Z` to `process.emit('SIGTSTP')`, an emitter event with no listener anywhere in `@callstack/repack`, `@rock-js/*` or `repack-dev-server`, so nothing suspends the process; `Ctrl+\` has no keypress mapping at all. Both need key handling from upstream, separate from the paused stream this patch fixes.
 - Upstream PR/issue: https://github.com/callstack/repack/issues/1515 - open, filed with the same one-line fix and reproduction. `setupInteractions.js` is byte-identical in 5.4.2 and the canary at time of writing, so no upgrade escapes it. Drop this patch once upstream ships the resume.
 - E/App issue: https://github.com/Expensify/App/issues/105422
 - PR Introducing Patch: https://github.com/Expensify/App/pull/105612
