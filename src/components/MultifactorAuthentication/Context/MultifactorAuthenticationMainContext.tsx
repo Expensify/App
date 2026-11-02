@@ -30,7 +30,7 @@ import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import React, {createContext, useContext, useEffect, useRef} from 'react';
 import Onyx from 'react-native-onyx';
 
 import {useMultifactorAuthenticationActions} from './MultifactorAuthenticationActionsContext';
@@ -97,14 +97,14 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     const startStateRef = useRef<CredentialsState | undefined>(undefined);
 
-    const captureCredentialsState = useCallback(async (): Promise<CredentialsState> => {
+    const captureCredentialsState = async (): Promise<CredentialsState> => {
         const hasLocalCredentials = await biometrics.areLocalCredentialsKnownToServer();
         return {
             hasServerCredentials: biometrics.serverKnownCredentialIDs.length > 0,
             hasLocalCredentials,
             hasEverAcceptedSoftPrompt: !!deviceBiometricsState?.hasAcceptedSoftPrompt,
         };
-    }, [biometrics]);
+    };
 
     /**
      * Handles the completion of a multifactor authentication scenario.
@@ -117,68 +117,65 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      *
      * @param isSuccessful - Whether the authentication scenario completed successfully
      */
-    const handleCallback = useCallback(
-        async (isSuccessful: boolean) => {
-            const {error, scenario, scenarioResponse, payload} = state;
+    const handleCallback = async (isSuccessful: boolean) => {
+        const {error, scenario, scenarioResponse, payload} = state;
 
-            if (!scenario) {
-                return;
-            }
+        if (!scenario) {
+            return;
+        }
 
-            const scenarioConfig = scenario;
-            const callbackInput: MultifactorAuthenticationCallbackInput = {
-                httpStatusCode: scenarioResponse?.httpStatusCode,
-                message: scenarioResponse?.reason ?? error?.reason,
-                body: scenarioResponse?.body,
-            };
+        const scenarioConfig = scenario;
+        const callbackInput: MultifactorAuthenticationCallbackInput = {
+            httpStatusCode: scenarioResponse?.httpStatusCode,
+            message: scenarioResponse?.reason ?? error?.reason,
+            body: scenarioResponse?.body,
+        };
 
-            const callbackResponse = await scenarioConfig.callback?.(isSuccessful, callbackInput, payload);
+        const callbackResponse = await scenarioConfig.callback?.(isSuccessful, callbackInput, payload);
 
-            addMFABreadcrumb('Flow completed', {
-                isSuccessful,
-                callbackResponse: callbackResponse ?? 'none',
-                httpStatusCode: scenarioResponse?.httpStatusCode ?? error?.httpStatusCode,
-                reason: scenarioResponse?.reason ?? error?.reason,
-                message: scenarioResponse?.message ?? error?.message,
-            });
+        addMFABreadcrumb('Flow completed', {
+            isSuccessful,
+            callbackResponse: callbackResponse ?? 'none',
+            httpStatusCode: scenarioResponse?.httpStatusCode ?? error?.httpStatusCode,
+            reason: scenarioResponse?.reason ?? error?.reason,
+            message: scenarioResponse?.message ?? error?.message,
+        });
 
-            const endState = await captureCredentialsState();
+        const endState = await captureCredentialsState();
 
-            trackMFAFlowOutcome({
-                isSuccessful,
-                scenario: state.scenarioName,
-                scenarioResponse,
-                error,
-                authenticationMethod: state.authenticationMethod?.name,
-                isRegistrationComplete: state.isRegistrationComplete,
-                isAuthorizationComplete: state.isAuthorizationComplete,
-                softPromptApproved: state.softPromptApproved,
-                startState: startStateRef.current ?? endState,
-                endState,
-            });
+        trackMFAFlowOutcome({
+            isSuccessful,
+            scenario: state.scenarioName,
+            scenarioResponse,
+            error,
+            authenticationMethod: state.authenticationMethod?.name,
+            isRegistrationComplete: state.isRegistrationComplete,
+            isAuthorizationComplete: state.isAuthorizationComplete,
+            softPromptApproved: state.softPromptApproved,
+            startState: startStateRef.current ?? endState,
+            endState,
+        });
 
-            dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
+        dispatch({type: 'SET_FLOW_COMPLETE', payload: true});
 
-            // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself.
-            // Close the modal so the overlay plays its exit animation and then resets.
-            if (callbackResponse === CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN) {
-                dispatch({type: 'CLOSE_MODAL'});
-                return;
-            }
+        // If the callback returns SKIP_OUTCOME_SCREEN, the callback handles navigation itself.
+        // Close the modal so the overlay plays its exit animation and then resets.
+        if (callbackResponse === CONST.MULTIFACTOR_AUTHENTICATION.CALLBACK_RESPONSE.SKIP_OUTCOME_SCREEN) {
+            dispatch({type: 'CLOSE_MODAL'});
+            return;
+        }
 
-            // Wait out any callback-initiated transition (e.g. RHP goBack) before pushing the outcome screen.
-            // Android raced the two animations and the RHP slide-out leaked through the outgoing screen.
-            const outcomeScreen = isSuccessful ? SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS : SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE;
-            Navigation.runAfterTransition(() => mfaNavigate(outcomeScreen));
-        },
-        [captureCredentialsState, dispatch, state],
-    );
+        // Wait out any callback-initiated transition (e.g. RHP goBack) before pushing the outcome screen.
+        // Android raced the two animations and the RHP slide-out leaked through the outgoing screen.
+        const outcomeScreen = isSuccessful ? SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS : SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE;
+        Navigation.runAfterTransition(() => mfaNavigate(outcomeScreen));
+    };
 
     /**
      * Internal process function that runs after each step.
      * Uses if statements to determine and execute the next step in the flow.
      */
-    const process = useCallback(async () => {
+    const process = async () => {
         const {
             error,
             continuableError,
@@ -423,7 +420,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
         // 5. All steps completed - invoke callback to determine whether to show the outcome screen
         handleCallback(true);
-    }, [biometrics, dispatch, handleCallback, isOffline, state, promptType]);
+    };
 
     /**
      * Drives the MFA state machine forward whenever relevant state changes occur.
@@ -483,54 +480,51 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
      *
      * @template T - The type of the multifactor authentication scenario
      * @param scenario - The MFA scenario to process
-     * @param {ExecuteScenarioParams<T>} [params] - Optional parameters for the scenario
-     * @returns {Promise<void>} A promise that resolves when the scenario has been initialized
+     * @param params - Optional parameters for the scenario
+     * @returns A promise that resolves when the scenario has been initialized
      */
-    const executeScenario = useCallback(
-        async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
-            // Rapid double-tap on the trigger can fire executeScenario twice. The reducer's INIT
-            // case is the authoritative guard (it processes dispatches sequentially against the
-            // latest state and drops the duplicate). This check exists only as a perf short-circuit
-            // so the second tap doesn't pay for an extra captureCredentialsState() native call
-            // and Sentry breadcrumb on the happy path.
-            if (state.scenario) {
-                return;
-            }
+    const executeScenario = async <T extends MultifactorAuthenticationScenario>(scenario: T, params?: ExecuteScenarioParams<T>): Promise<void> => {
+        // Rapid double-tap on the trigger can fire executeScenario twice. The reducer's INIT
+        // case is the authoritative guard (it processes dispatches sequentially against the
+        // latest state and drops the duplicate). This check exists only as a perf short-circuit
+        // so the second tap doesn't pay for an extra captureCredentialsState() native call
+        // and Sentry breadcrumb on the happy path.
+        if (state.scenario) {
+            return;
+        }
 
-            startStateRef.current = await captureCredentialsState();
+        startStateRef.current = await captureCredentialsState();
 
-            const breadcrumbData = {
+        const breadcrumbData = {
+            scenario,
+            hasPayload: params !== undefined && Object.keys(params).length > 0,
+            platform,
+            isOffline,
+            hasAcceptedSoftPrompt: startStateRef.current.hasEverAcceptedSoftPrompt,
+            serverHasAnyCredentials: startStateRef.current.hasServerCredentials,
+        };
+
+        addMFABreadcrumb('Flow started', breadcrumbData);
+        trackMFAFlowStart({
+            scenario,
+            isOffline,
+            credentialsState: startStateRef.current,
+        });
+        dispatch({
+            type: 'INIT',
+            payload: {
                 scenario,
-                hasPayload: params !== undefined && Object.keys(params).length > 0,
-                platform,
-                isOffline,
-                hasAcceptedSoftPrompt: startStateRef.current.hasEverAcceptedSoftPrompt,
-                serverHasAnyCredentials: startStateRef.current.hasServerCredentials,
-            };
-
-            addMFABreadcrumb('Flow started', breadcrumbData);
-            trackMFAFlowStart({
-                scenario,
-                isOffline,
-                credentialsState: startStateRef.current,
-            });
-            dispatch({
-                type: 'INIT',
-                payload: {
-                    scenario,
-                    payload: params && Object.keys(params).length > 0 ? params : undefined,
-                },
-            });
-        },
-        [captureCredentialsState, dispatch, isOffline, platform, state.scenario],
-    );
+                payload: params && Object.keys(params).length > 0 ? params : undefined,
+            },
+        });
+    };
 
     /**
      * Cancel the current authentication flow. Dispatches SET_ERROR which drives process() to handleCallback
      * and the failure outcome. When the scenario or network is unavailable, process() short-circuits, so we
      * close the modal directly instead to avoid getting stuck.
      */
-    const cancel = useCallback(async () => {
+    const cancel = async () => {
         actionControllerRef.current?.abort();
         if (!state.scenario || isOffline) {
             addMFABreadcrumb('Flow cancelled - closing directly', {hasScenario: !!state.scenario, isOffline}, 'warning');
@@ -550,7 +544,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
             type: 'SET_ERROR',
             payload: createLocalMFAError(CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.CANCELED, 'User cancelled the MFA flow'),
         });
-    }, [dispatch, isOffline, state.scenario, state.payload]);
+    };
 
     const requestCancel = () => {
         if (state.isFlowComplete) {
@@ -573,15 +567,12 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
 
     useSyncMfaModalNavigatorWithHistory(state.isModalOpen, requestCancel);
 
-    const contextValue: MultifactorAuthenticationContextValue = useMemo(
-        () => ({
-            executeScenario,
-            requestCancel,
-            hideCancelConfirm,
-            confirmCancel,
-        }),
-        [executeScenario, requestCancel, hideCancelConfirm, confirmCancel],
-    );
+    const contextValue: MultifactorAuthenticationContextValue = {
+        executeScenario,
+        requestCancel,
+        hideCancelConfirm,
+        confirmCancel,
+    };
 
     return <MultifactorAuthenticationContext.Provider value={contextValue}>{children}</MultifactorAuthenticationContext.Provider>;
 }

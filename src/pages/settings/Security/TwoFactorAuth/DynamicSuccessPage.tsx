@@ -27,6 +27,7 @@ import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {findFocusedRoute} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import SuccessPageBase from './SuccessPageBase';
@@ -35,6 +36,7 @@ type DynamicSuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorPa
 
 function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path);
     const dynamicForwardPath = useDynamicForwardPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path);
 
@@ -62,8 +64,10 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow) || (!!account?.requiresTwoFactorAuth && isIncompleteOnboarding && hasSavedOnboardingPath);
     const shouldReturnToOnboardingAfter2FA = isSecuritySettingsFlow && isForcedOnboardingHandoff;
 
+    const is2FAEnabled = !!account?.requiresTwoFactorAuth;
+
     const completeForcedOnboarding2FAHandoff = () => {
-        clearTwoFactorAuthData(true);
+        clearTwoFactorAuthData(is2FAEnabled, true);
         const onboardingFlowParams = buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath);
         Navigation.revealRouteBeforeDismissingModal(ROUTES.HOME, {
             afterTransition: () => {
@@ -80,7 +84,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
         if (isUSDBankAccountFlow) {
             Navigation.goBack(dynamicBackPath, {
                 afterTransition: () => {
-                    clearTwoFactorAuthData();
+                    clearTwoFactorAuthData(is2FAEnabled);
                     // Re-fetch bank account data so ReimbursementAccountPage reflects the latest state after 2FA setup.
                     openReimbursementAccountPage({
                         policyID: route.params?.policyID,
@@ -90,7 +94,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             });
             return;
         }
-        quitAndNavigateBack(dynamicBackPath);
+        quitAndNavigateBack(is2FAEnabled, dynamicBackPath);
     };
 
     const onButtonPress = () => {
@@ -110,7 +114,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
             // Pass clearProgress=true to also reset twoFactorAuthSetupInProgress. Replacing the success screen with the
             // Enabled page keeps the TWO_FACTOR_AUTH modal mounted, so RightModalNavigator's beforeRemove cleanup never
             // runs here; without this the require-2FA overlay would persist for users who haven't finished guided setup.
-            clearTwoFactorAuthData(true);
+            clearTwoFactorAuthData(is2FAEnabled, true);
             return;
         }
         goBack();
@@ -121,7 +125,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
                 // new browser tab (within this button's gesture), on native navigate to the in-app WebView setup
                 // screen. Calling openLink on native would open the external browser instead of the WebView.
                 if (getPlatform() === CONST.PLATFORM.WEB) {
-                    openLink(getXeroSetupLink(policyID), environmentURL);
+                    openLink(getXeroSetupLink(policyID), environmentURL, false, session);
                 } else {
                     Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_SETUP.getRoute(policyID));
                 }

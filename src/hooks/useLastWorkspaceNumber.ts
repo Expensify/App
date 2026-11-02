@@ -6,8 +6,6 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useMemo} from 'react';
-
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePersonalDetailByLogin from './usePersonalDetailByLogin';
@@ -19,10 +17,7 @@ function useLastWorkspaceNumber(email?: string) {
     const userDisplayName = usePersonalDetailByLogin(resolvedEmail, displayNameSelector);
     // Memoize so the POLICY-collection regex scan only re-runs when the resolved email or display name changes, not on
     // every render of consumers (e.g. the expense header renders this on every expense).
-    const selector = useMemo(
-        () => (policies: OnyxCollection<Policy>) => lastWorkspaceNumberSelector(policies, resolvedEmail, userDisplayName, translate),
-        [resolvedEmail, translate, userDisplayName],
-    );
+    const selector = (policies: OnyxCollection<Policy>) => lastWorkspaceNumberSelector(policies, resolvedEmail, userDisplayName, translate);
     const [lastWorkspaceNumber] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector});
     return lastWorkspaceNumber;
 }

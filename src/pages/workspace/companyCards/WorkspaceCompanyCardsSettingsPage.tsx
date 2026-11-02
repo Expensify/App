@@ -36,7 +36,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type WorkspaceCompanyCardsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
@@ -56,7 +56,7 @@ function WorkspaceCompanyCardsSettingsPage({
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const {currencyList} = useCurrencyListState();
 
-    const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
+    const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
     const {showConfirmModal} = useConfirmModal();
 
@@ -72,17 +72,14 @@ function WorkspaceCompanyCardsSettingsPage({
     const isDirectFeedType = isDirectFeed(feed);
     const isCsvFeed = isCSVUploadFeed(feed);
 
-    const statementCloseDate = useMemo(() => {
-        if (!selectedFeedData?.statementPeriodEndDay) {
-            return undefined;
-        }
-
-        if (typeof selectedFeedData?.statementPeriodEndDay === 'number') {
-            return selectedFeedData.statementPeriodEndDay;
-        }
-
-        return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
-    }, [translate, selectedFeedData?.statementPeriodEndDay]);
+    let statementCloseDate;
+    if (!selectedFeedData?.statementPeriodEndDay) {
+        statementCloseDate = undefined;
+    } else if (typeof selectedFeedData?.statementPeriodEndDay === 'number') {
+        statementCloseDate = selectedFeedData.statementPeriodEndDay;
+    } else {
+        statementCloseDate = translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
+    }
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));

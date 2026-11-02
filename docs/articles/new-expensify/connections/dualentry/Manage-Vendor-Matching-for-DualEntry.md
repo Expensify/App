@@ -48,6 +48,7 @@ The **Vendor** field appears only on non-reimbursable expenses. It isn't shown o
 2. Select **Vendor**.
 3. Search for the vendor by name.
 4. Select the vendor you want to assign.
+5. Select **Save**.
 
 Once a vendor is selected manually, Expensify preserves that selection and won't overwrite it with automatic matching.
 
@@ -59,7 +60,7 @@ Once a vendor is selected manually, Expensify preserves that selection and won't
 2. Select **Vendors**.
 3. Use **Find vendor** to search the list by name.
 
-Vendors are managed in DualEntry, so the list is read-only in Expensify and refreshes when the connection syncs.
+Vendors are managed in DualEntry, and the list refreshes when the connection syncs. To stop a vendor from appearing in the **Vendor** field on expenses, disable it in the **Enabled** column.
 
 ## How to set a default vendor for all company cards in DualEntry
 

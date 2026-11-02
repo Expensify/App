@@ -1,5 +1,6 @@
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
+import type FocusTrapForModalProps from '@components/FocusTrap/FocusTrapForModal/FocusTrapForModalProps';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -25,9 +26,12 @@ type CurrencyPickerProps = {
     onInputChange?: (value: string, key?: string) => void;
 
     excludeCurrencies?: string[];
+
+    /** The button that opens the picker. When passed, focus returns to it after the picker closes. */
+    launcherRef?: FocusTrapForModalProps['launcherRef'];
 };
 
-function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerText, value, excludeCurrencies, onInputChange = () => {}}: CurrencyPickerProps) {
+function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerText, value, excludeCurrencies, launcherRef, onInputChange = () => {}}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const styles = useThemeStyles();
@@ -44,6 +48,8 @@ function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerTe
             onClose={hidePickerModal}
             onModalHide={hidePickerModal}
             shouldEnableNewFocusManagement
+            shouldReturnFocus={!!launcherRef}
+            launcherRef={launcherRef}
             onBackdropPress={Navigation.dismissModal}
             shouldUseModalPaddingStyle={false}
             shouldHandleNavigationBack

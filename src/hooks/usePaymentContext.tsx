@@ -25,6 +25,7 @@ type PaymentContextValue = {
     localCurrencyCode: string | undefined;
     introSelected: OnyxEntry<IntroSelected>;
     isASAPSubmitBetaEnabled: boolean;
+    isWiseReimbursementsBetaEnabled: boolean;
     isSelfTourViewed: boolean;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
@@ -80,6 +81,7 @@ function usePaymentContextValues(): PaymentContextValue {
         localCurrencyCode,
         introSelected,
         isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+        isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
         isSelfTourViewed,
         userBillingGracePeriodEnds,
         amountOwed,

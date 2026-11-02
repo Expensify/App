@@ -2,7 +2,7 @@ import type {TableData, TableRow} from '@components/Table/types';
 
 import durationHighlightItem from '@libs/Navigation/helpers/getDurationHighlightItem';
 
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 import type {Middleware, MiddlewareHookResult} from './types';
 
@@ -15,28 +15,25 @@ function useHighlighting<DataType extends TableData>(): MiddlewareHookResult<Tab
     const highlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [highlightedRowKeys, setHighlightedRowKeys] = useState<Set<string> | null>(null);
 
-    const clearHighlightedRows = useCallback(() => {
+    const clearHighlightedRows = () => {
         setHighlightedRowKeys(null);
         highlightTimeoutRef.current = null;
-    }, []);
+    };
 
-    const highlightItems: HighlightingMethods['highlightItems'] = useCallback(
-        (itemKeys) => {
-            if (highlightTimeoutRef.current) {
-                clearTimeout(highlightTimeoutRef.current);
-                highlightTimeoutRef.current = null;
-            }
+    const highlightItems: HighlightingMethods['highlightItems'] = (itemKeys) => {
+        if (highlightTimeoutRef.current) {
+            clearTimeout(highlightTimeoutRef.current);
+            highlightTimeoutRef.current = null;
+        }
 
-            if (!itemKeys.length) {
-                setHighlightedRowKeys(null);
-                return;
-            }
+        if (!itemKeys.length) {
+            setHighlightedRowKeys(null);
+            return;
+        }
 
-            setHighlightedRowKeys(new Set(itemKeys));
-            highlightTimeoutRef.current = setTimeout(clearHighlightedRows, durationHighlightItem);
-        },
-        [clearHighlightedRows],
-    );
+        setHighlightedRowKeys(new Set(itemKeys));
+        highlightTimeoutRef.current = setTimeout(clearHighlightedRows, durationHighlightItem);
+    };
 
     useEffect(() => {
         return () => {

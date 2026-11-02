@@ -30,7 +30,7 @@ import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports -- Type import needed for ref typing; no wrapper available
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {FormInputErrors, FormOnyxValues} from './Form/types';
@@ -90,40 +90,37 @@ function WorkspaceConfirmationForm({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const isApprovedAccountant = !!account?.isApprovedAccountant;
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM> = {};
-            const name = values.name.trim();
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_CONFIRMATION_FORM> = {};
+        const name = values.name.trim();
 
-            if (!isRequiredFulfilled(name)) {
-                errors.name = translate('workspace.editor.nameIsRequiredError');
-            } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
-                // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
-                // code units.
-                addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
+        if (!isRequiredFulfilled(name)) {
+            errors.name = translate('workspace.editor.nameIsRequiredError');
+        } else if ([...name].length > CONST.TITLE_CHARACTER_LIMIT) {
+            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16
+            // code units.
+            addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', [...name].length, CONST.TITLE_CHARACTER_LIMIT));
+        }
+
+        if (!isRequiredFulfilled(values[INPUT_IDS.CURRENCY])) {
+            errors[INPUT_IDS.CURRENCY] = translate('common.error.fieldRequired');
+        }
+
+        // Only validate plan type and owner for approved accountants
+        if (isApprovedAccountant) {
+            if (!isRequiredFulfilled(values[INPUT_IDS.PLAN_TYPE])) {
+                errors[INPUT_IDS.PLAN_TYPE] = translate('common.error.fieldRequired');
             }
 
-            if (!isRequiredFulfilled(values[INPUT_IDS.CURRENCY])) {
-                errors[INPUT_IDS.CURRENCY] = translate('common.error.fieldRequired');
+            if (!isRequiredFulfilled(values[INPUT_IDS.OWNER])) {
+                errors[INPUT_IDS.OWNER] = translate('common.error.fieldRequired');
             }
+        }
 
-            // Only validate plan type and owner for approved accountants
-            if (isApprovedAccountant) {
-                if (!isRequiredFulfilled(values[INPUT_IDS.PLAN_TYPE])) {
-                    errors[INPUT_IDS.PLAN_TYPE] = translate('common.error.fieldRequired');
-                }
+        return errors;
+    };
 
-                if (!isRequiredFulfilled(values[INPUT_IDS.OWNER])) {
-                    errors[INPUT_IDS.OWNER] = translate('common.error.fieldRequired');
-                }
-            }
-
-            return errors;
-        },
-        [translate, isApprovedAccountant],
-    );
-
-    const policyID = useMemo(() => generatePolicyID(), []);
+    const policyID = generatePolicyID();
     const [session, metadata] = useOnyx(ONYXKEYS.SESSION);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
