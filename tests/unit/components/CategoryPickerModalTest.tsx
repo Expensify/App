@@ -1,7 +1,8 @@
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
 
-import CategoryPickerModal, {CATEGORY_PICKER_HEADER_HEIGHT} from '@components/CategoryPicker/CategoryPickerModal';
+import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
 import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -256,7 +257,7 @@ describe('CategoryPickerModal', () => {
 
             // Then the list drops its own 16px top padding under the header, since the sheet's padding plus the header's 4px already make 20px
             const {result: styles} = renderHook(() => useThemeStyles());
-            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + CATEGORY_PICKER_HEADER_HEIGHT - styles.current.pt4.paddingTop + SAFE_AREA_PADDING_BOTTOM);
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + SELECTION_LIST_POPOVER_HEADER_HEIGHT - styles.current.pt4.paddingTop + SAFE_AREA_PADDING_BOTTOM);
         });
 
         it('keeps the list top padding above the header in the wide pop-over', async () => {
@@ -268,7 +269,7 @@ describe('CategoryPickerModal', () => {
             await waitForBatchedUpdates();
 
             // Then the pop-over is one row plus the header, whose 20px from the top comes from the list's padding
-            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + CATEGORY_PICKER_HEADER_HEIGHT);
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + SELECTION_LIST_POPOVER_HEADER_HEIGHT);
         });
 
         it('fits the pop-over to the list without any bottom safe area', async () => {
@@ -314,20 +315,23 @@ describe('CategoryPickerModal', () => {
 
         it('caps a fitted sheet at the height the window leaves', async () => {
             // Given a phone and a workspace with enough categories that the rows plus the bottom safe area are taller than the window allows
+            const contentHeight = getSelectionListPopoverContentHeight({optionCount: CATEGORY_COUNT, isSearchable: false}) + SAFE_AREA_PADDING_BOTTOM;
             const windowCap = getBottomSheetHeight({
-                preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+                preferredHeight: contentHeight,
                 windowHeight: mockWindowHeight,
                 keyboardHeight: 0,
                 topSafeAreaInset: 0,
                 minHeight: getSelectionListPopoverContentHeight({optionCount: 1, isSearchable: false}),
+                maxHeight: mockWindowHeight,
             });
-            expect(getSelectionListPopoverContentHeight({optionCount: CATEGORY_COUNT, isSearchable: false}) + SAFE_AREA_PADDING_BOTTOM).toBeGreaterThan(windowCap);
+            expect(contentHeight).toBeGreaterThan(windowCap);
 
             // When the expense form's category list opens
             renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
 
-            // Then the sheet stops at the window cap instead of growing to fit every row and running off the screen
+            // Then the sheet stops at the window cap, the same height the list opens at once it has a search input, instead of
+            // growing to fit every row and running off the screen or stopping at the wide-layout dropdown cap
             expect(mockPopoverProps?.popoverDimensions?.height).toBe(windowCap);
         });
     });
@@ -404,7 +408,8 @@ describe('CategoryPickerModal', () => {
             renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
 
-            // Then the sheet keeps the dropdown cap rather than taking most of the screen, and rises above the keyboard like other sheets
+            // Then the sheet keeps the dropdown cap rather than growing to most of a tall screen the way a phone's does, and
+            // rises above the keyboard like other sheets rather than making room for it inside
             const regularSheetHeight = getBottomSheetHeight({
                 preferredHeight: CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
                 windowHeight: mockWindowHeight,

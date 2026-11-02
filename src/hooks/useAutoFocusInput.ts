@@ -43,13 +43,13 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const transitionEndTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const isAutoFocusCancelledRef = useRef(false);
 
-    const clearTransitionEndTimeout = useCallback(() => {
+    const clearTransitionEndTimeout = () => {
         if (!transitionEndTimeoutRef.current) {
             return;
         }
         clearTimeout(transitionEndTimeoutRef.current);
         transitionEndTimeoutRef.current = null;
-    }, []);
+    };
 
     const cancelAutoFocus = () => {
         isAutoFocusCancelledRef.current = true;

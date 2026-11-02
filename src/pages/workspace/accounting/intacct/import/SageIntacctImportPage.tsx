@@ -3,6 +3,7 @@ import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
+import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,6 +12,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, getCurrentSageIntacctEntityName, settingsPendingAction} from '@libs/PolicyUtils';
 
+import {getAccountingSettingsRoute} from '@pages/workspace/connections/utils';
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -21,7 +23,7 @@ import ROUTES from '@src/ROUTES';
 import type {SageIntacctConnectionsConfig, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
 import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function getDisplayTypeTranslationKey(displayType?: SageIntacctMappingValue): TranslationPaths | undefined {
     switch (displayType) {
@@ -51,27 +53,25 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
     const styles = useThemeStyles();
 
     const policyID = policy?.id;
+    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const sageIntacctConfig = policy?.connections?.intacct?.config;
     const sageIntacctData = policy?.connections?.intacct?.data;
 
-    const mappingItems = useMemo(
-        () =>
-            Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
-                const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
-                return {
-                    description: Str.recapitalize(translate('workspace.intacct.mappingTitle', mapping)),
-                    action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
-                    title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
-                    subscribedSettings: [mapping],
-                };
-            }),
-        [policyID, sageIntacctConfig?.mappings, translate],
-    );
+    const mappingItems = Object.values(CONST.SAGE_INTACCT_CONFIG.MAPPINGS).map((mapping) => {
+        const menuItemTitleKey = getDisplayTypeTranslationKey(sageIntacctConfig?.mappings?.[mapping]);
+        return {
+            description: Str.recapitalize(translate('workspace.intacct.mappingTitle', mapping)),
+            action: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.getRoute(policyID, mapping)),
+            title: menuItemTitleKey ? translate(menuItemTitleKey) : undefined,
+            subscribedSettings: [mapping],
+        };
+    });
 
     const isExpenseType = sageIntacctConfig?.export.reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT;
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled, policyID))}
             displayName="SageIntacctImportPage"
             headerTitle="workspace.accounting.import"
             headerSubtitle={getCurrentSageIntacctEntityName(policy, translate('workspace.common.topLevel'))}

@@ -87,6 +87,14 @@
 - PR Introducing Patch: [#104238](https://github.com/Expensify/App/pull/104238)
 - PR Updating Patch: N/A
 
+### [@react-navigation+bottom-tabs+7.19.2+005+hidden-tab-under-tab-bar.patch](@react-navigation+bottom-tabs+7.19.2+005+hidden-tab-under-tab-bar.patch)
+
+- Reason: Keeps the native tab bar, with no item drawn as selected, while a `tabBarItemHidden` route (patch 003) is focused. This replaces two parts of patch 003: the hidden routes are drawn inside the first visible tab instead of over the host with the tab bar hidden, and the host selects that first visible tab instead of the last visible one in the tab history. The user tapping that tab leaves the hidden route, while native reporting it on its own still confirms the state as in patch 003. The RNScreens prop that hides the selection is added by its patch 007.
+- Upstream PR/issue: not reported, because it builds on patch 003, which has no upstream counterpart.
+- E/App issue: [#104197](https://github.com/Expensify/App/issues/104197)
+- PR Introducing Patch: [#104491](https://github.com/Expensify/App/pull/104491)
+- PR Updating Patch: N/A
+
 ### Removed patches
 
 - `@react-navigation+native+7.1.33+003+increase-history-go-popstate-fallback-timeout.patch` was dropped: upstream raised the `createMemoryHistory.go()` fallback timeout from 100ms to 1000ms in 7.3.18 (https://github.com/react-navigation/react-navigation/pull/13217), with the same Firefox rationale as our patch. Original context: [#94571](https://github.com/Expensify/App/issues/94571) / [#95980](https://github.com/Expensify/App/pull/95980), upstream issue https://github.com/react-navigation/react-navigation/issues/11145.

@@ -9,6 +9,7 @@ import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {sanitizeUrlForLogging} from '@libs/sanitizeLogParams';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import {cancelAllSpans, endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import flushTelemetry from '@libs/telemetry/flushTelemetry';
 import {logReceiptQueueSnapshot} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
@@ -283,6 +284,11 @@ AppState.addEventListener('change', (nextAppState) => {
         Log.info('Cancelling telemetry spans as app is coming to foreground', false, {previousState: appState, nextState: nextAppState});
         logReceiptQueueSnapshot('foreground');
         cancelAllSpans();
+    }
+
+    // Runs last so the spans canceled and the logs written above are part of the flush.
+    if (nextAppState.match(/inactive|background/)) {
+        flushTelemetry();
     }
     appState = nextAppState;
 });
@@ -693,10 +699,10 @@ function showSupportalPermissionDenied(payload: OnyxTypes.SupportalPermissionDen
 }
 
 /**
- * Clears the Corpay pay modal signal for the current session.
+ * Clears the enable global reimbursements modal signal for the current session.
  */
-function clearCorpayPayModal() {
-    Onyx.set(ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL, null);
+function clearEnableGlobalReimbursementsModal() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL, null);
 }
 
 export {
@@ -717,7 +723,7 @@ export {
     clearOnyxAndResetApp,
     clearSupportalPermissionDenied,
     showSupportalPermissionDenied,
-    clearCorpayPayModal,
+    clearEnableGlobalReimbursementsModal,
     setPreservedUserSession,
     getNonOptimisticPolicyIDs,
     setPreservedAccount,

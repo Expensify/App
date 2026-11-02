@@ -17,7 +17,6 @@ import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {useMemo} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useFilesValidation from './useFilesValidation';
@@ -51,7 +50,7 @@ function useReceiptScanDrop() {
     });
 
     // Memoize the new report ID to avoid re-generating it on every render and cause the hook to change, which leads to performance issues.
-    const newReportID = useMemo(() => generateReportID(), []);
+    const newReportID = generateReportID();
 
     const saveFileAndInitMoneyRequest = (files: FileObject[]) => {
         if (!areBlobBackedFiles(files)) {

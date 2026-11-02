@@ -31,7 +31,7 @@ import type {Policy} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type FieldsValueSettingsPageProps = {
@@ -54,22 +54,17 @@ function FieldsValueSettingsPage({policy, policyID, valueIndex, reportFieldID, i
     const [formDraft] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM_DRAFT);
     const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
-    const [currentValueName, currentValueDisabled] = useMemo(() => {
-        let reportFieldValue: string;
-        let reportFieldDisabledValue: boolean;
-
-        if (reportFieldID) {
-            const reportFieldKey = getReportFieldKey(reportFieldID);
-
-            reportFieldValue = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.at(valueIndex) ?? '';
-            reportFieldDisabledValue = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {})?.at(valueIndex) ?? false;
-        } else {
-            reportFieldValue = formDraft?.listValues?.[valueIndex] ?? '';
-            reportFieldDisabledValue = formDraft?.disabledListValues?.[valueIndex] ?? false;
-        }
-
-        return [reportFieldValue, reportFieldDisabledValue];
-    }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID, valueIndex]);
+    let reportFieldValue: string;
+    let reportFieldDisabledValue: boolean;
+    if (reportFieldID) {
+        const reportFieldKey = getReportFieldKey(reportFieldID);
+        reportFieldValue = Object.values(policy?.fieldList?.[reportFieldKey]?.values ?? {})?.at(valueIndex) ?? '';
+        reportFieldDisabledValue = Object.values(policy?.fieldList?.[reportFieldKey]?.disabledOptions ?? {})?.at(valueIndex) ?? false;
+    } else {
+        reportFieldValue = formDraft?.listValues?.[valueIndex] ?? '';
+        reportFieldDisabledValue = formDraft?.disabledListValues?.[valueIndex] ?? false;
+    }
+    const [currentValueName, currentValueDisabled] = [reportFieldValue, reportFieldDisabledValue];
 
     const reportField = reportFieldID ? policy?.fieldList?.[getReportFieldKey(reportFieldID)] : undefined;
     const isImportedReportField = isReportFieldImportedFromIntegration(reportField, policy);

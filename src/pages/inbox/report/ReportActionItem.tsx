@@ -57,6 +57,7 @@ import {
     isPendingRemove,
     isTripPreview,
     isWhisperActionTargetedToOthers,
+    shouldHidePayAction,
     useTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {
@@ -87,7 +88,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject, isEmptyValueObject} from '@src/types/utils/EmptyObject';
 
-import type {GestureResponderEvent, TextInput} from 'react-native';
+import type {ComponentRef} from 'react';
+import type {GestureResponderEvent} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
@@ -96,10 +98,8 @@ import {displayNameOrDefaultSelector} from '@selectors/PersonalDetails';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {deepEqual} from 'fast-equals';
 import mapValues from 'lodash/mapValues';
-import React, {useContext, useEffect, useRef, useState} from 'react';
+import React, {useContext, useEffect, useRef} from 'react';
 import {Keyboard, View} from 'react-native';
-
-import type {ContextMenuAnchor} from './ContextMenu/ReportActionContextMenu';
 
 import ActionContentRouter from './actionContents/ActionContentRouter';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
@@ -107,11 +107,13 @@ import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMe
 import {hideContextMenu, hideDeleteModal, isActiveReportAction, showContextMenu} from './ContextMenu/ReportActionContextMenu';
 import LinkPreviewer from './LinkPreviewer';
 import {useReportActionActiveEdit} from './ReportActionEditMessageContext';
+import {useReportActionItemState} from './ReportActionIndexContext';
 import ReportActionItemContentCreated from './ReportActionItemContentCreated';
 import ReportActionItemFrame from './ReportActionItemFrame';
 import ReportActionItemThread from './ReportActionItemThread';
 import SearchActionHeader from './SearchActionHeader';
 import TripSummary from './TripSummary';
+import useExpandedSystemMessageFocus from './useExpandedSystemMessageFocus';
 import useShouldEditInComposer from './useShouldEditInComposer';
 import WhisperBanner from './WhisperBanner';
 
@@ -170,6 +172,9 @@ type ReportActionItemProps = {
 
     /** Parent links of the report and its ancestors, used to clear related errors on dismiss */
     reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
+
+    /** Consumes an explicit expansion's focus request after this message has laid out. */
+    onExpandedSystemMessageReady?: (target: ComponentRef<typeof View> | null) => void;
 };
 
 function ReportActionItem({
@@ -194,6 +199,7 @@ function ReportActionItem({
     shouldHighlight = false,
     isHarvestCreatedExpenseReport = false,
     reportsParentHierarchy,
+    onExpandedSystemMessageReady,
 }: ReportActionItemProps) {
     const reportID = report?.reportID ?? action?.reportID;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
@@ -246,16 +252,18 @@ function ReportActionItem({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [isContextMenuActive, setIsContextMenuActive] = useState(() => isActiveReportAction(action.reportActionID));
-    const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
-    const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
-    const [isHidden, setIsHidden] = useState(false);
+    const [isContextMenuActive, setIsContextMenuActive] = useReportActionItemState(() => isActiveReportAction(action.reportActionID));
+    const [isEmojiPickerActive, setIsEmojiPickerActive] = useReportActionItemState<boolean | undefined>(undefined);
+    const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useReportActionItemState<boolean | undefined>(undefined);
+    const [isHidden, setIsHidden] = useReportActionItemState(false);
     const {isActiveReportAction: isActiveReactionListReportAction, hideReactionList} = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
-    const popoverAnchorRef = useRef<Exclude<ContextMenuAnchor, TextInput>>(null);
-    const downloadedPreviews = useRef<string[]>([]);
+    const popoverAnchorRef = useRef<ComponentRef<typeof View>>(null);
+
+    useExpandedSystemMessageFocus(action.reportActionID, popoverAnchorRef, onExpandedSystemMessageReady);
+    const downloadedPreviews = useRef<{reportActionID: string; urls: string[]}>({reportActionID: action.reportActionID, urls: []});
     const isReportActionLinked = linkedReportActionID && action.reportActionID && linkedReportActionID === action.reportActionID;
-    const [isReportActionActive, setIsReportActionActive] = useState(!!isReportActionLinked);
+    const [isReportActionActive, setIsReportActionActive] = useReportActionItemState(!!isReportActionLinked);
 
     const shouldBreakGrouping = shouldBreakAccessibilityGrouping();
     const isScreenReaderActive = Accessibility.useScreenReaderStatus();
@@ -270,6 +278,8 @@ function ReportActionItem({
 
     // IOUDetails only exists when we are sending money
     const isSendingMoney = isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && getOriginalMessage(action)?.IOUDetails;
+
+    const [sendMoneyChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
     const updateHiddenState = (isHiddenValue: boolean) => {
         setIsHidden(isHiddenValue);
@@ -302,6 +312,7 @@ function ReportActionItem({
                 isOffline,
                 isSingleTransactionView: true,
                 policy: iouPolicy,
+                chatReportActions: sendMoneyChatReportActions,
             });
             return;
         }
@@ -374,11 +385,14 @@ function ReportActionItem({
         }
 
         const urls = extractLinksFromMessageHtml(action);
-        if (deepEqual(downloadedPreviews.current, urls) || action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (
+            (downloadedPreviews.current.reportActionID === action.reportActionID && deepEqual(downloadedPreviews.current.urls, urls)) ||
+            action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
+        ) {
             return;
         }
 
-        downloadedPreviews.current = urls;
+        downloadedPreviews.current = {reportActionID: action.reportActionID, urls};
         expandURLPreview(reportID, action.reportActionID);
     }, [action, reportID]);
 
@@ -401,7 +415,7 @@ function ReportActionItem({
             return;
         }
         setIsHidden(false);
-    }, [latestDecision, action]);
+    }, [latestDecision, action, setIsHidden]);
 
     const toggleContextMenuFromActiveReportAction = () => {
         setIsContextMenuActive(isActiveReportAction(action.reportActionID));
@@ -523,7 +537,7 @@ function ReportActionItem({
 
     // For the `pay` IOU action on non-pay expense flow, we don't want to render anything if `isWaitingOnBankAccount` is true
     // Otherwise, we will see two system messages informing the payee needs to add a bank account or wallet
-    if (isMoneyRequestAction(action) && !!report?.isWaitingOnBankAccount && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney) {
+    if (shouldHidePayAction(action, !!report?.isWaitingOnBankAccount)) {
         return null;
     }
 
@@ -636,7 +650,7 @@ function ReportActionItem({
                                                 }
                                                 shouldHideOnDelete={!isDeletedParentAction}
                                                 errors={(linkedTransactionRouteError ?? !isOnSearch) ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
-                                                errorRowStyles={[styles.ml10, styles.mr2]}
+                                                errorRowStyles={styles.ml10}
                                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                                 shouldDisableStrikeThrough
                                             >

@@ -22,6 +22,7 @@ import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailO
 import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
+    canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
     getCountOfEnabledTagsOfList,
@@ -571,20 +572,19 @@ function createOption({
 
     // Set core display properties that are used in SearchOption context
     result.text = reportName;
-    result.icons = getIcons(
+    result.icons = getIcons({
         report,
-        formatPhoneNumberPhoneUtils,
-        translateFn,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+        translate: translateFn,
         personalDetails,
-        personalDetail?.avatar,
-        personalDetail?.login,
-        personalDetail?.accountID,
-        null,
-        undefined,
-        result?.private_isArchived,
+        defaultIcon: personalDetail?.avatar,
+        defaultName: personalDetail?.login,
+        defaultAccountID: personalDetail?.accountID,
+        policy: null,
+        isReportArchived: result?.private_isArchived,
         pendingDeleteMemberAccountIDs,
         conciergeReportID,
-    );
+    });
     result.subtitle = subtitle;
 
     // Set login and accountID only for single participant cases (used in SearchOption context)
@@ -1938,6 +1938,7 @@ function isValidReport(
         isDefaultRoomsBetaEnabled = false,
         includeMultipleParticipantReports = false,
         includeOwnedWorkspaceChats = false,
+        excludeWorkspacesWithoutCreateExpensePermission = false,
         includeThreads = false,
         includeTasks = false,
         includeMoneyRequests = false,
@@ -1999,6 +2000,10 @@ function isValidReport(
     }
 
     if (isPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+        return false;
+    }
+
+    if (isPolicyExpenseChat && excludeWorkspacesWithoutCreateExpensePermission && !canCreateExpensesOnPolicy(policy)) {
         return false;
     }
 
