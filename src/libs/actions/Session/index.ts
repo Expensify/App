@@ -1,5 +1,6 @@
 import {getFreshMarketingAttribution} from '@libs/actions/MarketingAttribution';
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
+import getAdvertisingConsentParams from '@libs/AdvertisingConsent';
 import * as API from '@libs/API';
 import type {
     AuthenticatePusherParams,
@@ -710,7 +711,13 @@ function signUpUser(login: string | undefined, preferredLocale: Locale | undefin
     ];
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: SignUpUserParams = {email: login, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        const params: SignUpUserParams = {
+            email: login,
+            preferredLocale: preferredLocale ?? null,
+            deviceInfo,
+            ...getAdvertisingConsentParams(),
+            ...getFreshMarketingAttribution(storedMarketingAttribution),
+        };
         if (hasSMSMarketingConsent !== undefined) {
             params.hasSMSMarketingConsent = hasSMSMarketingConsent;
         }
@@ -893,7 +900,13 @@ function beginAppleSignIn(idToken: string | undefined | null, preferredLocale: L
     const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginAppleSignInParams = {idToken, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        const params: BeginAppleSignInParams = {
+            idToken,
+            preferredLocale: preferredLocale ?? null,
+            deviceInfo,
+            ...getAdvertisingConsentParams(),
+            ...getFreshMarketingAttribution(storedMarketingAttribution),
+        };
         API.write(WRITE_COMMANDS.SIGN_IN_WITH_APPLE, params, onyxData);
     });
 }
@@ -907,7 +920,13 @@ function beginGoogleSignIn(token: string | null, preferredLocale: Locale | undef
     const onyxData = getThirdPartySignInOnyxData();
 
     Device.getDeviceInfoWithID().then((deviceInfo) => {
-        const params: BeginGoogleSignInParams = {token, preferredLocale: preferredLocale ?? null, deviceInfo, ...getFreshMarketingAttribution(storedMarketingAttribution)};
+        const params: BeginGoogleSignInParams = {
+            token,
+            preferredLocale: preferredLocale ?? null,
+            deviceInfo,
+            ...getAdvertisingConsentParams(),
+            ...getFreshMarketingAttribution(storedMarketingAttribution),
+        };
         API.write(WRITE_COMMANDS.SIGN_IN_WITH_GOOGLE, params, onyxData);
     });
 }
@@ -1030,6 +1049,7 @@ function signIn(
             email: login,
             preferredLocale: preferredLocale ?? null,
             deviceInfo,
+            ...getAdvertisingConsentParams(),
         };
 
         // Conditionally pass a password or validateCode to command since we temporarily allow both flows
