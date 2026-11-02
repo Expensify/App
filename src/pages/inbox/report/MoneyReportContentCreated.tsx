@@ -89,6 +89,7 @@ function MoneyReportContentCreated({report, policy, transaction, transactionThre
                     pendingAction={action?.pendingAction}
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     isTotalPending={isPendingSingleExpenseThread}
+                    shouldShowAnimatedBackground={false}
                 />
             )}
         </OfflineWithFeedback>

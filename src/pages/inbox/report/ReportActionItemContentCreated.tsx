@@ -3,6 +3,7 @@ import RenderHTML from '@components/RenderHTML';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
 import SupportTicketView from '@components/ReportActionItem/SupportTicketView';
 import TaskView from '@components/ReportActionItem/TaskView';
+import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
@@ -15,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMessageDeleted, isReversedTransaction as isReversedTransactionReportActionsUtils, isTransactionThread} from '@libs/ReportActionsUtils';
-import {isCanceledTaskReport, isExpenseReport, isInvoiceReport, isIOUReport, isSupportTicket, isTaskReport} from '@libs/ReportUtils';
+import {isCanceledTaskReport, isExpenseReport, isInvoiceReport, isIOUReport, isSupportTicket, isTaskReport, isThread} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -81,6 +82,12 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
     );
 
     const disabledStateValue = {...contextMenuStateValue, isDisabled: true};
+
+    // An expense thread can load before the expense it belongs to. Until it does, show the expense's loading state
+    // instead of falling through to the chat's empty state.
+    if (!parentReportAction && isThread(report) && (isExpenseReport(parentReport) || isIOUReport(parentReport) || isInvoiceReport(parentReport))) {
+        return <ReportActionsSkeletonView />;
+    }
 
     if (isTransactionThread(parentReportAction)) {
         const isReversedTransaction = isReversedTransactionReportActionsUtils(parentReportAction);
