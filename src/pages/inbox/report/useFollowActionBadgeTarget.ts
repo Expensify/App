@@ -9,9 +9,6 @@ import {useEffect, useRef} from 'react';
 import shouldFollowActionBadgeTarget from './shouldFollowActionBadgeTarget';
 
 type UseFollowActionBadgeTargetParams = {
-    /** Whether the app is running in production, where this auto-scroll behavior is gated off */
-    isProduction: boolean;
-
     /** The ID of the report whose list is being displayed */
     reportID: string;
 
@@ -24,6 +21,9 @@ type UseFollowActionBadgeTargetParams = {
     /** The rendered (inverted) report actions the list is displaying */
     renderedVisibleReportActions: OnyxTypes.ReportAction[];
 
+    /** Maps canonical action IDs to their rendered indices when collapsed runs hide individual actions */
+    reportActionIDToDisplayIndex?: ReadonlyMap<string, number>;
+
     /** Scrolls the list to the current action-badge target */
     scrollToActionBadgeTarget: () => void;
 };
@@ -33,11 +33,11 @@ type UseFollowActionBadgeTargetParams = {
  * preview requiring action. This hook scrolls down to follow it immediately on action.
  */
 function useFollowActionBadgeTarget({
-    isProduction,
     reportID,
     actionTargetReportActionID,
     actionBadgeTargetIndex,
     renderedVisibleReportActions,
+    reportActionIDToDisplayIndex,
     scrollToActionBadgeTarget,
 }: UseFollowActionBadgeTargetParams) {
     const prevActionTargetReportActionID = usePrevious(actionTargetReportActionID);
@@ -48,8 +48,10 @@ function useFollowActionBadgeTarget({
         scrollToActionBadgeTargetRef.current = scrollToActionBadgeTarget;
     });
     useEffect(() => {
-        const prevActionBadgeTargetIndex = renderedVisibleReportActions.findIndex((action) => action.reportActionID === prevActionTargetReportActionID);
-        if (!shouldFollowActionBadgeTarget({isProduction, actionTargetReportActionID, prevActionTargetReportActionID, actionBadgeTargetIndex, prevActionBadgeTargetIndex})) {
+        const prevActionBadgeTargetIndex =
+            (prevActionTargetReportActionID ? reportActionIDToDisplayIndex?.get(prevActionTargetReportActionID) : undefined) ??
+            renderedVisibleReportActions.findIndex((action) => action.reportActionID === prevActionTargetReportActionID);
+        if (!shouldFollowActionBadgeTarget({actionTargetReportActionID, prevActionTargetReportActionID, actionBadgeTargetIndex, prevActionBadgeTargetIndex})) {
             return;
         }
         // Only follow the badge when the resolving action happened on this report's preview while this report is the one on

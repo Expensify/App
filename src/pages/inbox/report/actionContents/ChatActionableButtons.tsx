@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import type {Followup} from '@libs/ReportActionFollowupUtils';
@@ -30,14 +31,14 @@ import {
 } from '@libs/ReportActionsUtils';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {doesUserHavePaymentCardAdded} from '@libs/SubscriptionUtils';
-import {isSplitChildTransaction} from '@libs/TransactionUtils';
+import {isPerDiemRequest, isSplitChildTransaction, isTimeRequest} from '@libs/TransactionUtils';
 
 import {createDraftTransactionAndNavigateToParticipantSelector} from '@userActions/IOU/StartExpenseFlows';
 import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, resolveConciergeDescriptionOptions} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -57,7 +58,7 @@ function AddPaymentCardButton() {
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => {
-                    Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
                 }}
             >
                 <Button.Text>{translate('subscription.cardSection.addCardButton')}</Button.Text>
@@ -238,7 +239,8 @@ function TrackExpenseButtons({action, actionOwnerReportID}: TrackExpenseButtonsP
             {/* "Submit it to someone" is one button per destination. */}
             {shouldShowSubmitButtons && (
                 <>
-                    {!isSplitExpense && (
+                    {/* A DM is not a valid destination for per diem and time expenses, nor for a user restricted to one workspace. */}
+                    {!isSplitExpense && !isRestrictedToPreferredPolicy && !isPerDiemRequest(trackExpenseTransaction) && !isTimeRequest(trackExpenseTransaction) && (
                         <Button onPress={() => submit(CONST.IOU.SUBMIT_DESTINATION.FRIEND)}>
                             <Button.Text>{translate('actionableMentionTrackExpense.submitToFriend')}</Button.Text>
                         </Button>

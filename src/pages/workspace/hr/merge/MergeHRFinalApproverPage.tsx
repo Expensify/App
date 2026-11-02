@@ -28,7 +28,7 @@ function MergeHRFinalApproverPage({
         testID: 'MergeHRFinalApproverPage',
         isConnected: (policy) => isMergeConnected(policy, CONST.POLICY.CONNECTIONS.NAME.MERGE_HR),
         featureName: CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED,
-        backRoute: ROUTES.WORKSPACE_HR.getRoute(policyID),
+        backRoute: ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID),
         getCurrentFinalApprover: (policy) => policy?.connections?.merge_hris?.config?.finalApprover ?? null,
         getProviderName: (policy) => getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.merge_hris,
         getHeaderTitle: (providerName) => translate('workspace.hr.providerFinalApprover', providerName),

@@ -34,7 +34,7 @@ import type {PolicyReportFieldType} from '@src/types/onyx/Policy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 type CreateFieldsPageProps = {
@@ -57,36 +57,30 @@ function CreateFieldsPage({policy, policyID, isInvoiceField, listValuesRoute, ge
     const reportTypeForTarget = isInvoiceField ? CONST.REPORT.TYPE.INVOICE : CONST.REPORT.TYPE.EXPENSE;
     const fieldTarget = isInvoiceField ? CONST.REPORT_FIELD_TARGETS.INVOICE : CONST.REPORT_FIELD_TARGETS.EXPENSE;
 
-    const policyReportIDsSelector = useCallback(
-        (reports: OnyxCollection<Report>) =>
-            Object.values(reports ?? {})
-                .filter((report) => report?.policyID === policyID && report.type === reportTypeForTarget)
-                .map((report) => report?.reportID),
-        [policyID, reportTypeForTarget],
-    );
+    const policyReportIDsSelector = (reports: OnyxCollection<Report>) =>
+        Object.values(reports ?? {})
+            .filter((report) => report?.policyID === policyID && report.type === reportTypeForTarget)
+            .map((report) => report?.reportID);
 
     const [policyReportIDs] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyReportIDsSelector});
 
     const availableListValuesLength = (formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? []).filter((disabledListValue) => !disabledListValue).length;
 
-    const submitForm = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
-            const shouldClearListInitialValue = values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0;
-            createReportField({
-                policy,
-                name: values[INPUT_IDS.NAME],
-                type: values[INPUT_IDS.TYPE],
-                initialValue: shouldClearListInitialValue ? '' : values[INPUT_IDS.INITIAL_VALUE],
-                listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
-                disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
-                policyReportIDs,
-                isInvoiceField,
-            });
-            setInitialCreateReportFieldsForm();
-            Navigation.goBack();
-        },
-        [availableListValuesLength, formDraft, isInvoiceField, policy, policyReportIDs],
-    );
+    const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM>) => {
+        const shouldClearListInitialValue = values[INPUT_IDS.TYPE] === CONST.REPORT_FIELD_TYPES.LIST && availableListValuesLength === 0;
+        createReportField({
+            policy,
+            name: values[INPUT_IDS.NAME],
+            type: values[INPUT_IDS.TYPE],
+            initialValue: shouldClearListInitialValue ? '' : values[INPUT_IDS.INITIAL_VALUE],
+            listValues: formDraft?.[INPUT_IDS.LIST_VALUES] ?? [],
+            disabledListValues: formDraft?.[INPUT_IDS.DISABLED_LIST_VALUES] ?? [],
+            policyReportIDs,
+            isInvoiceField,
+        });
+        setInitialCreateReportFieldsForm();
+        Navigation.goBack();
+    };
 
     const getExistingFieldNameError = (name: string) => {
         const existingField = getExistingReportFieldByName(policy?.fieldList, name);

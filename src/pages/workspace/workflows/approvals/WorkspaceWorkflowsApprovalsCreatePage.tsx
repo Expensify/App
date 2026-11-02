@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
-import {isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
+import {getWorkflowMemberEmails, includesEveryWorkspaceMember, isApprovalWorkflowLockedByIntegration} from '@libs/WorkflowUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -33,7 +33,7 @@ import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView} from 'react-native';
 
-import React, {useCallback, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import ApprovalWorkflowEditor from './ApprovalWorkflowEditor';
@@ -62,24 +62,27 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
         isApprovalWorkflowLockedByIntegration(policy) ||
         shouldHideDynamicExternalWorkflowPeople(policy);
 
-    const createApprovalWorkflow = useCallback(() => {
+    const createApprovalWorkflow = () => {
         if (!approvalWorkflow) {
             return;
         }
 
-        if (!validateApprovalWorkflow(approvalWorkflow)) {
+        if (!validateApprovalWorkflow(approvalWorkflow, isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS))) {
             return;
         }
 
+        // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
+        const workflowToCreate = {...approvalWorkflow, isDefault: includesEveryWorkspaceMember(getWorkflowMemberEmails(approvalWorkflow.members), policy?.employeeList)};
+
         startWithLoading(() => {
             if (isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS)) {
-                createApprovalWorkflowRules({approvalWorkflow, policy, addExpenseApprovalsTaskReport, rules: rulesCollection});
+                createApprovalWorkflowRules({approvalWorkflow: workflowToCreate, policy, addExpenseApprovalsTaskReport, rules: rulesCollection});
             } else {
-                createApprovalWorkflowAction({approvalWorkflow, policy, addExpenseApprovalsTaskReport});
+                createApprovalWorkflowAction({approvalWorkflow: workflowToCreate, policy, addExpenseApprovalsTaskReport});
             }
             Navigation.dismissModal();
         });
-    }, [approvalWorkflow, policy, addExpenseApprovalsTaskReport, rulesCollection, isBetaEnabled, startWithLoading]);
+    };
 
     return (
         <AccessOrNotFoundWrapper

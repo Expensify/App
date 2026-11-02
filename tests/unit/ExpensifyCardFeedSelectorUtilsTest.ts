@@ -176,6 +176,25 @@ describe('getAdminExpensifyCardFeedEntries', () => {
         expect(entries.at(0)?.fundID).toBe(feedFundID);
     });
 
+    it('hides an un-nested pre-2024 feed by default and shows it when CURRENT is requested', () => {
+        // Given a pre-2024 feed stored un-nested, with its settlement account on the settings root
+        const unNestedSettings: OnyxCollection<ExpensifyCardSettings> = {
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${feedFundID}`]: {paymentBankAccountID: 23242},
+        };
+
+        // When the entries are listed with the default programs, and then with CURRENT included
+        const defaultEntries = getAdminExpensifyCardFeedEntries(unNestedSettings, adminPolicyForFund, {}, currentUserAccountID);
+        const currentEntries = getAdminExpensifyCardFeedEntries(unNestedSettings, adminPolicyForFund, {}, currentUserAccountID, [
+            CONST.COUNTRY.US,
+            CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT,
+            CONST.COUNTRY.GB,
+        ]);
+
+        // Then the selectors, which only list US and GB, keep hiding it, while callers that request CURRENT see it
+        expect(defaultEntries).toHaveLength(0);
+        expect(currentEntries.map((entry) => entry.fundID)).toEqual([feedFundID]);
+    });
+
     it('hides a feed when the user is neither a domain admin nor a workspace admin for the fund', () => {
         const nonAdminPolicy = createPolicyCollection([createAdminPolicy({id: workspacePolicyID, policyAccountID: 9999})]);
 

@@ -1,7 +1,7 @@
 ---
 title: Configure NetSuite
 description: Learn how to configure the import, export, and advanced settings for Expensify's integration with NetSuite.
-keywords: [New Expensify, NetSuite configuration, import settings, export settings, advanced sync, tags, corporate card export]
+keywords: [New Expensify, NetSuite configuration, import settings, export settings, advanced sync, tags, corporate card export, Split exports by posting period, Export to next open period]
 order: 2
 ---
 
@@ -41,7 +41,7 @@ To control what data is imported from NetSuite:
   - Employee Defaults
 - **Customers and Projects** – Import as Tags or Report Fields
   - To support **cross-subsidiary data**, enable **Intercompany Time and Expense** under **Setup > Company > Enable Features > Advanced Features**
-- **Tax** – Imports NetSuite Tax Groups into the **Taxes** tab
+- **Tax** – Imports Tax Groups from legacy tax accounts or individual Tax Codes from SuiteTax accounts
 - **Custom Segments and Records** – Import as Tags or Report Fields
   - Use Field IDs from NetSuite’s **Transactions** tab
   - Do not use the “Filtered by” feature in NetSuite Custom Segments
@@ -76,8 +76,12 @@ To manage how reports are exported from Expensify to NetSuite:
 - **Invoice Item** – Select or create the item line for invoices
 - **Export Foreign Currency Amount** – Enable to export original currency values
 - **Export to Next Open Period** – Enable to skip closed periods and use the next available NetSuite period
+- **Split exports by posting period** – Enable to export non-reimbursable expenses as one NetSuite transaction per calendar month, each dated in its own month. **Export to next open period** must be on first. While this toggle is on, **Export to next open period** stays locked on.
 - **Export Expensify Travel Payable To** – If Expensify Travel's Consolidated Travel Billing feature is enabled, configure where travel card expenses are exported:
+- **Consolidated Travel Billing** – If Expensify Travel's Consolidated Travel Billing feature is enabled, click this row to open the **Consolidated Travel Billing** page and configure where travel card expenses are exported:
   - **Non-reimbursable journal posting account** – Select the payable account for Expensify Travel expenses
+  - **Journal posting preference** – Choose how journal entries post
+  - **Sync Consolidated Travel Billing settlements** – Turn on this toggle to continuously reconcile settlements through NetSuite. Turning it on opens a picker where you choose the **Reconciliation account** that matches your settlement account, and that account then appears in a **Reconciliation account** row below the toggle. The toggle stays locked until you select a **Non-reimbursable journal posting account** and enable **Auto-sync** on the **Advanced** page.
 
 3. Click the **three-dot icon** > **Sync Now** to apply changes
 
@@ -95,12 +99,13 @@ For additional control:
 - **Invite Employees & Set Approvals** – Imports employees and sets workflow
 - **Auto Create Employees/Vendors** – Automatically creates a NetSuite record if one doesn’t exist
 - **Enable Newly Imported Categories** – Activates newly synced Expense Categories
-- **Sync Consolidated Travel Billing settlements** – If Expensify Travel's [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/) feature is enabled, turn on this toggle to continuously reconcile settlements through NetSuite. When enabled, select a **Reconciliation account** to match your settlement account. Auto-sync must be enabled to use this setting.
 - **Approval Levels** – Set approval levels for:
   - Expense Reports
   - Vendor Bills
   - Journal Entries
 - **Custom Form ID** – Use a specific NetSuite form instead of the default
+
+**Sync Consolidated Travel Billing settlements** is not on this page. It is on the **Consolidated Travel Billing** page under **Export**. Learn more about [Consolidated Travel Billing](/travel/hubs/consolidated-travel-billing/).
 
 3. Click the **three-dot icon** > **Sync Now** to apply changes
 
@@ -155,6 +160,21 @@ Check the **Use as Field ID** box in NetSuite. This assigns a usable ID to older
 ## Will enabling Auto-sync affect existing reports?
 
 No. Auto-sync only applies to newly approved reports. Export older reports manually if needed.
+
+
+## How does Split exports by posting period work in NetSuite?
+
+When **Split exports by posting period** is on, a report with non-reimbursable expenses from different months exports as a separate NetSuite transaction for each month. Each transaction is dated in its own month. If a month falls in a closed NetSuite period, **Export to next open period** moves that transaction to the next open period.
+
+
+## Why can’t I turn off Export to next open period?
+
+**Export to next open period** is locked on while **Split exports by posting period** is on. To turn off **Export to next open period**, first turn off **Split exports by posting period**.
+
+
+## Why can’t I turn on Split exports by posting period?
+
+**Split exports by posting period** is locked until **Export to next open period** is on. Turn on **Export to next open period** first, then turn on **Split exports by posting period**.
 
 
 ## How does multi-currency exporting work in NetSuite?

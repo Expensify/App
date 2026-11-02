@@ -1,14 +1,9 @@
 import {isMobile} from '@libs/Browser';
+import isTablet from '@libs/isTablet';
 
 import {Dimensions} from 'react-native';
 
-const TABLET_MIN_SCREEN_DIMENSION = 600;
-
-function isTabletScreen(): boolean {
-    return Math.min(window.screen.width, window.screen.height) >= TABLET_MIN_SCREEN_DIMENSION;
-}
-
-const isMobilePhoneWeb = isMobile() && !isTabletScreen();
+const isMobilePhoneWeb = isMobile() && !isTablet();
 
 const screenShortSide = Math.min(window.screen.width, window.screen.height);
 const screenLongSide = Math.max(window.screen.width, window.screen.height);

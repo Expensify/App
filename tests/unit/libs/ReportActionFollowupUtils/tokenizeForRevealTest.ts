@@ -120,6 +120,28 @@ describe('tokenizeForReveal', () => {
         expect(tokenizeForReveal(html).at(-1)).toBe(html);
     });
 
+    it('preserves raw text escaping inside noscript at every reveal stage', () => {
+        // Given text whose ampersand must stay unescaped under its raw text parent.
+        const html = '<noscript>a&amp;b</noscript>';
+
+        // When the text is progressively clipped, each clone still needs that parent context.
+        const stages = tokenizeForReveal(html);
+
+        // Then no intermediate stage introduces entity escaping that changes the existing output.
+        expect(stages).toEqual(['', '<noscript>a</noscript>', '<noscript>a&</noscript>', '<noscript>a&b</noscript>']);
+    });
+
+    it('preserves HTML serialization inside a MathML integration point at every reveal stage', () => {
+        // Given an HTML child whose empty attribute serializes differently in MathML.
+        const html = '<math><mi><span title="">ab</span></mi></math>';
+
+        // When the child is progressively clipped, its parent must still switch serialization back to HTML.
+        const stages = tokenizeForReveal(html);
+
+        // Then both partial and complete stages retain the existing HTML attribute serialization.
+        expect(stages).toEqual(['', '<math><mi><span title>a</span></mi></math>', '<math><mi><span title>ab</span></mi></math>']);
+    });
+
     it('produces enough anchors that a typical multi-paragraph response trickles smoothly', () => {
         // Realistic shape — Xero-style 5-step instructions.
         const html =

@@ -7,12 +7,12 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
@@ -39,7 +39,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {FlashList} from '@shopify/flash-list';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type FieldListValue = NonNullable<Policy['fieldList']>[string];
@@ -107,7 +107,7 @@ function WorkspaceFieldsSection({
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPadding, cardPaddingHorizontal, cardEdgeToEdge} = useLayoutSpacing();
     const {showConfirmModal} = useConfirmModal();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
@@ -117,15 +117,12 @@ function WorkspaceFieldsSection({
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const fieldList = policy?.fieldList;
-    const hasImportedField = useMemo(
-        () => Object.values(fieldList ?? {}).some((field) => fieldFilter(field) && isReportFieldImportedFromIntegration(field, policy)),
-        [fieldFilter, fieldList, policy],
-    );
+    const hasImportedField = Object.values(fieldList ?? {}).some((field) => fieldFilter(field) && isReportFieldImportedFromIntegration(field, policy));
     const {canWrite, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, policyFeature);
 
-    const fetchFields = useCallback(() => {
+    const fetchFields = () => {
         openFieldsPage(policyID);
-    }, [openFieldsPage, policyID]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchFields});
 
@@ -133,51 +130,41 @@ function WorkspaceFieldsSection({
         fetchFields();
     }, [fetchFields]);
 
-    const fields = useMemo<FieldListItem[]>(() => {
-        if (!fieldList) {
-            return [];
+    const fields: FieldListItem[] = !fieldList
+        ? []
+        : Object.values(fieldList)
+              .filter(fieldFilter)
+              .sort((a, b) => localeCompare(a.name, b.name))
+              .map((field) => ({
+                  text: field.name,
+                  keyForList: String(field.fieldID),
+                  fieldID: field.fieldID,
+                  pendingAction: field.pendingAction,
+                  isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                  rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
+              }));
+
+    const navigateToFieldSettings = (item: FieldListItem) => {
+        if (!canWrite) {
+            return;
         }
 
-        return Object.values(fieldList)
-            .filter(fieldFilter)
-            .sort((a, b) => localeCompare(a.name, b.name))
-            .map((field) => ({
-                text: field.name,
-                keyForList: String(field.fieldID),
-                fieldID: field.fieldID,
-                pendingAction: field.pendingAction,
-                isDisabled: field.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                rightLabel: Str.recapitalize(translate(getReportFieldTypeTranslationKey(field.type ?? CONST.REPORT_FIELD_TYPES.TEXT))),
-            }));
-    }, [fieldFilter, fieldList, localeCompare, translate]);
+        Navigation.navigate(getSettingsRoute(policyID, item.fieldID));
+    };
 
-    const navigateToFieldSettings = useCallback(
-        (item: FieldListItem) => {
-            if (!canWrite) {
-                return;
-            }
-
-            Navigation.navigate(getSettingsRoute(policyID, item.fieldID));
-        },
-        [canWrite, getSettingsRoute, policyID],
-    );
-
-    const renderItem = useCallback(
-        ({item}: ListRenderItemInfo<FieldListItem>) => (
-            <OfflineWithFeedback pendingAction={item.pendingAction}>
-                <MenuItem
-                    style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
-                    onPress={() => navigateToFieldSettings(item)}
-                    description={item.text}
-                    disabled={item.isDisabled}
-                    shouldShowRightIcon={!item.isDisabled && canWrite}
-                    interactive={!item.isDisabled && canWrite}
-                    rightLabel={item.rightLabel}
-                    descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
-                />
-            </OfflineWithFeedback>
-        ),
-        [canWrite, navigateToFieldSettings, shouldUseNarrowLayout, styles.ph5, styles.ph8, styles.popoverMenuText, styles.textStrong],
+    const renderItem = ({item}: ListRenderItemInfo<FieldListItem>) => (
+        <OfflineWithFeedback pendingAction={item.pendingAction}>
+            <MenuItem
+                style={cardPaddingHorizontal}
+                onPress={() => navigateToFieldSettings(item)}
+                description={item.text}
+                disabled={item.isDisabled}
+                shouldShowRightIcon={!item.isDisabled && canWrite}
+                interactive={!item.isDisabled && canWrite}
+                rightLabel={item.rightLabel}
+                descriptionTextStyle={[styles.popoverMenuText, styles.textStrong]}
+            />
+        </OfflineWithFeedback>
     );
 
     const headerText =
@@ -217,7 +204,7 @@ function WorkspaceFieldsSection({
     return (
         <Section
             isCentralPane
-            containerStyles={shouldUseNarrowLayout ? styles.p5 : styles.p8}
+            containerStyles={cardPadding}
         >
             <ToggleSettingOptionRow
                 pendingAction={pendingAction}
@@ -258,7 +245,7 @@ function WorkspaceFieldsSection({
                 subMenuItems={
                     isEnabled && (
                         <>
-                            <View style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6]}>
+                            <View style={[cardEdgeToEdge, styles.mt6]}>
                                 {!isLoading && (
                                     <FlashList
                                         data={fields}

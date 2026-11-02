@@ -5,6 +5,7 @@ import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyReportHeaderActions from '@components/MoneyReportHeaderActions';
 
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useMoneyReportHeaderMoreContentVisibility from '@hooks/useMoneyReportHeaderMoreContentVisibility';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -57,6 +58,12 @@ jest.mock('@components/MoneyReportHeaderActions', () => jest.fn(() => null));
 jest.mock('@components/MoneyReportHeaderMoreContent', () => jest.fn(() => null));
 jest.mock('@components/HeaderLoadingBar', () => jest.fn(() => null));
 
+// The route mocked above is a search route, so the wide branch of the header renders the report carousel beside the
+// title. These tests are about which header branch renders, not about the arrows, and the real carousels read the
+// search contexts and Onyx directly, which the mocks below deliberately do not provide.
+jest.mock('@components/MoneyRequestReportView/MoneyRequestReportNavigation', () => jest.fn(() => null));
+jest.mock('@components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation', () => jest.fn(() => null));
+
 // The modal host and the payment animation provider only wrap the content, so render each as a plain
 // wrapper that yields its children instead of wiring up their full Onyx/context dependency chains.
 jest.mock('@components/MoneyReportHeaderModals', () => {
@@ -79,6 +86,10 @@ jest.mock('@components/Search/SearchContext', () => ({__esModule: true, useSearc
 jest.mock('@libs/actions/MobileSelectionMode', () => ({__esModule: true, turnOffMobileSelectionMode: jest.fn(), turnOnMobileSelectionMode: jest.fn()}));
 
 jest.mock('@hooks/useMobileSelectionMode', () => jest.fn());
+// The more-content row decides whether the actions sit in the header row or under it. These tests are about the
+// selection-mode branch rather than that placement, and the row's real visibility is derived from the filler
+// transactions below, so it is pinned to "nothing to show" and the actions stay in the header row.
+jest.mock('@hooks/useMoneyReportHeaderMoreContentVisibility', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
@@ -91,6 +102,7 @@ jest.mock('@hooks/useLocalize', () => jest.fn(() => ({translate: jest.fn((key: s
 const mockHeaderWithBackButton = jest.mocked(HeaderWithBackButton);
 const mockMoneyReportHeaderActions = jest.mocked(MoneyReportHeaderActions);
 const mockUseMobileSelectionMode = jest.mocked(useMobileSelectionMode);
+const mockUseMoneyReportHeaderMoreContentVisibility = jest.mocked(useMoneyReportHeaderMoreContentVisibility);
 const mockUseNetwork = jest.mocked(useNetwork);
 const mockUseOnyx = jest.mocked(useOnyx);
 const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
@@ -188,6 +200,7 @@ describe('MoneyReportHeader selection mode header', () => {
 
         mockUseNetwork.mockReturnValue({isOffline: false});
         mockUseMobileSelectionMode.mockReturnValue(true);
+        mockUseMoneyReportHeaderMoreContentVisibility.mockReturnValue({statusBarType: undefined, shouldShowNextStep: false, hasStatusOrNextStep: false});
         mockUseOnyx.mockImplementation((key) => {
             if (key === `${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`) {
                 return createOnyxResult<Report>(report);

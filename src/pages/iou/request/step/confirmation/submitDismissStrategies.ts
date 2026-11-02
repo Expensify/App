@@ -26,9 +26,8 @@ function dismissOnly(runAfterDismiss: () => void) {
     });
 }
 
-// runAfterDismiss (and therefore the API write) is gated on TransitionTracker rather than on this
-// navigation's own callback, because dismissModalWithReport has no afterTransition hook. The write's
-// barrier was armed by the caller before this ran, so it releases with the same transition.
+// Gated on TransitionTracker, not dismissModalWithReport's afterTransition, which on the open-report path waits for the follow-up navigate.
+// The write's barrier was armed by the caller before this ran, so it releases with the same transition.
 function dismissNarrowWithReport(reportID: string, runAfterDismiss: () => void) {
     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
     Navigation.dismissModalWithReport({reportID}, undefined, {

@@ -15,7 +15,7 @@ type DuplicateTransactionsListProps = {
     selectedTransactionID?: string;
     shouldShowSelection?: boolean;
     onSelectTransaction: (transactionID: string) => void;
-    onPreviewPressed: (reportID: string) => void;
+    onPreviewPressed: (reportID: string, transactionID: string | undefined) => void;
 };
 
 function DuplicateTransactionsList({transactions, selectedTransactionID, shouldShowSelection = true, onSelectTransaction, onPreviewPressed}: DuplicateTransactionsListProps) {

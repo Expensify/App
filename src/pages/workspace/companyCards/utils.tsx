@@ -77,6 +77,9 @@ type SingleAccountExport = {
 
     /** Whether a missed id match should be retried against the account labels */
     shouldFallBackToLabelMatch?: boolean;
+
+    /** Prefixes the resolved title */
+    exportsToLabel?: string;
 };
 
 /** One NVP resolved against a program account that each card feed can override. Used by Rillet and DualEntry. */
@@ -84,7 +87,11 @@ type ProgramAccountExport = {
     type: typeof CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT;
 
     /** The card NVP holding this integration's export account */
-    nvpKey: typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT;
+    nvpKey:
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT;
 
     /** Every account, in connection order, because an account that is no longer offered can still be the resolved one */
     accounts: ProgramAccountOption[];
@@ -197,7 +204,7 @@ function getPolicyCardExportSettings(
     policy?: Policy,
     backTo?: string | undefined,
 ): CardExportSettings | undefined {
-    const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
+    const basePath = ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
@@ -382,7 +389,6 @@ function getPolicyCardExportSettings(
                             defaultLabel: defaultCard,
                             // A card with no export NVP of its own is titled from `defaultLabel`, so this id is never
                             // looked up. It is kept for parity with the other integrations.
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             workspaceDefaultAccountID: exportConfig?.nonReimbursableAccount || defaultVendorAccount?.id,
                         },
                     };
@@ -502,6 +508,96 @@ function getPolicyCardExportSettings(
                 },
             };
         }
+        case CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE: {
+            const campfireConfig = policy?.connections?.campfire?.config;
+            const campfireData = policy?.connections?.campfire?.data;
+            const exportReimbursable = campfireConfig?.export?.reimbursable ?? CONST.CAMPFIRE_EXPORT_REIMBURSABLE.VENDOR_BILL;
+            const exportNonReimbursable = campfireConfig?.export?.nonReimbursable ?? CONST.CAMPFIRE_EXPORT_NON_REIMBURSABLE.JOURNAL_ENTRY;
+
+            return {
+                description: currentConnectionName
+                    ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.campfire.cardAccount.label'))
+                    : undefined,
+                exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT,
+                shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
+                shouldShowMenuItem:
+                    campfireConfig?.export?.exportToMultipleAccounts &&
+                    exportReimbursable === CONST.CAMPFIRE_EXPORT_REIMBURSABLE.VENDOR_BILL &&
+                    exportNonReimbursable === CONST.CAMPFIRE_EXPORT_NON_REIMBURSABLE.JOURNAL_ENTRY,
+                accountSelection: {
+                    type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT,
+                    nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT,
+                    accounts: (campfireData?.accounts ?? []).map((account) => ({
+                        id: account.id,
+                        label: `${account.id} ${account.name}`,
+                        keyForList: account.id,
+                        configKey: account.id,
+                        isSelectable:
+                            account.isActive && (account.accountSubtype === CONST.CAMPFIRE_ACCOUNT_SUBTYPE.CREDIT_CARD || account.accountSubtype === CONST.CAMPFIRE_ACCOUNT_SUBTYPE.BANK),
+                    })),
+                    workspaceProgramAccountKey: campfireConfig?.export?.creditCardAccountID,
+                    programAccountKeysByFeed: campfireConfig?.export?.cardProgramAccounts,
+                    exportsToLabel: translate('common.exportsTo'),
+                    defaultTitleSuffix: translate('common.default').toLocaleLowerCase(),
+                    defaultOptionPrefix: translate('common.default'),
+                },
+            };
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
+            const businessCentralExport = policy?.connections?.businessCentral?.config?.export;
+            const nonReimbursable = businessCentralExport?.nonReimbursable ?? CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE;
+
+            // A company card journal entry is settled from a bank account, which each card feed and card can override
+            if (businessCentralExport?.exportToMultipleAccounts && nonReimbursable === CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY) {
+                return {
+                    description: currentConnectionName
+                        ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.businessCentral.cardAccount.label'))
+                        : undefined,
+                    exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT,
+                    shouldHideMenuItemDescription: true,
+                    shouldShowMenuItemIcon: true,
+                    shouldShowMenuItem: true,
+                    accountSelection: {
+                        type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT,
+                        nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT,
+                        accounts: (policy?.connections?.businessCentral?.data?.bankAccounts ?? []).map((bankAccount) => ({
+                            id: bankAccount.id,
+                            label: `${bankAccount.number} ${bankAccount.name}`,
+                            keyForList: bankAccount.id,
+                            configKey: bankAccount.id,
+                            isSelectable: true,
+                        })),
+                        workspaceProgramAccountKey: businessCentralExport.nonReimbursableAccount,
+                        programAccountKeysByFeed: businessCentralExport.cardProgramAccounts,
+                        exportsToLabel: translate('common.exportsTo'),
+                        defaultTitleSuffix: translate('common.default').toLocaleLowerCase(),
+                        defaultOptionPrefix: translate('common.default'),
+                    },
+                };
+            }
+
+            const type = translate(`workspace.businessCentral.exportDestination.${nonReimbursable}`);
+            const description = currentConnectionName ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
+
+            // Card expenses export against a vendor for both destinations
+            return {
+                description,
+                shouldHideMenuItemDescription: true,
+                shouldShowMenuItemIcon: true,
+                shouldShowMenuItem: true,
+                exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR,
+                accountSelection: {
+                    type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
+                    nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_VENDOR,
+                    // Business Central rejects documents with a vendor blocked for all transactions, so it can't be a card's vendor
+                    accounts: normalizeAccounts(policy?.connections?.businessCentral?.data?.vendors?.filter((vendor) => vendor.blocked !== CONST.BUSINESS_CENTRAL_VENDOR_BLOCKED.ALL)),
+                    defaultLabel: defaultVendor,
+                    workspaceDefaultAccountID: businessCentralExport?.defaultVendorID,
+                    exportsToLabel: translate('common.exportsTo'),
+                },
+            };
+        }
         default:
             return undefined;
     }
@@ -596,7 +692,7 @@ function getExportMenuItem(
 
     return {
         ...menuItem,
-        title: accountSelection?.type === CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT ? `${accountSelection.exportsToLabel} ${selection.title ?? ''}` : selection.title,
+        title: accountSelection?.exportsToLabel ? `${accountSelection.exportsToLabel} ${selection.title ?? ''}` : selection.title,
         data: buildExportAccountOptions(accountSelection, selection, styles),
     };
 }

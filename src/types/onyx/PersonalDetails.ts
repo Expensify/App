@@ -90,7 +90,7 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
      * NVP set). Stamped by Auth in `Account::formatNewDotPersonalDetails`, so it travels with
      * every personalDetails payload returned to the client (OpenReport, OpenApp, ReconnectApp,
      * GetPersonalDetailsForEmails, etc.). Lets chat surfaces detect custom-agent participants
-     * without subscribing to the wider `SHARED_NVP_AGENT_PROMPT` collection.
+     * without subscribing to the wider `AGENT` collection.
      */
     isCustomAgent?: boolean;
 

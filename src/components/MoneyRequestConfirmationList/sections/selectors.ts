@@ -4,11 +4,15 @@ import {
     getCreated,
     getCurrency,
     getMerchant,
+    getTag,
     getTagForDisplay,
     hasReceipt,
     isAmountMissing,
     isCreatedMissing,
+    isFailedScanAmountPlaceholder,
     isMerchantMissing,
+    isScanning,
+    isScanRequest,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
 
@@ -105,9 +109,12 @@ const createTagDisplaySelector = (tagIndex: number) => (t: OnyxEntry<Transaction
     return getTagForDisplay({tag: t.tag}, tagIndex);
 };
 
+// The whole tag string, every list's tag joined, which the tag list needs to filter and write one list's slot
+const transactionTagSelector = (t: OnyxEntry<Transaction>) => (t ? getTag(t) : undefined);
+
 // --- CategoryField ---
 
-type CategoryState = {category: string; willAutoFill: boolean};
+type CategoryState = {category: string; willAutoFill: boolean; isAutoFillFromReceipt: boolean};
 
 const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undefined => {
     if (!t) {
@@ -116,6 +123,10 @@ const categoryStateSelector = (t: OnyxEntry<Transaction>): CategoryState | undef
     return {
         category: getCategory(t),
         willAutoFill: willFieldBeAutomaticallyFilled(t, 'category'),
+        // On a scan the category is read off the receipt, so `Automatic` describes the value the row ends up
+        // holding. On a manual expense it is a promise about a field that is still empty, since categorization
+        // only runs once the expense is created.
+        isAutoFillFromReceipt: isScanRequest(t),
     };
 };
 
@@ -173,6 +184,8 @@ type AmountSlice = {
     comment: {type: NonNullable<Transaction['comment']>['type']; customUnit: NonNullable<Transaction['comment']>['customUnit']} | undefined;
     isAmountMissing: boolean;
     isAmountSet: Transaction['isAmountSet'];
+    isFailedScanAmountPlaceholder: boolean;
+    isScanning: boolean;
     taxCode: Transaction['taxCode'];
     // The Scan confirmation's amount / merchant / date are all-or-nothing, so the amount field reads the other two.
     isMerchantSet: boolean;
@@ -193,6 +206,8 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         comment: t.comment ? {type: t.comment.type, customUnit: t.comment.customUnit} : undefined,
         isAmountMissing: isAmountMissing(t),
         isAmountSet: t.isAmountSet,
+        isFailedScanAmountPlaceholder: isFailedScanAmountPlaceholder(t),
+        isScanning: isScanning(t),
         taxCode: t.taxCode,
         isMerchantSet: t.isMerchantSet ?? false,
         isCreatedSet: t.isCreatedSet ?? false,
@@ -228,7 +243,7 @@ const taxSliceSelector = (t: OnyxEntry<Transaction>): TaxSlice | undefined => {
 
 // --- ConfirmationFieldList: useFooterDerivedFlags ---
 
-type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard'>;
+type DerivedFlagsSlice = Pick<Transaction, 'modifiedCurrency' | 'currency' | 'iouRequestType' | 'reportID' | 'managedCard' | 'reimbursable'>;
 
 const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<DerivedFlagsSlice> => {
     if (!t) {
@@ -240,6 +255,7 @@ const derivedFlagsSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Derived
         iouRequestType: t.iouRequestType,
         reportID: t.reportID,
         managedCard: t.managedCard,
+        reimbursable: t.reimbursable,
     };
     return slice;
 };
@@ -381,6 +397,7 @@ export {
     categoryStateSelector,
     createCanUpdateSenderWorkspaceSelector,
     createTagDisplaySelector,
+    transactionTagSelector,
     dateStateSelector,
     derivedFlagsSliceSelector,
     descriptionStateSelector,

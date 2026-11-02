@@ -12,6 +12,7 @@ import ReportParticipantsTable from '@components/Tables/ReportParticipantsTable'
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFilteredSelection from '@hooks/useFilteredSelection';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -32,6 +33,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyGuest} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     canInviteMembersToReport,
@@ -75,6 +77,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the selection mode only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -90,6 +93,8 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const isGroupChat = isGroupChatUtils(report);
     const isCurrentUserGroupChatAdmin = isGroupChat && isCurrentUserAdmin;
     const policy = usePolicy(report?.policyID);
+    const isGuestAnnounceRoom = isAnnounceRoom(report) && isPolicyGuest(policy);
+    const shouldShowNotFoundView = !report || isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report) || isGuestAnnounceRoom;
     const shouldShowInviteButton = canInviteMembersToReport(report, policy, isReportArchived, currentUserAccountID);
     const {isOffline} = useNetwork();
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
@@ -120,7 +125,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const activeParticipants = participantsForDisplay.filter((participant) => isOffline || !participant.isPendingDelete);
 
     useEffect(() => {
-        if (!isAnnounceRoom(report)) {
+        if (!isAnnounceRoom(report) || isGuestAnnounceRoom) {
             return;
         }
         openRoomMembersPage(report.reportID);
@@ -235,7 +240,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             : translate('common.details');
 
     const reportParticipantsTableHeader = shouldShowInviteButton ? (
-        <View style={[styles.pl5, styles.pr5, styles.w100]}>
+        <View style={[pageGutter, styles.w100]}>
             {shouldShowBulkActionsButton ? (
                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -269,7 +274,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             style={[styles.defaultModalContainer]}
             testID="DynamicReportParticipantsPage"
         >
-            <FullPageNotFoundView shouldShow={!report || isArchivedNonExpenseReport(report, isReportArchived) || isSelfDM(report)}>
+            <FullPageNotFoundView shouldShow={shouldShowNotFoundView}>
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : headerTitle}
                     onBackButtonPress={() => {

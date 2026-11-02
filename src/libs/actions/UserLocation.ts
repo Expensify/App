@@ -1,3 +1,7 @@
+import getCurrentPosition from '@libs/getCurrentPosition';
+
+import hasLocationPermission from '@pages/iou/request/step/IOURequestStepScan/LocationPermission/hasLocationPermission';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {UserLocation} from '@src/types/onyx';
 
@@ -14,4 +18,24 @@ function clearUserLocation() {
     Onyx.set(ONYXKEYS.USER_LOCATION, null);
 }
 
-export {setUserLocation, clearUserLocation};
+function snapshotUserLocation() {
+    hasLocationPermission().then((isGranted) => {
+        if (!isGranted) {
+            return;
+        }
+
+        clearUserLocation();
+        // Best effort: a submit that finds no cached position falls back to a capped read
+        getCurrentPosition(
+            (successData) => {
+                setUserLocation({
+                    longitude: successData.coords.longitude,
+                    latitude: successData.coords.latitude,
+                });
+            },
+            () => {},
+        );
+    });
+}
+
+export {setUserLocation, clearUserLocation, snapshotUserLocation};

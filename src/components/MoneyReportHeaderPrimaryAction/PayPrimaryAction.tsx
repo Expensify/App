@@ -16,7 +16,9 @@ import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
@@ -25,10 +27,9 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
+import {canIOUBePaid as canIOUBePaidAction, hasHeldExpensesFromTransactions as hasHeldExpensesReportUtils, hasUpdatedTotal, isInvoiceReport as isInvoiceReportUtil} from '@libs/ReportUtils';
 
 import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
-import {canIOUBePaid as canIOUBePaidAction} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,9 +44,11 @@ import useTransactionThreadData from './useTransactionThreadData';
 type PayPrimaryActionProps = {
     reportID: string | undefined;
     chatReportID: string | undefined;
+    /** Disables the Pay button, e.g. while expenses are selected */
+    isDisabled?: boolean;
 };
 
-function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
+function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryActionProps) {
     const {isBetaEnabled} = usePermissions();
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation} = usePaymentAnimationsContext();
     const {isOffline} = useNetwork();
@@ -74,6 +77,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
+    const isChatReportArchived = useReportIsArchived(chatReport?.reportID);
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
     const getChatReportActions = usePayChatReportActions(chatReport, existingB2BInvoiceReport);
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
@@ -94,7 +98,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
         accountID,
         transaction ? [transaction] : undefined,
         false,
-        undefined,
+        isChatReportArchived,
         invoiceReceiverPolicy,
     );
     const onlyShowPayElsewhere =
@@ -108,7 +112,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             accountID,
             transaction ? [transaction] : undefined,
             true,
-            undefined,
+            isChatReportArchived,
             invoiceReceiverPolicy,
         );
     const shouldShowPayButton = isPaidAnimationRunning || canIOUBePaid || onlyShowPayElsewhere;
@@ -117,6 +121,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(transactions);
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, true);
 
@@ -138,11 +143,13 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
         } else if (isInvoiceReport) {
             startAnimation();
             payInvoice({
+                bankAccountList,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: moneyRequestReport,
+                invoiceReportTransactions: transactions,
                 introSelected,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
@@ -161,13 +168,14 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 rules,
             });
         } else {
-            startAnimation();
             payMoneyRequest({
+                bankAccountList,
                 isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
                 getCurrencyDecimals,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,
+                iouReportTransactions: transactions,
                 introSelected,
                 currentUserAccountID: accountID,
                 currentUserLogin: currentUserLogin ?? '',
@@ -179,6 +187,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+                isWiseReimbursementsBetaEnabled: isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS),
                 onPaid: startAnimation,
                 chatReportActions: getChatReportActions(false),
                 delegateAccountID,
@@ -193,6 +202,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
                     offset: 0,
                     queryJSON: currentSearchQueryJSON,
                     isLoading: !!currentSearchResults?.search?.isLoading,
+                    shouldReturnTripRooms,
                 });
             }
         }
@@ -215,7 +225,7 @@ function PayPrimaryAction({reportID, chatReportID}: PayPrimaryActionProps) {
             onPress={confirmPayment}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
-            isDisabled={isOffline && !canAllowSettlement}
+            isDisabled={(isOffline && !canAllowSettlement) || isDisabled}
             isLoading={!isOffline && !canAllowSettlement}
         />
     );

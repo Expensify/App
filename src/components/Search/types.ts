@@ -28,6 +28,7 @@ import type {
     TransactionMonthGroupListItemType,
     TransactionQuarterGroupListItemType,
     TransactionTagGroupListItemType,
+    TransactionApproverGroupListItemType,
     TransactionWeekGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
@@ -169,6 +170,9 @@ type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
 type SingularSearchStatus = ExpenseSearchStatus | ExpenseReportSearchStatus | InvoiceSearchStatus | TripSearchStatus | TaskSearchStatus;
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type SearchView = ValueOf<typeof CONST.SEARCH.VIEW>;
+type SearchFooterCount = ValueOf<typeof CONST.SEARCH.FOOTER_COUNT>;
+type SearchFooterTotal = ValueOf<typeof CONST.SEARCH.FOOTER_TOTAL>;
+type SearchCompareMode = ValueOf<typeof CONST.SEARCH.COMPARE>;
 // PieChart is not implemented so we exclude it here to prevent TypeScript errors in `SearchChartView.tsx`.
 type ChartView = Exclude<SearchView, 'table'>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
@@ -181,6 +185,7 @@ type SyntaxFilterKey = ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>;
 type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE>
     | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>
+    | ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.TRIP>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.CARD>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.FROM>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WITHDRAWAL_ID>
@@ -191,7 +196,8 @@ type SearchCustomColumnIds =
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.MONTH>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.WEEK>
     | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.YEAR>
-    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>;
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.QUARTER>
+    | ValueOf<typeof CONST.SEARCH.GROUP_CUSTOM_COLUMNS.APPROVER>;
 
 type SearchQueryContextValue = {
     currentSearchHash: number;
@@ -239,6 +245,12 @@ type SearchSelectionContextValue = {
     areAllMatchingItemsSelected: boolean;
 };
 
+/** The exclusions and the select-all-matching flag from the same state update as the selection map, so an updater never combines a new map with stale values */
+type PreviousSelectionSlices = {
+    excludedTransactions: SelectedTransactions;
+    areAllMatchingItemsSelected: boolean;
+};
+
 type SearchSelectionActionsValue = {
     /**
      * If you want to set `selectedTransactionIDs`, pass an array as the first argument, object/record otherwise.
@@ -259,7 +271,7 @@ type SearchSelectionActionsValue = {
      * `reconciledExcludedTransactions` refreshes or prunes exclusions when the underlying search data changes.
      */
     applySelection: (
-        updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions,
+        updater: (previousSelectedTransactions: SelectedTransactions, previousSelection: PreviousSelectionSlices) => SelectedTransactions,
         options?: {
             data?: SearchData;
             totalSelectableItemsCount?: number;
@@ -268,6 +280,10 @@ type SearchSelectionActionsValue = {
             reconciledExcludedTransactions?: SelectedTransactions;
         },
     ) => void;
+    /** Read on demand without subscribing, so a handler can anchor from the live selection without re-rendering every row */
+    getSelectedTransactions: () => SelectedTransactions;
+    getExcludedTransactions: () => SelectedTransactions;
+    getAreAllMatchingItemsSelected: () => boolean;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
@@ -289,10 +305,18 @@ type SearchData = TransactionListItemType[] | TransactionGroupListItemType[] | R
  * never re-renders consumers that only need to dispatch.
  */
 type SearchRowSelectionActionsValue = {
-    /** Toggle selection of a single transaction row or a group (report / grouped rows). */
-    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    /** Toggle selection of a single transaction row or a group (report / grouped rows). `shiftKey` extends a range. */
+    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     /** Toggle selection of all currently selectable items. */
     toggleAll: () => void;
+};
+
+/** Lets whoever owns a group's expanded state say whether a shift+click range may reach the rows it renders. */
+type SearchShiftRangeGroupsActions = {
+    addGroupToRange: (groupKey: string) => void;
+    removeGroupFromRange: (groupKey: string) => void;
+    /** Changes when the registry is dropped for a new search, so a group left open across the change reopens */
+    registryGeneration: number | undefined;
 };
 
 /** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */
@@ -342,6 +366,7 @@ type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED
@@ -373,7 +398,8 @@ type SearchFilterKey =
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.VIEW
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT;
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT
+    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.COMPARE;
 
 type RawFilterKey = SyntaxFilterKey | ValueOf<typeof CONST.SEARCH.SYNTAX_ROOT_KEYS>;
 
@@ -395,7 +421,9 @@ type SearchQueryAST = {
     filters: ASTNode;
     rawFilterList?: RawQueryFilter[];
     columns?: SearchCustomColumnIds | SearchCustomColumnIds[];
+    groupColumns?: SearchColumnType[];
     limit?: number;
+    compare?: SearchCompareMode;
 };
 
 type SearchQueryJSON = {
@@ -407,8 +435,6 @@ type SearchQueryJSON = {
     similarSearchHash: number;
     flatFilters: QueryFilters;
     isViewExplicitlySet?: boolean;
-    /** Filters generated for a specific group that must keep exact-match semantics when sent to the backend. */
-    exactMatchFilterKeys?: SearchFilterKey[];
 } & SearchQueryAST;
 
 type SearchAutocompleteResult = {
@@ -430,6 +456,7 @@ type SearchParams = {
     prevReportsLength?: number;
     shouldCalculateTotals: boolean;
     isLoading: boolean;
+    shouldSaveRecentSearch?: boolean;
 };
 
 type BankAccountMenuItem = {
@@ -452,17 +479,15 @@ type GroupedItem =
     | TransactionMonthGroupListItemType
     | TransactionWeekGroupListItemType
     | TransactionYearGroupListItemType
-    | TransactionQuarterGroupListItemType;
+    | TransactionQuarterGroupListItemType
+    | TransactionApproverGroupListItemType;
 
 type SearchChartDataRow = {
     /** The point plotted on the chart */
     point: ChartDataPoint;
 
-    /** The grouped search result the point was built from */
-    item: GroupedItem;
-
-    /** Palette color the chart assigns this group */
-    color?: string;
+    /** The grouped search result the point was built from, left out for a point only the compared period has */
+    item?: GroupedItem;
 };
 
 type SearchFilterCommonProps<T> = {
@@ -502,6 +527,7 @@ export type {
     SearchSelectionActionsValue,
     SearchData,
     SearchRowSelectionActionsValue,
+    SearchShiftRangeGroupsActions,
     ASTNode,
     QueryFilter,
     Filter,
@@ -519,6 +545,9 @@ export type {
     TableColumnSize,
     SearchGroupBy,
     SearchView,
+    SearchFooterCount,
+    SearchFooterTotal,
+    SearchCompareMode,
     ChartView,
     SingularSearchStatus,
     SearchDatePreset,

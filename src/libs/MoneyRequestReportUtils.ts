@@ -3,12 +3,13 @@ import type {TransactionListItemType} from '@components/Search/SearchList/ListIt
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
+import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {getLatestErrorField} from './ErrorUtils';
 import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
@@ -24,7 +25,34 @@ import {
     isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
-import {getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
+import {getSupersededPendingCardTransactionIDs, getVisibleTransactionViolations, isTransactionPendingDelete} from './TransactionUtils';
+
+/**
+ * The key of a reject the backend recorded against an expense it has already moved. It reports those under the
+ * expense's own `reject` field rather than the generic `errors`, and it is what disables the row.
+ */
+function getTransactionRejectErrorKey(transaction: OnyxEntry<Transaction>): string | undefined {
+    return Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
+}
+
+/** Whether a row can be selected. A click, Select All and a shift+click range all use this, so they agree on which rows are selectable. */
+function isSelectableReportTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return !isTransactionPendingDelete(transaction) && !getTransactionRejectErrorKey(transaction);
+}
+
+/**
+ * Whether every selectable transaction on the report is selected, which is when the report-level actions (Submit, Approve,
+ * Pay) are offered. Only selectable rows count: an expense the backend refused to reject stays on the report until its error
+ * is dismissed, and its checkbox is disabled, so counting it would hide those actions for good.
+ */
+function isEveryReportTransactionSelected(transactions: Transaction[], selectedTransactionIDs: string[]): boolean {
+    const selectableTransactions = transactions.filter(isSelectableReportTransaction);
+    if (selectedTransactionIDs.length === 0 || selectableTransactions.length === 0) {
+        return false;
+    }
+    const selectedTransactionIDSet = new Set(selectedTransactionIDs);
+    return selectableTransactions.every((transaction) => selectedTransactionIDSet.has(transaction.transactionID));
+}
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
@@ -219,7 +247,31 @@ const getTotalAmountForIOUReportPreviewButton = (
     return convertToDisplayString(totalDisplaySpend, report?.currency);
 };
 
+const EMPTY_VIOLATIONS: TransactionViolations = [];
+
+/**
+ * Returns the violations of a report row's transaction that the current user can see. Returns the stable
+ * EMPTY_VIOLATIONS reference for the common no-violations case so the row's props stay referentially stable.
+ */
+function getVisibleReportRowViolations(
+    transaction: Transaction,
+    violations: OnyxEntry<TransactionViolations>,
+    email: string,
+    accountID: number,
+    report: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
+    policy: OnyxEntry<Policy>,
+): TransactionViolations {
+    if (!violations?.length) {
+        return EMPTY_VIOLATIONS;
+    }
+    const visibleViolations = getVisibleTransactionViolations(transaction, violations, email, accountID, report, ownerLogin, policy);
+    return visibleViolations.length === 0 ? EMPTY_VIOLATIONS : visibleViolations;
+}
+
 export {
+    EMPTY_VIOLATIONS,
+    getVisibleReportRowViolations,
     isActionVisibleOnMoneyRequestReport,
     getThreadReportIDsForTransactions,
     getReportIDForTransaction,
@@ -229,4 +281,7 @@ export {
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
+    getTransactionRejectErrorKey,
+    isSelectableReportTransaction,
+    isEveryReportTransactionSelected,
 };

@@ -25,6 +25,7 @@ import {
     isInvoiceReport,
     isInvoiceRoom,
     isPolicyExpenseChat,
+    isSupportTicket,
     isTripRoom,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
@@ -32,6 +33,7 @@ import {buildUserIcon} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {getStableReportSelector} from '@src/selectors/Report';
 import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
@@ -81,7 +83,7 @@ function useReportActionAvatars({
     const isReportAChatReport = report?.type === CONST.REPORT.TYPE.CHAT && report?.chatType !== CONST.REPORT.CHAT_TYPE.TRIP_ROOM;
 
     const chatReportID = report?.chatReportID ?? passedChatReportID;
-    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [reportChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {selector: getStableReportSelector});
 
     const chatReport = isReportAChatReport ? report : reportChatReport;
     const iouReport = isReportAChatReport ? undefined : report;
@@ -96,7 +98,8 @@ function useReportActionAvatars({
         selector: (actions) => getReportActionByIDSelector(actions, derivedActionID),
     });
 
-    const action = passedAction ?? derivedAction;
+    // Support tickets use the assigned rep's avatar, not the parent message's author.
+    const action = passedAction ?? (isSupportTicket(report) ? undefined : derivedAction);
 
     const [actionChildReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${action?.childReportID}`);
 
@@ -161,7 +164,6 @@ function useReportActionAvatars({
     };
 
     if (passedPolicyID) {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const workspaceAvatar = policyChatReport ? getWorkspaceIcon(policyChatReport, translate, policy) : {source: policy?.avatarURL || getDefaultWorkspaceAvatar(policy?.name)};
         const policyChatReportAvatar = policy ? {...workspaceAvatar, id: policyID, name: policy.name, type: CONST.ICON_TYPE_WORKSPACE} : fallbackWorkspaceAvatar;
         const firstAccountAvatar = avatarsForAccountIDs.at(0);
@@ -224,7 +226,6 @@ function useReportActionAvatars({
 
     /* Get correct primary & secondary icon */
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const accountID = reportPreviewSenderID || (actorAccountID ?? CONST.DEFAULT_NUMBER_ID);
     const {avatar, fallbackIcon, login} = personalDetails?.[delegatePersonalDetails ? delegatePersonalDetails.accountID : accountID] ?? {};
 
@@ -237,26 +238,24 @@ function useReportActionAvatars({
     const isWorkspaceChatWithoutChatReport = !chatReport?.reportID && isAWorkspaceChat;
     const isAccessPlaceholderReportPreview = isAReportPreviewAction && isAWorkspaceChat && !iouReport;
     const usePersonalDetailsAvatars =
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         (isChatReportOnlyProp || isWorkspaceChatWithoutChatReport) && isReportPreviewOrNoAction && !isATripPreview && !isAnInvoiceRoom && !isAccessPlaceholderReportPreview;
     const useNearestReportAvatars = (!accountID || !action) && accountIDs.length === 0;
 
     const getIconsWithDefaults = (onyxReport: OnyxInputOrEntry<Report>) =>
-        getIcons(
-            onyxReport,
+        getIcons({
+            report: onyxReport,
             formatPhoneNumber,
             translate,
             personalDetails,
-            avatar ?? fallbackIcon ?? defaultAvatars.FallbackAvatar,
-            defaultDisplayName,
-            accountID,
+            defaultIcon: avatar ?? fallbackIcon ?? defaultAvatars.FallbackAvatar,
+            defaultName: defaultDisplayName,
+            defaultAccountID: accountID,
             policy,
             invoiceReceiverPolicy,
-            false,
             // Only a chat report can be a group chat, the other reports passed here (IOU/invoice) never need it.
-            onyxReport?.reportID === chatReport?.reportID ? chatReportPendingDeleteMemberAccountIDs : undefined,
+            pendingDeleteMemberAccountIDs: onyxReport?.reportID === chatReport?.reportID ? chatReportPendingDeleteMemberAccountIDs : undefined,
             conciergeReportID,
-        );
+        });
 
     const reportIcons = getIconsWithDefaults(chatReport?.reportID ? chatReport : iouReport);
 
@@ -271,7 +270,6 @@ function useReportActionAvatars({
         : undefined;
 
     const invoiceFallbackAvatar: IconType = {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         source: policy?.avatarURL || getDefaultWorkspaceAvatar(policy?.name),
         id: policy?.id,
         name: policy?.name,
@@ -391,7 +389,6 @@ function useReportActionAvatars({
             shouldDisplayAllActors: displayAllActors,
             isWorkspaceActor,
             shouldUseConciergeAvatar,
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             actorHint: String(shouldUsePrimaryAvatarID ? primaryAvatar.id : login || defaultDisplayName || fallbackDisplayName).replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, ''),
             accountID,
             delegateAccountID: !isWorkspaceActor && !!delegateAccountID ? actorAccountID : undefined,

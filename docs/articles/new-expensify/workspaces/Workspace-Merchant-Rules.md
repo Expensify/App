@@ -1,7 +1,7 @@
 ---
 title: Merchant Rules
 description: Learn how to enable and use Merchant Rules to automatically apply consistent expense coding based on the expense merchant name.
-keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet, merchant rule deleted tag, tag missing from merchant rule, merchant rule vendor]
+keywords: [New Expensify, workspace merchant rules, merchant rules, auto-categorize by merchant, expense automation, expense rules, workspace settings, import merchant rules, bulk import merchant rules, merchant rules spreadsheet, merchant rule deleted tag, tag missing from merchant rule]
 internalScope: Audience is Workspace Admins on the Control plan. Covers creating, using, and bulk-importing Merchant Rules to apply consistent expense coding based on merchant name. Does not cover personal expense rules, Category Rules, Tag Rules, or troubleshooting rule conflicts.
 ---
 
@@ -42,7 +42,6 @@ Instead of creating Merchant Rules one at a time, you can import multiple Mercha
    - **Updated description** — Apply a description (optional).
    - **Reimbursable** — Set reimbursable status to **True** or **False** (optional).
    - **Billable** — Set billable status to **True** or **False** (optional).
-   - **Updated vendor** — Apply a vendor by name (optional).
 2. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [workspace name]**.
 3. Click **Rules**, then open the **Expense defaults** tab.
 4. Click **More**, then select **Import merchant rules**.
@@ -138,7 +137,7 @@ The rule stays in place and keeps applying its other updates, but the deleted ta
 
 You'll see this in two places:
 
-- In the **Merchant** section of the **Rules** page, the rule summary no longer lists the tag update.
+- On the **Expense defaults** tab of the **Rules** page, the rule summary no longer lists the tag update.
 - When you open the rule, the **Tag** field is empty.
 
 To have the rule set a tag again, open the rule, select a value in the **Tag** field, then select **Save rule**. If you recreate a tag with the same name, the rule applies that tag again. Learn how to [create and manage expense tags](/articles/new-expensify/workspaces/Create-and-manage-expense-tags).
@@ -162,5 +161,4 @@ Merchant Rules can update:
    - Reimbursable status
    - Billable status
    - Tax
-   - Vendor
 

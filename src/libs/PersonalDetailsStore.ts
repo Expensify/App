@@ -6,6 +6,8 @@ import Onyx from 'react-native-onyx';
 
 let allPersonalDetails: PersonalDetailsList = {};
 let loginToPersonalDetails: Record<string, PersonalDetails> = {};
+let accountIDToName: Record<string, string> = {};
+let allLogins: string[] = [];
 
 function buildLoginMapping(personalDetailsList: PersonalDetailsList): Record<string, PersonalDetails> {
     const mapping: Record<string, PersonalDetails> = {};
@@ -28,6 +30,13 @@ Onyx.connectWithoutView({
     callback: (value) => {
         allPersonalDetails = value ?? {};
         loginToPersonalDetails = buildLoginMapping(allPersonalDetails);
+        accountIDToName = {};
+        for (const personalDetail of Object.values(allPersonalDetails)) {
+            if (personalDetail) {
+                accountIDToName[personalDetail.accountID] = personalDetail.login ?? personalDetail.displayName ?? '';
+            }
+        }
+        allLogins = Object.values(allPersonalDetails).map((personalDetail) => personalDetail?.login ?? '');
     },
 });
 
@@ -46,4 +55,14 @@ function getPersonalDetailByLogin(login: string | undefined): PersonalDetails | 
     return loginToPersonalDetails[login.toLowerCase()];
 }
 
-export {getAllPersonalDetails, getPersonalDetail, getPersonalDetailByLogin};
+// Login, falling back to display name, per accountID, in the shape ExpensiMark expects for mentions
+function getAccountIDToNameMap(): Record<string, string> {
+    return accountIDToName;
+}
+
+// Every known login, in the shape `addDomainToShortMention` expects
+function getAllPersonalDetailLogins(): string[] {
+    return allLogins;
+}
+
+export {getAllPersonalDetails, getPersonalDetail, getPersonalDetailByLogin, getAccountIDToNameMap, getAllPersonalDetailLogins};

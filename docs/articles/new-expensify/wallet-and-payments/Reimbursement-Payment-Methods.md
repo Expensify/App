@@ -76,7 +76,7 @@ To pay reports in bulk:
 2. Under **To-do**, select **Pay**.
 3. Select the checkbox next to each Approved report you want to pay.
 4. Open the bulk actions:
-   - **On web:** Use the bar that appears at the bottom of the list. Select **More** to see the actions that don't fit in the bar.
+   - **On web:** Use the selection bar at the bottom of the list. Select **More** to see the actions that don't fit on the selection bar.
    - **On mobile:** Tap **Selected**.
 5. Choose **Pay**.
 6. Choose a payment method:

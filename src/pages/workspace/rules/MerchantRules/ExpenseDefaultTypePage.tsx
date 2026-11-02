@@ -1,4 +1,4 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -100,7 +100,7 @@ function ExpenseDefaultTypePage({route}: ExpenseDefaultTypePageProps) {
                 testID="ExpenseDefaultTypePage"
                 enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <HeaderWithBackButton title={translate('workspace.rules.expenseDefaultType.title')} />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.expenseDefaultType.title')} />
                 <ScrollView
                     style={[styles.flexGrow1]}
                     addBottomSafeAreaPadding

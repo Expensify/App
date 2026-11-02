@@ -4,14 +4,16 @@ import importTransactionsFromCSV, {
     buildTransactionListFromSpreadsheet,
     getColumnIndexes,
     getExistingCardImportSettings,
+    hasTagExceedingMaxLength,
     uploadOFXStatement,
 } from '@libs/actions/ImportTransactions';
 import * as API from '@libs/API';
+import DateUtils from '@libs/DateUtils';
 import {getCompanyCardColumnMappings} from '@libs/importSpreadsheetUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card} from '@src/types/onyx';
+import type {Card, Transaction} from '@src/types/onyx';
 import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 
@@ -20,6 +22,7 @@ import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
 import {getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall} from '../utils/TestHelper';
+import {isObject, parseJSONArray, requireRecord, requireStringProperty} from '../utils/typeGuards';
 
 let writeSpy: jest.SpiedFunction<typeof API.write>;
 
@@ -36,6 +39,34 @@ describe('ImportTransactions', () => {
     });
 
     describe('getColumnIndexes', () => {
+        it('accepts all five transaction roles and lets the last mapping for each role win', () => {
+            // Given duplicate mappings for every supported role and unrelated roles after them.
+            const columns = {0: 'date', 1: 'merchant', 2: 'amount', 3: 'category', 4: 'tag', 5: 'date', 6: 'merchant', 7: 'amount', 8: 'category', 9: 'tag', 10: 'ignore', 11: 'currency'};
+            const spreadsheet = createMock<ImportedSpreadsheet>({
+                columns,
+                containsHeader: true,
+                data: [['Old date'], ['Old merchant'], ['Old amount'], ['Old category'], ['Old tag'], ['New date'], ['New merchant'], ['New amount'], ['New category'], ['New tag']],
+            });
+
+            // When both production consumers interpret the same column mapping.
+            const indexes = getColumnIndexes(columns);
+            const layout = buildColumnLayout(spreadsheet, 'Card', CONST.CURRENCY.USD, true, false);
+
+            // Then exact tuple membership and last mapping precedence agree for parsing and saved layouts.
+            expect(indexes).toEqual({date: 5, merchant: 6, amount: 7, category: 8, tag: 9});
+            expect(layout.columnMapping.indexes).toEqual({date: 5, merchant: 6, amount: 7, category: 8, tag: 9, type: false});
+            expect(layout.columnMapping.names).toEqual({date: 'New date', merchant: 'New merchant', amount: 'New amount', category: 'New category', tag: 'New tag', type: false});
+        });
+
+        it.each(['ignore', 'currency', 'postedDate', 'cardNumber', 'type', 'Date', 'date ', 'toString', 'constructor', ''])('rejects the non-transaction role %j', (role) => {
+            // Given a role outside the exact transaction-field tuple, including case and whitespace variants.
+            // When the real column parser checks membership.
+            const indexes = getColumnIndexes({0: role});
+
+            // Then no accepted index or unexpected own property is introduced.
+            expect(indexes).toEqual({date: -1, merchant: -1, amount: -1, category: -1, tag: -1});
+        });
+
         it('should return all -1 when columns is undefined', () => {
             const result = getColumnIndexes(undefined);
             expect(result).toEqual({
@@ -43,6 +74,7 @@ describe('ImportTransactions', () => {
                 merchant: -1,
                 amount: -1,
                 category: -1,
+                tag: -1,
             });
         });
 
@@ -53,6 +85,7 @@ describe('ImportTransactions', () => {
                 merchant: -1,
                 amount: -1,
                 category: -1,
+                tag: -1,
             });
         });
 
@@ -69,7 +102,24 @@ describe('ImportTransactions', () => {
                 merchant: 1,
                 amount: 2,
                 category: 3,
+                tag: -1,
             });
+        });
+
+        it('should include the tag column index', () => {
+            // Given a spreadsheet where one column is mapped to Tag
+            const columns = {
+                0: 'date',
+                1: 'merchant',
+                2: 'amount',
+                3: 'tag',
+            };
+
+            // When the column indexes are extracted
+            const result = getColumnIndexes(columns);
+
+            // Then the tag index is returned so the tag values are read from that column
+            expect(result.tag).toBe(3);
         });
 
         it('should handle sparse column mappings', () => {
@@ -84,6 +134,7 @@ describe('ImportTransactions', () => {
                 merchant: -1,
                 amount: 5,
                 category: -1,
+                tag: -1,
             });
         });
 
@@ -100,7 +151,68 @@ describe('ImportTransactions', () => {
                 merchant: -1,
                 amount: 2,
                 category: -1,
+                tag: -1,
             });
+        });
+    });
+
+    describe('hasTagExceedingMaxLength', () => {
+        const buildSpreadsheet = (tagValues: string[], columns: Record<number, string>) =>
+            createMock<ImportedSpreadsheet>({
+                data: [
+                    ['Date', ...tagValues.map(() => '2024-01-15')],
+                    ['Merchant', ...tagValues.map(() => 'Store')],
+                    ['Amount', ...tagValues.map(() => '10.00')],
+                    ['Tag', ...tagValues],
+                ],
+                columns,
+                containsHeader: true,
+            });
+
+        it('should return false when no column is mapped to Tag', () => {
+            // Given a long value in a column that isn't mapped to Tag
+            const spreadsheet = buildSpreadsheet(['a'.repeat(CONST.API_TRANSACTION_TAG_MAX_LENGTH + 1)], {0: 'date', 1: 'merchant', 2: 'amount', 3: 'ignore'});
+
+            // When the tag length is checked
+            // Then nothing is flagged, because the value is not imported
+            expect(hasTagExceedingMaxLength(spreadsheet)).toBe(false);
+        });
+
+        it('should return false when every tag is within the limit', () => {
+            // Given tags that are at most the maximum length
+            const spreadsheet = buildSpreadsheet(['Visa', 'a'.repeat(CONST.API_TRANSACTION_TAG_MAX_LENGTH)], {0: 'date', 1: 'merchant', 2: 'amount', 3: 'tag'});
+
+            // When the tag length is checked
+            // Then nothing is flagged
+            expect(hasTagExceedingMaxLength(spreadsheet)).toBe(false);
+        });
+
+        it('should return true when a tag is longer than the limit', () => {
+            // Given one tag that is longer than the API accepts
+            const spreadsheet = buildSpreadsheet(['Visa', 'a'.repeat(CONST.API_TRANSACTION_TAG_MAX_LENGTH + 1)], {0: 'date', 1: 'merchant', 2: 'amount', 3: 'tag'});
+
+            // When the tag length is checked
+            // Then it is flagged so the user can fix the file before importing instead of the import failing on the server
+            expect(hasTagExceedingMaxLength(spreadsheet)).toBe(true);
+        });
+
+        it('should return false when the long tag is only on a row that is skipped during import', () => {
+            // Given a long tag on a footer row with no date or amount, and another on a row with an invalid date
+            const longTag = 'a'.repeat(CONST.API_TRANSACTION_TAG_MAX_LENGTH + 1);
+            const spreadsheet = createMock<ImportedSpreadsheet>({
+                data: [
+                    ['Date', '2024-01-15', 'not a date', ''],
+                    ['Merchant', 'Store', 'Store', 'Total'],
+                    ['Amount', '10.00', '5.00', ''],
+                    ['Tag', 'Visa', longTag, longTag],
+                ],
+                columns: {0: 'date', 1: 'merchant', 2: 'amount', 3: 'tag'},
+                containsHeader: true,
+            });
+
+            // When the tag length is checked
+            // Then nothing is flagged, because those rows are never sent to the API
+            expect(hasTagExceedingMaxLength(spreadsheet)).toBe(false);
         });
     });
 
@@ -154,6 +266,7 @@ describe('ImportTransactions', () => {
                         amount: false,
                         merchant: false,
                         category: false,
+                        tag: false,
                         type: false,
                     },
                     indexes: {
@@ -161,6 +274,7 @@ describe('ImportTransactions', () => {
                         amount: false,
                         merchant: false,
                         category: false,
+                        tag: false,
                         type: false,
                     },
                 },
@@ -198,6 +312,7 @@ describe('ImportTransactions', () => {
                 merchant: 1,
                 amount: 2,
                 category: 3,
+                tag: false,
                 type: false,
             });
             expect(result.columnMapping.names).toEqual({
@@ -205,8 +320,35 @@ describe('ImportTransactions', () => {
                 merchant: 'Merchant',
                 amount: 'Amount',
                 category: 'Category',
+                tag: false,
                 type: false,
             });
+        });
+
+        it('should save the tag column index and header name', () => {
+            // Given a spreadsheet with a column mapped to Tag
+            const spreadsheet = createMock<ImportedSpreadsheet>({
+                data: [
+                    ['Date', '2024-01-01'],
+                    ['Merchant', 'Store A'],
+                    ['Amount', '10.00'],
+                    ['Card', 'Visa'],
+                ],
+                columns: {
+                    0: 'date',
+                    1: 'merchant',
+                    2: 'amount',
+                    3: 'tag',
+                },
+                containsHeader: true,
+            });
+
+            // When the column layout is built
+            const result = buildColumnLayout(spreadsheet, 'Card', 'USD', true, false);
+
+            // Then the tag mapping is saved so it can be restored when a file is uploaded again to the same card
+            expect(result.columnMapping.indexes.tag).toBe(3);
+            expect(result.columnMapping.names.tag).toBe('Card');
         });
 
         it('should handle missing headers when containsHeader is false', () => {
@@ -234,6 +376,7 @@ describe('ImportTransactions', () => {
                 merchant: 1,
                 amount: 2,
                 category: false,
+                tag: false,
                 type: false,
             });
             // Names should be false when no header
@@ -242,6 +385,7 @@ describe('ImportTransactions', () => {
                 merchant: false,
                 amount: false,
                 category: false,
+                tag: false,
                 type: false,
             });
         });
@@ -347,6 +491,34 @@ describe('ImportTransactions', () => {
 
             expect(result).toHaveLength(1);
             expect(result.at(0)?.category).toBe('Office Supplies');
+        });
+
+        it('should include tag when provided', () => {
+            // Given a spreadsheet with a column mapped to Tag, including a multi-level tag and an empty value
+            const spreadsheet = createMock<ImportedSpreadsheet>({
+                data: [
+                    ['Date', '2024-01-15', '2024-01-16', '2024-01-17'],
+                    ['Merchant', 'Store', 'Store', 'Store'],
+                    ['Amount', '10.00', '20.00', '30.00'],
+                    ['Tag', 'Visa', 'Dept:Project', ''],
+                ],
+                columns: {
+                    0: 'date',
+                    1: 'merchant',
+                    2: 'amount',
+                    3: 'tag',
+                },
+                containsHeader: true,
+            });
+
+            // When the transactions are built
+            const result = buildTransactionListFromSpreadsheet(spreadsheet, {});
+
+            // Then each row carries its tag as-is, so a colon-delimited value becomes a multi-level tag, and an empty value adds no tag
+            expect(result).toHaveLength(3);
+            expect(result.at(0)?.tag).toBe('Visa');
+            expect(result.at(1)?.tag).toBe('Dept:Project');
+            expect(result.at(2)?.tag).toBeUndefined();
         });
 
         it('should skip rows with missing required fields (date or amount)', () => {
@@ -606,6 +778,56 @@ describe('ImportTransactions', () => {
                     1: 'merchant',
                     2: 'amount',
                     3: 'category',
+                },
+            });
+        });
+
+        it('should reapply a saved tag mapping', () => {
+            // Given a card whose saved layout mapped the "Card" header to Tag
+            const spreadsheetData = [
+                ['Date', '2024-01-01'],
+                ['Merchant', 'Store A'],
+                ['Amount', '10.00'],
+                ['Card', 'Visa'],
+            ];
+            const savedLayout: SavedCSVColumnLayoutData = {
+                name: 'Test Card',
+                useTypeColumn: false,
+                flipAmountSign: false,
+                reimbursable: true,
+                offset: 0,
+                dateFormat: null,
+                accountDetails: {
+                    bank: 'CSV',
+                    currency: 'USD',
+                    accountID: 'test',
+                },
+                columnMapping: {
+                    names: {
+                        date: 'Date',
+                        merchant: 'Merchant',
+                        amount: 'Amount',
+                        tag: 'Card',
+                    },
+                    indexes: {
+                        date: 0,
+                        merchant: 1,
+                        amount: 2,
+                        tag: 3,
+                    },
+                },
+            };
+
+            // When a new file is uploaded to the same card
+            applySavedColumnMappings(spreadsheetData, savedLayout);
+
+            // Then the Tag mapping is restored so the user doesn't have to map it again
+            expect(Onyx.merge).toHaveBeenCalledWith(ONYXKEYS.IMPORTED_SPREADSHEET, {
+                columns: {
+                    0: 'date',
+                    1: 'merchant',
+                    2: 'amount',
+                    3: 'tag',
                 },
             });
         });
@@ -944,6 +1166,121 @@ describe('ImportTransactions', () => {
             containsHeader: true,
         });
 
+        it('preserves card ownership, flipped transactions without a header and matching rollback identities', async () => {
+            // Given an import without a header with explicit settings and different optional values on each row.
+            const cardUpdatedAt = '2024-01-17 12:00:00.000';
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue(cardUpdatedAt);
+            const spreadsheet = createMock<ImportedSpreadsheet>({
+                data: [
+                    ['2024-01-15', '2024-01-16'],
+                    ['Office Store', 'Coffee Shop'],
+                    ['-12.34', '-5.50'],
+                    ['Office', ''],
+                    ['Dept:Project', ''],
+                ],
+                columns: {0: 'date', 1: 'merchant', 2: 'amount', 3: 'category', 4: 'tag'},
+                containsHeader: false,
+                importTransactionSettings: {cardDisplayName: 'Personal Expenses', currency: 'EUR', isReimbursable: false, flipAmountSign: true},
+            });
+
+            // When the real import builds optimistic payloads and the request fails.
+            const result = await importTransactionsFromCSV(spreadsheet, CURRENT_USER_ACCOUNT_ID);
+
+            // Then every card and transaction identity matches the API parameters and its failure cleanup.
+            expect(writeSpy).toHaveBeenCalledTimes(1);
+            const [command, params, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(command).toBe('ImportCSVTransactions');
+            expect(params.cardName).toBe('Personal Expenses');
+            expect(params.currency).toBe('EUR');
+            expect(params.reimbursable).toBe(false);
+            const cardID = params.cardID;
+            if (typeof cardID !== 'number') {
+                throw new Error('Expected the import to generate a numeric card ID');
+            }
+            const cardUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE, true);
+            expect(Object.keys(cardUpdate.value)).toEqual([String(cardID)]);
+            const optimisticCard = requireRecord(cardUpdate.value[cardID], 'optimistic imported card');
+            expect(optimisticCard).toEqual({
+                cardID,
+                accountID: CURRENT_USER_ACCOUNT_ID,
+                state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV,
+                domainName: '',
+                lastFourPAN: '',
+                availableSpend: 0,
+                scrapeMinDate: '',
+                fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                lastUpdated: cardUpdatedAt,
+                reimbursable: false,
+                nameValuePairs: {cardTitle: 'Personal Expenses'},
+            } satisfies Card);
+            const parsedTransactions = parseJSONArray(params.transactionList, 'import transaction list');
+            expect(parsedTransactions).toHaveLength(2);
+            const firstTransactionID = requireStringProperty(parsedTransactions.at(0), 'transactionID');
+            const secondTransactionID = requireStringProperty(parsedTransactions.at(1), 'transactionID');
+            expect(firstTransactionID).not.toBe('');
+            expect(secondTransactionID).not.toBe('');
+            expect(secondTransactionID).not.toBe(firstTransactionID);
+            expect(parsedTransactions).toEqual([
+                {transactionID: firstTransactionID, created: '2024-01-15', merchant: 'Office Store', amount: 1234, category: 'Office', tag: 'Dept:Project'},
+                {transactionID: secondTransactionID, created: '2024-01-16', merchant: 'Coffee Shop', amount: 550},
+            ]);
+            const firstUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransactionID}`, Onyx.METHOD.SET, true);
+            expect(firstUpdate.value).toEqual({
+                transactionID: firstTransactionID,
+                cardID,
+                created: '2024-01-15',
+                merchant: 'Office Store',
+                amount: 1234,
+                currency: 'EUR',
+                category: 'Office',
+                tag: 'Dept:Project',
+                reimbursable: false,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                comment: {comment: ''},
+                reportID: '0',
+            } satisfies Transaction);
+            const secondUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`, Onyx.METHOD.SET, true);
+            expect(secondUpdate.value).toEqual({
+                transactionID: secondTransactionID,
+                cardID,
+                created: '2024-01-16',
+                merchant: 'Coffee Shop',
+                amount: 550,
+                currency: 'EUR',
+                category: '',
+                tag: '',
+                reimbursable: false,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                comment: {comment: ''},
+                reportID: '0',
+            } satisfies Transaction);
+            expect(getRequiredOnyxUpdate(onyxData, 'failureData', firstUpdate.key, Onyx.METHOD.SET).value).toBeNull();
+            expect(getRequiredOnyxUpdate(onyxData, 'failureData', secondUpdate.key, Onyx.METHOD.SET).value).toBeNull();
+            expect(getRequiredOnyxUpdate(onyxData, 'failureData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE).value).toEqual({[cardID]: null});
+            const columnLayout = buildColumnLayout(spreadsheet, 'Personal Expenses', 'EUR', false, true);
+            expect(params.columnMappings).toBe(JSON.stringify(columnLayout));
+            const layoutUpdates = getRequiredOnyxUpdates(onyxData, 'optimisticData').filter((update) => isObject(update) && update.key === ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST);
+            expect(layoutUpdates).toEqual([
+                {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST, value: {[cardID]: null}},
+                {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST, value: {[cardID]: columnLayout}},
+            ]);
+            expect(getRequiredOnyxUpdate(onyxData, 'failureData', ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST, Onyx.METHOD.MERGE).value).toEqual({[cardID]: null});
+            const successModal = getRequiredOnyxUpdate(onyxData, 'successData', ONYXKEYS.IMPORTED_SPREADSHEET, Onyx.METHOD.MERGE, true);
+            const failureModal = getRequiredOnyxUpdate(onyxData, 'failureData', ONYXKEYS.IMPORTED_SPREADSHEET, Onyx.METHOD.MERGE, true);
+            const modalID = requireStringProperty(successModal.value, 'importFinalModalID');
+            expect(modalID).not.toBe('');
+            expect(successModal.value).toEqual({
+                importFinalModalID: modalID,
+                importFinalModal: {titleKey: 'spreadsheet.importSuccessfulTitle', promptKey: 'spreadsheet.importTransactionsSuccessfulDescription', promptKeyParams: {count: 2}},
+            });
+            expect(failureModal.value).toEqual({
+                importFinalModalID: modalID,
+                importFinalModal: {titleKey: 'spreadsheet.importFailedTitle', promptKey: 'spreadsheet.importFailedDescription'},
+            });
+            expect(result).toEqual({titleKey: 'spreadsheet.importFailedTitle', promptKey: 'spreadsheet.importFailedDescription'});
+        });
+
         it('returns the failed-import modal and skips the API call when no transactions are parsed', async () => {
             const result = await importTransactionsFromCSV({...validSpreadsheet, data: []}, CURRENT_USER_ACCOUNT_ID);
 
@@ -958,6 +1295,34 @@ describe('ImportTransactions', () => {
             const [command, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             expect(command).toBe('ImportCSVTransactions');
             getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE);
+        });
+
+        it('sends the tag of each row and sets it on the optimistic transaction', async () => {
+            // Given a spreadsheet with a column mapped to Tag
+            const spreadsheetWithTag = createMock<ImportedSpreadsheet>({
+                data: [
+                    ['Date', '2024-01-15'],
+                    ['Merchant', 'Coffee Shop'],
+                    ['Amount', '5.50'],
+                    ['Tag', 'Visa'],
+                ],
+                columns: {
+                    0: 'date',
+                    1: 'merchant',
+                    2: 'amount',
+                    3: 'tag',
+                },
+                containsHeader: true,
+            });
+
+            // When the transactions are imported
+            await importTransactionsFromCSV(spreadsheetWithTag, CURRENT_USER_ACCOUNT_ID);
+
+            // Then the tag is sent to the server and shown on the expense right away
+            const [, params, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            expect(JSON.parse(String(params.transactionList))).toEqual([expect.objectContaining({tag: 'Visa'})]);
+            const optimisticData = getRequiredOnyxUpdates(onyxData, 'optimisticData');
+            expect(optimisticData).toEqual(expect.arrayContaining([expect.objectContaining({value: expect.objectContaining({merchant: 'Coffee Shop', tag: 'Visa'})})]));
         });
 
         it('stores the reimbursable selection on the optimistic card', async () => {
@@ -995,15 +1360,23 @@ describe('ImportTransactions', () => {
 
         it('sends the existing card settings instead of the defaults when re-uploading to a card', async () => {
             const existingCardID = 987654321;
+            // Given an existing card whose saved settings must override conflicting settings from the import flow.
             const existingCardSettings = {cardDisplayName: 'Aussie Card', currency: 'AUD', isReimbursable: false, flipAmountSign: true};
+            const previouslySavedLayout = buildColumnLayout(validSpreadsheet, 'Previous Card', CONST.CURRENCY.USD, true, false);
+            const spreadsheet = {...validSpreadsheet, importTransactionSettings: {cardDisplayName: 'Flow Card', currency: 'EUR', isReimbursable: true, flipAmountSign: false}};
 
-            await importTransactionsFromCSV(validSpreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID, undefined, existingCardSettings);
+            // When a failed re-upload builds updates for the existing card.
+            await importTransactionsFromCSV(spreadsheet, CURRENT_USER_ACCOUNT_ID, existingCardID, previouslySavedLayout, existingCardSettings);
 
-            const [, params] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            // Then saved settings win, the old layout can be restored and no existing card is removed.
+            const [, params, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
             expect(params.cardName).toBe('Aussie Card');
             expect(params.currency).toBe('AUD');
             expect(params.reimbursable).toBe(false);
             expect(params.columnMappings).toBe(JSON.stringify(buildColumnLayout(validSpreadsheet, 'Aussie Card', 'AUD', false, true)));
+            expect(params.cardID).toBe(existingCardID);
+            expect(getRequiredOnyxUpdates(onyxData, 'failureData')).not.toEqual(expect.arrayContaining([expect.objectContaining({key: ONYXKEYS.CARD_LIST})]));
+            expect(getRequiredOnyxUpdate(onyxData, 'failureData', ONYXKEYS.NVP_SAVED_CSV_COLUMN_LAYOUT_LIST, Onyx.METHOD.MERGE).value).toEqual({[existingCardID]: previouslySavedLayout});
         });
     });
 
@@ -1021,15 +1394,20 @@ describe('ImportTransactions', () => {
         });
 
         it('queues an optimistic card when no existingCardID is passed', async () => {
+            // Given a new OFX card with an explicit name and reimbursable choice.
+            // When the real uploader builds the same optimistic card used by CSV imports.
             await uploadOFXStatement(statement, {cardDisplayName: 'Citi Personal', isReimbursable: false}, CURRENT_USER_ACCOUNT_ID);
 
             const [, params, onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            // Then its ownership, title and rollback identity agree with the upload parameters.
             expect(params.cardName).toBe('Citi Personal');
             expect(params.reimbursable).toBe(false);
             const cardUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE, true);
             const [optimisticCard] = Object.values(cardUpdate.value);
             expect(optimisticCard).toEqual(expect.objectContaining({reimbursable: false}));
             expect(Object.keys(cardUpdate.value).at(0)).toBe(String(params.cardID));
+            expect(optimisticCard).toEqual(expect.objectContaining({accountID: CURRENT_USER_ACCOUNT_ID, cardID: params.cardID, nameValuePairs: {cardTitle: 'Citi Personal'}}));
+            expect(getRequiredOnyxUpdate(onyxData, 'failureData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE).value).toEqual({[String(params.cardID)]: null});
         });
 
         it('reuses an existingCardID without queuing an optimistic card', async () => {
