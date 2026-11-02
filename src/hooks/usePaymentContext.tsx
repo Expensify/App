@@ -130,3 +130,4 @@ function useReportPaymentContext({chatReportPolicyID}: UseReportPaymentContextPa
 
 export default usePaymentContext;
 export {EMPTY_SEARCH_ACTION_INPUTS, PaymentContextProvider, useReportPaymentContext};
+export type {PaymentContextValue};
