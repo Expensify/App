@@ -4,7 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, TaxRate, TaxRatesWithDefault} from '@src/types/onyx';
+import type {Policy, PolicyCategories} from '@src/types/onyx';
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -13,26 +13,6 @@ import {Str} from 'expensify-common';
 
 import StringUtils from './StringUtils';
 import {containsHtmlTag} from './ValidationUtils';
-
-function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], taxID: string, taxRate: TaxRate, policyTaxRates?: TaxRatesWithDefault) {
-    const taxRateText = `${taxRate.name} ${CONST.DOT_SEPARATOR} ${taxRate.value}`;
-
-    if (!policyTaxRates) {
-        return taxRateText;
-    }
-
-    const {defaultExternalID, foreignTaxDefault} = policyTaxRates;
-    let suffix;
-
-    if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
-        suffix = translate('common.default');
-    } else if (taxID === defaultExternalID) {
-        suffix = translate('workspace.taxes.workspaceDefault');
-    } else if (taxID === foreignTaxDefault) {
-        suffix = translate('workspace.taxes.foreignDefault');
-    }
-    return `${taxRateText}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ``}`;
-}
 
 function formatRequireItemizedReceiptsOverText(
     translate: LocaleContextProps['translate'],
@@ -303,7 +283,6 @@ function hasAnyCategoryRules(categories: PolicyCategories | undefined): boolean 
 }
 
 export {
-    formatDefaultTaxRateText,
     formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
     getCategoryDefaultTaxRate,

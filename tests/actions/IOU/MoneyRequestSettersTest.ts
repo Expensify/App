@@ -30,11 +30,11 @@ import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
-import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
+import createRandomPolicy from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
+import {getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -321,124 +321,6 @@ describe('actions/IOU', () => {
     });
 
     describe('setMoneyRequestCategory', () => {
-        it('should set the associated tax for the category based on the tax expense rules', async () => {
-            // Given a policy with tax expense rules associated with category
-            const transactionID = '1';
-            const category = 'Advertising';
-            const policyID = '2';
-            const taxCode = 'id_TAX_EXEMPT';
-            const ruleTaxCode = 'id_TAX_RATE_1';
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(Number(policyID)),
-                taxRates: CONST.DEFAULT_TAX,
-                rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-                taxCode,
-                taxAmount: 0,
-                amount: 100,
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-
-            // When setting the money request category
-            setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimalsLocal);
-
-            await waitForBatchedUpdates();
-
-            // Then the transaction tax rate and amount should be updated based on the expense rules
-            await new Promise<void>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
-                    callback: (transaction) => {
-                        Onyx.disconnect(connection);
-                        expect(transaction?.taxCode).toBe(ruleTaxCode);
-                        expect(transaction?.taxAmount).toBe(5);
-                        resolve();
-                    },
-                });
-            });
-        });
-
-        describe('should not change the tax', () => {
-            it('if the transaction type is distance', async () => {
-                // Given a policy with tax expense rules associated with category and a distance transaction
-                const transactionID = '1';
-                const category = 'Advertising';
-                const policyID = '2';
-                const taxCode = 'id_TAX_EXEMPT';
-                const ruleTaxCode = 'id_TAX_RATE_1';
-                const taxAmount = 0;
-                const fakePolicy: Policy = {
-                    ...createRandomPolicy(Number(policyID)),
-                    taxRates: CONST.DEFAULT_TAX,
-                    rules: {expenseRules: createCategoryTaxExpenseRules(category, ruleTaxCode)},
-                };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-                    taxCode,
-                    taxAmount,
-                    amount: 100,
-                    iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
-                });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-
-                // When setting the money request category
-                setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimalsLocal);
-
-                await waitForBatchedUpdates();
-
-                // Then the transaction tax rate and amount shouldn't be updated
-                await new Promise<void>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
-                        callback: (transaction) => {
-                            Onyx.disconnect(connection);
-                            expect(transaction?.taxCode).toBe(taxCode);
-                            expect(transaction?.taxAmount).toBe(taxAmount);
-                            resolve();
-                        },
-                    });
-                });
-            });
-
-            it('if there are no tax expense rules', async () => {
-                // Given a policy without tax expense rules
-                const transactionID = '1';
-                const category = 'Advertising';
-                const policyID = '2';
-                const taxCode = 'id_TAX_EXEMPT';
-                const taxAmount = 0;
-                const fakePolicy: Policy = {
-                    ...createRandomPolicy(Number(policyID)),
-                    taxRates: CONST.DEFAULT_TAX,
-                    rules: {},
-                };
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
-                    taxCode,
-                    taxAmount,
-                    amount: 100,
-                });
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
-
-                // When setting the money request category
-                setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimalsLocal);
-
-                await waitForBatchedUpdates();
-
-                // Then the transaction tax rate and amount shouldn't be updated
-                await new Promise<void>((resolve) => {
-                    const connection = Onyx.connect({
-                        key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
-                        callback: (transaction) => {
-                            Onyx.disconnect(connection);
-                            expect(transaction?.taxCode).toBe(taxCode);
-                            expect(transaction?.taxAmount).toBe(taxAmount);
-                            resolve();
-                        },
-                    });
-                });
-            });
-        });
-
         it('should clear the tax when the policyID is empty', async () => {
             // Given a transaction with a tax
             const transactionID = '1';
@@ -451,7 +333,7 @@ describe('actions/IOU', () => {
             });
 
             // When setting the money request category without a policyID
-            setMoneyRequestCategory(transactionID, '', undefined, getCurrencyDecimalsLocal);
+            setMoneyRequestCategory(transactionID, '', undefined);
             await waitForBatchedUpdates();
 
             // Then the transaction tax should be cleared

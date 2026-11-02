@@ -18,7 +18,6 @@ import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
 import {
-    getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceInMeters,
     getDistanceRateTaxUpdates,
@@ -702,13 +701,7 @@ function setMoneyRequestTaxRateValues(transactionID: string, taxRateValues: TaxR
  * @param policy - The policy object, or undefined for P2P transactions where tax info should be cleared
  * @param isMovingFromTrackExpense - If the expense is moved from Track Expense
  */
-function setMoneyRequestCategory(
-    transactionID: string,
-    category: string,
-    policy: OnyxEntry<Policy>,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    isMovingFromTrackExpense?: boolean,
-) {
+function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<Policy>, isMovingFromTrackExpense?: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         category,
     });
@@ -720,16 +713,6 @@ function setMoneyRequestCategory(
             taxCode: '',
             taxAmount: null,
             taxValue: null,
-        });
-        return;
-    }
-    const transaction = getAllTransactionDrafts()[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(category, transaction, policy, getCurrencyDecimals);
-    if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
-        setMoneyRequestTaxRateValues(transactionID, {
-            taxCode: categoryTaxCode,
-            taxAmount: categoryTaxAmount,
-            taxValue: categoryTaxValue,
         });
     }
 }
