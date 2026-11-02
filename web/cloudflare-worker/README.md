@@ -210,7 +210,7 @@ The existing test-build authorization and reviewed-code confirmation still apply
 
 The `deployWebAdHoc` job runs tooling from the caller workflow's SHA, never from `APP_REF`. Authorized users can select a workflow branch for testing without merging it first. Downloaded artifacts cannot supply deployment targets, hooks or privileged bindings. Only compatibility date and flags are accepted from the branch's runtime manifest. `extractPRTestingAssets` copies validated regular files without following links or exposing source maps. Dependencies and build hooks run without Cloudflare credentials.
 
-The deployment token is loaded from `op://<OP_VAULT>/Cloudflare PR Testing/credential` using the existing CI service account and is exposed only to the deploy step. The preview account and zone IDs are configured directly in the workflow.
+The existing `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` repository secret is exposed only to the deploy step. The preview account and zone IDs are configured directly in the workflow.
 
 The trusted wrapper forwards application responses unchanged, including Brotli encoding and CSP nonces. Its reserved `/__expensify_preview` endpoint reports the SHA/run/attempt; `/preview-build.json` in Static Assets carries the same identity. Both must match before the build is reported as deployed. A failed new build never gets a success status just because an old version still serves that hostname.
 
