@@ -3,6 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
+import {markPendingSearchWrite, resetForTesting as resetPendingSearchWrite} from '@libs/pendingSearchWrite';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -151,6 +152,7 @@ describe('useSearchPageSetup', () => {
         mockMarkPageRequestedSearch.mockClear();
         mockClearPageRequestedSearch.mockClear();
         mockFocusCleanups = [];
+        resetPendingSearchWrite();
     });
 
     it('claims the first page only when the page is the one requesting it', () => {
@@ -341,6 +343,21 @@ describe('useSearchPageSetup', () => {
             // And a later render does not repeat it
             rerender({});
             expect(mockSearch).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not refresh cached results when a submit opens the preloaded tab before its create request is sent', () => {
+            // Given a preloaded tab with cached results, and a submit whose expense is not written yet
+            mockIsInPreloadedTab = true;
+            mockSearchResults = buildLoadedSnapshot(queryJSON?.hash ?? 0);
+            const {rerender} = renderHook(() => useSearchPageSetup(queryJSON));
+            markPendingSearchWrite();
+
+            // When the submit opens the tab
+            mockIsInPreloadedTab = false;
+            rerender({});
+
+            // Then no request is sent, so a stale response cannot overwrite the new expense's optimistic row
+            expect(mockSearch).not.toHaveBeenCalled();
         });
 
         it('requests a to-do search once when the preloaded tab is first opened', () => {

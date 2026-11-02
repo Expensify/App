@@ -127,6 +127,11 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         isFirstOpenOfPreloadedTabRef.current = false;
 
         const shouldSkipWaitForWrites = hasPendingSearchWrite();
+
+        // While a submit's write is pending, the first open keeps the cached results instead of refreshing them.
+        if (isFirstOpenOfPreloadedTab && isSnapshotDataLoaded && shouldSkipWaitForWrites) {
+            return;
+        }
         requestedHashesRef.current.add(hash);
         // Claim this query's first page so Search does not request it again when it mounts behind the skeleton.
         // With data loaded Search is already mounted, so a token set here would never be read and would skip the next revisit.
