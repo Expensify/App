@@ -6513,13 +6513,21 @@ describe('ReportUtils', () => {
             expect(canLeaveChat(supportTicket, undefined, undefined, false)).toBe(false);
         });
 
-        it('blocks leaving closed or archived tickets', () => {
-            // Given a resolved ticket whose invitees should remain participants after reopening
+        it('lets invitees leave resolved tickets', () => {
+            // Given a resolved ticket that invitees no longer need in their inbox
             const closedTicket: Report = {...supportTicket, stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED};
 
-            // When an invitee opens a closed or archived ticket
-            // Then leaving is unavailable
-            expect(canLeaveChat(closedTicket, undefined, inviteeAccountID, false)).toBe(false);
+            // When each participant opens the ticket details
+            // Then only the invitee can leave
+            expect(canLeaveChat(closedTicket, undefined, inviteeAccountID, false)).toBe(true);
+            expect(canLeaveChat(closedTicket, undefined, customerAccountID, false)).toBe(false);
+            expect(canLeaveChat(closedTicket, undefined, repAccountID, false)).toBe(false);
+        });
+
+        it('blocks leaving archived tickets', () => {
+            // Given an archived ticket
+            // When an invitee opens the ticket details
+            // Then leaving remains unavailable
             expect(canLeaveChat(supportTicket, undefined, inviteeAccountID, false, true)).toBe(false);
         });
     });
