@@ -1,5 +1,14 @@
 import OnyxUpdateManager from '@libs/actions/OnyxUpdateManager';
-import {addPolicyAgentRule, clearMerchantRuleErrors, clearPolicyAgentRuleErrors, deleteRule, deletePolicyAgentRule, setRule, updatePolicyAgentRule} from '@libs/actions/Policy/Rules';
+import {
+    addPolicyAgentRule,
+    clearMerchantRuleErrors,
+    clearPolicyAgentRuleErrors,
+    deleteRule,
+    deletePolicyAgentRule,
+    getRules as fetchRules,
+    setRule,
+    updatePolicyAgentRule,
+} from '@libs/actions/Policy/Rules';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {buildExpenseDefaultRule} from '@libs/ExpenseDefaultRuleUtils';
 import {flush as flushSequentialQueue} from '@libs/Network/SequentialQueue';
@@ -20,6 +29,7 @@ import Onyx from 'react-native-onyx';
 import type {MockFetch} from '../utils/TestHelper';
 
 import createRandomPolicy from '../utils/collections/policies';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -644,6 +654,30 @@ describe('actions/PolicyRules', () => {
             await waitForBatchedUpdates();
 
             expect(Object.keys((await getRules()) ?? {})).toHaveLength(0);
+        });
+    });
+    describe('getRules', () => {
+        it('records the attempt as made when the read never settles', async () => {
+            // Given a `GetRules` read that applies neither its success nor its failure data, which is what a read
+            // that throws does
+            jest.useFakeTimers();
+            mockFetch?.pause?.();
+            fetchRules();
+            await waitForBatchedUpdates();
+
+            // When the read has been in flight long enough to be treated as stale
+            jest.advanceTimersByTime(30 * 1000);
+            await waitForBatchedUpdates();
+            jest.useRealTimers();
+            await waitForBatchedUpdates();
+
+            // Then it counts as an attempt, so a screen waiting on the collection stops waiting instead of sitting
+            // through a fetch that is asked for again every time the in-flight flag clears
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES)).toBe(false);
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_HAS_RULES_DATA_BEEN_FETCHED)).toBe(true);
+
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
         });
     });
 });
