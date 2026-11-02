@@ -220,7 +220,7 @@ describe('PayActionButton', () => {
         expect(mockedPayMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({methodID: undefined}));
     });
 
-    it('opens the global hold menu with the selected bank account when the report has held expenses', () => {
+    it('opens the global hold menu with the selected bank account when the report has held expenses', async () => {
         // Given a report preview whose report has held expenses
         mockedHasHeldExpenses.mockReturnValue(true);
         renderPayActionButton();
@@ -234,6 +234,7 @@ describe('PayActionButton', () => {
                 paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
             });
         });
+        await waitForBatchedUpdates();
 
         // Then the global hold menu opens for this report with the chosen account, and the payment waits for the user's choice
         expect(mockShowHoldMenu).toHaveBeenCalledWith(

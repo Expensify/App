@@ -226,7 +226,7 @@ function SettlementButton({
         return false;
     };
 
-    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry?: () => void) => {
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry?: () => void | Promise<void>) => {
         // The validation gate returned before these guards could run, so apply them to the resumed.
         if (checkForPostValidationBlockers()) {
             return;
@@ -234,7 +234,7 @@ function SettlementButton({
         retry?.();
     });
 
-    const checkForNecessaryAction = (paymentMethodType?: PaymentMethodType, retry?: () => void) => {
+    const checkForNecessaryAction = (paymentMethodType?: PaymentMethodType, retry?: () => void | Promise<void>) => {
         if (isDelegateAccessRestricted) {
             showDelegateNoAccessModal();
             return true;
@@ -253,7 +253,7 @@ function SettlementButton({
         return checkForPostValidationBlockers();
     };
 
-    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void) => {
+    const runPaymentAction = (paymentMethodType: PaymentMethodType | undefined, action: () => void | Promise<void>) => {
         if (checkForNecessaryAction(paymentMethodType, action)) {
             return;
         }

@@ -107,6 +107,29 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
 
         const additionalOnyxData = getSearchPayOnyxData(hash, reportID);
 
+        const readPaymentInputs = async () => {
+            const [conciergeReportID, rules, introSelected, onboarding, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd] = await Onyx.multiGet([
+                ONYXKEYS.CONCIERGE_REPORT_ID,
+                ONYXKEYS.COLLECTION.RULE,
+                ONYXKEYS.NVP_INTRO_SELECTED,
+                ONYXKEYS.NVP_ONBOARDING,
+                ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
+                ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
+                ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
+            ]);
+            const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+            return {
+                conciergeChat,
+                rules,
+                introSelected,
+                userBillingGracePeriodEnds,
+                amountOwed,
+                ownerBillingGracePeriodEnd,
+                isTrackIntentUser: isTrackIntentUserSelector(introSelected),
+                isSelfTourViewed: hasSeenTourSelector(onboarding) ?? false,
+            };
+        };
+
         if (isInvoiceReport(iouReport)) {
             // Invoice payments rely on the invoice room data, so they can't proceed without the chat report.
             if (!chatReport) {
@@ -128,15 +151,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             const chatReportActions =
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
-            const [conciergeReportID, rules, introSelected, onboarding] = await Onyx.multiGet([
-                ONYXKEYS.CONCIERGE_REPORT_ID,
-                ONYXKEYS.COLLECTION.RULE,
-                ONYXKEYS.NVP_INTRO_SELECTED,
-                ONYXKEYS.NVP_ONBOARDING,
-            ]);
-            const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-            const isTrackIntentUser = isTrackIntentUserSelector(introSelected);
-            const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
+            const {conciergeChat, rules, introSelected, isTrackIntentUser, isSelfTourViewed} = await readPaymentInputs();
             payInvoice({
                 bankAccountList,
                 isASAPSubmitBetaEnabled,
@@ -176,18 +191,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             return;
         }
 
-        const [conciergeReportID, rules, introSelected, onboarding, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd] = await Onyx.multiGet([
-            ONYXKEYS.CONCIERGE_REPORT_ID,
-            ONYXKEYS.COLLECTION.RULE,
-            ONYXKEYS.NVP_INTRO_SELECTED,
-            ONYXKEYS.NVP_ONBOARDING,
-            ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END,
-            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-            ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
-        ]);
-        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-        const isTrackIntentUser = isTrackIntentUserSelector(introSelected);
-        const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
+        const {conciergeChat, rules, introSelected, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd, isTrackIntentUser, isSelfTourViewed} = await readPaymentInputs();
         payMoneyRequest({
             bankAccountList,
             isASAPSubmitBetaEnabled,
@@ -218,10 +222,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         });
     };
 
-    const confirmPayment = (params: PaymentActionParams) => {
-        runPayment(params);
-    };
-
     return (
         <SearchScopeProvider isOnSearch={false}>
             <SettlementButton
@@ -233,7 +233,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 iouReport={iouReport}
                 chatReportID={iouReport?.chatReportID}
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                onPress={confirmPayment}
+                onPress={runPayment}
                 style={[styles.w100, shouldDisablePointerEvents && styles.pointerEventsNone]}
                 wrapperStyle={[styles.w100]}
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}

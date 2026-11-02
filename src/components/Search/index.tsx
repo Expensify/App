@@ -664,12 +664,6 @@ function Search({
     // opens a background tab without navigating here: seeding up front rewrote the carousel of whatever was already
     // open in the RHP, which then paged through unrelated Spend results. Releasing is scoped to this source for the
     // same reason - the unscoped clear used to wipe a carousel another screen owned.
-    // Stable so selectRow keeps its identity. Only thread creation needs the Concierge chat, so it is read per press instead of subscribing every row to its writes.
-    const readConciergeChat = useCallback(async () => {
-        const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
-        return Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    }, []);
-
     const seedCarouselForOpenedExpense = useCallback(() => {
         const siblingTransactionIDs = carouselSiblingTransactionIDsRef.current;
         if (siblingTransactionIDs.length > 1) {
@@ -685,6 +679,10 @@ function Search({
 
     const selectRow = useCallback(
         async (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
+            const readConciergeChat = async () => {
+                const conciergeReportID = await Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+                return Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+            };
             // A cash back row has no expenses to open, and Enter on a focused row still lands here.
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isCashBackWithdrawalGroup(item)) {
                 return;
@@ -911,7 +909,6 @@ function Search({
             currentSearchKey,
             seedCarouselForOpenedExpense,
             getCurrencyDecimals,
-            readConciergeChat,
             delegateAccountID,
             fullPolicySnapshotLastModifiedByPolicyID,
         ],

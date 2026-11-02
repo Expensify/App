@@ -104,7 +104,7 @@ import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {AnyOnyxUpdate, OnyxData} from '@src/types/onyx/Request';
 import type SearchFooterConversion from '@src/types/onyx/SearchFooterConversion';
-import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
+import type {SearchResultDataType, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 import type Nullable from '@src/types/utils/Nullable';
 
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
@@ -299,6 +299,10 @@ type HandleActionButtonPressParams = {
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     bankAccountList: OnyxEntry<BankAccountList>;
 };
+
+function doesSearchActionUsePressTimeInputs(action: SearchTransactionAction | undefined) {
+    return action === CONST.SEARCH.ACTION_TYPES.PAY || action === CONST.SEARCH.ACTION_TYPES.APPROVE || action === CONST.SEARCH.ACTION_TYPES.SUBMIT;
+}
 
 function handleActionButtonPress({
     hash,
@@ -2756,6 +2760,7 @@ export {
     getChatReportWithFallback,
     getSearchApproveOnyxData,
     handleActionButtonPress,
+    doesSearchActionUsePressTimeInputs,
     submitMoneyRequestOnSearch,
     openSearchPage as openSearch,
     openBulkChangeApproverPage,

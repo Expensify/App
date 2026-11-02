@@ -19,7 +19,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useReportPaymentContext} from '@hooks/usePaymentContext';
+import {EMPTY_SEARCH_ACTION_INPUTS, useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -32,7 +32,7 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
-import {handleActionButtonPress} from '@userActions/Search';
+import {doesSearchActionUsePressTimeInputs, handleActionButtonPress} from '@userActions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -43,13 +43,13 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {ColorValue} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {hasSeenTourSelector, isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
-import Onyx, {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
+import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import type {SearchListActionProps, TransactionReportGroupListItemType} from './types';
 
@@ -298,7 +298,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
 
-    const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID} =
+    const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID, readSearchActionInputs} =
         useReportPaymentContext({
             chatReportPolicyID: chatReport?.policyID,
         });
@@ -318,15 +318,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         if (shouldIgnoreSearchSubmitPress(reportItem.action)) {
             return;
         }
-        const [conciergeReportID, introSelected, onboarding, amountOwed, bankAccountList] = await Onyx.multiGet([
-            ONYXKEYS.CONCIERGE_REPORT_ID,
-            ONYXKEYS.NVP_INTRO_SELECTED,
-            ONYXKEYS.NVP_ONBOARDING,
-            ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED,
-            ONYXKEYS.BANK_ACCOUNT_LIST,
-        ]);
-        const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-        const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
+        const pressTimeInputs = doesSearchActionUsePressTimeInputs(reportItem.action) ? await readSearchActionInputs() : EMPTY_SEARCH_ACTION_INPUTS;
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,
@@ -345,15 +337,12 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             onDelegateAccessRestricted: showDelegateNoAccessModal,
             personalPolicyID,
             ownerBillingGracePeriodEnd,
-            amountOwed,
             confirmSubmitReportViolations,
             openReportSubmitToPopover,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
-            introSelected,
-            isSelfTourViewed,
             activePolicy,
             chatReport,
             chatReportPolicy,
@@ -365,8 +354,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             allViolations,
             rules,
             personalDetailsByLogins: getPersonalDetailsByLogin(),
-            conciergeChat,
-            bankAccountList,
+            ...pressTimeInputs,
         });
     };
 

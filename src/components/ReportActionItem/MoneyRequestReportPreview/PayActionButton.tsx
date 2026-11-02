@@ -168,10 +168,6 @@ function PayActionButton() {
         }
     };
 
-    const confirmPayment = (params: PaymentActionParams) => {
-        runPayment(params);
-    };
-
     return (
         <AnimatedSettlementButton
             onlyShowPayElsewhere={shouldShowOnlyPayElsewhere}
@@ -186,7 +182,7 @@ function PayActionButton() {
             iouReport={iouReport}
             currency={iouReport?.currency}
             wrapperStyle={buttonMaxWidth}
-            onPress={confirmPayment}
+            onPress={runPayment}
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
             formattedAmount={formattedAmount}

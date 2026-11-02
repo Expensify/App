@@ -21,6 +21,10 @@ const DELEGATE_ACCOUNT_ID = 2;
 const DELEGATE_EMAIL = 'delegate@example.com';
 const ACTIVE_POLICY_ID = 'activePolicy';
 const CHAT_REPORT_POLICY_ID = 'chatPolicy';
+const CONCIERGE_REPORT_ID = 'concierge1';
+const CONCIERGE_REPORT_KEY = `${ONYXKEYS.COLLECTION.REPORT}${CONCIERGE_REPORT_ID}` as const;
+const AMOUNT_OWED = 1234;
+const BANK_ACCOUNT_ID = 42;
 const ACTIVE_POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${ACTIVE_POLICY_ID}` as const;
 const CHAT_REPORT_POLICY_KEY = `${ONYXKEYS.COLLECTION.POLICY}${CHAT_REPORT_POLICY_ID}` as const;
 
@@ -98,6 +102,32 @@ describe('usePaymentContext', () => {
         // Then the shared values are kept and the chat report policy is resolved per row, because each row may belong to a different workspace
         expect(result.current.currentUserAccountID).toBe(CURRENT_USER_ACCOUNT_ID);
         expect(result.current.chatReportPolicy).toEqual(expect.objectContaining({id: CHAT_REPORT_POLICY_ID}));
+    });
+
+    it('reads the press-time inputs for a row action from Onyx', async () => {
+        // Given the Concierge chat, the intro choice, a viewed tour, an amount owed and a bank account list in Onyx
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.CONCIERGE_REPORT_ID]: CONCIERGE_REPORT_ID,
+                [CONCIERGE_REPORT_KEY]: {reportID: CONCIERGE_REPORT_ID},
+                [ONYXKEYS.NVP_INTRO_SELECTED]: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                [ONYXKEYS.NVP_ONBOARDING]: {selfTourViewed: true},
+                [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: AMOUNT_OWED,
+                [ONYXKEYS.BANK_ACCOUNT_LIST]: {[BANK_ACCOUNT_ID]: {methodID: BANK_ACCOUNT_ID}},
+            });
+        });
+        const {result} = renderHook(() => usePaymentContext(), {wrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When a row reads the inputs at press time
+        const inputs = await result.current.readSearchActionInputs();
+
+        // Then each value comes from its own key, because Pay, Approve and Submit pass them straight into the payment helpers and a swapped key would pay with the wrong data
+        expect(inputs.conciergeChat).toEqual(expect.objectContaining({reportID: CONCIERGE_REPORT_ID}));
+        expect(inputs.introSelected).toEqual(expect.objectContaining({choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM}));
+        expect(inputs.isSelfTourViewed).toBe(true);
+        expect(inputs.amountOwed).toBe(AMOUNT_OWED);
+        expect(inputs.bankAccountList).toEqual(expect.objectContaining({[BANK_ACCOUNT_ID]: expect.objectContaining({methodID: BANK_ACCOUNT_ID})}));
     });
 
     it('throws when read outside the provider', () => {

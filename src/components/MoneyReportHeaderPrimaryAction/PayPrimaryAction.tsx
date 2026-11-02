@@ -219,10 +219,6 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
         }
     };
 
-    const confirmPayment = (params: PaymentActionParams) => {
-        runPayment(params);
-    };
-
     return (
         <AnimatedSettlementButton
             isPaidAnimationRunning={isPaidAnimationRunning}
@@ -237,7 +233,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             policyID={moneyRequestReport?.policyID}
             chatReportID={chatReport?.reportID}
             iouReport={moneyRequestReport}
-            onPress={confirmPayment}
+            onPress={runPayment}
             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
             shouldHidePaymentOptions={!shouldShowPayButton}
             isDisabled={(isOffline && !canAllowSettlement) || isDisabled}
