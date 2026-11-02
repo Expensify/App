@@ -43,6 +43,7 @@ const SCREENS = {
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
         DYNAMIC_VERIFY_ACCOUNT: 'Dynamic_Travel_VerifyAccount',
         ENABLE: 'Travel_Enable',
+        FLIGHT_BOOKING_DEV: 'Travel_FlightBookingDev',
         MISSING_PERSONAL_DETAILS_CONFIRM_VALIDATE_CODE: 'Travel_MissingPersonalDetails_ConfirmValidateCode',
     },
     SEARCH: {
