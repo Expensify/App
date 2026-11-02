@@ -4,6 +4,7 @@ import * as AppActions from '@libs/actions/App';
 import * as Device from '@libs/actions/Device';
 import {hasAuthToken} from '@libs/actions/Session';
 import * as Session from '@libs/actions/Session';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentUserEmail, setLastShortAuthToken} from '@libs/Network/NetworkStore';
 
@@ -55,7 +56,7 @@ jest.setTimeout(120000);
 // With coverage enabled and other tests in the same CI shard competing for CPU, they can exceed 4 minutes.
 const FULL_APP_UI_TEST_TIMEOUT_MS = 6 * 60 * 1000;
 TestHelper.setupApp();
-TestHelper.setupGlobalFetchMock();
+const mockFetch = TestHelper.setupGlobalFetchMock();
 
 const report = createRandomReport(7, undefined);
 
@@ -422,6 +423,79 @@ describe('Support auth token login', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(Session.signInWithSupportAuthToken).not.toHaveBeenCalled();
+
+            unmount2();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        FULL_APP_UI_TEST_TIMEOUT_MS,
+    );
+});
+
+// Runs the real short-lived-token sign-in against the fetch mock, which the Deep linking block replaces with a spy.
+describe('Switching accounts with a rejected shortLivedAuthToken', () => {
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+
+        // Set the keys the app needs to finish loading.
+        jest.spyOn(AppActions, 'openApp').mockImplementation(() =>
+            Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                [ONYXKEYS.HAS_LOADED_APP]: true,
+                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
+            }),
+        );
+    });
+
+    afterEach(async () => {
+        cleanup();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
+        PusherHelper.teardown();
+        jest.clearAllMocks();
+        Linking.setInitialURL('');
+        setLastShortAuthToken(null);
+
+        // Put back the default response so the rejection does not reach later blocks. mockFetch.mockReset() would also drop the fetch implementation.
+        mockFetch.mockAPICommand(SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, () => ({}));
+    });
+
+    // Renders the full App twice to reach the switch-account prompt, so it runs longer than the suite default (see FULL_APP_UI_TEST_TIMEOUT_MS).
+    it(
+        'signs the current account out once when the shortLivedAuthToken has expired by the time the switch is confirmed',
+        async () => {
+            // Given an account already signed in to NewDot
+            const {unmount: unmount1} = render(<App />);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
+            await waitForBatchedUpdatesWithAct();
+            unmount1();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
+            // Given the token expired while the prompt was open, which backend answers with a 407 error
+            mockFetch.mockAPICommand(SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, () => ({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED, message: ''}));
+
+            // When the app is opened on a transition link for a different account, and the switch is confirmed
+            Linking.setInitialURL(getInitialURL());
+            const {unmount: unmount2} = render(<App />);
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')}));
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
+            // Then the token is redeemed once and the current account is signed out once, so a rejected token leaves the device  on the sign-in page and signs out nobody else
+            TestHelper.expectAPICommandToHaveBeenCalled(SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, 1);
+            TestHelper.expectAPICommandToHaveBeenCalled(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, 1);
+            const logOutBody = TestHelper.getFetchMockCalls(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT).at(0)?.[1]?.body;
+            expect(logOutBody instanceof FormData ? logOutBody.get('authToken') : undefined).toBe(TEST_AUTH_TOKEN_2);
+            expect(hasAuthToken()).toBe(false);
 
             unmount2();
             await waitForBatchedUpdatesWithAct();
