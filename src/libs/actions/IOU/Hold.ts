@@ -97,7 +97,7 @@ function putOnHold({
     // If there is no existing transaction thread report, we should create one
     // This way we ensure every held request has a dedicated thread for comments
     if (!initialReportID) {
-        const moneyRequestReport = getReportOrDraftReport(transaction?.reportID);
+        const moneyRequestReport = getReportOrDraftReport({reportID: transaction?.reportID});
         createdThread = buildTransactionThread(iouAction, moneyRequestReport, currentUserAccountID, undefined, reportID);
     }
 
@@ -890,7 +890,7 @@ function getReportFromHoldRequestsOnyxData({
 
         optimisticHoldReportExpenseActionIDs.push({optimisticReportActionID: reportActionID, oldReportActionID: holdReportAction.reportActionID});
 
-        const heldReport = getReportOrDraftReport(holdReportAction.childReportID);
+        const heldReport = getReportOrDraftReport({reportID: holdReportAction.childReportID});
         if (heldReport) {
             updateHeldReports[`${ONYXKEYS.COLLECTION.REPORT}${heldReport.reportID}`] = {
                 parentReportActionID: reportActionID,
@@ -1140,7 +1140,7 @@ function changeMoneyRequestHoldStatus(
     }
     const moneyRequestReportID = reportAction?.reportID;
 
-    const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
+    const moneyRequestReport = getReportOrDraftReport({reportID: String(moneyRequestReportID)});
     if (!moneyRequestReportID || !moneyRequestReport) {
         return;
     }
