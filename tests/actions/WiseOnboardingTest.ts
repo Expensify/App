@@ -1,5 +1,5 @@
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
-import saveWiseOnboardingPage, {clearWiseOnboardingSaving} from '@libs/actions/WiseOnboarding';
+import saveWiseOnboardingPage from '@libs/actions/WiseOnboarding';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -18,6 +18,7 @@ import type {MockFetch} from '../utils/TestHelper';
 import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 const SSN = '123456789';
 
@@ -109,27 +110,23 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         expect(sideEffectSpy).not.toHaveBeenCalled();
     });
 
-    it('sends a page with an SSN outside the queue and shows an error when the request cannot be sent', async () => {
+    it('sends a page with an SSN outside the queue and keeps it unsaved when the request cannot be sent', async () => {
         // Given a page save carrying an SSN, whose request cannot be sent, as when the network drops
         const writeSpy = jest.spyOn(API, 'write');
-        jest.spyOn(API, 'makeRequestWithSideEffects').mockImplementation((command, apiParams, onyxData) =>
-            Onyx.update(onyxData?.optimisticData ?? []).then(() => Promise.reject(new Error('Network request failed'))),
-        );
+        global.fetch = jest.fn().mockRejectedValue(new TypeError('Network request failed'));
 
         // When it is sent
         saveWiseOnboardingPage(1, REPRESENTATIVE_PAGE, {firstName: 'Alice'}, {ssn: SSN});
         await waitForBatchedUpdates();
 
-        // Then the SSN never enters the request queue, which is written to disk, and the user is told the save failed, with the page kept unsaved
-        // so a later page's save does not let Confirm through
+        // Then the SSN never enters the request queue, which is written to disk. The dropped connection resolves the request instead of rejecting it,
+        // so its failure data keeps the page unsaved, which shows the save error and stops a later page's save from letting Confirm through
         expect(writeSpy).not.toHaveBeenCalled();
-        const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-        expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
-        expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(false);
-        expect(reimbursementAccount).toHaveProperty('errors');
+        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
     });
 
-    it('keeps a page with an SSN unsaved when its save never answers and the next visit ends the save', async () => {
+    it('keeps a page with an SSN unsaved and its running save out of the stored account when its save never answers', async () => {
         // Given a page save carrying an SSN, whose answer never comes, as when the app closes during the request
         mockFetch.pause();
         const sideEffectSpy = jest.spyOn(API, 'makeRequestWithSideEffects');
@@ -141,14 +138,14 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
             expect.anything(),
         );
 
-        // When the next visit ends the save, since the request is not queued and never retried
-        clearWiseOnboardingSaving();
-        await waitForBatchedUpdates();
-
-        // Then the save no longer runs, but the page is still unsaved, since nothing says Wise has it, so Confirm stays blocked until it saves
+        // When the save is still running
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+
+        // Then the running save is kept only in memory, since the request is not queued and never retried, so a reload, even one that reopens a
+        // page of the flow, does not wait for it forever. The page is unsaved on disk, so Confirm stays blocked after a reload until the page saves.
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(true);
+        expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingPendingSaves');
         expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
-        expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(false);
     });
 
     it('keeps the flow saving while a page with an SSN is still saving after another page saves', async () => {
@@ -168,7 +165,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
 
         // Then a save is still running, so the confirmation page waits for the representative page instead of letting the user through
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-        expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(true);
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(true);
         expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
         expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
     });
@@ -185,7 +182,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
         expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
         expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
-        expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(false);
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
     });
 
     it('keeps a page unsaved when the server rejects it and clears it once it saves', async () => {
@@ -207,6 +204,58 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         // Then no page is unsaved, so Confirm is open again
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
         expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
+    });
+
+    it('keeps a page unsaved when its earlier save succeeds but its later save fails', async () => {
+        // Given the user saves the business page twice before the first save answers, and the server accepts the first save but rejects the second
+        let requestCount = 0;
+        global.fetch = jest.fn(() => {
+            requestCount += 1;
+            return Promise.resolve(createMock<Response>({ok: true, json: () => Promise.resolve({jsonCode: requestCount === 1 ? 200 : 400})}));
+        });
+
+        // When both saves are sent
+        saveWiseOnboardingPage(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
+        saveWiseOnboardingPage(1, BUSINESS_PAGE, {description: 'We sell bikes and scooters'}, {});
+        await waitForBatchedUpdates();
+
+        // Then the page is still unsaved, since Wise only holds the earlier answer, so Confirm stays blocked until the page saves again
+        expect(requestCount).toBe(2);
+        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {business: true}});
+    });
+
+    it('keeps a page with an SSN unsaved when its earlier save answers after its later save would fail', async () => {
+        // Given the user saves the representative page with an SSN twice, which skips the queue, and the first save's answer is slow. The page belongs
+        // to a bank account no other test saves, since a page's save waits for its previous one and the other tests leave saves that never answer.
+        let answerFirstSave: (response: Response) => void = () => {};
+        let requestCount = 0;
+        global.fetch = jest.fn(() => {
+            requestCount += 1;
+            if (requestCount === 1) {
+                return new Promise<Response>((resolve) => {
+                    answerFirstSave = resolve;
+                });
+            }
+            return Promise.resolve(createMock<Response>({ok: true, json: () => Promise.resolve({jsonCode: 400})}));
+        });
+
+        // When both saves are made before the first one answers
+        saveWiseOnboardingPage(2, REPRESENTATIVE_PAGE, {firstName: 'Alice'}, {ssn: SSN});
+        saveWiseOnboardingPage(2, REPRESENTATIVE_PAGE, {firstName: 'Alicia'}, {ssn: SSN});
+        await waitForNetworkPromises();
+
+        // Then the second save waits for the first, so it cannot fail before the first one succeeds and have its failure cleared
+        expect(requestCount).toBe(1);
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(true);
+
+        // When the server accepts the first save and rejects the second
+        answerFirstSave(createMock<Response>({ok: true, json: () => Promise.resolve({jsonCode: 200})}));
+        await waitForNetworkPromises();
+
+        // Then the page is still unsaved, since Wise only holds the older answers, so Confirm stays blocked until the page saves again
+        expect(requestCount).toBe(2);
+        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
     });
 
     it('never writes a typed SSN to the request queue on disk', async () => {

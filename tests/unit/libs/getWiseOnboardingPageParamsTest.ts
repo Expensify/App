@@ -146,4 +146,15 @@ describe('getSavedFileAnswers', () => {
         // Then each field lists the saved files, so the next save sends their keys instead of uploading them again, and the emptied field stays empty
         expect(answers).toEqual({idDocument: [toSavedFile('kyc/1/passport.jpg')], proofOfAddress: []});
     });
+
+    it('leaves out the files of a page whose save failed', () => {
+        // Given the server's file keys after one page saved and another failed, so the server still holds the failed page's older file
+        const documents = {representative: {idDocument: ['kyc/1/older.jpg']}, business: {proofOfAddress: ['kyc/1/proof.pdf']}};
+
+        // When they are turned into draft answers with the failed page skipped
+        const answers = getSavedFileAnswers(documents, ['representative']);
+
+        // Then only the saved page's files are taken, so the replacement picked on the failed page stays in the draft for the next save
+        expect(answers).toEqual({proofOfAddress: [toSavedFile('kyc/1/proof.pdf')]});
+    });
 });

@@ -1,5 +1,6 @@
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAddressInputKeys from '@components/DynamicForm/utils/getAddressInputKeys';
+import {getHiddenProvidedKeys} from '@components/DynamicForm/utils/hasProvidedAnswer';
 import isCountryCode from '@components/DynamicForm/utils/isCountryCode';
 import {getAllFields, getPages} from '@components/DynamicForm/utils/paginate';
 
@@ -30,11 +31,9 @@ const COMPANY_TYPE_BY_INCORPORATION_TYPE: Partial<Record<string, ValueOf<typeof 
     [CONST.INCORPORATION_TYPES.SOLE_PROPRIETORSHIP]: CONST.WISE.COMPANY_TYPE.SOLE_PROPRIETORSHIP,
 };
 
-const READONLY_KEYS = new Set(
-    getAllFields(getPages(US))
-        .filter((field) => field.readonly)
-        .map((field) => field.key),
-);
+const ALL_FIELDS = getAllFields(getPages(US));
+
+const READONLY_KEYS = new Set(ALL_FIELDS.filter((field) => field.readonly).map((field) => field.key));
 
 /** The state picker lists US states by code, so a US state that is not one is left out */
 function getStateCode(countryCode: string | undefined, state: string | undefined): string | undefined {
@@ -86,7 +85,7 @@ function getWiseBusinessOnboardingPrefill(
 
     const business = businessAccountData?.bankAccountID === bankAccountID ? businessAccountData : undefined;
 
-    return {
+    const prefill: DynamicFormValues = {
         firstName: privatePersonalDetails?.legalFirstName,
         lastName: privatePersonalDetails?.legalLastName,
         phoneNumber: privatePersonalDetails?.phoneNumber,
@@ -103,6 +102,9 @@ function getWiseBusinessOnboardingPrefill(
         // What the user already saved to Wise wins over the details above
         ...getSavedAnswers(business?.wise),
     };
+    // A saved page that hides a sensitive field, such as the SSN after the user says they have none, makes the server's copy of its answer stale
+    const hiddenProvidedKeys = new Set(getHiddenProvidedKeys(ALL_FIELDS, prefill));
+    return Object.fromEntries(Object.entries(prefill).filter(([key]) => !hiddenProvidedKeys.has(key)));
 }
 
 /**

@@ -253,8 +253,9 @@ function getDynamicFieldErrors(fields: DynamicFormSchemaField[], values: Dynamic
             }
         }
         if (!isAnswered(values[field.key], field.type === 'boolean' && field.presentation !== 'checkbox')) {
-            // A resumed sensitive field, such as an SSN, is blank because the server never sends it back. The server keeps the saved answer when it is left blank, so it is not an error
-            if (hasProvidedAnswer(field, values)) {
+            // A resumed sensitive field, such as an SSN, has no answer because the server never sends it back. The server keeps the saved answer when none is sent, so it is not an error.
+            // Once the user clears the mask, the input holds an empty answer, and a new one is required
+            if (hasProvidedAnswer(field, values) && values[field.key] === undefined) {
                 continue;
             }
             if (field.type === 'address' ? isAddressRequired(field, values) : field.required) {

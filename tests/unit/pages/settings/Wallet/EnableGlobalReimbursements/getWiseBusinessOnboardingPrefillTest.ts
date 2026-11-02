@@ -211,4 +211,19 @@ describe('getMissingPrefill', () => {
             idDocument: [{name: 'license.jpg', uri: 'kyc/1/license.jpg', savedFileKey: 'kyc/1/license.jpg'}],
         });
     });
+
+    it('drops an SSN the server holds once a saved page says the representative has none', () => {
+        // Given a representative page saved with "I don't have an SSN" after an SSN was saved, which the server still reports as provided
+        const businessAccountData: WiseBusinessAccountData = {
+            ...BUSINESS_ACCOUNT_DATA,
+            wise: {pages: {representative: {hasNoSSN: true, ssnProvided: true}}},
+        };
+
+        // When the onboarding builds its starting answers
+        const prefill = getWiseBusinessOnboardingPrefill(BANK_ACCOUNT_ID, businessAccountData, PRIVATE_PERSONAL_DETAILS);
+
+        // Then the SSN does not count as on file, so saying they have one again asks for a new one
+        expect(prefill.hasNoSSN).toBe(true);
+        expect(prefill).not.toHaveProperty('ssnProvided');
+    });
 });
