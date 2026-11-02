@@ -8,7 +8,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 
-import {closeReactNativeApp, setReadyToShowAuthScreens, setUseNewDotSignInPage} from './actions/HybridApp';
+import {closeReactNativeApp, resetSignInFlow, setReadyToShowAuthScreens, setUseNewDotSignInPage} from './actions/HybridApp';
 import Log from './Log';
 import {getCurrentUserEmail} from './Network/NetworkStore';
 import {shouldUseOldApp} from './TryNewDotUtils';
@@ -26,6 +26,12 @@ let currentAccount: OnyxEntry<Account>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.HYBRID_APP,
     callback: (hybridApp) => {
+        // Only clears that end the session remove this key, so OldDot must sign out too and the sign-in flow must restart.
+        if (CONFIG.IS_HYBRID_APP && currentHybridApp && !hybridApp) {
+            Log.info('[HybridApp] A clear removed the hybridApp key. Performing sign-out on OldDot side');
+            resetSignInFlow();
+            HybridAppModule.signOutFromOldDot();
+        }
         currentHybridApp = hybridApp;
         signInToOldDotAndChooseExperience(hybridApp, currentTryNewDot, currentCredentials, currentSession, currentAccount);
     },
