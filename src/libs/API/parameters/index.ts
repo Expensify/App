@@ -22,6 +22,7 @@ export type {default as BeginSignInParams} from './BeginSignInParams';
 export type {default as CloseAccountParams} from './CloseAccountParams';
 export type {default as RevokeDeviceParams} from './RevokeDeviceParams';
 export type {default as ConnectBankAccountParams} from './ConnectBankAccountParams';
+export type {default as LinkPlaidToBankAccountParams} from './LinkPlaidToBankAccountParams';
 export type {default as OpenDuplicatePolicyPageParams} from './OpenDuplicatePolicyPageParams';
 export type {default as ConnectPolicyToAccountingIntegrationParams} from './ConnectPolicyToAccountingIntegrationParams';
 export type {default as ConnectPolicyToNetSuiteOAuthParams} from './ConnectPolicyToNetSuiteOAuthParams';
@@ -660,6 +661,7 @@ export type {default as MoveIOUReportToExistingPolicyParams} from './MoveIOURepo
 export type {default as ChangeReportPolicyParams} from './ChangeReportPolicyParams';
 export type {default as ChangeReportPolicyAndInviteSubmitterParams} from './ChangeReportPolicyAndInviteSubmitterParams';
 export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './ChangeTransactionsReportParams';
+export type {default as UndeleteTransactionsParams} from './UndeleteTransactionsParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
 export type {default as SetPolicyCommuterExclusionsParams} from './SetPolicyCommuterExclusionsParams';
 export type {default as SetPolicyWorkArrangementParams} from './SetPolicyWorkArrangementParams';

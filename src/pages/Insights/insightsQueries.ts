@@ -92,7 +92,6 @@ type InsightsChartQuery = {
     chart: InsightsChartSpec;
     queryJSON: Readonly<SearchQueryJSON> | undefined;
     previousPeriodQueryJSON?: Readonly<SearchQueryJSON>;
-    averageQueryJSON?: Readonly<SearchQueryJSON>;
 };
 
 type InsightsGraphHashes = {
@@ -103,17 +102,17 @@ type InsightsGraphHashes = {
 type InsightsGraphHashEntry = [InsightsGraphKey, InsightsGraphHashes];
 
 /** Returns the chart's graph slot paired with the hashes its current period, previous period and average are stored under. */
-function buildSnapshotHashEntry({chart, queryJSON, previousPeriodQueryJSON, averageQueryJSON}: InsightsChartQuery, shouldIncludeComparisons: boolean): InsightsGraphHashEntry | undefined {
+function buildSnapshotHashEntry(
+    {chart, queryJSON, previousPeriodQueryJSON}: InsightsChartQuery,
+    dashboard: InsightsDashboardID,
+    filters: InsightsFilters,
+): InsightsGraphHashEntry | undefined {
     const snapshotHash = queryJSON?.hash;
     if (!snapshotHash) {
         return undefined;
     }
-    if (!shouldIncludeComparisons) {
-        return [chart.graphKey, {snapshotHash}];
-    }
-
     const previousPeriodSnapshotHash = previousPeriodQueryJSON?.hash;
-    const averageSnapshotHash = averageQueryJSON?.hash;
+    const averageSnapshotHash = buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard)?.hash;
     if (!previousPeriodSnapshotHash || !averageSnapshotHash) {
         return undefined;
     }
@@ -136,12 +135,7 @@ type InsightsQuery = {
 };
 
 /** Builds one request for the dashboard's headline chart and the given supporting charts, naming each graph's snapshots by its chart's query hashes, and returns those chart queries to read the snapshots back with. */
-function buildInsightsJsonQuery(
-    dashboard: InsightsDashboardID,
-    filters: InsightsFilters,
-    supportingChartSpecs: InsightsChartSpec[],
-    shouldIncludeComparisons: boolean,
-): InsightsQuery | undefined {
+function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: InsightsFilters, supportingChartSpecs: InsightsChartSpec[]): InsightsQuery | undefined {
     // The backend saves inputQuery as the dashboard's filters, so it keeps the Group by the user picked, not the one fitted to the date range
     const inputQuery = buildInsightsQueryString(filters);
     const queryJSON = buildDashboardQuery(buildInsightsQueryString({...filters, groupBy: getQueryGroupBy(filters), compare: undefined}), dashboard);
@@ -153,15 +147,12 @@ function buildInsightsJsonQuery(
     const buildChartQuery = (chart: InsightsChartSpec): InsightsChartQuery => ({
         chart,
         queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard),
-        ...(shouldIncludeComparisons && {
-            previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
-            averageQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard),
-        }),
+        previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
     });
     const headlineChart = buildChartQuery(spec.headlineChart);
     const supportingCharts = supportingChartSpecs.map(buildChartQuery);
     const graphEntries = [headlineChart, ...supportingCharts]
-        .map((chartQuery) => buildSnapshotHashEntry(chartQuery, shouldIncludeComparisons))
+        .map((chartQuery) => buildSnapshotHashEntry(chartQuery, dashboard, filters))
         .filter((entry): entry is InsightsGraphHashEntry => !!entry);
     const insightsHashes: InsightsDashboard['graphs'] = Object.fromEntries(graphEntries);
 
@@ -173,7 +164,7 @@ function buildInsightsJsonQuery(
             inputQuery,
             searchKey: spec.searchKey,
             insightsHashes,
-            numberOfPeriods: shouldIncludeComparisons ? COMPARE_AVERAGE_PERIOD_COUNT : undefined,
+            numberOfPeriods: COMPARE_AVERAGE_PERIOD_COUNT,
         }),
         hash: queryJSON.hash,
         snapshotHashes: graphEntries.flatMap(([, hashes]) => Object.values(hashes).filter((hash): hash is number => hash !== undefined)),
