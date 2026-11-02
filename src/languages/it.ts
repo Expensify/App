@@ -9621,6 +9621,33 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             noVendorsFoundDescription: 'Aggiungi fornitori in Zoho Books e sincronizza di nuovo la connessione',
             noAccountsFound: 'Nessun account trovato',
             noAccountsFoundDescription: 'Aggiungi degli account in Zoho Books e sincronizza di nuovo la connessione',
+            autoSyncDescription: 'Sincronizza Zoho Books ed Expensify automaticamente, ogni giorno. I report si sincronizzano in tempo reale.',
+            accountingMethods: {
+                label: 'Metodo di esportazione',
+                description: 'Scegli quando esportare le spese.',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Competenza',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Contanti',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Le spese anticipate verranno esportate al momento dell’approvazione finale',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Le spese anticipate verranno esportate al momento del pagamento',
+                },
+            },
+            syncReimbursedReports: 'Sincronizza i report rimborsati',
+            syncReimbursedReportsDescription: 'Quando un resoconto viene pagato tramite ACH, verrà generato un pagamento di fattura in questo conto.',
+            billPaymentAccount: {
+                label: 'Conto per il pagamento delle fatture',
+                description: 'Scegli il conto di compensazione Zoho Books credits quando Expensify contrassegna una fattura come pagata.',
+            },
+            syncExpensifyCardSettlements: 'Sincronizza le liquidazioni della Carta Expensify',
+            settlementAccount: {label: 'Conto di regolamento Carta Expensify', description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in Zoho Books.'},
+            syncTravelBillingSettlements: 'Sincronizza le liquidazioni della fatturazione di viaggio consolidata',
+            travelBillingSettlementAccount: {
+                label: 'Conto di regolamento per la fatturazione di viaggio consolidata',
+                description: 'Scegli il tuo conto di regolamento e creeremo il pagamento in Zoho Books.',
+            },
+            travelBillingPayableAccount: {label: 'Conto debiti per fatturazione viaggi consolidata'},
         },
         businessCentral: {
             businessCentralSetup: 'Configurazione Dynamics 365 Business Central',
