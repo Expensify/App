@@ -332,7 +332,7 @@ describe('ParentNavigationSubtitle', () => {
         });
 
         it('opens the policy expense chat from the subtitle of a bill without a parent report', async () => {
-            // Given a bill with no parent report, and its owner's workspace chat
+            // Given a bill with no parent report, and its owner's policy expense chat
             const policyExpenseChatID = 'policy-expense-chat';
             const ownerAccountID = 123;
             const policyID = 'policy-id';
@@ -353,13 +353,13 @@ describe('ParentNavigationSubtitle', () => {
                 nativeEvent: {},
             });
 
-            // Then it opens the workspace chat of the bill's owner
+            // Then it opens the policy expense chat of the bill's owner
             expect(getPolicyExpenseChat).toHaveBeenCalledWith(ownerAccountID, policyID);
             expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(policyExpenseChatID));
         });
 
         it('renders the subtitle of a bill without a parent report as text when its policy expense chat is unavailable', async () => {
-            // Given a bill with no parent report, and no workspace chat for its owner
+            // Given a bill with no parent report, and no policy expense chat for its owner
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${billReportID}`, createMock<Report>({reportID: billReportID, type: CONST.REPORT.TYPE.BILL}));
             jest.mocked(getPolicyExpenseChat).mockReturnValue(undefined);
 

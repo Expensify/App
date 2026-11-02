@@ -753,8 +753,8 @@ describe('libs/NextStepUtils', () => {
                 expect(result).toMatchObject(expectedResult);
             });
 
-            test('a bill on a workspace with manual reimbursements still waits for the payer', () => {
-                // Given a bill on a workspace that reimburses expense reports outside Expensify (Indirect)
+            test('a bill on a policy with manual reimbursements still waits for the payer', () => {
+                // Given a bill on a policy that reimburses expense reports outside Expensify (Indirect)
                 const manualPolicy = {...policy, reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL};
                 const bill = {...report, type: CONST.REPORT.TYPE.BILL};
 
