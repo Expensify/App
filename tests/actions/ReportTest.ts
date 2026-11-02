@@ -2162,6 +2162,29 @@ describe('actions/Report', () => {
         expect(await getConciergeHtml(whisperHiddenReportID)).toContain('<followup-list selected>');
     });
 
+    it("builds the failure rollback's last message from the commenting user's own whisper visibility", async () => {
+        const REPORT_ID = '60101';
+        const CURRENT_USER_ACCOUNT_ID = 515;
+        const getLastVisibleMessageSpy = jest.spyOn(require('@libs/ReportActionsUtils'), 'getLastVisibleMessage');
+
+        // Given a user adding an attachment to a report
+        // When the attachment is added
+        Report.addAttachmentWithComment({
+            report: {...createRandomReport(60101, undefined), reportID: REPORT_ID},
+            notifyReportID: REPORT_ID,
+            ancestors: [],
+            attachments: new File([''], 'c.txt', {type: 'text/plain'}),
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            delegateAccountID: undefined,
+            conciergeReportID: undefined,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the last message restored on failure is resolved with that user's whisper visibility instead of the session fallback
+        expect(getLastVisibleMessageSpy).toHaveBeenCalledWith(REPORT_ID, undefined, {}, undefined, undefined, CURRENT_USER_ACCOUNT_ID);
+        getLastVisibleMessageSpy.mockRestore();
+    });
+
     it('should send not DeleteComment request and remove AddTextAndAttachment accordingly', async () => {
         global.fetch = TestHelper.createGlobalFetchMock({
             headers: new Headers({
