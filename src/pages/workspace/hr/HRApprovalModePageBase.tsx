@@ -141,7 +141,10 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
                         alternateNumberOfSupportedLines={3}
                         showScrollIndicator={false}
                     />
-                    <FixedFooter style={styles.mtAuto}>
+                    <FixedFooter
+                        style={styles.mtAuto}
+                        addBottomSafeAreaPadding
+                    >
                         <Button
                             large
                             success

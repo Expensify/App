@@ -3,7 +3,8 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-const {CONCIERGE_LHN_GBR, RENAME_SAVED_SEARCH, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION} = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
+const {CONCIERGE_LHN_GBR, RENAME_SAVED_SEARCH, OUTSTANDING_FILTER, ACCOUNT_SWITCHER, SCAN_TEST_DRIVE_CONFIRMATION, GPS_TOOLTIP, HAS_FILTER_NEGATION, MILEAGE_RATE_AUTO_UPDATED} =
+    CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = Exclude<ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>, typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.MULTI_SCAN_EDUCATIONAL_MODAL>;
 
@@ -73,6 +74,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(HAS_FILTER_NEGATION, isDismissedUsingCloseButton),
         name: HAS_FILTER_NEGATION,
         priority: 1000,
+        shouldShow: () => true,
+    },
+    [MILEAGE_RATE_AUTO_UPDATED]: {
+        content: 'productTrainingTooltip.mileageRateAutoUpdated',
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(MILEAGE_RATE_AUTO_UPDATED, isDismissedUsingCloseButton),
+        name: MILEAGE_RATE_AUTO_UPDATED,
+        priority: 800,
         shouldShow: () => true,
     },
 };

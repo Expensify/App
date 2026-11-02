@@ -35,6 +35,9 @@ type DelegateErrors = {
     /** Errors while removing a delegate keyed by email */
     removeDelegate?: Record<string, OnyxCommon.Errors>;
 
+    /** Errors while removing a delegator keyed by email */
+    removeDelegator?: Record<string, OnyxCommon.Errors>;
+
     /** Errors while connecting as a delegate keyed by email */
     connect?: Record<string, OnyxCommon.Errors>;
 

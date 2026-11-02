@@ -11,7 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencyDecimals, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {isExpenseReport, isInvoiceReport, shouldEnableNegative} from '@libs/ReportUtils';
 import {getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, isDeletedTransaction, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
@@ -47,7 +47,7 @@ function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report,
     const effectiveReport = report ?? transactionItem.report;
     const effectivePolicy = policy ?? transactionItem.policy;
     const isDeleted = isDeletedTransaction(transactionItem);
-    const isFromExpenseReport = (!isEmptyObject(effectiveReport) && isExpenseReport(effectiveReport)) || isPaidGroupPolicy(effectivePolicy);
+    const isFromExpenseReport = (!isEmptyObject(effectiveReport) && isExpenseReport(effectiveReport)) || isGroupPolicy(effectivePolicy);
     const amount = getTransactionAmount(transactionItem, isFromExpenseReport, transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID, isDeleted);
     let amountToDisplay = convertToDisplayString(amount, currency);
     if (isScanning(transactionItem)) {

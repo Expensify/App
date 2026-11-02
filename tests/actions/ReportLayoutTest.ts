@@ -1,6 +1,5 @@
 import {getReportLayoutGroupBy, getReportLayoutSelection, isMatrixLayout, setReportLayout} from '@libs/actions/ReportLayout';
 import * as API from '@libs/API';
-import type {SetNameValuePairsParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 
@@ -10,32 +9,31 @@ const mockWrite = jest.mocked(API.write);
 
 const LAYOUT_OPTION_NVP_NAME = 'expensify_layoutOption';
 const GROUP_BY_OPTION_NVP_NAME = 'expensify_groupByOption';
+const NAME_VALUE_PAIRS_KEY_PREFIX = 'nameValuePairs[';
 
 function isRecord(value: unknown): value is Record<PropertyKey, unknown> {
     return typeof value === 'object' && value !== null;
-}
-
-function isSetNameValuePairsParams(value: unknown): value is SetNameValuePairsParams {
-    return isRecord(value) && 'nameValuePairs' in value && typeof value.nameValuePairs === 'string';
 }
 
 function isStringRecord(value: unknown): value is Record<string, string> {
     return isRecord(value) && Object.values(value).every((entry) => typeof entry === 'string');
 }
 
-const getWrittenNameValuePairs = (callIndex = 0) => {
-    const call = mockWrite.mock.calls.at(callIndex);
-    const params = call?.[1];
-    if (!isSetNameValuePairsParams(params)) {
+const getWrittenNameValuePairs = (callIndex = 0): Record<string, string> => {
+    const params = mockWrite.mock.calls.at(callIndex)?.[1];
+    if (!isStringRecord(params)) {
         return {};
     }
 
-    const parsed: unknown = JSON.parse(params.nameValuePairs);
-    if (!isStringRecord(parsed)) {
-        return {};
+    const result: Record<string, string> = {};
+    for (const [key, value] of Object.entries(params)) {
+        if (!key.startsWith(NAME_VALUE_PAIRS_KEY_PREFIX) || !key.endsWith(']')) {
+            continue;
+        }
+        const nvpName = key.slice(NAME_VALUE_PAIRS_KEY_PREFIX.length, -1);
+        result[nvpName] = value;
     }
-
-    return parsed;
+    return result;
 };
 
 describe('getReportLayoutGroupBy', () => {
@@ -103,6 +101,14 @@ describe('setReportLayout', () => {
         setReportLayout(CONST.REPORT_LAYOUT.GROUP_BY.TAG, null, null);
 
         expect(mockWrite).not.toHaveBeenCalledWith(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, expect.any(Object), expect.any(Object));
+    });
+
+    it('sends each NVP as its own nameValuePairs[<name>] form field so PHP parses it as an associative array', () => {
+        setReportLayout(CONST.REPORT_LAYOUT.GROUP_BY.TAG, null, null);
+
+        expect(mockWrite.mock.calls.at(0)?.[1]).toEqual({
+            [`nameValuePairs[${GROUP_BY_OPTION_NVP_NAME}]`]: CONST.REPORT_LAYOUT.GROUP_BY.TAG,
+        });
     });
 });
 

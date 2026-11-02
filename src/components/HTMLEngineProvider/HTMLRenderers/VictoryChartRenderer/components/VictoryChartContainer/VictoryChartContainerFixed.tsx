@@ -2,6 +2,8 @@ import React from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
+import {resolveChartContainerBgColor} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+import useTheme from '@hooks/useTheme';
 import type {VictoryChartContainerLayout, VictoryChartContainerThemeStyles} from './types';
 
 type VictoryChartContainerFixedProps = {
@@ -12,7 +14,9 @@ type VictoryChartContainerFixedProps = {
 
 function VictoryChartContainerFixed({children, layout, themeStyles}: VictoryChartContainerFixedProps) {
     const {chartContentStyles, chartContainerStyles} = useVictoryChartContext();
-    const {backgroundColor, borderRadius, ...layoutContainerStyles} = chartContainerStyles;
+    const theme = useTheme();
+    const {backgroundColor: rawBgColor, borderRadius, ...layoutContainerStyles} = chartContainerStyles;
+    const backgroundColor = resolveChartContainerBgColor(rawBgColor, theme);
     const layoutKind = layout.kind;
     const fixedWidth = layout.kind === 'fixed' ? layout.width : undefined;
     const fixedHeight = layout.kind === 'fixed' ? layout.height : undefined;

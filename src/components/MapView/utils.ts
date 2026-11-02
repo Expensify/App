@@ -1,6 +1,8 @@
-import type {LngLat} from 'react-map-gl';
 import is2dArray from '@libs/is2dArray';
 import type {Coordinate} from './MapViewTypes';
+
+/** A geographic point as a plain longitude/latitude pair. Mapbox's `LngLat` became a class in mapbox-gl 3.x, but these helpers only read `.lng`/`.lat`, so a literal shape is all that's needed. */
+type LngLatLiteral = {lng: number; lat: number};
 
 function isSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][]): directionCoordinates is Coordinate[] {
     return is2dArray<Coordinate>(directionCoordinates);
@@ -45,7 +47,7 @@ function areSameCoordinate(coordinate1: Coordinate, coordinate2: Coordinate) {
     return haversineDistance(coordinate1, coordinate2) < 20;
 }
 
-function findClosestCoordinateOnLineFromCenter(center: LngLat, lineCoordinates: Coordinate[]): Coordinate | null {
+function findClosestCoordinateOnLineFromCenter(center: LngLatLiteral, lineCoordinates: Coordinate[]): Coordinate | null {
     if (!lineCoordinates || lineCoordinates.length < 2) {
         return null;
     }
@@ -77,7 +79,7 @@ function findClosestCoordinateOnLineFromCenter(center: LngLat, lineCoordinates: 
 /**
  * Find the closest point on the line segment created by connecting start and endPoint
  */
-function closestPointOnSegment(point: LngLat, startPoint: Coordinate, endPoint: Coordinate): LngLat {
+function closestPointOnSegment(point: LngLatLiteral, startPoint: Coordinate, endPoint: Coordinate): LngLatLiteral {
     const x0 = point.lng;
     const y0 = point.lat;
     const x1 = startPoint[0];

@@ -76,6 +76,9 @@ type ReportActionAvatarsProps = {
 
     /** chatReportID needed for the avatars logic. When provided, this will be used as a fallback if the snapshot is undefined */
     chatReportID?: string;
+
+    /** Whether to show the real actor instead of Concierge for automatic actions (e.g. in search results) */
+    shouldUseRealActor?: boolean;
 };
 
 /**
@@ -110,6 +113,7 @@ function ReportActionAvatars({
     invitedEmailsToAccountIDs,
     shouldUseCustomFallbackAvatar = false,
     chatReportID,
+    shouldUseRealActor = false,
 }: ReportActionAvatarsProps) {
     const accountIDs = passedAccountIDs.filter((accountID) => accountID !== CONST.DEFAULT_NUMBER_ID);
 
@@ -145,6 +149,7 @@ function ReportActionAvatars({
         invitedEmailsToAccountIDs,
         shouldUseCustomFallbackAvatar,
         chatReportID,
+        shouldUseRealActor,
     });
 
     let avatarType: ValueOf<typeof CONST.REPORT_ACTION_AVATARS.TYPE> = notPreciseAvatarType;

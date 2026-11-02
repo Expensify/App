@@ -21,6 +21,7 @@ type BaseLockAccountComponentProps = {
     domainAccountID?: number;
     domainName?: string;
     accountID?: number;
+    lockButtonText?: string;
 };
 function LockAccountPageBase({
     confirmModalPrompt,
@@ -31,6 +32,7 @@ function LockAccountPageBase({
     domainAccountID,
     domainName,
     accountID,
+    lockButtonText,
 }: BaseLockAccountComponentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -72,7 +74,7 @@ function LockAccountPageBase({
             isLoading={isLoading}
             isDisabled={isOffline}
             large
-            text={translate('lockAccountPage.reportSuspiciousActivity')}
+            text={lockButtonText ?? translate('lockAccountPage.reportSuspiciousActivity')}
             style={styles.mt6}
             pressOnEnter
             onPress={handleReportSuspiciousActivity}

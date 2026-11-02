@@ -100,10 +100,10 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {areCategoriesEnabled: false});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
             });
         });
@@ -117,10 +117,10 @@ describe('useAdvancedSearchFilters', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, categories);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
             });
         });
@@ -137,10 +137,10 @@ describe('useAdvancedSearchFilters', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, categories);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
             });
         });
@@ -151,10 +151,10 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {areTagsEnabled: false});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
             });
         });
@@ -164,15 +164,15 @@ describe('useAdvancedSearchFilters', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
             });
         });
 
-        it('shows tag filter when tags are enabled even if no tags exist (singlePolicyCondition is always truthy)', async () => {
+        it('hides tag filter when tags are enabled but no tags exist', async () => {
             const policy = buildPolicy(1, {areTagsEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
@@ -186,11 +186,46 @@ describe('useAdvancedSearchFilters', () => {
             };
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, emptyTagList);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
-            // Tag filter is visible because singlePolicyCondition (!!selectedPolicyTagLists) is always true
+            // Tag filter is hidden because the tag list contains no actual tags
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+            });
+        });
+
+        it('hides tag filter when a selected policy has tags enabled but no tags exist', async () => {
+            const policy = buildPolicy(1, {areTagsEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+
+            const emptyTagList: PolicyTagLists = {
+                Department: {
+                    name: 'Department',
+                    orderWeight: 0,
+                    required: false,
+                    tags: {},
+                },
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, emptyTagList);
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, ['1']), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.flat();
+                expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
+            });
+        });
+
+        it('shows tag filter when a selected policy has actual tags', async () => {
+            const policy = buildPolicy(1, {areTagsEnabled: true});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
+
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, ['1']), {wrapper});
+
+            await waitFor(() => {
+                const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
             });
         });
@@ -201,10 +236,10 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {tax: {trackingEnabled: false}});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE);
             });
         });
@@ -224,10 +259,10 @@ describe('useAdvancedSearchFilters', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE);
             });
         });
@@ -245,10 +280,10 @@ describe('useAdvancedSearchFilters', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE);
             });
         });
@@ -259,10 +294,10 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: false});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE);
             });
         });
@@ -273,10 +308,10 @@ describe('useAdvancedSearchFilters', () => {
             delete (policy as Record<string, unknown>).isAttendeeTrackingEnabled;
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE);
             });
         });
@@ -285,10 +320,10 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {type: CONST.POLICY.TYPE.CORPORATE, isAttendeeTrackingEnabled: true});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE);
             });
         });
@@ -299,10 +334,10 @@ describe('useAdvancedSearchFilters', () => {
             const policy = buildPolicy(1, {fieldList: {}});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD);
             });
         });
@@ -329,10 +364,10 @@ describe('useAdvancedSearchFilters', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD);
             });
         });
@@ -359,31 +394,11 @@ describe('useAdvancedSearchFilters', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).not.toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_FIELD);
-            });
-        });
-    });
-
-    describe('currentType', () => {
-        it('defaults to expense when no type is set', async () => {
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
-
-            await waitFor(() => {
-                expect(result.current.currentType).toBe(CONST.SEARCH.DATA_TYPES.EXPENSE);
-            });
-        });
-
-        it('uses the type from search filters form', async () => {
-            await Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {type: CONST.SEARCH.DATA_TYPES.CHAT});
-
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
-
-            await waitFor(() => {
-                expect(result.current.currentType).toBe(CONST.SEARCH.DATA_TYPES.CHAT);
             });
         });
     });
@@ -414,10 +429,10 @@ describe('useAdvancedSearchFilters', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}1`, categories);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}1`, buildTagList('Engineering'));
 
-            const {result} = renderHook(() => useAdvancedSearchFilters(), {wrapper});
+            const {result} = renderHook(() => useAdvancedSearchFilters(undefined, undefined), {wrapper});
 
             await waitFor(() => {
-                const allKeys = result.current.typeFiltersKeys.flat();
+                const allKeys = result.current.flat();
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG);
                 expect(allKeys).toContain(CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE);

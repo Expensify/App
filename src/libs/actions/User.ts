@@ -797,7 +797,7 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
                 }
 
                 // Someone reimburses an expense
-                if ('IOUReportID' in message) {
+                if ('paymentType' in message) {
                     return playSound(SOUNDS.SUCCESS);
                 }
 
@@ -1026,6 +1026,10 @@ function updatePreferredSkinTone(skinTone: number) {
     const parameters: UpdatePreferredEmojiSkinToneParams = {value: skinTone};
 
     API.write(WRITE_COMMANDS.UPDATE_PREFERRED_EMOJI_SKIN_TONE, parameters, {optimisticData});
+}
+
+function setInboxTab(tab: ValueOf<typeof CONST.INBOX_TAB>) {
+    Onyx.merge(ONYXKEYS.NVP_INBOX_TAB, tab);
 }
 
 /**
@@ -1934,12 +1938,13 @@ export {
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
+    setInboxTab,
+    updateChatPriorityMode,
     setShouldUseStagingServer,
     togglePlatformMute,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
-    updateChatPriorityMode,
     setContactMethodAsDefault,
     updateTheme,
     setHighContrastIntent,

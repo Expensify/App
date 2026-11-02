@@ -102,6 +102,9 @@ describe('ContactMethodsPage', () => {
             },
         });
 
+        // Wait for Onyx to notify the component's useOnyx subscriber before asserting
+        await waitForBatchedUpdates();
+
         await waitFor(() => {
             node = screen.getByTestId(`menu-${otherEmail}`);
 

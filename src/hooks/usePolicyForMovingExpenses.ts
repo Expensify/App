@@ -1,7 +1,7 @@
 import {activePolicySelector} from '@selectors/Policy';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useSession} from '@components/OnyxListItemProvider';
-import {canSubmitPerDiemExpenseFromWorkspace, isPaidGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, isGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -24,7 +24,7 @@ function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string
     return (
         checkForUserPendingDelete(login, policy) &&
         isPolicyMemberByRole(policy) &&
-        isPaidGroupPolicy(policy) &&
+        isGroupPolicy(policy) &&
         policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
         (!isPerDiemRequest || canSubmitPerDiemExpenseFromWorkspace(policy)) &&
         (!isTimeRequest || isTimeTrackingEnabled(policy))

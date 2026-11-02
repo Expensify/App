@@ -385,6 +385,33 @@ import KEYBOARD_SUBMIT_BEHAVIOR from './keyboardSubmitBehavior';
 > [!NOTE]
 > Only override `keyboardSubmitBehavior` on screens where `onSubmit` triggers navigation. For forms that stay on-screen after submission, keep the default (`'dismiss-then-submit'`) to avoid layout jumps.
 
+### Reacting to form value changes (`FormValueWatcher`)
+
+Sometimes a parent screen needs to react when a form value changes from outside the form — for example when an RHP picker writes to the Onyx draft via `setDraftValues` and the parent has to re-sync `FormProvider`'s internal state (clear `touched` flags, wipe local errors via `resetForm`, etc.).
+
+Instead of adding a `useEffect` inside the parent (which can't see `FormProvider`'s `inputValues` directly), use the `FormValueWatcher` primitive together with `FormProvider`'s children render prop. It's a render-null component that fires `onValuesChange(current, previous)` whenever the `values` reference changes, and short-circuits when the reference is identical (no spurious fires).
+
+```jsx
+<FormProvider formID={ONYXKEYS.FORMS.MY_FORM} ref={formRef} /* ... */>
+    {({inputValues}) => (
+        <>
+            <FormValueWatcher
+                values={inputValues}
+                onValuesChange={(current, previous) => {
+                    if (current.type === previous.type) {
+                        return;
+                    }
+                    formRef.current?.resetForm(current);
+                }}
+            />
+            {/* ...InputWrappers... */}
+        </>
+    )}
+</FormProvider>
+```
+
+Use it only when you genuinely need a cross-component reaction; for in-form logic, prefer `onValueChange` / `onInputChange` on the specific input.
+
 ### Safe Area Padding
 
 Any `FormProvider.tsx` that has a button at the bottom. If the `<FormProvider>` is inside a `<ScreenWrapper>`, the bottom safe area inset is handled automatically (`includeSafeAreaPaddingBottom` needs to be set to `true`, but its the default).

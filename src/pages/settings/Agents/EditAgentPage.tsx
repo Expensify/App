@@ -35,12 +35,14 @@ function EditAgentPage({route}: EditAgentPageProps) {
     const accountID = route.params.accountID;
     const [agent, agentMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
     const [personalDetails, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: (list) => list?.[accountID]});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {showConfirmModal} = useConfirmModal();
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
     const isOnyxLoaded = agentMetadata.status === 'loaded' && personalDetailsMetadata.status === 'loaded';
     const shouldShowNotFoundPage = isOnyxLoaded && !agent && !personalDetails;
 
+    const agentLogin = personalDetails?.login ?? '';
     const handleBackPress = () => Navigation.goBack();
     const handleEditAvatarPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.getRoute(accountID));
     const handleEditNamePress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_NAME.getRoute(accountID));
@@ -57,9 +59,8 @@ function EditAgentPage({route}: EditAgentPageProps) {
         if (result.action !== ModalActions.CONFIRM) {
             return;
         }
-        deleteAgent(accountID);
+        deleteAgent(accountID, agentLogin, allPolicies);
     };
-    const agentLogin = personalDetails?.login ?? '';
     const isPendingAddOrDelete = agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || agent?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const areActionsDisabled = isPendingAddOrDelete || accountID <= 0 || !agentLogin;
     const handleChatPress = () => {

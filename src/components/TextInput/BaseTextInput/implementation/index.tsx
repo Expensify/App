@@ -63,6 +63,7 @@ function BaseTextInput({
     shouldRenderHintAsHTML = false,
     onInputChange = () => {},
     multiline = false,
+    shouldLabelStayOnSingleLine = false,
     shouldInterceptSwipe = false,
     autoCorrect = true,
     prefixCharacter = '',
@@ -392,6 +393,7 @@ function BaseTextInput({
                                     labelScale={labelScale}
                                     for={inputProps.nativeID}
                                     isMultiline={isMultiline}
+                                    shouldLabelStayOnSingleLine={shouldLabelStayOnSingleLine}
                                 />
                             </>
                         ) : null}

@@ -66,6 +66,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -138,6 +139,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -198,6 +200,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -267,6 +270,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -341,6 +345,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -405,6 +410,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -468,6 +474,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -537,6 +544,7 @@ describe('actions/IOU/BulkEdit', () => {
                         },
                     },
                 },
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -577,8 +585,9 @@ describe('actions/IOU/BulkEdit', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION}]);
-            await waitForBatchedUpdates();
+            const violations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: [{name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION, type: CONST.VIOLATION_TYPES.VIOLATION}],
+            };
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
@@ -591,6 +600,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -634,8 +644,9 @@ describe('actions/IOU/BulkEdit', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [{name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
-            await waitForBatchedUpdates();
+            const violations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: [{name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION}],
+            };
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
@@ -648,6 +659,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -696,8 +708,9 @@ describe('actions/IOU/BulkEdit', () => {
                 Food: {name: 'Food', enabled: true, 'GL Code': '', unencodedName: 'Food', externalID: '', areCommentsRequired: false, origin: ''},
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, [{name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION}]);
-            await waitForBatchedUpdates();
+            const violations = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: [{name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY, type: CONST.VIOLATION_TYPES.VIOLATION}],
+            };
 
             const canEditFieldSpy = jest.spyOn(require('@libs/ReportUtils'), 'canEditFieldOfMoneyRequest').mockReturnValue(true);
 
@@ -712,6 +725,7 @@ describe('actions/IOU/BulkEdit', () => {
                     [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`]: policyCategories,
                 },
                 policyTags: {},
+                violations,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -774,6 +788,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicyID}`]: transactionPolicy,
@@ -850,6 +865,7 @@ describe('actions/IOU/BulkEdit', () => {
                     },
                 },
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 allPolicies: {
                     [`${ONYXKEYS.COLLECTION.POLICY}${transactionPolicyID}`]: txPolicy,
@@ -917,6 +933,7 @@ describe('actions/IOU/BulkEdit', () => {
                     },
                 },
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -993,6 +1010,7 @@ describe('actions/IOU/BulkEdit', () => {
                 policyTags: {
                     [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`]: policyTagsForPolicy,
                 },
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -1050,6 +1068,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -1114,6 +1133,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: 1,
                 delegateAccountID: undefined,
@@ -1201,6 +1221,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 allPolicies,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -1291,6 +1312,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 allPolicies,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -1361,6 +1383,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -1428,6 +1451,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -1491,6 +1515,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -1548,6 +1573,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions: {},
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,
@@ -1649,6 +1675,7 @@ describe('actions/IOU/BulkEdit', () => {
                 reportActions,
                 policyCategories: undefined,
                 policyTags: {},
+                violations: undefined,
                 hash: undefined,
                 currentUserAccountID: RORY_ACCOUNT_ID,
                 delegateAccountID: undefined,

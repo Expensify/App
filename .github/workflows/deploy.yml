@@ -747,7 +747,7 @@ jobs:
     name: Post a Slack message when any platform fails to build or deploy
     runs-on: blacksmith-2vcpu-ubuntu-2404
     if: ${{ failure() }}
-    needs: [androidBuild, androidUploadGooglePlay, androidUploadBrowserStack, androidUploadApplause, androidSubmit, iosBuild, iosUploadTestflight, iosUploadBrowserStack, iosUploadApplause, iosSubmit, webBuild, webDeploy]
+    needs: [androidBuild, androidUploadGooglePlay, androidUploadBrowserStack, androidUploadApplause, androidSubmit, iosBuild, iosUploadTestflight, iosUploadBrowserStack, iosUploadApplause, iosSubmit, webBuild, webDeploy, victoryChartRendererBuild]
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
@@ -794,12 +794,13 @@ jobs:
   checkDeploymentSuccess:
     runs-on: blacksmith-2vcpu-ubuntu-2404
     outputs:
-      IS_AT_LEAST_ONE_PLATFORM_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}
       IS_ALL_PLATFORMS_DEPLOYED: ${{ steps.checkDeploymentSuccessOnAllPlatforms.outputs.IS_ALL_PLATFORMS_DEPLOYED }}
+      IS_RELEASE_READY: ${{ steps.checkReleaseReady.outputs.IS_RELEASE_READY }}
+      VCR_RESULT: ${{ needs.victoryChartRendererBuild.result }}
       ANDROID_RESULT: ${{ steps.platformResults.outputs.ANDROID_RESULT }}
       IOS_RESULT: ${{ steps.platformResults.outputs.IOS_RESULT }}
       WEB_RESULT: ${{ steps.platformResults.outputs.WEB_RESULT }}
-    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy]
+    needs: [androidBuild, androidUploadGooglePlay, androidSubmit, iosBuild, iosUploadTestflight, iosSubmit, webBuild, webDeploy, victoryChartRendererBuild]
     if: ${{ always() }}
     steps:
       # Determine effective result for each platform
@@ -866,9 +867,20 @@ jobs:
           echo "IS_ALL_PLATFORMS_DEPLOYED=$isAllPlatformsDeployed" >> "$GITHUB_OUTPUT"
           echo "IS_ALL_PLATFORMS_DEPLOYED is $isAllPlatformsDeployed"
 
+      - name: Check release readiness
+        id: checkReleaseReady
+        run: |
+          isReleaseReady="false"
+          if [ "${{ steps.checkDeploymentSuccessOnAtLeastOnePlatform.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED }}" == "true" ] && \
+            [ "${{ needs.victoryChartRendererBuild.result }}" == "success" ]; then
+            isReleaseReady="true"
+          fi
+          echo "IS_RELEASE_READY=$isReleaseReady" >> "$GITHUB_OUTPUT"
+          echo "IS_RELEASE_READY is $isReleaseReady (VCR result: ${{ needs.victoryChartRendererBuild.result }})"
+
   createRelease:
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
     needs: [prep, checkDeploymentSuccess, victoryChartRendererBuild]
     permissions:
       contents: write
@@ -876,6 +888,9 @@ jobs:
       # v7
       - name: Download all workflow run artifacts
         uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131
+
+      - name: Verify victory-chart-renderer artifact is present
+        run: test -f ./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64
 
       - name: Get last production release
         id: get_last_prod_version
@@ -960,7 +975,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
 
       - name: Upload victory-chart-renderer to GitHub Release
-        if: ${{ needs.victoryChartRendererBuild.result == 'success' }}
         run: |
           gh release upload "${{ needs.prep.outputs.TAG }}" --repo "${{ github.repository }}" --clobber \
             "./victory-chart-renderer-linux-x64-artifact/victory-chart-renderer-linux-x64#victory-chart-renderer-linux-x64"
@@ -993,7 +1007,7 @@ jobs:
   #   2. CP that version bump to staging
   cherryPickExtraVersionBump:
     needs: [prep, checkDeploymentSuccess]
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) && needs.prep.outputs.DEPLOY_ENV == 'production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) && needs.prep.outputs.DEPLOY_ENV == 'production' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) }}
     uses: ./.github/workflows/cherryPick.yml
     secrets: inherit
     with:
@@ -1003,8 +1017,8 @@ jobs:
   postSlackMessageOnSuccess:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, androidUploadGooglePlay, androidSubmit, iosUploadTestflight, iosSubmit, webDeploy, checkDeploymentSuccess, createRelease]
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) && needs.victoryChartRendererBuild.result == 'success' && needs.createRelease.result == 'success' }}
+    needs: [prep, androidUploadGooglePlay, androidSubmit, iosUploadTestflight, iosSubmit, webDeploy, checkDeploymentSuccess, victoryChartRendererBuild, createRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         uses: slackapi/slack-github-action@45a88b9581bfab2566dc881e2cd66d334e621e2c # v3.0.3
@@ -1051,7 +1065,7 @@ jobs:
 
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
-    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_RELEASE_READY) }}
     needs: [prep, checkDeploymentSuccess, createRelease, androidBuild, iosBuild]
     secrets: inherit
     with:

@@ -10,6 +10,7 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setWorkspaceConfirmationCurrency} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
+import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -39,6 +40,10 @@ function WorkspaceCurrencySelectionPage({route}: WorkspaceCurrencySelectionPageP
     const onSelect = useCallback(
         (option: CurrencyListItem) => {
             setWorkspaceConfirmationCurrency(option.currencyCode);
+            // After selecting, don't restore focus to the currency menu item on the confirmation page —
+            // a focused button suppresses the form's submit-on-Enter, so the next Enter would re-open this
+            // page instead of creating the workspace. The header Back button keeps the default focus restore.
+            skipNextFocusRestore();
             goBack();
         },
         [goBack],

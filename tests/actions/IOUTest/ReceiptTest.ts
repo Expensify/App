@@ -472,7 +472,7 @@ describe('actions/IOU/Receipt', () => {
             // When replaceReceipt is called with the paid group policy
             const writeSpy = mockApiWrite();
             try {
-                replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: policy, transactionPolicyTagList: undefined});
+                replaceReceipt({transactionID, file: createFile(), source, transactionPolicy: policy, transactionPolicyTagList: undefined, transactionViolations: existingViolations});
                 await waitForBatchedUpdates();
 
                 // Then the failureData restores the original violations

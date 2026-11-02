@@ -17,7 +17,7 @@ import ClassificationFields from './fieldGroups/ClassificationFields';
 import computeFieldVisibility, {hasBelowShowMore} from './fieldGroups/fieldVisibility';
 import SettingsFields from './fieldGroups/SettingsFields';
 import TransactionDetailsFields from './fieldGroups/TransactionDetailsFields';
-import type {AmountDisplay, CompactState, DistanceData, DistanceFlags, ErrorState, ExpenseMode, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
+import type {AmountDisplay, CompactState, DistanceData, ErrorState, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
 import useFooterDerivedFlags from './hooks/useFooterDerivedFlags';
 import useFooterTagVisibility from './hooks/useFooterTagVisibility';
 
@@ -30,12 +30,6 @@ type ConfirmationFieldListProps = {
 
     /** Selected participants (drives ReportField presentation) */
     selectedParticipants: Participant[];
-
-    /** What kind of expense the surface is confirming */
-    expenseMode: ExpenseMode;
-
-    /** Distance-mode discriminators (only meaningful when expenseMode.isDistance) */
-    distanceFlags: DistanceFlags;
 
     /** Distance-rate metadata */
     distanceData: DistanceData;
@@ -66,8 +60,6 @@ function ConfirmationFieldList({
     policy,
     policyTags,
     selectedParticipants,
-    expenseMode,
-    distanceFlags,
     distanceData,
     amountDisplay,
     requiredFlags,
@@ -81,7 +73,7 @@ function ConfirmationFieldList({
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'DownArrow']);
-    const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat} = useConfirmationFields();
+    const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat, isDistanceRequest, isPerDiemRequest, isTimeRequest, isTypeInvoice} = useConfirmationFields();
     const policyTagLists = getTagLists(policyTags);
 
     const flags = useFooterDerivedFlags({
@@ -92,10 +84,10 @@ function ConfirmationFieldList({
         policyTagLists,
         isPolicyExpenseChat,
         isReadOnly,
-        isDistanceRequest: expenseMode.isDistance,
-        isPerDiemRequest: expenseMode.isPerDiem,
-        isTimeRequest: expenseMode.isTime,
-        isTypeInvoice: expenseMode.isInvoice,
+        isDistanceRequest,
+        isPerDiemRequest,
+        isTimeRequest,
+        isTypeInvoice,
         shouldShowSmartScanFields: visibilityFlags.shouldShowSmartScanFields,
     });
 
@@ -109,7 +101,7 @@ function ConfirmationFieldList({
     const fieldVisibility = computeFieldVisibility({
         shouldShowSmartScanFields: visibilityFlags.shouldShowSmartScanFields,
         shouldShowAmountField: visibilityFlags.shouldShowAmountField,
-        isDistanceRequest: expenseMode.isDistance,
+        isDistanceRequest,
         shouldShowMerchant: visibilityFlags.shouldShowMerchant,
         shouldShowTimeRequestFields: flags.shouldShowTimeRequestFields,
         shouldShowCategories: visibilityFlags.shouldShowCategories,
@@ -141,7 +133,6 @@ function ConfirmationFieldList({
 
             <TransactionDetailsFields
                 policy={policy}
-                distanceFlags={distanceFlags}
                 amountDisplay={amountDisplay}
                 distanceData={distanceData}
                 requiredFlags={requiredFlags}
@@ -175,7 +166,6 @@ function ConfirmationFieldList({
                 selectedParticipants={selectedParticipants}
                 shouldShowBillable={flags.shouldShowBillable}
                 shouldShowReimbursable={flags.shouldShowReimbursable}
-                isPerDiemRequest={expenseMode.isPerDiem}
                 toggleHandlers={toggleHandlers}
                 isCompactMode={compactState.isCompactMode}
                 fieldVisibility={fieldVisibility}

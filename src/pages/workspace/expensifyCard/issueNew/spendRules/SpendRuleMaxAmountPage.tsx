@@ -4,6 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import {setIssueNewCardData} from '@libs/actions/Card';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -22,11 +23,18 @@ export default function SpendRuleMaxAmountPage({route}: SpendRuleMaxAmountPagePr
     };
 
     return (
-        <SpendRuleMaxAmountBase
+        <AccessOrNotFoundWrapper
             policyID={policyID}
-            maxAmount={defaultValue}
-            currencyCode={selectedCurrency}
-            onMaxAmountChange={handleMaxAmountChange}
-        />
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <SpendRuleMaxAmountBase
+                policyID={policyID}
+                maxAmount={defaultValue}
+                currencyCode={selectedCurrency}
+                onMaxAmountChange={handleMaxAmountChange}
+            />
+        </AccessOrNotFoundWrapper>
     );
 }

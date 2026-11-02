@@ -145,22 +145,27 @@ describe('UserAvatarUtils', () => {
         });
     });
 
-    describe('isPresetAvatar', () => {
-        it('should return true for custom avatar URLs in catalog', () => {
+    describe('isCatalogAvatar', () => {
+        it('should return true for user catalog avatar URLs', () => {
             const customURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_5.png';
-            expect(UserAvatarUtils.isPresetAvatar(customURL)).toBe(true);
+            expect(UserAvatarUtils.isCatalogAvatar(customURL)).toBe(true);
         });
 
-        it('should return false for non-custom URLs', () => {
-            expect(UserAvatarUtils.isPresetAvatar('https://example.com/random.png')).toBe(false);
+        it('should return true for agent catalog avatar URLs', () => {
+            const botURL = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/bots/bot-avatar--blue.png';
+            expect(UserAvatarUtils.isCatalogAvatar(botURL)).toBe(true);
+        });
+
+        it('should return false for non-catalog URLs', () => {
+            expect(UserAvatarUtils.isCatalogAvatar('https://example.com/random.png')).toBe(false);
         });
 
         it('should return false for Concierge URL', () => {
-            expect(UserAvatarUtils.isPresetAvatar(CONST.CONCIERGE_ICON_URL)).toBe(false);
+            expect(UserAvatarUtils.isCatalogAvatar(CONST.CONCIERGE_ICON_URL)).toBe(false);
         });
 
         it('should return false for undefined', () => {
-            expect(UserAvatarUtils.isPresetAvatar(undefined)).toBe(false);
+            expect(UserAvatarUtils.isCatalogAvatar(undefined)).toBe(false);
         });
     });
 
@@ -239,26 +244,32 @@ describe('UserAvatarUtils', () => {
         });
     });
 
-    describe('getPresetAvatarNameFromURL', () => {
-        it('should extract custom avatar name from CloudFront URL', () => {
+    describe('getCatalogAvatarNameFromURL', () => {
+        it('should extract user catalog avatar name from CloudFront URL', () => {
             const url = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/default-avatar_5.png';
-            const result = UserAvatarUtils.getPresetAvatarNameFromURL(url);
+            const result = UserAvatarUtils.getCatalogAvatarNameFromURL(url);
             expect(result).toBe('default-avatar_5');
         });
 
-        it('should return undefined for non-custom avatar URLs', () => {
+        it('should extract agent catalog avatar name from CloudFront URL', () => {
+            const url = 'https://d2k5nsl2zxldvw.cloudfront.net/images/avatars/bots/bot-avatar--blue.png';
+            const result = UserAvatarUtils.getCatalogAvatarNameFromURL(url);
+            expect(result).toBe('bot-avatar--blue');
+        });
+
+        it('should return undefined for non-catalog avatar URLs', () => {
             const url = 'https://example.com/custom-upload.png';
-            const result = UserAvatarUtils.getPresetAvatarNameFromURL(url);
+            const result = UserAvatarUtils.getCatalogAvatarNameFromURL(url);
             expect(result).toBeUndefined();
         });
 
         it('should return undefined for Concierge URL', () => {
-            const result = UserAvatarUtils.getPresetAvatarNameFromURL(CONST.CONCIERGE_ICON_URL);
+            const result = UserAvatarUtils.getCatalogAvatarNameFromURL(CONST.CONCIERGE_ICON_URL);
             expect(result).toBeUndefined();
         });
 
         it('should return undefined for undefined input', () => {
-            const result = UserAvatarUtils.getPresetAvatarNameFromURL(undefined);
+            const result = UserAvatarUtils.getCatalogAvatarNameFromURL(undefined);
             expect(result).toBeUndefined();
         });
     });

@@ -1416,6 +1416,23 @@ function getPreferredPolicyFromExpensifyCardSettings(settings: ExpensifyCardSett
     return undefined;
 }
 
+/** Resolves domainName from the settings root or any nested program block that defines it. */
+function getDomainNameFromExpensifyCardSettings(settings: ExpensifyCardSettings | OnyxEntry<ExpensifyCardSettings>): string | undefined {
+    if (!settings) {
+        return undefined;
+    }
+    if (settings.domainName) {
+        return settings.domainName;
+    }
+    for (const key of NESTED_EXPENSIFY_CARD_PROGRAM_KEYS) {
+        const nestedDomainName = getNestedExpensifyCardProgramSettings(settings, key)?.domainName;
+        if (nestedDomainName) {
+            return nestedDomainName;
+        }
+    }
+    return undefined;
+}
+
 function isCardPendingIssue(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
@@ -1764,7 +1781,15 @@ function getDisplayableThirdPartyCards(cardList: CardList | undefined, cardFeedE
     return lodashSortBy(cards, getAssignedCardSortKey);
 }
 
-function getCardCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
+/**
+ * Determines the currency of the card and/or feed. Data sources are prioritized as follows:
+ * 1. Card currency, if card is passed and has a currency set on it
+ * 2. Feed settings currency, if settings are passed and have a currency
+ * 3. Use USD for US program keys
+ * 4. For UK/EU feeds, determine currency based on card country, defaulting to GBP
+ * 5. Finally, if all else fails, fallback to USD
+ */
+function getCardOrFeedCurrency(card?: OnyxEntry<Card>, cardSettings?: OnyxEntry<ExpensifyCardSettings>): string {
     // If currency is set on the card itself, use it.
     if (card?.nameValuePairs?.currency) {
         return card.nameValuePairs.currency;
@@ -1941,6 +1966,7 @@ export {
     getCardProgramKey,
     getLinkedPolicyIDsFromExpensifyCardSettings,
     getPreferredPolicyFromExpensifyCardSettings,
+    getDomainNameFromExpensifyCardSettings,
     isPolicyIDInLinkedExpensifyCardPolicyList,
     filterAllInactiveCards,
     filterInactiveCards,
@@ -1983,7 +2009,7 @@ export {
     getDisplayableExpensifyCards,
     getDisplayableThirdPartyCards,
     isExpiredCard,
-    getCardCurrency,
+    getCardOrFeedCurrency,
     getSelectedCardsSharedCurrency,
     getCardHintText,
     resolveTransactionCardFields,

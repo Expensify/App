@@ -28,6 +28,7 @@ function MultiSelectListItem<TItem extends ListItem>({
     wrapperStyle,
     titleStyles,
     shouldHighlightSelectedItem,
+    titleNumberOfLines,
 }: MultiSelectListItemProps<TItem>) {
     const styles = useThemeStyles();
     const icon = item.icons?.at(0);
@@ -36,7 +37,7 @@ function MultiSelectListItem<TItem extends ListItem>({
         ...item,
         leftElement: icon ? <AvatarLeftElement icon={icon} /> : item.leftElement,
     };
-    const computedWrapperStyle = [wrapperStyle, icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact];
+    const computedWrapperStyle = [icon ? [styles.pv0, styles.mnh13] : styles.optionRowCompact, wrapperStyle];
 
     return (
         <BaseSelectListItem
@@ -59,6 +60,7 @@ function MultiSelectListItem<TItem extends ListItem>({
             wrapperStyle={computedWrapperStyle}
             titleStyles={titleStyles}
             shouldHighlightSelectedItem={shouldHighlightSelectedItem}
+            titleNumberOfLines={titleNumberOfLines}
         />
     );
 }

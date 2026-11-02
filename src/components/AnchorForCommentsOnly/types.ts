@@ -24,6 +24,9 @@ type AnchorForCommentsOnlyProps = ChildrenProps & {
 
     /** Indicates whether an image is wrapped in an anchor (`<a>`) tag with an `href` link */
     linkHasImage?: boolean;
+
+    /** Whether this anchor is rendered inside a task title */
+    isChildOfTaskTitle?: boolean;
 };
 
 type BaseAnchorForCommentsOnlyProps = AnchorForCommentsOnlyProps & {

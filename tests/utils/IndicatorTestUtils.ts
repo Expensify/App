@@ -4,7 +4,7 @@ type IndicatorTestCase = {
     name: string;
     indicatorColor: string;
     status: IndicatorStatus | undefined;
-    policyIDWithErrors?: string;
+    indicatorPolicyID?: string;
 };
 
 // eslint-disable-next-line import/prefer-default-export

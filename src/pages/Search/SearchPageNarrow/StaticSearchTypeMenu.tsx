@@ -15,11 +15,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import staticPolicyInfoSelector from './staticPolicyInfoSelector';
 
-function getActiveKey(similarSearchHash: number, hasPaidGroupPolicy: boolean, searches: Record<string, SearchTypeMenuItem>): string {
+function getActiveKey(similarSearchHash: number, hasGroupPolicy: boolean, searches: Record<string, SearchTypeMenuItem>): string {
     const reportsSearch = searches[CONST.SEARCH.SEARCH_KEYS.REPORTS];
     const expensesSearch = searches[CONST.SEARCH.SEARCH_KEYS.EXPENSES];
     const submitSearch = searches[CONST.SEARCH.SEARCH_KEYS.SUBMIT];
-    const candidates = [reportsSearch, expensesSearch, ...(hasPaidGroupPolicy ? [submitSearch] : [])];
+    const candidates = [reportsSearch, expensesSearch, ...(hasGroupPolicy ? [submitSearch] : [])];
     return candidates.find((entry) => similarSearchHash === entry.similarSearchHash)?.key ?? reportsSearch.key;
 }
 
@@ -27,7 +27,7 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'Pencil']);
     const [policyInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: staticPolicyInfoSelector});
-    const hasPaidGroupPolicy = policyInfo?.hasPaidGroupPolicy ?? false;
+    const hasGroupPolicy = policyInfo?.hasGroupPolicy ?? false;
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;
 
@@ -41,11 +41,11 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
         {key: expensesSearch.key, icon: expensifyIcons.Receipt, title: translate(expensesSearch.translationPath)},
     ];
 
-    if (hasPaidGroupPolicy) {
+    if (hasGroupPolicy) {
         tabs.push({key: submitSearch.key, icon: expensifyIcons.Pencil, title: translate(submitSearch.translationPath)});
     }
 
-    const activeKey = getActiveKey(queryJSON.similarSearchHash, hasPaidGroupPolicy, suggestedSearches);
+    const activeKey = getActiveKey(queryJSON.similarSearchHash, hasGroupPolicy, suggestedSearches);
 
     return (
         <SearchTypeMenuNarrowContent

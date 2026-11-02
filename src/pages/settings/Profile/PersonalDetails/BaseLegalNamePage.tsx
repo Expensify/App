@@ -19,7 +19,7 @@ import {doesContainReservedWord, isValidDisplayName} from '@libs/ValidationUtils
 import CONST from '@src/CONST';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import INPUT_IDS from '@src/types/form/LegalNameForm';
+import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 
 type BaseLegalNamePageProps<TFormID extends OnyxFormKey> = {
     children?: ReactNode;
@@ -37,7 +37,7 @@ type BaseLegalNamePageProps<TFormID extends OnyxFormKey> = {
 /**
  * Appends an error message to the given field, joining with a newline if one already exists.
  */
-function appendErrorMessage(errors: FormInputErrors<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>, key: keyof FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>, message: string) {
+function appendErrorMessage(errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, key: keyof FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, message: string) {
     const existing = errors[key];
     // eslint-disable-next-line no-param-reassign
     errors[key] = existing ? `${existing}\n${message}` : message;
@@ -47,8 +47,8 @@ function appendErrorMessage(errors: FormInputErrors<typeof ONYXKEYS.FORMS.LEGAL_
  * Validates legal first/last name fields.
  * Shared by LegalNamePage and TravelLegalNamePage.
  */
-function validateLegalName(values: FormOnyxValues<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM>, translate: LocalizedTranslate): FormInputErrors<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM> {
-    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.LEGAL_NAME_FORM> = {};
+function validateLegalName(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, translate: LocalizedTranslate): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> {
+    const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
     const firstName = values[INPUT_IDS.LEGAL_FIRST_NAME] ?? '';
     const lastName = values[INPUT_IDS.LEGAL_LAST_NAME] ?? '';
 

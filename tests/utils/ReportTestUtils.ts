@@ -25,7 +25,6 @@ const getFakeReportAction = (index: number, overrides: Partial<ReportAction> = {
         originalMessage: {
             html: 'hey',
             lastModified: '2021-07-14T15:00:00Z',
-            // IOUReportID: index,
             linkedReportID: index.toString(),
             whisperedTo: [],
             reason: '',

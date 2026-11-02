@@ -62,7 +62,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
     const [typeSelected, setTypeSelected] = useState(initialLimitType);
     const [isConfirmModalVisible, setIsConfirmModalVisible] = useState(false);
     const [expirationToggle, setExpirationToggle] = useState(!!card?.nameValuePairs?.validFrom);
-    const currency = useCurrencyForExpensifyCard({policyID});
+    const currency = useCurrencyForExpensifyCard({policyID, fundID: defaultFundID});
     const personalDetails = usePersonalDetails();
     const assigneePersonalDetails = personalDetails?.[card?.accountID ?? CONST.DEFAULT_NUMBER_ID];
     const assigneeTimeZone = assigneePersonalDetails?.timezone?.selected;
@@ -207,6 +207,8 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
             <ScreenWrapper
                 testID="WorkspaceEditCardLimitTypePage"

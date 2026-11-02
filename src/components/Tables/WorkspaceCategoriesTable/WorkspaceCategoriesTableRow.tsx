@@ -58,7 +58,7 @@ export default function WorkspaceCategoriesTableRow({rowIndex, shouldUseNarrowTa
                 errors: item.errors,
                 pendingAction: item.pendingAction,
                 shouldHideOnDelete: false,
-                dismissError: item.dismissError,
+                onClose: item.dismissError,
             }}
         >
             {({hovered}) => (

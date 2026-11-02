@@ -14,6 +14,7 @@ import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDefaultApprover, getMemberAccountIDsForWorkspace, isExpensifyTeam, shouldFilterExpensifyTeam} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import MemberRightIcon from '@pages/workspace/MemberRightIcon';
@@ -172,7 +173,10 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 return;
             }
 
-            const newSelectedEmail = approver?.login ?? '';
+            // Canonicalize phone logins (e164@expensify.sms) so the approver email stored as submitsTo
+            // matches the canonical key the invite writes into employeeList. Without this, a phone approver
+            // invited offline stops resolving once online and the workflow disappears. No-op for emails.
+            const newSelectedEmail = addSMSDomainIfPhoneNumber(approver?.login ?? '');
             const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
             const accountID = Number(newSelectedEmail ? policyMemberEmailsToAccountIDs[newSelectedEmail] : '');
             const {avatar, displayName = newSelectedEmail} = personalDetails?.[accountID] ?? {};

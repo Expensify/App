@@ -1,4 +1,4 @@
-import {getAgentAccountIDFlags, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
+import {getCustomAgentParticipantAccountID, getReportParticipantAccountIDs} from '@selectors/AgentZeroChat';
 import {getReportChatType} from '@selectors/Report';
 import {agentZeroProcessingAgentIDsSelector} from '@selectors/ReportNameValuePairs';
 import {accountIDSelector} from '@selectors/Session';
@@ -41,24 +41,19 @@ const AgentZeroStatusActionsContext = createContext<AgentZeroStatusActions>(defa
  * metadata. For non-AgentZero reports (the common case), returns children directly.
  *
  * AgentZero chats include Concierge DMs, policy #admins rooms, and custom-agent chats (any
- * report with a participant — other than the current user — whose accountID has a
- * `SHARED_NVP_AGENT_PROMPT_<accountID>` entry, populated by `OpenAgentsPage` for agents the
- * current user owns).
+ * report with a participant whose personalDetails carries `isCustomAgent: true`, stamped
+ * server-side in `Account::formatNewDotPersonalDetails`).
  */
 function AgentZeroStatusProvider({reportID, children}: React.PropsWithChildren<{reportID: string | undefined}>) {
     const [chatType] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportChatType});
     const [participantAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: getReportParticipantAccountIDs});
-    const [agentAccountIDFlags] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT, {selector: getAgentAccountIDFlags});
+    const [agentParticipantAccountID] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: getCustomAgentParticipantAccountID(participantAccountIDs)});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
 
     const isConciergeChat = reportID === conciergeReportID;
     const isAdmin = chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
-    // A custom-agent chat has a participant — excluding the current user — whose accountID owns
-    // an agent prompt. Excluding the current user prevents a user who owns agents from turning
-    // their own DMs into agent chats.
-    const hasAgentParticipant = participantAccountIDs?.some((accountID) => accountID !== currentUserAccountID && !!agentAccountIDFlags?.[accountID]) ?? false;
-    const isAgentZeroChat = isConciergeChat || isAdmin || hasAgentParticipant;
+    const isCustomAgentChat = agentParticipantAccountID !== undefined;
+    const isAgentZeroChat = isConciergeChat || isAdmin || isCustomAgentChat;
 
     if (!reportID || !isAgentZeroChat) {
         return children;

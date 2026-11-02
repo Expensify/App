@@ -1,15 +1,18 @@
 import React from 'react';
 import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useConfirmModal from '@hooks/useConfirmModal';
+import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import WorkspaceTravelInvoicingSection from './WorkspaceTravelInvoicingSection';
 
@@ -20,10 +23,13 @@ type GetStartedTravelProps = {
 function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const policy = usePolicy(policyID);
     const {canWrite: canWriteMoreFeatures, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.MORE_FEATURES);
     const icons = useMemoizedLazyExpensifyIcons(['LuggageWithLines', 'NewWindow']);
+    const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
+    const {showConfirmModal} = useConfirmModal();
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
@@ -33,10 +39,21 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     };
 
     const handleManageTravel = () => {
-        // TODO: Show the prevention modal when the beta is enabled
         if (isPreventSpotnanaTravelEnabled) {
+            showConfirmModal({
+                title: translate('travel.blockedFeatureModal.title'),
+                titleStyles: styles.textHeadlineH1,
+                titleContainerStyles: styles.mb2,
+                image: illustrations.RocketDude,
+                imageStyles: StyleUtils.getBackgroundColorStyle(colors.ice600),
+                prompt: translate('travel.blockedFeatureModal.message'),
+                promptStyles: styles.mb2,
+                confirmText: translate('common.buttonConfirm'),
+                shouldShowCancelButton: false,
+            });
             return;
         }
+
         openTravelDotLink(policyID);
     };
 

@@ -74,7 +74,11 @@ function SortableTableHeader({
                     const isSortable = shouldShowSorting && isColumnSortable;
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
-                    const textStyle = columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null;
+                    const isReimbursableOrBillableColumn = columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE;
+                    const textStyle = [
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null,
+                        isReimbursableOrBillableColumn ? styles.flexShrink1 : null,
+                    ];
 
                     return (
                         <SortableHeaderText

@@ -35,7 +35,7 @@ export default function createRnStubPlugin(stubRoot: string): BunPlugin {
             }));
 
             build.onResolve({filter: /^@react-native-community\/netinfo$/}, () => ({
-                path: resolve(stubRoot, 'react-native/subpath.ts'),
+                path: resolve(stubRoot, 'react-native-community-netinfo.ts'),
             }));
 
             build.onResolve({filter: /^react-native$/}, () => ({
@@ -56,6 +56,22 @@ export default function createRnStubPlugin(stubRoot: string): BunPlugin {
 
             build.onResolve({filter: /^react-native-nitro-fetch$/}, () => ({
                 path: resolve(stubRoot, 'react-native-nitro-fetch.ts'),
+            }));
+
+            build.onResolve({filter: /^react-native-onyx$/}, () => ({
+                path: resolve(stubRoot, 'react-native-onyx.ts'),
+            }));
+
+            build.onResolve({filter: /^\.\/platforms$/}, (args) => {
+                if (!args.importer.includes('react-native-onyx/dist/storage')) {
+                    return;
+                }
+
+                return {path: resolve(stubRoot, 'onyx-storage-platform.ts')};
+            });
+
+            build.onResolve({filter: /^react-native-localize$/}, () => ({
+                path: resolve(stubRoot, 'react-native-localize.ts'),
             }));
         },
     };

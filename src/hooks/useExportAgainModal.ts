@@ -20,26 +20,28 @@ function useExportAgainModal(reportID: string | undefined, policyID: string | un
     const reportName = report?.reportName ?? '';
 
     const triggerExportOrConfirm = (exportType: ExportType) => {
-        if (!connectedIntegration) {
+        const integrationForExport = exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED ? connectedIntegrationFallback : connectedIntegration;
+
+        if (!integrationForExport) {
             return;
         }
 
         showConfirmModal({
             title: translate('workspace.exportAgainModal.title'),
             prompt: translate('workspace.exportAgainModal.description', {
-                connectionName: connectedIntegration ?? connectedIntegrationFallback,
+                connectionName: integrationForExport,
                 reportName,
             }),
             confirmText: translate('workspace.exportAgainModal.confirmText'),
             cancelText: translate('workspace.exportAgainModal.cancelText'),
         }).then((result) => {
-            if (result.action !== ModalActions.CONFIRM || !reportID || !connectedIntegration) {
+            if (result.action !== ModalActions.CONFIRM || !reportID) {
                 return;
             }
             if (exportType === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                exportToIntegration(reportID, connectedIntegration);
+                exportToIntegration(reportID, integrationForExport);
             } else if (exportType === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                markAsManuallyExported([reportID], connectedIntegration);
+                markAsManuallyExported([reportID], integrationForExport);
             }
         });
     };

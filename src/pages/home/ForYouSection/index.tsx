@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import colors from '@styles/theme/colors';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -18,6 +19,7 @@ import {accountIDSelector} from '@src/selectors/Session';
 import todosReportCountsSelector, {EMPTY_TODOS_SINGLE_REPORT_IDS, todosSingleReportIDsSelector} from '@src/selectors/Todos';
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
+import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
 function ForYouSection() {
     const styles = useThemeStyles();
@@ -33,24 +35,32 @@ function ForYouSection() {
     const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
     const [reportCounts = CONST.EMPTY_TODOS_REPORT_COUNTS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosReportCountsSelector});
     const [singleReportIDs = EMPTY_TODOS_SINGLE_REPORT_IDS] = useOnyx(ONYXKEYS.DERIVED.TODOS, {selector: todosSingleReportIDsSelector});
+    const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
-    const icons = useMemoizedLazyExpensifyIcons(['MoneyBag', 'Send', 'ThumbsUp', 'Export']);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
     const submitCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.SUBMIT] ?? 0;
     const approveCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.APPROVE] ?? 0;
     const payCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.PAY] ?? 0;
     const exportCount = reportCounts?.[CONST.SEARCH.SEARCH_KEYS.EXPORT] ?? 0;
 
-    const hasAnyTodos = submitCount > 0 || approveCount > 0 || payCount > 0 || exportCount > 0;
+    const hasAnyTodos = flaggedExpensesCount > 0 || submitCount > 0 || approveCount > 0 || payCount > 0 || exportCount > 0;
+
+    const navigateToReport = useCallback(
+        (reportID: string) => {
+            if (shouldUseNarrowLayout) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
+                return;
+            }
+            Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo: ROUTES.HOME}));
+        },
+        [shouldUseNarrowLayout],
+    );
 
     const createNavigationHandler = useCallback(
         (action: string, queryParams: Record<string, unknown>, reportID?: string) => () => {
             if (reportID) {
-                if (shouldUseNarrowLayout) {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, ROUTES.HOME));
-                } else {
-                    Navigation.navigate(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID, backTo: ROUTES.HOME}));
-                }
+                navigateToReport(reportID);
                 return;
             }
 
@@ -64,12 +74,22 @@ function ForYouSection() {
                 }),
             );
         },
-        [shouldUseNarrowLayout],
+        [navigateToReport],
     );
 
     const todoItems = useMemo(
         () =>
             [
+                {
+                    key: 'reviewExpenses',
+                    count: flaggedExpensesCount,
+                    icon: icons.ReceiptSearch,
+                    iconBackgroundColor: colors.tangerine100,
+                    iconFill: colors.tangerine500,
+                    translationKey: 'homePage.forYouSection.reviewExpenses' as const,
+                    handler: reviewExpenses,
+                    buttonProps: {danger: true} as const,
+                },
                 {
                     key: 'submit',
                     count: submitCount,
@@ -107,21 +127,36 @@ function ForYouSection() {
                     ),
                 },
             ].filter((item) => item.count > 0),
-        [accountID, approveCount, createNavigationHandler, exportCount, icons.Export, icons.MoneyBag, icons.Send, icons.ThumbsUp, payCount, singleReportIDs, submitCount],
+        [
+            accountID,
+            approveCount,
+            createNavigationHandler,
+            reviewExpenses,
+            exportCount,
+            flaggedExpensesCount,
+            icons.Export,
+            icons.MoneyBag,
+            icons.ReceiptSearch,
+            icons.Send,
+            icons.ThumbsUp,
+            payCount,
+            singleReportIDs,
+            submitCount,
+        ],
     );
 
     const renderTodoItems = () => (
         <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
-            {todoItems.map(({key, count, icon, translationKey, handler}) => (
+            {todoItems.map(({key, count, icon, iconBackgroundColor, iconFill, translationKey, handler, buttonProps}) => (
                 <BaseWidgetItem
                     key={key}
                     icon={icon}
-                    iconBackgroundColor={theme.widgetIconBG}
-                    iconFill={theme.widgetIconFill}
+                    iconBackgroundColor={iconBackgroundColor ?? theme.widgetIconBG}
+                    iconFill={iconFill ?? theme.widgetIconFill}
                     title={translate(translationKey, {count})}
                     ctaText={translate('homePage.forYouSection.begin')}
                     onCtaPress={handler}
-                    buttonProps={{success: true}}
+                    buttonProps={buttonProps ?? {success: true}}
                 />
             ))}
         </View>

@@ -7,6 +7,7 @@ import type {ExpensifyCardSettingsBase} from '@src/types/onyx/ExpensifyCardSetti
 import addEncryptedAuthTokenToURL from './addEncryptedAuthTokenToURL';
 import {getLastFourDigits} from './BankAccountUtils';
 import fileDownload from './fileDownload';
+import {buildSecureDownloadURL} from './UrlUtils';
 
 /**
  * Checks whether Travel Invoicing is enabled based on the card settings.
@@ -147,7 +148,7 @@ function downloadTravelInvoiceStatementPDF(
     encryptedAuthToken: string,
 ): Promise<void> {
     const downloadFileName = `Travel_Statement_${startDate}_${endDate}.pdf`;
-    const pdfURL = `${baseURL}secure?secureType=pdfreport&filename=${fileName}&downloadName=${downloadFileName}&email=${encodeURIComponent(currentUserEmail)}`;
+    const pdfURL = buildSecureDownloadURL({baseURL, secureType: CONST.SECURE_DOWNLOAD_TYPE.PDF_REPORT, fileName, downloadName: downloadFileName, email: currentUserEmail});
     return fileDownload(translate, addEncryptedAuthTokenToURL(pdfURL, encryptedAuthToken, true), downloadFileName, '');
 }
 

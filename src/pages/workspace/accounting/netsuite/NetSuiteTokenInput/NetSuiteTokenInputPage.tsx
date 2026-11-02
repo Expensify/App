@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isAuthenticationError} from '@libs/actions/connections';
@@ -26,6 +27,7 @@ const pages = [
 function NetSuiteTokenInputPage({policy, route}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
 
     const hasAuthError = isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
 
@@ -68,6 +70,7 @@ function NetSuiteTokenInputPage({policy, route}: WithPolicyConnectionsProps) {
                 <InteractiveStepSubPageHeader
                     currentStepIndex={pageIndex}
                     stepNames={CONST.NETSUITE_CONFIG.TOKEN_INPUT.STEP_INDEX_LIST}
+                    currentStepAccessibilityDescription={translate('workspace.netsuite.tokenInput.title')}
                     onStepSelected={moveTo}
                 />
             </View>

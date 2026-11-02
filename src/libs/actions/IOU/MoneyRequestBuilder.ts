@@ -12,7 +12,7 @@ import {translateLocal} from '@libs/Localize';
 import {buildNextStepNew, buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
-import {hasDependentTags, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {hasDependentTags, isGroupPolicy} from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportActionHtml, getReportActionText, isReportPreviewAction} from '@libs/ReportActionsUtils';
 import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction} from '@libs/ReportUtils';
 import {
@@ -484,10 +484,10 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         // If it's CREATE and IOUReportID is 0, MoneyRequestAction returns null because the IOU report doesn't exist.
         const patchedSelfDMIouAction = {
             ...iou.action,
+            reportID: selfDMReportID,
             originalMessage: {
                 ...(getOriginalMessage(iou.action) ?? {}),
                 type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-                IOUReportID: undefined,
             },
         } as OnyxTypes.ReportAction;
         onyxData.optimisticData?.push({
@@ -1085,8 +1085,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         }
     }
 
-    // We don't need to compute violations unless we're on a paid policy
-    if (!policy || !isPaidGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
+    // We don't need to compute violations unless we're on a group policy
+    if (!policy || !isGroupPolicy(policy) || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return onyxData;
     }
     const violationsOnyxData = ViolationsUtils.getViolationsOnyxData({

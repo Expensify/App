@@ -1,11 +1,14 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import {write} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearAgentAvatarUpdateError, clearAgentUpdateError, createAgent, deleteAgent, updateAgentAvatar, updateAgentName, updateAgentPrompt} from '@userActions/Agent';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+import createRandomPolicy from '../utils/collections/policies';
 
 jest.mock('@libs/API');
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
@@ -175,26 +178,6 @@ describe('createAgent', () => {
         expect(result.avatarURI).toBeTruthy();
     });
 
-    it('mirrors pending/error state onto the policy so the workspace shows a brick road indicator', () => {
-        createAgent('Bot', 'My prompt', undefined, undefined, undefined, 'POLICY_42');
-
-        const {optimisticData, successData, failureData} = getWriteOptions();
-        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}POLICY_42`;
-        const addAgentKey = CONST.POLICY.COLLECTION_KEYS.ADD_AGENT;
-
-        const optimisticPolicy = optimisticData.find((u) => u.key === policyKey);
-        expect((optimisticPolicy?.value as Record<string, Record<string, unknown>>)?.pendingFields?.[addAgentKey]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-        expect((optimisticPolicy?.value as Record<string, Record<string, unknown>>)?.errorFields?.[addAgentKey]).toBeNull();
-
-        const successPolicy = successData.find((u) => u.key === policyKey);
-        expect((successPolicy?.value as Record<string, Record<string, unknown>>)?.pendingFields?.[addAgentKey]).toBeNull();
-        expect((successPolicy?.value as Record<string, Record<string, unknown>>)?.errorFields?.[addAgentKey]).toBeNull();
-
-        const failurePolicy = failureData.find((u) => u.key === policyKey);
-        expect((failurePolicy?.value as Record<string, Record<string, unknown>>)?.pendingFields?.[addAgentKey]).toBeNull();
-        expect((failurePolicy?.value as Record<string, Record<string, unknown>>)?.errorFields?.[addAgentKey]).toBeTruthy();
-    });
-
     it('does not touch the policy when no policyID is provided', () => {
         createAgent('Bot', 'My prompt');
 
@@ -242,18 +225,6 @@ describe('createAgent', () => {
         const result = createAgent('Bot', 'My prompt');
 
         expect(mockWrite).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_AGENT, expect.objectContaining({optimisticAccountID: String(result.optimisticAccountID)}), expect.any(Object));
-    });
-
-    it('success and failure data clear the optimistic→real ID mapping entry', () => {
-        const result = createAgent('Bot', 'My prompt');
-        const {successData, failureData} = getWriteOptions();
-        const optID = String(result.optimisticAccountID);
-
-        const successMappingUpdate = successData.find((u) => u.key === ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
-        const failureMappingUpdate = failureData.find((u) => u.key === ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING);
-
-        expect((successMappingUpdate?.value as Record<string, unknown>)[optID]).toBeNull();
-        expect((failureMappingUpdate?.value as Record<string, unknown>)[optID]).toBeNull();
     });
 
     it('failure data preserves optimistic personal detail and merges errors onto the prompt entry', () => {
@@ -466,6 +437,82 @@ describe('deleteAgent', () => {
         deleteAgent(TEST_ACCOUNT_ID);
 
         expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    describe('cascade to policies containing the agent', () => {
+        const AGENT_EMAIL = 'agent@expensifail.com';
+        const OTHER_EMAIL = 'submitter@expensifail.com';
+        const OWNER_EMAIL = 'owner@expensifail.com';
+        const POLICY_ID = 'POLICY1';
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`;
+
+        const buildPolicies = (): OnyxCollection<Policy> => ({
+            [policyKey]: {
+                ...createRandomPolicy(1),
+                id: POLICY_ID,
+                owner: OWNER_EMAIL,
+                approver: OWNER_EMAIL,
+                employeeList: {
+                    [AGENT_EMAIL]: {email: AGENT_EMAIL, submitsTo: AGENT_EMAIL, forwardsTo: OWNER_EMAIL},
+                    [OTHER_EMAIL]: {email: OTHER_EMAIL, submitsTo: AGENT_EMAIL},
+                },
+            },
+        });
+
+        it('marks agent employeeList entry as pending DELETE optimistically', () => {
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies());
+
+            const {optimisticData} = getWriteOptions();
+            const policyUpdate = optimisticData.find((u) => u.key === policyKey);
+            const employees = (policyUpdate?.value as {employeeList: Record<string, {pendingAction: string}>})?.employeeList;
+            expect(employees?.[AGENT_EMAIL]).toEqual({pendingAction: 'delete'});
+        });
+
+        it('leaves other employees and approver chains untouched so the workflow card still renders', () => {
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies());
+
+            const {optimisticData} = getWriteOptions();
+            const policyUpdate = optimisticData.find((u) => u.key === policyKey);
+            const value = policyUpdate?.value as {employeeList: Record<string, unknown>; approver?: string; rules?: unknown};
+            expect(value?.employeeList[OTHER_EMAIL]).toBeUndefined();
+            expect(value?.approver).toBeUndefined();
+            expect(value?.rules).toBeUndefined();
+        });
+
+        it('nulls the agent employeeList entry on success', () => {
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies());
+
+            const {successData} = getWriteOptions();
+            const policyUpdate = successData.find((u) => u.key === policyKey);
+            const employees = (policyUpdate?.value as {employeeList: Record<string, unknown>})?.employeeList;
+            expect(employees?.[AGENT_EMAIL]).toBeNull();
+        });
+
+        it('restores agent pendingAction with errors on failure', () => {
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, buildPolicies());
+
+            const {failureData} = getWriteOptions();
+            const policyUpdate = failureData.find((u) => u.key === policyKey);
+            const agentEntry = (policyUpdate?.value as {employeeList: Record<string, {pendingAction?: string; errors?: unknown}>})?.employeeList[AGENT_EMAIL];
+            expect(agentEntry?.pendingAction).toBe('delete');
+            expect(agentEntry?.errors).toBeTruthy();
+        });
+
+        it('skips policies that do not contain the agent', () => {
+            const policies: OnyxCollection<Policy> = {
+                [policyKey]: {
+                    ...createRandomPolicy(1),
+                    id: POLICY_ID,
+                    owner: OWNER_EMAIL,
+                    approver: OWNER_EMAIL,
+                    employeeList: {[OWNER_EMAIL]: {email: OWNER_EMAIL}},
+                },
+            };
+            deleteAgent(TEST_ACCOUNT_ID, AGENT_EMAIL, policies);
+
+            const {optimisticData} = getWriteOptions();
+            expect(optimisticData.find((u) => u.key === policyKey)).toBeUndefined();
+        });
     });
 });
 

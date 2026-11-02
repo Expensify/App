@@ -2,7 +2,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {BillingGraceEndPeriod, OnyxInputOrEntry, Policy} from '@src/types/onyx';
-import {isPaidGroupPolicy} from './PolicyUtils';
+import {isGroupPolicy} from './PolicyUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
 function shouldUseDefaultExpensePolicy(
@@ -11,11 +11,11 @@ function shouldUseDefaultExpensePolicy(
     amountOwed: OnyxEntry<number>,
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>,
     ownerBillingGracePeriodEnd: OnyxEntry<number>,
-    currentUserAccountID?: number,
+    currentUserAccountID: number,
 ) {
     return (
         iouType === CONST.IOU.TYPE.CREATE &&
-        isPaidGroupPolicy(defaultExpensePolicy) &&
+        isGroupPolicy(defaultExpensePolicy) &&
         defaultExpensePolicy?.isPolicyExpenseChatEnabled &&
         !shouldRestrictUserBillableActions(defaultExpensePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
     );

@@ -1,7 +1,26 @@
+const noopSpan = {
+    setAttribute: () => {},
+    setAttributes: () => {},
+    setStatus: () => {},
+    end: () => {},
+};
+
 function startSpan() {
-    return undefined;
+    return noopSpan;
 }
 
 function endSpan() {}
 
-export {endSpan, startSpan};
+function endSpanWithAttributes() {}
+
+function getSpan() {
+    return undefined;
+}
+
+function cancelSpan() {}
+
+function cancelAllSpans() {}
+
+function cancelSpansByPrefix() {}
+
+export {startSpan, endSpan, endSpanWithAttributes, getSpan, cancelSpan, cancelAllSpans, cancelSpansByPrefix};

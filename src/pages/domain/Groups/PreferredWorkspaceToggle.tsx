@@ -40,6 +40,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
     const isEnabled = !!group?.enableRestrictedPrimaryPolicy;
     const preferredPolicyID = group?.restrictedPrimaryPolicyID;
 
+    // When the requester is not a member of the preferred policy, BE adds a minimal {avatarURL, id, name} policy Onyx data for the policy to the policy collection, so this resolves to the configured workspace's name even for domain admins without access to that policy.
     const [preferredPolicyName] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicyID}`, {selector: policyNameSelector});
 
     const [enableRestrictedPrimaryPolicyPendingAction] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
@@ -105,7 +106,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
             />
-            {hasAdminPolicies && (
+            {(hasAdminPolicies || !!preferredPolicyName) && (
                 <OfflineWithFeedback
                     pendingAction={restrictedPrimaryPolicyIDPendingAction}
                     errors={restrictedPrimaryPolicyIDErrors}
@@ -117,7 +118,7 @@ function PreferredWorkspaceToggle({domainAccountID, groupID}: PreferredWorkspace
                         title={preferredPolicyName ?? firstAdminPolicy?.name}
                         shouldShowRightIcon
                         onPress={() => Navigation.navigate(ROUTES.DOMAIN_SECURITY_GROUPS_PREFERRED_WORKSPACE.getRoute(domainAccountID, groupID))}
-                        disabled={!isEnabled}
+                        disabled={!isEnabled || (!hasAdminPolicies && !!preferredPolicyName)}
                     />
                 </OfflineWithFeedback>
             )}

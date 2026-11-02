@@ -38,6 +38,7 @@ module.exports = {
     coverageReporters: ['json', 'lcov', 'text-summary'],
     moduleNameMapper: {
         '\\.(lottie)$': '<rootDir>/__mocks__/fileMock.ts',
+        '^@lottiefiles/dotlottie-react$': '<rootDir>/__mocks__/@lottiefiles/dotlottie-react.tsx',
         '^group-ib-fp$': '<rootDir>/__mocks__/group-ib-fp.ts',
         '^parse-imports-exports$': '<rootDir>/node_modules/parse-imports-exports/index.cjs',
     },

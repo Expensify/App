@@ -63,14 +63,10 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     canEditWorkspaceSettings,
-    getConnectionExporters,
     getRulesDocumentSourceURL,
     getUserFriendlyWorkspaceType,
     goBackFromInvalidPolicy,
     isPendingDeletePolicy,
-    isPolicyAdmin as isPolicyAdminPolicyUtils,
-    isPolicyApprover,
-    isPolicyAuditor,
     isPolicyOwner,
     shouldBlockWorkspaceDeletionForInvoicifyUser,
 } from '@libs/PolicyUtils';
@@ -79,6 +75,7 @@ import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import StringUtils from '@libs/StringUtils';
 import {isSubscriptionTypeOfInvoicing, shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
+import {getLeaveWorkspaceConfirmationPrompt} from '@libs/WorkspacesSettingsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -491,48 +488,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         );
     };
 
-    const confirmModalPrompt = () => {
-        const exporters = getConnectionExporters(policy);
-        const policyOwnerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
-        const technicalContact = policy?.technicalContact;
-        const isCurrentUserReimburser = policy?.achAccount?.reimburser === session?.email;
-        const userEmail = session?.email ?? '';
-        const isApprover = isPolicyApprover(policy, userEmail);
-
-        if (isCurrentUserReimburser) {
-            return translate('common.leaveWorkspaceReimburser');
-        }
-
-        if (technicalContact === userEmail) {
-            return translate('common.leaveWorkspaceConfirmationTechContact', policyOwnerDisplayName);
-        }
-
-        if (exporters.some((exporter) => exporter === userEmail)) {
-            return translate('common.leaveWorkspaceConfirmationExporter', policyOwnerDisplayName);
-        }
-
-        if (isApprover) {
-            return translate('common.leaveWorkspaceConfirmationApprover', policyOwnerDisplayName);
-        }
-
-        if (isPolicyAdminPolicyUtils(policy)) {
-            return translate('common.leaveWorkspaceConfirmationAdmin');
-        }
-
-        if (isPolicyAuditor(policy)) {
-            return translate('common.leaveWorkspaceConfirmationAuditor');
-        }
-
-        return translate('common.leaveWorkspaceConfirmation');
-    };
-
     const handleLeave = () => {
-        const isReimburser = policy?.achAccount?.reimburser === session?.email;
+        const userEmail = session?.email ?? '';
+        const ownerDisplayName = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName ?? '';
+        const prompt = getLeaveWorkspaceConfirmationPrompt(policy, userEmail, ownerDisplayName, translate);
+        const isReimburser = policy?.achAccount?.reimburser === userEmail;
 
         if (isReimburser) {
             showConfirmModal({
                 title: translate('common.leaveWorkspace'),
-                prompt: confirmModalPrompt(),
+                prompt,
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
                 success: true,
@@ -542,7 +507,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
         showConfirmModal({
             title: translate('common.leaveWorkspace'),
-            prompt: confirmModalPrompt(),
+            prompt,
             confirmText: translate('common.leave'),
             cancelText: translate('common.cancel'),
             danger: true,

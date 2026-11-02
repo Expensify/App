@@ -2,6 +2,7 @@ import React from 'react';
 import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -17,6 +18,9 @@ type InteractiveStepSubPageHeaderProps = {
     /** Current step index (0-based) */
     currentStepIndex: number;
 
+    /** Description of the current step, appended to its accessibility label */
+    currentStepAccessibilityDescription: string;
+
     /** Function to call when a step is selected */
     onStepSelected?: (stepIndex: number) => void;
 };
@@ -24,8 +28,9 @@ type InteractiveStepSubPageHeaderProps = {
 const MIN_AMOUNT_FOR_EXPANDING = 3;
 const MIN_AMOUNT_OF_STEPS = 2;
 
-function InteractiveStepSubPageHeader({stepNames, currentStepIndex, onStepSelected}: InteractiveStepSubPageHeaderProps) {
+function InteractiveStepSubPageHeader({stepNames, currentStepIndex, currentStepAccessibilityDescription, onStepSelected}: InteractiveStepSubPageHeaderProps) {
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const containerWidthStyle: ViewStyle = stepNames.length < MIN_AMOUNT_FOR_EXPANDING ? styles.mnw60 : styles.mnw100;
 
@@ -65,8 +70,14 @@ function InteractiveStepSubPageHeader({stepNames, currentStepIndex, onStepSelect
                             disabled={isLockedStep || !onStepSelected}
                             onPress={() => handleStepPress(isLockedStep, index)}
                             accessible
-                            accessibilityLabel={stepName}
-                            role={CONST.ROLE.BUTTON}
+                            role={CONST.ROLE.GROUP}
+                            aria-current={currentStepIndex === index ? 'step' : undefined}
+                            accessibilityState={{selected: currentStepIndex === index}}
+                            accessibilityLabel={translate('stepCounter', {
+                                step: index + 1,
+                                total: stepNames.length,
+                                text: currentStepIndex === index ? currentStepAccessibilityDescription : undefined,
+                            })}
                         >
                             {isCompletedStep ? (
                                 <Icon

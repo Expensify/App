@@ -1,5 +1,6 @@
 import React, {useRef} from 'react';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import type {SearchFilterCommonProps} from '@components/Search/types';
 import SelectionList from '@components/SelectionList';
 import UserSelectionListItem from '@components/SelectionList/ListItem/UserSelectionListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
@@ -15,18 +16,15 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ListFilterWrapper from './ListFilterViewWrapper';
 
-type UserSelectorProps = {
-    value: string[] | undefined;
-    onChange: (options: string[]) => void;
-};
+type UserSelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
-function UserSelector({value = [], onChange}: UserSelectorProps) {
+function UserSelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, ready = true, footer, onChange}: UserSelectorProps) {
     const selectionListRef = useRef<SelectionListHandle<ListItem> | null>(null);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const personalDetails = usePersonalDetails();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
+    const shouldFocusInputOnScreenFocus = autoFocus && canFocusInputOnScreenFocus();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const initialSelectedAccountIDs = value.reduce<Set<string>>((acc, id) => {
@@ -49,6 +47,7 @@ function UserSelector({value = [], onChange}: UserSelectorProps) {
         includeUserToInvite: true,
         includeCurrentUser: false,
         includeRecentReports: false,
+        shouldInitialize: ready,
         onSelectionChange: onChange,
     });
 
@@ -80,6 +79,9 @@ function UserSelector({value = [], onChange}: UserSelectorProps) {
               onChangeText: setSearchTerm,
               headerMessage,
               disableAutoFocus: !shouldFocusInputOnScreenFocus,
+              style: {
+                  containerStyle: selectionListTextInputStyle,
+              },
           }
         : undefined;
 
@@ -96,8 +98,9 @@ function UserSelector({value = [], onChange}: UserSelectorProps) {
                 ListItem={UserSelectionListItem}
                 onSelectRow={selectUser}
                 isLoadingNewOptions={isLoadingNewOptions}
-                shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                style={{contentContainerStyle: [styles.pb0]}}
+                shouldShowLoadingPlaceholder={!areOptionsInitialized || !ready}
+                style={{contentContainerStyle: [styles.pb0], ...selectionListStyle}}
+                footerContent={footer}
             />
         </ListFilterWrapper>
     );

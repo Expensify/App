@@ -87,6 +87,8 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
     const isButtonSizeExtraSmall = buttonSize === CONST.DROPDOWN_BUTTON_SIZE.EXTRA_SMALL;
     const nullCheckRef = (refParam: RefObject<View | null>) => refParam ?? null;
     const shouldShowButtonRightIcon = !!options.at(0)?.shouldShowButtonRightIcon;
+    const splitButtonIcon = hasError ? icons.DotIndicator : icon;
+    const singleOptionButtonIcon = shouldUseOptionIcon && !shouldShowButtonRightIcon ? options.at(0)?.icon : icon;
 
     useEffect(() => {
         setSelectedItemIndex(defaultSelectedIndex);
@@ -188,9 +190,12 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                         iconRightStyles={isMenuVisible ? styles.flipUpsideDown : undefined}
                         shouldShowRightIcon={!isSplitButton && !isLoading && options?.length > 0}
                         testID={testID}
-                        textStyles={[isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {}]}
+                        textStyles={[
+                            isTextTooLong && shouldUseShortForm ? {...styles.textExtraSmall, ...styles.textBold} : {},
+                            !!secondLineText && !!splitButtonIcon && styles.textAlignLeft,
+                        ]}
                         secondLineText={secondLineText}
-                        icon={hasError ? icons.DotIndicator : icon}
+                        icon={splitButtonIcon}
                         iconFill={hasError ? theme.danger : undefined}
                         iconHoverFill={hasError ? theme.danger : undefined}
                         iconRightFill={hasError ? theme.buttonIcon : undefined}
@@ -261,9 +266,10 @@ function ButtonWithDropdownMenu<IValueType>({ref, ...props}: ButtonWithDropdownM
                     iconRightStyles={shouldShowButtonRightIcon && styles.ml2}
                     enterKeyEventListenerPriority={enterKeyEventListenerPriority}
                     secondLineText={secondLineText}
-                    icon={shouldUseOptionIcon && !shouldShowButtonRightIcon ? options.at(0)?.icon : icon}
+                    icon={singleOptionButtonIcon}
                     iconRight={shouldShowButtonRightIcon ? options.at(0)?.icon : undefined}
                     shouldShowRightIcon={shouldShowButtonRightIcon}
+                    textStyles={!!secondLineText && !!singleOptionButtonIcon && styles.textAlignLeft}
                     testID={testID}
                     sentryLabel={sentryLabel}
                 />

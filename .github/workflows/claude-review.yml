@@ -80,7 +80,7 @@ jobs:
       - name: Run Claude Code (code)
         id: code-review
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.code == 'true'
-        uses: anthropics/claude-code-action@ba026a3e56b9f646ae3b1be02dd9c0812aa2f8ae # v1.0.86
+        uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
         with:
           display_report: "true"
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -88,7 +88,8 @@ jobs:
           allowed_non_write_users: "*"
           prompt: "/review-code-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
-            --model claude-opus-4-6
+            --model claude-opus-4-8
+            --effort xhigh
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr diff:*),Bash(gh pr view:*),Bash(check-compiler.sh:*)" --json-schema '${{ steps.toolkit.outputs.schema_json }}'
 
       - name: Post code review results
@@ -103,7 +104,7 @@ jobs:
 
       - name: Run Claude Code (docs)
         if: steps.set-authorized.outputs.IS_AUTHORIZED == 'true' && steps.filter.outputs.docs == 'true'
-        uses: anthropics/claude-code-action@ba026a3e56b9f646ae3b1be02dd9c0812aa2f8ae # v1.0.86
+        uses: anthropics/claude-code-action@4d7e1f0cd85743fdc93b1c8040ab54395da024e2 # v1.0.149
         with:
           display_report: "true"
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -111,7 +112,8 @@ jobs:
           allowed_non_write_users: "*"
           prompt: "/review-helpdot-pr REPO: ${{ github.repository }} PR_NUMBER: ${{ github.event.pull_request.number }}"
           claude_args: |
-            --model claude-opus-4-6
+            --model claude-opus-4-8
+            --effort high
             --allowedTools "Task,Glob,Grep,Read,Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),mcp__github_inline_comment__create_inline_comment"
 
       - name: Remove in-progress indicator

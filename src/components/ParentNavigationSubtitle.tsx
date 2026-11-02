@@ -104,7 +104,6 @@ function ParentNavigationSubtitle({
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isReportArchived);
-    const isReportInRHP = currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT;
     const hasAccessToParentReport = currentReport?.hasParentAccess !== false;
     const {currentFullScreenRoute, currentFocusedNavigator} = useRootNavigationState((state) => {
         // Find the tab navigator, which wraps all full-screen navigators
@@ -128,6 +127,12 @@ function ParentNavigationSubtitle({
             currentFocusedNavigator: focusedNavigator,
         };
     });
+    const isReportInRHP =
+        currentRoute.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ||
+        (currentRoute.params &&
+            'reportID' in currentRoute.params &&
+            currentFocusedNavigator?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR &&
+            currentFullScreenRoute?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
     // We should not display the parent navigation subtitle if the user does not have access to the parent chat (the reportName is empty in this case)
     if (!reportName) {

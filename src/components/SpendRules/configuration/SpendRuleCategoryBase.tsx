@@ -91,7 +91,7 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton
-                title={translate('workspace.rules.spendRules.spendCategory')}
+                title={translate('workspace.rules.spendRules.merchantTypes')}
                 onBackButtonPress={goBack}
             />
             <SelectionList

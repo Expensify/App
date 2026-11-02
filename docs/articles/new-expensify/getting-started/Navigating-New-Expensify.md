@@ -11,6 +11,19 @@ New Expensify uses a consistent navigation layout across web and mobile so you c
 
 This guide explains where to find each tab and what it’s used for.
 
+If you'd like a guided walkthrough of the New Expensify experience, explore the interactive product tours:
+
+**For workspace admins:**
+- [interactive web tour for Workspace Admins](https://expensify.storylane.io/share/qlgnexxbsdtp)
+- [interactive mobile tour for Workspace Admins](https://expensify.storylane.io/share/em54uaq7wbgk)
+
+**For submitters and approvers:**
+- [interactive web tour for submitters and approvers](https://expensify.storylane.io/share/v9dr1rjqsd9y)
+- [interactive mobile tour for submitters and approvers](https://expensify.storylane.io/share/qbbob6zvapqo)
+
+
+You can find additional training resources in [How to Access Expensify Training](/articles/new-expensify/getting-started/How-to-Access-Expensify-Training).
+
 ---
 
 ## How to use navigation tabs

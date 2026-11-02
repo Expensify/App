@@ -6,10 +6,10 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getAvatarLocal} from '@libs/Avatars/PresetAvatarCatalog';
+import {findLocalAvatarForURL} from '@libs/Avatars/AvatarLookup';
 import {getDefaultWorkspaceAvatar, getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
-import {getAvatar, getPresetAvatarNameFromURL} from '@libs/UserAvatarUtils';
+import {getAvatar} from '@libs/UserAvatarUtils';
 import type {AvatarSizeName} from '@styles/utils';
 import CONST from '@src/CONST';
 import type {AvatarType} from '@src/types/onyx/OnyxCommon';
@@ -87,10 +87,10 @@ function Avatar({
 
     const source = isWorkspace ? originalSource : getAvatar({avatarSource: originalSource, accountID: userAccountID, defaultAvatars});
     let optimizedSource = source;
-    const maybeDefaultAvatarName = getPresetAvatarNameFromURL(source);
+    const localFromCatalog = findLocalAvatarForURL(source);
 
-    if (maybeDefaultAvatarName) {
-        optimizedSource = getAvatarLocal(maybeDefaultAvatarName);
+    if (localFromCatalog) {
+        optimizedSource = localFromCatalog;
     }
     const useFallBackAvatar = imageError || !source || source === defaultAvatars.FallbackAvatar;
     const fallbackAvatar = isWorkspace ? getDefaultWorkspaceAvatar(name) : (fallbackIcon ?? defaultAvatars.FallbackAvatar) || defaultAvatars.FallbackAvatar;

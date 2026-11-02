@@ -64,8 +64,14 @@ function expensifyLoginsSelector(logins: OnyxEntry<Logins>): LoginList | undefin
     }
 
     const result: LoginList = {};
+    const policyDomainRegex = CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME;
     for (const login of Object.values(logins)) {
         if (login.partnerID !== CONST.PARTNER_ID.EXPENSIFY) {
+            continue;
+        }
+        // Exclude synthetic Expensify Card domain logins (e.g. ...@expensify-policy<policyID>.exfy) auto-created for workspaces.
+        // These are not real contact methods and should never surface in the contact methods list or participant selectors.
+        if (policyDomainRegex.test(login.partnerUserID)) {
             continue;
         }
         result[login.partnerUserID] = {

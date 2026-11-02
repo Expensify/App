@@ -187,28 +187,28 @@ const iouTripReport = {
 
 const iouActionOne = {
     ...actionR14932,
+    reportID: iouDMReport.reportID,
     originalMessage: {
         ...getOriginalMessage(actionR14932),
         IOUTransactionID: 'TRANSACTION_NUMBER_ONE',
-        IOUReportID: iouDMReport.reportID,
     },
 };
 
 const iouActionTwo = {
     ...actionR14932,
+    reportID: iouDMReport.reportID,
     originalMessage: {
         ...getOriginalMessage(actionR14932),
         IOUTransactionID: 'TRANSACTION_NUMBER_TWO',
-        IOUReportID: iouDMReport.reportID,
     },
 };
 
 const iouActionThree = {
     ...actionR14932,
+    reportID: iouDMSingleExpenseReport.reportID,
     originalMessage: {
         ...getOriginalMessage(actionR14932),
         IOUTransactionID: 'TRANSACTION_NUMBER_THREE',
-        IOUReportID: iouDMSingleExpenseReport.reportID,
     },
 };
 

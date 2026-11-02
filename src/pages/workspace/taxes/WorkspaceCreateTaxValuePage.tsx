@@ -13,9 +13,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {setDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-// eslint-disable-next-line no-restricted-imports -- The input ref doesn't exist at the navigate() call site, so we can't use Navigation's afterTransition callback
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {skipNextFocusRestore} from '@libs/NavigationFocusReturn';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -41,6 +41,7 @@ function WorkspaceCreateTaxValuePage({
     const save = () => {
         const normalizedValue = currentValue !== undefined ? String(Number(currentValue)) : currentValue;
         setDraftValues(ONYXKEYS.FORMS.WORKSPACE_NEW_TAX_FORM, {[INPUT_IDS.VALUE]: normalizedValue});
+        skipNextFocusRestore();
         goBack();
     };
 

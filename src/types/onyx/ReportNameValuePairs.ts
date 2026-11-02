@@ -85,10 +85,11 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /**
      * Agent Zero processing-indicator labels, keyed by the persona accountID (Concierge or a
      * custom agent) so a room with several agents shows one bubble per actively-thinking agent.
-     * Each value is the status string for that agent. A legacy scalar string may still arrive
-     * during a backend/client deploy overlap and is attributed to Concierge.
+     * Each value is the status string for that agent. A null value clears that agent's slot during
+     * local Onyx merge transitions. A legacy scalar string may still arrive during a backend/client
+     * deploy overlap and is attributed to Concierge.
      */
-    agentZeroProcessingRequestIndicator?: Record<string, string> | string;
+    agentZeroProcessingRequestIndicator?: Record<string, string | null> | string;
 
     /** Parent report ID */
     parentReportID?: string;

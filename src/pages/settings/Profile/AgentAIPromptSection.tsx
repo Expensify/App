@@ -56,6 +56,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [draftPrompt, setDraftPrompt] = useState('');
     const [showEmptyError, setShowEmptyError] = useState(false);
+    const [showHtmlError, setShowHtmlError] = useState(false);
     const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
     const [isUserInitiatedSave, setIsUserInitiatedSave] = useState(false);
     const inputRef = useRef<BaseTextInputRef>(null);
@@ -70,7 +71,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
     let errorText = '';
     if (showEmptyError) {
         errorText = translate('profilePage.aiPromptSection.promptCannotBeEmpty');
-    } else if (hasHtmlTag) {
+    } else if (showHtmlError && hasHtmlTag) {
         errorText = translate('common.error.invalidCharacter');
     }
     const storedPrompt = Str.htmlDecode(agentPrompt?.prompt ?? '');
@@ -166,6 +167,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
             return;
         }
         if (containsHtmlTag(trimmed)) {
+            setShowHtmlError(true);
             inputRef.current?.focus();
             return;
         }
@@ -185,6 +187,9 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
         setDraftPrompt(text);
         if (showEmptyError && text.trim()) {
             setShowEmptyError(false);
+        }
+        if (showHtmlError && !containsHtmlTag(text)) {
+            setShowHtmlError(false);
         }
     };
 
@@ -227,7 +232,7 @@ function AgentAIPromptSection({accountID, parentScrollViewRef}: AgentAIPromptSec
                 icon={showSavedConfirmation ? icons.Checkmark : undefined}
                 onPress={handleSave}
                 isLoading={isSaving && isUserInitiatedSave}
-                isDisabled={hasHtmlTag || (isSaving && isUserInitiatedSave)}
+                isDisabled={isSaving && isUserInitiatedSave}
                 style={[styles.alignSelfStart]}
                 testID="save-prompt-button"
             />

@@ -217,7 +217,7 @@ function signOutTestUser() {
  * - fail() - start returning a failure response
  * - success() - go back to returning a success response
  */
-function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
+function createGlobalFetchMock(mockResponse?: Partial<Response>): MockFetch {
     let queue: QueueItem[] = [];
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let responses = new Map<string, (params: any) => OnyxResponse<any>>();
@@ -280,7 +280,11 @@ function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
     mockFetch.mockAPICommand = <TCommand extends ApiCommand>(command: TCommand, responseHandler: (params: ApiRequestCommandParameters[TCommand]) => OnyxResponse<any>): void => {
         responses.set(command, responseHandler);
     };
-    return mockFetch as typeof fetch;
+    return mockFetch;
+}
+
+function getGlobalFetchMock(mockResponse?: Partial<Response>): typeof fetch {
+    return createGlobalFetchMock(mockResponse);
 }
 
 function setupGlobalFetchMock(): MockFetch {
@@ -394,6 +398,7 @@ export {
     buildTestReportComment,
     getFetchMockCalls,
     getGlobalFetchMock,
+    createGlobalFetchMock,
     setPersonalDetails,
     signInWithTestUser,
     signOutTestUser,

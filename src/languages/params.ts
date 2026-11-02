@@ -102,6 +102,8 @@ type SyncStageNameConnectionsParams = {stage: PolicyConnectionSyncStage};
 
 type DelegateRoleParams = {role: DelegateRole};
 
+type RemoveCopilotAccessConfirmationParams = {delegatorName: string};
+
 type RemovedFromApprovalWorkflowParams = {
     submittersNames: string[];
 };
@@ -135,6 +137,7 @@ export type {
     InvalidValueParams,
     RemovedFromApprovalWorkflowParams,
     DelegateRoleParams,
+    RemoveCopilotAccessConfirmationParams,
     SyncStageNameConnectionsParams,
     IntacctMappingTitleParams,
     ExportIntegrationSelectedParams,

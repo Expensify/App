@@ -171,4 +171,23 @@ function buildOnyxDataForPolicyDistanceRateUpdates(
     return {optimisticData, successData, failureData};
 }
 
-export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates};
+function getRateStatus(rate: Rate): string {
+    if (!rate.enabled) {
+        return CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE;
+    }
+
+    const today = new Date();
+    const now = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+    if (rate.startDate && rate.startDate > now) {
+        return CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE;
+    }
+
+    if (rate.endDate && rate.endDate < now) {
+        return CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED;
+    }
+
+    return CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE;
+}
+
+export {validateRateValue, getOptimisticRateName, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates, getRateStatus};

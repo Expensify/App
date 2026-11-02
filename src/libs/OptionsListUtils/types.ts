@@ -214,6 +214,7 @@ type GetOptionsConfig = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
+    isTrackIntentUser?: boolean;
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {

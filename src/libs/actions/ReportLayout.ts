@@ -70,9 +70,10 @@ function setReportLayout(selection: ReportLayoutSelection, currentLayoutOption?:
         });
     }
 
-    const parameters: SetNameValuePairsParams = {
-        nameValuePairs: JSON.stringify(nameValuePairs),
-    };
+    const parameters: SetNameValuePairsParams = {};
+    for (const [nvpName, nvpValue] of Object.entries(nameValuePairs)) {
+        parameters[`nameValuePairs[${nvpName}]`] = nvpValue;
+    }
 
     API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIRS, parameters, {optimisticData, failureData});
 }

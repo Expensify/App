@@ -24,6 +24,7 @@ import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import Navigation from '@navigation/Navigation';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -223,27 +224,34 @@ function AssigneeStep({route}: AssigneeStepProps) {
     };
 
     return (
-        <InteractiveStepWrapper
-            wrapperID="AssigneeStep"
-            handleBackButtonPress={handleBackButtonPress}
-            headerTitle={translate('workspace.companyCards.assignCard')}
-            enableEdgeToEdgeBottomSafeAreaPadding
-            onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.chooseTheCardholder')}</Text>
-            <SelectionList
-                data={assignees}
-                onSelectRow={submit}
-                ListItem={UserListItem}
-                textInputOptions={textInputOptions}
-                initiallyFocusedItemKey={assignCard?.cardToAssign?.email}
-                shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                isLoadingNewOptions={!!isSearchingForReports}
-                disableMaintainingScrollPosition
-                shouldUpdateFocusedIndex
-                addBottomSafeAreaPadding
-            />
-        </InteractiveStepWrapper>
+            <InteractiveStepWrapper
+                wrapperID="AssigneeStep"
+                handleBackButtonPress={handleBackButtonPress}
+                headerTitle={translate('workspace.companyCards.assignCard')}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                onEntryTransitionEnd={() => setDidScreenTransitionEnd(true)}
+            >
+                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.chooseTheCardholder')}</Text>
+                <SelectionList
+                    data={assignees}
+                    onSelectRow={submit}
+                    ListItem={UserListItem}
+                    textInputOptions={textInputOptions}
+                    initiallyFocusedItemKey={assignCard?.cardToAssign?.email}
+                    shouldShowLoadingPlaceholder={!areOptionsInitialized}
+                    isLoadingNewOptions={!!isSearchingForReports}
+                    disableMaintainingScrollPosition
+                    shouldUpdateFocusedIndex
+                    addBottomSafeAreaPadding
+                />
+            </InteractiveStepWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 

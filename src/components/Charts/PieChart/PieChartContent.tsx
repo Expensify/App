@@ -131,7 +131,7 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     const renderLegendItem = (slice: PieSlice) => {
         return (
             <View
-                key={`legend-${slice.label}`}
+                key={`legend-${slice.originalIndex}`}
                 style={[styles.flexRow, styles.alignItemsCenter, styles.mr4, styles.mb2]}
                 onMouseEnter={() => {
                     tooltipPosition.set(slice.tooltipPosition);

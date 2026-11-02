@@ -38,6 +38,27 @@ type ProviderProps = {
     /** Whether the surface is in a policy-expense chat */
     isPolicyExpenseChat?: boolean;
 
+    /** Whether the active transaction is a distance request */
+    isDistanceRequest?: boolean;
+
+    /** Whether the active transaction is a per-diem request */
+    isPerDiemRequest?: boolean;
+
+    /** Whether the active transaction is a time request */
+    isTimeRequest?: boolean;
+
+    /** Whether the surface is confirming an invoice */
+    isTypeInvoice?: boolean;
+
+    /** Whether the active transaction is a manual distance request */
+    isManualDistanceRequest?: boolean;
+
+    /** Whether the active transaction is an odometer-driven distance request */
+    isOdometerDistanceRequest?: boolean;
+
+    /** Whether the active transaction is a GPS distance request */
+    isGPSDistanceRequest?: boolean;
+
     /** Block components rendered inside the Provider */
     children: ReactNode;
 };
@@ -54,6 +75,13 @@ function Provider({
     isEditingSplitBill = false,
     isNewManualExpenseFlowEnabled = false,
     isPolicyExpenseChat = false,
+    isDistanceRequest = false,
+    isPerDiemRequest = false,
+    isTimeRequest = false,
+    isTypeInvoice = false,
+    isManualDistanceRequest = false,
+    isOdometerDistanceRequest = false,
+    isGPSDistanceRequest = false,
     children,
 }: ProviderProps) {
     const value = {
@@ -68,6 +96,13 @@ function Provider({
         isEditingSplitBill,
         isNewManualExpenseFlowEnabled,
         isPolicyExpenseChat,
+        isDistanceRequest,
+        isPerDiemRequest,
+        isTimeRequest,
+        isTypeInvoice,
+        isManualDistanceRequest,
+        isOdometerDistanceRequest,
+        isGPSDistanceRequest,
     };
     return <ConfirmationFieldsContext.Provider value={value}>{children}</ConfirmationFieldsContext.Provider>;
 }

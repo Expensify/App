@@ -34,7 +34,7 @@ type ButtonBehaviorProps = {
     isDisabled?: boolean;
 
     /** Should enable the haptic feedback? */
-    shouldEnableHapticFeedback?: boolean;
+    enableHapticFeedback?: boolean;
 
     /** Should disable the long press? */
     isLongPressDisabled?: boolean;
@@ -43,16 +43,13 @@ type ButtonBehaviorProps = {
      * Whether the button should have a background layer in the color of theme.appBG.
      * This is needed for buttons that allow content to display under them.
      */
-    shouldBlendOpacity?: boolean;
+    blendOpacity?: boolean;
 
     /** Whether is a nested button inside other button, since nesting buttons isn't valid html */
     isNested?: boolean;
 
-    /** Whether we should use the default hover style */
-    shouldUseDefaultHover?: boolean;
-
     /** Should enable the haptic feedback? */
-    shouldStayNormalOnDisable?: boolean;
+    stayNormalOnDisable?: boolean;
 };
 
 /**
@@ -96,8 +93,11 @@ type ButtonStyleProps = {
     /** Additional styles to add to the component when it's disabled */
     disabledStyle?: StyleProp<ViewStyle>;
 
+    /** Additional hover styles applied on top of theme-derived hovers (default/success/danger). */
+    hoverStyles?: StyleProp<ViewStyle>;
+
     /** Should we remove the border radius on a specific side? */
-    shouldRemoveBorderRadius?: 'left' | 'right' | 'all';
+    removeBorderRadius?: 'left' | 'right' | 'all';
 
     /** The size of the button */
     size?: ValueOf<typeof CONST.BUTTON_SIZE>;

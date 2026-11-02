@@ -65,7 +65,7 @@ type IOURequestStepDestinationProps = WithWritableReportOrNotFoundProps<typeof S
 function IOURequestStepDestination({
     report,
     route: {
-        params: {transactionID, backTo, action, iouType, reportID},
+        params: {transactionID, backTo, action, iouType, reportID, backToReport},
     },
     transaction,
     openedFromStartPage = false,
@@ -150,7 +150,7 @@ function IOURequestStepDestination({
         if (backTo) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID));
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, targetIouType, transactionID, targetReport?.reportID ?? reportID, backToReport));
         }
     };
 

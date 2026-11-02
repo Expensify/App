@@ -29,7 +29,37 @@ On top of TransitionTracker, existing APIs gain transition-aware callbacks:
 
 This makes the code self-descriptive: instead of a generic `runAfterInteractions`, each call site says exactly what it's waiting for and why.
 
-> **Note:** `TransitionTracker.runAfterTransitions` is an internal primitive. Application code should use the higher-level APIs (`Navigation`, `useConfirmModal`, etc.) rather than importing TransitionTracker directly.
+### What TransitionTracker actually tracks
+
+TransitionTracker registers transitions **only** in the following cases:
+
+1. **Navigation transitions** — screen push/pop/replace animations (via `transitionStart`/`transitionEnd` events in `ScreenLayout`)
+2. **Modal transitions** — modal open/close animations (via `ReanimatedModal`)
+3. **Keyboard transitions** — keyboard dismiss animations (via `KeyboardUtils.dismiss`)
+
+### When to use `runAfterTransitions` directly
+
+Prefer higher-level APIs (`Navigation` with `afterTransition`/`waitForTransition`, `KeyboardUtils`, `useConfirmModal`) whenever possible. Use `TransitionTracker.runAfterTransitions` directly **only** when:
+
+- There is no specific navigation/keyboard/modal action you can attach a callback to, or
+- There are too many concurrent actions and it's impossible to bind the callback to a particular one.
+
+### When NOT to use `runAfterTransitions`
+
+If you are not waiting for any of the tracked events (navigation, modal, keyboard), adding `runAfterTransitions` is meaningless - TransitionTracker will have no active transitions and the callback will fire synchronously in the same tick. For example, scroll events, layout animations, or Lottie playback are **not** tracked, so wrapping post-scroll logic in `runAfterTransitions` provides no benefit.
+
+### How `runAfterTransitions` works
+
+1. If there are ongoing transitions at the time of the call, the callback is enqueued and waits until all current transitions complete.
+2. If there are no ongoing transitions, the callback executes in the same tick.
+
+### The same-tick race condition
+
+Sometimes a transition starts in the same tick as the `runAfterTransitions` call. Because TransitionTracker hasn't registered the transition yet, the callback fires immediately - before the transition even begins.
+
+To fix this, pass the `waitForUpcomingTransition` flag along with the callback. This tells TransitionTracker to wait for a transition that hasn't started yet, ensuring the callback truly runs after the transition completes.
+
+> **Important:** `waitForUpcomingTransition` waits up to 1 second for a transition to begin. If no transition starts within that window, the callback fires anyway — effectively acting as a 1-second timeout. When using this flag, always make sure that TransitionTracker actually picks up the transition (i.e. the transition is registered within the 1-second window). Otherwise you're not waiting for a real transition, just adding an arbitrary delay.
 
 ## How
 The migration is split into 9 issues. Current status of the migration can be found in the parent Github issue [here](https://github.com/Expensify/App/issues/71913). 

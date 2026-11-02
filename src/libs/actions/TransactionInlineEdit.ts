@@ -26,7 +26,16 @@ import {
     shouldEnableNegative,
 } from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
-import {calculateTaxAmount, getCurrency, getOriginalTransactionWithSplitInfo, getTaxValue, isDistanceRequest, isExpenseUnreported, isScanning} from '@libs/TransactionUtils';
+import {
+    calculateTaxAmount,
+    getCurrency,
+    getOriginalTransactionWithSplitInfo,
+    getTaxValue,
+    isDistanceRequest,
+    isExpenseUnreported,
+    isPerDiemRequest,
+    isScanning,
+} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -430,6 +439,11 @@ function getTransactionEditPermissions({
                 return false;
             }
 
+            // Per diem amount is derived from the rate and cannot be edited
+            if (isPerDiemRequest(transaction)) {
+                return false;
+            }
+
             // Amount field shows "Scanning..." during SmartScan
             if (isTransactionScanning) {
                 return false;
@@ -437,8 +451,8 @@ function getTransactionEditPermissions({
         }
 
         if (field === CONST.EDIT_REQUEST_FIELD.MERCHANT) {
-            // Distance expenses cannot have their merchant edited
-            if (isDistanceRequest(transaction)) {
+            // Distance and per diem expenses cannot have their merchant edited
+            if (isDistanceRequest(transaction) || isPerDiemRequest(transaction)) {
                 return false;
             }
 

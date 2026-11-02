@@ -53,6 +53,23 @@ Concierge will answer or connect you with a human if needed.
 
 ---
 
+## What questions you can ask Concierge about your expense data
+
+You can ask Concierge questions about your own expense data and it will look up the answer for you, instead of building a search yourself.
+
+Examples:
+- “Show all Travel expenses last month”  
+- “Who submitted the most expenses this quarter?”  
+- “How does March spending compare to February?”  
+- “Which expenses are still unapproved?”  
+- “Which workspace spent the most last month?”  
+
+You can ask in the #admins room for a workspace or in your Concierge chat. In your Concierge chat, questions can span all of the workspaces you have access to.
+
+[Learn how Concierge analyzes spend](/articles/new-expensify/concierge-ai/How-Concierge-Analyzes-Spend).
+
+---
+
 ## What issues Concierge can troubleshoot in Expensify
 
 Describe the problem, and Concierge will help you figure it out.

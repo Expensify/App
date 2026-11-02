@@ -1,8 +1,7 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {Ref} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
+import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
@@ -159,12 +158,8 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
         }
 
         setNewRoomFormLoading();
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                addPolicyReport(policyReport);
-                Navigation.dismissModalWithReport({reportID: policyReport.reportID});
-            });
-        });
+        addPolicyReport(policyReport);
+        Navigation.dismissModalWithReport({reportID: policyReport.reportID});
     };
 
     useEffect(() => {
@@ -272,7 +267,8 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                       onEntryTransitionEnd: () => roomPageInputRef.current?.focus(),
                       shouldEnableMaxHeight: true,
                       shouldEnableKeyboardAvoidingView: true,
-                      includeSafeAreaPaddingBottom: true,
+                      enableEdgeToEdgeBottomSafeAreaPadding: true,
+                      shouldShowOfflineIndicator: true,
                   }
                 : {
                       enableEdgeToEdgeBottomSafeAreaPadding: true,
@@ -298,7 +294,7 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
                 <FormProvider
                     formID={ONYXKEYS.FORMS.NEW_ROOM_FORM}
                     submitButtonText={translate('newRoomPage.createRoom')}
-                    style={[styles.h100, styles.mh5, styles.flexGrow1]}
+                    style={[!isLocked && styles.h100, styles.mh5, styles.flexGrow1]}
                     validate={validate}
                     onSubmit={submit}
                     enabledWhenOffline

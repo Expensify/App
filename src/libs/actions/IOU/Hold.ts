@@ -800,10 +800,8 @@ function getReportFromHoldRequestsOnyxData({
         addHoldReportActions[reportActionID] = {
             ...holdReportAction,
             reportActionID,
-            originalMessage: {
-                ...originalMessage,
-                IOUReportID: optimisticExpenseReport.reportID,
-            },
+            reportID: optimisticExpenseReport.reportID,
+            originalMessage,
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
         };
         addHoldReportActionsSuccess[reportActionID] = {

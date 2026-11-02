@@ -1,6 +1,7 @@
 import {useEffect, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import {wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
+import Visibility from '@libs/Visibility';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -110,6 +111,7 @@ function useUnreadMarker({
         isOffline,
         isReversed: false,
         isAnonymousUser,
+        hasWindowFocus: Visibility.hasFocus(),
     });
     // Pagination is anchored to the oldest unread on first open; that anchor does not change when the user
     // marks read or unread, or when messages are deleted. Prefer the scan when it does not match that stale id.

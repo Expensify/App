@@ -62,7 +62,7 @@ type ReportActionItemMessageEditProps = {
     reportID: string | undefined;
 
     /** ID of the original report from which the given reportAction is first created */
-    originalReportID: string;
+    originalReportID?: string;
 
     /** PolicyID of the policy the report belongs to */
     policyID?: string;

@@ -2,6 +2,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {ReportNameValuePairs} from '@src/types/onyx';
 
+type AgentZeroProcessingIndicator = NonNullable<ReportNameValuePairs['agentZeroProcessingRequestIndicator']>;
+
+function isAgentZeroProcessingIndicatorMap(indicator: AgentZeroProcessingIndicator): indicator is Record<string, string | null> {
+    return typeof indicator === 'object' && indicator !== null && !Array.isArray(indicator);
+}
+
 /**
  * Reads the AgentZero processing-indicator label for a single agent, trimmed.
  *
@@ -16,7 +22,11 @@ function getAgentZeroProcessingLabel(reportNameValuePairs: OnyxEntry<ReportNameV
     if (typeof indicator === 'string') {
         return agentAccountID === CONST.ACCOUNT_ID.CONCIERGE ? indicator.trim() : '';
     }
-    return indicator[String(agentAccountID)]?.trim() ?? '';
+    if (!isAgentZeroProcessingIndicatorMap(indicator)) {
+        return '';
+    }
+    const label = indicator[String(agentAccountID)];
+    return typeof label === 'string' ? label.trim() : '';
 }
 
 /**
@@ -31,9 +41,12 @@ function agentZeroProcessingAgentIDsSelector(reportNameValuePairs: OnyxEntry<Rep
     if (typeof indicator === 'string') {
         return indicator.trim() ? [CONST.ACCOUNT_ID.CONCIERGE] : [];
     }
-    return Object.keys(indicator)
-        .filter((key) => !!indicator[key]?.trim())
-        .map(Number)
+    if (!isAgentZeroProcessingIndicatorMap(indicator)) {
+        return [];
+    }
+    return Object.entries(indicator)
+        .filter(([, label]) => typeof label === 'string' && !!label.trim())
+        .map(([key]) => Number(key))
         .filter((accountID) => !Number.isNaN(accountID))
         .sort((a, b) => a - b);
 }

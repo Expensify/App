@@ -294,6 +294,7 @@ function WorkspaceCompanyCardsTable({
             item={item}
             rowIndex={index}
             policyID={policyID ?? String(CONST.DEFAULT_NUMBER_ID)}
+            feedName={feedName}
             CardFeedIcon={cardFeedIcon}
             onAssignCard={onAssignCard}
             isAssigningCardDisabled={isAssigningCardDisabled}

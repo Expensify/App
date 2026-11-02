@@ -4,9 +4,9 @@ import Button from '@components/Button';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
 import useChatWithAgent from '@hooks/useChatWithAgent';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -144,7 +144,9 @@ function AgentsPage() {
             {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
             {hasAgents ? (
                 <>
-                    <Text style={[styles.textSupporting, styles.ph5, styles.pb3, styles.pt3]}>{translate('agentsPage.subtitle')}</Text>
+                    <View style={[styles.renderHTML, styles.ph5, styles.pb3, styles.pt3]}>
+                        <RenderHTML html={translate('agentsPage.subtitle')} />
+                    </View>
                     <FlatList
                         data={agentItems}
                         renderItem={renderItem}
@@ -156,8 +158,11 @@ function AgentsPage() {
                     <GenericEmptyStateComponent
                         headerMedia={illustrations.TvScreenRobot}
                         title={translate('agentsPage.emptyAgents.title')}
-                        subtitle={translate('agentsPage.emptyAgents.subtitle')}
-                        subtitleStyles={styles.agentsPageEmptyStateSubtitle}
+                        subtitleText={
+                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, !shouldUseNarrowLayout && styles.agentsPageEmptyStateSubtitle]}>
+                                <RenderHTML html={translate('agentsPage.emptyAgents.subtitle')} />
+                            </View>
+                        }
                         headerStyles={styles.emptyStateCardIllustrationContainer}
                         headerContentStyles={styles.agentsPageEmptyStateIllustration}
                     />

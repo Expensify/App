@@ -12,6 +12,7 @@ import type {TransactionGroupListItemProps, TransactionListItemType, Transaction
 import TransactionGroupListItem from '@src/components/Search/SearchList/ListItem/TransactionGroupListItem';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type * as MockUsePaymentContextUtil from '../utils/mockUsePaymentContext';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Search', () => ({
@@ -50,6 +51,11 @@ jest.mock('@react-navigation/core', () => ({
 jest.mock('@hooks/useRootNavigationState', () => jest.fn((selector: (state: undefined) => unknown) => selector(undefined)));
 
 jest.mock('@hooks/useResponsiveLayout');
+
+jest.mock('@hooks/usePaymentContext', () => {
+    const {default: mockUsePaymentContext} = jest.requireActual<typeof MockUsePaymentContextUtil>('../utils/mockUsePaymentContext');
+    return mockUsePaymentContext;
+});
 
 const mockEmptyReport: TransactionReportGroupListItemType = {
     accountID: 1,

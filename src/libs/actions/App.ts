@@ -10,7 +10,7 @@ import * as API from '@libs/API';
 import type {GetMissingOnyxMessagesParams, HandleRestrictedEventParams, OpenAppParams, ReconnectAppParams, UpdatePreferredLocaleParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import clearWorkboxRecoveryCaches from '@libs/clearWorkboxRecoveryCaches';
-import DateUtils from '@libs/DateUtils';
+import {getLastFullReconnectTimeToRecord} from '@libs/FullReconnectUtils';
 import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import willRouteNavigateToRHP from '@libs/Navigation/helpers/willRouteNavigateToRHP';
@@ -90,6 +90,17 @@ Onyx.connectWithoutView({
     callback: (value) => {
         hasLoadedApp = value;
         resolveHasLoadedAppPromise?.();
+    },
+});
+
+// The server's cutoff for a full reconnect (see subscribeToFullReconnect). We read it only when
+// building reconnectApp's data, never in a component, so connectWithoutView is correct here. Do not
+// copy this into a component: use useOnyx there so the UI updates when the value changes.
+let serverReconnectCutoff = '';
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
+    callback: (value) => {
+        serverReconnectCutoff = value ?? '';
     },
 });
 
@@ -380,10 +391,11 @@ function getOnyxDataForOpenOrReconnect(
     }
 
     if (isOpenApp || isFullReconnect) {
+        // Record this reconnect so subscribeToFullReconnect stops asking for another one.
         result.successData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.LAST_FULL_RECONNECT_TIME,
-            value: DateUtils.getDBTime(),
+            value: getLastFullReconnectTimeToRecord(serverReconnectCutoff),
         });
     }
 
@@ -519,6 +531,16 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
                 endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
             });
     });
+}
+
+/**
+ * Starts a full reconnect, recording the reconnect time before sending the request. The server
+ * response re-delivers the cutoff. Recording first means the stored time is already at or above the
+ * cutoff by the time the response lands, so subscribeToFullReconnect does not fire a second reconnect.
+ */
+function triggerFullReconnect(cutoff: string) {
+    Onyx.merge(ONYXKEYS.LAST_FULL_RECONNECT_TIME, getLastFullReconnectTimeToRecord(cutoff));
+    reconnectApp();
 }
 
 /**
@@ -960,6 +982,7 @@ export {
     openApp,
     setAppLoading,
     reconnectApp,
+    triggerFullReconnect,
     confirmReadyToOpenApp,
     handleRestrictedEvent,
     getMissingOnyxUpdates,

@@ -8,16 +8,17 @@ import {useSearchSidebarContentOffsetStyle} from '@components/Navigation/SearchS
 import ReceiptScanDropZone from '@components/ReceiptScanDropZone';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import {useSearchResultsContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchLoadingSkeleton from '@components/Search/SearchLoadingSkeleton';
-import SearchPageFooter from '@components/Search/SearchPageFooter';
 import SearchActionsBarWide from '@components/Search/SearchPageHeader/SearchActionsBarWide';
 import SearchPageHeaderWide from '@components/Search/SearchPageHeader/SearchPageHeaderWide';
+import SearchSelectionFooter from '@components/Search/SearchSelectionFooter';
 import SearchWithNavigationDeferredMount from '@components/Search/SearchWithNavigationDeferredMount';
 import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
 import useNetwork from '@hooks/useNetwork';
 import useSearchLoadingState from '@hooks/useSearchLoadingState';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -33,15 +34,9 @@ type SearchPageWideProps = {
     searchResults: OnyxEntry<SearchResults>;
     searchRequestResponseStatusCode: number | null;
     isMobileSelectionModeEnabled: boolean;
-    footerData: {
-        count: number | undefined;
-        total: number | undefined;
-        currency: string | undefined;
-    };
     handleSearchAction: (value: SearchParams | string) => void;
     onSortPressedCallback: () => void;
     route: PlatformStackRouteProp<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.ROOT>;
-    shouldShowFooter: boolean;
     /** Overlay rendered above Search content during expense-creation flows (SearchStaticList or null). */
     searchOverlayContent: React.ReactNode;
     /** Callback for Search to signal that real content is ready and the overlay can be dismissed. */
@@ -53,11 +48,9 @@ function SearchPageWide({
     searchResults,
     searchRequestResponseStatusCode,
     isMobileSelectionModeEnabled,
-    footerData,
     handleSearchAction,
     onSortPressedCallback,
     route,
-    shouldShowFooter,
     searchOverlayContent,
     onSearchContentReady,
 }: SearchPageWideProps) {
@@ -65,6 +58,16 @@ function SearchPageWide({
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {shouldUseLiveData} = useSearchResultsContext();
+    const {currentSearchKey} = useSearchQueryContext();
+    const {hasSelectedTransactions} = useSearchSelectionContext();
+
+    // The offline-indicator offset must track the footer's real visibility. SearchSelectionFooter shows on a
+    // selection even when server totals are absent (e.g. expense-report searches), so a totals-only check leaves
+    // the indicator unreserved and it drops onto its own line. Reading `hasSelectedTransactions` re-renders only
+    // this component on selection changes (its memoized JSX keeps the <Search> subtree from re-rendering;
+    // verified via profiling), so the heavy list is unaffected.
+    const shouldAllowFooterTotals = useSearchShouldCalculateTotals(currentSearchKey, queryJSON?.hash, true);
+    const shouldReserveFooterSpace = hasSelectedTransactions || (shouldAllowFooterTotals && !!searchResults?.search?.count);
     const {saveScrollOffset} = useContext(ScrollOffsetContext);
     const receiptDropTargetRef = useRef<View>(null);
 
@@ -82,12 +85,12 @@ function SearchPageWide({
     );
 
     const offlineIndicatorStyle = useMemo(() => {
-        if (shouldShowFooter) {
+        if (shouldReserveFooterSpace) {
             return [styles.mtAuto, styles.pAbsolute, styles.h10, styles.b0];
         }
 
         return [styles.mtAuto];
-    }, [shouldShowFooter, styles]);
+    }, [shouldReserveFooterSpace, styles]);
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
     const splitContainerAnimatedStyle = useSearchSidebarContentOffsetStyle();
@@ -149,13 +152,7 @@ function SearchPageWide({
                                 )}
                                 {!!searchOverlayContent && <View style={[StyleSheet.absoluteFill, styles.appBG]}>{searchOverlayContent}</View>}
                             </View>
-                            {shouldShowFooter && (
-                                <SearchPageFooter
-                                    count={footerData.count}
-                                    total={footerData.total}
-                                    currency={footerData.currency}
-                                />
-                            )}
+                            <SearchSelectionFooter searchResults={searchResults} />
                         </>
                     )}
                 </FullPageNotFoundView>

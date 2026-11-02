@@ -20,6 +20,7 @@ function Checkbox({
     containerBorderRadius,
     caretSize,
     accessibilityLabel,
+    accessibilityHint,
     shouldStopMouseDownPropagation,
     shouldSelectOnPressEnter,
     wrapperStyle,
@@ -44,6 +45,7 @@ function Checkbox({
             containerBorderRadius={containerBorderRadius}
             caretSize={caretSize}
             accessibilityLabel={accessibilityLabel}
+            accessibilityHint={accessibilityHint}
             shouldStopMouseDownPropagation={shouldStopMouseDownPropagation}
             shouldSelectOnPressEnter={shouldSelectOnPressEnter}
             wrapperStyle={wrapperStyle}

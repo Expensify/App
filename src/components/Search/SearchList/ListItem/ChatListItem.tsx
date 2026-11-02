@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import FS from '@libs/Fullstory';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -31,6 +32,7 @@ function ChatListItem<TItem extends ListItem>({
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [reportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID}`, {selector: getStableReportSelector});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.childReportID}`);
+    const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isSelected} = useRowSelection(item.keyForList);
@@ -81,6 +83,7 @@ function ChatListItem<TItem extends ListItem>({
                 action={reportActionItem}
                 report={reportStable}
                 transactionThreadReport={transactionThreadReport}
+                chatReport={chatReportStable}
                 onPress={handlePress}
                 parentReportAction={undefined}
                 displayAsGroup={false}

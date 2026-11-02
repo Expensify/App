@@ -23,6 +23,9 @@ type ReportActionsListItemRendererProps = {
     /** The transaction thread report associated with the report for this action, if any */
     transactionThreadReport: OnyxEntry<Report>;
 
+    /** The chat report associated with the report for this action (report.chatReportID) */
+    chatReport?: OnyxEntry<Report>;
+
     /** Should the comment have the appearance of being grouped with the previous comment? */
     displayAsGroup: boolean;
 
@@ -59,6 +62,7 @@ function ReportActionsListItemRenderer({
     parentReportAction,
     report,
     transactionThreadReport,
+    chatReport,
     displayAsGroup,
     shouldHideThreadDividerLine,
     shouldDisplayNewMarker,
@@ -168,6 +172,7 @@ function ReportActionsListItemRenderer({
             parentReportAction={parentReportAction}
             report={report}
             transactionThreadReport={transactionThreadReport}
+            chatReport={chatReport}
             parentReportActionForTransactionThread={parentReportActionForTransactionThread}
             action={action}
             linkedReportActionID={linkedReportActionID}

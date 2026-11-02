@@ -117,6 +117,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Indicate whether input is multiline */
         multiline?: boolean;
 
+        /** Force the floating label to render on a single line and ellipsize even when the input is multiline */
+        shouldLabelStayOnSingleLine?: boolean;
+
         /** Set the default value to the input if there is a valid saved value */
         shouldUseDefaultValue?: boolean;
 

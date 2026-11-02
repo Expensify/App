@@ -229,6 +229,7 @@ function BasePicker<TPickerValue>({
                         accessibilityLabel: actualAccessibilityLabel,
                     }}
                     doneText={translate('common.done')}
+                    dismissText={translate('common.dismiss')}
                     pickerProps={{
                         ref: picker,
                         tabIndex: pickerTabIndex,

@@ -1,6 +1,6 @@
 import {useEffect} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {setMoneyRequestBillable, setMoneyRequestReimbursable} from '@userActions/IOU/MoneyRequest';
 import type {Policy} from '@src/types/onyx';
 
@@ -32,7 +32,7 @@ function ExpenseDefaultsSetter({transactionIDs, policy, isPolicyExpenseChat, isM
         if (isMovingTransactionFromTrackExpense) {
             return;
         }
-        const defaultReimbursable = (isPolicyExpenseChat && isPaidGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
+        const defaultReimbursable = (isPolicyExpenseChat && isGroupPolicy(policy)) || isCreatingTrackExpense ? (policy?.defaultReimbursable ?? true) : true;
         for (const transactionID of transactionIDs) {
             setMoneyRequestReimbursable(transactionID, defaultReimbursable);
         }

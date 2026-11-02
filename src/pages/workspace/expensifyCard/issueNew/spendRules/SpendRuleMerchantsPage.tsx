@@ -4,6 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -20,12 +21,19 @@ export default function SpendRuleMerchantsPage({route}: SpendRuleMerchantsPagePr
     const restrictionAction = issueNewCardForm?.data.spendRuleValue?.restrictionAction ?? CONST.SPEND_RULES.ACTION.ALLOW;
 
     return (
-        <SpendRuleMerchantsBase
+        <AccessOrNotFoundWrapper
             policyID={policyID}
-            action={restrictionAction}
-            merchantNames={merchantNames}
-            merchantMatchTypes={merchantMatchTypes}
-            getEditMerchantRoute={(merchantIndex) => createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT.getRoute(merchantIndex))}
-        />
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <SpendRuleMerchantsBase
+                policyID={policyID}
+                action={restrictionAction}
+                merchantNames={merchantNames}
+                merchantMatchTypes={merchantMatchTypes}
+                getEditMerchantRoute={(merchantIndex) => createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_MERCHANT_EDIT.getRoute(merchantIndex))}
+            />
+        </AccessOrNotFoundWrapper>
     );
 }
