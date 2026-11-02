@@ -116,7 +116,6 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
         options.push({
             text: translate('getAssistancePage.registerForWebinar'),
             icon: icons.Monitor,
-            shouldShowButtonRightIcon: true,
             value: CONST.ONBOARDING_HELP.REGISTER_FOR_WEBINAR,
             onSelected: () => {
                 openExternalLink(CONST.REGISTER_FOR_WEBINAR_URL);
