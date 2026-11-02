@@ -11,6 +11,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
@@ -19,6 +20,7 @@ import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useActiveRoute from '@hooks/useActiveRoute';
 import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
+import useAnchoredFieldDropdown from '@hooks/useAnchoredFieldDropdown';
 import useAttendees from '@hooks/useAttendees';
 import useCardFeedErrors from '@hooks/useCardFeedErrors';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -64,6 +66,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {
+    canCreateCategoryInSitu,
     canShowReimbursableToggleForPolicy,
     canSubmitPerDiemExpenseFromWorkspace,
     findVendorByID,
@@ -171,6 +174,7 @@ import {View} from 'react-native';
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
+import MoneyRequestViewCategoryDropdown from './MoneyRequestViewCategoryDropdown';
 
 type MoneyRequestViewProps = {
     transactionThreadReport?: OnyxEntry<OnyxTypes.Report>;
@@ -1043,6 +1047,91 @@ function MoneyRequestView({
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
     const taxAmountCopyValue = taxAmountTitle || undefined;
 
+    // The category list opens in place for a saved expense the user edits directly. Whatever the full page has to deal
+    // with first keeps the full page: picking or upgrading a workspace, categories that are turned off or all disabled,
+    // and the review and merge flows, which show a transaction that is not saved yet.
+    const canAddCategory = canCreateCategoryInSitu(policy, currentUserPersonalDetails.login);
+    const shouldOpenCategoryInDropdown =
+        isBetaEnabled(CONST.BETAS.ANCHORED_FIELD_DROPDOWNS) &&
+        !!transaction &&
+        !!transactionThreadReport &&
+        !!policy &&
+        !shouldNavigateToUpgradePath &&
+        !shouldShowCategoryDisabledAlert &&
+        hasEnabledOptions(policyCategories ?? {}) &&
+        !updatedTransaction &&
+        !isFromReviewDuplicates &&
+        !mergeTransactionID;
+
+    const navigateToCategoryStep = () => {
+        const transactionID = transaction?.transactionID;
+        if (!transactionID) {
+            return;
+        }
+        if (shouldNavigateToUpgradePath && transactionThreadReport) {
+            Navigation.navigate(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: CONST.IOU.ACTION.EDIT,
+                        iouType,
+                        transactionID,
+                        reportID: transactionThreadReport?.reportID,
+                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                        upgradeBackTo: createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                action: CONST.IOU.ACTION.EDIT,
+                                iouType,
+                                transactionID,
+                                reportID: transactionThreadReport?.reportID,
+                            }),
+                        ),
+                    }),
+                ),
+            );
+        } else if (!policy && shouldSelectPolicy) {
+            Navigation.navigate(
+                ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                            action: CONST.IOU.ACTION.EDIT,
+                            iouType,
+                            transactionID,
+                            reportID: transactionThreadReport?.reportID,
+                        }),
+                    ),
+                ),
+            );
+        } else {
+            Navigation.navigate(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                        action: CONST.IOU.ACTION.EDIT,
+                        iouType,
+                        transactionID,
+                        reportID: transactionThreadReport?.reportID,
+                    }),
+                ),
+            );
+        }
+    };
+
+    const categoryDropdown = useAnchoredFieldDropdown({
+        onFallback: navigateToCategoryStep,
+        listHeaderHeight: canAddCategory ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0,
+    });
+
+    const openCategory = () => {
+        if (shouldShowCategoryDisabledAlert) {
+            showCategoryDisabledAlert();
+            return;
+        }
+        if (shouldOpenCategoryInDropdown) {
+            categoryDropdown.toggleDropdown();
+            return;
+        }
+        navigateToCategoryStep();
+    };
+
     const distanceRequestFields = (
         <>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('waypoints') ?? getPendingFieldAction('merchant')}>
@@ -1486,89 +1575,45 @@ function MoneyRequestView({
                     </MenuItem.Root>
                 </OfflineWithFeedback>
                 {!!shouldShowCategory && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
-                        <MenuItem.Root
-                            shouldAllowTextSelection={!!categoryCopyValue}
-                            onPress={
-                                canEdit
-                                    ? callFunctionIfActionIsAllowed(
-                                          () => {
-                                              if (shouldShowCategoryDisabledAlert) {
-                                                  showCategoryDisabledAlert();
-                                                  return;
-                                              }
-
-                                              if (shouldNavigateToUpgradePath && transactionThreadReport) {
-                                                  Navigation.navigate(
-                                                      createDynamicRoute(
-                                                          DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                                              action: CONST.IOU.ACTION.EDIT,
-                                                              iouType,
-                                                              transactionID: transaction.transactionID,
-                                                              reportID: transactionThreadReport?.reportID,
-                                                              upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                                                              upgradeBackTo: createDynamicRoute(
-                                                                  DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
-                                                                      action: CONST.IOU.ACTION.EDIT,
-                                                                      iouType,
-                                                                      transactionID: transaction.transactionID,
-                                                                      reportID: transactionThreadReport?.reportID,
-                                                                  }),
-                                                              ),
-                                                          }),
-                                                      ),
-                                                  );
-                                              } else if (!policy && shouldSelectPolicy) {
-                                                  Navigation.navigate(
-                                                      ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                                                          createDynamicRoute(
-                                                              DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
-                                                                  action: CONST.IOU.ACTION.EDIT,
-                                                                  iouType,
-                                                                  transactionID: transaction.transactionID,
-                                                                  reportID: transactionThreadReport?.reportID,
-                                                              }),
-                                                          ),
-                                                      ),
-                                                  );
-                                              } else {
-                                                  Navigation.navigate(
-                                                      createDynamicRoute(
-                                                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
-                                                              action: CONST.IOU.ACTION.EDIT,
-                                                              iouType,
-                                                              transactionID: transaction.transactionID,
-                                                              reportID: transactionThreadReport?.reportID,
-                                                          }),
-                                                      ),
-                                                  );
-                                              }
-                                          },
-                                          false,
-                                          session,
-                                      )
-                                    : undefined
-                            }
-                        >
-                            <MenuItemField.Row
-                                name={translate('common.category')}
-                                value={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
-                                numberOfLinesValue={2}
-                                isValueSelectable={!!categoryCopyValue}
+                    <>
+                        <OfflineWithFeedback pendingAction={getPendingFieldAction('category')}>
+                            <MenuItem.Root
+                                ref={shouldOpenCategoryInDropdown ? categoryDropdown.anchorRef : undefined}
+                                accessibilityState={shouldOpenCategoryInDropdown ? {expanded: categoryDropdown.isVisible} : undefined}
+                                shouldAllowTextSelection={!!categoryCopyValue}
+                                onPress={canEdit ? callFunctionIfActionIsAllowed(openCategory, false, session) : undefined}
                             >
-                                {!!getErrorForField('category') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
-                                {canEdit && <MenuItem.Chevron />}
-                                {!canEdit && !!categoryCopyValue && <MenuItem.Copy value={categoryCopyValue} />}
-                            </MenuItemField.Row>
-                            {!!getErrorForField('category') && (
-                                <MenuItem.HelpText
-                                    isError
-                                    message={getErrorForField('category')}
-                                />
-                            )}
-                            {!!reservationNightsHintText && <MenuItem.HelpText message={reservationNightsHintText} />}
-                        </MenuItem.Root>
-                    </OfflineWithFeedback>
+                                <MenuItemField.Row
+                                    name={translate('common.category')}
+                                    value={shouldShowCategoryAnalyzing ? translate('common.analyzing') : decodedCategoryName}
+                                    numberOfLinesValue={2}
+                                    isValueSelectable={!!categoryCopyValue}
+                                >
+                                    {!!getErrorForField('category') && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                    {canEdit && <MenuItem.Chevron />}
+                                    {!canEdit && !!categoryCopyValue && <MenuItem.Copy value={categoryCopyValue} />}
+                                </MenuItemField.Row>
+                                {!!getErrorForField('category') && (
+                                    <MenuItem.HelpText
+                                        isError
+                                        message={getErrorForField('category')}
+                                    />
+                                )}
+                                {!!reservationNightsHintText && <MenuItem.HelpText message={reservationNightsHintText} />}
+                            </MenuItem.Root>
+                        </OfflineWithFeedback>
+                        {categoryDropdown.hasEverOpened && canEdit && shouldOpenCategoryInDropdown && !!transaction && !!transactionThreadReport && (
+                            <MoneyRequestViewCategoryDropdown
+                                {...categoryDropdown.dropdownProps}
+                                transaction={transaction}
+                                transactionThreadReport={transactionThreadReport}
+                                policy={policy}
+                                selectedCategory={categoryForDisplay}
+                                iouType={iouType}
+                                canAddCategory={canAddCategory}
+                            />
+                        )}
+                    </>
                 )}
                 {shouldShowVendor && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('vendor')}>
