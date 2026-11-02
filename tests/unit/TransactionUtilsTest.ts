@@ -5615,6 +5615,15 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.canMergeDuplicates(undefined, CONST.REPORT.UNREPORTED_REPORT_ID, DUPLICATE_IDS)).toBe(true);
         });
 
+        it('allows merging when the kept expense has no report ID at all', () => {
+            // Given a legacy unreported expense that carries no report ID instead of the unreported sentinel
+            // When checking whether the merge can be sent
+            const canMerge = TransactionUtils.canMergeDuplicates(undefined, undefined, DUPLICATE_IDS);
+
+            // Then it is treated like an unreported expense, which Auth still lets you merge
+            expect(canMerge).toBe(true);
+        });
+
         it('blocks merging when the kept report is not loaded', () => {
             // Given a kept expense that sits on a report missing from Onyx, so its state is unknown
             const unloadedReportID = 'unloadedKeptReport';

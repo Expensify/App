@@ -92,8 +92,12 @@ function getValidDuplicateTransactionIDs(transactionID: string, transactionColle
             validTransactions.push(transaction);
         }
 
-        // Filter out transactions assumed that they have be reviewed by removing settled and approved transactions
-        const filtered = removeSettledAndApprovedTransactions(validTransactions);
+        // Filter out transactions assumed that they have be reviewed by removing settled and approved transactions.
+        // A peer whose report isn't loaded still references this transaction, so it is kept for the cleanup.
+        const filtered = validTransactions.filter((transaction) => {
+            const report = getReportOrDraftReport(transaction.reportID);
+            return !report || isReportMergeableForDuplicates(report, transaction.reportID);
+        });
 
         for (const transaction of filtered) {
             result.add(transaction.transactionID);
@@ -203,7 +207,7 @@ function removeTransactionFromDuplicateTransactionViolation(
  */
 function isReportMergeableForDuplicates(report: OnyxEntry<Report>, reportID: string | undefined): boolean {
     if (!report) {
-        return reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+        return !reportID || reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     }
     return isOpenReport(report) || isProcessingReport(report);
 }

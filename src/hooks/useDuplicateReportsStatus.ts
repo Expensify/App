@@ -1,3 +1,7 @@
+/**
+ * Tells the duplicate review whether any duplicate's report is settled, approved or not loaded yet, and opens the
+ * reports that aren't loaded so the review can decide whether Keep selected is safe.
+ */
 import {openReport} from '@libs/actions/Report';
 import {isReportApproved, isSettled} from '@libs/ReportUtils';
 
@@ -22,7 +26,6 @@ function getReport(reports: OnyxCollection<Report>, reportID: string) {
     return reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
 }
 
-/** Reads the state of the duplicates' reports and opens the ones that aren't loaded yet. */
 function useDuplicateReportsStatus(reportIDs: string[]): DuplicateReportsStatus {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);

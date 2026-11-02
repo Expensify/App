@@ -3654,7 +3654,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
     function makeTransactionCollection(...ids: string[]) {
         const collection: Record<string, Transaction> = {};
         for (const id of ids) {
-            collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] = createMock<Transaction>({transactionID: id, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+            collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] = createMock<Transaction>({transactionID: id});
         }
         return collection;
     }
@@ -3712,6 +3712,26 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
 
         const successEntry = onyxData.successData?.at(0);
         expect(successEntry?.value).toBeNull();
+    });
+
+    it('should clean the duplicate violation of a peer whose report is not loaded', () => {
+        // Given a peer on a report that is missing from Onyx, e.g. right after clearing the cache
+        const onyxData: OnyxData<UpdateMoneyRequestDataKeys> = {optimisticData: [], successData: [], failureData: []};
+        const transactions = {
+            ...makeTransactionCollection(TXN_A),
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}${TXN_B}`]: createMock<Transaction>({transactionID: TXN_B, reportID: 'unloadedPeerReport'}),
+        };
+        const transactionViolations = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_A}`]: [makeDuplicateViolation([TXN_B])],
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`]: [makeDuplicateViolation([TXN_A])],
+        };
+
+        // When transaction A is removed from the duplicate violations
+        TransactionUtils.removeTransactionFromDuplicateTransactionViolation(onyxData, TXN_A, transactions, transactionViolations);
+
+        // Then the peer's violation is still cleared, so it isn't left as a one-sided duplicate
+        expect(onyxData.optimisticData?.at(0)?.key).toBe(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TXN_B}`);
+        expect(onyxData.optimisticData?.at(0)?.value).toBeNull();
     });
 
     it('should preserve failureData for rollback with original violations', () => {

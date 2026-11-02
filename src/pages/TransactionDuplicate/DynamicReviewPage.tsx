@@ -117,8 +117,9 @@ function DynamicReviewPage() {
 
     const duplicateReportIDs = transactions.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
     const {hasSettledOrApprovedReport: hasSettledOrApprovedTransaction, hasUnloadedReport} = useDuplicateReportsStatus(duplicateReportIDs);
-    // A duplicate whose report isn't loaded may be approved or paid, and merging it fails server-side.
-    const canKeepSelected = !hasSettledOrApprovedTransaction && !hasUnloadedReport;
+    // A duplicate that isn't loaded yet, or whose report isn't, may be approved or paid, and merging it fails server-side.
+    const hasUnloadedTransaction = transactions.length < transactionIDs.length;
+    const canKeepSelected = !hasSettledOrApprovedTransaction && !hasUnloadedReport && !hasUnloadedTransaction;
     const hasLoadedThreadReportActions = hasLoadedReportActions(reportLoadingState, isOffline);
     const isThreadReportDeletedForReview = isThreadReportDeleted(report, reportLoadingState, isOffline);
     const {hasLoadedParentReportActions, wasParentActionDeleted} = getParentReportActionDeletionStatus({
