@@ -5376,6 +5376,8 @@ function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>
     Onyx.update([PersonalDetailsUtils.buildPersonalDetailsUpdate(personalDetailsToRemove)]);
 }
 
+// TODO: Refactor to use options object parameter to reduce parameter count. Refactor issue: https://github.com/Expensify/App/issues/66425
+// eslint-disable-next-line @typescript-eslint/max-params
 function clearCreateChatError(
     report: OnyxEntry<Report>,
     conciergeReportID: string | undefined,
