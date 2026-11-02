@@ -82,10 +82,6 @@ function useTaxAmount({
     // for it. While the rules are loading nothing is resolved, so a category picked in that window stays pending
     // here until they land. Tracking the last rendered category instead would let the change pass unseen, and the
     // rate the old category left behind would then be held in place as though the user had chosen it.
-    // The category tracked here only moves on once a rate has been resolved for it. While the rules are loading
-    // nothing is resolved, so a category picked in that window stays pending until they land. Tracking the last
-    // rendered category instead would let the change pass unseen, and the rate the old category left behind would
-    // then be held in place as though the user had chosen it.
     const [previousCategory, setPreviousCategory] = useState(category);
     useEffect(() => {
         if (areRulesLoading || previousCategory === category) {

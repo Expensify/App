@@ -779,6 +779,16 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Travel')).toBe('id_TAX_RATE_1');
         });
 
+        it('resolves the rate for every category the rule names', () => {
+            // Given one rule naming two categories, which is how the multi select saves them
+            const rules = {[`${ONYXKEYS.COLLECTION.RULE}1`]: buildRule({left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel', 'Meals']})};
+
+            // When the rate for each of them is resolved
+            // Then both get the rule's rate, because the rules engine reads the values as alternatives
+            expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Travel')).toBe('id_TAX_RATE_1');
+            expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Meals')).toBe('id_TAX_RATE_1');
+        });
+
         it('ignores a rule that matches every category except this one', () => {
             // Given a rule that names the category but excludes it, which the editor refuses and so cannot create
             const rules = {[`${ONYXKEYS.COLLECTION.RULE}1`]: buildRule({left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, right: ['Travel']})};

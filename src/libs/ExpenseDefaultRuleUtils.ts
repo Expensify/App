@@ -694,10 +694,11 @@ function getCategoryOnlyExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule
 
         // Read the condition rather than the summary, which keeps a category's name whatever the operator is. A
         // rule matching on anything else is narrower than the category, and a single leaf is the only shape that
-        // matches the category and nothing more.
+        // matches the category and nothing more. The rules engine reads the values of an equals condition as a
+        // list of alternatives, so every category the leaf names carries the rule's rate.
         const leaves = getRuleFilterLeaves(rule.filters);
         const categoryLeaf = leaves.at(0);
-        if (leaves.length !== 1 || categoryLeaf?.left !== CONDITION.CATEGORY || categoryLeaf.operator !== EQUAL_TO || [categoryLeaf.right].flat().at(0) !== categoryName) {
+        if (leaves.length !== 1 || categoryLeaf?.left !== CONDITION.CATEGORY || categoryLeaf.operator !== EQUAL_TO || ![categoryLeaf.right].flat().includes(categoryName)) {
             continue;
         }
 
@@ -708,6 +709,11 @@ function getCategoryOnlyExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule
     }
 
     return undefined;
+}
+
+/** Whether the policy has any expense default rule that sets a tax rate. */
+function hasExpenseDefaultTaxRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
+    return getPolicyExpenseDefaultRules(rulesCollection, policyID, true).some(({rule}) => !!getExpenseDefaultTaxID(rule));
 }
 
 /** The tax rate a rule applies, if it sets one. */
@@ -831,6 +837,7 @@ export {
     getExpenseDefaultFormValues,
     getPolicyExpenseDefaultRules,
     hasExpenseDefaultConditions,
+    hasExpenseDefaultTaxRule,
     hasExpenseDefaultRuleErrors,
     haveSameConditions,
     isEditableExpenseDefaultRule,
