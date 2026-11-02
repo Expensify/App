@@ -1002,7 +1002,6 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`,
                 value: {
-                    [oldTagListKey]: null,
                     [newName]: {pendingAction: null},
                 },
             },
