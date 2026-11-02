@@ -42,6 +42,8 @@ CI enforces the `app-coding-standards` rules with the `code-inline-reviewer` age
 
 Onyx (`react-native-onyx`) is our custom offline-first key-value store; keys are defined in `src/ONYXKEYS.ts`.
 
+Before investigating or changing server-update ordering, gap recovery, or client update-ID tracking, read [Onyx update manager](contributingGuides/ONYX_UPDATE_MANAGER.md#workflow-for-coding-agents) and follow its workflow for coding agents.
+
 ### Reading Onyx data (`useOnyx`, `Onyx.connectWithoutView`, `Onyx.get`)
 
 Prefer pure functions taking data as params over direct Onyx reads: callers read and pass data in. When a read is needed, use **`useOnyx`** (`@hooks/useOnyx`) by default; reach for **`Onyx.connectWithoutView`** only for non-render logic (actions/libraries) that genuinely can't use `useOnyx`. Don't copy-paste `Onyx.connectWithoutView` usages. Justify each with a comment. Using it in components for perf needs `@frontend-performance` Slack approval linked in PR description. `Onyx.get` and `Onyx.multiGet` are one-shot reads for event handlers in components, pages and hooks. See [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-onyxconnectwithoutview-onyxget-and-onyxmultiget).
@@ -72,6 +74,7 @@ Do not use `useMemo`, `useCallback`, or `React.memo` in components or hooks that
 ### Code Quality
 
 - **ESLint**: Linter. Pre-existing violations are grandfathered via the seatbelt ratchet in `scripts/lint/`.
+- **Sentry labels**: when you add or modify an interactive element (`Pressable*`, `Button`, `MenuItem`, `TextInput` or any component with a `sentryLabel` prop), give it a `sentryLabel` from `CONST.SENTRY_LABEL` if it has none. Name it `<Area>-<Action>-<Detail>` (or `<Area>-<Action>` when the element has a single kind of interaction), and never put IDs or user data in it. Don't rename existing labels unless the task asks for it, because renamed labels lose their Sentry history and break FullStory element definitions. See [the `data-sentry-label` schema](contributingGuides/SENTRY_LABEL.md).
 - **Design tokens**: font sizes come from `<Text variant="...">`, and paddings or margins that differ between narrow and wide layouts come from `useLayoutSpacing()` (`cardPaddingHorizontal`, `pageGutter`, ...). Never write `shouldUseNarrowLayout ? styles.ph5 : styles.ph8` or a raw `fontSize`. See `contributingGuides/STYLING.md`.
 
 ### Post-Edit Checklist (IMPORTANT)

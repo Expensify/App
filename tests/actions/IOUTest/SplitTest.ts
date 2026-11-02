@@ -232,8 +232,8 @@ const getParticipantsPolicyTags = async (participants: IOUParticipant[]) => {
 };
 
 const getTransactionAndExpenseReports = (reportID: string) => {
-    const transactionReport = getReportOrDraftReport(reportID);
-    const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
+    const transactionReport = getReportOrDraftReport({reportID});
+    const parentTransactionReport = getReportOrDraftReport({reportID: transactionReport?.parentReportID});
     const expenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? transactionReport : parentTransactionReport;
     return {transactionReport, expenseReport};
 };
@@ -6034,6 +6034,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 initialReportID: transactionThreadReportID,
                 initialReport: transactionThreadReport,
                 transactionReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: RORY_EMAIL,
                 currentUserAccountID: RORY_ACCOUNT_ID,
@@ -7129,6 +7130,7 @@ describe('updateSplitTransactions', () => {
             initialReportID: transactionThreadReportID,
             initialReport: transactionThreadReport,
             transactionReport,
+            transactionReportActions: undefined,
             isOffline: false,
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
@@ -7322,6 +7324,7 @@ describe('updateSplitTransactions', () => {
             initialReportID: split1ThreadReportID,
             initialReport: split1ThreadReport,
             transactionReport,
+            transactionReportActions: undefined,
             isOffline: false,
             currentUserLogin: RORY_EMAIL,
             currentUserAccountID: RORY_ACCOUNT_ID,
