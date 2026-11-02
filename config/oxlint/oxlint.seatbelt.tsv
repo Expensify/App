@@ -1710,7 +1710,6 @@
 "../../src/pages/workspace/accounting/campfire/CampfireExistingConnectionsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
 "../../src/pages/workspace/accounting/campfire/CampfireExistingConnectionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/campfire/export/CampfireExportPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/certinia/advanced/CertiniaAdvancedPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/accounting/certinia/CertiniaExistingConnectionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/certinia/import/CertiniaDimensionMappingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/ClaimOfferPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1830,7 +1829,6 @@
 "../../src/pages/workspace/categories/DynamicCategoryApproverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicCategoryDefaultTaxRatePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicCategoryDescriptionHintPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/categories/DynamicCategoryFlagAmountsOverPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/categories/DynamicCategoryFlagAmountsOverPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicCategoryRequiredFieldsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/categories/DynamicCategoryRequireItemizedReceiptsOverPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
@@ -1902,7 +1900,6 @@
 "../../src/pages/workspace/copyPolicySettings/CopyPolicySettingsUpgradePage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/deleteWorkspace/DeleteWorkspaceFlow.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/workspace/distanceRates/CreateDistanceRatePage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/distanceRates/PolicyCommuterExclusionsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/distanceRates/PolicyCommuterExclusionsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateDateEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateDetailsPage.tsx"	"no-restricted-imports"	1
@@ -1910,7 +1907,6 @@
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateNameEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/distanceRates/PolicyDistanceRatesSettingsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	3
 "../../src/pages/workspace/distanceRates/PolicyDistanceRatesSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateTaxRateEditPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/distanceRates/PolicyDistanceRateTaxReclaimableEditPage.tsx"	"no-restricted-imports"	1
@@ -2040,7 +2036,6 @@
 "../../src/pages/workspace/tags/DynamicTagSettingsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/tags/DynamicTagSettingsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/DynamicWorkspaceEditTagsPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/tags/DynamicWorkspaceViewTagsPage.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/tags/DynamicWorkspaceViewTagsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/ImportedMultiLevelTagsPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/tags/ImportedMultiLevelTagsPage.tsx"	"rulesdir/no-onyx-loading-status"	1

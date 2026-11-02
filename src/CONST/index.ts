@@ -1055,6 +1055,13 @@ const CONST = {
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
+        /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
+        ONBOARDING_STEP: {
+            BUSINESS: 'business',
+            REPRESENTATIVE: 'representative',
+            BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
+            BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
+        },
         /** Wise's state for one KYC requirement */
         KYC_REQUIREMENT_STATE: {
             NOT_PROVIDED: 'NOT_PROVIDED',
@@ -1470,6 +1477,7 @@ const CONST = {
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
+        INSIGHTS_AI: 'insightsAI',
         INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
@@ -2315,6 +2323,7 @@ const CONST = {
                     UNASSIGN_COMPANY_CARD: 'POLICYCHANGELOG_UNASSIGN_COMPANY_CARD',
                     UPDATE_CARD_FEED_LIABILITY: 'POLICYCHANGELOG_UPDATE_CARD_FEED_LIABILITY',
                     UPDATE_CARD_FEED_STATEMENT_PERIOD: 'POLICYCHANGELOG_UPDATE_CARD_FEED_STATEMENT_PERIOD',
+                    UPDATE_CARD_FEED_REIMBURSABLE: 'POLICYCHANGELOG_UPDATE_CARD_FEED_REIMBURSABLE',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                     ARCHIVE_POLICY: 'POLICYCHANGELOG_ARCHIVE_POLICY',
                     UNARCHIVE_POLICY: 'POLICYCHANGELOG_UNARCHIVE_POLICY',
@@ -3939,6 +3948,7 @@ const CONST = {
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
         DEFAULT_VENDOR: 'defaultVendor',
+        CREDIT_CARD_ACCOUNT: 'creditCardAccount',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE: 'travelInvoicingJournalPostingPreference',
         REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
@@ -3986,6 +3996,9 @@ const CONST = {
                 'enable-oauth': 'enableOAuth',
                 'enable-rest': 'enableRestWebServices',
             },
+        },
+        AUTH_TYPE: {
+            OAUTH2: 'oauth2',
         },
         IMPORT_CUSTOM_FIELDS: {
             CUSTOM_SEGMENTS: 'customSegments',
@@ -4071,12 +4084,14 @@ const CONST = {
     },
 
     NETSUITE_EXPORT_DESTINATION: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
         EXPENSE_REPORT: 'EXPENSE_REPORT',
         VENDOR_BILL: 'VENDOR_BILL',
         JOURNAL_ENTRY: 'JOURNAL_ENTRY',
     },
 
     NETSUITE_MAP_EXPORT_DESTINATION: {
+        CREDIT_CARD_CHARGE: 'creditCardCharge',
         EXPENSE_REPORT: 'expenseReport',
         VENDOR_BILL: 'vendorBill',
         JOURNAL_ENTRY: 'journalEntry',
@@ -6109,6 +6124,13 @@ const CONST = {
             LAST_BUSINESS_DAY_OF_MONTH: 'LAST_BUSINESS_DAY_OF_MONTH',
             CUSTOM_DAY_OF_MONTH: 'CUSTOM_DAY_OF_MONTH',
         },
+        FEED_REIMBURSABLE: {
+            FORCE_YES: 'force_yes',
+            FORCE_NO: 'force_no',
+            DEFAULT_YES: 'default_yes',
+            DEFAULT_NO: 'default_no',
+        },
+        FEED_REIMBURSABLE_LEGACY_NONE: 'none',
         CARD_NAME: {
             CASH: '__CASH__',
         },
@@ -6134,6 +6156,11 @@ const CONST = {
              * Name of Card NVP for NetSuite custom export accounts
              */
             NVP_NETSUITE_EXPORT_ACCOUNT: 'netsuite_export_payable_account',
+
+            /**
+             * Name of Card NVP for NetSuite custom credit card charge export accounts
+             */
+            NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT: 'netsuite_export_credit_card_account',
 
             /**
              * Name of Card NVP for NetSuite custom vendors
@@ -6201,6 +6228,11 @@ const CONST = {
              * Name of Card NVP for NetSuite custom export accounts
              */
             NVP_NETSUITE_EXPORT_ACCOUNT_POLICY_ID: 'netsuite_export_payable_account_policy_id',
+
+            /**
+             * Name of Card NVP for NetSuite custom credit card charge export accounts
+             */
+            NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT_POLICY_ID: 'netsuite_export_credit_card_account_policy_id',
 
             /**
              * Name of Card NVP for NetSuite custom vendors
@@ -9682,6 +9714,11 @@ const CONST = {
         REIMBURSABLE: 'reimbursable',
         BILLABLE: 'billable',
         VENDOR: 'vendor',
+
+        // The members import has these columns for every approver of a member's workflow, so their roles end with the approver's position, like `approverLimit2`
+        APPROVER: 'approver',
+        APPROVER_LIMIT: 'approverLimit',
+        APPROVER_OVER_LIMIT_APPROVER: 'approverOverLimitApprover',
     },
 
     IMPORT_SPREADSHEET: {
@@ -9694,6 +9731,9 @@ const CONST = {
         MULTI_LEVEL_TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags#import-multi-level-tags-from-a-spreadsheet',
         IMPORT_TRANSACTIONS_ARTICLE_LINK:
             'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-and-manage-personal-cards/Import-Personal-Card-Transactions-From-a-Spreadsheet',
+
+        // How many approvers the members import reads for each member
+        MAX_APPROVERS: 10,
     },
 
     // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
