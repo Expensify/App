@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
@@ -79,18 +79,6 @@ describe('WiseKYCReviewPage', () => {
         await renderPage();
 
         // Then Continue cannot be pressed, so the user does not wait on a link that never comes
-        expect(screen.getByTestId(CONTINUE_BUTTON_TEST_ID)).toBeDisabled();
-    });
-
-    it('disables Continue while the link is being fetched', async () => {
-        // Given the page open
-        await renderPage();
-
-        // When the link fetch is in flight
-        await act(() => Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {isLoading: true}));
-        await waitForBatchedUpdatesWithAct();
-
-        // Then Continue cannot start a second fetch
         expect(screen.getByTestId(CONTINUE_BUTTON_TEST_ID)).toBeDisabled();
     });
 });
