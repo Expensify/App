@@ -130,4 +130,18 @@ describe('buildConfirmAction', () => {
         buildConfirmAction(params)({paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE});
         expect(params.onSendMoney).not.toHaveBeenCalled();
     });
+
+    it('does not navigate to company-info step for a $0 invoice with no invoicing details', () => {
+        // Given an invoice whose sender workspace has no company info yet, and a $0 amount
+        mockHasInvoicingDetails.mockReturnValueOnce(false);
+        const params = makeBase({iouType: CONST.IOU.TYPE.INVOICE, validate: jest.fn(() => ({errorKey: 'common.error.invalidAmount'}))});
+
+        // When the user confirms
+        buildConfirmAction(params)({paymentType: undefined});
+
+        // Then the invalid amount error surfaces and the company info step is not reached
+        expect(params.setFormError).toHaveBeenCalledWith('common.error.invalidAmount');
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(params.onConfirm).not.toHaveBeenCalled();
+    });
 });
