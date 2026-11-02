@@ -40,8 +40,6 @@ if (!REPO_ROOT) {
     );
 }
 
-// ESLint's --cache keeps a file's result until that file or the ESLint config changes. It does not track the modules loaded
-// below, so after an edit to SnapshotUtils.ts, ONYXKEYS.ts or runtimeDefaults.ts a cached pass can be stale. Lint with --no-cache then.
 const requireFromRepo = createRequire(path.join(REPO_ROOT, 'package.json'));
 
 let snapshotKeyResolver = null;

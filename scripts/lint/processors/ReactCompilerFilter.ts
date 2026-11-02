@@ -123,7 +123,7 @@ async function checkCandidatesWithPool(candidates: Candidate[], checkCompiler: C
 /**
  * Drop redundant messages and enforce no-manual-memoization only after the
  * compiler memoizes the file. Files with no compiler-dependent message are skipped
- * entirely (~60× fewer compiler invocations than the ESLint processor).
+ * entirely (~60× fewer compiler invocations than compiling every linted file).
  *
  * Cache is one file per compiler fingerprint and content hash so concurrent
  * writes of the same key are benign and need no lock.

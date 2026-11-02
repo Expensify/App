@@ -1,5 +1,5 @@
-# eslint-seatbelt temporarily allowed errors
-# docs: https://github.com/justjake/eslint-seatbelt#readme
+# seatbelt temporarily allowed errors
+# docs: contributingGuides/LINTING.md#seatbelt
 
 "../../__mocks__/@pusher/pusher-websocket-react-native/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../__mocks__/@react-native-camera-roll/camera-roll.ts"	"@typescript-eslint/no-deprecated/CameraRoll.save"	1

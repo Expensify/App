@@ -2,7 +2,7 @@
 
 import {file} from 'bun';
 /**
- * Fails the lint run when an inline `eslint-disable` of one of the rules in `REASONED_RULES` (see
+ * Fails the lint run when an inline `eslint-disable` or `oxlint-disable` of one of the rules in `REASONED_RULES` (see
  * `onyxLintDisableReason.ts`) gives no reason, or an `eslint` config comment names one of them.
  * git grep narrows the candidate files the same way it does in `checkOnyxLintBypass.ts`, then the
  * script checks each comment Babel finds.
