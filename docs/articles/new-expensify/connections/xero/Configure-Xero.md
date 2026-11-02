@@ -21,7 +21,7 @@ Learn how to configure the settings for your Xero integration, including import 
 Each Workspace has a unique Xero configuration. To view or update it:
 
 1. In the left-hand menu, select **Settings > Workspaces**, then choose your Workspace.
-2. From the Workspace menu, click **Accounting**.
+2. In the navigation menu, select **Connections**, then select **Configure** next to Xero.
 
 ---
 
