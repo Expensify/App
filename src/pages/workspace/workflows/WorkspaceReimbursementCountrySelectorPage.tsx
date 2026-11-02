@@ -39,7 +39,8 @@ type WorkspaceReimbursementCountrySelectorPageProps = WithPolicyOnyxProps &
     PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS_REIMBURSEMENT_COUNTRIES>;
 
 type CountryOption = Option & {
-    isDisabled: boolean;
+    isDisabledCheckbox: boolean;
+    isInteractive: boolean;
 };
 
 function WorkspaceReimbursementCountrySelectorPage({policy, route}: WorkspaceReimbursementCountrySelectorPageProps) {
@@ -61,12 +62,16 @@ function WorkspaceReimbursementCountrySelectorPage({policy, route}: WorkspaceRei
         .filter((countryISO): countryISO is Country => countryISO in CONST.ALL_COUNTRIES)
         .map((countryISO) => {
             const countryName = translate(`allCountries.${countryISO}`);
+            // A locked country is always selected, and the list never disables a selected row. Disabling the checkbox and
+            // the row stops them showing a pointer cursor for a country that can't be deselected
+            const isLocked = accountCountryISOs.includes(countryISO);
             return {
                 value: countryISO,
                 keyForList: countryISO,
                 text: countryName,
                 isSelected: selectedCountryISOs.includes(countryISO),
-                isDisabled: accountCountryISOs.includes(countryISO),
+                isDisabledCheckbox: isLocked,
+                isInteractive: !isLocked,
                 searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
             };
         });
