@@ -343,6 +343,7 @@ type SetWorkspaceApprovalModeAdditionalData = {
     transactionViolations?: OnyxCollection<TransactionViolations>;
     isASAPSubmitBetaEnabled: boolean | undefined;
     personalDetailsList?: OnyxEntry<PersonalDetailsList>;
+    personalDetailsByLogins: PersonalDetailsByLogin | undefined;
 };
 
 /**
@@ -1241,6 +1242,7 @@ function setWorkspaceApprovalMode(
                 predictedNextStatus: report?.statusNum ?? CONST.REPORT.STATUS_NUM.SUBMITTED,
                 isTrackIntentUser,
                 rules,
+                personalDetailsByLogins: additionalData.personalDetailsByLogins,
             });
 
             reportsOptimisticData.push({
