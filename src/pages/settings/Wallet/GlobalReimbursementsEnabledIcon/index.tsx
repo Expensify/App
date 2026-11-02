@@ -6,6 +6,8 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -15,16 +17,22 @@ import {View} from 'react-native';
 
 import type GlobalReimbursementsEnabledIconProps from './types';
 
+import LongPressGlobalReimbursementsEnabledIcon from './LongPressGlobalReimbursementsEnabledIcon';
+
 /** Globe next to the bank account name that says global reimbursements are enabled, on hover */
-// The row handles clicks on web, since a click on the icon bubbles up to it
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function GlobalReimbursementsEnabledIcon(_props: GlobalReimbursementsEnabledIconProps) {
+function GlobalReimbursementsEnabledIcon({onPress}: GlobalReimbursementsEnabledIconProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe']);
     const label = translate('walletPage.globalReimbursementsEnabled');
 
+    // The shared Tooltip renders nothing on touch-only web, so fall back to the long-press tooltip native uses
+    if (!hasHoverSupport()) {
+        return <LongPressGlobalReimbursementsEnabledIcon onPress={onPress} />;
+    }
+
+    // The row handles clicks here, since a click on the icon bubbles up to it
     return (
         <Tooltip text={label}>
             <View
