@@ -46,21 +46,6 @@ export default function createRandomPolicy(index: number, type?: ValueOf<typeof 
     };
 }
 
-function createCategoryTaxExpenseRules(category: string, taxCode: string) {
-    return [
-        {
-            applyWhen: [{condition: 'matches', field: 'category', value: category}],
-            id: '1',
-            tax: {
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                field_id_TAX: {
-                    externalID: taxCode,
-                },
-            },
-        },
-    ];
-}
-
 /**
  * A `rules_` collection holding one expense default that matches on the given category and sets a tax, which is
  * where category tax defaults live now that they no longer sit in `policy.rules.expenseRules`.
@@ -95,4 +80,4 @@ function createCategoryTaxRulesCollection(policyID: string, category: string, ta
     };
 }
 
-export {createCategoryTaxExpenseRules, createCategoryTaxRulesCollection};
+export {createCategoryTaxRulesCollection};

@@ -14,7 +14,13 @@ jest.mock('@libs/CurrencyUtils', () => ({
 }));
 
 jest.mock('@libs/PolicyUtils', () => ({
+    arePolicyRulesEnabled: () => false,
     getDistanceRateCustomUnit: jest.fn(),
+}));
+
+jest.mock('@hooks/useRulesPrefetch', () => ({
+    __esModule: true,
+    default: () => ({areRulesLoading: false}),
 }));
 
 jest.mock('@libs/DistanceRequestUtils', () => ({
@@ -26,7 +32,7 @@ jest.mock('@libs/DistanceRequestUtils', () => ({
     },
 }));
 
-let mockCategoryTaxCode: string | undefined;
+let mockCategoryTaxCodes: Record<string, string | undefined>;
 let mockHasTaxRateWithMatchingValue: boolean;
 
 jest.mock('@libs/TransactionUtils', () => ({
@@ -34,7 +40,7 @@ jest.mock('@libs/TransactionUtils', () => ({
         const pct = Number.parseFloat(String(taxPercentage).replace('%', '')) || 0;
         return (taxableAmount * pct) / 100;
     },
-    getCategoryTaxCode: (category: string) => (category ? mockCategoryTaxCode : undefined),
+    getCategoryTaxCode: (category: string) => (category ? mockCategoryTaxCodes[category] : undefined),
     getDefaultTaxCode: (_policy: unknown, transaction: {currency?: string} | undefined, currency?: string) => ((currency ?? transaction?.currency) === 'EUR' ? 'tax_foreign' : 'tax_default'),
     getTaxValue: () => '10%',
     hasTaxRateWithMatchingValue: () => mockHasTaxRateWithMatchingValue,
@@ -74,7 +80,7 @@ describe('useTaxAmount', () => {
         mockGetCommuterExclusionDisplayData.mockReturnValue(null);
         mockGetTaxableAmount.mockReturnValue(100);
         mockGetDistanceRateCustomUnit.mockReturnValue(undefined);
-        mockCategoryTaxCode = undefined;
+        mockCategoryTaxCodes = {};
         mockHasTaxRateWithMatchingValue = false;
     });
 
@@ -171,7 +177,7 @@ describe('useTaxAmount', () => {
 
     it('prefers the tax rate from the category rule over the workspace default', () => {
         // Given a category whose tax rule resolves to a tax code of its own
-        mockCategoryTaxCode = 'tax_category';
+        mockCategoryTaxCodes = {Car: 'tax_category'};
         const transaction = {...baseTransaction, category: 'Car'};
 
         // When the hook resolves the default tax code
@@ -183,7 +189,7 @@ describe('useTaxAmount', () => {
 
     it('resolves the tax again when the currency changes and the user had picked the old default', () => {
         // Given a category rule, and a user who picked the workspace default before switching to a foreign currency
-        mockCategoryTaxCode = 'tax_category';
+        mockCategoryTaxCodes = {Car: 'tax_category'};
         mockHasTaxRateWithMatchingValue = true;
         const transaction = {...baseTransaction, category: 'Car', currency: 'EUR', taxCode: 'tax_default'};
 
@@ -196,7 +202,7 @@ describe('useTaxAmount', () => {
 
     it('keeps the workspace default when the user picks it over the category rule rate', () => {
         // Given a category rule that resolves to its own tax code, and a user who picked the workspace default instead
-        mockCategoryTaxCode = 'tax_category';
+        mockCategoryTaxCodes = {Car: 'tax_category'};
         mockHasTaxRateWithMatchingValue = true;
         const transaction = {...baseTransaction, category: 'Car', taxCode: 'tax_default'};
 
@@ -209,7 +215,7 @@ describe('useTaxAmount', () => {
 
     it('writes the new workspace default when the user had picked the old one before a currency change', () => {
         // Given a category rule, and a user who picked the workspace default before switching to a foreign currency
-        mockCategoryTaxCode = 'tax_category';
+        mockCategoryTaxCodes = {Car: 'tax_category'};
         mockHasTaxRateWithMatchingValue = true;
         const transaction = {...baseTransaction, category: 'Car', currency: 'EUR', taxCode: 'tax_default'};
 
@@ -222,7 +228,7 @@ describe('useTaxAmount', () => {
 
     it('keeps the rule rate across a currency change when the user had picked the rule rate', () => {
         // Given a user sitting on the category rule's rate when the currency changes
-        mockCategoryTaxCode = 'tax_category';
+        mockCategoryTaxCodes = {Car: 'tax_category'};
         mockHasTaxRateWithMatchingValue = true;
         const transaction = {...baseTransaction, category: 'Car', currency: 'EUR', taxCode: 'tax_category'};
 
@@ -233,9 +239,24 @@ describe('useTaxAmount', () => {
         expect(result.current.shouldKeepCurrentTaxSelection).toBe(true);
     });
 
+    it('applies the new category rule when the category changes', () => {
+        // Given an expense carrying the tax its old category had no rule for, and a category that does have one
+        mockCategoryTaxCodes = {Car: 'tax_category'};
+        mockHasTaxRateWithMatchingValue = true;
+        const transaction = {...baseTransaction, category: 'Equipment', taxCode: 'tax_default'};
+
+        // When the user switches to the category that carries the rule
+        const {result, rerender} = renderHook((props: Params['transaction']) => useTaxAmount({...baseParams, transaction: props}), {initialProps: transaction});
+        rerender({...transaction, category: 'Car'});
+
+        // Then the rate the old category left behind does not read as a selection, so the rule's rate is applied
+        expect(result.current.shouldKeepCurrentTaxSelection).toBe(false);
+        expect(result.current.defaultTaxCode).toBe('tax_category');
+    });
+
     it('applies the category rule to the distance rate default category', () => {
         // Given a distance rate whose default category carries a tax rule, on an expense with no category yet
-        mockCategoryTaxCode = 'tax_category';
+        mockCategoryTaxCodes = {Car: 'tax_category'};
         mockGetDistanceRateCustomUnit.mockReturnValue({name: 'Distance', customUnitID: 'unit1', rates: {}, defaultCategory: 'Car'});
 
         // When the hook resolves the default tax code before that category is written to the transaction
