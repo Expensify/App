@@ -273,7 +273,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         ) : null;
 
     const pageControls =
-        state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? (
+        state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && state !== INSIGHTS_DASHBOARD_STATE.LOADING ? (
             <InsightsPageControls
                 filters={filters}
                 defaultFilters={defaultFilters}
