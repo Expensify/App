@@ -1764,9 +1764,6 @@
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	7
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportMappingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/accounting/netsuite/NetSuiteTokenInput/subPages/NetSuiteTokenSetupContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../src/pages/workspace/accounting/PolicyAccountingPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/accounting/qbd/advanced/QuickbooksDesktopAccountingMethodPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectCardPage.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectCardPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1981,8 +1978,6 @@
 "../../src/pages/workspace/invoices/WorkspaceInvoiceVBASection.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/invoices/WorkspaceInvoicingDetailsName.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/invoices/WorkspaceInvoicingDetailsWebsite.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/mcp/WorkspaceMCPPage.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/pages/workspace/mcp/WorkspaceMCPPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/DynamicWorkspaceOwnerChangeErrorPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/members/DynamicWorkspaceOwnerChangeErrorPage.tsx"	"react-hooks/refs"	2
 "../../src/pages/workspace/members/DynamicWorkspaceOwnerChangeSuccessPage.tsx"	"no-restricted-imports"	1
@@ -2012,10 +2007,6 @@
 "../../src/pages/workspace/members/WorkspaceOwnerChangeCheck.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/members/WorkspaceOwnerPaymentCardForm.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/workspace/members/WorkspaceOwnerPaymentCardForm.tsx"	"react-hooks/set-state-in-effect"	2
-"../../src/pages/workspace/merge/MergeConnectionsPageBase.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/merge/MergeProviderCard.tsx"	"@typescript-eslint/no-deprecated/MenuItem"	1
-"../../src/pages/workspace/merge/MergeProviderCard.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
-"../../src/pages/workspace/merge/MergeProviderCard.tsx"	"@typescript-eslint/no-deprecated/RowMenuItem"	1
 "../../src/pages/workspace/perDiem/EditPerDiemAmountPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/perDiem/EditPerDiemCurrencyPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/perDiem/EditPerDiemDestinationPage.tsx"	"no-restricted-imports"	1
@@ -2030,7 +2021,6 @@
 "../../src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/receiptPartners/DynamicEditInviteReceiptPartnerPolicyPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/receiptPartners/DynamicInviteReceiptPartnerPolicyPage.tsx"	"no-restricted-imports"	1
-"../../src/pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/reports/InitialListValueSelector/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/workspace/reports/ReportsDefaultTitle.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/reports/TypeSelector/index.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
