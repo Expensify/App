@@ -262,8 +262,53 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(customUnitOutOfPolicyViolation);
         });
 
-        it('should remove the customUnitOutOfPolicy violation if the rate exists but is disabled', () => {
+        it('should add the customUnitOutOfPolicy violation if the distance rate exists but is disabled', () => {
             const customUnitRateID = 'rate_id';
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+            policy.customUnits = {
+                unitId: {
+                    attributes: {unit: 'mi'},
+                    customUnitID: 'unitId',
+                    defaultCategory: 'Car',
+                    enabled: true,
+                    name: 'Distance',
+                    rates: {
+                        [customUnitRateID]: {
+                            currency: 'USD',
+                            customUnitRateID,
+                            enabled: false,
+                            name: 'Default Rate',
+                            rate: 65.5,
+                        },
+                    },
+                },
+            };
+            const result = ViolationsUtils.getViolationsOnyxData({
+                isVendorMatchingBetaEnabled: false,
+                ownerLogin: undefined,
+                updatedTransaction: transaction,
+                transactionViolations,
+                policy,
+                policyTagList: policyTags,
+                policyCategories,
+                hasDependentTags: false,
+                isInvoiceTransaction: false,
+            });
+
+            expect(result.value).toContainEqual(
+                expect.objectContaining({
+                    name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
+                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                    showInReview: true,
+                }),
+            );
+        });
+
+        it('should not add customUnitOutOfPolicy for an unreported distance expense with a disabled rate', () => {
+            const customUnitRateID = 'rate_id';
+            transaction.iouRequestType = CONST.IOU.REQUEST_TYPE.DISTANCE;
+            transaction.reportID = CONST.REPORT.UNREPORTED_REPORT_ID;
+            transactionViolations = [customUnitOutOfPolicyViolation];
             policy.customUnits = {
                 unitId: {
                     attributes: {unit: 'mi'},

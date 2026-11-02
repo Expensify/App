@@ -669,7 +669,8 @@ function syncCustomUnitRateOutOfDateRangeViolation(violations: TransactionViolat
 
 /**
  * Adds customUnitOutOfPolicy for a reported distance expense whose workspace rate is disabled.
- * Disabled-rate warnings are not stored, so this only adds one at render time.
+ * Disabling a rate does not write the violation, so this adds it at render time until the server
+ * sends it on the next report load or expense update.
  * It never removes a violation. Clearing one hides warnings the server already wrote, such as a
  * moved expense whose rate is still enabled on the original workspace, or a P2P rate whose
  * participants field is missing when the expense is loaded from Search or another device.
@@ -910,16 +911,19 @@ const ViolationsUtils = {
                 }
 
                 const customRate = isPerDiem ? getPerDiemRateCustomUnitRate(policy, customUnitRateID) : getDistanceRateCustomUnitRate(policyForCustomUnitRate, customUnitRateID);
-                // The backend only flags a rate that's gone from the policy (or pending deletion here), a disabled rate is still valid
-                const isRateValid = customRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+                // The server returns customUnitOutOfPolicy for a disabled distance rate, a deleted rate, and a rate pending deletion.
+                const isDisabledDistanceRate = isDistanceRequestForCustomUnit && customRate?.enabled === false;
+                const isRateValid = customRate?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !isDisabledDistanceRate;
                 if (customRate && isRateValid) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
                     newTransactionViolations = syncCustomUnitRateOutOfDateRangeViolation(newTransactionViolations, updatedTransaction, policyForCustomUnitRate);
-                } else if (isSelfDM && isDistanceRequestForCustomUnit) {
+                } else if ((isSelfDM || TransactionUtils.isExpenseUnreported(updatedTransaction)) && isDistanceRequestForCustomUnit) {
+                    // Unreported expenses are self-DM Track expenses. Keep them clear of this warning.
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
                 } else {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE});
+                    newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY});
                     newTransactionViolations.push({
                         name: CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY,
                         type: CONST.VIOLATION_TYPES.VIOLATION,
