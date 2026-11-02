@@ -1,5 +1,6 @@
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabRootScrollViewMarker from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
@@ -26,12 +27,15 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID} from '@src/types/onyx';
+import type {InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
@@ -120,6 +124,14 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
         );
     }
 
+    if (state === INSIGHTS_DASHBOARD_STATE.LOADING) {
+        return (
+            <View style={styles.flex1}>
+                <FullScreenLoadingIndicator shouldUseGoBackButton={false} />
+            </View>
+        );
+    }
+
     if (isEmptyState) {
         return (
             <TabRootScrollViewMarker>
@@ -188,6 +200,11 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     );
 }
 
+/** Checks whether GetInsights has responded for any dashboard or filters. */
+function hasStoredDashboardResponse(dashboards: OnyxCollection<InsightsDashboardRecord>): boolean {
+    return Object.values(dashboards ?? {}).some(hasDashboardResponse);
+}
+
 function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
@@ -227,6 +244,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
+    const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {selector: hasStoredDashboardResponse});
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
@@ -244,7 +262,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         isDashboardLoaded: hasDashboardResponse(dashboard),
     }));
     const [headlineChart, ...supportingCharts] = charts;
-    const state = getDashboardState(dashboard, isOffline, charts);
+    const state = getDashboardState(dashboard, isOffline, charts, hasLoadedBefore);
 
     const tabSelector =
         accessibleDashboards.length > 1 ? (
@@ -289,14 +307,23 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                     </View>
                 )
             )}
-            <InsightsDashboardContent
-                state={state}
-                headlineChart={headlineChart}
-                supportingCharts={supportingCharts}
-                filters={filters}
-                onRetry={requestDashboard}
-                onGroupByChange={setFilters}
-            />
+            <View style={styles.flex1}>
+                <Animated.View
+                    key={state}
+                    entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                    exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                    style={StyleSheet.absoluteFill}
+                >
+                    <InsightsDashboardContent
+                        state={state}
+                        headlineChart={headlineChart}
+                        supportingCharts={supportingCharts}
+                        filters={filters}
+                        onRetry={requestDashboard}
+                        onGroupByChange={setFilters}
+                    />
+                </Animated.View>
+            </View>
         </ScreenWrapper>
     );
 }
