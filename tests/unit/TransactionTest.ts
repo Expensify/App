@@ -3654,7 +3654,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
     function makeTransactionCollection(...ids: string[]) {
         const collection: Record<string, Transaction> = {};
         for (const id of ids) {
-            collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] = createMock<Transaction>({transactionID: id});
+            collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] = createMock<Transaction>({transactionID: id, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
         }
         return collection;
     }

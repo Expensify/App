@@ -197,11 +197,15 @@ function removeTransactionFromDuplicateTransactionViolation(
 
 /**
  * Whether a report is still editable for a duplicate merge, i.e. one that Auth's MergeTransactions command would
- * accept. A report is mergeable when it is open, awaiting first-level approval, or unresolved (unreported expenses
- * stay editable in Auth). Anything approved, closed (Submit & Close), or reimbursed is rejected server-side.
+ * accept. A report is mergeable when it is open or awaiting first-level approval, and an unreported expense stays
+ * editable in Auth. Anything approved, closed (Submit & Close), or reimbursed is rejected server-side, and a report
+ * that isn't loaded could be any of those, so it isn't treated as mergeable.
  */
-function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
-    return !report || isOpenReport(report) || isProcessingReport(report);
+function isReportMergeableForDuplicates(report: OnyxEntry<Report>, reportID: string | undefined): boolean {
+    if (!report) {
+        return reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
+    }
+    return isOpenReport(report) || isProcessingReport(report);
 }
 
 /**
@@ -209,7 +213,7 @@ function isReportMergeableForDuplicates(report: OnyxEntry<Report>): boolean {
  * merge request that would fail server-side.
  */
 function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Transaction>>): Transaction[] {
-    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID))) as Transaction[];
+    return transactions.filter((transaction) => !!transaction && isReportMergeableForDuplicates(getReportOrDraftReport(transaction.reportID), transaction.reportID)) as Transaction[];
 }
 
 /**
@@ -217,8 +221,8 @@ function removeSettledAndApprovedTransactions(transactions: Array<OnyxEntry<Tran
  * report is no longer editable or when there are no duplicates left to merge, so callers should block the request
  * in those cases.
  */
-function canMergeDuplicates(keptReport: OnyxEntry<Report>, transactionIDList: string[]): boolean {
-    return isReportMergeableForDuplicates(keptReport) && transactionIDList.length > 0;
+function canMergeDuplicates(keptReport: OnyxEntry<Report>, keptReportID: string | undefined, transactionIDList: string[]): boolean {
+    return isReportMergeableForDuplicates(keptReport, keptReportID) && transactionIDList.length > 0;
 }
 
 /**

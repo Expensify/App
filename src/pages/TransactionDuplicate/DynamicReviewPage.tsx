@@ -11,6 +11,7 @@ import Text from '@components/Text';
 
 import useContentHeaderHeight from '@hooks/useContentHeaderHeight';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDuplicateReportsStatus from '@hooks/useDuplicateReportsStatus';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -27,7 +28,6 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils';
-import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
 import {doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 import type {TransactionThreadNavigationDescriptor} from '@libs/TransactionThreadNavigationUtils';
@@ -115,7 +115,10 @@ function DynamicReviewPage() {
     const [selectedTransactionPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${selectedTransactionReport?.policyID}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
-    const hasSettledOrApprovedTransaction = transactions.some((transaction) => isSettled(transaction?.reportID) || isReportIDApproved(transaction?.reportID));
+    const duplicateReportIDs = transactions.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID && reportID !== CONST.REPORT.UNREPORTED_REPORT_ID);
+    const {hasSettledOrApprovedReport: hasSettledOrApprovedTransaction, hasUnloadedReport} = useDuplicateReportsStatus(duplicateReportIDs);
+    // A duplicate whose report isn't loaded may be approved or paid, and merging it fails server-side.
+    const canKeepSelected = !hasSettledOrApprovedTransaction && !hasUnloadedReport;
     const hasLoadedThreadReportActions = hasLoadedReportActions(reportLoadingState, isOffline);
     const isThreadReportDeletedForReview = isThreadReportDeleted(report, reportLoadingState, isOffline);
     const {hasLoadedParentReportActions, wasParentActionDeleted} = getParentReportActionDeletionStatus({
@@ -304,7 +307,7 @@ function DynamicReviewPage() {
                         <DuplicateTransactionsList
                             transactions={transactions}
                             selectedTransactionID={effectiveSelectedTransactionID}
-                            shouldShowSelection={!hasSettledOrApprovedTransaction}
+                            shouldShowSelection={canKeepSelected}
                             onSelectTransaction={setSelectedTransactionID}
                             onPreviewPressed={onPreviewPressed}
                         />
@@ -317,7 +320,7 @@ function DynamicReviewPage() {
                         >
                             <Button.Text>{translate('iou.keepAll')}</Button.Text>
                         </Button>
-                        {!hasSettledOrApprovedTransaction && (
+                        {canKeepSelected && (
                             <Button
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 size={CONST.BUTTON_SIZE.LARGE}

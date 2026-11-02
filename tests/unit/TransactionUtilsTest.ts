@@ -4456,6 +4456,14 @@ describe('TransactionUtils', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
 
+        // The duplicates are compared only when their report is loaded and still mergeable, so the reports have to be
+        // in Onyx: the fake report and report '1', the default report of generateTransaction.
+        beforeAll(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReportID}`, fakeReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {...fakeReport, reportID: '1'});
+            await waitForBatchedUpdates();
+        });
+
         it('should return empty keep and change when reviewingTransaction or reportID is missing', () => {
             const result = TransactionUtils.compareDuplicateTransactionFields({}, undefined, [], undefined, undefined, undefined, undefined);
             expect(result.keep).toEqual({});
@@ -5562,6 +5570,29 @@ describe('TransactionUtils', () => {
 
             expect(params.transactionList).toEqual([]);
         });
+
+        it('excludes a duplicate whose report is not loaded but keeps an unreported one', () => {
+            // Given one duplicate on a report missing from Onyx, whose state could be approved or paid,
+            // and one unreported duplicate that has no report at all
+            const keptTransaction = generateTransaction({reportID: MERGE_KEPT_OPEN_REPORT_ID});
+            const unloadedDuplicate = generateTransaction({reportID: 'unloadedDuplicateReport'});
+            const unreportedDuplicate = generateTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+            const duplicates = [unloadedDuplicate, unreportedDuplicate];
+
+            // When building the merge params
+            const params = TransactionUtils.buildMergeDuplicatesParams(
+                buildReviewDuplicates(
+                    keptTransaction.transactionID,
+                    duplicates.map((transaction) => transaction.transactionID),
+                ),
+                duplicates,
+                keptTransaction,
+                keptTransaction,
+            );
+
+            // Then only the unreported duplicate is sent, so Auth never receives a transaction it would reject
+            expect(params.transactionList.map((transaction) => transaction.transactionID)).toEqual([unreportedDuplicate.transactionID]);
+        });
     });
 
     describe('canMergeDuplicates', () => {
@@ -5573,31 +5604,42 @@ describe('TransactionUtils', () => {
 
         it('allows merging when the kept report is open and there are duplicates', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(true);
         });
 
         it('allows merging when the kept report is awaiting first approval', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.SUBMITTED, CONST.REPORT.STATUS_NUM.SUBMITTED);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(true);
+            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(true);
         });
 
         it('allows merging when the kept expense is unreported (no resolvable report)', () => {
-            expect(TransactionUtils.canMergeDuplicates(undefined, DUPLICATE_IDS)).toBe(true);
+            expect(TransactionUtils.canMergeDuplicates(undefined, CONST.REPORT.UNREPORTED_REPORT_ID, DUPLICATE_IDS)).toBe(true);
+        });
+
+        it('blocks merging when the kept report is not loaded', () => {
+            // Given a kept expense that sits on a report missing from Onyx, so its state is unknown
+            const unloadedReportID = 'unloadedKeptReport';
+
+            // When checking whether the merge can be sent
+            const canMerge = TransactionUtils.canMergeDuplicates(undefined, unloadedReportID, DUPLICATE_IDS);
+
+            // Then it is blocked, because the report may be approved or paid and Auth would reject the merge
+            expect(canMerge).toBe(false);
         });
 
         it('blocks merging when the kept report is approved and closed (Submit & Close)', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.CLOSED);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(false);
         });
 
         it('blocks merging when the kept report is reimbursed', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.APPROVED, CONST.REPORT.STATUS_NUM.REIMBURSED);
-            expect(TransactionUtils.canMergeDuplicates(report, DUPLICATE_IDS)).toBe(false);
+            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, DUPLICATE_IDS)).toBe(false);
         });
 
         it('blocks merging when there are no duplicates left to merge', () => {
             const report = buildReportWithState(CONST.REPORT.STATE_NUM.OPEN, CONST.REPORT.STATUS_NUM.OPEN);
-            expect(TransactionUtils.canMergeDuplicates(report, [])).toBe(false);
+            expect(TransactionUtils.canMergeDuplicates(report, report.reportID, [])).toBe(false);
         });
     });
 
