@@ -75,6 +75,7 @@ jest.mock('@pages/inbox/report/useReportUnreadMessageScrollTracking', () => ({
 // --- useReportActionsNewActionLiveTail ---
 const mockSetIsScrollToBottomEnabled = jest.fn();
 const mockCompleteLiveTailPrune = jest.fn();
+const mockRequestLiveTailJump = jest.fn();
 let mockIsScrollToBottomEnabled = false;
 jest.mock('@pages/inbox/report/useReportActionsNewActionLiveTail', () => ({
     __esModule: true,
@@ -82,6 +83,7 @@ jest.mock('@pages/inbox/report/useReportActionsNewActionLiveTail', () => ({
         isScrollToBottomEnabled: mockIsScrollToBottomEnabled,
         setIsScrollToBottomEnabled: mockSetIsScrollToBottomEnabled,
         completeLiveTailPruneAfterScrollToBottom: mockCompleteLiveTailPrune,
+        requestLiveTailJump: mockRequestLiveTailJump,
     }),
 }));
 
@@ -772,31 +774,38 @@ describe('useReportActionsScroll', () => {
             expect(mockOpenReport).not.toHaveBeenCalled();
         });
 
-        it('navigates and opens the report when the newest action is not present', async () => {
+        it('waits for the latest page before scrolling when the newest action is not present', async () => {
+            // Given a historical page whose newest action has not been loaded.
             mockLastVisibleActionCreated = '2099-01-01 00:00:00.000';
 
             const {result} = await renderScroll();
+            // When the reader presses Latest messages.
             act(() => {
                 result.current.scrollToBottomAndMarkReportAsRead();
             });
 
-            expect(mockNavigate).toHaveBeenCalledTimes(1);
-            expect(mockOpenReport).toHaveBeenCalledTimes(1);
-            expect(mockScrollToBottom).toHaveBeenCalledTimes(1);
+            // Then the existing catch-up flow owns the eventual scroll, without scrolling the old page first.
+            expect(mockRequestLiveTailJump).toHaveBeenCalledTimes(1);
+            expect(mockNavigate).not.toHaveBeenCalled();
+            expect(mockScrollToBottom).not.toHaveBeenCalled();
             expect(mockMarkNewestActionAsRead).not.toHaveBeenCalled();
         });
 
         it('does not navigate when a report RHP route is already active', async () => {
+            // Given a historical page with another report open in the right pane.
             mockLastVisibleActionCreated = '2099-01-01 00:00:00.000';
             mockReportRHPActiveRoute = 'r/1/rhp';
 
             const {result} = await renderScroll();
+            // When the reader asks for the latest messages.
             act(() => {
                 result.current.scrollToBottomAndMarkReportAsRead();
             });
 
+            // Then the catch-up request leaves the focused pane in place.
             expect(mockNavigate).not.toHaveBeenCalled();
-            expect(mockOpenReport).toHaveBeenCalledTimes(1);
+            expect(mockRequestLiveTailJump).toHaveBeenCalledTimes(1);
+            expect(mockScrollToBottom).not.toHaveBeenCalled();
         });
     });
 

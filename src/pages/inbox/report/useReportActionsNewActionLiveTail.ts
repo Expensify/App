@@ -111,6 +111,32 @@ function useReportActionsNewActionLiveTail({
 
     const isPendingScrollActionRendered = !!pendingScrollActionID && renderedVisibleReportActions.some((item) => item.reportActionID === pendingScrollActionID);
 
+    const requestLiveTailJump = () => {
+        if (liveTailJumpRef.current.stage !== 'idle') {
+            return;
+        }
+        if (isOffline) {
+            // Cached newest messages can be outside the linked page. Release that anchor without waiting for a network request.
+            liveTailJumpRef.current = {stage: 'await_scroll'};
+            setTreatAsNoPaginationAnchor(true);
+            if (!isInSidePanel) {
+                navigation.setParams({reportActionID: ''});
+            }
+            return;
+        }
+        liveTailJumpRef.current = {stage: 'open_report'};
+        openReport({
+            reportID,
+            introSelected,
+            conciergeChat,
+            hasReportActions: true,
+            currentUserAccountID,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+            fullPolicySnapshot,
+        });
+    };
+
     useEffect(() => {
         if (!pendingScrollActionID) {
             return;
@@ -144,19 +170,7 @@ function useReportActionsNewActionLiveTail({
                     (hasNewerActions || !!linkedReportActionID || (!!unreadMarkerReportActionID && !hasNewestReportAction));
 
                 if (shouldJumpToLiveTail) {
-                    if (liveTailJumpRef.current.stage === 'idle') {
-                        liveTailJumpRef.current = {stage: 'open_report'};
-                        openReport({
-                            reportID,
-                            introSelected,
-                            conciergeChat,
-                            hasReportActions: true,
-                            currentUserAccountID,
-                            isSelfTourViewed,
-                            hasCompletedGuidedSetupFlow,
-                            fullPolicySnapshot,
-                        });
-                    }
+                    requestLiveTailJump();
                     return;
                 }
 
@@ -278,6 +292,7 @@ function useReportActionsNewActionLiveTail({
         isScrollToBottomEnabled: isScrollToBottomEnabled || isPendingScrollActionRendered,
         setIsScrollToBottomEnabled: setShouldScrollToBottom,
         completeLiveTailPruneAfterScrollToBottom,
+        requestLiveTailJump,
     };
 }
 

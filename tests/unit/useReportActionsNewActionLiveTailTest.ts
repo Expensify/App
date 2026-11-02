@@ -1,4 +1,4 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import {FALLBACK_NAVIGATION_CONTEXT_VALUE} from '@components/withNavigationFallback';
 
@@ -119,6 +119,58 @@ describe('useReportActionsNewActionLiveTail', () => {
         newActionHandler = undefined;
         mockNavigation = {setParams: mockNavigationSetParams, getState: () => ({key: 'stack-report'})};
         mockIsInSidePanel = false;
+    });
+
+    it.each([false, true])('reaches the cached newest window offline when in side panel is %s', async (isInSidePanel) => {
+        // Given an offline report showing an older linked page.
+        mockIsInSidePanel = isInSidePanel;
+        const params = buildParams({isOffline: true, linkedReportActionID: '2'});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
+
+        // When Latest messages is pressed, release the anchor locally instead of waiting for OpenReport.
+        act(() => result.current.requestLiveTailJump());
+        expect(mockOpenReport).not.toHaveBeenCalled();
+        expect(params.setTreatAsNoPaginationAnchor).toHaveBeenCalledWith(true);
+        expect(mockNavigationSetParams).toHaveBeenCalledTimes(isInSidePanel ? 0 : 1);
+        expect(mockGlobalSetParams).not.toHaveBeenCalled();
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+
+        // Then request the scroll after the cached newest window enters the list.
+        rerender({...params, linkedReportActionID: '', treatAsNoPaginationAnchor: true, hasNewestReportAction: true});
+        await waitFor(() => expect(result.current.isScrollToBottomEnabled).toBe(true));
+    });
+
+    it('waits for the newest page before requesting the Latest messages scroll', async () => {
+        // Given a historical page, with its linked action still anchoring pagination.
+        const params = buildParams({linkedReportActionID: 'old-action'});
+        const {result, rerender} = renderHook((props: HookParams) => useReportActionsNewActionLiveTail(props), {initialProps: params});
+
+        // When Latest messages is pressed repeatedly while its request is pending.
+        act(() => {
+            result.current.requestLiveTailJump();
+            result.current.requestLiveTailJump();
+        });
+        expect(mockOpenReport).toHaveBeenCalledTimes(1);
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        expect(mockNavigationSetParams).not.toHaveBeenCalled();
+
+        // Then completing the request releases that report's anchor, but still waits for the newest row to render.
+        const loadedParams = {...params, prevIsLoadingInitialReportActions: true, reportLoadingState: {isLoadingInitialReportActions: false}};
+        rerender(loadedParams);
+        expect(mockNavigationSetParams).toHaveBeenCalledWith({reportActionID: ''});
+        expect(mockGlobalSetParams).not.toHaveBeenCalled();
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+
+        rerender({...loadedParams, linkedReportActionID: '', treatAsNoPaginationAnchor: true, hasNewestReportAction: true});
+        await act(async () => Promise.resolve());
+        expect(result.current.isScrollToBottomEnabled).toBe(true);
+        act(() => {
+            result.current.setIsScrollToBottomEnabled(false);
+            result.current.completeLiveTailPruneAfterScrollToBottom();
+        });
+        rerender({...loadedParams, linkedReportActionID: '', hasNewestReportAction: true});
+        expect(result.current.isScrollToBottomEnabled).toBe(false);
+        expect(mockOpenReport).toHaveBeenCalledTimes(1);
     });
 
     it('requests one post-render scroll once the sent comment is rendered', () => {

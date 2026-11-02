@@ -14,11 +14,8 @@ import {useActionListContext} from '@pages/inbox/ActionListContext';
 import useReportActionsNewActionLiveTail from '@pages/inbox/report/useReportActionsNewActionLiveTail';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
-import {openReport} from '@userActions/Report';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {ViewableItemsChanged} from '@src/types/utils/ReactNativeCompat';
@@ -31,7 +28,6 @@ import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {useEffect, useEffectEvent, useState} from 'react';
 
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLinkedReportActionScroll from './useLinkedReportActionScroll';
 import useNetworkWithOfflineStatus from './useNetworkWithOfflineStatus';
 import useOnyx from './useOnyx';
@@ -159,11 +155,9 @@ function useReportActionsScroll({
     const {scrollOffsetRef, getListRef} = useActionListContext();
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const linkedReportActionID = route?.params?.reportActionID;
-    const backTo = route?.params?.backTo;
     const {isOffline} = useNetworkWithOfflineStatus();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
     const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(report?.policyID)}`, {
@@ -253,7 +247,7 @@ function useReportActionsScroll({
         syncPillAfterComposerCollapse();
     }, [isComposerFullSize]);
 
-    const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom} = useReportActionsNewActionLiveTail({
+    const {isScrollToBottomEnabled, setIsScrollToBottomEnabled, completeLiveTailPruneAfterScrollToBottom, requestLiveTailJump} = useReportActionsNewActionLiveTail({
         conciergeChat,
         reportID,
         introSelected,
@@ -404,20 +398,8 @@ function useReportActionsScroll({
         }
 
         if (!hasNewestReportAction) {
-            if (!Navigation.getReportRHPActiveRoute()) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
-            }
-            openReport({
-                reportID,
-                introSelected,
-                conciergeChat,
-                hasReportActions: true,
-                currentUserAccountID,
-                isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
-                hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
-                fullPolicySnapshot,
-            });
-            reportScrollManager.scrollToBottom();
+            // The historical page's end is not the report's end. Reuse the send flow to wait for the newest page before scrolling.
+            requestLiveTailJump();
             return;
         }
         reportScrollManager.scrollToBottom();
