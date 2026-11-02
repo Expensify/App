@@ -1175,10 +1175,10 @@ describe('ReportUtils', () => {
                     }),
                 }),
             );
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             expect(optimisticTaskIDs).not.toEqual(
                 expect.objectContaining({
                     value: expect.objectContaining({
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
                         createWorkspace: expect.anything(),
                     }),
                 }),
