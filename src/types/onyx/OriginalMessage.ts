@@ -746,6 +746,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Name of company card feed */
     feedName?: string;
 
+    /** Type of the card feed added to the workspace */
+    feedType?: ValueOf<typeof CONST.COMPANY_CARD.LINK_FEED_TYPE>;
+
     /** Last four digits of a company card */
     cardLastFour?: string;
 

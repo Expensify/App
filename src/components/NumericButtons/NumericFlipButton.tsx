@@ -7,10 +7,13 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-type NumericFlipButtonProps = Pick<ButtonProps, 'isDisabled' | 'onPress' | 'style' | 'testID'>;
+type NumericFlipButtonProps = Pick<ButtonProps, 'isDisabled' | 'onPress' | 'style' | 'testID'> & {
+    /** Whether to display the text label alongside the icon. Defaults to true. */
+    shouldShowLabel?: boolean;
+};
 
 /** Presentational sign toggle button shared by NumericInput and NumericField. */
-function NumericFlipButton({isDisabled = false, onPress, style, testID}: NumericFlipButtonProps) {
+function NumericFlipButton({isDisabled = false, onPress, style, testID, shouldShowLabel = true}: NumericFlipButtonProps) {
     const icons = useMemoizedLazyExpensifyIcons(['PlusMinus']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -29,7 +32,7 @@ function NumericFlipButton({isDisabled = false, onPress, style, testID}: Numeric
             testID={testID}
         >
             <Button.Icon src={icons.PlusMinus} />
-            <Button.Text>{label}</Button.Text>
+            {shouldShowLabel && <Button.Text>{label}</Button.Text>}
         </Button>
     );
 }
