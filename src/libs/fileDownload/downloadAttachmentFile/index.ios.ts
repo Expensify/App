@@ -5,10 +5,7 @@ import Share from 'react-native-share';
 
 import type DownloadAttachmentFile from './types';
 
-/**
- * The share sheet can only hand over a local file, so the attachment is first downloaded to the cache directory,
- * which the iOS Files app never shows. The cached copy is removed once the sheet is dismissed.
- */
+// The share sheet needs a local file, so the attachment goes to the cache directory (never shown by the Files app) and is removed afterwards.
 const downloadAttachmentFile: DownloadAttachmentFile = (translate, url, fileName) => {
     const attachmentName = appendTimeToFileName(fileName || getFileName(url));
     const localPath = `${RNFetchBlob.fs.dirs.CacheDir}/${attachmentName}`;

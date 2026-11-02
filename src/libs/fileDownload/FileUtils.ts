@@ -27,16 +27,18 @@ import getImageResolution from './getImageResolution';
 /**
  * Show alert on successful attachment download
  * @param successMessage
+ * @param onOpen when given, the alert also offers to open the saved file
  */
-function showSuccessAlert(translate: LocalizedTranslate, successMessage?: string) {
+function showSuccessAlert(translate: LocalizedTranslate, successMessage?: string, onOpen?: () => void) {
     Alert.alert(
         translate('fileDownload.success.title'),
         // successMessage can be an empty string and we want to default to `Localize.translate('fileDownload.success.message')`
         successMessage || translate('fileDownload.success.message'),
         [
+            ...(onOpen ? [{text: translate('fileDownload.success.open'), onPress: onOpen}] : []),
             {
                 text: translate('common.ok'),
-                style: 'cancel',
+                style: 'cancel' as const,
             },
         ],
         {cancelable: false},
