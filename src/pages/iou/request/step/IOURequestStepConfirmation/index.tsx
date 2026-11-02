@@ -689,6 +689,7 @@ function IOURequestStepConfirmationContent({
                         listProps={listProps}
                         destinationReportID={destinationReportID}
                         optimisticP2PDestinationReportID={optimisticP2PDestinationReportID}
+                        suppressDiscardPrompt={suppressDiscardPrompt}
                     />
                 );
             case SUBMISSION_PATH.SPLIT:
