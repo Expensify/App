@@ -36,7 +36,7 @@
 - Reproduced and verified in a pseudo-terminal with a real Ctrl+C byte injected, against the published 5.4.1 tarball: before the patch the process is still alive 4s after the keystroke with `stdin.isPaused() === true`; after the patch stdin is flowing and the process exits on the first Ctrl+C.
 - Upstream PR/issue: https://github.com/callstack/repack/issues/1515 - open, filed with the same one-line fix and reproduction. `setupInteractions.js` is byte-identical in 5.4.2 and the canary at time of writing, so no upgrade escapes it. Drop this patch once upstream ships the resume.
 - E/App issue: https://github.com/Expensify/App/issues/105422
-- PR Introducing Patch: https://github.com/Expensify/App/pull/TODO
+- PR Introducing Patch: https://github.com/Expensify/App/pull/105612
 
 Removed on the bump to `@callstack/repack@5.4.1`:
 
