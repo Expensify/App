@@ -156,7 +156,7 @@
   - The **larger** value gives the real width back `MAX_LOCK_RELEASE_CYCLES` (1) time, then the lock holds. The counter isn't reset when the same pair locks again, or a flicker would top it up forever.
   - Anything **outside the pair** is a real resize, so release and reset.
 
-  With the lock held, `boundedSize` stops changing, `recomputeLayouts` stops running and the re-renders stop. The trade-off: the flicker usually uses up the one allowed release, so the width stays put until the next real resize. A list that later stops needing a scrollbar keeps about 15px of empty space on the right.
+  With the lock held, `boundedSize` stops changing, `recomputeLayouts` stops running and the re-renders stop. The trade-off: the flicker usually uses up the one allowed release, so the width stays put until the next real resize. A list that later stops needing a scrollbar keeps about 15px of empty space on the right. Patch 017 releases this stale lock when the footer changes height independently of width, while preserving the guard across parent renders, including recreated JSX.
 - Files changed: `dist/recyclerview/layout-managers/LinearLayoutManager.js` only.
 - Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2334
 - E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263, https://github.com/Expensify/App/issues/95719
@@ -204,3 +204,13 @@
 - E/App issue: https://github.com/Expensify/App/issues/97472
 - Sentry: https://expensify.sentry.io/issues/APP-8PG
 - PR introducing patch: https://github.com/Expensify/App/pull/98015
+
+### [@shopify+flash-list+2.3.2+017+reset-scrollbar-lock-on-content-change.patch](@shopify+flash-list+2.3.2+017+reset-scrollbar-lock-on-content-change.patch)
+
+- Reason: Patch 012 retained its exhausted release budget after loading content changed. Cells could stay locked to the smaller width even after the scrollbar disappeared, while the header returned to full width.
+- Changes: Adds `resetScrollbarOscillation`, which returns true only when an active width lock was released. A vertical web footer reports layout changes; when its height changes at the same width, it attempts to release the lock and requests a new layout pass only if a lock existed. Loading skeleton exit animations can therefore finish before the actual viewport width is measured again.
+- Width measurements: The inner bounded-size measuring view reports width changes, since scrollbar visibility can resize it without changing the outer viewport. It compares against the last measured window width, preserving any intentional cell-width lock.
+- Files changed: `dist/recyclerview/RecyclerView.js`, `dist/recyclerview/RecyclerViewManager.js`, `dist/recyclerview/RecyclerViewManager.d.ts`, `dist/recyclerview/hooks/useSecondaryProps.js`, `dist/recyclerview/layout-managers/LinearLayoutManager.js`, and `dist/recyclerview/layout-managers/LinearLayoutManager.d.ts`.
+- Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2334 (tracks the underlying web scrollbar oscillation addressed by patch 012; this patch releases the stale width lock after content changes).
+- E/App issue: https://github.com/Expensify/App/issues/103719
+- PR introducing patch: https://github.com/Expensify/App/pull/104066
