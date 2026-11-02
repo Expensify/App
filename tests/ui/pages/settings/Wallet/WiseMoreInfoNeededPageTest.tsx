@@ -9,7 +9,7 @@ import openExternalLink from '@libs/openExternalLink';
 
 import WiseMoreInfoNeededPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseMoreInfoNeededPage';
 
-import {getWiseKYCReviewEmbeddedLink} from '@userActions/Wise';
+import {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink} from '@userActions/Wise';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,6 +53,21 @@ async function renderPage() {
 describe('WiseMoreInfoNeededPage', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('drops a link left from an earlier visit when the page opens', async () => {
+        // Given a link that came back after an earlier visit closed and its cleanup already ran
+        await Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {url: KYC_REVIEW_URL, isLoading: false});
+
+        // When the page opens
+        await renderPage();
+
+        // Then the old link is dropped, so Continue cannot redirect to it before the fresh fetch resets the key
+        expect(clearWiseKYCReviewEmbeddedLink).toHaveBeenCalledTimes(1);
     });
 
     it("fetches the link for the bank account on Continue and redirects to Wise's form once it arrives", async () => {

@@ -73,8 +73,11 @@ function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
         openExternalLink(kycReviewURL, undefined, true);
     }, [hasRequestedLink, kycReviewURL]);
 
-    // The link carries a token, so it does not outlive the page
-    useEffect(() => () => clearWiseKYCReviewEmbeddedLink(), []);
+    // The link carries a token and a fetch can land after an earlier visit closed, so the page drops it on open and on close
+    useEffect(() => {
+        clearWiseKYCReviewEmbeddedLink();
+        return () => clearWiseKYCReviewEmbeddedLink();
+    }, []);
 
     if (!isWiseReimbursementsBetaEnabled) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
