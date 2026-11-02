@@ -2037,31 +2037,54 @@ describe('PolicyUtils', () => {
             };
 
             it('returns undefined if neither option is selected', () => {
-                expect(getCustomUnitsForDuplication(policy, false, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID})).toBeUndefined();
+                expect(
+                    getCustomUnitsForDuplication(policy, false, false, {
+                        distanceCustomUnitID: otherUnit.customUnitID,
+                        perDiemCustomUnitID: perDiemUnit.customUnitID,
+                        rateIDsBySourceRateID: {},
+                    }),
+                ).toBeUndefined();
             });
 
             it('returns all custom units if both options are selected', () => {
-                const result = getCustomUnitsForDuplication(policy, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
+                const result = getCustomUnitsForDuplication(policy, true, true, {
+                    distanceCustomUnitID: otherUnit.customUnitID,
+                    perDiemCustomUnitID: perDiemUnit.customUnitID,
+                    rateIDsBySourceRateID: {},
+                });
                 expect(result).toEqual(policy.customUnits);
             });
             it('returns only non-per-diem units if only custom units option is selected', () => {
-                const result = getCustomUnitsForDuplication(policy, true, false, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
+                const result = getCustomUnitsForDuplication(policy, true, false, {
+                    distanceCustomUnitID: otherUnit.customUnitID,
+                    perDiemCustomUnitID: perDiemUnit.customUnitID,
+                    rateIDsBySourceRateID: {},
+                });
                 expect(result).toEqual({[otherUnit.customUnitID]: otherUnit});
             });
 
             it('returns only per diem unit if only per diem option is selected', () => {
-                const result = getCustomUnitsForDuplication(policy, false, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID});
+                const result = getCustomUnitsForDuplication(policy, false, true, {
+                    distanceCustomUnitID: otherUnit.customUnitID,
+                    perDiemCustomUnitID: perDiemUnit.customUnitID,
+                    rateIDsBySourceRateID: {},
+                });
                 expect(result).toEqual({[perDiemUnit.customUnitID]: perDiemUnit});
             });
 
             it('returns undefined if customUnits is empty', () => {
                 expect(
-                    getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true, {distanceCustomUnitID: otherUnit.customUnitID, perDiemCustomUnitID: perDiemUnit.customUnitID}),
+                    getCustomUnitsForDuplication(policyWithoutCustomUnits, true, true, {
+                        distanceCustomUnitID: otherUnit.customUnitID,
+                        perDiemCustomUnitID: perDiemUnit.customUnitID,
+                        rateIDsBySourceRateID: {},
+                    }),
                 ).toBeUndefined();
             });
 
-            it('rebinds the default rate to the API-known customUnitRateID and keeps non-default rates with their source IDs', () => {
-                const distanceUnitWithMultipleRates = {
+            it('gives every rate the new ID from the map, keeping its data and order', () => {
+                // Given rates stored out of display order with tax metadata.
+                const sourceUnit = {
                     customUnitID: 'srcDist',
                     name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
                     enabled: true,
@@ -2071,120 +2094,52 @@ describe('PolicyUtils', () => {
                         rateA: {customUnitRateID: 'rateA', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
                     },
                 };
-                const policyWithMultipleRates: Policy = {
-                    ...createRandomPolicy(0),
-                    customUnits: {[distanceUnitWithMultipleRates.customUnitID]: distanceUnitWithMultipleRates},
-                };
-                const result = getCustomUnitsForDuplication(policyWithMultipleRates, true, false, {
-                    distanceCustomUnitID: 'newDist',
-                    perDiemCustomUnitID: 'newPerDiem',
-                    customUnitRateID: 'newRate',
-                });
-                expect(result).toEqual({
-                    newDist: {
-                        ...distanceUnitWithMultipleRates,
-                        customUnitID: 'newDist',
-                        rates: {
-                            rateB: {customUnitRateID: 'rateB', name: 'New Rate 1', rate: 100, currency: 'USD', enabled: true, index: 1, attributes: {taxRateExternalID: 'tax_other'}},
-                            newRate: {customUnitRateID: 'newRate', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
-                        },
-                    },
-                });
-            });
-
-            it('keeps source rates with their source IDs when no enabled rate exists', () => {
-                const distanceUnitAllDisabled = {
-                    customUnitID: 'srcDist',
-                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                    enabled: true,
-                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-                    rates: {
-                        rateA: {customUnitRateID: 'rateA', name: 'Disabled', rate: 50, currency: 'USD', enabled: false, index: 0},
-                    },
-                };
-                const policyAllDisabled: Policy = {
-                    ...createRandomPolicy(0),
-                    customUnits: {[distanceUnitAllDisabled.customUnitID]: distanceUnitAllDisabled},
-                };
-                const result = getCustomUnitsForDuplication(policyAllDisabled, true, false, {
-                    distanceCustomUnitID: 'newDist',
-                    perDiemCustomUnitID: 'newPerDiem',
-                    customUnitRateID: 'newRate',
-                });
-                expect(result?.newDist.rates).toEqual({
-                    rateA: {customUnitRateID: 'rateA', name: 'Disabled', rate: 50, currency: 'USD', enabled: false, index: 0},
-                });
-            });
-
-            it('treats missing index as 0 when picking the default rate', () => {
-                const distanceUnitWithMissingIndex = {
-                    customUnitID: 'srcDist',
-                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                    enabled: true,
-                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-                    rates: {
-                        rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
-                        rateA: {customUnitRateID: 'rateA', name: 'No-Index Rate', rate: 70, currency: 'USD', enabled: true},
-                    },
-                };
-                const policyWithMissingIndex: Policy = {
-                    ...createRandomPolicy(0),
-                    customUnits: {[distanceUnitWithMissingIndex.customUnitID]: distanceUnitWithMissingIndex},
-                };
-                const result = getCustomUnitsForDuplication(policyWithMissingIndex, true, false, {
-                    distanceCustomUnitID: 'newDist',
-                    perDiemCustomUnitID: 'newPerDiem',
-                    customUnitRateID: 'newRate',
-                });
-                expect(result?.newDist.rates).toEqual({
-                    rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
-                    newRate: {customUnitRateID: 'newRate', name: 'No-Index Rate', rate: 70, currency: 'USD', enabled: true},
-                });
-            });
-
-            it('preserves source iteration order so getDefaultMileageRate still picks the original default when a non-default rate has a missing index', () => {
-                // Source has 3 rates: Default (index 0), Indexed (index 1), and No-Index (no index field).
-                // No-Index ties with Default at the index-0 sort key after `?? CONST.DEFAULT_NUMBER_ID`.
-                // The optimistic clone must keep the source's iteration order so JavaScript's stable
-                // sort still places Default before No-Index — otherwise getDefaultMileageRate would
-                // pick whichever tied rate appeared first in iteration order, swapping the default.
-                const sourceUnit = {
-                    customUnitID: 'srcDist',
-                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
-                    enabled: true,
-                    attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
-                    rates: {
-                        rateA: {customUnitRateID: 'rateA', name: 'Default Rate', rate: 72.5, currency: 'USD', enabled: true, index: 0},
-                        rateB: {customUnitRateID: 'rateB', name: 'Indexed Rate', rate: 100, currency: 'USD', enabled: true, index: 1},
-                        rateC: {customUnitRateID: 'rateC', name: 'No-Index Rate', rate: 200, currency: 'USD', enabled: true},
-                    },
-                };
-                const policyWithTiedIndex: Policy = {
+                const policyWithRates: Policy = {
                     ...createRandomPolicy(0),
                     customUnits: {[sourceUnit.customUnitID]: sourceUnit},
                 };
-                const result = getCustomUnitsForDuplication(policyWithTiedIndex, true, false, {
+                // When fresh IDs are assigned to the duplicated distance unit and its rates.
+                const result = getCustomUnitsForDuplication(policyWithRates, true, false, {
                     distanceCustomUnitID: 'newDist',
                     perDiemCustomUnitID: 'newPerDiem',
-                    customUnitRateID: 'newRate',
+                    rateIDsBySourceRateID: {rateA: 'newA', rateB: 'newB'},
                 });
+                // Then the original order and metadata survive under the new IDs.
+                expect(result).toEqual({
+                    newDist: {
+                        ...sourceUnit,
+                        customUnitID: 'newDist',
+                        rates: {
+                            newB: {customUnitRateID: 'newB', name: 'New Rate 1', rate: 100, currency: 'USD', enabled: true, index: 1, attributes: {taxRateExternalID: 'tax_other'}},
+                            newA: {customUnitRateID: 'newA', name: 'Default Rate', rate: 70, currency: 'USD', enabled: true, index: 0, attributes: {taxRateExternalID: 'tax_default'}},
+                        },
+                    },
+                });
+                expect(Object.keys(result?.newDist.rates ?? {})).toEqual(['newB', 'newA']);
+            });
 
-                const cloned = result?.newDist;
-                if (!cloned) {
-                    throw new Error('Expected cloned distance unit');
-                }
-                // Iteration order: the rebound default should still be first, before the No-Index rate.
-                const orderedKeys = Object.keys(cloned.rates);
-                expect(orderedKeys).toEqual(['newRate', 'rateB', 'rateC']);
-
-                // Sanity-check that getDefaultMileageRate's selection (enabled, sorted by index ?? 0,
-                // first) lands on the rebound default and not on No-Index Rate.
-                const pickedDefault = Object.values(cloned.rates)
-                    .filter((rate) => rate.enabled !== false)
-                    .sort((a, b) => (a.index ?? CONST.DEFAULT_NUMBER_ID) - (b.index ?? CONST.DEFAULT_NUMBER_ID))
-                    .at(0);
-                expect(pickedDefault?.customUnitRateID).toBe('newRate');
-                expect(pickedDefault?.name).toBe('Default Rate');
+            it('keeps the source ID for a rate the map leaves out', () => {
+                // Given a source rate absent from the client ID map.
+                const sourceUnit = {
+                    customUnitID: 'srcPerDiem',
+                    name: CONST.CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL,
+                    enabled: true,
+                    rates: {
+                        rateA: {customUnitRateID: 'rateA', name: 'Paris', rate: 5000, currency: 'EUR', enabled: true},
+                    },
+                };
+                const policyWithRates: Policy = {
+                    ...createRandomPolicy(0),
+                    customUnits: {[sourceUnit.customUnitID]: sourceUnit},
+                };
+                // When the per diem unit is duplicated with an incomplete map.
+                const result = getCustomUnitsForDuplication(policyWithRates, false, true, {
+                    distanceCustomUnitID: 'newDist',
+                    perDiemCustomUnitID: 'newPerDiem',
+                    rateIDsBySourceRateID: {},
+                });
+                // Then the unmapped rate keeps its ID instead of being dropped.
+                expect(result?.newPerDiem.rates).toEqual(sourceUnit.rates);
             });
         });
         describe('getRateDisplayValue', () => {
