@@ -12,7 +12,7 @@ const pages: DynamicFormPage[] = [
         title: 'Identity',
         content: [
             {key: 'name', type: 'text', required: true, label: 'Name'},
-            {key: 'ssn', type: 'text', required: true, label: 'SSN', sensitive: true, rule: 'ssn'},
+            {key: 'ssn', type: 'text', required: true, label: 'SSN', sensitive: true},
             {key: 'country', type: 'text', required: false, label: 'Country', readonly: true},
         ],
     },
@@ -40,6 +40,15 @@ describe('getConfirmationItems', () => {
         // Then the SSN is masked to its last four digits and the page is opened
         expect(ssnRow?.title).toBe('•••-••-1234');
         expect(onEditPage).toHaveBeenCalledWith(0);
+    });
+
+    it('groups a masked SSN starting with zeros like any other SSN', () => {
+        // Given an SSN starting with zeros, which the SSN validator rejects but the form accepts
+        // When the confirmation sections are built
+        const [group] = getConfirmationItems(pages, getAllFields(pages), {name: 'Ada', ssn: '000012345', country: 'US'}, translateLocal, jest.fn(), jest.fn());
+
+        // Then it keeps the SSN grouping, so it does not look different from other SSNs
+        expect(group.rows.find((row) => row.id === 'ssn')?.title).toBe('•••-••-2345');
     });
 
     it('shows a readonly row with no chevron and no action', () => {

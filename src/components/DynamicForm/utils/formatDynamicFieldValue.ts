@@ -20,13 +20,6 @@ function formatAddress(fieldKey: string, values: DynamicFormValues, translate: L
     return [getPart(addressKeys.street), getPart(addressKeys.city), stateAndZip, countryName].filter(Boolean).join(', ');
 }
 
-const SSN_DIGITS = /^\d{9}$/;
-
-/** Nine digits grouped as in 123-45-6789. Any other answer is left as typed. */
-function formatSSN(answer: string): string {
-    return SSN_DIGITS.test(answer) ? `${answer.slice(0, 3)}-${answer.slice(3, 5)}-${answer.slice(5)}` : answer;
-}
-
 /** An answer as the user reads it, for rows that show a value instead of an input */
 function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormValues, translate: LocalizedTranslate): string {
     const answer = values[field.key];
@@ -63,9 +56,6 @@ function formatDynamicFieldValue(field: DynamicFormField, values: DynamicFormVal
         case 'address':
             return formatAddress(field.key, values, translate);
         case 'text':
-            if (field.rule === 'ssn') {
-                return formatSSN(answer);
-            }
             // A row shows one line, so a multiline answer is joined into it, which also gives a cut answer its ellipsis
             return field.multiline ? answer.replaceAll(/\s*\r?\n\s*/g, ' ').trim() : answer;
         default:

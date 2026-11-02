@@ -9,6 +9,7 @@ import type {DynamicFormField, DynamicFormListField, DynamicFormPage} from '@src
 import noop from 'lodash/noop';
 
 import formatDynamicFieldValue from './formatDynamicFieldValue';
+import formatSSN from './formatSSN';
 import getContentFields from './getContentFields';
 import {getFieldLabel} from './getLocalizedText';
 import {getPageSectionName, isPageShown} from './getPageTitle';
@@ -108,7 +109,8 @@ function getConfirmationItems(
                     const isEditable = !field.readonly;
                     const fieldLabel = getFieldLabel(field, translate);
                     const isMasked = isSensitiveField(field) && !!getVisibleEnding(answer);
-                    const shownAnswer = isSensitiveField(field) ? maskSensitiveValue(answer) : answer;
+                    // Any nine digit sensitive answer is grouped like an SSN, since the SSN is the nine digit answer our forms ask for
+                    const shownAnswer = isSensitiveField(field) ? maskSensitiveValue(formatSSN(answer)) : answer;
                     const optedOutField = values[field.key] === true ? optedOutFieldByLink.get(field.key) : undefined;
 
                     return [

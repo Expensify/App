@@ -103,8 +103,8 @@ type DynamicFormTextField = DynamicFormFieldBase & {
     /** Grows with its content, for descriptions */
     multiline?: boolean;
 
-    /** A named kind of answer: `legalName` and `phone` add their own check on top of the others, and `ssn` shows a US Social Security Number or ITIN as 123-45-6789 */
-    rule?: 'legalName' | 'phone' | 'ssn';
+    /** A named check on top of the others: `legalName` for a person's legal name, `phone` for an international phone number */
+    rule?: 'legalName' | 'phone';
 };
 
 /** Text that must parse as a finite number, typed on the numeric keyboard */

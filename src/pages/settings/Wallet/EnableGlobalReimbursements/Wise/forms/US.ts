@@ -19,7 +19,6 @@ const representativePage: DynamicFormPage = {
             type: 'text',
             required: true,
             sensitive: true,
-            rule: 'ssn',
             regex: '^\\d{9}$',
             example: '123456789',
             labelKey: 'walletPage.wiseOnboarding.representative.ssn',
