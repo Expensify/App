@@ -1798,6 +1798,16 @@ function shouldReportActionBeVisible(
     return !!reportAction.pendingAction || !isDeletedAction(reportAction) || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 
+/** Whether an action can automatically create an unread divider for this account. */
+function canReportActionTriggerUnreadMarker(reportAction: ReportAction, currentUserAccountID: number): boolean {
+    if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED)) {
+        const recipients = getOriginalMessage(reportAction)?.actionableForAccountIDs;
+        // Older actions have no recipient metadata, so preserve their existing behavior.
+        return !recipients || recipients.includes(currentUserAccountID);
+    }
+    return !(isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) && getOriginalMessage(reportAction)?.label === CONST.EXPORT_LABELS.NETSUITE);
+}
+
 /**
  * Checks if the new marker should be hidden for the report action.
  */
@@ -6204,6 +6214,7 @@ export {
     isResolvedActionableWhisper,
     isReimbursementDirectionInformationRequiredAction,
     shouldHideNewMarker,
+    canReportActionTriggerUnreadMarker,
     shouldReportActionBeVisible,
     isReportActionVisible,
     wasActionTakenByCurrentUser,

@@ -7918,6 +7918,66 @@ describe('ReportActionsUtils', () => {
             isReversed: false,
         };
 
+        it.each([
+            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'}, expected: null},
+            {
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                originalMessage: {label: CONST.EXPORT_LABELS.QBO, lastModified: '2023-01-01 11:00:00.000'},
+                expected: 'system-action',
+            },
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [currentUserAccountID]}, expected: 'system-action'},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [99]}, expected: null},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {}, expected: 'system-action'},
+        ])('limits automatic markers for $actionName with $originalMessage', ({actionName, originalMessage, expected}) => {
+            // Given an unread system action, including legacy reimbursements without recipient metadata
+            const action = makeAction({reportActionID: 'system-action', actionName, originalMessage});
+
+            // When scanning online or offline in either list direction
+            for (const isOffline of [false, true]) {
+                for (const isReversed of [false, true]) {
+                    // Then only NetSuite exports and reimbursements targeted to someone else are suppressed
+                    expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [action], isOffline, isReversed})).toEqual([expected, expected ? 0 : -1]);
+                }
+            }
+        });
+
+        it.each([
+            {actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION, originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'}},
+            {actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED, originalMessage: {actionableForAccountIDs: [99]}},
+        ])('skips informational $actionName without hiding a real unread message', ({actionName, originalMessage}) => {
+            // Given a real unread comment next to a filtered informational action
+            const comment = makeAction({reportActionID: 'comment', created: '2023-01-01 12:00:00.000'});
+            const informational = makeAction({reportActionID: 'informational', actionName, originalMessage});
+            const read = makeAction({reportActionID: 'read', created: '2023-01-01 09:00:00.000'});
+
+            // When the informational action falls before or after the comment in either list direction
+            for (const informationalIsNewer of [false, true]) {
+                const filtered = {...informational, created: informationalIsNewer ? '2023-01-01 13:00:00.000' : informational.created};
+                const newestFirst = informationalIsNewer ? [filtered, comment, read] : [comment, filtered, read];
+                for (const isReversed of [false, true]) {
+                    const actions = isReversed ? [...newestFirst].reverse() : newestFirst;
+                    // Then the real comment keeps the divider at its original list index
+                    expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: actions, isReversed})).toEqual(['comment', actions.indexOf(comment)]);
+                }
+            }
+        });
+
+        it('preserves the existing explicit message-level unread override for a NetSuite export', () => {
+            // Given a NetSuite export explicitly marked unread by the user
+            const action = makeAction({
+                reportActionID: 'manual-export',
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                originalMessage: {label: CONST.EXPORT_LABELS.NETSUITE, lastModified: '2023-01-01 11:00:00.000'},
+            });
+
+            // When scanning with the manual anchor main already stores
+            // Then automatic filtering must not change that explicit message-level command
+            expect(getUnreadMarkerReportAction({...baseScanParams, visibleReportActions: [action], manuallyMarkedUnreadReportActionID: action.reportActionID})).toEqual([
+                action.reportActionID,
+                0,
+            ]);
+        });
+
         it('short-circuits to [null, -1] for an anonymous user', () => {
             const visibleReportActions = [makeAction({reportActionID: 'a'})];
             expect(

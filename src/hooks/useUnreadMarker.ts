@@ -1,4 +1,4 @@
-import {isReportActionFromCurrentUser, wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
+import {canReportActionTriggerUnreadMarker, isReportActionFromCurrentUser, wasMessageReceivedWhileOffline} from '@libs/ReportActionsUtils';
 import Visibility from '@libs/Visibility';
 
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
@@ -114,7 +114,11 @@ function useUnreadMarker({
     const offlineScanStep = isReversed ? 1 : -1;
     for (let i = offlineScanStartIndex; i >= 0 && i < offlineBoundaryActions.length; i += offlineScanStep) {
         const message = offlineBoundaryActions.at(i);
-        if (message && wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime, currentUserAccountID)) {
+        if (
+            message &&
+            canReportActionTriggerUnreadMarker(message, currentUserAccountID) &&
+            wasMessageReceivedWhileOffline(message, isOffline, lastOfflineAt.current, lastOnlineAt.current, getLocalDateFromDatetime, currentUserAccountID)
+        ) {
             earliestReceivedOfflineMessageIndex = i;
             break;
         }
@@ -124,9 +128,14 @@ function useUnreadMarker({
     let oldestUnreadReportActionMarker: [string, number] | undefined;
     if (oldestUnreadReportActionID && !hasOnceLoadedReportActions) {
         const visibleIndex = sortedVisibleReportActions.findIndex((action) => action.reportActionID === oldestUnreadReportActionID);
-        // A stale lastReadTime can make a message sent by the current user on another device the pagination anchor.
-        // Use the scan result instead when the current user authored that action.
-        if (visibleIndex >= 0 && !isReportActionFromCurrentUser(sortedVisibleReportActions.at(visibleIndex), currentUserAccountID)) {
+        const visibleAction = visibleIndex >= 0 ? sortedVisibleReportActions.at(visibleIndex) : undefined;
+        // Pagination must not bypass the current-user or informational-message checks.
+        if (
+            visibleIndex >= 0 &&
+            visibleAction &&
+            !isReportActionFromCurrentUser(visibleAction, currentUserAccountID) &&
+            canReportActionTriggerUnreadMarker(visibleAction, currentUserAccountID)
+        ) {
             oldestUnreadReportActionMarker = [oldestUnreadReportActionID, visibleIndex];
         }
     }
