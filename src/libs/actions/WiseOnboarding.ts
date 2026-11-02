@@ -3,9 +3,7 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 import {makeRequestWithSideEffects, write} from '@libs/API';
 import type {UpdateWiseOnboardingAdditionalDataParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getWiseOnboardingPageParams from '@libs/getWiseOnboardingPageParams';
-import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -65,21 +63,11 @@ function saveWiseOnboardingPageThroughQueue(params: UpdateWiseOnboardingAddition
 
 /**
  * Saves an intake page carrying an SSN without the request queue, since queued requests are written to disk. The flow saves pages only online, so a
- * failure here, including a connection that drops mid-request, is a failed save that is not retried.
+ * failure here, including a connection that drops mid-request, is a failed save that is not retried. A dropped connection resolves the request
+ * instead of rejecting it, so the failure data marks the page unsaved.
  */
 function saveWiseOnboardingPageWithSensitiveAnswers(params: UpdateWiseOnboardingAdditionalDataParams) {
-    const saveID = rand64();
-    makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, params, getOnyxData(params.step, saveID)).catch((error: unknown) => {
-        Log.hmmm('[WiseOnboarding] Failed to save a page with a sensitive answer', {
-            step: params.step,
-            error,
-        });
-        Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[saveID]: null});
-        Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-            wiseOnboardingUnsavedPages: {[params.step]: true},
-            errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-        });
-    });
+    makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, params, getOnyxData(params.step, rand64()));
 }
 
 /**

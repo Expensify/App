@@ -109,24 +109,20 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         expect(sideEffectSpy).not.toHaveBeenCalled();
     });
 
-    it('sends a page with an SSN outside the queue and shows an error when the request cannot be sent', async () => {
+    it('sends a page with an SSN outside the queue and keeps it unsaved when the request cannot be sent', async () => {
         // Given a page save carrying an SSN, whose request cannot be sent, as when the network drops
         const writeSpy = jest.spyOn(API, 'write');
-        jest.spyOn(API, 'makeRequestWithSideEffects').mockImplementation((command, apiParams, onyxData) =>
-            Onyx.update(onyxData?.optimisticData ?? []).then(() => Promise.reject(new Error('Network request failed'))),
-        );
+        global.fetch = jest.fn().mockRejectedValue(new TypeError('Network request failed'));
 
         // When it is sent
         saveWiseOnboardingPage(1, REPRESENTATIVE_PAGE, {firstName: 'Alice'}, {ssn: SSN});
         await waitForBatchedUpdates();
 
-        // Then the SSN never enters the request queue, which is written to disk, and the user is told the save failed, with the page kept unsaved
-        // so a later page's save does not let Confirm through
+        // Then the SSN never enters the request queue, which is written to disk. The dropped connection resolves the request instead of rejecting it,
+        // so its failure data keeps the page unsaved, which shows the save error and stops a later page's save from letting Confirm through
         expect(writeSpy).not.toHaveBeenCalled();
-        const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-        expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
+        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
         expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
-        expect(Object.values(reimbursementAccount?.errors ?? {})).toEqual(Object.values(getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')));
     });
 
     it('keeps a page with an SSN unsaved and its running save out of the stored account when its save never answers', async () => {
