@@ -25,7 +25,7 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, ReportAction, ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, ReportAttributesDerivedValue, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {TransactionViolationsCollectionDataSet} from '@src/types/onyx/TransactionViolation';
@@ -4872,6 +4872,73 @@ describe('SidebarUtils', () => {
                 expect(result).not.toBe(displayedReports);
                 expect(result['0']).toBeUndefined();
             });
+
+            it('should update a single-expense report entry when only its transaction thread gets a newer message', () => {
+                // Given an unread single-expense report shown in the LHN, whose hidden transaction thread just got a newer comment.
+                // The entry is the same object as the report in the collection and its flags stay the same (hasErrorsOtherThanFailedReceipt is
+                // left unset, as shouldDisplayReportInLHN returns it only for reports with errors), so only the thread's message time differs.
+                const oldThreadLastVisibleActionCreated = '2025-01-20 12:00:00.000';
+                const newThreadLastVisibleActionCreated = '2025-01-20 13:00:00.000';
+                const expenseReport: ReportsToDisplayInLHN[string] = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    lastReadTime: '2025-01-20 10:00:00.000',
+                    lastVisibleActionCreated: '2025-01-20 11:00:00.000',
+                    lastActorAccountID: 18921695,
+                    requiresAttention: false,
+                    isUnreadReport: true,
+                    lastVisibleActionCreatedForInboxTab: oldThreadLastVisibleActionCreated,
+                };
+                const transactionThread: Report = {
+                    ...createRandomReport(2, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: expenseReport.reportID,
+                    lastReadTime: '2025-01-20 10:00:00.000',
+                    lastVisibleActionCreated: newThreadLastVisibleActionCreated,
+                    lastActorAccountID: 18921695,
+                };
+                const expenseReportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+                const displayedReports: ReportsToDisplayInLHN = {[expenseReportKey]: expenseReport};
+                const reports: OnyxCollection<Report> = {
+                    [expenseReportKey]: expenseReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`]: transactionThread,
+                };
+                const reportAttributes: ReportAttributesDerivedValue['reports'] = {
+                    [expenseReport.reportID]: {
+                        reportName: '',
+                        isEmpty: false,
+                        brickRoadStatus: undefined,
+                        requiresAttention: false,
+                        reportErrors: {},
+                        oneTransactionThreadReportID: transactionThread.reportID,
+                    },
+                };
+
+                // When the expense report is rechecked because its transaction thread changed
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports,
+                    reports,
+                    updatedReportsKeys: [expenseReportKey],
+                    currentReportId: expenseReport.reportID,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    transactions: {},
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes,
+                    draftComments: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                });
+
+                // Then the entry is replaced with the thread's newer message time, so the Inbox tab stale-unread check counts the new comment
+                expect(result).not.toBe(displayedReports);
+                expect(result[expenseReportKey]?.isUnreadReport).toBe(true);
+                expect(result[expenseReportKey]?.lastVisibleActionCreatedForInboxTab).toBe(newThreadLastVisibleActionCreated);
+            });
         });
 
         describe('getReportsToDisplayInLHN', () => {
@@ -5054,6 +5121,66 @@ describe('SidebarUtils', () => {
                 // without it a report missing from the set entirely would satisfy the isUnreadReport check.
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]).toBeDefined();
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]?.isUnreadReport).toBeFalsy();
+            });
+
+            it('should flag a single-expense report as unread for the Unread tab when only its transaction thread is unread', () => {
+                // Given a read expense report with a single expense, whose transaction thread (hidden from the LHN) has a newer comment from someone else
+                const expenseReport: Report = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    lastReadTime: '2025-01-20 12:00:00.000',
+                    lastVisibleActionCreated: '2025-01-20 11:00:00.000',
+                    lastActorAccountID: CURRENT_USER_ACCOUNT_ID,
+                };
+                const transactionThread: Report = {
+                    ...createRandomReport(2, undefined),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: expenseReport.reportID,
+                    lastReadTime: '2025-01-20 12:00:00.000',
+                    lastVisibleActionCreated: '2025-01-20 13:00:00.000',
+                    lastActorAccountID: 18921695,
+                };
+                const reports: OnyxCollection<Report> = {
+                    [`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]: expenseReport,
+                    [`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`]: transactionThread,
+                };
+                const createReportAttributes = (oneTransactionThreadReportID?: string): ReportAttributesDerivedValue['reports'] => ({
+                    [expenseReport.reportID]: {
+                        reportName: '',
+                        isEmpty: false,
+                        brickRoadStatus: undefined,
+                        requiresAttention: false,
+                        reportErrors: {},
+                        oneTransactionThreadReportID,
+                    },
+                });
+                const buildLHNReports = (reportAttributes: ReportAttributesDerivedValue['reports']) =>
+                    SidebarUtils.getReportsToDisplayInLHN({
+                        currentReportId: expenseReport.reportID,
+                        reports,
+                        isDefaultRoomsBetaEnabled: false,
+                        priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                        draftComments: {},
+                        transactionViolations: {},
+                        transactions: {},
+                        isOffline: false,
+                        currentUserLogin: CURRENT_USER_LOGIN,
+                        currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                        reportNameValuePairs: {},
+                        reportAttributes,
+                        guideAccountIDs: [],
+                        conciergeReportID: undefined,
+                    });
+
+                // When the LHN report set is built with and without the expense report's one-transaction thread
+                const resultWithThread = buildLHNReports(createReportAttributes(transactionThread.reportID));
+                const resultWithoutThread = buildLHNReports(createReportAttributes());
+
+                // Then the thread's new comment puts the expense report in the Unread tab, since the comment lives on the thread
+                expect(resultWithThread[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]?.isUnreadReport).toBe(true);
+                expect(resultWithThread[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]?.lastVisibleActionCreatedForInboxTab).toBe(transactionThread.lastVisibleActionCreated);
+                expect(resultWithoutThread[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]).toBeDefined();
+                expect(resultWithoutThread[`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`]?.isUnreadReport).toBeFalsy();
             });
 
             it('should pass isOffline=false to shouldDisplayReportInLHN', () => {
@@ -5531,7 +5658,10 @@ describe('SidebarUtils', () => {
         /** The cutoff getInboxTabSummary measures against: the start of today, CONST.INBOX_TAB_STALE_UNREAD_MONTHS ago. */
         const staleCutoff = () => subMonths(startOfDay(new Date()), CONST.INBOX_TAB_STALE_UNREAD_MONTHS);
 
-        type InboxTabReport = Pick<ReportsToDisplayInLHN[string], 'reportID' | 'isUnreadReport' | 'requiresAttention' | 'hasErrorsOtherThanFailedReceipt' | 'lastVisibleActionCreated'>;
+        type InboxTabReport = Pick<
+            ReportsToDisplayInLHN[string],
+            'reportID' | 'isUnreadReport' | 'requiresAttention' | 'hasErrorsOtherThanFailedReceipt' | 'lastVisibleActionCreated' | 'lastVisibleActionCreatedForInboxTab'
+        >;
 
         function buildReportsToDisplay(reports: InboxTabReport[]): ReportsToDisplayInLHN {
             return Object.fromEntries(reports.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, {...createRandomReport(Number(report.reportID)), ...report}]));
@@ -5576,6 +5706,24 @@ describe('SidebarUtils', () => {
             const reportsToDisplay = buildReportsToDisplay([{reportID: '1', isUnreadReport: true, lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 1).valueOf())}]);
 
             expect(SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay).hasStaleUnreadReport).toBe(false);
+        });
+
+        it('does not flag a single-expense report whose old expense report has a recent comment on its transaction thread', () => {
+            // Given an unread single-expense report whose own newest message is old, but whose transaction thread just got a comment
+            const reportsToDisplay = buildReportsToDisplay([
+                {
+                    reportID: '1',
+                    isUnreadReport: true,
+                    lastVisibleActionCreated: DateUtils.getDBTime(subMonths(new Date(), 4).valueOf()),
+                    lastVisibleActionCreatedForInboxTab: DateUtils.getDBTime(),
+                },
+            ]);
+
+            // When the Inbox tab row is summarized
+            const {hasStaleUnreadReport} = SidebarUtils.getInboxTabSummary(['1'], reportsToDisplay);
+
+            // Then the report is not stale, because the unread message is the new thread comment
+            expect(hasStaleUnreadReport).toBe(false);
         });
 
         it('ignores the age of reports that are not unread', () => {
