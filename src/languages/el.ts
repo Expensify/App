@@ -10313,12 +10313,6 @@ ${reportName}`,
             }
             return `ενημέρωσε την ημερομηνία υποβολής της μηνιαίας αναφοράς σε «${newValue}» (προηγουμένως «${oldValue}»)`;
         },
-        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
-            if (!oldValue) {
-                return `όρισε τη ζώνη ώρας του χώρου εργασίας σε «${newValue}»`;
-            }
-            return `ενημέρωσε τη ζώνη ώρας του χώρου εργασίας σε «${newValue}» (προηγουμένως «${oldValue}»)`;
-        },
         updateDefaultBillable: (oldValue: string, newValue: string) => `ενημέρωσε το «Επανεπιβάρυνση δαπανών σε πελάτες» σε «${newValue}» (προηγουμένως «${oldValue}»)`,
         updateDefaultReimbursable: (oldValue: string, newValue: string) => `ενημερώθηκε η «Προεπιλογή δαπανών με μετρητά» σε «${newValue}» (προηγουμένως «${oldValue}»)`,
         updateDefaultTitleEnforced: (value: boolean) => `ενεργοποίησε την «επιβολή προεπιλεγμένων τίτλων αναφοράς» ${value ? 'ενεργό' : 'κλειστό'}`,

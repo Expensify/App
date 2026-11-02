@@ -9966,12 +9966,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             }
             return `atualizou a data de envio do relatório mensal para "${newValue}" (anteriormente "${oldValue}")`;
         },
-        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
-            if (!oldValue) {
-                return `definiu o fuso horário do espaço de trabalho para "${newValue}"`;
-            }
-            return `atualizou o fuso horário do espaço de trabalho para "${newValue}" (anteriormente "${oldValue}")`;
-        },
         updateDefaultBillable: (oldValue: string, newValue: string) => `atualizou "Refaturar despesas para clientes" para "${newValue}" (antes "${oldValue}")`,
         updateDefaultReimbursable: (oldValue: string, newValue: string) => `atualizou "Padrão de despesa em dinheiro" para "${newValue}" (anteriormente "${oldValue}")`,
         updateDefaultTitleEnforced: (value: boolean) => `ativou “Aplicar títulos padrão de relatório” ${value ? 'ativado' : 'desligado'}`,

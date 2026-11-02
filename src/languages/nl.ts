@@ -9958,12 +9958,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             }
             return `heeft de maandelijkse rapportindieningsdatum bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`;
         },
-        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
-            if (!oldValue) {
-                return `heeft de tijdzone van de werkruimte ingesteld op "${newValue}"`;
-            }
-            return `heeft de tijdzone van de werkruimte bijgewerkt naar "${newValue}" (voorheen "${oldValue}")`;
-        },
         updateDefaultBillable: (oldValue: string, newValue: string) => `heeft ‘Onkosten opnieuw aan klanten doorberekenen’ bijgewerkt naar ‘${newValue}’ (voorheen ‘${oldValue}’)`,
         updateDefaultReimbursable: (oldValue: string, newValue: string) => `heeft ‘Contante uitgave standaard’ gewijzigd in ‘${newValue}’ (voorheen ‘${oldValue}’)`,
         updateDefaultTitleEnforced: (value: boolean) => `heeft ‘Standaardrapporttitels afdwingen’ ${value ? 'aan' : 'uit'} ingeschakeld`,

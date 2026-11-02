@@ -9979,12 +9979,6 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             }
             return `zaktualizowano termin przesyłania comiesięcznego raportu na „${newValue}” (wcześniej „${oldValue}”)`;
         },
-        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
-            if (!oldValue) {
-                return `ustawiono strefę czasową przestrzeni roboczej na „${newValue}”`;
-            }
-            return `zaktualizowano strefę czasową przestrzeni roboczej na „${newValue}” (wcześniej „${oldValue}”)`;
-        },
         updateDefaultBillable: (oldValue: string, newValue: string) => `zaktualizowano „Refakturowanie wydatków klientom” na „${newValue}” (wcześniej „${oldValue}”)`,
         updateDefaultReimbursable: (oldValue: string, newValue: string) => `zaktualizowano „Domyślne wydatki gotówkowe” na „${newValue}” (wcześniej „${oldValue}”)`,
         updateDefaultTitleEnforced: (value: boolean) => `włączył(-a) „Wymuszanie domyślnych tytułów raportów” ${value ? 'włączone' : 'wyłączone'}`,
