@@ -509,7 +509,32 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: 'Trimestre',
         vacationDelegate: 'Délégué de vacances',
         expensifyLogo: 'Logo Expensify',
-        concierge: {greeting: 'Bonjour, comment puis-je vous aider ?', showHistory: 'Afficher l’historique'},
+        concierge: {
+            greeting: 'Bonjour, comment puis-je vous aider ?',
+            showHistory: 'Afficher l’historique',
+            subtitle: 'Votre assistant IA personnel',
+            welcomeDescription: 'Concierge peut répondre à vos questions, mettre à jour vos dépenses et plus encore.',
+            viewChatHistory: 'Afficher l’historique du chat',
+            hideChatHistory: 'Masquer l’historique du chat',
+            askNewQuestion: 'Poser une nouvelle question',
+            newChat: 'Nouveau chat',
+            composerPlaceholders: {
+                spendLastMonth: 'Combien ai-je dépensé le mois dernier ?',
+                topExpenses: 'Montre-moi mes plus grosses dépenses ce mois-ci',
+                spendDrivers: 'Qu’est-ce qui a fait augmenter mes dépenses le trimestre dernier ?',
+                travelSpendChange: 'Comment mes dépenses de voyage ont-elles évolué depuis le mois dernier ?',
+                topSpender: 'Qui a le plus dépensé ce mois-ci ?',
+                missingCategory: 'Quelles dépenses n’ont pas de catégorie ?',
+                awaitingApproval: 'Quels rapports attendent mon approbation ?',
+                notReimbursed: 'Qu’est-ce qui ne m’a pas encore été remboursé ?',
+                unsubmitted: 'Lesquelles de mes dépenses ne sont pas encore soumises ?',
+                leftToPay: 'Que reste-t-il à payer ce mois-ci ?',
+                createExpense: 'Crée une dépense de 30 $ pour un déjeuner',
+                combineExpenses: 'Regroupe toutes mes dépenses ouvertes dans un seul rapport',
+                exportPdf: 'Exporte mon dernier rapport en PDF',
+                exportCsv: 'Donne-moi un CSV de mes dépenses de plus de 50 $',
+            },
+        },
         duplicateReport: 'Note de frais en double',
         approver: 'Approbateur',
         goToConcierge: 'Aller à Concierge',
@@ -1196,6 +1221,15 @@ const translations: TranslationDeepObject<typeof en> = {
             yearLabel: (year?: number) => (year === undefined ? 'Année' : `Année ${year}`),
             increase: (percentage: string) => `En hausse de ${percentage}`,
             decrease: (percentage: string) => `En baisse de ${percentage}`,
+            dailyAverage: 'Moyenne quotidienne',
+            weeklyAverage: 'Moyenne hebdomadaire',
+            monthlyAverage: 'Moyenne mensuelle',
+            quarterlyAverage: 'Moyenne trimestrielle',
+            yearlyAverage: 'Moyenne annuelle',
+            allSpenderAverage: 'Moyenne tous dépensiers',
+            allMerchantAverage: 'Moyenne tous marchands',
+            allCategoryAverage: 'Moyenne toutes catégories',
+            averageValue: (amount: string) => `${amount} en moyenne`,
         },
         compliance: 'Conformité',
         runningTotal: 'Total cumulé',
@@ -2876,6 +2910,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Veuillez confirmer les transactions de test',
             accountRequiresAttention: 'Ce compte nécessite une attention particulière',
             unlock: 'Déverrouiller',
+            plaidBrokenReconnect: 'Corrigez votre connexion Plaid pour un plafond de Carte Expensify plus précis',
+            plaidConnectForLimit: 'Connectez Plaid pour une limite de Carte Expensify plus précise',
+            connect: 'Connecter',
+        },
+        linkPlaid: {
+            title: 'Se connecter à Plaid',
+            successHeading: 'Connexion réussie',
+            successDescription: 'Merci de vous être connecté à Plaid !',
+            failureHeading: 'Connexion infructueuse',
+            failureDescription: '<muted-text>Veuillez réessayer ou <concierge-link>contactez Concierge</concierge-link>.</muted-text>',
+            wrongAccountHeading: 'Mauvais compte bancaire',
+            wrongAccountDescription: 'Veuillez sélectionner le compte bancaire correspondant dans Plaid.',
         },
         wiseOnboarding: {
             confirmationTitle: 'Vérifions que tout est correct',
@@ -3243,6 +3289,9 @@ ${amount} pour ${merchant} - ${date}`,
         makeOrTrackPaymentsDescription: 'Ajoutez un payeur autorisé pour les paiements effectués dans Expensify ou suivez les paiements effectués ailleurs.',
         collectEmployeeBankDetails: 'Collecter les coordonnées bancaires des employés',
         collectEmployeeBankDetailsDescription: 'Recueillez les coordonnées bancaires des employés afin de pouvoir les rembourser en dehors d’Expensify.',
+        businessBankAccountCountries: 'Pays des comptes bancaires professionnels',
+        businessBankAccountCountriesDescription:
+            'Les employés de ces pays fournissent des coordonnées de virement local. Tous les autres fournissent des coordonnées de virement international.',
         customApprovalWorkflowEnabled:
             '<muted-text-label>Un workflow d’approbation personnalisé est activé sur cet espace de travail. Pour examiner ou modifier ce workflow, veuillez contacter votre <account-manager-link>chargé de compte</account-manager-link> ou <concierge-link>Concierge</concierge-link>.</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -3286,6 +3335,8 @@ ${amount} pour ${merchant} - ${date}`,
         defaultWorkflowApproverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur.',
         overLimitApproverNotWorkspaceMember:
             'L’approbateur supplémentaire pour les notes de frais au-delà de la limite n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur supplémentaire.',
+        overLimitApproverInWorkflow:
+            'L’approbateur supplémentaire pour les notes de frais dépassant la limite est déjà un approbateur dans ce flux de travail. Choisissez un autre approbateur supplémentaire.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> approuve déjà les notes de frais de <strong>${name2}</strong>. Veuillez choisir un autre approbateur pour éviter un circuit d'approbation circulaire.`,
         emptyContent: {
@@ -3934,7 +3985,7 @@ ${amount} pour ${merchant} - ${date}`,
 
                         1. Cliquez sur *Espaces de travail*.
                         2. Sélectionnez votre espace de travail.
-                        3. Cliquez sur *Comptabilité*.
+                        3. Cliquez sur *Connexions*.
                         4. Recherchez ${integrationName}.
                         5. Cliquez sur *Connecter*.
 
@@ -5019,6 +5070,7 @@ ${amount} pour ${merchant} - ${date}`,
             roomType: 'Type de chambre',
             cancellation: 'Politique d’annulation',
             cancellationUntil: 'Annulation gratuite jusqu’au',
+            hotelLocalTime: 'heure locale de l’hôtel',
             confirmation: 'Numéro de confirmation',
             cancellationPolicies: {
                 unknown: 'Inconnu',
@@ -5151,8 +5203,9 @@ ${amount} pour ${merchant} - ${date}`,
                 'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Voyage n’est pas activé',
-            message: 'Pour réserver, veuillez activer les voyages sur votre espace de travail par défaut ou définir par défaut un espace de travail sur lequel les voyages sont activés.',
+            title: 'Vous ne pouvez pas encore réserver de voyage',
+            message:
+                'Vous êtes membre d’un espace de travail avec voyage activé, mais ce n’est pas votre espace de travail par défaut. Pour réserver, veuillez activer le voyage sur votre espace de travail par défaut ou définir comme espace de travail par défaut un espace de travail avec voyage activé.',
         },
     },
     workspace: {
@@ -5284,8 +5337,6 @@ ${amount} pour ${merchant} - ${date}`,
             guestAlternateText: 'Soumettre des notes de frais avec une visibilité limitée.',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Responsable';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrateur de l’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -5353,22 +5404,14 @@ ${amount} pour ${merchant} - ${date}`,
             description: "Excellente nouvelle 🎉. Contactez-nous si votre client a besoin d'aide pour la configuration.",
         },
         mcp: {
-            connectors: 'Connecteurs',
-            connectorsSubtitle: 'Connectez un assistant IA à votre compte Expensify.',
-            connect: 'Connecter',
-            helpPrompt: "Besoin d'aide pour la connexion ?",
-            helpLink: 'Consultez notre guide.',
             claude: {
                 title: 'Claude',
-                subtitle: 'par Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'par Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'par OpenAI',
             },
         },
         connections: {
@@ -6654,7 +6697,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             selectCards: 'Sélectionner des cartes',
             fromOtherWorkspaces: "D'autres espaces de travail",
             addWorkEmail: 'Ajoutez votre adresse e-mail professionnelle',
-            addWorkEmailDescription: "Veuillez ajouter votre e-mail professionnel pour utiliser les flux existants d'autres espaces de travail.",
+            addWorkEmailDescription:
+                'Ajoutez votre adresse e-mail professionnelle et définissez-la comme méthode de contact principale afin d’utiliser les flux existants d’autres espaces de travail.',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'Impossible de charger les flux de cartes',
                 workspaceFeedsCouldNotBeLoadedMessage:
@@ -7000,10 +7044,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 title: 'Organiser',
                 subtitle: 'Regroupez et analysez les dépenses, enregistrez chaque taxe payée.',
             },
-            integrateSection: {
-                title: 'Intégrer',
-                subtitle: 'Connectez Expensify à des produits financiers populaires.',
-            },
             distanceRates: {
                 title: 'Taux de distance',
                 subtitle: 'Ajoutez, mettez à jour et appliquez les taux.',
@@ -7245,23 +7285,18 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Connectez un assistant IA à votre compte Expensify.',
             },
             receiptPartners: {
                 title: 'Partenaires de reçus',
-                subtitle: 'Importer automatiquement les reçus.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Pas si vite…',
                 featureEnabledText: 'Pour activer ou désactiver cette fonctionnalité, vous devez modifier vos paramètres d’import comptable.',
-                disconnectText: 'Pour désactiver la comptabilité, vous devez déconnecter votre connexion comptable de votre espace de travail.',
                 manageSettings: 'Gérer les paramètres',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Dissocier Uber',
-                disconnectText: 'Pour désactiver cette fonctionnalité, veuillez d’abord déconnecter l’intégration Uber for Business.',
                 description: 'Voulez-vous vraiment déconnecter cette intégration ?',
-                confirmText: 'Compris',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Pas si vite…',
@@ -7278,15 +7313,11 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 subtitle: 'Définissez un taux horaire facturable pour le suivi du temps.',
                 defaultHourlyRate: 'Taux horaire par défaut',
             },
-            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Pour désactiver les RH, veuillez d'abord déconnecter ${integration} de cet espace de travail.`},
             vendors: {
                 title: 'Fournisseurs',
                 subtitle: 'Faites correspondre les dépenses de carte aux fournisseurs importés depuis votre logiciel de comptabilité.',
                 disabledTitle: 'Pas si vite...',
                 disabledMessage: 'Pour activer ou désactiver cette fonctionnalité, vous devrez modifier vos paramètres d’importation comptable.',
-            },
-            recruitingWarningModal: {
-                disconnectText: ({integration}: {integration: string}) => `Pour désactiver le recrutement, veuillez d’abord déconnecter ${integration} de cet espace de travail.`,
             },
         },
         reports: {
@@ -7564,6 +7595,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 continue: 'Continuer sans membres',
                 description: 'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront tout de même copiés.',
             },
+            confirmMembers: {
+                title: 'Copier les membres',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Êtes-vous sûr de vouloir remplacer les membres de ${targetWorkspaceName} par les membres de cet espace de travail ?`,
+                    other: `Êtes-vous sûr de vouloir remplacer les membres de ${count} espaces de travail par les membres de cet espace de travail ?`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'Copie en cours...',
                 copyInProgressDescription: 'Vous pouvez soit attendre la fin du processus, soit laisser Concierge vous prévenir lorsque ce sera terminé.',
@@ -7784,7 +7822,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
         accounting: {
             settings: 'paramètres',
             title: 'Connexions',
-            subtitle: 'Connectez votre logiciel de comptabilité pour une synchronisation automatique.',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7796,10 +7833,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Discutez avec votre chargé de compte.',
-            talkYourAccountManager: 'Discuter avec votre gestionnaire de compte.',
-            talkToConcierge: 'Discuter avec Concierge.',
-            needAnotherAccounting: 'Besoin d’un autre logiciel comptable ?',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -7848,7 +7881,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             disconnect: 'Déconnecter',
             reinstall: 'Réinstaller le connecteur',
             disconnectTitle: (connectionName = 'intégration') => `Déconnecter ${connectionName}`,
-            connectTitle: (connectionName) => `Connecter ${connectionName}`,
             syncError: (connectionName) => `Impossible de se connecter à ${connectionName}`,
             accounts: 'Plan comptable',
             taxes: 'Taxes',
@@ -7865,12 +7897,10 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Par défaut employé NetSuite',
             },
             disconnectPrompt: (connectionName = 'cette intégration') => `Voulez-vous vraiment déconnecter ${connectionName} ?`,
-            connectPrompt: (connectionName) => `Voulez-vous vraiment connecter ${connectionName} ? Cette action supprimera toutes les connexions comptables existantes.`,
             enterCredentials: 'Saisissez vos identifiants',
             reconnect: 'Reconnecter',
             updateCredentials: 'Mettre à jour les identifiants',
             claimOffer: {
-                badgeText: 'Offre disponible !',
                 xero: {
                     headline: 'Obtenez Xero gratuitement pendant 6 mois !',
                     description:
@@ -9260,7 +9290,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     missingData: 'Expensify n’a pas ces informations.',
                     retroactive: 'Les règles ne s’appliquent qu’aux nouvelles activités.',
                     historyLimit: 'Les règles ne peuvent pas remonter aussi loin dans le temps.',
-                    tryThisInstead: 'Essayez plutôt ceci',
+                    useSuggestion: 'Utiliser la suggestion',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Essayez plutôt la suggestion ci-dessous :`,
+                    quotedSuggestion: (suggestedPrompt: string) => `« ${suggestedPrompt} »`,
+                    createAnyway: 'Créer quand même',
                 },
             },
             expenseDefaultsTable: {
@@ -9376,10 +9409,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             subscriptions: 'Abonnements',
         },
         hr: {
-            title: 'RH',
             connectionsSubtitle:
                 'Connectez votre système RH pour synchroniser les données des employé·es, faire correspondre automatiquement les remboursements aux bonnes personnes et garder les dépenses de votre équipe exactes, sans travail manuel.',
-            subtitle: 'Connectez vos outils RH et gardez les approbations des employés synchronisées.',
             alreadyConnectedTitle: 'Impossible de se connecter à plusieurs plateformes RH',
             alreadyConnectedPrompt: 'Vous devez déconnecter votre plateforme RH actuelle avant d’en connecter une autre.',
             connectionDescription: (providerName: string) => `Connectez ${providerName} pour synchroniser les approbations des employés avec votre espace de travail.`,
@@ -9442,7 +9473,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
         },
         recruiting: {
-            title: 'Recrutement',
             connectionsSubtitle:
                 'Connectez votre système de recrutement pour synchroniser les données des candidats, faire correspondre automatiquement les remboursements aux bonnes personnes et maintenir des dépenses d’équipe exactes sans travail manuel.',
             alreadyConnectedTitle: 'Impossible de se connecter à plusieurs plateformes ATS',
@@ -9450,7 +9480,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             syncing: 'Synchronisation des candidats',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Connecté. ${setupLink ? `<a href="${setupLink}">Terminer la configuration</a>` : 'Terminer la configuration'} pour importer des candidats.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>Vous ne voyez pas votre ATS ici ? <a href="#">Demandez à Concierge</a> et nous pourrons l’ajouter.</muted-text-label>`,
             importSettings: 'Paramètres d’importation',
             defaultApprover: 'Approbateur par défaut',
             approverFields: {recruiter: 'Recruteur', recruitingCoordinator: 'Coordinateur recrutement', hiringManager: 'Responsable du recrutement'},
@@ -9477,7 +9506,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 },
                 enableJobStagesOrTags: 'Sélectionnez au moins une étape de poste ou un tag pour continuer',
             },
-            subtitle: 'Connectez les outils de recrutement et synchronisez les validations de candidats.',
             syncResults: {
                 importedCount: () => ({
                     one: '1 candidat',
@@ -9501,9 +9529,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             },
         },
         merge: {
-            connections: 'Connexions',
-            connect: 'Connecter',
-            findIntegration: 'Rechercher une intégration',
             syncNow: 'Synchroniser maintenant',
             disconnect: 'Déconnecter',
             disconnectTitle: (providerName: string) => `Déconnecter ${providerName}`,
@@ -9643,6 +9668,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             noOrganizationsFound: 'Aucune organisation trouvée',
             noOrganizationsFoundDescription: 'Veuillez ajouter une organisation dans Zoho Books et synchroniser à nouveau la connexion',
             multiLocationNotSupported: 'Les organisations multi-sites ne sont pas encore prises en charge',
+            importDescription: 'Choisissez quelles configurations de codage importer depuis Zoho Books.',
+            accountTypesDescription: 'Vos comptes Zoho Books seront importés en tant que catégories.',
+            enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
+            enableNewAccountsDescription: 'Les nouveaux comptes Zoho Books seront disponibles en tant que catégories.',
+            reportingTagsImport: 'Tous les tags de rapport Zoho Books sont importés en tant que tags',
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
@@ -10512,6 +10542,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `mis à jour « Empêcher de marquer les notes de frais non remboursables comme payées » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
+        addedExpensifyCardFeed: (feedName: string) => `a ajouté le flux Carte Expensify « ${feedName} »`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -10791,6 +10822,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaine',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Année',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateur',
             },
             feed: 'Fil',
             withdrawalType: {
@@ -10850,6 +10882,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaines',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Années',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateurs',
         },
         moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',
@@ -12101,6 +12134,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 info: 'Si vous souhaitez continuer à utiliser votre/vos espace(s) de travail à l’utilisation, tout est prêt.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Si vous souhaitez empêcher toute activité et tout prélèvement futurs, vous devez <a href="${workspacesListRoute}">supprimer votre/vos espace(s) de travail</a>. Notez que lorsque vous supprimez votre/vos espace(s) de travail, vous serez facturé pour toute activité en cours survenue durant le mois civil en cours.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Pour éviter toute activité et facturation futures, <a href="${workspacesListRoute}">archivez tous vos espaces de travail payants</a>. Les espaces de travail archivés ayant une activité facturable au cours du mois en cours seront tout de même inclus dans votre facture.`,
             },
             requestSubmitted: {
                 title: 'Demande soumise',

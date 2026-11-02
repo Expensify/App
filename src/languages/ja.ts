@@ -508,7 +508,32 @@ const translations: TranslationDeepObject<typeof en> = {
         quarter: '四半期',
         vacationDelegate: '休暇代理人',
         expensifyLogo: 'Expensifyロゴ',
-        concierge: {greeting: 'こんにちは、どのようにお手伝いできますか？', showHistory: '履歴を表示'},
+        concierge: {
+            greeting: 'こんにちは、どのようにお手伝いできますか？',
+            showHistory: '履歴を表示',
+            subtitle: 'あなた専用のAIアシスタント',
+            welcomeDescription: 'Conciergeは質問への回答や経費の更新などを行えます。',
+            viewChatHistory: 'チャット履歴を表示',
+            hideChatHistory: 'チャット履歴を非表示',
+            askNewQuestion: '新しい質問をする',
+            newChat: '新しいチャット',
+            composerPlaceholders: {
+                spendLastMonth: '先月はいくら使いましたか？',
+                topExpenses: '今月の支出が多い経費を見せて',
+                spendDrivers: '前四半期の支出の要因は何ですか？',
+                travelSpendChange: '先月から出張費はどう変わりましたか？',
+                topSpender: '今月いちばん使ったのは誰ですか？',
+                missingCategory: 'カテゴリーが設定されていない経費はどれですか？',
+                awaitingApproval: '承認待ちのレポートはどれですか？',
+                notReimbursed: 'まだ精算されていないものは何ですか？',
+                unsubmitted: 'まだ提出していない経費はどれですか？',
+                leftToPay: '今月の未払い分はいくらですか？',
+                createExpense: 'ランチの30ドルの経費を作成して',
+                combineExpenses: '未処理の経費をすべて1つのレポートにまとめて',
+                exportPdf: '直近のレポートをPDFでエクスポートして',
+                exportCsv: '50ドル以上の経費のCSVをください',
+            },
+        },
         duplicateReport: 'レポートを複製',
         approver: '承認者',
         goToConcierge: 'Conciergeへ移動',
@@ -1180,6 +1205,15 @@ const translations: TranslationDeepObject<typeof en> = {
             yearLabel: (year?: number) => (year === undefined ? '年' : `${year}年目`),
             increase: (percentage: string) => `${percentage} 増加`,
             decrease: (percentage: string) => `${percentage} 減少`,
+            dailyAverage: '日次平均',
+            weeklyAverage: '週平均',
+            monthlyAverage: '月平均',
+            quarterlyAverage: '四半期平均',
+            yearlyAverage: '年間平均',
+            allSpenderAverage: '全利用者の平均',
+            allMerchantAverage: '全加盟店の平均',
+            allCategoryAverage: '全カテゴリ平均',
+            averageValue: (amount: string) => `平均 ${amount}`,
         },
         compliance: 'コンプライアンス',
         runningTotal: '累計合計',
@@ -2839,6 +2873,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'テスト取引を確認してください',
             accountRequiresAttention: 'このアカウントには対応が必要です',
             unlock: 'ロック解除',
+            plaidBrokenReconnect: 'より正確な Expensify カードの限度額のために Plaid 接続を修正しましょう',
+            plaidConnectForLimit: 'Plaid に接続して、より正確な Expensify カードの利用限度額を設定しましょう',
+            connect: '接続',
+        },
+        linkPlaid: {
+            title: 'Plaid に接続',
+            successHeading: '接続が成功しました',
+            successDescription: 'Plaid に接続していただきありがとうございます！',
+            failureHeading: '接続に失敗しました',
+            failureDescription: '<muted-text>もう一度お試しいただくか、<concierge-link>Concierge へお問い合わせください</concierge-link>。</muted-text>',
+            wrongAccountHeading: '誤った銀行口座',
+            wrongAccountDescription: 'Plaid で一致する銀行口座を選択してください。',
         },
         wiseOnboarding: {
             confirmationTitle: '内容に間違いがないか確認しましょう',
@@ -3199,6 +3245,8 @@ ${date} の ${merchant} への ${amount}`,
         makeOrTrackPaymentsDescription: 'Expensifyでの支払いに対する承認済み支払者を追加するか、他の場所で行われた支払いを記録します。',
         collectEmployeeBankDetails: '従業員の銀行口座情報を収集',
         collectEmployeeBankDetailsDescription: '従業員の銀行口座情報を収集して、Expensify以外で精算できるようにします。',
+        businessBankAccountCountries: 'ビジネス銀行口座の国',
+        businessBankAccountCountriesDescription: 'これらの国の従業員は現地送金の詳細を入力します。それ以外の方は国際電信送金の詳細を入力します。',
         customApprovalWorkflowEnabled:
             '<muted-text-label>このワークスペースではカスタム承認ワークフローが有効になっています。このワークフローを確認または変更するには、<account-manager-link>アカウントマネージャー</account-manager-link>または<concierge-link>Concierge</concierge-link>までご連絡ください。</muted-text-label>',
         customApprovalWorkflowEnabledConciergeOnly:
@@ -3241,6 +3289,7 @@ ${date} の ${merchant} への ${amount}`,
         approverNotWorkspaceMember: 'この承認者はワークスペースのメンバーではなくなりました。新しい承認者を選択するか、このワークフローを削除してください。',
         defaultWorkflowApproverNotWorkspaceMember: 'この承認者はワークスペースのメンバーではなくなりました。新しい承認者を選択してください。',
         overLimitApproverNotWorkspaceMember: '上限を超えるレポートの追加承認者は、ワークスペースのメンバーではなくなりました。新しい追加承認者を選択してください。',
+        overLimitApproverInWorkflow: '上限を超えるレポートの追加承認者として選択されたユーザーは、このワークフロー内ですでに承認者になっています。別の追加承認者を選択してください。',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> はすでに <strong>${name2}</strong> にレポートを承認しています。ワークフローが循環しないよう、別の承認者を選択してください。`,
         emptyContent: {
@@ -3875,7 +3924,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
 
                         1.「*ワークスペース*」をクリックします。
                         2. ワークスペースを選択します。
-                        3.「*会計*」をクリックします。
+                        3.「*連携*」をクリックします。
                         4. ${integrationName} を探します。
                         5.「*接続*」をクリックします。
 
@@ -4944,6 +4993,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             roomType: '部屋タイプ',
             cancellation: 'キャンセルポリシー',
             cancellationUntil: '無料キャンセル期限：',
+            hotelLocalTime: 'ホテルの現地時間',
             confirmation: '確認番号',
             cancellationPolicies: {
                 unknown: '不明',
@@ -5070,8 +5120,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 'Expensify では、このようなグループ旅行の予約と管理を直接行えることをご存じでしたか？次回は面倒を省くために、ぜひ <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a> ツールをお試しください。',
         },
         defaultWorkspaceTravelDisabled: {
-            title: '出張機能は有効になっていません',
-            message: '予約するには、デフォルトのワークスペースで出張機能を有効にするか、出張機能が有効になっているワークスペースをデフォルトとして設定してください。',
+            title: 'まだ旅行を予約できません',
+            message:
+                '現在、出張機能が有効なワークスペースのメンバーですが、そのワークスペースはデフォルトではありません。予約するには、デフォルトのワークスペースで出張機能を有効にするか、デフォルトのワークスペースを出張機能が有効なワークスペースに変更してください。',
         },
     },
     workspace: {
@@ -5203,8 +5254,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             guestAlternateText: '表示を限定してレポートを提出します。',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'オーナー';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'ワークスペース管理者';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -5272,22 +5321,14 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             description: '素晴らしいニュースです 🎉。セットアップにサポートが必要な場合はお問い合わせください。',
         },
         mcp: {
-            connectors: 'コネクタ',
-            connectorsSubtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
-            connect: '接続',
-            helpPrompt: '接続にお困りですか？',
-            helpLink: 'ガイドをご覧ください。',
             claude: {
                 title: 'Claude',
-                subtitle: 'Anthropic 提供',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'Anysphere 提供',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'OpenAI 提供',
             },
         },
         connections: {
@@ -6526,7 +6567,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             selectCards: 'カードを選択',
             fromOtherWorkspaces: '他のワークスペースから',
             addWorkEmail: 'あなたの勤務用メールアドレスを追加',
-            addWorkEmailDescription: '他のワークスペースの既存フィードを使用するには、勤務用メールアドレスを追加してください。',
+            addWorkEmailDescription: '既存の他のワークスペースのフィードを利用するには、勤務先メールアドレスを追加し、主な連絡先として設定してください。',
             error: {
                 workspaceFeedsCouldNotBeLoadedTitle: 'カードフィードを読み込めませんでした',
                 workspaceFeedsCouldNotBeLoadedMessage: 'ワークスペースカードフィードの読み込み中にエラーが発生しました。もう一度お試しいただくか、管理者にお問い合わせください。',
@@ -6860,10 +6901,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: '整理',
                 subtitle: '支出をグループ化して分析し、支払ったすべての税金を記録します。',
             },
-            integrateSection: {
-                title: '連携する',
-                subtitle: 'Expensify を人気の金融サービスに接続しましょう。',
-            },
             distanceRates: {
                 title: '距離単価',
                 subtitle: 'レートを追加、更新し、適用します。',
@@ -7088,23 +7125,18 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'AIアシスタントをExpensifyアカウントに接続します。',
             },
             receiptPartners: {
                 title: '領収書パートナー',
-                subtitle: '領収書を自動で取り込みます。',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'ちょっと待ってください…',
                 featureEnabledText: 'この機能を有効または無効にするには、会計インポート設定を変更する必要があります。',
-                disconnectText: '会計機能を無効にするには、ワークスペースから会計連携を切断する必要があります。',
                 manageSettings: '設定を管理',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Uber との連携を解除',
-                disconnectText: 'この機能を無効にするには、まず Uber for Business の連携を解除してください。',
                 description: 'この連携を解除してもよろしいですか？',
-                confirmText: '了解しました',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'ちょっと待ってください…',
@@ -7121,15 +7153,11 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 subtitle: '時間追跡用の請求可能な時間単価を設定します。',
                 defaultHourlyRate: 'デフォルトの時給率',
             },
-            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `HR を無効にするには、まずこのワークスペースから ${integration} を切断してください。`},
             vendors: {
                 title: 'ベンダー',
                 subtitle: '会計ソフトからインポートした取引先にカード経費を照合します。',
                 disabledTitle: 'ちょっと待ってください...',
                 disabledMessage: 'この機能を有効または無効にするには、会計インポート設定を変更する必要があります。',
-            },
-            recruitingWarningModal: {
-                disconnectText: ({integration}: {integration: string}) => `採用機能を無効にするには、まずこのワークスペースから ${integration} の連携を解除してください。`,
             },
         },
         reports: {
@@ -7402,6 +7430,17 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 continue: 'メンバーなしで続行',
                 description: 'メンバーなしでワークフローをコピーすると、承認ワークフローはコピーされません。提出と支払いの設定は引き続きコピーされます。',
             },
+            confirmMembers: {
+                title: 'メンバーをコピー',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                    // Japanese has no "one" plural category, so handle the single-workspace case here
+                    other:
+                        count === 1
+                            ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
+                            : `${count}個のワークスペースのメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'コピーを実行中です...',
                 copyInProgressDescription: '処理が完了するまで待つこともできますし、完了したら Concierge からお知らせすることもできます。',
@@ -7619,7 +7658,6 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
         accounting: {
             settings: '設定',
             title: '接続',
-            subtitle: '会計ソフトを接続して、自動同期を行いましょう。',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7631,10 +7669,6 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'アカウントエグゼクティブとチャットします。',
-            talkYourAccountManager: 'アカウントマネージャーとチャットする',
-            talkToConcierge: 'Conciergeとチャットする',
-            needAnotherAccounting: 'ほかの会計ソフトが必要ですか？',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -7683,7 +7717,6 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             disconnect: '切断',
             reinstall: 'コネクタを再インストール',
             disconnectTitle: (connectionName = '連携') => `${connectionName}の接続を解除`,
-            connectTitle: (connectionName) => `${connectionName} を接続`,
             syncError: (connectionName) => `${connectionName} に接続できません`,
             accounts: '勘定科目表',
             taxes: '税金',
@@ -7700,12 +7733,10 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'NetSuite 従業員のデフォルト',
             },
             disconnectPrompt: (connectionName = 'この連携') => `${connectionName} の接続を本当に解除しますか？`,
-            connectPrompt: (connectionName) => `${connectionName} を接続してもよろしいですか？これにより、既存の会計連携はすべて削除されます。`,
             enterCredentials: '認証情報を入力してください',
             reconnect: '再接続',
             updateCredentials: '認証情報を更新',
             claimOffer: {
-                badgeText: 'オファーをご利用いただけます！',
                 xero: {
                     headline: 'Xero を6か月間無料で利用しましょう！',
                     description:
@@ -9066,7 +9097,10 @@ ${reportName}`,
                     missingData: 'Expensify はその情報を持っていません。',
                     retroactive: 'ルールは新しいアクティビティにのみ適用されます。',
                     historyLimit: 'ルールはそれほど前までさかのぼることができません。',
-                    tryThisInstead: '代わりにこちらをお試しください',
+                    useSuggestion: '提案を使用',
+                    explanationWithSuggestion: (explanation: string) => `${explanation}代わりに以下の提案をお試しください：`,
+                    quotedSuggestion: (suggestedPrompt: string) => `「${suggestedPrompt}」`,
+                    createAnyway: 'このまま作成',
                 },
             },
             expenseDefaultsTable: {
@@ -9178,9 +9212,7 @@ ${reportName}`,
             subscriptions: 'サブスクリプション',
         },
         hr: {
-            title: '人事',
             connectionsSubtitle: '人事システムと連携して従業員データを同期し、精算を自動で正しい担当者に紐づけることで、手作業なしでチームの経費を正確に管理できます。',
-            subtitle: '人事ツールを連携して、従業員の承認を常に同期させます。',
             alreadyConnectedTitle: '複数の人事プラットフォームには接続できません',
             alreadyConnectedPrompt: '別の人事プラットフォームに接続する前に、現在の人事プラットフォームとの接続を解除する必要があります。',
             connectionDescription: (providerName: string) => `${providerName}を接続して、従業員の承認をワークスペースと同期させましょう。`,
@@ -9242,14 +9274,12 @@ ${reportName}`,
             },
         },
         recruiting: {
-            title: '採用',
             connectionsSubtitle: '採用システムに接続して候補者データを同期し、払い戻しを自動的に適切な人に紐づけることで、手作業なしでチームの経費精度を保てます。',
             alreadyConnectedTitle: '複数の ATS プラットフォームには接続できません',
             alreadyConnectedPrompt: '別の ATS を接続する前に、現在の ATS を必ず切断する必要があります。',
             syncing: '候補者を同期しています',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>接続済み。${setupLink ? `<a href="${setupLink}">セットアップを完了</a>` : '設定を完了'} をインポート候補として追加します。</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>ご利用のATSが見つかりませんか？<a href="#">Concierge にお問い合わせ</a>いただければ、追加できます。</muted-text-label>`,
             importSettings: 'インポート設定',
             defaultApprover: 'デフォルト承認者',
             approverFields: {recruiter: '採用担当者', recruitingCoordinator: '採用コーディネーター', hiringManager: '採用マネージャー'},
@@ -9270,7 +9300,6 @@ ${reportName}`,
                 offices: {title: 'オフィス', description: 'このワークスペースと同期したい候補者のオフィスを選択してください', toggleTitle: 'オフィス', allSelected: 'すべてのオフィス'},
                 enableJobStagesOrTags: '続行するには、少なくとも 1 つのジョブのステージまたはタグを選択してください',
             },
-            subtitle: '採用ツールを連携して、候補者の承認を常に同期させます。',
             syncResults: {
                 importedCount: () => ({
                     one: '1 名の候補者',
@@ -9294,9 +9323,6 @@ ${reportName}`,
             },
         },
         merge: {
-            connections: '接続',
-            connect: '接続',
-            findIntegration: '連携を検索',
             syncNow: '今すぐ同期',
             disconnect: '切断',
             disconnectTitle: (providerName: string) => `${providerName}を切断`,
@@ -9427,6 +9453,11 @@ ${reportName}`,
             noOrganizationsFound: '組織が見つかりません',
             noOrganizationsFoundDescription: 'Zoho Books で組織を追加して、接続を再度同期してください',
             multiLocationNotSupported: '複数拠点の組織にはまだ対応していません',
+            importDescription: 'Zoho Books からインポートするコード設定を選択してください。',
+            accountTypesDescription: 'Zoho Books の勘定科目はカテゴリとしてインポートされます。',
+            enableNewAccountsTitle: '新しくインポートされた口座を有効にする',
+            enableNewAccountsDescription: '新しい Zoho Books アカウントは、カテゴリとして利用できるようになります。',
+            reportingTagsImport: 'すべての Zoho Books のレポーティングタグは、タグとしてインポートされます',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central のセットアップ',
@@ -10280,6 +10311,7 @@ ${reportName}`,
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `「精算不要レポートを支払済みにしない」を「${newValue === 'true' ? '有効' : '無効'}」（以前は「${oldValue === 'true' ? '有効' : '無効'}」）に更新しました`,
+        addedExpensifyCardFeed: (feedName: string) => `「${feedName}」Expensify カードフィードを追加しました`,
     },
     roomMembersPage: {
         memberNotFound: 'メンバーが見つかりません。',
@@ -10559,6 +10591,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: '週',
                 [CONST.SEARCH.GROUP_BY.YEAR]: '年',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: '承認者',
             },
             feed: 'フィード',
             withdrawalType: {
@@ -10612,6 +10645,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WEEK]: '週数',
             [CONST.SEARCH.GROUP_BY.YEAR]: '年数',
             [CONST.SEARCH.GROUP_BY.QUARTER]: '四半期',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: '承認者',
         },
         moneyRequestReport: {emptyStateTitle: 'まだ経費がありません', accessPlaceHolder: '詳細を開く'},
         noCategory: 'カテゴリなし',
@@ -11843,6 +11877,8 @@ ${reportName}`,
                 info: 'ワークスペースを従量課金制で使い続けたい場合は、これで準備完了です。',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `今後のアクティビティや請求を防ぎたい場合は、<a href="${workspacesListRoute}">ワークスペースを削除</a>する必要があります。ワークスペースを削除すると、当月中に発生した未精算のアクティビティについて請求が行われることにご注意ください。`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `今後のアクティビティや請求を防ぐには、<a href="${workspacesListRoute}">すべての有料ワークスペースをアーカイブしてください</a>。今月中に課金対象のアクティビティがあるアーカイブ済みワークスペースは、引き続きご請求に含まれます。`,
             },
             requestSubmitted: {
                 title: 'リクエストを送信しました',
