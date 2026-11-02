@@ -107,12 +107,13 @@ describe('Confirming the details kept from duplicate expenses', () => {
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
                     actorAccountID: SUBMITTER_ACCOUNT_ID,
                     childReportID: TRANSACTION_THREAD_REPORT_ID,
-                    originalMessage: {
+                    message: {
                         type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                         IOUTransactionID: KEPT_TRANSACTION_ID,
                         IOUReportID: EXPENSE_REPORT_ID,
                         amount: 1000,
                         currency: CONST.CURRENCY.USD,
+                        text: '',
                     },
                 },
             });
