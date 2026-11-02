@@ -6429,6 +6429,83 @@ describe('actions/Report', () => {
             expect(failureTransaction?.value?.convertedAmount).toBe(transaction.convertedAmount);
         });
 
+        it("resolves the old workspace chat's last message from the current user's own whisper visibility", async () => {
+            const OLD_CHAT_REPORT_ID = 'oldChat79001';
+            const PREVIEW_ACTION_ID = '79002';
+            const WHISPER_TARGET_ACCOUNT_ID = 979;
+
+            const olderComment = {
+                reportActionID: '79003',
+                reportID: OLD_CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2026-10-01 10:00:00.000',
+                message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                originalMessage: {html: 'Older comment'},
+            } as OnyxTypes.ReportAction;
+            /** Newer than `olderComment`, and only the whispered-to account can see it. */
+            const whisper = {
+                reportActionID: '79004',
+                reportID: OLD_CHAT_REPORT_ID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2026-10-01 12:00:00.000',
+                message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+            } as OnyxTypes.ReportAction;
+            const report: OnyxTypes.Report = {
+                ...createRandomReport(79005, undefined),
+                reportID: '79005',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                parentReportID: OLD_CHAT_REPORT_ID,
+                parentReportActionID: PREVIEW_ACTION_ID,
+            };
+
+            // Given an expense report moving out of a workspace chat whose newest remaining action is a whisper aimed at one account
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${OLD_CHAT_REPORT_ID}`, {
+                [olderComment.reportActionID]: olderComment,
+                [whisper.reportActionID]: whisper,
+            });
+            await waitForBatchedUpdates();
+
+            const getOldChatUpdateFor = (currentUserAccountID: number) => {
+                // When the change-policy data is built for the given user
+                const {optimisticData} = Report.buildOptimisticChangePolicyData({
+                    report,
+                    getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                    rules: undefined,
+                    delegateAccountID: undefined,
+                    parentReport: undefined,
+                    policy: createRandomPolicy(79006),
+                    currentUserAccountID,
+                    currentUserEmail: '',
+                    ownerLogin: undefined,
+                    managerLogin: '',
+                    hasViolationsParam: false,
+                    isASAPSubmitBetaEnabled: true,
+                    isReportLastVisibleArchived: undefined,
+                    reportPreviewAction: undefined,
+                    isTrackIntentUser: false,
+                    reportTransactions: [],
+                });
+                const oldChatUpdate = optimisticData.find((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${OLD_CHAT_REPORT_ID}`);
+                const value: unknown = oldChatUpdate?.value;
+                if (!value || typeof value !== 'object' || !('lastMessageText' in value) || !('lastVisibleActionCreated' in value)) {
+                    return undefined;
+                }
+                return {lastMessageText: value.lastMessageText, lastVisibleActionCreated: value.lastVisibleActionCreated};
+            };
+
+            // Then the whisper's target gets the whisper, not the older comment, as the old chat's last message and last action
+            const targetUpdate = getOldChatUpdateFor(WHISPER_TARGET_ACCOUNT_ID);
+            expect(targetUpdate?.lastMessageText).not.toBe('Older comment');
+            expect(targetUpdate?.lastVisibleActionCreated).toBe(whisper.created);
+
+            // Then anyone else cannot see the whisper, so the older comment is the old chat's last message and last action
+            const otherUpdate = getOldChatUpdateFor(WHISPER_TARGET_ACCOUNT_ID + 1);
+            expect(otherUpdate?.lastMessageText).toBe('Older comment');
+            expect(otherUpdate?.lastVisibleActionCreated).toBe(olderComment.created);
+        });
+
         it('should NOT clear convertedAmount when source and destination currencies are the same', async () => {
             const reportID = 'testReport789';
             const transactionID = 'testTransaction012';
@@ -11668,6 +11745,69 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('resolveActionableReportMentionWhisper', () => {
+        it("resolves the report's restored last action from the resolving user's own whisper visibility", async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const WHISPER_TARGET_ACCOUNT_ID = 999;
+
+            const resolveAs = async (currentUserAccountID: number, idBase: number) => {
+                const reportID = `${idBase}`;
+                const olderComment = {
+                    reportActionID: `${idBase + 1}`,
+                    reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2026-10-01 10:00:00.000',
+                    message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                    originalMessage: {html: 'Older comment'},
+                } as OnyxTypes.ReportAction;
+                /** Newer than `olderComment`, and only the whispered-to account can see it. */
+                const otherWhisper = {
+                    reportActionID: `${idBase + 2}`,
+                    reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    created: '2026-10-01 12:00:00.000',
+                    message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                    originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+                } as OnyxTypes.ReportAction;
+                const reportMentionWhisper = {
+                    reportActionID: `${idBase + 3}`,
+                    reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                    created: '2026-10-01 13:00:00.000',
+                    message: [{html: 'Mentioned #room', text: 'Mentioned #room', type: 'COMMENT'}],
+                    originalMessage: {whisperedTo: [currentUserAccountID]},
+                } as OnyxTypes.ReportAction;
+                const report: OnyxTypes.Report = {...createRandomReport(idBase, undefined), reportID};
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [olderComment.reportActionID]: olderComment,
+                    [otherWhisper.reportActionID]: otherWhisper,
+                    [reportMentionWhisper.reportActionID]: reportMentionWhisper,
+                });
+                await waitForBatchedUpdates();
+
+                // When the report mention whisper is dismissed by the given user
+                Report.resolveActionableReportMentionWhisper(report, reportMentionWhisper, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, false, currentUserAccountID);
+                await waitForBatchedUpdates();
+
+                return {lastVisibleActionCreated: (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const))?.lastVisibleActionCreated, olderComment, otherWhisper};
+            };
+
+            // Given a report whose newest action after the report mention whisper is another whisper aimed at one account
+            const targeted = await resolveAs(WHISPER_TARGET_ACCOUNT_ID, 99100);
+
+            // Then that account sees the other whisper as the report's last action
+            expect(targeted.lastVisibleActionCreated).toBe(targeted.otherWhisper.created);
+
+            // Given the same setup resolved by an account the other whisper does not target
+            const other = await resolveAs(WHISPER_TARGET_ACCOUNT_ID + 1, 99200);
+
+            // Then the other whisper is invisible to them and the older comment is the report's last action
+            expect(other.lastVisibleActionCreated).toBe(other.olderComment.created);
+        });
+    });
+
     describe('resolveActionableMentionWhisper', () => {
         it('should optimistically add invited users to report.participants when resolution is INVITE', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();
@@ -11715,7 +11855,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call resolveActionableMentionWhisper with INVITE resolution
-            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false, 1);
             await waitForBatchedUpdates();
 
             // Verify optimistic participant update
@@ -11782,7 +11922,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call with NOTHING resolution
-            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, false);
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, false, 1);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const);
@@ -11843,7 +11983,7 @@ describe('actions/Report', () => {
             });
             await waitForBatchedUpdates();
 
-            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false, 1);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const);
@@ -11921,7 +12061,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call with parentReport to simulate oneTransactionThread context
-            Report.resolveActionableMentionWhisper(transactionThreadReport, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false, parentReport);
+            Report.resolveActionableMentionWhisper(transactionThreadReport, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false, 1, parentReport);
             await waitForBatchedUpdates();
 
             // Verify the invitee was added to the transaction thread participants
@@ -12000,7 +12140,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Pass parentReport as the same report (simulating viewing transaction thread directly)
-            Report.resolveActionableMentionWhisper(transactionThreadReport, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false, transactionThreadReport);
+            Report.resolveActionableMentionWhisper(transactionThreadReport, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false, 1, transactionThreadReport);
             await waitForBatchedUpdates();
 
             // Verify the invitee was added to the transaction thread participants
@@ -12064,7 +12204,7 @@ describe('actions/Report', () => {
 
             // Pause fetch so we can verify optimistic state, then trigger failure
             mockFetch.pause();
-            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false, 1);
             await waitForBatchedUpdates();
 
             // Verify the invitee was optimistically added
@@ -12111,7 +12251,7 @@ describe('actions/Report', () => {
                 },
             });
 
-            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false, 1);
             await waitForBatchedUpdates();
 
             // The resolve request must carry the same (reportID, inviteeEmails) pair InviteToRoom sends, so the backend can email the new logins
@@ -12125,6 +12265,67 @@ describe('actions/Report', () => {
                 }),
                 expect.anything(),
             );
+        });
+
+        it("resolves the report's restored last action from the resolving user's own whisper visibility", async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const WHISPER_TARGET_ACCOUNT_ID = 989;
+
+            const resolveAs = async (currentUserAccountID: number, idBase: number) => {
+                const reportID = `${idBase}`;
+                const olderComment = {
+                    reportActionID: `${idBase + 1}`,
+                    reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    created: '2026-10-01 10:00:00.000',
+                    message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+                    originalMessage: {html: 'Older comment'},
+                } as OnyxTypes.ReportAction;
+                /** Newer than `olderComment`, and only the whispered-to account can see it. */
+                const otherWhisper = {
+                    reportActionID: `${idBase + 2}`,
+                    reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                    created: '2026-10-01 12:00:00.000',
+                    message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
+                    originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
+                } as OnyxTypes.ReportAction;
+                const mentionWhisper = createMock<OnyxTypes.ReportAction>({
+                    reportActionID: `${idBase + 3}`,
+                    reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                    created: '2026-10-01 13:00:00.000',
+                    message: [{html: 'Mentioned @user1', text: 'Mentioned @user1', type: 'COMMENT'}],
+                    originalMessage: {inviteeAccountIDs: [200], inviteeEmails: ['user1@example.com'], whisperedTo: [currentUserAccountID]},
+                });
+                const report: OnyxTypes.Report = {...createRandomReport(idBase, undefined), reportID};
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                    [olderComment.reportActionID]: olderComment,
+                    [otherWhisper.reportActionID]: otherWhisper,
+                    [mentionWhisper.reportActionID]: mentionWhisper,
+                });
+                await waitForBatchedUpdates();
+
+                // When the mention whisper is dismissed by the given user
+                Report.resolveActionableMentionWhisper(report, mentionWhisper, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, false, currentUserAccountID);
+                await waitForBatchedUpdates();
+
+                return {lastVisibleActionCreated: (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const))?.lastVisibleActionCreated, olderComment, otherWhisper};
+            };
+
+            // Given a report whose newest action after the mention whisper is another whisper aimed at one account
+            const targeted = await resolveAs(WHISPER_TARGET_ACCOUNT_ID, 98100);
+
+            // Then that account sees the other whisper as the report's last action
+            expect(targeted.lastVisibleActionCreated).toBe(targeted.otherWhisper.created);
+
+            // Given the same setup resolved by an account the other whisper does not target
+            const other = await resolveAs(WHISPER_TARGET_ACCOUNT_ID + 1, 98200);
+
+            // Then the other whisper is invisible to them and the older comment is the report's last action
+            expect(other.lastVisibleActionCreated).toBe(other.olderComment.created);
         });
 
         it('should NOT forward reportID and inviteeEmails when resolution is NOTHING', async () => {
@@ -12149,7 +12350,7 @@ describe('actions/Report', () => {
                 },
             });
 
-            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, false);
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, false, 1);
             await waitForBatchedUpdates();
 
             const resolveCall = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER);
@@ -12181,7 +12382,7 @@ describe('actions/Report', () => {
                 },
             });
 
-            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false, 1);
             await waitForBatchedUpdates();
 
             const resolveCall = apiWriteSpy.mock.calls.find((call) => call.at(0) === WRITE_COMMANDS.RESOLVE_ACTIONABLE_MENTION_WHISPER);
@@ -12221,7 +12422,7 @@ describe('actions/Report', () => {
                 },
             });
 
-            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false, 1);
             await waitForBatchedUpdates();
 
             // The already-member's email must be dropped so they don't receive a duplicate room invitation
@@ -12266,7 +12467,7 @@ describe('actions/Report', () => {
                 },
             });
 
-            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false, 1);
             await waitForBatchedUpdates();
 
             // already@example.com (index 0, accountID 200) is an existing member and is dropped; new@example.com
@@ -12321,7 +12522,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Let API.write run against the mock fetch so the optimistic Onyx update is actually applied.
-            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false);
+            Report.resolveActionableMentionWhisper(report, whisperAction, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.INVITE, false, 1);
             await waitForBatchedUpdates();
 
             const updatedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}` as const);
@@ -13050,16 +13251,15 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
         });
 
-        // `lastMessageText` is resolved by a separate helper that still reads the signed-in account, so only the
-        // action-derived fields are asserted here.
         it('should point the last visible action at the whisper when the user is the one it targets', () => {
             // Given a report whose newest action is a whisper aimed at the user
             // When the optimistic last-report data is built for that user
             const result = Report.optimisticReportLastData(REPORT_ID, WHISPER_TARGET_ACCOUNT_ID, {}, true, false);
 
-            // Then the action fields describe the whisper
+            // Then the action fields and the message text describe the whisper
             expect(result.lastVisibleActionCreated).toBe(whisper.created);
             expect(result.lastActorAccountID).toBe(WHISPER_TARGET_ACCOUNT_ID);
+            expect(result.lastMessageText).not.toBe('Older comment');
         });
 
         it('should skip the whisper and point at the older comment when it targets somebody else', () => {
@@ -13067,9 +13267,10 @@ describe('actions/Report', () => {
             // When the optimistic last-report data is built for that account
             const result = Report.optimisticReportLastData(REPORT_ID, WHISPER_TARGET_ACCOUNT_ID + 1, {}, true, false);
 
-            // Then the whisper is invisible and the action fields describe the older comment
+            // Then the whisper is invisible and the action fields and the message text describe the older comment
             expect(result.lastVisibleActionCreated).toBe(comment.created);
             expect(result.lastActorAccountID).toBe(COMMENT_ACTOR_ACCOUNT_ID);
+            expect(result.lastMessageText).toBe('Older comment');
         });
     });
 

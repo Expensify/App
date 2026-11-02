@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -32,6 +33,7 @@ type ConfirmWhisperContentProps = {
 
 function ConfirmWhisperContent({action, reportID, originalReportID, actionOwnerReportStable}: ConfirmWhisperContentProps) {
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {translate} = useLocalize();
     const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
 
@@ -55,6 +57,7 @@ function ConfirmWhisperContent({action, reportID, originalReportID, actionOwnerR
                                 action,
                                 CONST.REPORT.ACTIONABLE_MENTION_INVITE_TO_SUBMIT_EXPENSE_CONFIRM_WHISPER.DONE,
                                 isOriginalReportArchived,
+                                currentUserAccountID,
                             )
                         }
                     >
