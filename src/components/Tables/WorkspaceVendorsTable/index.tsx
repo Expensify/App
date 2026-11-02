@@ -138,7 +138,7 @@ function WorkspaceVendorsTable({vendors, selectionEnabled = false, selectedKeys 
             <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('workspace.vendors.emptyTitle')}
-                subtitleText={translate('workspace.vendors.emptySubtitle')}
+                subtitle={translate('workspace.vendors.emptySubtitle')}
             />
             <Table.NoResultsState />
             <Table.Header />
