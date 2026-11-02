@@ -12722,7 +12722,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
         toPay: 'betalen',
         minutesAgo: (count: number) => `${count} min geleden`,
         hoursAgo: (count: number) => `${count} u geleden`,
-        daysAgo: (count: number) => `${count} d geleden`,
+        daysAgo: () => ({
+            one: '1 d geleden',
+            other: (count: number) => `${count} d geleden`,
+        }),
         offlineMessage: 'Je bent offline. Rapportgeschiedenis is mogelijk verouderd.',
     },
 };

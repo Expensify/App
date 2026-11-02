@@ -12836,7 +12836,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         toPay: 'payer',
         minutesAgo: (count: number) => `il y a ${count} min`,
         hoursAgo: (count: number) => `il y a ${count} h`,
-        daysAgo: (count: number) => `il y a ${count} j`,
+        daysAgo: () => ({
+            one: 'il y a 1 j',
+            other: (count: number) => `il y a ${count} j`,
+        }),
         offlineMessage: 'Vous êtes hors ligne. L’historique des notes de frais peut être obsolète.',
     },
 };

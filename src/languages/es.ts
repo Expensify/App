@@ -13065,7 +13065,10 @@ ${reportName}`,
         toPay: 'pagar',
         minutesAgo: (count: number) => `hace ${count} min`,
         hoursAgo: (count: number) => `hace ${count} h`,
-        daysAgo: (count: number) => `hace ${count} d`,
+        daysAgo: () => ({
+            one: 'hace 1 d',
+            other: (count: number) => `hace ${count} d`,
+        }),
         offlineMessage: 'Estás sin conexión. El historial de informes puede estar desactualizado.',
     },
 };

@@ -12752,7 +12752,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
         toPay: 'zapłacić',
         minutesAgo: (count: number) => `${count} min temu`,
         hoursAgo: (count: number) => `${count} godz. temu`,
-        daysAgo: (count: number) => `${count} dni temu`,
+        daysAgo: () => ({
+            one: '1 dzień temu',
+            other: (count: number) => `${count} dni temu`,
+        }),
         offlineMessage: 'Jesteś offline. Historia raportów może być nieaktualna.',
     },
 };

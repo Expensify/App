@@ -12718,7 +12718,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
         toPay: 'pagar',
         minutesAgo: (count: number) => `${count} min atrás`,
         hoursAgo: (count: number) => `${count}h atrás`,
-        daysAgo: (count: number) => `${count}d atrás`,
+        daysAgo: () => ({
+            one: '1d atrás',
+            other: (count: number) => `${count}d atrás`,
+        }),
         offlineMessage: 'Você está offline. O histórico de relatórios pode estar desatualizado.',
     },
 };

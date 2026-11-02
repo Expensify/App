@@ -12262,7 +12262,10 @@ ${reportName}`,
         toPay: '支付',
         minutesAgo: (count: number) => `${count} 分钟前`,
         hoursAgo: (count: number) => `${count} 小时前`,
-        daysAgo: (count: number) => `${count} 天前`,
+        daysAgo: () => ({
+            one: '1 天前',
+            other: (count: number) => `${count} 天前`,
+        }),
         offlineMessage: '您已离线。报表历史可能不是最新的。',
     },
 };

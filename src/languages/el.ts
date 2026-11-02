@@ -13041,7 +13041,10 @@ ${reportName}`,
         toPay: 'να πληρώσει',
         minutesAgo: (count: number) => `πριν από ${count} λεπ.`,
         hoursAgo: (count: number) => `πριν από ${count} ώρ.`,
-        daysAgo: (count: number) => `πριν από ${count} ημ.`,
+        daysAgo: () => ({
+            one: 'πριν από 1 ημ.',
+            other: (count: number) => `πριν από ${count} ημ.`,
+        }),
         offlineMessage: 'Είστε εκτός σύνδεσης. Το ιστορικό αναφορών μπορεί να είναι παρωχημένο.',
     },
 };

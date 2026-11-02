@@ -12572,7 +12572,10 @@ ${reportName}`,
         toPay: '支払う',
         minutesAgo: (count: number) => `${count}分前`,
         hoursAgo: (count: number) => `${count}時間前`,
-        daysAgo: (count: number) => `${count}日前`,
+        daysAgo: () => ({
+            one: '1日前',
+            other: (count: number) => `${count}日前`,
+        }),
         offlineMessage: 'オフラインです。レポート履歴が最新ではない可能性があります。',
     },
 };
