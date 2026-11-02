@@ -80,6 +80,10 @@ function RilletReimbursementAccountPage({policy}: WithPolicyConnectionsProps) {
           }
         : getLatestErrorField(rilletConfig, CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE);
 
+    const dismissError = shouldShowReimbursableExportDestinationAccountError(policy, [CONST.POLICY.CONNECTIONS.NAME.RILLET])
+        ? undefined
+        : () => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE);
+
     const selectReimbursementAccount = (item: AccountListItem) => {
         if (item.value !== reimbursementAccountCode && policyID) {
             updateRilletReimbursementAccount(policyID, item.value, reimbursementAccountCode);
@@ -106,7 +110,7 @@ function RilletReimbursementAccountPage({policy}: WithPolicyConnectionsProps) {
             pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE], rilletConfig?.pendingFields)}
             errors={errors}
             errorRowStyles={[styles.ph5, styles.pv3]}
-            onClose={() => policyID && clearRilletErrorField(policyID, CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE)}
+            onClose={dismissError}
         />
     );
 }
