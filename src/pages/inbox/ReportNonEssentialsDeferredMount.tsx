@@ -10,6 +10,7 @@ import CONST from '@src/CONST';
 
 import type {ReactNode} from 'react';
 
+import {useIsFocused} from '@react-navigation/native';
 import {useState} from 'react';
 
 type ReportNonEssentialsDeferredMountProps = {
@@ -31,9 +32,21 @@ function isOpeningReportAfterSubmit(reportID: string | undefined): boolean {
 function ReportNonEssentialsDeferredMount({reportID, placeholder, children}: ReportNonEssentialsDeferredMountProps): ReactNode {
     // Read once at mount: the pending action is cleared when the report gains focus, which must not cut the deferral short.
     const [shouldDefer] = useState(() => isOpeningReportAfterSubmit(reportID));
+    const isFocused = useIsFocused();
+
+    // Latched so a later blur does not unmount the deferred UI once it has started mounting.
+    const [hasBeenFocused, setHasBeenFocused] = useState(isFocused);
+    if (isFocused && !hasBeenFocused) {
+        setHasBeenFocused(true);
+    }
 
     if (!shouldDefer) {
         return children;
+    }
+
+    // The report can mount under the RHP before the dismiss starts, so the wait starts on focus to cover the dismiss too.
+    if (!hasBeenFocused) {
+        return placeholder;
     }
 
     return <NavigationDeferredMount placeholder={placeholder}>{children}</NavigationDeferredMount>;

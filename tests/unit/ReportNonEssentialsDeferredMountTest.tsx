@@ -23,6 +23,12 @@ jest.mock('@libs/Navigation/TransitionTracker', () => ({
     runAfterTransitions: jest.fn(),
 }));
 
+let mockIsFocused = true;
+
+jest.mock('@react-navigation/native', () => ({
+    useIsFocused: () => mockIsFocused,
+}));
+
 const transitionTracker = createTransitionTrackerHarness();
 
 const OPEN_REPORT_AFTER_SUBMIT = {
@@ -49,6 +55,7 @@ describe('ReportNonEssentialsDeferredMount', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         transitionTracker.install();
+        mockIsFocused = true;
     });
 
     it('shows the placeholder until the upcoming transition ends when the report opens after a submit', () => {
@@ -69,6 +76,33 @@ describe('ReportNonEssentialsDeferredMount', () => {
         // Then the non-essential UI replaces the placeholder
         expect(screen.getByTestId('non-essentials')).toBeTruthy();
         expect(screen.queryByTestId('placeholder')).toBeNull();
+    });
+
+    it('starts the transition wait only once the report gains focus', () => {
+        // Given a report that mounts unfocused under the RHP after a submit, before the RHP dismiss starts
+        mockGetPendingSubmitFollowUpAction.mockReturnValue(OPEN_REPORT_AFTER_SUBMIT);
+        mockIsFocused = false;
+        const {rerender} = renderDeferredMount('report-1');
+
+        // Then it shows the placeholder without waiting yet, so an earlier transition cannot release the UI during the dismiss
+        expect(screen.getByTestId('placeholder')).toBeTruthy();
+        expect(TransitionTracker.runAfterTransitions).not.toHaveBeenCalled();
+
+        // When the dismiss gives the report focus
+        mockIsFocused = true;
+        rerender(buildDeferredMount('report-1'));
+
+        // Then the wait starts, and the UI mounts once the transition ends
+        expect(TransitionTracker.runAfterTransitions).toHaveBeenCalledTimes(1);
+        transitionTracker.firePendingCallbacks();
+        expect(screen.getByTestId('non-essentials')).toBeTruthy();
+
+        // When the report loses focus afterwards
+        mockIsFocused = false;
+        rerender(buildDeferredMount('report-1'));
+
+        // Then the mounted UI stays, because focus is only needed to start the wait
+        expect(screen.getByTestId('non-essentials')).toBeTruthy();
     });
 
     it('keeps deferring after the pending action is cleared', () => {
