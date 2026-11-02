@@ -6,15 +6,15 @@ import Parser from '@libs/Parser';
 
 import type {RenderersProps} from 'react-native-render-html';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {RenderHTMLConfigProvider, RenderHTMLSource, useSharedProps} from 'react-native-render-html';
 
-import htmlRenderers from './HTMLEngineProvider/HTMLRenderers';
 import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
 import ConciergeLinkRenderer from './HTMLEngineProvider/HTMLRenderers/ConciergeLinkRenderer';
 import OLRenderer from './HTMLEngineProvider/HTMLRenderers/OLRenderer';
 import SparklesIconRenderer from './HTMLEngineProvider/HTMLRenderers/SparklesIconRenderer';
 import ULRenderer from './HTMLEngineProvider/HTMLRenderers/ULRenderer';
+import {useHTMLRenderers} from './HTMLEngineProvider/HTMLRenderersContext';
 
 type LinkPressHandler = NonNullable<RenderersProps['a']>['onPress'];
 type ConciergeLinkPressHandler = () => void;
@@ -43,6 +43,7 @@ type SelectableHTMLConfigProviderProps = {
 function SelectableHTMLConfigProvider({children, isSelectable}: SelectableHTMLConfigProviderProps) {
     const styles = useThemeStyles();
     const sharedProps = useSharedProps();
+    const htmlRenderers = useHTMLRenderers();
 
     return (
         <RenderHTMLConfigProvider
@@ -71,30 +72,24 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
 
     const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const html = useMemo(() => {
-        return (
-            Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
-                // Escape brackets when pasting a link, since unescaped [] can break Markdown link syntax
-                .replaceAll(RE_BRACKET_ESCAPE, (m) => (m.at(7) === '1' ? '[' : ']'))
-                // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
-                .replaceAll(RE_EMOJI_OPEN_OR_CLOSE, '$1$2')
-                // Strip orphaned <br/> tags inside <ul> and <ol> that would render as extra empty items
-                .replaceAll(RE_BR_CLEANUP, '$1$2')
-        );
-    }, [htmlParam]);
+    const html = Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
+        // Escape brackets when pasting a link, since unescaped [] can break Markdown link syntax
+        .replaceAll(RE_BRACKET_ESCAPE, (m) => (m.at(7) === '1' ? '[' : ']'))
+        // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
+        .replaceAll(RE_EMOJI_OPEN_OR_CLOSE, '$1$2')
+        // Strip orphaned <br/> tags inside <ul> and <ol> that would render as extra empty items
+        .replaceAll(RE_BR_CLEANUP, '$1$2');
 
-    const renderersProps = useMemo(() => {
-        return {
-            a: {
-                onPress: onLinkPress,
-            },
-            // Custom HTML renderer keys must use hyphenated tag names per react-native-render-html API
-            /* eslint-disable @typescript-eslint/naming-convention */
-            'concierge-link': {
-                onPress: onConciergeLinkPress,
-            },
-        };
-    }, [onLinkPress, onConciergeLinkPress]);
+    const renderersProps = {
+        a: {
+            onPress: onLinkPress,
+        },
+        // Custom HTML renderer keys must use hyphenated tag names per react-native-render-html API
+        /* eslint-disable @typescript-eslint/naming-convention */
+        'concierge-link': {
+            onPress: onConciergeLinkPress,
+        },
+    };
 
     const renderers = {
         /* eslint-disable @typescript-eslint/naming-convention */

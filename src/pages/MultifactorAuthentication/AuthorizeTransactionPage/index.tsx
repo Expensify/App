@@ -7,9 +7,7 @@ import {DeniedTransactionServerFailureScreen, DeniedTransactionSuccessScreen} fr
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 
-import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
-import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -18,6 +16,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MultifactorAuthenticationParamList} from '@libs/Navigation/types';
 
+import useForcedReviewScreen from '@pages/MultifactorAuthentication/useForcedReviewScreen';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -25,7 +25,7 @@ import type SCREENS from '@src/SCREENS';
 import type {SeverityLevel} from '@sentry/react-native';
 
 import * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import MultifactorAuthenticationAuthorizeTransactionActions from './AuthorizeTransactionActions';
@@ -50,8 +50,6 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const {isOffline} = useNetworkWithOfflineStatus();
-
     const [isDenyingTransaction, setIsDenyingTransaction] = useState(false);
     const [denyOutcomeScreen, setDenyOutcomeScreen] = useState<React.ReactElement | null>(null);
 
@@ -60,38 +58,24 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
 
     const {executeScenario} = useMultifactorAuthentication();
 
-    const [isConfirmModalVisible, setConfirmModalVisibility] = useState(false);
-    const allowNavigatingAwayRef = useRef(false);
-
-    const showConfirmModal = useCallback(() => {
-        // FullPageOfflineBlockingView doesn't wrap HeaderWithBackButton, so we handle navigation manually when offline.
-        // Offline mode isn't supported in MFA; navigate users away immediately without showing the confirmation modal.
-        if (isOffline) {
-            addBreadcrumb('Offline back-navigation (no deny sent)', {transactionID}, 'warning');
-            allowNavigatingAwayRef.current = true;
-            Navigation.closeRHPFlow();
-            return;
-        }
-        setConfirmModalVisibility(true);
-    }, [isOffline, transactionID]);
-
-    const hideConfirmModal = () => {
-        setConfirmModalVisibility(false);
+    const onSilentlyDenyTransaction = () => {
+        addBreadcrumb('Silent deny (user canceled flow)', {transactionID}, 'warning');
+        fireAndForgetDenyTransaction({transactionID});
+        Navigation.closeRHPFlow();
     };
 
-    const onBeforeRemove: Parameters<typeof useBeforeRemove>[0] = (e) => {
-        if (allowNavigatingAwayRef.current || !transaction || !!denyOutcomeScreen) {
-            return;
-        }
-        e.preventDefault();
-        showConfirmModal();
-    };
-
-    useBeforeRemove(onBeforeRemove);
+    const {isConfirmModalVisible, showConfirmModal, hideConfirmModal, confirmBackOut, allowNavigatingAway} = useForcedReviewScreen({
+        transactionID,
+        isTransactionPendingReview: !!transaction,
+        isSubmitting: isDenyingTransaction,
+        isShowingOutcome: !!denyOutcomeScreen,
+        onConfirmBackOut: onSilentlyDenyTransaction,
+        addBreadcrumb,
+    });
 
     const onApproveTransaction = () => {
         addBreadcrumb('Approve tapped', {transactionID});
-        allowNavigatingAwayRef.current = true;
+        allowNavigatingAway();
         executeScenario(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION, {
             transactionID,
         });
@@ -106,7 +90,7 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
             // so the outcome screen's default CLOSE_MODAL dispatch has no effect here. Override its
             // close handler to dismiss the RHP instead.
             const closeRHP = () => {
-                allowNavigatingAwayRef.current = true;
+                allowNavigatingAway();
                 Navigation.closeRHPFlow();
             };
             if (reason === CONST.MULTIFACTOR_AUTHENTICATION.REASON.FLOW_OUTCOMES.TRANSACTION_DENIED) {
@@ -119,31 +103,13 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
         });
     };
 
-    const onSilentlyDenyTransaction = () => {
-        addBreadcrumb('Silent deny (user canceled flow)', {transactionID}, 'warning');
-        fireAndForgetDenyTransaction({transactionID});
-        setConfirmModalVisibility(false);
-        allowNavigatingAwayRef.current = true;
-        Navigation.closeRHPFlow();
-    };
-
-    // Automatically navigate away if transaction becomes nullish and we didn't deny it here
-    // User must have actioned it on a different device.
-    useEffect(() => {
-        if (transaction || isDenyingTransaction || denyOutcomeScreen) {
-            return;
-        }
-        addBreadcrumb('Transaction disappeared (actioned on another device)', {transactionID}, 'info');
-        Navigation.closeRHPFlow();
-    }, [denyOutcomeScreen, transaction, isDenyingTransaction, transactionID]);
-
     if (denyOutcomeScreen) {
         return <ScreenWrapper testID={MultifactorAuthenticationScenarioAuthorizeTransactionPage.displayName}>{denyOutcomeScreen}</ScreenWrapper>;
     }
 
     // This will briefly be true after the transaction deny call has succeeded and Onyx has removed the transaction
     // from state, but denyTransaction has not yet resolved. If we reach this case and isDenyingTransaction isn't
-    // true, then something unexpected has happened (we should've navigated away due to the useEffect above)
+    // true, then something unexpected has happened (useForcedReviewScreen should've closed the screen already)
     if (!transaction) {
         if (!isDenyingTransaction) {
             addBreadcrumb('Transaction unavailable', {transactionID}, 'warning');
@@ -181,7 +147,7 @@ function MultifactorAuthenticationScenarioAuthorizeTransactionPage({route}: Mult
                     />
                     <AuthorizeTransactionCancelConfirmModal
                         isVisible={isConfirmModalVisible}
-                        onConfirm={onSilentlyDenyTransaction}
+                        onConfirm={confirmBackOut}
                         onCancel={hideConfirmModal}
                     />
                 </View>

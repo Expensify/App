@@ -30,7 +30,7 @@ import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTagForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type DynamicEditTagGLCodePageProps =
     | PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_TAG_GL_CODE>
@@ -53,41 +53,35 @@ function DynamicTagGLCodePage({route}: DynamicEditTagGLCodePageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAG_GL_CODE;
     const backPath = useDynamicBackPath(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_TAG_GL_CODE.path : DYNAMIC_ROUTES.WORKSPACE_TAG_GL_CODE.path);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? backPath : undefined);
-    }, [backPath, isQuickSettingsFlow]);
+    };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
-            const tagGLCode = values.glCode.trim();
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM> = {};
+        const tagGLCode = values.glCode.trim();
 
-            if (tagGLCode.length > CONST.MAX_LENGTH_256) {
-                errors.glCode = translate('common.error.characterLimitExceedCounter', tagGLCode.length, CONST.MAX_LENGTH_256);
-            }
+        if (tagGLCode.length > CONST.MAX_LENGTH_256) {
+            errors.glCode = translate('common.error.characterLimitExceedCounter', tagGLCode.length, CONST.MAX_LENGTH_256);
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
-    const editGLCode = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
-            const newGLCode = values.glCode.trim();
-            if (newGLCode !== glCode) {
-                setPolicyTagGLCode({
-                    policyID,
-                    tagName,
-                    tagListIndex: orderWeight,
-                    glCode: newGLCode,
-                    policyTags,
-                    parentTagsFilter,
-                });
-            }
-            goBack();
-        },
-        [glCode, goBack, policyID, tagName, orderWeight, policyTags, parentTagsFilter],
-    );
+    const editGLCode = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAG_FORM>) => {
+        const newGLCode = values.glCode.trim();
+        if (newGLCode !== glCode) {
+            setPolicyTagGLCode({
+                policyID,
+                tagName,
+                tagListIndex: orderWeight,
+                glCode: newGLCode,
+                policyTags,
+                parentTagsFilter,
+            });
+        }
+        goBack();
+    };
 
     if (!currentPolicyTagEntry && !isLoadingOnyxValue(policyTagsMetadata)) {
         return <NotFoundPage />;

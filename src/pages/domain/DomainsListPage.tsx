@@ -30,6 +30,7 @@ import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 function DomainsListPage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -105,7 +106,7 @@ function DomainsListPage() {
             variant={CONST.BUTTON_VARIANT.SUCCESS}
             accessibilityLabel={translate('common.new')}
             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.LIST.NEW_DOMAIN_BUTTON}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN))}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN), session)}
         >
             <Button.Icon src={icons.Plus} />
             <Button.Text>{translate('common.new')}</Button.Text>

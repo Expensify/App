@@ -8,7 +8,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
@@ -83,17 +83,14 @@ function Badge({
 
     const iconSize = isCondensed || shouldUseXXSmallIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall;
 
-    const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
-        ({pressed}) => [
-            styles.defaultBadge,
-            isCondensed && styles.condensedBadge,
-            styles.alignSelfCenter,
-            styles.ml2,
-            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
-            badgeStyles,
-        ],
-        [styles.defaultBadge, styles.condensedBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles, isCondensed, isStrong],
-    );
+    const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = ({pressed}) => [
+        styles.defaultBadge,
+        isCondensed && styles.condensedBadge,
+        styles.alignSelfCenter,
+        styles.ml2,
+        StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
+        badgeStyles,
+    ];
 
     if (!text && !icon) {
         return null;

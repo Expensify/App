@@ -22,7 +22,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type ToggleSettingOptionRowProps = {
@@ -145,22 +145,18 @@ function ToggleSettingOptionRow({
         isAccordionExpanded.set(isActive);
     }, [isAccordionExpanded, isActive]);
 
-    const subtitleHtml = useMemo(() => {
-        if (!subtitle || !shouldParseSubtitle || typeof subtitle !== 'string') {
-            return '';
-        }
-        return Parser.replace(subtitle, {shouldEscapeText});
-    }, [subtitle, shouldParseSubtitle, shouldEscapeText]);
+    const subtitleHtml =
+        !subtitle || !shouldParseSubtitle || typeof subtitle !== 'string'
+            ? ''
+            : Parser.replace(subtitle, {
+                  shouldEscapeText,
+              });
 
-    const processedSubtitle = useMemo(() => {
-        let textToWrap = '';
-
-        if (shouldParseSubtitle) {
-            textToWrap = subtitleHtml;
-        }
-
-        return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
-    }, [shouldParseSubtitle, subtitleHtml]);
+    let textToWrap = '';
+    if (shouldParseSubtitle) {
+        textToWrap = subtitleHtml;
+    }
+    const processedSubtitle = textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
 
     const subtitleSpacingStyle = (() => {
         if (!shouldPlaceSubtitleBelowSwitch) {
@@ -170,20 +166,20 @@ function ToggleSettingOptionRow({
         return shouldUseCompactSubtitleSpacing ? styles.mt1 : styles.mt3;
     })();
 
-    const subTitleView = useMemo(() => {
-        if (typeof subtitle === 'string') {
-            if (!!subtitle && shouldParseSubtitle) {
-                return (
-                    <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, subtitleSpacingStyle, parsedSubtitleContainerStyle]}>
-                        <RenderHTML html={processedSubtitle} />
-                    </View>
-                );
-            }
+    let subTitleView;
+    if (typeof subtitle === 'string') {
+        if (!!subtitle && shouldParseSubtitle) {
+            subTitleView = (
+                <View style={[styles.flexRow, styles.renderHTML, styles.textAlignLeft, subtitleSpacingStyle, parsedSubtitleContainerStyle]}>
+                    <RenderHTML html={processedSubtitle} />
+                </View>
+            );
+        } else {
             /**
              * We hide the subtitle from screen readers to avoid double announcements
              * 'aria-hidden' is used for compatibility with iOS mWeb, while 'accessible={false}' works on iOS native.
              */
-            return (
+            subTitleView = (
                 <Text
                     accessible={!areSubtitleAndSwitchAccessibilityLabelEqual}
                     aria-hidden={areSubtitleAndSwitchAccessibilityLabelEqual}
@@ -193,21 +189,9 @@ function ToggleSettingOptionRow({
                 </Text>
             );
         }
-
-        return subtitle;
-    }, [
-        subtitle,
-        shouldParseSubtitle,
-        styles.mutedNormalTextLabel,
-        styles.flexRow,
-        styles.renderHTML,
-        styles.textAlignLeft,
-        subtitleSpacingStyle,
-        subtitleStyle,
-        parsedSubtitleContainerStyle,
-        processedSubtitle,
-        areSubtitleAndSwitchAccessibilityLabelEqual,
-    ]);
+    } else {
+        subTitleView = subtitle;
+    }
 
     const contentArea = (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>

@@ -14,6 +14,9 @@ inputs:
   DEPLOY_VERSION:
     description: 'The app version in which the pull requests were deployed'
     required: true
+  PREVIOUS_TAG:
+    description: 'Previous release tag used to bound the deployment comparison'
+    required: true
   GITHUB_TOKEN:
     description: 'Github token for authentication'
     required: true

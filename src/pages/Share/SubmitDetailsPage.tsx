@@ -72,7 +72,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import {showErrorAlert} from './ShareRootPage';
@@ -290,13 +290,13 @@ function SubmitDetailsPage({
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, defaultReimbursable);
     }, [policy, isPolicyExpenseChat, isCreatingTrackExpense]);
 
-    const setBillable = useCallback((billable: boolean) => {
+    const setBillable = (billable: boolean) => {
         setMoneyRequestBillable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, billable);
-    }, []);
+    };
 
-    const setReimbursable = useCallback((reimbursable: boolean) => {
+    const setReimbursable = (reimbursable: boolean) => {
         setMoneyRequestReimbursable(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reimbursable);
-    }, []);
+    };
 
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;

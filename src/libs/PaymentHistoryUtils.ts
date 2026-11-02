@@ -187,15 +187,25 @@ function getDisplayAmount(purchase: Purchase): number {
 }
 
 function getActiveUserCount(purchase: Purchase): number | undefined {
-    if (purchase.message.totalUniqueMembersCount !== undefined) {
-        return purchase.message.totalUniqueMembersCount;
-    }
-    if (purchase.message.totalActorCount !== undefined) {
-        return purchase.message.totalActorCount;
+    const message = purchase.message;
+    // Legacy bills show the billed-actor count. Team 2025 bills take the larger of the two counts
+    // because a force-upgraded policy can push teamActorCount above the unique member count.
+    if (message.isTeam2025Pricing) {
+        const teamActors = Number(message.teamActorCount ?? 0);
+        const uniqueMembers = Number(message.totalUniqueMembersCount ?? 0);
+        const count = Math.max(teamActors, uniqueMembers);
+        if (count > 0) {
+            return count;
+        }
+    } else if (message.totalActorCount !== undefined) {
+        const count = Number(message.totalActorCount ?? 0);
+        if (count > 0) {
+            return count;
+        }
     }
 
     const emails = new Set<string>();
-    for (const policy of Object.values(purchase.message.billablePolicies ?? {})) {
+    for (const policy of Object.values(message.billablePolicies ?? {})) {
         for (const email of policy.actorList?.split(',') ?? []) {
             const trimmed = email.trim();
             if (trimmed) {
