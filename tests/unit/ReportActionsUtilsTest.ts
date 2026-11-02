@@ -8847,7 +8847,7 @@ describe('ReportActionsUtils', () => {
                 // When callers ask whether this is the deleted-preview case
                 const result = ReportActionsUtils.isDeletedReportPreviewWithError(action);
 
-                // Then it is not, so the sentinel key stays the only thing that resurrects a deleted preview
+                // Then it is not, so the marker key stays the only thing that resurrects a deleted preview
                 expect(result).toBe(false);
             });
         });
@@ -8900,7 +8900,7 @@ describe('ReportActionsUtils', () => {
                 // When a consumer asks for the errors it should act on
                 const result = ReportActionsUtils.getVisibleReportActionErrors(action);
 
-                // Then nothing is hidden, because the sentinel only ever means a pay failure on a preview
+                // Then nothing is hidden, because the marker key only ever means a pay failure on a preview
                 expect(result).toEqual({[PAY_FAILURE_KEY]: 'Unexpected error. Please try again later.'});
             });
         });
