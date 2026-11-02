@@ -3020,6 +3020,17 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTermsAccessibilityLabel: 'Acepto los términos y condiciones y la política de privacidad de Wise.',
                 error: 'Acepta todos los términos para continuar.',
             },
+            inReview: {
+                title: 'En revisión',
+                heading: 'Tenemos lo que necesitamos.\n¡Te contactaremos!',
+                description: 'La mayoría de las revisiones tardan de uno a dos días. Te enviaremos un mensaje con novedades.',
+                chatWithConcierge: 'Chatear con Concierge',
+            },
+            approved: {
+                title: 'Cuenta aprobada',
+                heading: 'Aprobada para pagar en todo el mundo',
+                description: 'Paga a los miembros dondequiera que estén.',
+            },
         },
         wiseGlobalReimbursementsIntro: {
             title: '¿Configurar reembolsos globales?',

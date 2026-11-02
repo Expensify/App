@@ -81,6 +81,7 @@ import AgentsIceCream from '@assets/images/product-illustrations/illustration_ag
 import IceCreamMenu from '@assets/images/product-illustrations/illustration_ice-cream-menu.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
+import NotebookGremlin from '@assets/images/product-illustrations/notebook-gremlin.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import PlanetWithMobileApp from '@assets/images/product-illustrations/planet-with-mobile-app.svg';
 import ReceiptWranglerSpaceCowgirl from '@assets/images/product-illustrations/receipt-wrangler-space-cowgirl.svg';
@@ -315,6 +316,7 @@ const Illustrations = {
     ValidateCode,
     ModalHoldOrReject,
     MushroomTopHat,
+    NotebookGremlin,
     PaymentHands,
     PlanetWithMobileApp,
     ReceiptWranglerSpaceCowgirl,

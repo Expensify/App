@@ -242,6 +242,14 @@ const DYNAMIC_ROUTES = {
         path: 'accept-terms',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING],
     },
+    WISE_ONBOARDING_IN_REVIEW: {
+        path: 'in-review',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS],
+    },
+    WISE_ONBOARDING_APPROVED: {
+        path: 'approved',
+        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS],
+    },
     BANK_ACCOUNT_LINK_PLAID: {
         path: ':bankAccountID/link-plaid',
         entryScreens: [SCREENS.SETTINGS.WALLET.ROOT],

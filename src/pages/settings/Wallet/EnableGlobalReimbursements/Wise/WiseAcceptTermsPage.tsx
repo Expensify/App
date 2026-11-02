@@ -9,8 +9,11 @@ import Text from '@components/Text';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 
 import Navigation from '@navigation/Navigation';
 
@@ -20,6 +23,9 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type {ReimbursementAccount} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -59,6 +65,8 @@ const TERM_LABELS: Record<TermKey, () => React.JSX.Element> = {
     wiseTerms: WiseTermsLabel,
 };
 
+const onboardingStatusSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => reimbursementAccount?.achData?.wise?.status;
+
 /** The last page of our own onboarding, after the confirmation page. Every box is required to continue. */
 function WiseAcceptTermsPage() {
     const confirmationPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path);
@@ -68,6 +76,7 @@ function WiseAcceptTermsPage() {
     const [shouldShowError, setShouldShowError] = useState(false);
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isWiseReimbursementsBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.WISE_REIMBURSEMENTS);
+    const [onboardingStatus] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: onboardingStatusSelector});
 
     const goBackToConfirmation = () => Navigation.goBack(confirmationPath);
 
@@ -84,7 +93,9 @@ function WiseAcceptTermsPage() {
             return;
         }
         clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-        Navigation.dismissModal();
+        // Wise either approves the account right away or puts it in review. Anything short of approval waits on a review, so it lands on the in-review page
+        const statusPagePath = onboardingStatus === CONST.WISE.ONBOARDING_STATUS.APPROVED ? DYNAMIC_ROUTES.WISE_ONBOARDING_APPROVED.path : DYNAMIC_ROUTES.WISE_ONBOARDING_IN_REVIEW.path;
+        Navigation.navigate(createDynamicRoute(statusPagePath));
     };
 
     if (!isWiseReimbursementsBetaEnabled) {

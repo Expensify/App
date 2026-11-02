@@ -3011,6 +3011,17 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTermsAccessibilityLabel: '我同意 Wise 的条款和条件以及隐私政策。',
                 error: '请接受所有条款以继续。',
             },
+            inReview: {
+                title: '审核中',
+                heading: '我们已收到所需的全部信息。\n我们会尽快与您联系！',
+                description: '大多数审核需要一到两天。我们会通过消息通知您最新进展。',
+                chatWithConcierge: '与 Concierge 聊天',
+            },
+            approved: {
+                title: '账户已获批准',
+                heading: '已获准向全球付款',
+                description: '无论成员身在何处，都能向其付款。',
+            },
         },
         wiseGlobalReimbursementsIntro: {
             title: '设置全球报销？',
