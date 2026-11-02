@@ -11,6 +11,7 @@ import createRandomPolicy from '../utils/collections/policies';
 const mockSyncConnection = jest.fn();
 let mockConnectedIntegration: ConnectionName | undefined;
 let mockSynchronizationError: string | undefined;
+let mockIsAuthenticationError = false;
 
 jest.mock('@hooks/useCardFeeds', () => () => [undefined]);
 jest.mock('@hooks/useCardsLists', () => () => [undefined]);
@@ -37,7 +38,7 @@ jest.mock('@libs/AccountingUtils', () => ({
     getQBORefreshTokenExpiryStatus: () => undefined,
 }));
 jest.mock('@libs/actions/connections', () => ({
-    isAuthenticationError: () => false,
+    isAuthenticationError: () => mockIsAuthenticationError,
     isConnectionInProgress: () => false,
     isConnectionUnverified: () => false,
     removePolicyConnection: jest.fn(),
@@ -102,6 +103,24 @@ const zohoBooksPolicy: Policy = {
     } as Policy['connections'],
 };
 
+const netSuitePolicy: Policy = {
+    ...policy,
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The hook only reads the selected subsidiary and the subsidiary list, so the rest of the connection config is left out.
+    connections: {
+        [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+            options: {
+                config: {subsidiary: 'Subsidiary One'},
+                data: {
+                    subsidiaryList: [
+                        {internalID: '1', name: 'Subsidiary One'},
+                        {internalID: '2', name: 'Subsidiary Two'},
+                    ],
+                },
+            },
+        },
+    } as Policy['connections'],
+};
+
 const campfirePolicy: Policy = {
     ...policy,
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The hook only reads the entity list and the selected entity, so the rest of the connection config is left out.
@@ -133,6 +152,7 @@ describe('useConnectedAccountingIntegration', () => {
         jest.clearAllMocks();
         mockConnectedIntegration = undefined;
         mockSynchronizationError = undefined;
+        mockIsAuthenticationError = false;
     });
 
     describe('Sync now menu item', () => {
@@ -172,16 +192,54 @@ describe('useConnectedAccountingIntegration', () => {
             expect(descriptions).toContain('workspace.zohoBooks.organization');
         });
 
-        it('should drop the integration-specific row for other connectors when the last sync failed', () => {
-            // Given a workspace connected to Campfire with two entities whose last sync failed
+        it('should keep the NetSuite subsidiary row when the last sync failed without an authentication error', () => {
+            // Given a workspace connected to NetSuite with two subsidiaries whose last sync failed for a reason other than authentication
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
+            mockSynchronizationError = 'Sync failed';
+
+            // When the connected integration's settings rows are built
+            const descriptions = getSettingsMenuItemDescriptions(netSuitePolicy);
+
+            // Then the subsidiary row is still shown, because the selected subsidiary can be what broke the sync and admins need the row to switch it
+            expect(descriptions).toContain('workspace.netsuite.subsidiary');
+        });
+
+        it('should keep the integration-specific row for other connectors when the last sync failed without an authentication error', () => {
+            // Given a workspace connected to Campfire with two entities whose last sync failed for a reason other than authentication
             mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE;
             mockSynchronizationError = 'Sync failed';
 
             // When the connected integration's settings rows are built
             const descriptions = getSettingsMenuItemDescriptions(campfirePolicy);
 
-            // Then the entity row is hidden, since only Zoho Books keeps its row through a sync error
-            expect(descriptions).not.toContain('workspace.campfire.entity');
+            // Then the entity row is still shown, since the rule is shared by every connector with an entity selector
+            expect(descriptions).toContain('workspace.campfire.entity');
+        });
+
+        it('should drop the integration-specific row when the last sync failed with an authentication error', () => {
+            // Given a workspace connected to NetSuite whose last sync failed because the credentials are no longer valid
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.NETSUITE;
+            mockSynchronizationError = 'Authentication failed';
+            mockIsAuthenticationError = true;
+
+            // When the connected integration's settings rows are built
+            const descriptions = getSettingsMenuItemDescriptions(netSuitePolicy);
+
+            // Then the subsidiary row is hidden, since switching the subsidiary cannot fix invalid credentials
+            expect(descriptions).not.toContain('workspace.netsuite.subsidiary');
+        });
+
+        it('should keep the Zoho Books organization row when the last sync failed with an authentication error', () => {
+            // Given a workspace connected to Zoho Books with two organizations whose last sync failed because the credentials are no longer valid
+            mockConnectedIntegration = CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+            mockSynchronizationError = 'Authentication failed';
+            mockIsAuthenticationError = true;
+
+            // When the connected integration's settings rows are built
+            const descriptions = getSettingsMenuItemDescriptions(zohoBooksPolicy);
+
+            // Then the organization row is still shown, since the authentication rule leaves Zoho Books' existing behavior unchanged
+            expect(descriptions).toContain('workspace.zohoBooks.organization');
         });
     });
 });

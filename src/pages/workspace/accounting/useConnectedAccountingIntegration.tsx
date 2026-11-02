@@ -478,7 +478,8 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         }
     };
     const integrationSpecificMenuItems = getIntegrationSpecificMenuItems();
-    const shouldKeepIntegrationSpecificMenuItemOnSyncError = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+    // Zoho Books' organization row was built to stay through every failed sync, so the authentication rule below leaves it unchanged.
+    const shouldKeepIntegrationSpecificMenuItemOnAuthError = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
 
     const getConnectionDetails = () => {
         if (!connectedIntegration || !policyID) {
@@ -571,8 +572,9 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
               ]
             : [];
 
+        // The selected subsidiary or entity can be what breaks a sync, so only an authentication error hides its row.
         const settingsMenuItems: MenuItemData[] = [
-            ...(isEmptyObject(integrationSpecificMenuItems) || (shouldShowSynchronizationError && !shouldKeepIntegrationSpecificMenuItemOnSyncError) || !hasAccountingConnection
+            ...(isEmptyObject(integrationSpecificMenuItems) || (hasAuthError && !shouldKeepIntegrationSpecificMenuItemOnAuthError) || !hasAccountingConnection
                 ? []
                 : [integrationSpecificMenuItems]),
             ...(!hasAccountingConnection || !isConnectionVerified ? [] : configurationOptions),
