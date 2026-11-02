@@ -3172,6 +3172,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTermsAccessibilityLabel: 'Αποδέχομαι τους όρους και προϋποθέσεις και την πολιτική απορρήτου της Wise.',
                 error: 'Αποδεχτείτε όλους τους όρους για να συνεχίσετε.',
             },
+            inReview: {
+                title: 'Υπό εξέταση',
+                heading: 'Πήραμε ό,τι χρειαζόμαστε.\nΘα επικοινωνήσουμε μαζί σας!',
+                description: 'Οι περισσότερες αξιολογήσεις διαρκούν μία έως δύο ημέρες. Θα σας στείλουμε μήνυμα με μια ενημέρωση.',
+                chatWithConcierge: 'Συνομιλήστε με το Concierge',
+            },
+            approved: {title: 'Ο λογαριασμός εγκρίθηκε', heading: 'Εγκρίθηκε για πληρωμές παγκοσμίως', description: 'Πληρώστε τα μέλη όπου κι αν βρίσκονται.'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Να ρυθμιστούν οι παγκόσμιες αποζημιώσεις;',

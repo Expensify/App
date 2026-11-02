@@ -3088,6 +3088,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTermsAccessibilityLabel: 'Wiseの利用規約およびプライバシーポリシーに同意します。',
                 error: '続行するにはすべての規約に同意してください。',
             },
+            inReview: {
+                title: 'レビュー中',
+                heading: '必要な情報はすべて揃いました。\n後ほどご連絡いたします！',
+                description: '審査のほとんどは1～2日かかります。更新があり次第メッセージでお知らせします。',
+                chatWithConcierge: 'Concierge とチャットする',
+            },
+            approved: {title: 'アカウントが承認されました', heading: '世界中で支払い承認済み', description: 'メンバーがどこにいても支払いましょう。'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'グローバル払い戻しを設定しますか？',

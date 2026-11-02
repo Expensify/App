@@ -3148,6 +3148,13 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTermsAccessibilityLabel: 'Akceptuję regulamin i politykę prywatności Wise.',
                 error: 'Zaakceptuj wszystkie warunki, aby kontynuować.',
             },
+            inReview: {
+                title: 'W trakcie przeglądu',
+                heading: 'Mamy wszystko, czego potrzebujemy.\nWkrótce się odezwiemy!',
+                description: 'Większość weryfikacji zajmuje od jednego do dwóch dni. Damy ci znać, gdy będziemy mieć aktualizację.',
+                chatWithConcierge: 'Czat z Concierge',
+            },
+            approved: {title: 'Konto zatwierdzone', heading: 'Zatwierdzone do płatności na całym świecie', description: 'Wypłacaj członkom wynagrodzenie, gdziekolwiek są.'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Skonfigurować globalne zwroty kosztów?',
