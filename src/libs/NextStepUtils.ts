@@ -1,4 +1,5 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+import type {PersonalDetailsByLogin} from '@components/PersonalDetailsByLoginProvider';
 
 import CONST from '@src/CONST';
 import type {Policy, Report, ReportAction, Rule, Transaction, TransactionViolations} from '@src/types/onyx';
@@ -55,6 +56,7 @@ type BuildNextStepNewParams = {
     isTrackIntentUser: boolean | undefined;
     translate?: LocaleContextProps['translate'];
     rules: OnyxCollection<Rule>;
+    personalDetailsByLogins?: PersonalDetailsByLogin;
 };
 
 type GetReportNextStepParams = {
@@ -184,6 +186,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
         bypassNextApproverID,
         isTrackIntentUser,
         rules,
+        personalDetailsByLogins,
     } = params;
 
     if (!isExpenseReport(report)) {
@@ -195,7 +198,6 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
     const isInstantSubmitEnabled = autoReportingFrequency === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT;
     const shouldShowFixMessage = hasViolations && isInstantSubmitEnabled && !isASAPSubmitBetaEnabled;
     const hasTransactions = doesReportContainTransactions(report);
-    const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, rules, isUnapprove);
     const reimburserAccountID = getReimburserAccountID(policy);
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
@@ -324,6 +326,7 @@ function buildOptimisticNextStep(params: BuildNextStepNewParams): ReportNextStep
             // We want to show pending approval next step for cases where the policy has approvals enabled
             const policyApprovalMode = getApprovalWorkflow(policy);
             if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policyApprovalMode)) {
+                const approverAccountID = bypassNextApproverID ?? getNextApproverAccountID(report, rules, isUnapprove, undefined, personalDetailsByLogins);
                 nextStep = {
                     messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
                     icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
