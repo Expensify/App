@@ -252,7 +252,7 @@ function setWorkspaceCategoryEnabled({
         }, {}),
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -300,6 +300,21 @@ function setWorkspaceCategoryEnabled({
             },
         ],
     };
+
+    const willHaveEnabledCategory = Object.values({...policyData.categories, ...policyCategoriesOptimisticData}).some((category) => category?.enabled);
+    if (!willHaveEnabledCategory && policyData.policy?.autoCategorizeNewExpenses !== false) {
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {autoCategorizeNewExpenses: false},
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {autoCategorizeNewExpenses: policyData.policy?.autoCategorizeNewExpenses ?? true},
+        });
+    }
 
     const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, {}, policyCategoriesOptimisticData);
 
@@ -1425,7 +1440,9 @@ function deleteWorkspaceCategories(
           }
         : {};
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> = {
+    const onyxData: OnyxData<
+        typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS | typeof ONYXKEYS.COLLECTION.POLICY
+    > = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -1458,6 +1475,20 @@ function deleteWorkspaceCategories(
             },
         ],
     };
+
+    if (shouldDisableRequiresCategory && policyData.policy?.autoCategorizeNewExpenses !== false) {
+        const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
+        onyxData.optimisticData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {autoCategorizeNewExpenses: false},
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: policyKey,
+            value: {autoCategorizeNewExpenses: policyData.policy?.autoCategorizeNewExpenses ?? true},
+        });
+    }
 
     const autoSelections = pushTransactionAutoSelectionsOnyxData(onyxData, policyData, optimisticPolicyData, optimisticPolicyCategoriesData);
 
