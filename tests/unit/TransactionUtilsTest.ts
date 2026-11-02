@@ -4456,8 +4456,7 @@ describe('TransactionUtils', () => {
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
         };
 
-        // The duplicates are compared only when their report is loaded and still mergeable, so the reports have to be
-        // in Onyx: the fake report and report '1', the default report of generateTransaction.
+        // Duplicates are compared only when their report is loaded, and generateTransaction defaults to report '1'.
         beforeAll(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReportID}`, fakeReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {...fakeReport, reportID: '1'});

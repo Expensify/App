@@ -14,10 +14,7 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useOnyx from './useOnyx';
 
 type DuplicateReportsStatus = {
-    /** Whether any of the reports is approved or settled. */
     hasSettledOrApprovedReport: boolean;
-
-    /** Whether any of the reports is still missing from Onyx, so its state is unknown. */
     hasUnloadedReport: boolean;
 };
 
