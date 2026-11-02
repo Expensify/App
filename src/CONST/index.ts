@@ -1945,6 +1945,11 @@ const CONST = {
             ADMIN: 'admin',
             MEMBER: 'member',
         },
+        UPCOMING_STEP_ACTION: {
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+        },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
         // The backend rejects moving an expense into a report that already holds this many transactions, so the App
@@ -10407,6 +10412,8 @@ const CONST = {
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
             MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
+            MONEY_REPORT_HEADER_NEXT_STEP: 'Report-MoneyReportHeaderNextStep',
+            MONEY_REPORT_HEADER_STATUS_BAR: 'Report-MoneyReportHeaderStatusBar',
             REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',

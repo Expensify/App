@@ -1788,6 +1788,11 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.DYNAMIC_REPORT_DESCRIPTION]: DYNAMIC_ROUTES.REPORT_DESCRIPTION.path,
                     },
                 },
+                [SCREENS.RIGHT_MODAL.REPORT_HISTORY]: {
+                    screens: {
+                        [SCREENS.DYNAMIC_REPORT_HISTORY]: DYNAMIC_ROUTES.REPORT_HISTORY.path,
+                    },
+                },
                 [SCREENS.RIGHT_MODAL.NEW_CHAT]: {
                     screens: {
                         [SCREENS.NEW_CHAT.ROOT]: {

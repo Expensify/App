@@ -1728,6 +1728,7 @@ const READ_COMMANDS = {
     EXPAND_URL_PREVIEW: 'ExpandURLPreview',
     GET_REPORT_PRIVATE_NOTE: 'GetReportPrivateNote',
     OPEN_ROOM_MEMBERS_PAGE: 'OpenRoomMembersPage',
+    OPEN_REPORT_STATUS_PAGE: 'OpenReportStatusPage',
     SEARCH_FOR_REPORTS: 'SearchForReports',
     SEARCH_FOR_ROOMS_TO_MENTION: 'SearchForRoomsToMention',
     SEARCH_FOR_USERS: 'SearchForUsers',
@@ -1852,6 +1853,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.EXPAND_URL_PREVIEW]: Parameters.ExpandURLPreviewParams;
     [READ_COMMANDS.GET_REPORT_PRIVATE_NOTE]: Parameters.GetReportPrivateNoteParams;
     [READ_COMMANDS.OPEN_ROOM_MEMBERS_PAGE]: Parameters.OpenRoomMembersPageParams;
+    [READ_COMMANDS.OPEN_REPORT_STATUS_PAGE]: Parameters.OpenReportStatusPageParams;
     [READ_COMMANDS.SEARCH_FOR_REPORTS]: Parameters.SearchForReportsParams;
     [READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION]: Parameters.SearchForRoomsToMentionParams;
     [READ_COMMANDS.SEARCH_FOR_USERS]: Parameters.SearchForUsersParams;

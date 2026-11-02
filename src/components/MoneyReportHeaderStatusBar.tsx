@@ -17,6 +17,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
+import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 
@@ -44,7 +45,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     const messageContent = !nextStep ? '' : buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber);
 
     return (
-        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
+        <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100]}>
             <View style={[styles.mr3]}>
                 <Icon
                     src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
@@ -53,9 +54,11 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
                     fill={nextStep?.iconFill ?? theme.icon}
                 />
             </View>
-            <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
-                <RenderHTML html={messageContent} />
-            </View>
+            <CaretWrapper style={styles.flexShrink1}>
+                <View style={[styles.renderHTML, styles.dFlex, styles.flexShrink1]}>
+                    <RenderHTML html={messageContent} />
+                </View>
+            </CaretWrapper>
         </View>
     );
 }
