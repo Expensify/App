@@ -68,6 +68,7 @@ import createRootStackNavigator from './createRootStackNavigator';
 import {screensWithEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import DelegatorConnectGuard from './DelegatorConnectGate';
+import ForcedTransactionReviewHandler from './ForcedTransactionReviewHandler';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
@@ -80,7 +81,6 @@ import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import {loadRightModalNavigator, loadSearchRouterPage} from './searchRouterLazyLoaders';
 import SubmitIntentDeeplinkHandler from './SubmitIntentDeeplinkHandler';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
-import ThreeDSAuthHandler from './ThreeDSAuthHandler';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 import UserStatusHandler from './UserStatusHandler';
@@ -179,7 +179,7 @@ function AuthScreens() {
             <AuthScreensInitHandler />
             <SearchRouterWarmup />
             <SubmitIntentDeeplinkHandler />
-            <ThreeDSAuthHandler />
+            <ForcedTransactionReviewHandler />
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
             <ExportDownloadStatusManager />

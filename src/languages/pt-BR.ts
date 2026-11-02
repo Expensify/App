@@ -1216,6 +1216,15 @@ const translations: TranslationDeepObject<typeof en> = {
             yearLabel: (year?: number) => (year === undefined ? 'Ano' : `Ano ${year}`),
             increase: (percentage: string) => `Alta de ${percentage}`,
             decrease: (percentage: string) => `Queda de ${percentage}`,
+            dailyAverage: 'Média diária',
+            weeklyAverage: 'Média semanal',
+            monthlyAverage: 'Média mensal',
+            quarterlyAverage: 'Média trimestral',
+            yearlyAverage: 'Média anual',
+            allSpenderAverage: 'Média entre todos os gastadores',
+            allMerchantAverage: 'Média de todos os estabelecimentos',
+            allCategoryAverage: 'Média de todas as categorias',
+            averageValue: (amount: string) => `${amount} média`,
         },
         compliance: 'Conformidade',
         runningTotal: 'Total acumulado',
@@ -3307,6 +3316,7 @@ ${amount} para ${merchant} - ${date}`,
         approverNotWorkspaceMember: 'Esse aprovador não é mais membro do workspace. Escolha um novo aprovador ou exclua este fluxo de trabalho.',
         defaultWorkflowApproverNotWorkspaceMember: 'Esse aprovador não é mais membro do workspace. Escolha um novo aprovador.',
         overLimitApproverNotWorkspaceMember: 'O aprovador adicional para relatórios acima do limite não é mais membro do workspace. Escolha um novo aprovador adicional.',
+        overLimitApproverInWorkflow: 'O aprovador adicional para relatórios acima do limite já é um aprovador neste fluxo de trabalho. Escolha um aprovador adicional diferente.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> já aprova relatórios para <strong>${name2}</strong>. Escolha um aprovador diferente para evitar um fluxo de aprovação circular.`,
         emptyContent: {
@@ -5154,8 +5164,9 @@ ${amount} para ${merchant} - ${date}`,
                 'Você sabia que pode reservar e gerenciar viagens em grupo como esta direto no Expensify? Poupe-se do transtorno da próxima vez e experimente nossa ferramenta de <a href="https://help.expensify.com/travel/hubs/event-management/">Eventos de Viagem</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Viagem não está ativada',
-            message: 'Para fazer uma reserva, ative viagens no seu espaço de trabalho padrão ou altere seu espaço de trabalho padrão para um que tenha viagens ativadas.',
+            title: 'Você ainda não pode reservar viagens',
+            message:
+                'Você é membro de um workspace com viagens ativadas, mas ele não é o seu workspace padrão. Para fazer reservas, ative viagens no seu workspace padrão ou altere o seu workspace padrão para um que tenha viagens ativadas.',
         },
     },
     workspace: {
@@ -5287,8 +5298,6 @@ ${amount} para ${merchant} - ${date}`,
             guestAlternateText: 'Enviar relatórios com visibilidade limitada.',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Proprietário';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Admin do workspace';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -7544,6 +7553,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
                 continue: 'Continuar sem membros',
                 description: 'Copiar fluxos de trabalho sem membros não copiará os fluxos de aprovação. As configurações de envio e pagamento ainda serão copiadas.',
             },
+            confirmMembers: {
+                title: 'Copiar membros',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Tem certeza de que deseja substituir os membros de ${targetWorkspaceName} pelos membros deste espaço de trabalho?`,
+                    other: `Tem certeza de que deseja substituir os membros de ${count} espaços de trabalho pelos membros deste espaço de trabalho?`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'Cópia em andamento...',
                 copyInProgressDescription: 'Você pode esperar o processo terminar ou o Concierge pode avisar você quando estiver concluído.',
@@ -9235,7 +9251,10 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     missingData: 'A Expensify não tem essa informação.',
                     retroactive: 'As regras se aplicam apenas à nova atividade.',
                     historyLimit: 'As regras não conseguem olhar tão para trás.',
-                    tryThisInstead: 'Tente isto em vez disso',
+                    useSuggestion: 'Usar sugestão',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Experimente a sugestão abaixo:`,
+                    quotedSuggestion: (suggestedPrompt: string) => `"${suggestedPrompt}"`,
+                    createAnyway: 'Criar mesmo assim',
                 },
             },
             expenseDefaultsTable: {
@@ -10473,6 +10492,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `atualizou "Impedir marcar relatórios não reembolsáveis como pagos" para "${newValue === 'true' ? 'Ativado' : 'Desativado'}" (antes "${oldValue === 'true' ? 'Ativado' : 'Desativado'}")`,
+        addedExpensifyCardFeed: (feedName: string) => `adicionou o feed do Cartão Expensify "${feedName}"`,
     },
     roomMembersPage: {
         memberNotFound: 'Membro não encontrado.',
@@ -10752,6 +10772,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semana',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Ano',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprovador',
             },
             feed: 'Feed',
             withdrawalType: {
@@ -10852,6 +10873,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Semanas',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Anos',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Aprovadores',
         },
         moneyRequestReport: {emptyStateTitle: 'Ainda não há despesas', accessPlaceHolder: 'Abrir para ver detalhes'},
         errors: {
@@ -12050,6 +12072,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 info: 'Se você quiser continuar usando seu(s) espaço(s) de trabalho com pagamento por uso, está tudo pronto.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Se você quiser evitar atividades e cobranças futuras, você deve <a href="${workspacesListRoute}">excluir seu(s) workspace(s)</a>. Observe que, ao excluir seu(s) workspace(s), será cobrado qualquer valor pendente referente à atividade ocorrida durante o mês calendário atual.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Para evitar atividades e cobranças futuras, <a href="${workspacesListRoute}">arquive todos os seus espaços de trabalho pagos</a>. Espaços de trabalho arquivados com atividade faturável durante o mês atual ainda serão incluídos na sua fatura.`,
             },
             requestSubmitted: {
                 title: 'Solicitação enviada',

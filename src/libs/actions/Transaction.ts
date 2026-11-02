@@ -1126,9 +1126,6 @@ function getChangeTransactionsReportOnyxData({
         return targetReportCurrenciesByReport[targetReportID];
     };
 
-    // Track distance rate updates so we can send them to the backend
-    const transactionIDToUpdatedCustomUnitRateID: Record<string, string> = {};
-
     for (const transaction of transactions) {
         const isDeletedExpense = isDeletedTransaction(transaction);
         const isUnreportedExpense = !transaction.reportID || transaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -1305,7 +1302,6 @@ function getChangeTransactionsReportOnyxData({
             if (!currentRateID || !currentRate || currentRate.enabled === false) {
                 const defaultRate = DistanceRequestUtils.getDefaultMileageRate(policy);
                 if (defaultRate?.customUnitRateID) {
-                    transactionIDToUpdatedCustomUnitRateID[transaction.transactionID] = defaultRate.customUnitRateID;
                     // Build an updated transaction with the new rate so we can derive fields from it
                     const updatedTransaction: typeof transaction = {
                         ...transaction,
@@ -2139,7 +2135,6 @@ function getChangeTransactionsReportOnyxData({
         successData,
         failureData,
         transactionIDToReportActionAndThreadData,
-        transactionIDToUpdatedCustomUnitRateID,
         updatedReportTotals,
         updatedReportUnheldTotals,
         updatedReportTransactionCounts,
@@ -2195,17 +2190,12 @@ function changeTransactionsReport(props: Omit<ChangeTransactionsReportProps, 'is
             });
         }
 
-        const transactionIDToUpdatedCustomUnitRateID = loadedTransactionsOnyxData?.transactionIDToUpdatedCustomUnitRateID ?? {};
-
         const queryParameters: ChangeTransactionsReportParams = {
             // Stays empty so the backend moves every matching expense from the query, not just the loaded page
             transactionList: '',
             reportID,
             // Send the optimistic action and thread IDs so the backend reuses them instead of adding a second moved message
             transactionIDToReportActionAndThreadData: JSON.stringify(loadedTransactionsOnyxData?.transactionIDToReportActionAndThreadData ?? {}),
-            ...(Object.keys(transactionIDToUpdatedCustomUnitRateID).length > 0 && {
-                transactionIDToUpdatedCustomUnitRateID: JSON.stringify(transactionIDToUpdatedCustomUnitRateID),
-            }),
             jsonQuery: props.jsonQuery,
             hash: props.hash,
         };
@@ -2219,15 +2209,7 @@ function changeTransactionsReport(props: Omit<ChangeTransactionsReportProps, 'is
     if (!changeTransactionsReportOnyxData) {
         return;
     }
-    const {
-        optimisticData,
-        successData,
-        failureData,
-        transactionIDToReportActionAndThreadData,
-        transactionIDToUpdatedCustomUnitRateID,
-        movedTransactionIDs,
-        movedTransactionIDsByOldReportID,
-    } = changeTransactionsReportOnyxData;
+    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, movedTransactionIDs, movedTransactionIDsByOldReportID} = changeTransactionsReportOnyxData;
 
     // If every selected transaction is already in the destination report, there is nothing to move, so skip the API call.
     if (movedTransactionIDs.length === 0) {
@@ -2238,9 +2220,6 @@ function changeTransactionsReport(props: Omit<ChangeTransactionsReportProps, 'is
         transactionList: movedTransactionIDs.join(','),
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
-        ...(Object.keys(transactionIDToUpdatedCustomUnitRateID).length > 0 && {
-            transactionIDToUpdatedCustomUnitRateID: JSON.stringify(transactionIDToUpdatedCustomUnitRateID),
-        }),
     };
 
     // The all-matching path above already returned after its own API.write, so only one of the two writes ever runs

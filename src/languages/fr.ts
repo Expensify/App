@@ -1221,6 +1221,15 @@ const translations: TranslationDeepObject<typeof en> = {
             yearLabel: (year?: number) => (year === undefined ? 'Année' : `Année ${year}`),
             increase: (percentage: string) => `En hausse de ${percentage}`,
             decrease: (percentage: string) => `En baisse de ${percentage}`,
+            dailyAverage: 'Moyenne quotidienne',
+            weeklyAverage: 'Moyenne hebdomadaire',
+            monthlyAverage: 'Moyenne mensuelle',
+            quarterlyAverage: 'Moyenne trimestrielle',
+            yearlyAverage: 'Moyenne annuelle',
+            allSpenderAverage: 'Moyenne tous dépensiers',
+            allMerchantAverage: 'Moyenne tous marchands',
+            allCategoryAverage: 'Moyenne toutes catégories',
+            averageValue: (amount: string) => `${amount} en moyenne`,
         },
         compliance: 'Conformité',
         runningTotal: 'Total cumulé',
@@ -3326,6 +3335,8 @@ ${amount} pour ${merchant} - ${date}`,
         defaultWorkflowApproverNotWorkspaceMember: 'Cet approbateur n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur.',
         overLimitApproverNotWorkspaceMember:
             'L’approbateur supplémentaire pour les notes de frais au-delà de la limite n’est plus membre de l’espace de travail. Choisissez un nouvel approbateur supplémentaire.',
+        overLimitApproverInWorkflow:
+            'L’approbateur supplémentaire pour les notes de frais dépassant la limite est déjà un approbateur dans ce flux de travail. Choisissez un autre approbateur supplémentaire.',
         approverCircularReference: (name1: string, name2: string) =>
             `<strong>${name1}</strong> approuve déjà les notes de frais de <strong>${name2}</strong>. Veuillez choisir un autre approbateur pour éviter un circuit d'approbation circulaire.`,
         emptyContent: {
@@ -5191,8 +5202,9 @@ ${amount} pour ${merchant} - ${date}`,
                 'Saviez-vous que vous pouvez réserver et gérer des voyages de groupe comme celui-ci directement dans Expensify ? Évitez-vous des ennuis la prochaine fois et essayez notre outil <a href="https://help.expensify.com/travel/hubs/event-management/">Événements de voyage</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Voyage n’est pas activé',
-            message: 'Pour réserver, veuillez activer les voyages sur votre espace de travail par défaut ou définir par défaut un espace de travail sur lequel les voyages sont activés.',
+            title: 'Vous ne pouvez pas encore réserver de voyage',
+            message:
+                'Vous êtes membre d’un espace de travail avec voyage activé, mais ce n’est pas votre espace de travail par défaut. Pour réserver, veuillez activer le voyage sur votre espace de travail par défaut ou définir comme espace de travail par défaut un espace de travail avec voyage activé.',
         },
     },
     workspace: {
@@ -5324,8 +5336,6 @@ ${amount} pour ${merchant} - ${date}`,
             guestAlternateText: 'Soumettre des notes de frais avec une visibilité limitée.',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Responsable';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrateur de l’espace de travail';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -7613,6 +7623,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 continue: 'Continuer sans membres',
                 description: 'La copie d’espaces de travail sans membres ne copiera pas les workflows d’approbation. Les paramètres de soumission et de paiement seront tout de même copiés.',
             },
+            confirmMembers: {
+                title: 'Copier les membres',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Êtes-vous sûr de vouloir remplacer les membres de ${targetWorkspaceName} par les membres de cet espace de travail ?`,
+                    other: `Êtes-vous sûr de vouloir remplacer les membres de ${count} espaces de travail par les membres de cet espace de travail ?`,
+                }),
+            },
             progress: {
                 copyInProgressTitle: 'Copie en cours...',
                 copyInProgressDescription: 'Vous pouvez soit attendre la fin du processus, soit laisser Concierge vous prévenir lorsque ce sera terminé.',
@@ -9319,7 +9336,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     missingData: 'Expensify n’a pas ces informations.',
                     retroactive: 'Les règles ne s’appliquent qu’aux nouvelles activités.',
                     historyLimit: 'Les règles ne peuvent pas remonter aussi loin dans le temps.',
-                    tryThisInstead: 'Essayez plutôt ceci',
+                    useSuggestion: 'Utiliser la suggestion',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Essayez plutôt la suggestion ci-dessous :`,
+                    quotedSuggestion: (suggestedPrompt: string) => `« ${suggestedPrompt} »`,
+                    createAnyway: 'Créer quand même',
                 },
             },
             expenseDefaultsTable: {
@@ -10576,6 +10596,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `mis à jour « Empêcher de marquer les notes de frais non remboursables comme payées » en « ${newValue === 'true' ? 'Activé' : 'Désactivé'} » (auparavant « ${oldValue === 'true' ? 'Activé' : 'Désactivé'} »)`,
+        addedExpensifyCardFeed: (feedName: string) => `a ajouté le flux Carte Expensify « ${feedName} »`,
     },
     roomMembersPage: {
         memberNotFound: 'Membre introuvable.',
@@ -10855,6 +10876,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaine',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Année',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestre',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateur',
             },
             feed: 'Fil',
             withdrawalType: {
@@ -10914,6 +10936,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Semaines',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Années',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Trimestres',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Approbateurs',
         },
         moneyRequestReport: {emptyStateTitle: 'Aucune dépense pour l’instant', accessPlaceHolder: 'Ouvrir pour plus de détails'},
         noCategory: 'Aucune catégorie',
@@ -12165,6 +12188,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 info: 'Si vous souhaitez continuer à utiliser votre/vos espace(s) de travail à l’utilisation, tout est prêt.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Si vous souhaitez empêcher toute activité et tout prélèvement futurs, vous devez <a href="${workspacesListRoute}">supprimer votre/vos espace(s) de travail</a>. Notez que lorsque vous supprimez votre/vos espace(s) de travail, vous serez facturé pour toute activité en cours survenue durant le mois civil en cours.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Pour éviter toute activité et facturation futures, <a href="${workspacesListRoute}">archivez tous vos espaces de travail payants</a>. Les espaces de travail archivés ayant une activité facturable au cours du mois en cours seront tout de même inclus dans votre facture.`,
             },
             requestSubmitted: {
                 title: 'Demande soumise',

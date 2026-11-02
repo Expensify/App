@@ -4,7 +4,7 @@ on:
   workflow_call:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches-ignore: [production]
     paths: ['**.js', '**.ts', '**.tsx', '**.json', '**.mjs', '**.cjs', 'oxlint.config.mts', 'config/oxlint/**', 'scripts/lint/**', '.github/workflows/oxlint.yml']
 
 concurrency:
@@ -14,7 +14,7 @@ concurrency:
 jobs:
   oxlint:
     name: Oxlint check (non-blocking)
-    if: ${{ github.event.head_commit.author.name != 'OSBotify' || github.event_name == 'push' }}
+    if: ${{ (github.event.head_commit.author.name != 'OSBotify' || github.event_name == 'push') && (github.event_name != 'pull_request' || github.actor != 'os-botify[bot]') }}
     runs-on: blacksmith-8vcpu-ubuntu-2404
     steps:
       - name: Checkout
