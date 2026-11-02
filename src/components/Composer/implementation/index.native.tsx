@@ -24,6 +24,7 @@ import type {NativeSyntheticEvent, TextInputChangeEvent} from 'react-native';
 
 import React, {useEffect, useRef} from 'react';
 import {StyleSheet} from 'react-native';
+import ImageSize from 'react-native-image-size';
 
 type TextInputPasteEvent = NativeSyntheticEvent<{
     items: Array<{
@@ -31,6 +32,23 @@ type TextInputPasteEvent = NativeSyntheticEvent<{
         data: string;
     }>;
 }>;
+
+/**
+ * Adds the image's dimensions to a pasted file, like the attachment picker does for picked images, so the chat message
+ * can reserve the image's size up front instead of resizing it once the image loads.
+ */
+function addImageDimensions(file: FileObject): Promise<FileObject> {
+    if (!file.uri || !file.type?.startsWith('image/')) {
+        return Promise.resolve(file);
+    }
+    return ImageSize.getSize(file.uri)
+        .then(({width, height, rotation}) => {
+            // The EXIF orientation can make the image display sideways, in which case its displayed sides are swapped.
+            const isDisplayedSideways = rotation === 90 || rotation === 270;
+            return {...file, width: isDisplayedSideways ? height : width, height: isDisplayedSideways ? width : height};
+        })
+        .catch(() => file);
+}
 
 const excludeNoStyles: Array<keyof MarkdownStyle> = [];
 const excludeReportMentionStyle: Array<keyof MarkdownStyle> = ['mentionReport'];
@@ -117,6 +135,8 @@ function Composer({
         let file: FileObject = {uri: fileURI, name: fileName, type: mimeType, size: 0};
         getFileSize(file.uri ?? '')
             .then((size) => (file = {...file, size}))
+            .then(() => addImageDimensions(file))
+            .then((fileWithDimensions) => (file = fileWithDimensions))
             .finally(() => onPasteFile(file));
     };
 

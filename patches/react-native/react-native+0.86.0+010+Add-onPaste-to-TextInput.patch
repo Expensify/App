@@ -136,10 +136,10 @@ index 85e6c69..28fa2be 100644
     * The string that will be rendered before text input has been entered.
     */
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-index cbda377..673cb67 100644
+index cbda377..b927c38 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
-@@ -13,6 +13,58 @@
+@@ -13,6 +13,69 @@
  #import <React/RCTBackedTextInputDelegateAdapter.h>
  #import <React/RCTTextAttributes.h>
  
@@ -149,18 +149,29 @@ index cbda377..673cb67 100644
 +
 +// Writes the first image representation on the pasteboard that can actually be read to a temp file and returns its
 +// file URL. Reading a representation can fail (e.g. iOS returns "Operation not authorized" for a HEIC copied a while
-+// before pasting), in which case dataForPasteboardType: returns nil and that representation is skipped. If none can be
-+// read, the decoded UIImage is encoded instead. Returns nil when there is no readable image at all.
++// before pasting), in which case dataForPasteboardType: returns nil and that representation is skipped. HEIC/HEIF
++// representations are tried last: they have to be converted to JPEG before upload, so a PNG or JPEG of the same image
++// is used directly when the pasteboard offers one. If none can be read, the decoded UIImage is encoded instead.
++// Returns nil when there is no readable image at all.
 +static NSString *RCTWritePastedImageToTempFile(UIPasteboard *clipboard, NSString **outMIMEType)
 +{
 +  for (NSItemProvider *itemProvider in clipboard.itemProviders) {
 +    if (![itemProvider hasItemConformingToTypeIdentifier:(NSString *)kUTTypeImage]) {
 +      continue;
 +    }
++    NSMutableArray<NSString *> *identifiers = [NSMutableArray array];
++    NSMutableArray<NSString *> *heifIdentifiers = [NSMutableArray array];
 +    for (NSString *identifier in itemProvider.registeredTypeIdentifiers) {
 +      if (!UTTypeConformsTo((__bridge CFStringRef)identifier, kUTTypeImage)) {
 +        continue;
 +      }
++      BOOL isHEIF = UTTypeConformsTo((__bridge CFStringRef)identifier, CFSTR("public.heif")) ||
++          UTTypeConformsTo((__bridge CFStringRef)identifier, CFSTR("public.heic"));
++      [(isHEIF ? heifIdentifiers : identifiers) addObject:identifier];
++    }
++    [identifiers addObjectsFromArray:heifIdentifiers];
++
++    for (NSString *identifier in identifiers) {
 +      NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
 +      NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
 +      if (MIMEType == nil || fileExtension == nil) {
@@ -198,7 +209,7 @@ index cbda377..673cb67 100644
  @implementation RCTUITextView {
    UILabel *_placeholderView;
    UITextView *_detachedTextView;
-@@ -217,7 +269,19 @@ static UIColor *defaultPlaceholderColor(void)
+@@ -217,7 +280,19 @@ static UIColor *defaultPlaceholderColor(void)
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
@@ -219,7 +230,7 @@ index cbda377..673cb67 100644
  }
  
  // Turn off scroll animation to fix flaky scrolling.
-@@ -309,6 +373,10 @@ static UIColor *defaultPlaceholderColor(void)
+@@ -309,6 +384,10 @@ static UIColor *defaultPlaceholderColor(void)
      return NO;
    }
  
@@ -347,10 +358,10 @@ index 5d3a675..a92904d 100644
  RCT_EXPORT_SHADOW_PROPERTY(text, NSString)
  RCT_EXPORT_SHADOW_PROPERTY(placeholder, NSString)
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-index 052c003..d3e4669 100644
+index 052c003..31f27d5 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
-@@ -12,6 +12,58 @@
+@@ -12,6 +12,69 @@
  #import <React/RCTUtils.h>
  #import <React/UIView+React.h>
  
@@ -360,18 +371,29 @@ index 052c003..d3e4669 100644
 +
 +// Writes the first image representation on the pasteboard that can actually be read to a temp file and returns its
 +// file URL. Reading a representation can fail (e.g. iOS returns "Operation not authorized" for a HEIC copied a while
-+// before pasting), in which case dataForPasteboardType: returns nil and that representation is skipped. If none can be
-+// read, the decoded UIImage is encoded instead. Returns nil when there is no readable image at all.
++// before pasting), in which case dataForPasteboardType: returns nil and that representation is skipped. HEIC/HEIF
++// representations are tried last: they have to be converted to JPEG before upload, so a PNG or JPEG of the same image
++// is used directly when the pasteboard offers one. If none can be read, the decoded UIImage is encoded instead.
++// Returns nil when there is no readable image at all.
 +static NSString *RCTWritePastedImageToTempFile(UIPasteboard *clipboard, NSString **outMIMEType)
 +{
 +  for (NSItemProvider *itemProvider in clipboard.itemProviders) {
 +    if (![itemProvider hasItemConformingToTypeIdentifier:(NSString *)kUTTypeImage]) {
 +      continue;
 +    }
++    NSMutableArray<NSString *> *identifiers = [NSMutableArray array];
++    NSMutableArray<NSString *> *heifIdentifiers = [NSMutableArray array];
 +    for (NSString *identifier in itemProvider.registeredTypeIdentifiers) {
 +      if (!UTTypeConformsTo((__bridge CFStringRef)identifier, kUTTypeImage)) {
 +        continue;
 +      }
++      BOOL isHEIF = UTTypeConformsTo((__bridge CFStringRef)identifier, CFSTR("public.heif")) ||
++          UTTypeConformsTo((__bridge CFStringRef)identifier, CFSTR("public.heic"));
++      [(isHEIF ? heifIdentifiers : identifiers) addObject:identifier];
++    }
++    [identifiers addObjectsFromArray:heifIdentifiers];
++
++    for (NSString *identifier in identifiers) {
 +      NSString *MIMEType = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassMIMEType);
 +      NSString *fileExtension = (__bridge_transfer NSString *)UTTypeCopyPreferredTagWithClass((__bridge CFStringRef)identifier, kUTTagClassFilenameExtension);
 +      if (MIMEType == nil || fileExtension == nil) {
@@ -409,7 +431,7 @@ index 052c003..d3e4669 100644
  @implementation RCTUITextField {
    RCTBackedTextFieldDelegateAdapter *_textInputDelegateAdapter;
    NSDictionary<NSAttributedStringKey, id> *_defaultTextAttributes;
-@@ -180,6 +232,10 @@
+@@ -180,6 +243,10 @@
      return NO;
    }
  
@@ -420,7 +442,7 @@ index 052c003..d3e4669 100644
    return [super canPerformAction:action withSender:sender];
  }
  
-@@ -263,7 +319,19 @@
+@@ -263,7 +330,19 @@
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
