@@ -42,6 +42,7 @@ jest.mock('@userActions/Policy/DistanceRate', () => {
 jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
     __esModule: true,
     default: () => ({isLargeScreenWidth: true, shouldUseNarrowLayout: false, isInNarrowPaneModal: false}),
+    useIsDisplayedInWideRHP: () => false,
 }));
 
 // EditableCell only enables the edit-pencil button while the cell is hovered, which jsdom can't simulate reliably.

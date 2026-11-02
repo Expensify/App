@@ -2,7 +2,6 @@ import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
 
@@ -75,61 +74,70 @@ function CampfireExportPage({policy}: WithPolicyConnectionsProps) {
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.campfire.exportDescription')}</Text>
             </View>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.EXPORTER], campfireConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={exporter}
-                    description={translate('workspace.accounting.preferredExporter')}
+                <MenuItemField
+                    name={translate('workspace.accounting.preferredExporter')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_PREFERRED_EXPORTER.getRoute(policyID)) : undefined)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.EXPORTER], campfireConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                    value={exporter}
+                >
+                    {areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.EXPORTER], campfireConfig?.errorFields) && (
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    )}
+                </MenuItemField>
             </OfflineWithFeedback>
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.REIMBURSABLE], campfireConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={translate(`workspace.campfire.exportReimbursable.values.${exportReimbursable}.label`)}
-                    description={translate('workspace.campfire.exportReimbursable.label')}
-                    interactive={false}
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.REIMBURSABLE], campfireConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                <MenuItemField
+                    name={translate('workspace.campfire.exportReimbursable.label')}
+                    value={translate(`workspace.campfire.exportReimbursable.values.${exportReimbursable}.label`)}
+                >
+                    {areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.REIMBURSABLE], campfireConfig?.errorFields) && (
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    )}
+                </MenuItemField>
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.EXPORT_DATE], campfireConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={translate(`workspace.campfire.exportDate.values.${exportDate}.label`)}
-                    description={translate('workspace.campfire.exportDate.label')}
+                <MenuItemField
+                    name={translate('workspace.campfire.exportDate.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_VENDOR_BILL_DATE.getRoute(policyID)) : undefined)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.EXPORT_DATE], campfireConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                    value={translate(`workspace.campfire.exportDate.values.${exportDate}.label`)}
+                >
+                    {areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.EXPORT_DATE], campfireConfig?.errorFields) && (
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    )}
+                </MenuItemField>
             </OfflineWithFeedback>
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.NON_REIMBURSABLE], campfireConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={translate(`workspace.campfire.exportNonReimbursable.values.${exportNonReimbursable}.label`)}
-                    description={translate('workspace.campfire.exportNonReimbursable.label')}
-                    onPress={() => {}}
-                    interactive={false}
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.NON_REIMBURSABLE], campfireConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                <MenuItemField
+                    name={translate('workspace.campfire.exportNonReimbursable.label')}
+                    value={translate(`workspace.campfire.exportNonReimbursable.values.${exportNonReimbursable}.label`)}
+                >
+                    {areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.NON_REIMBURSABLE], campfireConfig?.errorFields) && (
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    )}
+                </MenuItemField>
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.DEFAULT_VENDORID], campfireConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={defaultCompanyCardVendor?.name}
-                    description={translate('workspace.campfire.defaultCompanyCardVendor.label')}
+                <MenuItemField
+                    name={translate('workspace.campfire.defaultCompanyCardVendor.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_DEFAULT_COMPANY_CARD_VENDOR.getRoute(policyID)) : undefined)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.DEFAULT_VENDORID], campfireConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                    value={defaultCompanyCardVendor?.name}
+                >
+                    {areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.DEFAULT_VENDORID], campfireConfig?.errorFields) && (
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    )}
+                </MenuItemField>
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CAMPFIRE_CONFIG.CREDIT_CARD_ACCOUNT_ID], campfireConfig?.pendingFields)}>
-                <MenuItemWithTopDescription
-                    title={companyCardAccount ? `${companyCardAccount?.id} ${companyCardAccount?.name}` : undefined}
-                    description={translate('workspace.campfire.companyCardAccount.label')}
+                <MenuItemField
+                    name={translate('workspace.campfire.companyCardAccount.label')}
                     onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_CAMPFIRE_COMPANY_CARD_ACCOUNT.getRoute(policyID)) : undefined)}
-                    shouldShowRightIcon
-                    brickRoadIndicator={
-                        areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.CREDIT_CARD_ACCOUNT_ID], campfireConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined
-                    }
-                />
+                    value={companyCardAccount ? `${companyCardAccount?.id} ${companyCardAccount?.name}` : undefined}
+                >
+                    {areSettingsInErrorFields([CONST.CAMPFIRE_CONFIG.CREDIT_CARD_ACCOUNT_ID], campfireConfig?.errorFields) && (
+                        <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                    )}
+                </MenuItemField>
             </OfflineWithFeedback>
             {hasActiveCards && (
                 <>

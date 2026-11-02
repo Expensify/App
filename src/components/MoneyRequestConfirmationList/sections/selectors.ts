@@ -11,6 +11,7 @@ import {
     isCreatedMissing,
     isFailedScanAmountPlaceholder,
     isMerchantMissing,
+    isScanning,
     isScanRequest,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
@@ -184,6 +185,7 @@ type AmountSlice = {
     isAmountMissing: boolean;
     isAmountSet: Transaction['isAmountSet'];
     isFailedScanAmountPlaceholder: boolean;
+    isScanning: boolean;
     taxCode: Transaction['taxCode'];
     // The Scan confirmation's amount / merchant / date are all-or-nothing, so the amount field reads the other two.
     isMerchantSet: boolean;
@@ -205,6 +207,7 @@ const amountSliceSelector = (t: OnyxEntry<Transaction>): AmountSlice | undefined
         isAmountMissing: isAmountMissing(t),
         isAmountSet: t.isAmountSet,
         isFailedScanAmountPlaceholder: isFailedScanAmountPlaceholder(t),
+        isScanning: isScanning(t),
         taxCode: t.taxCode,
         isMerchantSet: t.isMerchantSet ?? false,
         isCreatedSet: t.isCreatedSet ?? false,
@@ -357,7 +360,6 @@ type ReportFieldTransactionState = {
     reportID: Transaction['reportID'];
     isFromGlobalCreate: boolean;
     participantReportID: string | undefined;
-    isScanRequest: boolean;
 };
 
 const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportFieldTransactionState | undefined => {
@@ -368,7 +370,6 @@ const reportFieldTransactionStateSelector = (t: OnyxEntry<Transaction>): ReportF
         reportID: t.reportID,
         isFromGlobalCreate: !!t.isFromGlobalCreate,
         participantReportID: t.participants?.at(0)?.reportID,
-        isScanRequest: isScanRequest(t),
     };
 };
 

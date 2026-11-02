@@ -10,6 +10,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -147,6 +148,7 @@ function DescribeRuleForm({
     onFinish,
 }: DescribeRuleFormProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
     const styles = useThemeStyles();
     const formRef = useRef<FormRef>(null);
     const inputRef = useRef<AnimatedTextInputRef>(null);
@@ -163,6 +165,11 @@ function DescribeRuleForm({
     const generatedAgentRulePrompt = generatedRule?.agentRulePrompt;
     const refusal = generatedRuleState === CONST.GENERATED_RULE.STATE.IMPOSSIBLE && !!generatedRuleID && generatedRuleID === submittedGenerationID ? generatedRule : undefined;
     const refusalSuggestedPrompt = refusal?.suggestedPrompt;
+    const canCreateAnyway = !!refusalSuggestedPrompt && !!onAgentRuleFallback;
+    // An answer without an explanation still says why, with the general text for its reason
+    const refusalExplanation =
+        refusal && (refusal.explanation ? refusal.explanation : translate(IMPOSSIBLE_TITLE_BY_REASON[refusal.reason ?? ''] ?? 'workspace.rules.newRule.impossible.noCapability'));
+    const refusalDetail = refusalExplanation && refusalSuggestedPrompt ? translate('workspace.rules.newRule.impossible.explanationWithSuggestion', refusalExplanation) : refusalExplanation;
     const inputLabel = translate('workspace.rules.newRule.describeRuleInputLabel');
 
     const finish = () => {
@@ -277,6 +284,13 @@ function DescribeRuleForm({
             setNewRulePromptEmptyError();
             return;
         }
+        // The admin keeps their own description over the suggestion. Therefore it goes to the agent rule page and not back to Concierge.
+        if (refusal && refusalSuggestedPrompt && onAgentRuleFallback) {
+            Log.info('[GenerateRule] Created an agent rule after a refusal', false, {policyID, generationID: refusal.generationID, reason: refusal.reason});
+            onAgentRuleFallback(prompt, refusal.generationID, refusal.state);
+            finish();
+            return;
+        }
         describeRule(prompt);
     };
 
@@ -296,12 +310,32 @@ function DescribeRuleForm({
             formID={ONYXKEYS.FORMS.NEW_RULE_PROMPT_FORM}
             validate={validate}
             onSubmit={submit}
-            submitButtonText={submitButtonText}
+            submitButtonText={canCreateAnyway ? translate('workspace.rules.newRule.impossible.createAnyway') : submitButtonText}
             style={style}
             addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             shouldUseScrollView={shouldUseScrollView}
             submitFlexEnabled={submitFlexEnabled}
             shouldHideFixErrorsAlert
+            isSubmitButtonNeutral={!!refusalSuggestedPrompt}
+            // The buttons share a row and wrap to two rows when a translated label does not fit beside the other one
+            submitButtonAndFooterContainerStyles={refusalSuggestedPrompt ? [styles.flexRow, styles.flexWrap, styles.gap2] : undefined}
+            // The form puts a bottom margin on the submit button when the footer follows it. Side by side, the buttons must line up.
+            submitButtonInnerStyles={refusalSuggestedPrompt ? [styles.flexGrow1, styles.flexBasisAuto, styles.mb0] : undefined}
+            footerContent={
+                !!refusalSuggestedPrompt && (
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
+                        // Like the form's submit button, this button sends GenerateRule, which needs a connection
+                        isDisabled={isOffline}
+                        style={[styles.flexGrow1, styles.flexBasisAuto]}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
+                    >
+                        <Button.Text>{translate('workspace.rules.newRule.impossible.useSuggestion')}</Button.Text>
+                    </Button>
+                )
+            }
             // An empty description sends no request, so nothing would stop a loading state that starts on the press.
             shouldShowLoadingImmediatelyOnPress={!canSkipDescription}
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
@@ -336,21 +370,8 @@ function DescribeRuleForm({
             </View>
             {!!refusal && (
                 <View style={styles.mt4}>
-                    <Text style={styles.textStrong}>{translate(IMPOSSIBLE_TITLE_BY_REASON[refusal.reason ?? ''] ?? 'workspace.rules.newRule.impossible.noCapability')}</Text>
-                    {!!refusal.explanation && <Text style={[styles.textSupporting, styles.mt1]}>{refusal.explanation}</Text>}
-                    {!!refusalSuggestedPrompt && (
-                        <>
-                            <Text style={styles.mt3}>{refusalSuggestedPrompt}</Text>
-                            <Button
-                                size={CONST.BUTTON_SIZE.SMALL}
-                                onPress={() => describeSuggestedRule(refusalSuggestedPrompt)}
-                                style={[styles.mt2, styles.alignSelfStart]}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.RULES.DESCRIBE_RULE_TRY_SUGGESTION}
-                            >
-                                <Button.Text>{translate('workspace.rules.newRule.impossible.tryThisInstead')}</Button.Text>
-                            </Button>
-                        </>
-                    )}
+                    {!!refusalDetail && <Text style={styles.textSupporting}>{refusalDetail}</Text>}
+                    {!!refusalSuggestedPrompt && <Text style={styles.mt3}>{translate('workspace.rules.newRule.impossible.quotedSuggestion', refusalSuggestedPrompt)}</Text>}
                 </View>
             )}
         </FormProvider>

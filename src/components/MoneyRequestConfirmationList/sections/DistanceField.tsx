@@ -3,6 +3,7 @@ import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
@@ -11,10 +12,12 @@ import Navigation from '@libs/Navigation/Navigation';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import ExpenseFieldRow from './ExpenseFieldRow';
@@ -28,6 +31,7 @@ type DistanceFieldProps = {
 };
 
 function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {shouldUseDropdownRows} = useExpenseFormLayout();
     const {translate} = useLocalize();
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isManualDistanceRequest, isOdometerDistanceRequest, isGPSDistanceRequest} =
@@ -75,7 +79,7 @@ function DistanceField({hasRoute, distance, unit, customUnit}: DistanceFieldProp
 
     return (
         <MenuItem.Root
-            onPress={isDistanceInteractive ? callFunctionIfActionIsAllowed(openDistancePage) : undefined}
+            onPress={isDistanceInteractive ? callFunctionIfActionIsAllowed(openDistancePage, false, session) : undefined}
             isDisabled={didConfirm}
             sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DISTANCE_FIELD}
         >

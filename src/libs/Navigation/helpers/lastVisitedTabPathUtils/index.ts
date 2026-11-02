@@ -15,6 +15,15 @@ function clearSessionStorage() {
 }
 
 /**
+ * Clears the last visited tab paths, so a tab can't restore a path that belongs to another account.
+ */
+function clearLastVisitedTabPaths() {
+    for (const key of Object.values(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH)) {
+        sessionStorage.removeItem(key);
+    }
+}
+
+/**
  * Generic function to save a path to session storage by key
  */
 function saveTabPathToSessionStorage(key: LastVisitedTabPathKey, url: string) {
@@ -44,4 +53,4 @@ function saveSettingsTabPathToSessionStorage(url: string) {
     saveTabPathToSessionStorage(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_PATH.SETTINGS_TAB, url);
 }
 
-export {clearSessionStorage, saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage, getWorkspacesTabStateFromSessionStorage};
+export {clearSessionStorage, clearLastVisitedTabPaths, saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage, getWorkspacesTabStateFromSessionStorage};

@@ -33,7 +33,7 @@ import type {ScrollView as ScrollViewRN} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ApprovalWorkflowEditorProps = {
@@ -57,101 +57,83 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
     const approverCount = approvalWorkflow.approvers.length;
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
-    const approverDescription = useCallback(
-        (index: number) => (approverCount > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`),
-        [approverCount, toLocaleOrdinalWithWords, translate],
-    );
+    const approverDescription = (index: number) =>
+        approverCount > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : `${translate('workflowsPage.approver')}`;
 
-    const getApprovalPendingAction = useCallback(
-        (index: number) => {
-            // The approver's own `pendingAction` takes precedence — it's set when an approver was
-            // seeded from an optimistic agent creation (Workflows > Add agent) and the
-            // CREATE_AGENT response hasn't arrived yet. Showing opacity here is exactly what
-            // signals to the admin that the agent is still being confirmed by the server.
-            const approverPendingAction = approvalWorkflow?.approvers.at(index)?.pendingAction;
-            if (approverPendingAction) {
-                return approverPendingAction;
-            }
-            let pendingAction: PendingAction | undefined;
-            if (index === 0) {
-                if (approvalWorkflow?.members) {
-                    for (const member of approvalWorkflow.members) {
-                        pendingAction = pendingAction ?? member.pendingFields?.submitsTo;
-                    }
+    const getApprovalPendingAction = (index: number) => {
+        // The approver's own `pendingAction` takes precedence — it's set when an approver was
+        // seeded from an optimistic agent creation (Workflows > Add agent) and the
+        // CREATE_AGENT response hasn't arrived yet. Showing opacity here is exactly what
+        // signals to the admin that the agent is still being confirmed by the server.
+        const approverPendingAction = approvalWorkflow?.approvers.at(index)?.pendingAction;
+        if (approverPendingAction) {
+            return approverPendingAction;
+        }
+        let pendingAction: PendingAction | undefined;
+        if (index === 0) {
+            if (approvalWorkflow?.members) {
+                for (const member of approvalWorkflow.members) {
+                    pendingAction = pendingAction ?? member.pendingFields?.submitsTo;
                 }
-                return pendingAction;
             }
-            const previousApprover = approvalWorkflow?.approvers.at(index - 1);
-            const previousMember = approvalWorkflow?.members?.find((member) => member?.email === previousApprover?.email);
-            return previousMember?.pendingFields?.forwardsTo;
-        },
-        [approvalWorkflow],
-    );
+            return pendingAction;
+        }
+        const previousApprover = approvalWorkflow?.approvers.at(index - 1);
+        const previousMember = approvalWorkflow?.members?.find((member) => member?.email === previousApprover?.email);
+        return previousMember?.pendingFields?.forwardsTo;
+    };
 
-    const sortedMembers = useMemo(
-        () => (approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare)),
-        [approvalWorkflow.isDefault, approvalWorkflow.members, localeCompare],
-    );
+    const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);
 
     const members = approvalWorkflow.isDefault
         ? translate('workspace.common.everyone')
         : sortedMembers.map((m) => (Str.isSMSLogin(m.displayName) ? formatPhoneNumber(m.displayName) : m.displayName)).join(', ');
 
-    const memberPills = useMemo(
-        () =>
-            sortedMembers.map((m) => ({
-                // A just-invited member is stored without an avatar, so fall back to the email-based default
-                // avatar instead of the generic fallback icon.
-                avatar: m.avatar ?? getDefaultAvatarURL({accountEmail: m.email}),
-                displayName: m.displayName,
-                email: m.email,
-            })),
-        [sortedMembers],
-    );
+    const memberPills = sortedMembers.map((m) => ({
+        // A just-invited member is stored without an avatar, so fall back to the email-based default
+        // avatar instead of the generic fallback icon.
+        avatar: m.avatar ?? getDefaultAvatarURL({accountEmail: m.email}),
+        displayName: m.displayName,
+        email: m.email,
+    }));
 
-    const approverErrorMessage = useCallback(
-        (approver: Approver | undefined, approverIndex: number) => {
-            const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).findLast(Boolean);
-            const error = approvalWorkflow?.errors?.[`approver-${approverIndex}`];
+    const approverErrorMessage = (approver: Approver | undefined, approverIndex: number) => {
+        const previousApprover = approvalWorkflow.approvers.slice(0, approverIndex).findLast(Boolean);
+        const error = approvalWorkflow?.errors?.[`approver-${approverIndex}`];
 
-            // Flag a route to a non-member as soon as the editor opens, rather than only after a Save attempt
-            const nonMemberApproverError = getNonMemberApproverError(approver, approvalWorkflow.isDefault);
-            if (!error && nonMemberApproverError) {
-                return translate(nonMemberApproverError);
-            }
+        // Flag a route to a non-member as soon as the editor opens, rather than only after a Save attempt
+        const nonMemberApproverError = getNonMemberApproverError(approver, approvalWorkflow.isDefault);
+        if (!error && nonMemberApproverError) {
+            return translate(nonMemberApproverError);
+        }
 
-            if (!error) {
+        if (!error) {
+            return;
+        }
+
+        if (error === 'workflowsPage.approverCircularReference') {
+            if (!previousApprover || !approver) {
                 return;
             }
+            return translate(
+                'workflowsPage.approverCircularReference',
+                Str.isSMSLogin(approver.displayName) ? formatPhoneNumber(approver.displayName) : approver.displayName,
+                Str.isSMSLogin(previousApprover.displayName) ? formatPhoneNumber(previousApprover.displayName) : previousApprover.displayName,
+            );
+        }
 
-            if (error === 'workflowsPage.approverCircularReference') {
-                if (!previousApprover || !approver) {
-                    return;
-                }
-                return translate(
-                    'workflowsPage.approverCircularReference',
-                    Str.isSMSLogin(approver.displayName) ? formatPhoneNumber(approver.displayName) : approver.displayName,
-                    Str.isSMSLogin(previousApprover.displayName) ? formatPhoneNumber(previousApprover.displayName) : previousApprover.displayName,
-                );
-            }
+        return translate(error);
+    };
 
-            return translate(error);
-        },
-        [approvalWorkflow.approvers, approvalWorkflow.errors, approvalWorkflow.isDefault, translate, formatPhoneNumber],
-    );
+    const editApprover = (approverIndex: number) => {
+        if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex));
+        } else {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));
+        }
+    };
 
-    const editApprover = useCallback(
-        (approverIndex: number) => {
-            if (approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE) {
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverIndex));
-            } else {
-                Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVAL_LIMIT.getRoute(policyID, approverIndex));
-            }
-        },
-        [approvalWorkflow.action, policyID],
-    );
-
-    const handleExpensesFromPress = useCallback(() => {
+    const handleExpensesFromPress = () => {
         // Key the EDIT backTo off the persisted first approver, not the mutated draft. The edit page
         // resolves its workflow from policy.employeeList by first-approver email, so an unsaved approver
         // change would point backTo at a non-existent workflow and render the not-found ("Not here") view.
@@ -167,10 +149,10 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
                 : ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_NEW.getRoute(policyID);
 
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path, backTo));
-    }, [approvalWorkflow.action, approvalWorkflow.originalApprovers, approvalWorkflow.memberEmail, policyID]);
+    };
 
     // User should be allowed to add additional approver only if they upgraded to Control Plan, otherwise redirected to the Upgrade Page
-    const addAdditionalApprover = useCallback(() => {
+    const addAdditionalApprover = () => {
         if (!isControlPolicy(policy) && approverCount > 0) {
             Navigation.navigate(
                 ROUTES.WORKSPACE_UPGRADE.getRoute(
@@ -182,7 +164,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(policyID, approverCount));
-    }, [approverCount, policy, policyID]);
+    };
 
     return (
         <ScrollView

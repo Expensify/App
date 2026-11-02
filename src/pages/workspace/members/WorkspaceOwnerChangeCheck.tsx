@@ -19,7 +19,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceOwnerChangeCheckProps = {
@@ -45,7 +45,7 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
 
     const policyID = policy?.id;
 
-    const updateDisplayTexts = useCallback(() => {
+    const updateDisplayTexts = () => {
         const changeOwnerErrors = Object.keys(policy?.errorFields?.changeOwner ?? {});
         if (error !== changeOwnerErrors.at(0)) {
             return;
@@ -53,13 +53,13 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
 
         const texts = getOwnershipChecksDisplayText(error, translate, convertToDisplayString, policy, userPersonalDetails?.login);
         setDisplayTexts(texts);
-    }, [error, userPersonalDetails?.login, policy, translate, convertToDisplayString]);
+    };
 
     useEffect(() => {
         updateDisplayTexts();
     }, [updateDisplayTexts]);
 
-    const confirm = useCallback(() => {
+    const confirm = () => {
         if (!policyID) {
             return;
         }
@@ -72,7 +72,7 @@ function WorkspaceOwnerChangeCheck({policy, accountID, error}: WorkspaceOwnerCha
         }
 
         requestWorkspaceOwnerChange(policy, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login ?? '');
-    }, [policy, accountID, error, policyID, currentUserPersonalDetails.accountID, currentUserPersonalDetails.login]);
+    };
 
     return (
         <>
