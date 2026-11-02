@@ -581,6 +581,24 @@ function getCategoryExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | 
 }
 
 /**
+ * The categories a rule matches on when it matches on nothing else, or an empty list when its shape is wider.
+ *
+ * Reads the condition rather than the summary, which keeps a category's name whatever the operator is. A rule
+ * matching on anything else is narrower than the category, and a single leaf is the only shape that matches the
+ * category and nothing more. The rules engine reads the values of an equals condition as a list of alternatives,
+ * so every category the leaf names is one the rule covers.
+ */
+function getCategoryOnlyFilterValues(rule: Rule): Array<string | number> {
+    const leaves = getRuleFilterLeaves(rule.filters);
+    const categoryLeaf = leaves.at(0);
+    if (leaves.length !== 1 || categoryLeaf?.left !== CONDITION.CATEGORY || categoryLeaf.operator !== EQUAL_TO) {
+        return [];
+    }
+
+    return [categoryLeaf.right].flat();
+}
+
+/**
  * The tax rate a category's own expense default applies, or undefined when the category has none.
  *
  * Only a rule matching on the category alone counts. A rule that also matches on a merchant or a tag is narrower
@@ -598,13 +616,7 @@ function getCategoryOnlyExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule
             continue;
         }
 
-        // Read the condition rather than the summary, which keeps a category's name whatever the operator is. A
-        // rule matching on anything else is narrower than the category, and a single leaf is the only shape that
-        // matches the category and nothing more. The rules engine reads the values of an equals condition as a
-        // list of alternatives, so every category the leaf names carries the rule's rate.
-        const leaves = getRuleFilterLeaves(rule.filters);
-        const categoryLeaf = leaves.at(0);
-        if (leaves.length !== 1 || categoryLeaf?.left !== CONDITION.CATEGORY || categoryLeaf.operator !== EQUAL_TO || ![categoryLeaf.right].flat().includes(categoryName)) {
+        if (!getCategoryOnlyFilterValues(rule).includes(categoryName)) {
             continue;
         }
 
@@ -617,9 +629,9 @@ function getCategoryOnlyExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule
     return undefined;
 }
 
-/** Whether the policy has any expense default rule that sets a tax rate. */
-function hasExpenseDefaultTaxRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
-    return getPolicyExpenseDefaultRules(rulesCollection, policyID, true).some(({rule}) => !!getExpenseDefaultTaxID(rule));
+/** Whether the policy has an expense default that puts a tax rate on a category. */
+function hasCategoryExpenseDefaultTaxRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
+    return getPolicyExpenseDefaultRules(rulesCollection, policyID, true).some(({rule}) => getCategoryOnlyFilterValues(rule).length > 0 && !!getExpenseDefaultTaxID(rule));
 }
 
 /** The tax rate a rule applies, if it sets one. */
@@ -741,7 +753,7 @@ export {
     getExpenseDefaultFormValues,
     getPolicyExpenseDefaultRules,
     hasExpenseDefaultConditions,
-    hasExpenseDefaultTaxRule,
+    hasCategoryExpenseDefaultTaxRule,
     hasExpenseDefaultRuleErrors,
     haveSameConditions,
     isEditableExpenseDefaultRule,

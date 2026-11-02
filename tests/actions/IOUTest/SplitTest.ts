@@ -12884,6 +12884,23 @@ describe('setDraftSplitTransaction', () => {
         expect(updatedTransaction?.taxAmount).toBe(0);
     });
 
+    it('leaves the tax alone when the only tax rule matches on more than the category', async () => {
+        // Given a split draft on a policy whose only tax rule also matches on a merchant, so no category owns a rate
+        const policy = buildSplitPolicy();
+        const draftTransaction = {...buildSplitDraft(), taxCode: ruleTaxCode, taxAmount: 5};
+        const rules = createCategoryTaxRulesCollection(splitPolicyID, category, ruleTaxCode, 'Uber');
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
+
+        // When another category is written to the split
+        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category: 'Benefits'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        await waitForBatchedUpdates();
+
+        // Then the rate is kept, because a category change says nothing about a rule the category does not own
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(updatedTransaction?.taxCode).toBe(ruleTaxCode);
+        expect(updatedTransaction?.taxAmount).toBe(5);
+    });
+
     it('leaves the tax alone when the policy has no expense default', async () => {
         // Given a split draft on a policy with no expense defaults at all
         const policy = buildSplitPolicy();

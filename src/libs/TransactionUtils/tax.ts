@@ -7,7 +7,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getCategoryOnlyExpenseDefaultTaxID, hasExpenseDefaultTaxRule} from '@libs/ExpenseDefaultRuleUtils';
+import {getCategoryOnlyExpenseDefaultTaxID, hasCategoryExpenseDefaultTaxRule} from '@libs/ExpenseDefaultRuleUtils';
 import {translateLocal} from '@libs/Localize';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 
@@ -301,7 +301,7 @@ function getCategoryTaxDetails(
     // left alone, so an expense whose tax was never rule driven keeps whatever it holds.
     const categoryTaxCode =
         getCategoryTaxCode(category, transaction, policy, rules, currency) ??
-        (hasExpenseDefaultTaxRule(rules, policy?.id) ? getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction)) : undefined);
+        (hasCategoryExpenseDefaultTaxRule(rules, policy?.id) ? getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction)) : undefined);
     if (!categoryTaxCode) {
         return unresolvedTaxDetails;
     }
