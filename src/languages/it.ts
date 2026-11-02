@@ -51,6 +51,8 @@ const translations: TranslationDeepObject<typeof en> = {
         count: 'Conteggio',
         cancel: 'Annulla',
         dismiss: 'Chiudi',
+        resizeColumn: ({columnName}: {columnName: string}) => `Ridimensiona la colonna ${columnName}`,
+        columnWidth: ({width}: {width: number}) => `${width} pixel`,
         proceed: 'Continua',
         unshare: 'Rimuovi condivisione',
         yes: 'Sì',

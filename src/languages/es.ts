@@ -40,6 +40,8 @@ const translations: TranslationDeepObject<typeof en> = {
         webGLNotSupported: 'Tu navegador no es compatible con WebGL. Por favor, habilítalo o cambia de navegador.',
         chartFailedToLoad: 'No se pudo cargar el gráfico. Actualiza la página e inténtalo de nuevo.',
         dismiss: 'Descartar',
+        resizeColumn: ({columnName}: {columnName: string}) => `Redimensionar la columna ${columnName}`,
+        columnWidth: ({width}: {width: number}) => `${width} píxeles`,
         proceed: 'Proceder',
         unshare: 'Dejar de compartir',
         yes: 'Sí',
