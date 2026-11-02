@@ -521,6 +521,7 @@ export type {default as ExportReportCSVParams} from './ExportReportCSVParams';
 export type {default as UpdateExpensifyCardLimitParams} from './UpdateExpensifyCardLimitParams';
 export type {CreateWorkspaceApprovalParams, UpdateWorkspaceApprovalParams, RemoveWorkspaceApprovalParams} from './WorkspaceApprovalParams';
 export type {default as StartIssueNewCardFlowParams} from './StartIssueNewCardFlowParams';
+export type {default as OpenIssueNewCardShippingAddressStepParams} from './OpenIssueNewCardShippingAddressStepParams';
 export type {default as ConnectAsDelegateParams} from './ConnectAsDelegateParams';
 export type {default as SetPolicyRulesEnabledParams} from './SetPolicyRulesEnabledParams';
 export type {default as SetPolicyDefaultReportTitleParams} from './SetPolicyDefaultReportTitle';
@@ -614,6 +615,7 @@ export type {default as BulkUpdateCardTransactionStartDateParams} from './BulkUp
 export type {default as SetPersonalCardReimbursableParams} from './SetPersonalCardReimbursableParams';
 export type {default as SetCompanyCardExportAccountParams} from './SetCompanyCardExportAccountParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsParams} from './SetPersonalDetailsAndShipExpensifyCardsParams';
+export type {default as SetPersonalDetailsAndActivateExpensifyCardParams} from './SetPersonalDetailsAndActivateExpensifyCardParams';
 export type {default as SetPersonalDetailsAndRevealExpensifyCardParams} from './SetPersonalDetailsAndRevealExpensifyCardParams';
 export type {default as SetPersonalDetailsAndRevealExpensifyCardWithSCAParams} from './SetPersonalDetailsAndRevealExpensifyCardWithSCAParams';
 export type {default as SetPersonalDetailsAndShipExpensifyCardsWithPINParams} from './SetPersonalDetailsAndShipExpensifyCardsWithPINParams';

@@ -6,6 +6,8 @@ import type {shouldHideExpensifyTeamCardholder} from '@libs/PolicyUtils/members'
 
 import AssigneeStep from '@pages/workspace/expensifyCard/issueNew/AssigneeStep';
 
+import {clearIssueNewCardAssigneePhoneNumber, setIssueNewCardStepAndData} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import type * as OnyxKeysModule from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
@@ -132,6 +134,7 @@ jest.mock('@libs/PersonalDetailsUtils', () => ({
 jest.mock('@libs/actions/Report', () => ({searchUserInServer: jest.fn()}));
 jest.mock('@navigation/Navigation', () => ({goBack: jest.fn(), navigate: jest.fn()}));
 jest.mock('@userActions/Card', () => ({
+    clearIssueNewCardAssigneePhoneNumber: jest.fn(),
     clearIssueNewCardFlow: jest.fn(),
     getCardDefaultName: jest.fn(() => ''),
     setDraftInviteAccountID: jest.fn(),
@@ -201,6 +204,75 @@ describe('IssueNewCard AssigneeStep', () => {
         const props = getSelectionListProps();
         // Below the threshold moveInitialSelectionToTop is a no-op, so the natural alphabetical order is preserved.
         expect(props?.data.at(0)?.value).toBe('user00@example.com');
+    });
+
+    it('forgets the shipping address and phone number check when the cardholder changes', () => {
+        // Given a flow where the admin already entered an address for user07
+        mockIssueNewCard = {
+            data: {
+                assigneeEmail: 'user07@example.com',
+                shippingAddress: {
+                    legalFirstName: 'User',
+                    legalLastName: 'Seven',
+                    addressStreet: '224 Main Street',
+                    addressCity: 'San Francisco',
+                    addressState: 'CA',
+                    addressZip: '94123',
+                    addressCountry: CONST.COUNTRY.US,
+                },
+            },
+            isEditing: false,
+        };
+        renderStep();
+
+        // When the admin picks the same cardholder again
+        act(() => {
+            mockedSelectionList.mock.lastCall?.[0]?.onSelectRow?.({keyForList: 'user07@example.com', login: 'user07@example.com', accountID: 7});
+        });
+
+        // Then the address and phone number check are kept
+        expect(jest.mocked(setIssueNewCardStepAndData).mock.lastCall?.[0].data).not.toHaveProperty('shippingAddress');
+        expect(clearIssueNewCardAssigneePhoneNumber).not.toHaveBeenCalled();
+
+        // When the admin picks a different cardholder
+        act(() => {
+            mockedSelectionList.mock.lastCall?.[0]?.onSelectRow?.({keyForList: 'user03@example.com', login: 'user03@example.com', accountID: 3});
+        });
+
+        // Then the address and phone number check, which were for user07, are cleared
+        expect(jest.mocked(setIssueNewCardStepAndData).mock.lastCall?.[0].data).toEqual(expect.objectContaining({assigneeEmail: 'user03@example.com', shippingAddress: null}));
+        expect(clearIssueNewCardAssigneePhoneNumber).toHaveBeenCalledWith(POLICY_ID);
+    });
+
+    it('keeps the shipping address while the admin invites a new cardholder', () => {
+        // Given a flow where the admin already entered an address for user07
+        mockIssueNewCard = {
+            data: {
+                assigneeEmail: 'user07@example.com',
+                shippingAddress: {
+                    legalFirstName: 'User',
+                    legalLastName: 'Seven',
+                    addressStreet: '224 Main Street',
+                    addressCity: 'San Francisco',
+                    addressState: 'CA',
+                    addressZip: '94123',
+                    addressCountry: CONST.COUNTRY.US,
+                },
+            },
+            isEditing: true,
+        };
+        renderStep();
+        jest.mocked(clearIssueNewCardAssigneePhoneNumber).mockClear();
+
+        // When the admin picks someone who isn't a member yet
+        act(() => {
+            mockedSelectionList.mock.lastCall?.[0]?.onSelectRow?.({keyForList: 'new@example.com', login: 'new@example.com', accountID: 99});
+        });
+
+        // Then the address and phone number check stay, since cancelling the invite keeps user07 as the cardholder
+        expect(jest.mocked(setIssueNewCardStepAndData).mock.lastCall?.[0].step).toBe(CONST.EXPENSIFY_CARD.STEP.INVITE_NEW_MEMBER);
+        expect(jest.mocked(setIssueNewCardStepAndData).mock.lastCall?.[0].data).not.toHaveProperty('shippingAddress');
+        expect(clearIssueNewCardAssigneePhoneNumber).not.toHaveBeenCalled();
     });
 
     it('hides Expensify team members, matching the Workspace Members page', () => {

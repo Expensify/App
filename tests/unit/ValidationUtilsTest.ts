@@ -4,6 +4,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import {
     containsHtmlTag,
+    getAddressFieldErrors,
     getCountryZipRegexDetails,
     getFieldRequiredErrors,
     isValidZipCodeForCountry,
@@ -1027,6 +1028,64 @@ describe('ValidationUtils', () => {
         test('strict mode flags non-standard angle-bracket content', () => {
             expect(containsHtmlTag('<\u2713>')).toBe(false);
             expect(containsHtmlTag('<\u2713>', true)).toBe(true);
+        });
+    });
+
+    describe('getAddressFieldErrors', () => {
+        const validAddress = {addressLine1: '123 Main Street', addressLine2: 'Apt 4', city: 'Austin', state: 'TX', zipPostCode: '78701', country: CONST.COUNTRY.US};
+
+        it('returns no errors for a valid address', () => {
+            // Given an address within every limit and with a zip that matches its country
+            // When it is validated
+            const errors = getAddressFieldErrors(validAddress, translateLocal);
+
+            // Then no field has an error
+            expect(errors).toEqual({});
+        });
+
+        it('flags address lines and a city over the character limit', () => {
+            // Given address lines and a city one character over the limit
+            const tooLong = 'a'.repeat(CONST.FORM_CHARACTER_LIMIT + 1);
+
+            // When the address is validated
+            const errors = getAddressFieldErrors({...validAddress, addressLine1: tooLong, addressLine2: tooLong, city: tooLong}, translateLocal);
+
+            // Then each of them gets the character limit error
+            const limitError = translateLocal('common.error.characterLimitExceedCounter', tooLong.length, CONST.FORM_CHARACTER_LIMIT);
+            expect(errors).toEqual({addressLine1: limitError, addressLine2: limitError, city: limitError});
+        });
+
+        it('flags a street with only emojis but accepts a PO box', () => {
+            // Given a street made only of emojis, and a PO box, which cards can ship to
+            // When they are validated
+            const emojiErrors = getAddressFieldErrors({...validAddress, addressLine1: '🏠🏠🏠'}, translateLocal);
+            const poBoxErrors = getAddressFieldErrors({...validAddress, addressLine1: 'PO Box 123'}, translateLocal);
+
+            // Then only the emoji street gets the street error
+            expect(emojiErrors).toEqual({addressLine1: translateLocal('bankAccount.error.addressStreet')});
+            expect(poBoxErrors).toEqual({});
+        });
+
+        it('flags a long state or province only outside the US', () => {
+            // Given a state or province over the limit, which only a free text field can hold
+            const tooLong = 'a'.repeat(CONST.STATE_CHARACTER_LIMIT + 1);
+
+            // When it is validated for Canada and for the US
+            const canadaErrors = getAddressFieldErrors({...validAddress, state: tooLong, country: 'CA', zipPostCode: 'M5H 2N2'}, translateLocal);
+            const usErrors = getAddressFieldErrors({...validAddress, state: tooLong}, translateLocal);
+
+            // Then only Canada gets the error, since the US state comes from the state list
+            expect(canadaErrors).toEqual({state: translateLocal('common.error.characterLimitExceedCounter', tooLong.length, CONST.STATE_CHARACTER_LIMIT)});
+            expect(usErrors).toEqual({});
+        });
+
+        it('flags a zip that does not match the country', () => {
+            // Given a Canadian postal code on a US address
+            // When it is validated
+            const errors = getAddressFieldErrors({...validAddress, zipPostCode: 'M5H 2N2'}, translateLocal);
+
+            // Then the zip gets the format error with the US samples
+            expect(errors.zipPostCode).toBe(translateLocal('privatePersonalDetails.error.incorrectZipFormat', '12345, 12345-1234, 12345 1234'));
         });
     });
 });

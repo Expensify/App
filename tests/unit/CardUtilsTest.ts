@@ -99,6 +99,10 @@ import {
     isUkEuExpensifyCard,
     lastFourNumbersFromCardName,
     maskCardNumber,
+    shouldShowPhoneNumberStep,
+    getIssueNewCardShippingStepCount,
+    getIssueNewCardStartStepIndex,
+    shouldShowShippingAddressStep,
     sortCardsByCardholderName,
     splitCardFeedWithDomainID,
     toMonthlySettlementDate,
@@ -121,6 +125,7 @@ import type {
     Transaction,
     WorkspaceCardsList,
 } from '@src/types/onyx';
+import type {IssueNewCard} from '@src/types/onyx/Card';
 import type {CardFeedWithNumber, CompanyFeeds} from '@src/types/onyx/CardFeeds';
 import type {Connections} from '@src/types/onyx/Policy';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
@@ -4922,6 +4927,120 @@ describe('formatMaskedCardName', () => {
 
     it('returns non-commercial card names unchanged', () => {
         expect(formatMaskedCardName('J. SMITH...4306')).toBe('J. SMITH...4306');
+    });
+});
+
+describe('shouldShowShippingAddressStep', () => {
+    it('shows the step for a physical card on the US program', () => {
+        // Given a physical card issued in USD, so it ships on the US program
+        const data = {cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL, currency: CONST.CURRENCY.USD};
+
+        // Then the admin can enter where the card ships
+        expect(shouldShowShippingAddressStep(data)).toBe(true);
+    });
+
+    it('hides the step for virtual cards and UK/EU cards', () => {
+        // Given a virtual card, which never ships, and a UK/EU card, which needs a PIN before it ships
+        const virtualCard = {cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL, currency: CONST.CURRENCY.USD};
+        const ukEuCard = {cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL, currency: CONST.CURRENCY.GBP};
+
+        // Then neither gets the shipping address step
+        expect(shouldShowShippingAddressStep(virtualCard)).toBe(false);
+        expect(shouldShowShippingAddressStep(ukEuCard)).toBe(false);
+    });
+});
+
+const issueNewCard: IssueNewCard = {
+    currentStep: CONST.EXPENSIFY_CARD.STEP.SHIPPING_ADDRESS,
+    isEditing: false,
+    isChangeAssigneeDisabled: false,
+    hasAssigneePhoneNumber: false,
+    data: {
+        assigneeEmail: 'zany@example.com',
+        invitingMemberEmail: '',
+        invitingMemberAccountID: 0,
+        cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL,
+        limitType: CONST.EXPENSIFY_CARD.LIMIT_TYPES.MONTHLY,
+        limit: 200000,
+        cardTitle: "Zany's card",
+        currency: CONST.CURRENCY.USD,
+        shippingAddress: {
+            legalFirstName: 'Zany',
+            legalLastName: 'Smith',
+            addressStreet: '224 Main Street',
+            addressCity: 'San Francisco',
+            addressState: 'CA',
+            addressZip: '94123',
+            addressCountry: CONST.COUNTRY.US,
+        },
+    },
+};
+
+describe('shouldShowPhoneNumberStep', () => {
+    it('asks for a phone number when the admin entered the address and the cardholder has none', () => {
+        // Given the admin entered an address for a cardholder without a phone number
+        // Then the admin is asked for one, since the shipping label needs it
+        expect(shouldShowPhoneNumberStep(issueNewCard)).toBe(true);
+    });
+
+    it('skips the phone number when the cardholder has one or is prompted for the address', () => {
+        // Given a cardholder who already has a phone number, and one who will be prompted for their own details
+        const cardholderWithPhoneNumber = {...issueNewCard, hasAssigneePhoneNumber: true};
+        const promptedCardholder = {...issueNewCard, data: {...issueNewCard.data, shippingAddress: null}};
+
+        // Then neither needs the admin to enter a phone number
+        expect(shouldShowPhoneNumberStep(cardholderWithPhoneNumber)).toBe(false);
+        expect(shouldShowPhoneNumberStep(promptedCardholder)).toBe(false);
+    });
+});
+
+describe('getIssueNewCardShippingStepCount', () => {
+    it('adds no steps for a virtual card', () => {
+        // Given a virtual card, which never ships
+        const virtualCard = {...issueNewCard, data: {...issueNewCard.data, cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL}};
+
+        // Then the flow has no shipping steps
+        expect(getIssueNewCardShippingStepCount(virtualCard)).toBe(0);
+    });
+
+    it('adds the shipping address step, plus the phone number step only when the admin has to enter one', () => {
+        // Given a physical US card prompted to the cardholder, one with an address for a cardholder without a phone number, and one whose cardholder has a phone number
+        const promptedCardholder = {...issueNewCard, data: {...issueNewCard.data, shippingAddress: null}};
+        const cardholderWithPhoneNumber = {...issueNewCard, hasAssigneePhoneNumber: true};
+
+        // Then only the cardholder without a phone number adds the phone number step
+        expect(getIssueNewCardShippingStepCount(promptedCardholder)).toBe(1);
+        expect(getIssueNewCardShippingStepCount(issueNewCard)).toBe(2);
+        expect(getIssueNewCardShippingStepCount(cardholderWithPhoneNumber)).toBe(1);
+    });
+});
+
+describe('getIssueNewCardStartStepIndex', () => {
+    it('starts at the first step before the flow begins', () => {
+        // Given no issue card flow yet
+        // Then the progress indicator starts at the first step
+        expect(getIssueNewCardStartStepIndex(undefined)).toBe(0);
+    });
+
+    it('places the shipping steps after the card name and the confirmation after them', () => {
+        // Given an admin on the shipping address step, the phone number step and the confirmation
+        const onPhoneNumberStep = {...issueNewCard, currentStep: CONST.EXPENSIFY_CARD.STEP.PHONE_NUMBER};
+        const onConfirmation = {...issueNewCard, currentStep: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION};
+        const onVirtualCardConfirmation = {...onConfirmation, data: {...issueNewCard.data, cardType: CONST.EXPENSIFY_CARD.CARD_TYPE.VIRTUAL}};
+
+        // Then each step follows the five before it, and a virtual card's confirmation follows the card name
+        expect(getIssueNewCardStartStepIndex(issueNewCard)).toBe(5);
+        expect(getIssueNewCardStartStepIndex(onPhoneNumberStep)).toBe(6);
+        expect(getIssueNewCardStartStepIndex(onConfirmation)).toBe(7);
+        expect(getIssueNewCardStartStepIndex(onVirtualCardConfirmation)).toBe(5);
+    });
+
+    it('moves every step back one when the cardholder is already picked', () => {
+        // Given a flow started for a specific cardholder, so the assignee step is skipped
+        const withoutAssigneeStep = {...issueNewCard, isChangeAssigneeDisabled: true};
+
+        // Then the shipping address step is one place earlier
+        expect(getIssueNewCardStartStepIndex(withoutAssigneeStep)).toBe(4);
     });
 });
 

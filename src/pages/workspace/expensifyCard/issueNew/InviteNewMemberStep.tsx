@@ -5,7 +5,7 @@ import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalD
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
-import {setDraftInviteAccountID, setIssueNewCardStepAndData} from '@libs/actions/Card';
+import {clearIssueNewCardAssigneePhoneNumber, setDraftInviteAccountID, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -49,19 +49,27 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
     };
 
     const goToNextStep = () => {
+        const data = {...issueNewCard?.data, assigneeEmail: issueNewCard?.data?.invitingMemberEmail ?? '', invitingMemberEmail: undefined};
+
+        // The shipping name, address and phone number were entered for the previous cardholder
+        if (data.assigneeEmail !== issueNewCard?.data?.assigneeEmail) {
+            data.shippingAddress = null;
+            clearIssueNewCardAssigneePhoneNumber(policyID);
+        }
+
         if (isEditing) {
             setIssueNewCardStepAndData({
                 step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
                 isEditing: false,
                 policyID,
-                data: {...issueNewCard?.data, assigneeEmail: issueNewCard?.data?.invitingMemberEmail ?? '', invitingMemberEmail: undefined},
+                data,
             });
         } else {
             setIssueNewCardStepAndData({
                 step: CONST.EXPENSIFY_CARD.STEP.CARD_TYPE,
                 isEditing: false,
                 policyID,
-                data: {...issueNewCard?.data, assigneeEmail: issueNewCard?.data?.invitingMemberEmail ?? '', invitingMemberEmail: undefined},
+                data,
             });
         }
     };
