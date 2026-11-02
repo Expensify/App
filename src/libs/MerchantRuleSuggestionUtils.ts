@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import type {MerchantRuleForm} from '@src/types/form';
-import type {MerchantRuleSuggestion, Policy, Transaction} from '@src/types/onyx';
+import type {MerchantRuleSuggestion, MerchantRuleSuggestionConfirmation, Policy, Transaction} from '@src/types/onyx';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -10,12 +10,43 @@ import {resolveCurrentTaxCode} from './PolicyUtils';
 import {trimTag} from './TagUtils';
 import {getBillable, getCategory, getDescription, getMerchant, getReimbursable, getTag, getTagArrayFromName, getTaxCode, isMerchantMissing} from './TransactionUtils';
 
-/** Whether a stored offer still stands: it names an expense, was not left behind, and was not dismissed this session. */
-function isMerchantRuleSuggestionLive(suggestion: OnyxEntry<MerchantRuleSuggestion>): boolean {
-    if (!suggestion?.transactionID || suggestion.isRetired) {
+/**
+ * The fields of the offering expense a rule may carry: edited by the user and judged worth a rule by the server.
+ *
+ * Both halves are needed. An unedited field has nothing to seed from, and an unconfirmed one is an edit nobody
+ * repeats, so a rule built from it would impose a one-off on every future expense from the merchant. Taken from the
+ * canonical list rather than the records' own keys, so the order is fixed and only known fields reach the draft.
+ *
+ * Requiring both is also what keeps a verdict that outlives its session inert. The edits are RAM-only, so a stored
+ * confirmation with nothing left to answer offers nothing.
+ */
+function getOfferableMerchantRuleSuggestionFields(suggestion: OnyxEntry<MerchantRuleSuggestion>, confirmation: OnyxEntry<MerchantRuleSuggestionConfirmation>): MerchantRuleSuggestionField[] {
+    const transactionID = suggestion?.transactionID;
+    if (!transactionID) {
+        return [];
+    }
+
+    const editedFields = suggestion?.editedFields?.[transactionID];
+
+    return Object.values(CONST.MERCHANT_RULE_SUGGESTION_FIELDS).filter((field) => !!editedFields?.[field] && !!confirmation?.[field]);
+}
+
+/**
+ * Whether a stored offer still stands: the server judged at least one of its edits worth a rule, and it was not left
+ * behind or dismissed this session.
+ *
+ * An edit is recorded before the server has answered, so a record on its own is not yet an offer. Callers mount the
+ * callout on this, and a pending record would spend its entrance animation before there was anything to show.
+ */
+function isMerchantRuleSuggestionLive(suggestion: OnyxEntry<MerchantRuleSuggestion>, confirmation: OnyxEntry<MerchantRuleSuggestionConfirmation>): boolean {
+    const transactionID = suggestion?.transactionID;
+    if (!transactionID || suggestion?.retiredTransactionIDs?.[transactionID]) {
         return false;
     }
-    return !suggestion.dismissedTransactionIDs?.includes(suggestion.transactionID);
+    if (getOfferableMerchantRuleSuggestionFields(suggestion, confirmation).length === 0) {
+        return false;
+    }
+    return !suggestion?.dismissedTransactionIDs?.includes(transactionID);
 }
 
 /**
@@ -112,4 +143,4 @@ function getMerchantRuleDraftFromTransaction(
     return draft;
 }
 
-export {getChangedTagLevels, getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive};
+export {getChangedTagLevels, getMerchantRuleDraftFromTransaction, getOfferableMerchantRuleSuggestionFields, isMerchantRuleSuggestionLive};

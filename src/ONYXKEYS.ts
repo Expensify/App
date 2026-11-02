@@ -1084,6 +1084,12 @@ const ONYXKEYS = {
         /** This is deprecated, but needed for a migration, so we still need to include it here so that it will be initialized in Onyx.init */
         DEPRECATED_POLICY_MEMBER_LIST: 'policyMemberList_',
 
+        /**
+         * Auth's verdict on an expense's edits, keyed by expense then by field. A field reads true once the same value
+         * has been given to the same merchant often enough for a merchant rule to be worth offering.
+         */
+        SUGGEST_NEW_RULE_CREATION: 'suggestNewRuleCreation_',
+
         // Search Page related
         SNAPSHOT: 'snapshot_',
 
@@ -1745,6 +1751,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.DOMAIN_ERRORS]: OnyxTypes.DomainErrors;
     [ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS]: OnyxTypes.DomainHighlightItems;
     [ONYXKEYS.COLLECTION.CODING_RULE_MATCHING_TRANSACTION]: OnyxTypes.CodingRuleMatchingTransaction;
+    [ONYXKEYS.COLLECTION.SUGGEST_NEW_RULE_CREATION]: OnyxTypes.MerchantRuleSuggestionConfirmation;
     [ONYXKEYS.COLLECTION.PASSKEY_CREDENTIALS]: OnyxTypes.LocalPasskeyCredentialsEntry;
     [ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS]: OnyxTypes.DeviceBiometrics;
 };

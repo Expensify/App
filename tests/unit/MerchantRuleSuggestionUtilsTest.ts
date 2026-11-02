@@ -1,11 +1,12 @@
-import {getChangedTagLevels, getMerchantRuleDraftFromTransaction, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
+import {getChangedTagLevels, getMerchantRuleDraftFromTransaction, getOfferableMerchantRuleSuggestionFields, isMerchantRuleSuggestionLive} from '@libs/MerchantRuleSuggestionUtils';
 
 import CONST from '@src/CONST';
-import type {MerchantRuleSuggestion, Policy, Transaction} from '@src/types/onyx';
+import type {MerchantRuleSuggestion, MerchantRuleSuggestionConfirmation, Policy, Transaction} from '@src/types/onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 
 const TRANSACTION_ID = '1234567890';
+const OTHER_TRANSACTION_ID = '9999';
 
 /**
  * A minimal expense the draft builder can read. Tests override only the fields they exercise, so the seeding table is
@@ -42,38 +43,126 @@ const buildPolicyWithTax = (taxCode: string): Policy => {
 const buildSuggestion = (overrides: Partial<MerchantRuleSuggestion> = {}) =>
     ({
         transactionID: TRANSACTION_ID,
-        reportID: '999',
+        reportIDs: {[TRANSACTION_ID]: '999'},
         editedFields: {[TRANSACTION_ID]: {category: true}},
         ...overrides,
     }) as MerchantRuleSuggestion;
 
+const buildConfirmation = (overrides: Partial<MerchantRuleSuggestionConfirmation> = {}): MerchantRuleSuggestionConfirmation => ({
+    category: true,
+    ...overrides,
+});
+
 describe('isMerchantRuleSuggestionLive', () => {
     it('is not live without a stored offer', () => {
-        expect(isMerchantRuleSuggestionLive(undefined)).toBe(false);
+        // Given neither edits nor a verdict, which is how both records read before the first tracked edit
+        // When the offer is checked
+        // Then it does not stand
+        expect(isMerchantRuleSuggestionLive(undefined, undefined)).toBe(false);
     });
 
-    it('is not live without a transaction to offer for', () => {
-        expect(isMerchantRuleSuggestionLive(buildSuggestion({transactionID: ''}))).toBe(false);
+    it('is not live until an edit names the expense offering', () => {
+        // Given a record holding no expense, which is how it reads before the first tracked edit
+        // When the offer is checked
+        // Then it does not stand, since there is no expense for the callout to offer on
+        expect(isMerchantRuleSuggestionLive(buildSuggestion({transactionID: undefined}), buildConfirmation())).toBe(false);
     });
 
-    it('is live for a freshly recorded edit', () => {
-        expect(isMerchantRuleSuggestionLive(buildSuggestion())).toBe(true);
+    it('is live once the server has confirmed an edited field', () => {
+        // Given an edit the server judged worth a rule
+        // When the offer is checked
+        // Then it stands
+        expect(isMerchantRuleSuggestionLive(buildSuggestion(), buildConfirmation())).toBe(true);
     });
 
-    it('is not live once retired', () => {
-        expect(isMerchantRuleSuggestionLive(buildSuggestion({isRetired: true}))).toBe(false);
+    it('is not live while the edit is still waiting on the server', () => {
+        // Given an edit recorded before its queued write has been answered
+        // When the offer is checked
+        // Then it does not stand, since only the server can say the edit repeats
+        expect(isMerchantRuleSuggestionLive(buildSuggestion(), undefined)).toBe(false);
+    });
+
+    it('is not live when the server turned the edit down', () => {
+        // Given a verdict saying this edit is a one-off, which is what the server returns for a first edit
+        // When the offer is checked
+        // Then it does not stand
+        expect(isMerchantRuleSuggestionLive(buildSuggestion(), buildConfirmation({category: false}))).toBe(false);
+    });
+
+    it('is not live when the only confirmed field was never edited', () => {
+        // Given a verdict for a field the user did not edit on this expense, which is what a response for an expense
+        // the call site declined to record leaves behind, and what a verdict outliving its session reads like
+        const suggestion = buildSuggestion({editedFields: {[TRANSACTION_ID]: {description: true}}});
+
+        // When the offer is checked
+        // Then it does not stand, since there is no field the rule could be built from
+        expect(isMerchantRuleSuggestionLive(suggestion, buildConfirmation())).toBe(false);
+    });
+
+    it('is not live once this expense is retired', () => {
+        // Given an offer the user saw and left behind
+        const suggestion = buildSuggestion({retiredTransactionIDs: {[TRANSACTION_ID]: true}});
+
+        // When the offer is checked
+        // Then it does not stand
+        expect(isMerchantRuleSuggestionLive(suggestion, buildConfirmation())).toBe(false);
+    });
+
+    it('stays live when a different expense was retired', () => {
+        // Given an offer left behind on an expense that is no longer the one offering
+        const suggestion = buildSuggestion({retiredTransactionIDs: {[OTHER_TRANSACTION_ID]: true}});
+
+        // When the offer is checked
+        // Then it stands, since retiring one expense must not silence the next one
+        expect(isMerchantRuleSuggestionLive(suggestion, buildConfirmation())).toBe(true);
     });
 
     it('stays live after being seen, since seeing it is not taking it', () => {
-        expect(isMerchantRuleSuggestionLive(buildSuggestion({seenInReportID: '999'}))).toBe(true);
+        // Given a callout that has rendered and recorded the report it rendered in
+        // When the offer is checked
+        // Then it stands, because the offer ends on leaving that report rather than on reaching it
+        expect(isMerchantRuleSuggestionLive(buildSuggestion({seenInReportID: '999'}), buildConfirmation())).toBe(true);
     });
 
     it('is not live once this expense is dismissed', () => {
-        expect(isMerchantRuleSuggestionLive(buildSuggestion({dismissedTransactionIDs: [TRANSACTION_ID]}))).toBe(false);
+        // Given an offer the user dismissed with the X
+        // When the offer is checked
+        // Then it does not stand
+        expect(isMerchantRuleSuggestionLive(buildSuggestion({dismissedTransactionIDs: [TRANSACTION_ID]}), buildConfirmation())).toBe(false);
     });
 
     it('stays live when a different expense was dismissed', () => {
-        expect(isMerchantRuleSuggestionLive(buildSuggestion({dismissedTransactionIDs: ['9999']}))).toBe(true);
+        // Given a dismissal recorded against another expense
+        // When the offer is checked
+        // Then it stands, since a dismissal silences one expense rather than the feature
+        expect(isMerchantRuleSuggestionLive(buildSuggestion({dismissedTransactionIDs: [OTHER_TRANSACTION_ID]}), buildConfirmation())).toBe(true);
+    });
+});
+
+describe('getOfferableMerchantRuleSuggestionFields', () => {
+    it('offers only the fields the server confirmed', () => {
+        // Given an expense whose category repeats often enough to earn a rule, edited alongside a one-off description
+        const suggestion = buildSuggestion({editedFields: {[TRANSACTION_ID]: {category: true, description: true}}});
+
+        // When the fields the rule may carry are worked out
+        // Then the one-off description is left out, so the rule does not impose it on every future expense
+        expect(getOfferableMerchantRuleSuggestionFields(suggestion, buildConfirmation())).toEqual([CONST.MERCHANT_RULE_SUGGESTION_FIELDS.CATEGORY]);
+    });
+
+    it('offers nothing for an expense other than the one offering', () => {
+        // Given edits recorded against an expense that is not the one the verdict named
+        const suggestion = buildSuggestion({editedFields: {[OTHER_TRANSACTION_ID]: {category: true}}});
+
+        // When the fields the rule may carry are worked out
+        // Then nothing is offered, since another expense's edits must not seed this one's rule
+        expect(getOfferableMerchantRuleSuggestionFields(suggestion, buildConfirmation())).toEqual([]);
+    });
+
+    it('offers nothing for a verdict with no edits left to answer', () => {
+        // Given a stored verdict and no edits, which is how a session that outlived its RAM-only edits reads
+        // When the fields the rule may carry are worked out
+        // Then nothing is offered, so a verdict on its own can never raise a callout
+        expect(getOfferableMerchantRuleSuggestionFields(undefined, buildConfirmation())).toEqual([]);
     });
 });
 
