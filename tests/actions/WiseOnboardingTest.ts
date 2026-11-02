@@ -18,6 +18,7 @@ import type {MockFetch} from '../utils/TestHelper';
 import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
 const SSN = '123456789';
 
@@ -221,6 +222,40 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         // Then the page is still unsaved, since Wise only holds the earlier answer, so Confirm stays blocked until the page saves again
         expect(requestCount).toBe(2);
         expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {business: true}});
+    });
+
+    it('keeps a page with an SSN unsaved when its earlier save answers after its later save would fail', async () => {
+        // Given the user saves the representative page with an SSN twice, which skips the queue, and the first save's answer is slow. The page belongs
+        // to a bank account no other test saves, since a page's save waits for its previous one and the other tests leave saves that never answer.
+        let answerFirstSave: (response: Response) => void = () => {};
+        let requestCount = 0;
+        global.fetch = jest.fn(() => {
+            requestCount += 1;
+            if (requestCount === 1) {
+                return new Promise<Response>((resolve) => {
+                    answerFirstSave = resolve;
+                });
+            }
+            return Promise.resolve(createMock<Response>({ok: true, json: () => Promise.resolve({jsonCode: 400})}));
+        });
+
+        // When both saves are made before the first one answers
+        saveWiseOnboardingPage(2, REPRESENTATIVE_PAGE, {firstName: 'Alice'}, {ssn: SSN});
+        saveWiseOnboardingPage(2, REPRESENTATIVE_PAGE, {firstName: 'Alicia'}, {ssn: SSN});
+        await waitForNetworkPromises();
+
+        // Then the second save waits for the first, so it cannot fail before the first one succeeds and have its failure cleared
+        expect(requestCount).toBe(1);
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(true);
+
+        // When the server accepts the first save and rejects the second
+        answerFirstSave(createMock<Response>({ok: true, json: () => Promise.resolve({jsonCode: 200})}));
+        await waitForNetworkPromises();
+
+        // Then the page is still unsaved, since Wise only holds the older answers, so Confirm stays blocked until the page saves again
+        expect(requestCount).toBe(2);
+        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
     });
 
     it('never writes a typed SSN to the request queue on disk', async () => {

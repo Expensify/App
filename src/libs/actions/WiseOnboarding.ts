@@ -61,13 +61,23 @@ function saveWiseOnboardingPageThroughQueue(params: UpdateWiseOnboardingAddition
     write(WRITE_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, params, getOnyxData(params.step, rand64()));
 }
 
+/** The last save of each page sent without the request queue, keyed by bank account and step */
+const lastSavesWithSensitiveAnswers = new Map<string, Promise<unknown>>();
+
 /**
  * Saves an intake page carrying an SSN without the request queue, since queued requests are written to disk. The flow saves pages only online, so a
  * failure here, including a connection that drops mid-request, is a failed save that is not retried. A dropped connection resolves the request
- * instead of rejecting it, so the failure data marks the page unsaved.
+ * instead of rejecting it, so the failure data marks the page unsaved. Without the queue, two saves of a page could answer out of order, so a page's
+ * save is sent only after its previous one answers, and the answer of the latest save always decides whether the page is unsaved. The optimistic data
+ * is applied at once, so the flow counts the save as running while it waits.
  */
 function saveWiseOnboardingPageWithSensitiveAnswers(params: UpdateWiseOnboardingAdditionalDataParams) {
-    makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, params, getOnyxData(params.step, rand64()));
+    const {optimisticData, ...onyxData} = getOnyxData(params.step, rand64());
+    Onyx.update(optimisticData ?? []);
+    const pageKey = `${params.bankAccountID}:${params.step}`;
+    const previousSave = lastSavesWithSensitiveAnswers.get(pageKey) ?? Promise.resolve();
+    const save = previousSave.then(() => makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, params, onyxData));
+    lastSavesWithSensitiveAnswers.set(pageKey, save);
 }
 
 /**
