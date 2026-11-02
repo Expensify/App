@@ -69,8 +69,9 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
             fetchPerDiemRates(policy.id);
         }
 
-        const canDestinationResolvePolicy = !!perDiemUnit || (!!targetReport.policyID && targetReport.policyID !== CONST.POLICY.ID_FAKE);
-        if (!canDestinationResolvePolicy) {
+        // The form opens straight after this, and nothing there points the draft at the per diem unit once the rates load,
+        // so wait for them here before setting the draft up.
+        if (!perDiemUnit) {
             setPendingPolicyID(policy?.id);
             return;
         }
@@ -90,8 +91,8 @@ function IOURequestStepPerDiemWorkspace({route, navigation, transaction}: IOUReq
                 },
             ]);
         }
-        setCustomUnitID(transactionID, perDiemUnit?.customUnitID ?? CONST.CUSTOM_UNITS.FAKE_P2P_ID);
-        setMoneyRequestCategory(transactionID, perDiemUnit?.defaultCategory ?? '', undefined, getCurrencyDecimals);
+        setCustomUnitID(transactionID, perDiemUnit.customUnitID);
+        setMoneyRequestCategory(transactionID, perDiemUnit.defaultCategory ?? '', undefined, getCurrencyDecimals);
 
         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, targetIouType, transactionID, targetReport.reportID));
     };
