@@ -12,6 +12,9 @@ describe('showContextMenuForReport', () => {
         const setIsContextMenuActive = jest.fn();
         const checkIfContextMenuActive = jest.fn();
         const show = jest.mocked(showContextMenu);
+        show.mockImplementationOnce(() => {
+            expect(setIsContextMenuActive).toHaveBeenCalledWith(true);
+        });
 
         // When the preview opens the context menu, ownership must be acquired before measuring its anchor.
         showContextMenuForReport(new MouseEvent('contextmenu'), {current: null}, '1', undefined, checkIfContextMenuActive, '1', {
@@ -21,7 +24,7 @@ describe('showContextMenuForReport', () => {
 
         // Then the picker inherits the row's setter, and only the menu's hide callback releases context ownership.
         expect(setIsContextMenuActive).toHaveBeenCalledWith(true);
-        expect(setIsContextMenuActive.mock.invocationCallOrder.at(0)).toBeLessThan(show.mock.invocationCallOrder.at(0));
+        expect(show).toHaveBeenCalledTimes(1);
         const callbacks = show.mock.calls.at(-1)?.[0].callbacks;
         expect(callbacks?.setIsEmojiPickerActive).toBe(setIsEmojiPickerActive);
         callbacks?.onHide?.();
