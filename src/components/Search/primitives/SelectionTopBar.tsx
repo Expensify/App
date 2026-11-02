@@ -75,7 +75,7 @@ function SelectionTopBar({
             dataSet={columnResize ? TABLE_ROW_DATA_SET : undefined}
         >
             {canSelectMultiple && (
-                <View style={!!SearchTableHeader && styles.pv2}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, !!SearchTableHeader && styles.pv2]}>
                     <SearchSelectAllMenu
                         isSelectAllChecked={isSelectAllChecked}
                         isIndeterminate={selectedItemsLength > 0 && (selectedItemsLength !== totalItems || !hasLoadedAllTransactions)}
