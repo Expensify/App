@@ -139,8 +139,8 @@ function getPolicyBankAccountCountry(policy: OnyxEntry<Policy>, bankAccountList:
         return undefined;
     }
 
-    // Legacy US accounts can omit the country
-    return achBankAccount.accountData?.additionalData?.country ?? CONST.COUNTRY.US;
+    // Some accounts only have the top-level bankCountry, and legacy US accounts can omit the country entirely
+    return achBankAccount.accountData?.additionalData?.country ?? achBankAccount.bankCountry ?? CONST.COUNTRY.US;
 }
 
 /**

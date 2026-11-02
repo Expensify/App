@@ -4444,6 +4444,21 @@ describe('PolicyUtils', () => {
                 expect(country).toBe(CONST.COUNTRY.US);
             });
 
+            it('should read the top-level bankCountry when the bank account has no nested country', () => {
+                // Given a GB bank account that the admin owns and that only has the top-level bankCountry
+                const policy = createMock<Policy>({
+                    id: '1',
+                    achAccount: {bankAccountID: 2, accountNumber: '', routingNumber: '', addressName: '', bankName: '', reimburser: ''},
+                });
+                const bankAccountList = {2: createMock<BankAccount>({bankCountry: 'GB', accountData: {additionalData: {}}})};
+
+                // When the bank account's country is read
+                const country = getPolicyBankAccountCountry(policy, bankAccountList);
+
+                // Then it is GB, so US isn't added and locked for a workspace whose bank account is outside the US
+                expect(country).toBe('GB');
+            });
+
             it('should fall back to US for a USD workspace whose bank account the admin does not own', () => {
                 // Given a USD workspace whose bank account isn't in the admin's bank account list
                 const policy = createMock<Policy>({
