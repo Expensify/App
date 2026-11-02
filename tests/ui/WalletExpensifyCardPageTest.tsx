@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
+import type NativeAddToWalletButton from '@components/AddToWalletButton/index.native';
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -13,6 +14,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {clearRevealedVirtualCardDetails, setRevealedVirtualCardDetails} from '@libs/RevealedCardSecretsStore';
+import {handleAddCardToWallet, isCardInWallet} from '@libs/Wallet';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -21,6 +23,8 @@ import ExpensifyCardPage from '@pages/settings/Wallet/ExpensifyCardPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+
+import type ReactNative from 'react-native';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -32,6 +36,26 @@ import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
+jest.mock('@components/AddToWalletButton/index', () => jest.requireActual<{default: typeof NativeAddToWalletButton}>('@components/AddToWalletButton/index.native'));
+jest.mock('@libs/Wallet', () => ({
+    checkIfWalletIsAvailable: jest.fn(() => Promise.resolve(true)),
+    isCardInWallet: jest.fn(() => Promise.resolve(false)),
+    handleAddCardToWallet: jest.fn(() => Promise.resolve('canceled')),
+}));
+jest.mock('@expensify/react-native-wallet', () => {
+    const {Pressable, Text} = jest.requireActual<typeof ReactNative>('react-native');
+    return {
+        AddToWalletButton: ({onPress}: {onPress: () => void}) => (
+            <Pressable
+                accessibilityRole="button"
+                onPress={onPress}
+            >
+                <Text>Add to wallet</Text>
+            </Pressable>
+        ),
+    };
+});
+
 // Set up a global fetch mock for API requests in tests.
 TestHelper.setupGlobalFetchMock();
 
@@ -39,6 +63,7 @@ TestHelper.setupGlobalFetchMock();
 const Stack = createPlatformStackNavigator<SettingsNavigatorParamList>();
 
 const userCardID = '1234';
+const virtualCardID = '5678';
 
 // Renders the ExpensifyCardPage inside a navigation container with necessary providers.
 const renderPage = (initialRouteName: typeof SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, initialParams: SettingsNavigatorParamList[typeof SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD]) => {
@@ -254,6 +279,105 @@ describe('ExpensifyCardPage', () => {
         });
 
         // Unmount the component after assertions to clean up.
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('shows the wallet button for an open physical card and adds that card', async () => {
+        // Given an open physical card without a virtual companion, so it is the only card available for the wallet.
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                [userCardID]: {
+                    cardID: 1234,
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    fundID: '12345',
+                    domainName: 'physical-domain',
+                    nameValuePairs: {isVirtual: false, cardTitle: 'Physical Card'},
+                    availableSpend: 50000,
+                    fraud: null,
+                },
+            });
+        });
+
+        // When the physical card's wallet button is pressed.
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, {cardID: userCardID});
+        const walletButton = await screen.findByText('Add to wallet');
+        fireEvent.press(walletButton);
+
+        // Then the card selected for wallet provisioning is the physical card.
+        expect(isCardInWallet).toHaveBeenCalledWith(expect.objectContaining({cardID: 1234}));
+        expect(handleAddCardToWallet).toHaveBeenCalledWith(expect.objectContaining({cardID: 1234}), expect.any(String), expect.any(String));
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('does not show the wallet button for a physical card that is not activated', async () => {
+        // Given a physical card that is not activated, so it is not eligible for wallet provisioning.
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                [userCardID]: {
+                    cardID: 1234,
+                    state: CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED,
+                    fundID: '12345',
+                    domainName: 'physical-domain',
+                    nameValuePairs: {isVirtual: false, cardTitle: 'Physical Card'},
+                    availableSpend: 50000,
+                    fraud: null,
+                },
+            });
+        });
+
+        // When the physical card page finishes rendering.
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, {cardID: userCardID});
+        await screen.findByText(TestHelper.translateLocal('activateCardPage.activatePhysicalCard'));
+
+        // Then the existing OPEN-only wallet eligibility check prevents a button from appearing.
+        expect(screen.queryByText('Add to wallet')).not.toBeOnTheScreen();
+        expect(isCardInWallet).not.toHaveBeenCalled();
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('prefers the virtual card for the wallet when a physical and virtual card share a domain', async () => {
+        // Given an open physical card and an open virtual companion in the same domain.
+        await TestHelper.signInWithTestUser();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.CARD_LIST, {
+                [userCardID]: {
+                    cardID: 1234,
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    fundID: '12345',
+                    domainName: 'combo-domain',
+                    nameValuePairs: {isVirtual: false, cardTitle: 'Combo Physical Card'},
+                    availableSpend: 50000,
+                    fraud: null,
+                },
+                [virtualCardID]: {
+                    cardID: 5678,
+                    state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+                    fundID: '12345',
+                    domainName: 'combo-domain',
+                    nameValuePairs: {isVirtual: true, cardTitle: 'Combo Virtual Card'},
+                    availableSpend: 50000,
+                    fraud: null,
+                },
+            });
+        });
+
+        // When the wallet button is pressed on the combo card page opened from its physical card.
+        const {unmount} = renderPage(SCREENS.SETTINGS.WALLET.DYNAMIC_DOMAIN_CARD, {cardID: userCardID});
+        const walletButton = await screen.findByText('Add to wallet');
+        fireEvent.press(walletButton);
+
+        // Then wallet provisioning uses the virtual card rather than the physical card.
+        expect(isCardInWallet).toHaveBeenCalledWith(expect.objectContaining({cardID: 5678}));
+        expect(isCardInWallet).not.toHaveBeenCalledWith(expect.objectContaining({cardID: 1234}));
+        expect(handleAddCardToWallet).toHaveBeenCalledWith(expect.objectContaining({cardID: 5678}), expect.any(String), expect.any(String));
+
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
