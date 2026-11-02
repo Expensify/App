@@ -497,12 +497,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     testID="member-display-name-menu-item"
                                 />
                             </OfflineWithFeedback>
-                            {shouldShowLocalTime && !!details.timezone && (
-                                <AutoUpdateTime
-                                    timezone={details.timezone}
-                                    shouldRemoveHorizontalPadding={false}
-                                />
-                            )}
+                            {shouldShowLocalTime && !!details.timezone && <AutoUpdateTime timezone={details.timezone} />}
                             <MenuItemWithTopDescription
                                 disabled={!canEditSelectedMemberRole}
                                 title={translate(`workspace.common.roleName`, member?.role)}
