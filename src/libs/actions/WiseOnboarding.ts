@@ -16,7 +16,8 @@ import Onyx from 'react-native-onyx';
 
 /**
  * Marks the page as unsaved until its own save succeeds, since `errors` is shared by every page and the next page's save clears it. It also covers a save
- * whose answer never comes, as when the app closes during a request that is not queued.
+ * whose answer never comes, as when the app closes during a request that is not queued. A failed save marks the page again, so when the same page is
+ * saved twice, the success of the earlier save does not hide the failure of the later one.
  */
 function getOnyxData(step: string, saveID: string): OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> {
     return {
@@ -32,6 +33,13 @@ function getOnyxData(step: string, saveID: string): OnyxData<typeof ONYXKEYS.REI
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
                 value: {wiseOnboardingUnsavedPages: {[step]: null}},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {wiseOnboardingUnsavedPages: {[step]: true}},
             },
         ],
         // The server routes its own error message, such as "Invalid step", to `errors`, so only this save's entry is dropped here
@@ -63,6 +71,7 @@ function saveWiseOnboardingPageWithSensitiveAnswers(params: UpdateWiseOnboarding
         });
         Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
             wiseOnboardingPendingSaves: {[saveID]: null},
+            wiseOnboardingUnsavedPages: {[params.step]: true},
             errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
         });
     });

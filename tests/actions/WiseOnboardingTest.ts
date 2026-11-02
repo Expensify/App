@@ -209,6 +209,24 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
     });
 
+    it('keeps a page unsaved when its earlier save succeeds but its later save fails', async () => {
+        // Given the user saves the business page twice before the first save answers, and the server accepts the first save but rejects the second
+        let requestCount = 0;
+        global.fetch = jest.fn(() => {
+            requestCount += 1;
+            return Promise.resolve(createMock<Response>({ok: true, json: () => Promise.resolve({jsonCode: requestCount === 1 ? 200 : 400})}));
+        });
+
+        // When both saves are sent
+        saveWiseOnboardingPage(1, BUSINESS_PAGE, {description: 'We sell bikes'}, {});
+        saveWiseOnboardingPage(1, BUSINESS_PAGE, {description: 'We sell bikes and scooters'}, {});
+        await waitForBatchedUpdates();
+
+        // Then the page is still unsaved, since Wise only holds the earlier answer, so Confirm stays blocked until the page saves again
+        expect(requestCount).toBe(2);
+        expect(await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT)).toMatchObject({wiseOnboardingUnsavedPages: {business: true}});
+    });
+
     it('never writes a typed SSN to the request queue on disk', async () => {
         // Given the device is offline, so every queued request waits on disk, and a representative page with a typed SSN next to a business page
         setHasRadio(false);
