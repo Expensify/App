@@ -91,6 +91,8 @@ function GenericTooltip({
     const showTooltip = () => {
         setIsRendered(true);
         setIsVisible(true);
+        // Bring the overlay back, since a tap on it turned it off for the last showing
+        setShouldUseOverlay(shouldUseOverlayProp);
 
         cancelAnimation(animation);
 
