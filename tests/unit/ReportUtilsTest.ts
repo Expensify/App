@@ -14431,19 +14431,28 @@ describe('ReportUtils', () => {
                 childReportID: emptyReportID,
                 created: '2024-01-01 00:00:00',
                 message: [{html: 'report preview', text: 'report preview', type: 'COMMENT'}],
+                originalMessage: {linkedReportID: emptyReportID},
             };
 
-            const setUpEmptyReport = async (role: Policy['role']) => {
-                const emptyReportPolicy: Policy = {
-                    ...createRandomPolicy(1),
-                    id: policyID,
-                    type: CONST.POLICY.TYPE.TEAM,
-                    role,
-                    employeeList: {},
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                    autoReporting: false,
-                    harvesting: {enabled: false},
-                };
+            const buildEmptyReportPolicy = (role: Policy['role']): Policy => ({
+                ...createRandomPolicy(1),
+                id: policyID,
+                type: CONST.POLICY.TYPE.TEAM,
+                role,
+                employeeList: {},
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                autoReporting: false,
+                harvesting: {enabled: false},
+            });
+
+            const setUpEmptyReport = async (
+                role: Policy['role'],
+                {
+                    shouldCachePolicy = true,
+                    workspaceChatOverrides,
+                    extraChatReportActions,
+                }: {shouldCachePolicy?: boolean; workspaceChatOverrides?: Partial<Report>; extraChatReportActions?: ReportActions} = {},
+            ) => {
                 const emptyReport: Report = {
                     ...createExpenseReport(42101),
                     reportID: emptyReportID,
@@ -14458,13 +14467,16 @@ describe('ReportUtils', () => {
                     policyID,
                     hasOutstandingChildRequest: true,
                     iouReportID: emptyReportID,
+                    ...workspaceChatOverrides,
                 };
 
                 await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
-                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, emptyReportPolicy);
+                if (shouldCachePolicy) {
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, buildEmptyReportPolicy(role));
+                }
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${emptyReportID}`, emptyReport);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {[previewAction.reportActionID]: previewAction});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${workspaceChat.reportID}`, {[previewAction.reportActionID]: previewAction, ...extraChatReportActions});
                 await waitForBatchedUpdates();
 
                 return workspaceChat;
@@ -14506,6 +14518,103 @@ describe('ReportUtils', () => {
 
                 // Then no Add badge is shown, because the user has no way to act on it
                 expect(result?.actionBadge).not.toBe(CONST.REPORT.ACTION_BADGE.ADD);
+            });
+
+            it('should not return the ADD badge once the transactions snapshot has the first expense, even if the module-level cache does not', async () => {
+                // Given an empty report whose first expense is already in the caller's transactions snapshot, but was never written to the
+                // module-level transactions cache, like the reportAttributes derived value recomputing before that cache catches up
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER);
+                const firstExpense: Transaction = {...createRandomTransaction(42103), reportID: emptyReportID};
+
+                // When the reason is retrieved with that snapshot
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                    reportsTransactions: {[emptyReportID]: [firstExpense]},
+                });
+
+                // Then the Add badge is gone, because the report is no longer empty
+                expect(result?.actionBadge).not.toBe(CONST.REPORT.ACTION_BADGE.ADD);
+            });
+
+            it('should use the policies param when the module-level policy cache does not have the policy yet', async () => {
+                // Given the workspace policy is in the caller's policies snapshot but not in the module-level policy cache
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER, {shouldCachePolicy: false});
+
+                // When the reason is retrieved with that policies snapshot
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                    policies: {[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: buildEmptyReportPolicy(CONST.POLICY.ROLE.USER)},
+                });
+
+                // Then the row still shows the Add badge instead of a bare green dot, because the add check reads the same policy as the badge
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.ADD);
+            });
+
+            it('should return the Task badge over the ADD badge when the user has an incomplete task, even if the empty report is older', async () => {
+                // Given an empty report preview that is older than an incomplete task assigned to the current user in the same workspace chat
+                const taskAction: ReportAction = {
+                    reportActionID: 'task-newer-than-empty-report',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS,
+                    childType: CONST.REPORT.TYPE.TASK,
+                    childReportID: 'task-report-newer-than-empty-report',
+                    childManagerAccountID: currentUserAccountID,
+                    created: '2024-01-02 00:00:00',
+                    originalMessage: {
+                        assigneeAccountID: currentUserAccountID,
+                        cardID: 42104,
+                    },
+                };
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER, {
+                    workspaceChatOverrides: {hasOutstandingChildTask: true},
+                    extraChatReportActions: {[taskAction.reportActionID]: taskAction},
+                });
+
+                // When the reason is retrieved for the workspace chat
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                });
+
+                // Then the task wins, because Add is only a fallback and must not hide a task the user has to complete
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION);
+                expect(result?.reportAction?.reportActionID).toBe(taskAction.reportActionID);
+                expect(result?.actionBadge).toBe(CONST.REPORT.ACTION_BADGE.TASK);
+            });
+
+            it('should not show a green dot that was hidden before when the outstanding child has only pending expenses', async () => {
+                // Given a workspace chat whose outstanding child is another report with only pending card expenses, which hides the chat's
+                // green dot, plus an older empty report the current user could add expenses to
+                const pendingReportID = 'pending-only-report';
+                const pendingExpense: Transaction = {...createRandomTransaction(42105), reportID: pendingReportID, status: CONST.TRANSACTION.STATUS.PENDING};
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER, {workspaceChatOverrides: {iouReportID: pendingReportID}});
+
+                // When the reason is retrieved for the workspace chat
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                    reportsTransactions: {[pendingReportID]: [pendingExpense]},
+                });
+
+                // Then the chat still has no green dot, because Add only labels a dot the chat would show anyway
+                expect(result).toBeNull();
             });
         });
 

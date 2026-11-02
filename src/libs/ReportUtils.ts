@@ -3251,20 +3251,32 @@ function canAddOrDeleteTransactions(moneyRequestReport: OnyxEntry<Report>, rules
  * - report is a draft
  * Returns false if:
  * - if current user is not the submitter of an expense report
+ *
+ * @param policyParam - the report's policy from the caller's own snapshot. It's ignored when it isn't the report's policy.
+ * @param currentUserAccountID - falls back to the session's account ID when omitted
  */
-function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCollection<Rule>, isReportArchived = false, isMovingTransaction = false): boolean {
+function canAddTransaction(
+    moneyRequestReport: OnyxEntry<Report>,
+    rules: OnyxCollection<Rule>,
+    isReportArchived = false,
+    isMovingTransaction = false,
+    policyParam?: OnyxEntry<Policy>,
+    currentUserAccountID?: number,
+): boolean {
     if (!isMoneyRequestReport(moneyRequestReport)) {
         return false;
     }
 
+    // Callers like the reportAttributes derived value pass the policy they already hold, because the module-level policy cache
+    // updates on its own schedule and can still be missing the policy.
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
-    const policy = getPolicy(moneyRequestReport?.policyID);
+    const policy = policyParam?.id && policyParam.id === moneyRequestReport?.policyID ? policyParam : getPolicy(moneyRequestReport?.policyID);
 
     if (policy && !canCreateExpensesOnPolicy(policy)) {
         return false;
     }
 
-    if (isExpenseReport(moneyRequestReport) && (!isCurrentUserSubmitter(moneyRequestReport) || !isGroupPolicyPolicyUtils(policy))) {
+    if (isExpenseReport(moneyRequestReport) && (!isCurrentUserSubmitter(moneyRequestReport, currentUserAccountID) || !isGroupPolicyPolicyUtils(policy))) {
         return false;
     }
 
@@ -3278,6 +3290,36 @@ function canAddTransaction(moneyRequestReport: OnyxEntry<Report>, rules: OnyxCol
     }
 
     return canAddOrDeleteTransactions(moneyRequestReport, rules, isReportArchived);
+}
+
+/**
+ * Whether to point the current user at adding the first expense to an empty expense report. The report preview's
+ * "Add expense" button and the LHN "Add" badge both use this, so the two can't disagree.
+ */
+function shouldShowAddExpenseAction({
+    report,
+    reportTransactions,
+    isChatReportArchived,
+    rules,
+    policy,
+    currentUserAccountID,
+}: {
+    report: OnyxEntry<Report>;
+    reportTransactions: Transaction[];
+    isChatReportArchived: boolean;
+    rules: OnyxCollection<Rule>;
+
+    /** Used over the module-level policy cache when it's the report's own policy */
+    policy?: OnyxEntry<Policy>;
+
+    /** Falls back to the session's account ID when omitted */
+    currentUserAccountID?: number;
+}): boolean {
+    if (isChatReportArchived) {
+        return false;
+    }
+
+    return isExpenseReport(report) && reportTransactions.length === 0 && canAddTransaction(report, rules, false, false, policy, currentUserAccountID);
 }
 
 /**
@@ -3546,21 +3588,38 @@ function canSubmitReport(
     );
 }
 
-function getBadgeFromIOUReport(
-    iouReport: OnyxEntry<Report>,
-    chatReport: OnyxEntry<Report>,
-    policy: OnyxEntry<Policy>,
-    reportMetadata: OnyxEntry<ReportMetadata>,
-    invoiceReceiverPolicy: OnyxEntry<Policy>,
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    iouReportActions: OnyxEntry<ReportActions>,
-    isChatReportArchived: boolean,
-    allViolations: OnyxCollection<TransactionViolations> | undefined,
-): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
+function getBadgeFromIOUReport({
+    iouReport,
+    chatReport,
+    policy,
+    reportMetadata,
+    invoiceReceiverPolicy,
+    currentUserLogin,
+    currentUserAccountID,
+    iouReportActions,
+    isChatReportArchived,
+    allViolations,
+    reportsTransactions,
+}: {
+    iouReport: OnyxEntry<Report>;
+    chatReport: OnyxEntry<Report>;
+    policy: OnyxEntry<Policy>;
+    reportMetadata: OnyxEntry<ReportMetadata>;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    iouReportActions: OnyxEntry<ReportActions>;
+    isChatReportArchived: boolean;
+    allViolations: OnyxCollection<TransactionViolations> | undefined;
+
+    /** Transactions grouped by reportID. Falls back to the module-level transactions cache when omitted. */
+    reportsTransactions?: Record<string, Transaction[]>;
+}): ValueOf<typeof CONST.REPORT.ACTION_BADGE> | undefined {
+    // Prefer the transactions the reportAttributes derived value computes from, because the module-level cache updates on its
+    // own schedule and can still show a report as empty after its first expense is added.
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const reportTransactions = getReportTransactions(iouReport?.reportID);
+    const reportTransactions = getReportTransactions(iouReport?.reportID, reportsTransactions);
 
     if (isReportExcludedForHeldExpenses(iouReport, reportTransactions, iouReportActions, currentUserAccountID)) {
         return undefined;
@@ -3603,11 +3662,11 @@ function getBadgeFromIOUReport(
     }
     // An empty open report can't be submitted yet, so point the user at adding an expense. This matches the report's "Add expense" button.
     // Only label a chat that is already flagged as needing attention, so this never adds a green dot on its own.
+    // Rules only matter for processing reports, and this only runs for open ones, so none are passed.
     if (
         chatReport?.hasOutstandingChildRequest === true &&
         isOpenExpenseReport(iouReport) &&
-        reportTransactions.length === 0 &&
-        canAddTransaction(iouReport, undefined, isChatReportArchived)
+        shouldShowAddExpenseAction({report: iouReport, reportTransactions, isChatReportArchived, rules: undefined, policy, currentUserAccountID})
     ) {
         return CONST.REPORT.ACTION_BADGE.ADD;
     }
@@ -3640,6 +3699,7 @@ function getIOUReportActionWithBadge({
     isChatReportArchived,
     allReports,
     allReportActionsParam,
+    reportsTransactions,
 }: {
     chatReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
@@ -3652,6 +3712,7 @@ function getIOUReportActionWithBadge({
     isChatReportArchived: boolean;
     allReports?: OnyxCollection<Report>;
     allReportActionsParam?: OnyxCollection<ReportActions>;
+    reportsTransactions?: Record<string, Transaction[]>;
 }): {
     reportAction: OnyxEntry<ReportAction>;
     actionBadge?: ValueOf<typeof CONST.REPORT.ACTION_BADGE>;
@@ -3690,7 +3751,7 @@ function getIOUReportActionWithBadge({
 
         // An all-held report yields no badge, so it can't win the "oldest action" race and hide a sibling report that
         // still needs action from the current user.
-        const badge = getBadgeFromIOUReport(
+        const badge = getBadgeFromIOUReport({
             iouReport,
             chatReport,
             policy,
@@ -3701,7 +3762,8 @@ function getIOUReportActionWithBadge({
             iouReportActions,
             isChatReportArchived,
             allViolations,
-        );
+            reportsTransactions,
+        });
         if (!badge) {
             continue;
         }
@@ -5224,6 +5286,9 @@ type GetReasonAndReportActionThatRequiresAttentionParams = {
     policies?: OnyxCollection<Policy>;
     reportMetadata: OnyxEntry<ReportMetadata>;
     cardList?: OnyxEntry<CardList>;
+
+    /** Transactions grouped by reportID. Falls back to the module-level transactions cache when omitted. */
+    reportsTransactions?: Record<string, Transaction[]>;
 };
 
 function getReasonAndReportActionThatRequiresAttention({
@@ -5238,6 +5303,7 @@ function getReasonAndReportActionThatRequiresAttention({
     policies: policiesParam,
     reportMetadata: reportMetadataParam,
     cardList,
+    reportsTransactions,
 }: GetReasonAndReportActionThatRequiresAttentionParams): ReasonAndReportActionThatRequiresAttention | null {
     if (!optionOrReport) {
         return null;
@@ -5308,10 +5374,14 @@ function getReasonAndReportActionThatRequiresAttention({
         isChatReportArchived: isReportArchived,
         allReports: reports,
         allReportActionsParam: allReportActionsParam ?? allReportActions,
+        reportsTransactions,
     });
+    // Add only labels a green dot the chat would show anyway, so it must not change whether the dot shows. Run the checks
+    // below as if no candidate was found, exactly like before Add existed.
+    const dotCandidateAction = actionBadge === CONST.REPORT.ACTION_BADGE.ADD ? undefined : iouReportActionToApproveOrPay;
     // Fall back to the chat's outstanding child so the pending-only check still runs when no badge action was found.
-    const iouReportID = getIOUReportIDFromReportActionPreview(iouReportActionToApproveOrPay) ?? optionOrReport.iouReportID;
-    const transactions = getReportTransactions(iouReportID);
+    const iouReportID = getIOUReportIDFromReportActionPreview(dotCandidateAction) ?? optionOrReport.iouReportID;
+    const transactions = getReportTransactions(iouReportID, reportsTransactions);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
     const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport(iouReportID);
@@ -5319,14 +5389,14 @@ function getReasonAndReportActionThatRequiresAttention({
     // This only has to run on the fallback path: when a candidate was found, getBadgeFromIOUReport has already applied
     // the same exclusion while picking it, so the chat is known to have an actionable child even when a sibling of that
     // child is fully held.
-    const isFallbackReportExcludedForHeldExpenses = !iouReportActionToApproveOrPay && isReportExcludedForHeldExpenses(iouReport, transactions, iouReportActions, currentUserAccountID);
+    const isFallbackReportExcludedForHeldExpenses = !dotCandidateAction && isReportExcludedForHeldExpenses(iouReport, transactions, iouReportActions, currentUserAccountID);
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user.
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
     // shouldn't demand attention even when the chat still carries an outstanding-child flag.
     const hasStaleChildRequest = isTripRoom(optionOrReport) && (optionOrReport.transactionCount ?? 0) === 0;
     const hasValidIOUAction =
-        ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) &&
+        ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || dotCandidateAction?.reportActionID) &&
         !hasOnlyPendingTransactions &&
         !isFallbackReportExcludedForHeldExpenses;
 
@@ -5334,18 +5404,19 @@ function getReasonAndReportActionThatRequiresAttention({
     if (actionTypeForAssigneeToComplete) {
         const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
         if (isAssigneeExpenseAction) {
-            const assigneeBadge = getBadgeFromIOUReport(
-                optionOrReport,
-                undefined,
+            const assigneeBadge = getBadgeFromIOUReport({
+                iouReport: optionOrReport,
+                chatReport: undefined,
                 policy,
                 reportMetadata,
                 invoiceReceiverPolicy,
                 currentUserLogin,
                 currentUserAccountID,
-                reportActions,
-                false,
-                transactionViolations,
-            );
+                iouReportActions: reportActions,
+                isChatReportArchived: false,
+                allViolations: transactionViolations,
+                reportsTransactions,
+            });
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
                 ...(assigneeBadge ? {actionBadge: assigneeBadge} : {}),
@@ -5359,8 +5430,14 @@ function getReasonAndReportActionThatRequiresAttention({
             .sort((a, b) => (!a.created || !b.created ? 0 : a.created.localeCompare(b.created)))
             .at(0);
 
-        // If there's a valid IOU action that is older than the task, use the IOU badge instead
-        if (hasValidIOUAction && iouReportActionToApproveOrPay?.created && (!oldestTaskAction || iouReportActionToApproveOrPay.created < oldestTaskAction.created)) {
+        // If there's a valid IOU action that is older than the task, use the IOU badge instead.
+        // Add is only a fallback for an empty report, so it never hides a task assigned to the user.
+        if (
+            hasValidIOUAction &&
+            actionBadge !== CONST.REPORT.ACTION_BADGE.ADD &&
+            iouReportActionToApproveOrPay?.created &&
+            (!oldestTaskAction || iouReportActionToApproveOrPay.created < oldestTaskAction.created)
+        ) {
             return {
                 reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
                 reportAction: iouReportActionToApproveOrPay,
@@ -14777,6 +14854,7 @@ function generateReportAttributes({
     cardList,
     currentUserLogin,
     currentUserAccountID,
+    reportsTransactions,
 }: {
     report: OnyxEntry<Report>;
     chatReport: OnyxEntry<Report>;
@@ -14792,6 +14870,7 @@ function generateReportAttributes({
     policies?: OnyxCollection<Policy>;
     reportMetadata?: OnyxEntry<ReportMetadata>;
     cardList?: OnyxEntry<CardList>;
+    reportsTransactions?: Record<string, Transaction[]>;
 }) {
     const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`];
     const parentReportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`];
@@ -14822,6 +14901,7 @@ function generateReportAttributes({
             policies,
             reportMetadata,
             cardList,
+            reportsTransactions,
         }) ?? {};
 
     return {
@@ -15643,6 +15723,7 @@ export {
     canAccessReport,
     isReportNotFound,
     canAddTransaction,
+    shouldShowAddExpenseAction,
     canDuplicateExpenseIntoSourceReport,
     canDeleteTransaction,
     canBeAutoReimbursed,

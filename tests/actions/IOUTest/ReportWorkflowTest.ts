@@ -6813,7 +6813,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.APPROVE);
         });
 
@@ -6865,7 +6876,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
@@ -6921,7 +6943,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBeUndefined();
         });
 
@@ -6986,7 +7019,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeNonReimbursableTransaction.transactionID}`, fakeNonReimbursableTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
@@ -7045,7 +7089,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBe(CONST.REPORT.ACTION_BADGE.PAY);
         });
 
@@ -7081,7 +7136,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, fakeIouReport);
             await waitForBatchedUpdates();
 
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBeUndefined();
         });
 
@@ -7142,7 +7208,18 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // RORY_EMAIL is not the designated payer, so they should not get the PAY badge
-            const result = getBadgeFromIOUReport(fakeIouReport, fakeChatReport, fakePolicy, {}, undefined, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
+            const result = getBadgeFromIOUReport({
+                iouReport: fakeIouReport,
+                chatReport: fakeChatReport,
+                policy: fakePolicy,
+                reportMetadata: {},
+                invoiceReceiverPolicy: undefined,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            });
             expect(result).toBeUndefined();
         });
 
@@ -7164,23 +7241,32 @@ describe('actions/IOU/ReportWorkflow', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             };
 
+            const badgeParams = {
+                iouReport,
+                chatReport,
+                policy,
+                reportMetadata: {},
+                invoiceReceiverPolicy,
+                currentUserLogin: RORY_EMAIL,
+                currentUserAccountID: RORY_ACCOUNT_ID,
+                iouReportActions: undefined,
+                isChatReportArchived: false,
+                allViolations: undefined,
+            };
+
             // When the chat report is not archived
             // Then the invoice is payable, so the PAY badge is returned
-            expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined)).toBe(
-                CONST.REPORT.ACTION_BADGE.PAY,
-            );
+            expect(getBadgeFromIOUReport(badgeParams)).toBe(CONST.REPORT.ACTION_BADGE.PAY);
 
             // When the chat report is archived in Onyx but the caller does not thread the archived state down
             // Then getBadgeFromIOUReport must not fall back to the module-level Onyx cache, so the invoice stays payable
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport.reportID}`, {private_isArchived: DateUtils.getDBTime()});
             await waitForBatchedUpdates();
-            expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined)).toBe(
-                CONST.REPORT.ACTION_BADGE.PAY,
-            );
+            expect(getBadgeFromIOUReport(badgeParams)).toBe(CONST.REPORT.ACTION_BADGE.PAY);
 
             // When the caller threads the archived state down
             // Then no badge is returned because the archived chat blocks paying the invoice
-            expect(getBadgeFromIOUReport(iouReport, chatReport, policy, {}, invoiceReceiverPolicy, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, true, undefined)).toBeUndefined();
+            expect(getBadgeFromIOUReport({...badgeParams, isChatReportArchived: true})).toBeUndefined();
         });
     });
     describe('canIOUBePaid with a deprecated reimbursement choice', () => {
