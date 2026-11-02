@@ -180,7 +180,7 @@ To check the config without credentials or uploading anything:
 npx wrangler deploy --dry-run --env test-staging
 ```
 
-Never commit credentials, account IDs or `.dev.vars` files here. This is a public repository.
+Never commit credentials or `.dev.vars` files here. This is a public repository. Account and zone IDs are nonsecret deployment identifiers.
 
 ## PR-testing Worker
 
@@ -209,6 +209,8 @@ The deployment CLI runs in Bun with TypeScript, uses the shared `expensify-commo
 The existing test-build authorization and reviewed-code confirmation still apply. `.github/workflows/buildAdHoc.yml` resolves one immutable App SHA before building and registers the request as a GitHub deployment in `pr-testing-<PR number>`. `buildWeb.yml` compiles the web app and bundles the Worker from that same SHA without Cloudflare credentials.
 
 The `deployWebAdHoc` job runs tooling from the caller workflow's SHA, never from `APP_REF`. Authorized users can select a workflow branch for testing without merging it first. Downloaded artifacts cannot supply deployment targets, hooks or privileged bindings. Only compatibility date and flags are accepted from the branch's runtime manifest. `extractPRTestingAssets` copies validated regular files without following links or exposing source maps. Dependencies and build hooks run without Cloudflare credentials.
+
+The deployment token is loaded from `op://<OP_VAULT>/Cloudflare PR Testing/credential` using the existing CI service account and is exposed only to the deploy step. The preview account and zone IDs are configured directly in the workflow.
 
 The trusted wrapper forwards application responses unchanged, including Brotli encoding and CSP nonces. Its reserved `/__expensify_preview` endpoint reports the SHA/run/attempt; `/preview-build.json` in Static Assets carries the same identity. Both must match before the build is reported as deployed. A failed new build never gets a success status just because an old version still serves that hostname.
 

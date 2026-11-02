@@ -100,7 +100,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` - Deploys the staging and production web Workers
 1. `CLOUDFLARE_ACCOUNT_ID` - Cloudflare account used for web deployments and R2 asset storage
 1. `CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID` and `CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY` - Store previous web builds in R2 for stale-tab asset recovery
-1. `CLOUDFLARE_PR_TESTING_DEPLOY_TOKEN`, `CLOUDFLARE_PR_TESTING_ACCOUNT_ID` and `CLOUDFLARE_PR_TESTING_ZONE_ID` - Deploy isolated PR-testing Workers and their hostname routes
+1. `OP_SERVICE_ACCOUNT_TOKEN` - Reads CI credentials from the 1Password vault configured by `OP_VAULT`
 1. `APPLE_CONTACT_EMAIL` - Email used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 1. `APPLE_CONTACT_PHONE` - Phone number used for contact between Expensify and Apple for https://appstoreconnect.apple.com/
 1. `APPLE_DEMO_EMAIL` - Demo account email used for https://appstoreconnect.apple.com/
@@ -111,6 +111,8 @@ We use 1Password for many secrets and in general use two different actions from 
 
 1. `1password/install-cli-action` - This action is used to install 1Password cli `op` and is used to grab **files** using the `op read` command.
 1. `1password/load-secrets-action` - This action is used to fetch **strings** from 1Password.
+
+PR previews load the `credential` field of the `Cloudflare PR Testing` item from the configured vault. Their account and zone IDs are nonsecret deployment identifiers in `buildAdHoc.yml`.
 
 ### Important note about Secrets
 Secrets are available by default in most workflows. The exception to the rule is callable workflows. If a workflow is triggered by the `workflow_call` event, it will only have access to repo secrets if the workflow that called it passed in the secrets explicitly (for example, using `secrets: inherit`).

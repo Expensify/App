@@ -168,6 +168,16 @@ jobs:
           name: pr-testing-worker-artifact
           path: ${{ runner.temp }}/pr-testing-artifacts/worker
 
+      - name: Load preview deployment token from 1Password
+        id: cloudflareCredentials
+        # v4.0.0
+        uses: 1password/load-secrets-action@92467eb28f72e8255933372f1e0707c567ce2259
+        with:
+          export-env: false
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.OP_SERVICE_ACCOUNT_TOKEN }}
+          CLOUDFLARE_API_TOKEN: op://${{ vars.OP_VAULT }}/Cloudflare PR Testing/credential
+
       - name: Deploy and verify the PR Worker and assets together
         run: |
           bun scripts/adhocCloudflareWorkerDeployer.ts deploy \
@@ -176,9 +186,9 @@ jobs:
             --artifact-directory "${{ runner.temp }}/pr-testing-artifacts"
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_PR_TESTING_DEPLOY_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_PR_TESTING_ACCOUNT_ID }}
-          CLOUDFLARE_PR_TESTING_ZONE_ID: ${{ secrets.CLOUDFLARE_PR_TESTING_ZONE_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ steps.cloudflareCredentials.outputs.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 3eb3df6f8c190fa13c3fc0a53c30af1a
+          CLOUDFLARE_PR_TESTING_ZONE_ID: 9ee042e6cfc7fd45e74aa7d2f78d617b
 
   postGithubComment:
     runs-on: blacksmith-4vcpu-ubuntu-2404
