@@ -1,3 +1,7 @@
+/**
+ * Reads the targeted advertising consent decision from the Ketch consent cookie.
+ * Returns undefined when the cookie, the targeted advertising purpose, or its status is missing or malformed.
+ */
 const KETCH_CONSENT_COOKIE_NAME = '_ketch_consent_v1_';
 const TARGETED_ADVERTISING_PURPOSE = 'targeted_advertising';
 
