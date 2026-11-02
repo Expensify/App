@@ -29,7 +29,7 @@ import type SCREENS from '@src/SCREENS';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>;
@@ -57,49 +57,43 @@ function DynamicNetSuiteExportExpensesDestinationSelectPage({policy}: WithPolicy
         isSelected: currentDestination === dateType,
     }));
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const applyDestination = useCallback(
-        (value: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>) => {
-            if (!policyID) {
-                return;
-            }
-            if (isReimbursable) {
-                updateNetSuiteReimbursableExpensesExportDestination(policyID, value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT);
-            } else {
-                updateNetSuiteNonReimbursableExpensesExportDestination(policyID, value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL);
-            }
+    const applyDestination = (value: ValueOf<typeof CONST.NETSUITE_EXPORT_DESTINATION>) => {
+        if (!policyID) {
+            return;
+        }
+        if (isReimbursable) {
+            updateNetSuiteReimbursableExpensesExportDestination(policyID, value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT);
+        } else {
+            updateNetSuiteNonReimbursableExpensesExportDestination(policyID, value, currentDestination ?? CONST.NETSUITE_EXPORT_DESTINATION.VENDOR_BILL);
+        }
+        goBack();
+    };
+
+    const selectDestination = async (row: MenuListItem) => {
+        if (row.value === currentDestination || !policyID) {
             goBack();
-        },
-        [currentDestination, isReimbursable, policyID, goBack],
-    );
+            return;
+        }
 
-    const selectDestination = useCallback(
-        async (row: MenuListItem) => {
-            if (row.value === currentDestination || !policyID) {
-                goBack();
-                return;
+        if (!isReimbursable && row.value === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT && policy?.areCompanyCardsEnabled) {
+            const {action} = await showConfirmModal({
+                title: translate('common.areYouSure'),
+                prompt: translate('workspace.netsuite.exportDestination.expenseReportDestinationConfirmDescription'),
+                confirmText: translate('common.confirm'),
+                cancelText: translate('common.cancel'),
+            });
+            if (action === ModalActions.CONFIRM) {
+                applyDestination(row.value);
             }
+            return;
+        }
 
-            if (!isReimbursable && row.value === CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT && policy?.areCompanyCardsEnabled) {
-                const {action} = await showConfirmModal({
-                    title: translate('common.areYouSure'),
-                    prompt: translate('workspace.netsuite.exportDestination.expenseReportDestinationConfirmDescription'),
-                    confirmText: translate('common.confirm'),
-                    cancelText: translate('common.cancel'),
-                });
-                if (action === ModalActions.CONFIRM) {
-                    applyDestination(row.value);
-                }
-                return;
-            }
-
-            applyDestination(row.value);
-        },
-        [currentDestination, isReimbursable, policyID, goBack, policy?.areCompanyCardsEnabled, showConfirmModal, translate, applyDestination],
-    );
+        applyDestination(row.value);
+    };
 
     return (
         <SelectionScreen

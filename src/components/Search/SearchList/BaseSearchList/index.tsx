@@ -1,6 +1,7 @@
 import {useEditingCellState} from '@components/EditableCell';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
 import type {SearchListItem} from '@components/Search/SearchList/ListItem/types';
+import SearchListScrollLockContext, {useSearchListScrollLockStyle} from '@components/Search/SearchListScrollLockContext';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
@@ -19,11 +20,11 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isModalActiveSelector} from '@src/selectors/Modal';
 
 import type {ComponentRef} from 'react';
-import type {GestureResponderEvent, NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, ViewProps, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useContext, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -62,6 +63,7 @@ function BaseSearchList({
     scrollToIndex,
     onEndReached,
     onEndReachedThreshold,
+    selectionTopBar,
     ListFooterComponent,
     onViewableItemsChanged,
     onLayout,
@@ -77,20 +79,26 @@ function BaseSearchList({
     overrideItemLayout,
 }: BaseSearchListProps) {
     const tabRootScrollProps = useTabRootScrollProps(contentContainerStyle);
+    // Chrome ends a drag at the first scroller with `overscroll-behavior` set even when that scroller can't move,
+    // so a list shorter than its viewport would keep a pull on its rows from reaching the outer scroller that brings the header back.
+    const isUnderScrollAwayHeader = useContext(SearchListScrollLockContext) !== undefined;
+    const [listHeight, setListHeight] = useState(0);
+    const [listContentHeight, setListContentHeight] = useState(0);
+    const scrollLockStyle = useSearchListScrollLockStyle(listContentHeight - listHeight > 1);
     const hasKeyBeenPressed = useRef(false);
     const isFocused = useIsFocused();
     const {focusedCellId, isEditingCell} = useEditingCellState();
 
     const [isModalVisible] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
 
-    const setHasKeyBeenPressed = useCallback(() => {
+    const setHasKeyBeenPressed = () => {
         if (hasKeyBeenPressed.current) {
             return;
         }
         // We need to track whether a key has been pressed to enable focus syncing only if a key has been pressed.
         // This is to avoid the default behavior of web showing blue border on click of items after a page refresh.
         hasKeyBeenPressed.current = true;
-    }, []);
+    };
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
@@ -140,31 +148,28 @@ function BaseSearchList({
 
     const renderItemWithKeyboardFocus = ({item, index}: {item: SearchListItem; index: number}) => renderItem(item, index, getOnFocus(index));
 
-    const selectFocusedOption = useCallback(
-        (event?: GestureResponderEvent | KeyboardEvent) => {
-            // Allow event propagation during cell editing so Enter can trigger TextInput.onSubmitEditing.
-            // When not editing, stop propagation to prevent unintended button activation and handle row selection.
-            if (isEditingCell) {
-                return;
-            }
+    const selectFocusedOption = (event?: GestureResponderEvent | KeyboardEvent) => {
+        // Allow event propagation during cell editing so Enter can trigger TextInput.onSubmitEditing.
+        // When not editing, stop propagation to prevent unintended button activation and handle row selection.
+        if (isEditingCell) {
+            return;
+        }
 
-            // If a cell has keyboard focus (via Tab), let the Enter event propagate to trigger the cell's onPress
-            if (focusedCellId) {
-                return;
-            }
+        // If a cell has keyboard focus (via Tab), let the Enter event propagate to trigger the cell's onPress
+        if (focusedCellId) {
+            return;
+        }
 
-            event?.stopPropagation();
+        event?.stopPropagation();
 
-            const focusedItem = data.at(focusedIndex);
+        const focusedItem = data.at(focusedIndex);
 
-            if (!focusedItem) {
-                return;
-            }
+        if (!focusedItem) {
+            return;
+        }
 
-            onSelectRow(focusedItem);
-        },
-        [data, focusedCellId, focusedIndex, isEditingCell, onSelectRow],
-    );
+        onSelectRow(focusedItem);
+    };
 
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ENTER, selectFocusedOption, {
         captureOnInputs: true,
@@ -181,35 +186,48 @@ function BaseSearchList({
         return () => removeKeyDownPressListener(setHasKeyBeenPressed);
     }, [setHasKeyBeenPressed]);
 
-    const extraData = useMemo(
-        () => [columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
-        [columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy],
-    );
+    const handleLayout = (event: LayoutChangeEvent) => {
+        if (isUnderScrollAwayHeader) {
+            setListHeight(event.nativeEvent.layout.height);
+        }
+        onLayout?.(event);
+    };
+
+    const handleContentSizeChange = isUnderScrollAwayHeader ? (width: number, height: number) => setListContentHeight(height) : undefined;
+
+    const extraData = [columns, newTransactions, nonPersonalAndWorkspaceCards, isAttendeesEnabledForMovingPolicy];
 
     return (
-        <AnimatedFlashListComponent
-            data={data}
-            renderItem={renderItemWithKeyboardFocus}
-            keyExtractor={keyExtractor}
-            onScroll={onScroll}
-            showsVerticalScrollIndicator={false}
-            ref={ref}
-            extraData={extraData}
-            onEndReached={onEndReached}
-            onEndReachedThreshold={onEndReachedThreshold}
-            ListFooterComponent={ListFooterComponent}
-            onViewableItemsChanged={onViewableItemsChanged}
-            onLayout={onLayout}
-            CellRendererComponent={CellRendererComponent}
-            removeClippedSubviews
-            drawDistance={250}
-            {...tabRootScrollProps}
-            maintainVisibleContentPosition={{disabled: true}}
-            stickyHeaderIndices={stickyHeaderIndices}
-            stickyHeaderConfig={stickyHeaderConfig}
-            getItemType={getItemType}
-            overrideItemLayout={overrideItemLayout}
-        />
+        <>
+            {/* Where the page header scrolls away, the select-all bar scrolls with the rows too, rather than staying pinned above them. */}
+            {!isUnderScrollAwayHeader && selectionTopBar}
+            <AnimatedFlashListComponent
+                data={data}
+                renderItem={renderItemWithKeyboardFocus}
+                keyExtractor={keyExtractor}
+                onScroll={onScroll}
+                showsVerticalScrollIndicator={false}
+                ref={ref}
+                extraData={extraData}
+                onEndReached={onEndReached}
+                onEndReachedThreshold={onEndReachedThreshold}
+                ListHeaderComponent={isUnderScrollAwayHeader ? selectionTopBar : undefined}
+                ListFooterComponent={ListFooterComponent}
+                onViewableItemsChanged={onViewableItemsChanged}
+                onLayout={handleLayout}
+                onContentSizeChange={handleContentSizeChange}
+                CellRendererComponent={CellRendererComponent}
+                removeClippedSubviews
+                drawDistance={250}
+                {...tabRootScrollProps}
+                maintainVisibleContentPosition={{disabled: true}}
+                stickyHeaderIndices={stickyHeaderIndices}
+                stickyHeaderConfig={stickyHeaderConfig}
+                getItemType={getItemType}
+                overrideItemLayout={overrideItemLayout}
+                overrideProps={scrollLockStyle ? {style: scrollLockStyle} : undefined}
+            />
+        </>
     );
 }
 

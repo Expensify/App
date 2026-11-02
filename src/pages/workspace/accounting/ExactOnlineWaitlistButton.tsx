@@ -55,7 +55,7 @@ function ExactOnlineWaitlistButton({policy}: ExactOnlineWaitlistButtonProps) {
     }, [errors, pendingAction, pendingActionMetadata.status, showConfirmModal, signupTimestamp, translate]);
 
     if (signupTimestamp && !pendingAction) {
-        return <Text style={styles.textSupporting}>{translate('workspace.accounting.exactOnline.onWaitlist')}</Text>;
+        return <Text style={[styles.textSupporting, styles.flexShrink1, styles.textAlignRight]}>{translate('workspace.accounting.exactOnline.onWaitlist')}</Text>;
     }
 
     const joinWaitlist = () => {

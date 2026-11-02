@@ -28,7 +28,7 @@ import ROUTES from '@src/ROUTES';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 import TestDriveBanner from './TestDriveBanner';
 
@@ -118,7 +118,7 @@ function TestDriveDemo() {
         return () => handle.cancel();
     }, []);
 
-    const closeModal = useCallback(() => {
+    const closeModal = () => {
         setIsVisible(false);
         TransitionTracker.runAfterTransitions({
             callback: () => {
@@ -134,7 +134,7 @@ function TestDriveDemo() {
             },
             waitForUpcomingTransition: true,
         });
-    }, [onboardingReport]);
+    };
 
     return (
         <SafeAreaConsumer>

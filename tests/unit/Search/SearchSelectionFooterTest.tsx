@@ -22,15 +22,6 @@ jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline.current}))
 
 jest.mock('@hooks/useSearchShouldCalculateTotals', () => jest.fn(() => true));
 
-const mockIsFooterSelectorsBetaEnabled = {current: true};
-jest.mock('@hooks/usePermissions', () => ({
-    __esModule: true,
-    default: () => ({
-        isBetaEnabled: (beta: string) => (beta === 'spendFooterSelectors' ? mockIsFooterSelectorsBetaEnabled.current : false),
-        isBetaEnabledOrUnknown: () => false,
-    }),
-}));
-
 const mockSearch = jest.fn<Promise<void> | undefined, unknown[]>();
 jest.mock('@libs/actions/Search', () => ({
     openSearchCardFiltersPage: jest.fn(),
@@ -205,7 +196,6 @@ describe('SearchSelectionFooter', () => {
     });
 
     beforeEach(async () => {
-        mockIsFooterSelectorsBetaEnabled.current = true;
         mockShouldUseLiveData.current = false;
         mockIsOffline.current = false;
         resetAnsweredFooterTotalsForTesting();
@@ -775,7 +765,7 @@ describe('SearchSelectionFooter', () => {
             render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.INVOICE)} />);
             await waitForBatchedUpdates();
 
-            // Then the footer keeps the plain total with no selector, as on main
+            // Then the footer keeps the plain total with no selector
             expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({shouldShowTotalSelector: false, totalType: undefined}));
         });
 
@@ -1450,40 +1440,6 @@ describe('SearchSelectionFooter', () => {
 
             expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
             expect(mockCapturedFooterProps.current?.count).toBe(1204);
-        });
-
-        describe('beta disabled', () => {
-            beforeEach(() => {
-                mockIsFooterSelectorsBetaEnabled.current = false;
-            });
-
-            it('offers neither selector and leaves the query alone', async () => {
-                mockSelectedTransactions.current = {};
-                setSearchQuery('type:expense footerCount:reports footerTotal:reimbursable footerCurrency:eur');
-
-                render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE, 42)} />);
-                await waitForBatchedUpdates();
-
-                expect(mockCapturedFooterProps.current?.countType).toBeUndefined();
-                expect(mockCapturedFooterProps.current?.totalType).toBeUndefined();
-                // The query's selections are ignored, so the footer shows the whole-search expense count and total.
-                expect(mockCapturedFooterProps.current?.count).toBe(1204);
-                expect(mockCapturedFooterProps.current?.currency).toBe(CONST.CURRENCY.USD);
-            });
-
-            it('keeps a currency change in local state instead of writing it into the query', async () => {
-                mockSelectedTransactions.current = {};
-
-                render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 1204, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE)} />);
-                await waitForBatchedUpdates();
-
-                await act(async () => {
-                    mockCapturedFooterProps.current?.onCurrencyChange?.(CONST.CURRENCY.EUR);
-                    await waitForBatchedUpdates();
-                });
-
-                expect(mockSetParams).not.toHaveBeenCalled();
-            });
         });
     });
 

@@ -136,7 +136,16 @@ const FS: Fullstory = {
         if (!isInitialized()) {
             return;
         }
-        FullStory(CONST.FULLSTORY.OPERATION.SET_PROPERTIES, {type: 'user', properties: userVars});
+        FullStory(CONST.FULLSTORY.OPERATION.SET_PROPERTIES, {
+            type: 'user',
+            properties: userVars,
+            schema: {
+                properties: {
+                    // eslint-disable-next-line @typescript-eslint/naming-convention -- FullStory schema uses external snake_case keys.
+                    nps_response_date: 'date',
+                },
+            },
+        });
     },
 
     resetIdleTimer: () => {

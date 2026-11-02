@@ -5,7 +5,7 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 
 import type {CardList, PersonalDetails, Policy, PolicyCategories, PolicyTagLists, Report, ReportAction, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {SearchTransactionAction} from '@src/types/onyx/SearchResults';
+import type {SearchTransaction, SearchTransactionAction} from '@src/types/onyx/SearchResults';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
@@ -27,6 +27,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** The date the report was approved, derived from the report and its live actions on the Search page */
     approved?: string;
+
+    /** The date the report was paid, derived from the report and its live actions on the Search page */
+    paid?: string;
 
     /** The date the report was exported */
     exported?: string;
@@ -60,6 +63,9 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** ID of the policy the transaction belongs to, provided on search transactions */
     policyID?: string;
+
+    /** Whether the expense was ever rejected, provided on search transactions when the Rejected column is shown or sorted by */
+    declined?: SearchTransaction['declined'];
 };
 
 type TransactionItemRowProps = {
@@ -76,6 +82,7 @@ type TransactionItemRowProps = {
     isDateColumnCreated?: boolean;
     submittedColumnSize?: TableColumnSize;
     approvedColumnSize?: TableColumnSize;
+    paidColumnSize?: TableColumnSize;
     postedColumnSize?: TableColumnSize;
     exportedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;

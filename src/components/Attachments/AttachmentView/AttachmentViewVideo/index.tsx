@@ -43,4 +43,4 @@ function AttachmentViewVideo({source, fileName, isHovered = false, shouldUseShar
 
 AttachmentViewVideo.displayName = 'AttachmentViewVideo';
 
-export default React.memo(AttachmentViewVideo);
+export default AttachmentViewVideo;

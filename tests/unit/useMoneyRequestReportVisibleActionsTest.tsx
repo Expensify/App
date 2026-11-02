@@ -174,6 +174,56 @@ describe('useMoneyRequestReportVisibleActions', () => {
         expect(getVisibleIDs(result.current.visibleReportActions)).toEqual(['2']);
     });
 
+    it.each([false, true])('should keep only renderable payment rows when waiting for a bank account is %s', async (isWaitingOnBankAccount) => {
+        // Given an expense payment and a direct-send payment on the same report
+        const expensePayment = buildIOUAction('2', CONST.IOU.REPORT_ACTION_TYPE.PAY, TRANSACTION_ID);
+        const sentPayment: ReportAction = {
+            ...buildIOUAction('3', CONST.IOU.REPORT_ACTION_TYPE.PAY, TRANSACTION_ID),
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUDetails: {amount: 100, currency: CONST.CURRENCY.USD, comment: 'Sent money'}},
+        };
+        const actions = [sentPayment, expensePayment, buildComment('1')];
+
+        // When the report visibility rule is applied
+        const result = await renderWithActions(actions, {isWaitingOnBankAccount});
+
+        // Then a direct-send payment stays visible, and only the waiting expense payment is removed
+        expect(getVisibleIDs(result.current.visibleReportActions)).toEqual(isWaitingOnBankAccount ? ['1', '3'] : ['1', '2', '3']);
+        expect(getVisibleIDs(result.current.visibleReportActionsNewestFirst)).toEqual(isWaitingOnBankAccount ? ['3', '1'] : ['3', '2', '1']);
+        expect(result.current.lastAction?.reportActionID).toBe('3');
+    });
+
+    it('should update visibility and the first visible action when bank setup changes', async () => {
+        // Given a payment immediately after the report was created
+        const actions = [buildComment('3'), buildIOUAction('2', CONST.IOU.REPORT_ACTION_TYPE.PAY, TRANSACTION_ID), buildComment('1', {actionName: CONST.REPORT.ACTIONS.TYPE.CREATED})];
+        await setReportActions(actions);
+        await waitForBatchedUpdates();
+        const {result, rerender} = renderHook(
+            ({isWaitingOnBankAccount}: {isWaitingOnBankAccount: boolean}) => useMoneyRequestReportVisibleActions(buildParams(actions, {isWaitingOnBankAccount})),
+            {
+                wrapper,
+                initialProps: {isWaitingOnBankAccount: true},
+            },
+        );
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // Then the hidden payment cannot become the first visible action
+        expect(getVisibleIDs(result.current.visibleReportActions)).toEqual(['3']);
+        expect(result.current.firstVisibleReportActionID).toBe('3');
+
+        // When bank setup completes, the ordinary payment returns in the original position
+        rerender({isWaitingOnBankAccount: false});
+        expect(getVisibleIDs(result.current.visibleReportActions)).toEqual(['2', '3']);
+        expect(result.current.firstVisibleReportActionID).toBe('2');
+
+        // If the report waits again, visibility is recalculated without stale payment metadata
+        rerender({isWaitingOnBankAccount: true});
+        expect(getVisibleIDs(result.current.visibleReportActions)).toEqual(['3']);
+        expect(result.current.firstVisibleReportActionID).toBe('3');
+    });
+
     it('should keep an action pending deletion while offline, because the delete has not been sent yet', async () => {
         const actions = [buildComment('2'), buildComment('1', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})];
 

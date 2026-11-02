@@ -59,6 +59,14 @@ jest.mock('@hooks/useExpensifyCardStatementPDFDownloadModal', () => ({
     }),
 }));
 
+// The report PDF hook owns its own Onyx subscriptions and modal lifecycle (covered by useReportPDFDownloadModalTest),
+// so only its show call is observed here.
+const mockShowReportPDFDownloadModal = jest.fn<Promise<{action: string}>, [{reportID: string}]>(() => Promise.resolve({action: 'CLOSE'}));
+jest.mock('@hooks/useReportPDFDownloadModal', () => ({
+    __esModule: true,
+    default: () => ({showReportPDFDownloadModal: mockShowReportPDFDownloadModal}),
+}));
+
 let mockIsOffline = false;
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
@@ -364,6 +372,8 @@ describe('useSearchBulkActions - Download report', () => {
 
         expect(exportReportToPDF).toHaveBeenCalledTimes(1);
         expect(exportReportToPDF).toHaveBeenCalledWith({reportID: '1'});
+        expect(mockShowReportPDFDownloadModal).toHaveBeenCalledTimes(1);
+        expect(mockShowReportPDFDownloadModal).toHaveBeenCalledWith({reportID: '1'});
     });
 
     it('should not call exportReportToPDF when offline', async () => {
