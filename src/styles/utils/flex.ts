@@ -153,6 +153,10 @@ export default {
         flexShrink: 0,
     },
 
+    minWidthAuto: {
+        minWidth: 'auto',
+    },
+
     flexBasisAuto: {
         flexBasis: 'auto',
     },

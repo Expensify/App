@@ -561,8 +561,8 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
                 {!isLoading && !isInSidePanel && isConciergeThread && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newConciergeChatButton}</View>}
                 {shouldGroupConciergeActions && (
                     <View style={[styles.flexRow, styles.flexWrap, styles.gap2, styles.ph5, styles.pb3]}>
-                        <View style={[styles.flexGrow1, styles.flexShrink0, styles.mw100]}>{callActionButton}</View>
-                        <View style={[styles.flexGrow1, styles.flexShrink0, styles.mw100]}>{onboardingHelpDropdownButton}</View>
+                        <View style={[styles.flex1, styles.minWidthAuto, styles.mw100]}>{callActionButton}</View>
+                        <View style={[styles.flex1, styles.minWidthAuto, styles.mw100]}>{onboardingHelpDropdownButton}</View>
                     </View>
                 )}
                 {shouldShowCallAction && shouldStackCallAction && !shouldGroupConciergeActions && <View style={[styles.ph5, styles.pb3]}>{callActionButton}</View>}
