@@ -16,10 +16,14 @@ let mockActiveTransaction: OnyxTypes.Transaction | undefined;
 let mockOnyxValues: Record<string, unknown> = {};
 
 jest.mock('@components/DatePicker', () => {
-    const {Pressable, Text} = jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void}>>>('react-native');
+    const {Pressable, Text} =
+        jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: string}>>>('react-native');
     function MockDatePicker({onInputChange}: {onInputChange: (date: string) => void}) {
         return (
-            <Pressable onPress={() => onInputChange('2024-02-01')}>
+            <Pressable
+                onPress={() => onInputChange('2024-02-01')}
+                accessibilityRole="button"
+            >
                 <Text>Pick new date</Text>
             </Pressable>
         );
