@@ -362,7 +362,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     // Prefer live Onyx errors so the message goes away once the error is dismissed in the report
     const hasReportErrors = !isEmptyObject(parentReport ? parentReport.errors : item.errors);
 
-    // A rejected report can still have errors (for example, after a failed resubmit), so build the messages together
     const descriptionMessages: string[] = [];
     if (reportItem?.isRejectedReport) {
         descriptionMessages.push(translate('iou.rejectReport.rejectedReportMessage'));
