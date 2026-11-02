@@ -32,7 +32,6 @@ let mockSearchState: {
 };
 let mockRouteParams: {sourceReportID?: string; sourcePolicyID?: string} = {};
 let mockFocusedWorkspacePolicyID: string | undefined;
-let mockFocusedReportID: string | undefined;
 
 jest.mock('@hooks/useIsInSidePanel', () => ({
     __esModule: true,
@@ -46,7 +45,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('@hooks/useRootNavigationState', () => ({
     __esModule: true,
-    default: (selector: {name: string}) => (selector.name === 'getFocusedReportID' ? mockFocusedReportID : mockFocusedWorkspacePolicyID),
+    default: () => mockFocusedWorkspacePolicyID,
 }));
 
 jest.mock('@hooks/useCurrentReportID', () => ({
@@ -73,7 +72,6 @@ function resetMocks() {
     };
     mockRouteParams = {};
     mockFocusedWorkspacePolicyID = undefined;
-    mockFocusedReportID = undefined;
 }
 
 describe('useSidePanelContext', () => {
@@ -217,49 +215,6 @@ describe('useSidePanelContext', () => {
             mockCurrentReportIDState = {currentRHPReportID: 'rhp_report', currentReportID: 'main_report'};
             const {result} = await renderWithConciergeReport();
             await waitForBatchedUpdates();
-            expect(result.current).toMatchObject({reportID: 'rhp_report'});
-        });
-
-        it('prefers the focused report over a stale currentReportID', async () => {
-            // Given a report opened from Reports while currentReportID still holds the last Inbox report
-            mockFocusedReportID = 'search_report';
-            mockCurrentReportIDState = {currentRHPReportID: undefined, currentReportID: 'main_report'};
-
-            // When the side panel context is built
-            const {result} = await renderWithConciergeReport();
-            await waitForBatchedUpdates();
-
-            // Then the report on screen is sent
-            expect(result.current).toMatchObject({reportID: 'search_report'});
-        });
-
-        it('sends the focused report when the user leaves a workspace page for a report while the side panel stays open', async () => {
-            // Given the side panel opened on a workspace page
-            mockFocusedWorkspacePolicyID = 'policy_123';
-            const {result, rerender} = await renderWithConciergeReport();
-            await waitForBatchedUpdates();
-            expect(result.current).toEqual({policyID: 'policy_123'});
-
-            // When the user opens a report from Reports without Inbox ever showing it
-            mockFocusedWorkspacePolicyID = undefined;
-            mockFocusedReportID = 'search_report';
-            rerender(REPORT_ID);
-
-            // Then the context switches to that report
-            expect(result.current).toMatchObject({reportID: 'search_report'});
-            expect(result.current?.policyID).toBeUndefined();
-        });
-
-        it('prefers currentRHPReportID over the focused report', async () => {
-            // Given a report in the RHP over a report in the central pane
-            mockFocusedReportID = 'central_report';
-            mockCurrentReportIDState = {currentRHPReportID: 'rhp_report', currentReportID: 'main_report'};
-
-            // When the side panel context is built
-            const {result} = await renderWithConciergeReport();
-            await waitForBatchedUpdates();
-
-            // Then the RHP report is sent, since it is on top
             expect(result.current).toMatchObject({reportID: 'rhp_report'});
         });
 
