@@ -1128,6 +1128,21 @@ function isPushScopedToOthers(reportAction: OnyxInputOrEntry<ReportAction>, curr
     return !actionableForAccountIDs.some((accountID) => accountID === currentUserAccountID);
 }
 
+/**
+ * Whether the action is marked as important for the current user via importantForAccountIDs
+ */
+function isImportantForCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
+    const originalMessage = reportAction ? getOriginalMessage(reportAction) : undefined;
+    if (!originalMessage || typeof originalMessage !== 'object' || !('importantForAccountIDs' in originalMessage)) {
+        return false;
+    }
+    const importantForAccountIDs: unknown = originalMessage.importantForAccountIDs;
+    if (!Array.isArray(importantForAccountIDs) || importantForAccountIDs.length === 0) {
+        return false;
+    }
+    return importantForAccountIDs.some((accountID) => accountID === currentUserAccountID);
+}
+
 function isReimbursementQueuedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED);
 }
@@ -6198,6 +6213,7 @@ export {
     hasPendingDEWApprove,
     isWhisperActionTargetedToOthers,
     isPushScopedToOthers,
+    isImportantForCurrentUser,
     isCategoryModificationAction,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
