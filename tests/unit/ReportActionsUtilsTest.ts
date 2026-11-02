@@ -5165,6 +5165,26 @@ describe('ReportActionsUtils', () => {
             // Then App wording is used so the text stays the same whichever server message arrives last
             expect(result).toBe('updated the workspace timezone to "Asia/Kolkata" (previously "America/New_York")');
         });
+
+        it('should return the App message when the workspace had no timezone before', () => {
+            // Given a timezone update for a workspace that never had a timezone, so the server sends no old value
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD,
+                reportActionID: '1',
+                created: '',
+                message: [{type: 'COMMENT', text: 'updated timeZone to "Asia/Kolkata"'}],
+                originalMessage: {
+                    updatedField: CONST.POLICY.COLLECTION_KEYS.TIME_ZONE,
+                    newValue: 'Asia/Kolkata',
+                },
+            } as ReportAction;
+
+            // When building the message
+            const result = getWorkspaceUpdateFieldMessage(translateLocal, action);
+
+            // Then App wording is still used instead of falling back to the server text
+            expect(result).toBe('set the workspace timezone to "Asia/Kolkata"');
+        });
     });
 
     describe('getPolicyChangeLogMaxExpenseAmountNoReceiptMessage', () => {
