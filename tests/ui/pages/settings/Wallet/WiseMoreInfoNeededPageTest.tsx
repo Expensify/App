@@ -7,7 +7,7 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import openExternalLink from '@libs/openExternalLink';
 
-import WiseKYCReviewPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseKYCReviewPage';
+import WiseMoreInfoNeededPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseMoreInfoNeededPage';
 
 import {getWiseKYCReviewEmbeddedLink} from '@userActions/Wise';
 
@@ -23,7 +23,7 @@ import waitForBatchedUpdatesWithAct from '../../../../utils/waitForBatchedUpdate
 
 const BANK_ACCOUNT_ID = 9053192;
 const CONTINUE_BUTTON_TEST_ID = 'confirmation-primary-button';
-const LINK = 'https://sandbox.transferwise.tech/embedded-flows/kyc-review?token=abc';
+const KYC_REVIEW_URL = 'https://sandbox.transferwise.tech/embedded-flows/kyc-review?token=abc';
 
 jest.mock('@userActions/Wise', () => ({getWiseKYCReviewEmbeddedLink: jest.fn(), clearWiseKYCReviewEmbeddedLink: jest.fn()}));
 jest.mock('@libs/openExternalLink', () => jest.fn());
@@ -37,10 +37,10 @@ async function renderPage() {
     render(
         <OnyxListItemProvider>
             <NavigationContainer ref={navigationRef}>
-                <Stack.Navigator initialRouteName={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW}>
+                <Stack.Navigator initialRouteName={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED}>
                     <Stack.Screen
-                        name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW}
-                        component={WiseKYCReviewPage}
+                        name={SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED}
+                        component={WiseMoreInfoNeededPage}
                         initialParams={{bankAccountID: String(BANK_ACCOUNT_ID)}}
                     />
                 </Stack.Navigator>
@@ -50,7 +50,7 @@ async function renderPage() {
     await waitForBatchedUpdatesWithAct();
 }
 
-describe('WiseKYCReviewPage', () => {
+describe('WiseMoreInfoNeededPage', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -66,10 +66,10 @@ describe('WiseKYCReviewPage', () => {
         expect(getWiseKYCReviewEmbeddedLink).toHaveBeenCalledWith(BANK_ACCOUNT_ID);
 
         // When the link arrives
-        await act(() => Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {url: LINK, isLoading: false}));
+        await act(() => Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {url: KYC_REVIEW_URL, isLoading: false}));
         await waitForBatchedUpdatesWithAct();
 
         // Then the user leaves for Wise's form in the same tab
-        expect(openExternalLink).toHaveBeenCalledWith(LINK, undefined, true);
+        expect(openExternalLink).toHaveBeenCalledWith(KYC_REVIEW_URL, undefined, true);
     });
 });

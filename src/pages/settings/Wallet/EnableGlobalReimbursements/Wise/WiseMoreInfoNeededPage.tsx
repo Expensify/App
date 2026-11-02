@@ -29,13 +29,13 @@ import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect, useState} from 'react';
 
-type WiseKYCReviewPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW>;
+type WiseMoreInfoNeededPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED>;
 
 /** Sends the user to Wise's own page for the details only Wise can collect */
-function WiseKYCReviewPage({route}: WiseKYCReviewPageProps) {
+function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
-    const termsPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path);
-    const [kycReviewLink] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK);
+    const termsPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path);
+    const [embeddedLink] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK);
 
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -55,13 +55,13 @@ function WiseKYCReviewPage({route}: WiseKYCReviewPageProps) {
 
     // Only a link asked for on this visit redirects, so a fetch that returns after an earlier visit closed does not
     const [hasRequestedLink, setHasRequestedLink] = useState(false);
-    const url = kycReviewLink?.url;
+    const kycReviewURL = embeddedLink?.url;
     useEffect(() => {
-        if (!hasRequestedLink || !url) {
+        if (!hasRequestedLink || !kycReviewURL) {
             return;
         }
-        openExternalLink(url, undefined, true);
-    }, [hasRequestedLink, url]);
+        openExternalLink(kycReviewURL, undefined, true);
+    }, [hasRequestedLink, kycReviewURL]);
 
     // The link carries a token, so it does not outlive the page
     useEffect(() => () => clearWiseKYCReviewEmbeddedLink(), []);
@@ -71,21 +71,21 @@ function WiseKYCReviewPage({route}: WiseKYCReviewPageProps) {
     }
 
     return (
-        <ScreenWrapper testID="WiseKYCReviewPage">
+        <ScreenWrapper testID="WiseMoreInfoNeededPage">
             <Header>
                 <Header.BackButton onPress={goBackToTerms} />
-                <Header.Title title={translate('walletPage.wiseOnboarding.kycReview.headerTitle')} />
+                <Header.Title title={translate('walletPage.wiseOnboarding.moreInfoNeeded.headerTitle')} />
             </Header>
             <ConfirmationPage>
                 <ConfirmationPage.Content>
                     <ConfirmationPage.Illustration illustration={illustrations.UserShield} />
-                    <ConfirmationPage.Heading>{translate('walletPage.wiseOnboarding.kycReview.title')}</ConfirmationPage.Heading>
-                    <ConfirmationPage.Description style={styles.textSupporting}>{translate('walletPage.wiseOnboarding.kycReview.subtitle')}</ConfirmationPage.Description>
+                    <ConfirmationPage.Heading>{translate('walletPage.wiseOnboarding.moreInfoNeeded.title')}</ConfirmationPage.Heading>
+                    <ConfirmationPage.Description style={styles.textSupporting}>{translate('walletPage.wiseOnboarding.moreInfoNeeded.subtitle')}</ConfirmationPage.Description>
                 </ConfirmationPage.Content>
                 <FixedFooter>
-                    {!!kycReviewLink?.errors && (
+                    {!!embeddedLink?.errors && (
                         <FormHelpMessage
-                            message={getLatestErrorMessage(kycReviewLink)}
+                            message={getLatestErrorMessage(embeddedLink)}
                             style={styles.mb3}
                         />
                     )}
@@ -93,7 +93,7 @@ function WiseKYCReviewPage({route}: WiseKYCReviewPageProps) {
                     <ConfirmationPage.PrimaryButton
                         text={translate('common.continue')}
                         isDisabled={isOffline}
-                        isLoading={!!kycReviewLink?.isLoading}
+                        isLoading={!!embeddedLink?.isLoading}
                         onPress={() => {
                             setHasRequestedLink(true);
                             getWiseKYCReviewEmbeddedLink(bankAccountID);
@@ -105,4 +105,4 @@ function WiseKYCReviewPage({route}: WiseKYCReviewPageProps) {
     );
 }
 
-export default WiseKYCReviewPage;
+export default WiseMoreInfoNeededPage;

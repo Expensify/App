@@ -85,7 +85,7 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
     const isSubmitting = hasSubmitted && !!reimbursementAccount?.isLoading;
     const wasSubmitting = usePrevious(isSubmitting);
     const submitError = hasSubmitted ? getLatestErrorMessage(reimbursementAccount) : '';
-    const wiseStatus = reimbursementAccount?.achData?.wise?.status;
+    const onboardingStatus = reimbursementAccount?.achData?.wise?.status;
 
     const goBackToConfirmation = () => Navigation.goBack(confirmationPath);
 
@@ -98,11 +98,11 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
 
     // Wise needs more details when the submit returns ACTION_REQUIRED
     useEffect(() => {
-        if (!wasSubmitting || isSubmitting || submitError || wiseStatus !== CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED) {
+        if (!wasSubmitting || isSubmitting || submitError || onboardingStatus !== CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED) {
             return;
         }
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path));
-    }, [wasSubmitting, isSubmitting, submitError, wiseStatus]);
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path));
+    }, [wasSubmitting, isSubmitting, submitError, onboardingStatus]);
 
     const confirm = () => {
         if (!TERM_KEYS.every((key) => accepted[key])) {
