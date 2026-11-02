@@ -1,5 +1,4 @@
 import LinkButton from '@components/Button/composed/LinkButton';
-import type FlatListRefType from '@components/FlashList/types';
 
 import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -17,6 +16,8 @@ import {getMoneyRequestSpendBreakdown, getReportOfflinePendingActionAndErrors, i
 import {getTransactionPendingAction} from '@libs/TransactionUtils';
 
 import Navigation from '@navigation/Navigation';
+
+import type ActionListRefType from '@pages/inbox/ActionListTypes';
 
 import {resolveLayoutSpacing} from '@styles/layoutSpacing';
 
@@ -127,8 +128,11 @@ type MoneyRequestReportTransactionListProps = {
     /** Report action ID the unified list should initially scroll to, when deep-linked. */
     linkedReportActionID: string | undefined;
 
+    /** First revealed action to mount for a manual expansion's focus handoff. */
+    focusRequestedReportActionID?: string;
+
     /** Ref forwarded to the underlying FlashList. */
-    listRef: FlatListRefType;
+    listRef: ActionListRefType;
 
     /** Reports the unified list's last item index so the parent can jump to the bottom via scrollToIndex. */
     onLastItemIndexChange?: (index: number) => void;
@@ -138,6 +142,9 @@ type MoneyRequestReportTransactionListProps = {
 
     /** FlashList onLayout callback (distinct from the empty-state `onLayout` above). */
     onListLayout: (event: LayoutChangeEvent) => void;
+
+    /** Called after FlashList finishes measuring and committing its rows. */
+    onCommitLayoutEffect?: () => void;
 
     /** FlashList onScroll callback. */
     onScroll: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
@@ -185,10 +192,12 @@ function MoneyRequestReportTransactionList({
     renderReportAction,
     reportActionsExtraData,
     linkedReportActionID,
+    focusRequestedReportActionID,
     listRef,
     onLastItemIndexChange,
     accessibilityLabel,
     onListLayout,
+    onCommitLayoutEffect,
     onScroll,
     onScrollBeginDrag,
     onContentSizeChange,
@@ -480,11 +489,13 @@ function MoneyRequestReportTransactionList({
                 renderReportAction={renderReportAction}
                 reportActionsExtraData={reportActionsExtraData}
                 linkedReportActionID={linkedReportActionID}
+                focusRequestedReportActionID={focusRequestedReportActionID}
                 newTransactionID={isReportVisible ? newTransactions.at(0)?.transactionID : undefined}
                 listRef={listRef}
                 onLastItemIndexChange={onLastItemIndexChange}
                 accessibilityLabel={accessibilityLabel}
                 onLayout={onListLayout}
+                onCommitLayoutEffect={onCommitLayoutEffect}
                 onScroll={onScroll}
                 onScrollBeginDrag={onScrollBeginDrag}
                 onContentSizeChange={onContentSizeChange}

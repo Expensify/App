@@ -27,7 +27,7 @@ import INPUT_IDS from '@src/types/form/ChangeBillingCurrencyForm';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type Currency = ValueOf<typeof CONST.PAYMENT_CARD_CURRENCY>;
@@ -69,16 +69,13 @@ function ChangeBillingCurrency() {
         return errors;
     };
 
-    const onSubmit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>) => {
-            if (!values?.securityCode) {
-                Navigation.goBack();
-                return;
-            }
-            PaymentMethods.updateBillingCurrency(currency, values.securityCode);
-        },
-        [currency],
-    );
+    const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM>) => {
+        if (!values?.securityCode) {
+            Navigation.goBack();
+            return;
+        }
+        PaymentMethods.updateBillingCurrency(currency, values.securityCode);
+    };
 
     return (
         <ScreenWrapper testID="ChangeBillingCurrency">

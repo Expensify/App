@@ -1,5 +1,6 @@
 import ValidateCodeActionContent from '@components/ValidateCodeActionModal/ValidateCodeActionContent';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useInitialOnyxValue from '@hooks/useInitialOnyxValue';
 import useLocalize from '@hooks/useLocalize';
 import useNonPersonalCardList from '@hooks/useNonPersonalCardList';
@@ -10,6 +11,8 @@ import usePrimaryContactMethod from '@hooks/usePrimaryContactMethod';
 import {clearCardListErrors, reportVirtualExpensifyCardFraud} from '@libs/actions/Card';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import removeDynamicRouteFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/removeDynamicRouteFromPath';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -17,14 +20,17 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {clearValidateCodeActionError} from '@userActions/User';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
 
-type ReportVirtualCardFraudVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD>;
+type ReportVirtualCardFraudVerifyAccountPageProps = PlatformStackScreenProps<
+    SettingsNavigatorParamList,
+    typeof SCREENS.SETTINGS.WALLET.DYNAMIC_REPORT_VIRTUAL_CARD_FRAUD_CONFIRM_VALIDATE_CODE
+>;
 
 function ReportVirtualCardFraudVerifyAccountPage({
     route: {
@@ -44,6 +50,7 @@ function ReportVirtualCardFraudVerifyAccountPage({
     const cardError = getLatestErrorFieldForAnyField(virtualCard);
     const codeError = getLatestErrorFieldForAnyField(validateCodeAction);
     const prevIsLoading = usePrevious(formData?.isLoading);
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD_VERIFY_ACCOUNT.path);
 
     useEffect(() => {
         if (!prevIsLoading || formData?.isLoading) {
@@ -55,10 +62,11 @@ function ReportVirtualCardFraudVerifyAccountPage({
 
         if (replacementCardID || physicalCardForm?.cardTerminatedWithoutReplacement) {
             const confirmationCardID = replacementCardID || cardID;
-            Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.WALLET.DOMAIN_CARD);
-            Navigation.goBack(ROUTES.SETTINGS_REPORT_FRAUD_CONFIRMATION.getRoute(confirmationCardID));
+            // Domains opens the fraud page as a static route, so there is no dynamic suffix to remove there.
+            const cardDetailsPath = removeDynamicRouteFromPath(backPath, DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD.path) ?? ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID);
+            Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD_CONFIRMATION.getRoute(confirmationCardID), cardDetailsPath));
         }
-    }, [cardError, cardID, codeError, formData?.isLoading, physicalCardForm?.cardTerminatedWithoutReplacement, prevIsLoading, replacementCardID]);
+    }, [backPath, cardError, cardID, codeError, formData?.isLoading, physicalCardForm?.cardTerminatedWithoutReplacement, prevIsLoading, replacementCardID]);
 
     const handleValidateCodeEntered = (validateCode: string) => {
         if (!virtualCard) {
@@ -86,7 +94,7 @@ function ReportVirtualCardFraudVerifyAccountPage({
             validateError={{...cardError, ...codeError}}
             clearError={handleClearError}
             onClose={() => {
-                Navigation.goBack(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(cardID));
+                Navigation.goBack(backPath);
             }}
         />
     );

@@ -43,7 +43,7 @@ import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {BaseOnboardingAccountingProps} from './types';
@@ -155,14 +155,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         setError('');
     };
 
-    const handleContentSizeChange = useCallback(() => {
+    const handleContentSizeChange = () => {
         if (!shouldScrollToOtherInput) {
             return;
         }
 
         scrollViewRef.current?.scrollToEnd({animated: false});
         setShouldScrollToOtherInput(false);
-    }, [shouldScrollToOtherInput]);
+    };
 
     function renderOption(optionKey: AccountingOptionKey) {
         const isOtherOption = optionKey === 'other';

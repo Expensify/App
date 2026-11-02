@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {updateNetSuiteAllowForeignCurrency, updateNetSuiteExportToNextOpenPeriod, updateNetSuiteSplitExportsByPostingPeriod} from '@libs/actions/connections/NetSuiteCommands';
 import {getCardSettings} from '@libs/CardUtils';
@@ -67,8 +67,8 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const selectedReceivable = receivableList?.find((account) => account.id === config?.receivableAccount);
     const selectedItem = items?.find((item) => item.id === config?.invoiceItem);
 
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
