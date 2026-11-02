@@ -948,6 +948,7 @@ const SCREENS = {
         WORKFLOWS_AUTO_REPORTING_WEEKLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Weekly_Offset',
         WORKFLOWS_AUTO_REPORTING_SEMI_MONTHLY_OFFSET: 'Workspace_Workflows_Auto_Reporting_Semi_Monthly_Offset',
         WORKFLOWS_CURRENCY_CONVERSION_FEES: 'Workspace_Workflows_Currency_Conversion_Fees',
+        WORKFLOWS_REIMBURSEMENT_COUNTRIES: 'Workspace_Workflows_Reimbursement_Countries',
         DESCRIPTION: 'Workspace_Overview_Description',
         SHARE: 'Workspace_Overview_Share',
         NAME: 'Workspace_Overview_Name',

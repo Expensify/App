@@ -5350,6 +5350,7 @@ const CONST = {
             AUTOREPORTING_OFFSET: 'autoReportingOffset',
             GLOBAL_REIMBURSEMENT_FX_PREFER_COMPANY: 'globalReimbursementFXPreferCompany',
             IS_COLLECT_DEPOSIT_ACCOUNTS_ENABLED: 'isCollectDepositAccountsEnabled',
+            REIMBURSEMENT_COUNTRIES: 'reimbursementCountries',
             GENERAL_SETTINGS: 'generalSettings',
             TIME_ZONE: 'timeZone',
         },

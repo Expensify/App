@@ -55,6 +55,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {TupleToUnion} from 'type-fest';
 
@@ -292,10 +293,11 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     };
     const bankAccountMenuItem = <MenuItem {...bankAccountMenuItemProps} />;
 
-    const reimbursementCountryNames = Object.keys(policy?.reimbursement?.countries ?? {})
+    const reimbursementCountries = Object.keys(policy?.reimbursement?.countries ?? {})
         .filter((countryISO): countryISO is Country => countryISO in CONST.ALL_COUNTRIES)
-        .map((countryISO) => translate(`allCountries.${countryISO}`))
-        .join(', ');
+        .map((countryISO) => ({countryISO, name: translate(`allCountries.${countryISO}`), pendingAction: policy?.reimbursement?.countries?.[countryISO]?.pendingAction}));
+    const reimbursementCountryNames = reimbursementCountries.map(({name}) => name).join(', ');
+    const reimbursementCountriesErrors = getLatestErrorField(policy ?? {}, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_COUNTRIES);
 
     return (
         <WorkflowsSectionCard
@@ -459,20 +461,57 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                             disabledAction={withPaymentsReadOnlyFallback()}
                             showLockIcon={!canWritePayments}
                             subMenuItems={
-                                <MenuItemSectionRoot
-                                    onPress={canWritePayments ? () => {} : undefined}
-                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}
-                                    style={styles.mt3}
+                                <OfflineWithFeedback
+                                    errors={reimbursementCountriesErrors}
+                                    onClose={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_COUNTRIES)}
+                                    errorRowStyles={[styles.mt3]}
                                 >
-                                    <MenuItemField.Row
-                                        name={translate('workflowsPage.businessBankAccountCountries')}
-                                        value={reimbursementCountryNames}
-                                        numberOfLinesValue={0}
+                                    <MenuItemSectionRoot
+                                        onPress={
+                                            canWritePayments
+                                                ? callFunctionIfActionIsAllowed(
+                                                      () => Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_REIMBURSEMENT_COUNTRIES.getRoute(policyID)),
+                                                      false,
+                                                      session,
+                                                  )
+                                                : undefined
+                                        }
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.WORKFLOWS.BUSINESS_BANK_ACCOUNT_COUNTRIES}
+                                        style={styles.mt3}
                                     >
-                                        {canWritePayments && <MenuItem.Chevron />}
-                                    </MenuItemField.Row>
-                                    <MenuItem.HelpText message={translate('workflowsPage.businessBankAccountCountriesDescription')} />
-                                </MenuItemSectionRoot>
+                                        <MenuItem.Row>
+                                            <MenuItemField.Content name={translate('workflowsPage.businessBankAccountCountries')}>
+                                                {reimbursementCountries.length > 0 && (
+                                                    <MenuItem.FieldValue
+                                                        numberOfLines={0}
+                                                        accessibilityLabel={reimbursementCountryNames}
+                                                    >
+                                                        <Text>
+                                                            {reimbursementCountries.map(({countryISO, name, pendingAction}, index) => (
+                                                                <React.Fragment key={countryISO}>
+                                                                    {index > 0 && ', '}
+                                                                    <Text
+                                                                        style={[
+                                                                            !!pendingAction && styles.colorMuted,
+                                                                            pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && styles.offlineFeedbackDeleted,
+                                                                        ]}
+                                                                    >
+                                                                        {name}
+                                                                    </Text>
+                                                                </React.Fragment>
+                                                            ))}
+                                                        </Text>
+                                                    </MenuItem.FieldValue>
+                                                )}
+                                            </MenuItemField.Content>
+                                            <MenuItem.Trailing>
+                                                {!isEmptyObject(reimbursementCountriesErrors) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                                                {canWritePayments && <MenuItem.Chevron />}
+                                            </MenuItem.Trailing>
+                                        </MenuItem.Row>
+                                        <MenuItem.HelpText message={translate('workflowsPage.businessBankAccountCountriesDescription')} />
+                                    </MenuItemSectionRoot>
+                                </OfflineWithFeedback>
                             }
                         />
                     )}
