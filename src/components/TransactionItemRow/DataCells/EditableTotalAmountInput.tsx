@@ -1,5 +1,5 @@
-import {NumericFlipButton} from '@components/NumericButtons';
-import {useDetachedSignEditingController, useNumericPressSelection} from '@components/NumericEditingController';
+import {AmountSignFlipButton} from '@components/AmountActionButtons';
+import {useAmountPressSelection, useDetachedSignEditingController} from '@components/AmountEditingController';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -97,7 +97,7 @@ function EditableTotalAmountInput({
 
     const controller = useDetachedSignEditingController({
         value: seedValue,
-        onInputChange: (value) => onChange(hasFixedNegativeSign ? `-${value}` : value),
+        onInputChange: (value: string) => onChange(hasFixedNegativeSign ? `-${value}` : value),
         allowNegative: canFlipSign,
         decimals,
     });
@@ -114,7 +114,7 @@ function EditableTotalAmountInput({
         syncSeedValue();
     }, [seedValue]);
 
-    const handlePress = useNumericPressSelection({inputRef, handleSelectionChange: controller.handleSelectionChange});
+    const handlePress = useAmountPressSelection({inputRef, handleSelectionChange: controller.handleSelectionChange});
 
     // The row behind the cell is pressable, so presses on the input must not reach it
     const handleMouseDown = (event: MouseEvent<Element>) => {
@@ -193,7 +193,7 @@ function EditableTotalAmountInput({
             />
             {/* Soft decimal keyboards have no minus key, so touch devices flip the sign with a compact icon button */}
             {canFlipSign && canUseTouchScreen && (
-                <NumericFlipButton
+                <AmountSignFlipButton
                     onPress={controller.toggleSign}
                     shouldShowLabel={false}
                     style={[styles.ml1, styles.flexShrink0]}

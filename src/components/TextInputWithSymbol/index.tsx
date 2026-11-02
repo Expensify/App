@@ -6,6 +6,7 @@ import type {TextInputWithSymbolProps} from './types';
 
 import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
 
+/** @deprecated Use AmountFormField or KeypadAmountEditor instead. */
 function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: TextInputWithSymbolProps) {
     return (
         <BaseTextInputWithSymbol

@@ -12,5 +12,10 @@ export default {
     '@react-navigation/native': path.resolve(dirname, './mocks/react-navigation-native.ts'),
     // Modal backdrops read the stack card animation, which no story mounts
     '@react-navigation/stack': path.resolve(dirname, './mocks/react-navigation-stack.ts'),
+    // Let stories pick a device mode (src/stories/mocks/deviceMode.ts), so a desktop browser can render the touch and landscape layouts.
+    // Keyed by the resolved paths because the shared `@hooks`/`@libs` aliases are matched first and rewrite the requests to them.
+    [`${path.resolve(dirname, '../src/hooks/useIsInLandscapeMode')}$`]: path.resolve(dirname, '../src/stories/mocks/useIsInLandscapeMode.ts'),
+    [`${path.resolve(dirname, '../src/libs/DeviceCapabilities/canUseTouchScreen')}$`]: path.resolve(dirname, '../src/stories/mocks/canUseTouchScreen.ts'),
+    [`${path.resolve(dirname, '../src/libs/isInLandscapeMode')}$`]: path.resolve(dirname, '../src/stories/mocks/isInLandscapeMode.ts'),
 };
 /* eslint-enable @typescript-eslint/naming-convention */

@@ -1,0 +1,134 @@
+import {useAmountPressSelection} from '@components/AmountEditingController';
+import type {AmountEditingKeyPressEvent} from '@components/AmountEditingController';
+import {useKeypadAmountEditorActions, useKeypadAmountEditorState, useKeypadAmountFontSize} from '@components/KeypadAmountEditor/context';
+import type {KeypadAmountInputProps} from '@components/KeypadAmountEditor/types';
+import TextInput from '@components/TextInput';
+
+import useLocalize from '@hooks/useLocalize';
+import {useMouseActions} from '@hooks/useMouseContext';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import mergeRefs from '@libs/mergeRefs';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
+import type {MouseEvent} from 'react';
+import type {TextInputSelectionChangeEvent} from 'react-native';
+
+import {useNavigation} from '@react-navigation/native';
+/**
+ * Renders the number itself, displaying and editing the magnitude of the canonical value owned by the root. It carries the
+ * full-screen amount styles. The caller's styles are appended to them.
+ */
+function KeypadAmountInput({
+    style,
+    ref,
+    onKeyPress,
+    onBlur,
+    accessibilityLabel,
+    autoFocus,
+    autoGrow = true,
+    autoGrowExtraSpace = variables.w80,
+    autoGrowMarginSide,
+    containerStyle,
+    contentWidth,
+    disabled,
+    disableKeyboard = true,
+    hideFocusedState = true,
+    keyboardType,
+    onFocus,
+    onPress,
+    onSubmitEditing,
+    prefixCharacter,
+    prefixStyle,
+    prefixContainerStyle,
+    shouldAllowFocusInLandscapeMode = true,
+    shouldApplyPaddingToContainer = false,
+    shouldUseDefaultLineHeightForPrefix,
+    submitBehavior = 'submit',
+    testID,
+    touchableInputWrapperStyle,
+}: KeypadAmountInputProps) {
+    const {numberFormat, translate} = useLocalize();
+    const {setMouseDown, setMouseUp} = useMouseActions();
+    const styles = useThemeStyles();
+    const navigation = useNavigation();
+    const {formattedNumber, inputRef, isDisabled, selection} = useKeypadAmountEditorState();
+    const {dynamicAmountStyle} = useKeypadAmountFontSize();
+    const {handleKeyPress, handleSelectionChange, setNumber} = useKeypadAmountEditorActions();
+
+    const handlePress = useAmountPressSelection({inputRef, handleSelectionChange, onPress});
+
+    const handleInputKeyPress = (event: AmountEditingKeyPressEvent) => {
+        handleKeyPress(event);
+        onKeyPress?.(event);
+    };
+
+    const handleMouseDown = (event: MouseEvent<Element>) => {
+        event.stopPropagation();
+        setMouseDown();
+    };
+
+    const handleMouseUp = (event: MouseEvent<Element>) => {
+        event.stopPropagation();
+        setMouseUp();
+    };
+
+    return (
+        <TextInput
+            accessibilityLabel={accessibilityLabel ?? translate('iou.amount')}
+            // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
+            // See https://github.com/Expensify/App/issues/51868 for more information
+            autoCapitalize="words"
+            // On iPad, even if the soft keyboard is hidden, the keyboard suggestion is still shown.
+            // Setting both autoCorrect and spellCheck to false will hide the suggestion.
+            autoCorrect={false}
+            autoFocus={autoFocus}
+            autoGrow={autoGrow}
+            autoGrowExtraSpace={autoGrowExtraSpace}
+            autoGrowMarginSide={autoGrowMarginSide}
+            contentWidth={contentWidth}
+            // The root's `disabled` applies to the input unless the caller sets its own
+            disabled={disabled ?? isDisabled}
+            disableKeyboard={disableKeyboard}
+            disableKeyboardShortcuts
+            hideFocusedState={hideFocusedState}
+            inputMode={!keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined}
+            inputStyle={[styles.pr1, styles.iouAmountTextInput, style, dynamicAmountStyle]}
+            keyboardType={keyboardType}
+            // The navigation prop keeps disableKeyboard working when the app returns from the background.
+            navigation={navigation}
+            onBlur={onBlur}
+            onChangeText={setNumber}
+            onFocus={onFocus}
+            onKeyPress={handleInputKeyPress}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            onPress={handlePress}
+            onSelectionChange={(event: TextInputSelectionChangeEvent) => handleSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end)}
+            onSubmitEditing={onSubmitEditing}
+            placeholder={numberFormat(0)}
+            prefixCharacter={prefixCharacter}
+            prefixContainerStyle={prefixContainerStyle}
+            prefixStyle={prefixStyle}
+            // The root's ref drives focus and the web caret sync, so the caller's ref is merged into it.
+            ref={mergeRefs(inputRef, ref)}
+            selection={selection}
+            shouldAllowFocusInLandscapeMode={shouldAllowFocusInLandscapeMode}
+            shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
+            shouldInterceptSwipe
+            shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
+            shouldUseFullInputHeight
+            spellCheck={false}
+            submitBehavior={submitBehavior}
+            testID={testID}
+            textInputContainerStyles={[styles.iouAmountTextInputContainer, containerStyle]}
+            touchableInputWrapperStyle={[styles.heightUndefined, touchableInputWrapperStyle]}
+            value={formattedNumber}
+        />
+    );
+}
+
+export default KeypadAmountInput;

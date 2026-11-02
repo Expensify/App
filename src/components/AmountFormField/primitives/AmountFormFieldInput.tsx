@@ -1,0 +1,103 @@
+import type {AmountEditingKeyPressEvent} from '@components/AmountEditingController';
+import {useAmountFormFieldActions, useAmountFormFieldState} from '@components/AmountFormField/context';
+import type {AmountFormFieldInputProps} from '@components/AmountFormField/types';
+import TextInput from '@components/TextInput';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import type {TextInputSelectionChangeEvent} from 'react-native';
+
+/** Text input primitive connected to an AmountFormField root. */
+function AmountFormFieldInput({
+    prefixCharacter = '',
+    ref,
+    onKeyPress,
+    onBlur,
+    accessibilityLabel,
+    autoCorrect,
+    autoFocus,
+    autoGrow,
+    autoGrowExtraSpace,
+    autoGrowMarginSide,
+    containerStyle,
+    containerStyles,
+    contentWidth,
+    disabled,
+    disableKeyboard,
+    hideFocusedState,
+    keyboardType,
+    label,
+    onFocus,
+    placeholder,
+    prefixContainerStyle,
+    prefixStyle,
+    rightHandSideComponent,
+    shouldApplyPaddingToContainer,
+    shouldUseDefaultLineHeightForPrefix,
+    shouldUseFullInputHeight,
+    spellCheck,
+    onSubmitEditing,
+    submitBehavior = 'submit',
+    testID,
+    touchableInputWrapperStyle,
+    style,
+}: AmountFormFieldInputProps) {
+    const styles = useThemeStyles();
+    const {errorText, formattedNumber, selection} = useAmountFormFieldState();
+    const {handleKeyPress, handleSelectionChange, setNumber} = useAmountFormFieldActions();
+
+    const handleInputKeyPress = (event: AmountEditingKeyPressEvent) => {
+        handleKeyPress(event);
+        onKeyPress?.(event);
+    };
+
+    return (
+        <TextInput
+            accessibilityLabel={accessibilityLabel}
+            // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
+            // See https://github.com/Expensify/App/issues/51868 for more information
+            autoCapitalize="words"
+            autoCorrect={autoCorrect}
+            autoFocus={autoFocus}
+            autoGrow={autoGrow}
+            autoGrowExtraSpace={autoGrowExtraSpace}
+            autoGrowMarginSide={autoGrowMarginSide}
+            containerStyles={containerStyles}
+            contentWidth={contentWidth}
+            disabled={disabled}
+            disableKeyboard={disableKeyboard}
+            errorText={errorText}
+            hideFocusedState={hideFocusedState}
+            inputMode={!keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined}
+            inputStyle={style}
+            keyboardType={keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
+            label={label}
+            onBlur={onBlur}
+            onChangeText={setNumber}
+            onFocus={onFocus}
+            onKeyPress={handleInputKeyPress}
+            onSelectionChange={(event: TextInputSelectionChangeEvent) => handleSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end)}
+            onSubmitEditing={onSubmitEditing}
+            placeholder={placeholder}
+            prefixCharacter={prefixCharacter}
+            prefixContainerStyle={prefixContainerStyle}
+            prefixStyle={prefixStyle ?? styles.colorMuted}
+            ref={ref}
+            rightHandSideComponent={rightHandSideComponent}
+            selection={selection}
+            shouldApplyPaddingToContainer={shouldApplyPaddingToContainer}
+            shouldUseDefaultLineHeightForPrefix={shouldUseDefaultLineHeightForPrefix}
+            shouldUseFullInputHeight={shouldUseFullInputHeight}
+            spellCheck={spellCheck}
+            submitBehavior={submitBehavior}
+            testID={testID}
+            textInputContainerStyles={containerStyle}
+            touchableInputWrapperStyle={touchableInputWrapperStyle}
+            value={formattedNumber}
+        />
+    );
+}
+
+export default AmountFormFieldInput;
