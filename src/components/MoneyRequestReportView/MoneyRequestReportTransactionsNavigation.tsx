@@ -184,6 +184,16 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
     }
     const snapshotParentReportActions = parentActions;
 
+    // A sibling whose parent actions are only in the snapshot has nothing live to classify, so check the snapshot's
+    // copy too. Otherwise a snapshot-only "Pay someone" sibling looks like a normal expense in the table view, and its
+    // press waits on a parent action that never resolves: the pay action isn't an expense-creation action.
+    const isPrevSentMoneyReport =
+        !!reportedParentReportActions?.isPrevSentMoneyReport ||
+        isSentMoneyReportSelector(snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevTransactionReportID}`] as OnyxEntry<OnyxTypes.ReportActions>);
+    const isNextSentMoneyReport =
+        !!reportedParentReportActions?.isNextSentMoneyReport ||
+        isSentMoneyReportSelector(snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextTransactionReportID}`] as OnyxEntry<OnyxTypes.ReportActions>);
+
     // Live report actions win over the snapshot: the snapshot only fills in siblings the live pass couldn't resolve
     // (i.e. unreported ones). A search snapshot is a point-in-time copy, so for a reported transaction it can hold an
     // older copy of the same IOU action, for example one still missing the childReportID of a thread that has since
@@ -424,7 +434,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
             nextTransactionParentReport,
             nextThreadReport,
             !!reportedParentReportActions?.hasNextParentReportActions,
-            !!reportedParentReportActions?.isNextSentMoneyReport,
+            isNextSentMoneyReport,
         );
 
     const onPrevious = (e: GestureResponderEvent | KeyboardEvent | undefined) =>
@@ -436,7 +446,7 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
             prevTransactionParentReport,
             prevThreadReport,
             !!reportedParentReportActions?.hasPrevParentReportActions,
-            !!reportedParentReportActions?.isPrevSentMoneyReport,
+            isPrevSentMoneyReport,
         );
 
     // Replays a staged press once its parent action arrives, but only if the user is still where they pressed -

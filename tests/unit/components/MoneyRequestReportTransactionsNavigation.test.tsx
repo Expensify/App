@@ -2,7 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import MoneyRequestReportTransactionsNavigation from '@components/MoneyRequestReportView/MoneyRequestReportTransactionsNavigation';
 
-import {createTransactionThreadReport} from '@libs/actions/Report';
+import {createTransactionThreadReport, openReport} from '@libs/actions/Report';
 import {clearActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {getReportIDToOpenForExpense} from '@libs/TransactionThreadNavigationUtils';
 
@@ -377,6 +377,31 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             press('prev-button');
 
             expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rPrev', anchorTransactionID: PREV_ID}));
+        });
+
+        it('opens a snapshot-only "Pay someone" report in the table view on the first press', () => {
+            // Given the user views single-expense reports in the table view, and the next expense is a "Pay someone"
+            // payment whose pay action is only in the snapshot, since its parent actions were never loaded live
+            mockShouldUseTableViewForSingleExpense.value = true;
+            mockState.snapshot = {
+                data: {
+                    ...mockState.snapshot?.data,
+                    [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}rNext`]: {
+                        actionNext: {
+                            ...makeIOUAction(NEXT_ID, {childReportID: 'threadNext', reportID: 'rNext'}),
+                            originalMessage: {IOUTransactionID: NEXT_ID, type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUDetails: {amount: 100}},
+                        },
+                    },
+                },
+            };
+            renderNavigation();
+
+            // When the user steps to it
+            press('next-button');
+
+            // Then its report opens right away, rather than the press being parked on a fetch that never resolves it
+            expect(Navigation.setParams).toHaveBeenCalledWith(expect.objectContaining({reportID: 'rNext', anchorTransactionID: NEXT_ID}));
+            expect(openReport).not.toHaveBeenCalled();
         });
     });
 
