@@ -1538,7 +1538,7 @@ describe('Session', () => {
         test('sends the entered code as the validate code when it is not a 2FA step', async () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
-            SessionUtil.signInWithValidateCode(123, '112233', undefined);
+            SessionUtil.signInWithValidateCode(123, '112233', undefined, undefined);
             await waitForBatchedUpdates();
 
             const call = writeSpy.mock.calls.at(0);
@@ -1552,7 +1552,7 @@ describe('Session', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // twoFactorAuthCode present → should use storedValidateCode, ignoring the entered `code`.
-            SessionUtil.signInWithValidateCode(123, 'ignored-code', undefined, '654321', 'stored-code');
+            SessionUtil.signInWithValidateCode(123, 'ignored-code', undefined, undefined, '654321', 'stored-code');
             await waitForBatchedUpdates();
 
             expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({validateCode: 'stored-code', twoFactorAuthCode: '654321'}));
@@ -1563,7 +1563,7 @@ describe('Session', () => {
         test('sends the stored authToken during the 2FA step', async () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
-            SessionUtil.signInWithValidateCode(123, 'ignored-code', undefined, '654321', 'stored-code', 'stored-auth-token');
+            SessionUtil.signInWithValidateCode(123, 'ignored-code', undefined, undefined, '654321', 'stored-code', 'stored-auth-token');
             await waitForBatchedUpdates();
 
             expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({authToken: 'stored-auth-token'}));
@@ -1574,7 +1574,7 @@ describe('Session', () => {
         test('does not send an authToken on the initial validate code submission', async () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
-            SessionUtil.signInWithValidateCode(123, '112233', undefined, undefined, undefined, 'stored-auth-token');
+            SessionUtil.signInWithValidateCode(123, '112233', undefined, undefined, undefined, undefined, 'stored-auth-token');
             await waitForBatchedUpdates();
 
             expect(writeSpy.mock.calls.at(0)?.at(1)).not.toHaveProperty('authToken');
@@ -1722,7 +1722,7 @@ describe('Session', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // When signing in with a validate code
-            SessionUtil.signInWithValidateCode(123, '112233', undefined, undefined, undefined, undefined, anonymousSession);
+            SessionUtil.signInWithValidateCode(123, '112233', undefined, anonymousSession);
             await waitForBatchedUpdates();
 
             // Then the success data clears the anonymous account's personal details
@@ -1771,7 +1771,7 @@ describe('Session', () => {
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             // When signing in with a validate code
-            SessionUtil.signInWithValidateCode(123, '112233', undefined, undefined, undefined, undefined, {accountID: 1, email: 'user@expensify.com'});
+            SessionUtil.signInWithValidateCode(123, '112233', undefined, {accountID: 1, email: 'user@expensify.com'});
             await waitForBatchedUpdates();
 
             // Then no anonymous account is cleared, because the passed session wins over the stored one
@@ -1780,20 +1780,36 @@ describe('Session', () => {
             writeSpy.mockRestore();
         });
 
-        test('signInWithValidateCode falls back to the stored session when no session is passed', async () => {
-            // Given an anonymous session stored in Onyx and no session passed, which is how signInWithValidateCodeAndNavigate calls it
+        test('signInWithValidateCode does not clean up personal details when the passed session is undefined', async () => {
+            // Given an anonymous session stored in Onyx but an undefined session passed in, since signInWithValidateCode no longer reads the stored session
             await Onyx.set(ONYXKEYS.SESSION, anonymousSession);
             await waitForBatchedUpdates();
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
-            // When signing in with a validate code without a session
-            SessionUtil.signInWithValidateCode(123, '112233', undefined);
+            // When signing in with a validate code
+            SessionUtil.signInWithValidateCode(123, '112233', undefined, undefined);
             await waitForBatchedUpdates();
 
-            // Then the stored anonymous account is still cleared
-            expect(writeSpy.mock.calls.at(0)?.[2]?.successData).toEqual(expect.arrayContaining([anonymousCleanupUpdate]));
+            // Then nothing is cleared, because only the passed session is used
+            expect(writeSpy.mock.calls.at(0)?.[2]?.successData).toEqual(expect.arrayContaining([emptyCleanupUpdate]));
 
             writeSpy.mockRestore();
+        });
+
+        test('signInWithValidateCodeAndNavigate removes the anonymous personal details from the passed session on success', async () => {
+            // Given no session stored in Onyx and an anonymous session passed in by ValidateLoginPage
+            jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // When signing in from the validate link without an exitTo route
+            SessionUtil.signInWithValidateCodeAndNavigate(123, '112233', undefined, anonymousSession);
+            await waitForBatchedUpdates();
+
+            // Then the sign-in clears the anonymous account from the passed session
+            expect(writeSpy.mock.calls.at(0)?.at(0)).toBe(WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK);
+            expect(writeSpy.mock.calls.at(0)?.[2]?.successData).toEqual(expect.arrayContaining([anonymousCleanupUpdate]));
+
+            jest.restoreAllMocks();
         });
 
         test('signIn does not clean up personal details when the passed session is undefined', async () => {

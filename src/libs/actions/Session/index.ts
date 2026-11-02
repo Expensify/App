@@ -1049,20 +1049,19 @@ function signIn(
     });
 }
 
-// `session` is optional while signInWithValidateCodeAndNavigate still omits it. Refactor issue: https://github.com/Expensify/App/issues/67782
 function signInWithValidateCode(
     accountID: number,
     code: string,
     preferredLocale: Locale | undefined,
+    session: OnyxEntry<Session>,
     twoFactorAuthCode = '',
     storedValidateCode?: string,
     storedAuthToken?: string,
-    session?: OnyxEntry<Session>,
 ) {
     // If this is called from the 2fa step, use the validateCode stored in Onyx (passed in as `storedValidateCode`)
     // instead of the one passed from the component state because the state is changing when this method is called.
     const validateCode = twoFactorAuthCode ? storedValidateCode : code;
-    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser(session === undefined ? deprecatedSession : session);
+    const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser(session);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
         {
@@ -1672,8 +1671,8 @@ function handleExitToNavigation(exitTo: Route) {
     });
 }
 
-function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, preferredLocale: Locale | undefined, exitTo?: Route) {
-    signInWithValidateCode(accountID, validateCode, preferredLocale);
+function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, preferredLocale: Locale | undefined, session: OnyxEntry<Session>, exitTo?: Route) {
+    signInWithValidateCode(accountID, validateCode, preferredLocale, session);
     if (exitTo) {
         handleExitToNavigation(exitTo);
     } else {
