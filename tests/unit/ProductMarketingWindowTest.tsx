@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
+import October2026AdminPromoImage from '@assets/images/october2026-admin-promo.png';
 import October2026PromoImage from '@assets/images/october2026-promo.png';
 
 import ActivityIndicator from '@components/ActivityIndicator';
@@ -488,6 +489,7 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByText(adminWindowBody)).toBeTruthy();
         expect(screen.queryByText(windowHeading)).toBeNull();
         expect(screen.queryByText(windowBody)).toBeNull();
+        expect(screen.UNSAFE_getByType(Image).props.source).toBe(October2026AdminPromoImage);
 
         // When the admin dismisses the window
         fireEvent.press(screen.getByText(en.common.dismiss));

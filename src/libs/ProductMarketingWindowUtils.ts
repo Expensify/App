@@ -1,3 +1,4 @@
+import October2026AdminPromoImage from '@assets/images/october2026-admin-promo.png';
 import October2026PromoImage from '@assets/images/october2026-promo.png';
 
 import type {IllustrationName} from '@components/Icon/IllustrationLoader';
@@ -52,7 +53,7 @@ type ProductMarketingAnnouncement = {
 function getActiveProductMarketingAnnouncement(isAdmin: boolean): ProductMarketingAnnouncement | null {
     return {
         updateKey: CONST.MARKETING_WINDOW_UPDATE_KEYS.PRODUCT_UPDATE_OCTOBER_2026,
-        visual: {type: 'image', source: October2026PromoImage},
+        visual: {type: 'image', source: isAdmin ? October2026AdminPromoImage : October2026PromoImage},
         heading: isAdmin ? 'productMarketingWindow.admin.heading' : 'productMarketingWindow.member.heading',
         body: isAdmin ? 'productMarketingWindow.admin.body' : 'productMarketingWindow.member.body',
         ctaLabel: 'common.learnMore',
