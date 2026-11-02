@@ -1,4 +1,4 @@
-import {canAnonymousUserAccessRoute, isAnonymousUser, waitForUserSignIn} from '@libs/actions/Session';
+import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn, waitForUserSignIn} from '@libs/actions/Session';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import swapBackgroundTabForRHPTarget from '@libs/Navigation/helpers/swapBackgroundTabForRHPTarget';
@@ -173,7 +173,7 @@ describe('Link.openLink', () => {
     });
 
     it('opens a regular report link in the RHP on wide layout and preserves the report action', () => {
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL, false, undefined);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
             ROUTES.SEARCH_REPORT.getRoute({
@@ -186,7 +186,7 @@ describe('Link.openLink', () => {
     });
 
     it('marks uncached plain report links so loaded expenses can move to the expense RHP', () => {
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/uncached-report`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/uncached-report`, environmentURL, false, undefined);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
             Url.appendParam(
@@ -203,7 +203,7 @@ describe('Link.openLink', () => {
     it('opens an expense report link in the expense RHP on wide layout', () => {
         mockReports['expense-report-rhp'] = {isMoneyRequest: true};
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/expense-report-rhp`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/expense-report-rhp`, environmentURL, false, undefined);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: 'expense-report-rhp', backTo: activeRoute}));
     });
@@ -211,7 +211,7 @@ describe('Link.openLink', () => {
     it('opens expense report action links in the report RHP so the linked action is preserved', () => {
         mockReports['expense-report-rhp'] = {isMoneyRequest: true};
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/expense-report-rhp/123456789`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/expense-report-rhp/123456789`, environmentURL, false, undefined);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
             ROUTES.SEARCH_REPORT.getRoute({
@@ -223,7 +223,7 @@ describe('Link.openLink', () => {
     });
 
     it('opens legacy Concierge report links in the RHP on wide layout', () => {
-        openLink(`${CONFIG.EXPENSIFY.EXPENSIFY_URL}/newdotreport?reportID=legacy-report`, environmentURL);
+        openLink(`${CONFIG.EXPENSIFY.EXPENSIFY_URL}/newdotreport?reportID=legacy-report`, environmentURL, false, undefined);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
             Url.appendParam(
@@ -240,7 +240,7 @@ describe('Link.openLink', () => {
     it('keeps report links on the standard full-screen navigation on narrow layout', () => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL, false, undefined);
 
         // On narrow layouts the report-link RHP handling does not apply; the link falls through to the standard
         // internal-link handling and navigates exactly as it did before this feature.
@@ -250,7 +250,7 @@ describe('Link.openLink', () => {
     it('keeps legacy Concierge report links navigating internally on narrow layout', () => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
 
-        openLink(`${CONFIG.EXPENSIFY.EXPENSIFY_URL}/newdotreport?reportID=legacy-report`, environmentURL);
+        openLink(`${CONFIG.EXPENSIFY.EXPENSIFY_URL}/newdotreport?reportID=legacy-report`, environmentURL, false, undefined);
 
         // Legacy `newdotreport` links have no internal path that can be parsed, so on narrow layouts they must keep
         // the explicit report navigation instead of falling back to OldDot link handling.
@@ -261,7 +261,7 @@ describe('Link.openLink', () => {
         mockedGetIsNarrowLayout.mockReturnValue(true);
         mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true, rhpReportID: 'regular-report', rhpReportActionID: '123456789'}));
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/987654321`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/987654321`, environmentURL, false, undefined);
 
         expect(Navigation.setParams).not.toHaveBeenCalled();
         expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
@@ -271,7 +271,7 @@ describe('Link.openLink', () => {
     it('keeps report links as full-screen report routes for anonymous users on wide layout', () => {
         mockedIsAnonymousUser.mockReturnValue(true);
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL, false, undefined);
 
         expect(mockedCanAnonymousUserAccessRoute).toHaveBeenCalledWith('/r/regular-report/123456789');
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('regular-report', '123456789'));
@@ -280,7 +280,7 @@ describe('Link.openLink', () => {
     it('keeps legacy Concierge report links as full-screen report routes for anonymous users on wide layout', () => {
         mockedIsAnonymousUser.mockReturnValue(true);
 
-        openLink(`${CONFIG.EXPENSIFY.EXPENSIFY_URL}/newdotreport?reportID=legacy-report`, environmentURL);
+        openLink(`${CONFIG.EXPENSIFY.EXPENSIFY_URL}/newdotreport?reportID=legacy-report`, environmentURL, false, undefined);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('legacy-report'));
     });
@@ -288,7 +288,7 @@ describe('Link.openLink', () => {
     it('closes an open RHP and navigates the central report when the linked report is already focused behind the RHP', () => {
         mockedNavigationRef.getRootState.mockReturnValue(buildRootState({centralReportID: 'regular-report', isRHPOpen: true}));
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL, false, undefined);
 
         expect(Navigation.closeRHPFlow).toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('regular-report', '123456789'));
@@ -304,7 +304,7 @@ describe('Link.openLink', () => {
             }),
         );
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/987654321`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/987654321`, environmentURL, false, undefined);
 
         expect(Navigation.setParams).toHaveBeenCalledWith({reportActionID: '987654321'}, `${SCREENS.RIGHT_MODAL.SEARCH_REPORT}-rhp-report`, `${NAVIGATORS.RIGHT_MODAL_NAVIGATOR}-state`);
         expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
@@ -314,7 +314,7 @@ describe('Link.openLink', () => {
     it('opens an RHP when the target report exists in a stale inactive Reports tab', () => {
         mockedNavigationRef.getRootState.mockReturnValue(buildRootState({centralReportID: 'regular-report', activeTab: SCREENS.HOME}));
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL, false, undefined);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
             ROUTES.SEARCH_REPORT.getRoute({
@@ -328,7 +328,7 @@ describe('Link.openLink', () => {
     it('opens an RHP when a non-RHP root route is focused over the target report', () => {
         mockedNavigationRef.getRootState.mockReturnValue(buildRootState({centralReportID: 'regular-report', focusedRootNavigator: NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}));
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/123456789`, environmentURL, false, undefined);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(
             ROUTES.SEARCH_REPORT.getRoute({
@@ -341,7 +341,7 @@ describe('Link.openLink', () => {
     });
 
     it('does not rewrite report subroutes', () => {
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/details`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report/details`, environmentURL, false, undefined);
 
         expect(Navigation.navigate).toHaveBeenCalledWith('/r/regular-report/details');
     });
@@ -349,7 +349,7 @@ describe('Link.openLink', () => {
     it('uses the resolved RHP route before deciding whether to close an existing RHP', () => {
         mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true}));
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/r/regular-report`, environmentURL, false, undefined);
 
         expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(
@@ -367,7 +367,7 @@ describe('Link.openLink', () => {
     it('keeps the task RHP open when a join-workspace validation link is opened', () => {
         mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true}));
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/home/verify-account?isJoinWorkspaceTask=true`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/home/verify-account?isJoinWorkspaceTask=true`, environmentURL, false, undefined);
 
         expect(Navigation.closeRHPFlow).not.toHaveBeenCalled();
         expect(mockedSwapBackgroundTabForRHPTarget).not.toHaveBeenCalled();
@@ -377,7 +377,7 @@ describe('Link.openLink', () => {
     it('does not treat an unrelated query value as a join-workspace task marker', () => {
         mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true}));
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/onboarding/work-email?foo=isJoinWorkspaceTask=true`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/onboarding/work-email?foo=isJoinWorkspaceTask=true`, environmentURL, false, undefined);
 
         expect(Navigation.closeRHPFlow).toHaveBeenCalled();
     });
@@ -385,9 +385,39 @@ describe('Link.openLink', () => {
     it('closes the RHP for ordinary onboarding links', () => {
         mockedNavigationRef.getRootState.mockReturnValue(buildRootState({isRHPOpen: true}));
 
-        openLink(`${CONST.NEW_EXPENSIFY_URL}/onboarding/work-email`, environmentURL);
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/onboarding/work-email`, environmentURL, false, undefined);
 
         expect(Navigation.closeRHPFlow).toHaveBeenCalled();
+    });
+
+    it('checks the passed session to decide whether the user is anonymous', () => {
+        // Given an anonymous session passed in and a route the anonymous user cannot access
+        const session = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
+        mockedIsAnonymousUser.mockImplementation((sessionParam) => sessionParam?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS);
+        mockedCanAnonymousUserAccessRoute.mockReturnValue(false);
+
+        // When opening an internal New Expensify link
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/settings/profile`, environmentURL, false, session);
+
+        // Then the passed session is used for the anonymous check, and the user is sent to sign in instead of navigating
+        expect(mockedIsAnonymousUser).toHaveBeenCalledWith(session);
+        expect(signOutAndRedirectToSignIn).toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates for a signed-in session passed in', () => {
+        // Given a signed-in session passed in, so the anonymous restriction must not apply
+        const session = {accountID: 1, authToken: 'token'};
+        mockedIsAnonymousUser.mockImplementation((sessionParam) => sessionParam?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS);
+        mockedCanAnonymousUserAccessRoute.mockReturnValue(false);
+
+        // When opening an internal New Expensify link
+        openLink(`${CONST.NEW_EXPENSIFY_URL}/settings/profile`, environmentURL, false, session);
+
+        // Then the user navigates to the link instead of being signed out
+        expect(mockedIsAnonymousUser).toHaveBeenCalledWith(session);
+        expect(signOutAndRedirectToSignIn).not.toHaveBeenCalled();
+        expect(Navigation.navigate).toHaveBeenCalledWith('/settings/profile');
     });
 });
 

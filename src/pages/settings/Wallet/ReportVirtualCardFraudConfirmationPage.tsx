@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import removeDynamicRouteFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/removeDynamicRouteFromPath';
 import getCardDetailsPathForCard from '@libs/Navigation/helpers/getCardDetailsPathForCard';
 
 import Navigation from '@navigation/Navigation';
@@ -19,7 +20,7 @@ import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -46,8 +47,15 @@ function ReportVirtualCardFraudConfirmationPage({
             return;
         }
 
-        // Collapses the flow onto the reported card's page and points it at the replacement card.
-        Navigation.goBack(getCardDetailsPathForCard(cardDetailsPath, cardID), {compareParams: false});
+        // Domains opens the card and fraud pages as static routes, so there is no dynamic suffix to remove and the replacement card is opened directly.
+        if (cardDetailsPath.replace(/^\/+/, '').startsWith(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(''))) {
+            Navigation.goBack(ROUTES.SETTINGS_DOMAIN_CARD_DETAIL.getRoute(cardID), {compareParams: false});
+            return;
+        }
+
+        // The fraud page stays under this one after a successful report, so its suffix has to go before the card page is pointed at the replacement card.
+        const reportedCardPath = removeDynamicRouteFromPath(cardDetailsPath, DYNAMIC_ROUTES.WALLET_CARD_REPORT_FRAUD.path) ?? cardDetailsPath;
+        Navigation.goBack(getCardDetailsPathForCard(reportedCardPath, cardID), {compareParams: false});
     };
 
     return (
