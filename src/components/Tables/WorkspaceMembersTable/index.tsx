@@ -32,6 +32,8 @@ type WorkspaceMembersTableColumnKey = 'member' | 'approver' | 'role' | 'actions'
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
     login: string;
+    /** Whether this member is the workspace billing owner, shown as a badge rather than a role. */
+    isOwner?: boolean;
     role?: ValueOf<typeof CONST.POLICY.ROLE>;
     employeeUserID?: string;
     employeePayrollID?: string;
@@ -111,6 +113,8 @@ export default function WorkspaceMembersTable({
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     useCopySelectionEvent();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    // The badge sits after the name with gap2, and its padding and border apply on both sides, so those values are doubled.
+    const ownerBadgeExtraWidth = members.some((member) => member.isOwner) ? styles.gap2.gap + styles.defaultBadge.paddingHorizontal * 2 + styles.defaultBadge.borderWidth * 2 : 0;
 
     const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
         {
@@ -119,12 +123,13 @@ export default function WorkspaceMembersTable({
             sortable: true,
             dynamicSizing: {
                 // The cell stacks the member's name above their email, so whichever of the two renders wider decides the
-                // column's width.
+                // column's width. Owner rows also render a badge after the name, so that label is measured with the name
+                // and extraWidth covers the gap and the badge's padding and border.
                 getContentToMeasure: (item) => [
-                    {text: item.name, fontSize: fontScale.text},
+                    {text: item.isOwner ? `${item.name}${translate('common.owner')}` : item.name, fontSize: fontScale.text},
                     {text: item.email, fontSize: fontScale.label},
                 ],
-                extraWidth: variables.tableMemberCellAvatarWidth,
+                extraWidth: variables.tableMemberCellAvatarWidth + ownerBadgeExtraWidth,
             },
         },
 
@@ -263,7 +268,7 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
-        const isAdmin = item.role === CONST.POLICY.ROLE.ADMIN || item.role === CONST.POLICY.ROLE.OWNER;
+        const isAdmin = item.role === CONST.POLICY.ROLE.ADMIN;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.ADMINS) && isAdmin) {
             return true;
         }
