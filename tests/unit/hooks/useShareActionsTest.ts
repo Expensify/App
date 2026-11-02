@@ -84,15 +84,15 @@ describe('useShareActions', () => {
         expect(options.map((option) => option.text)).toEqual(['common.shareReport', 'common.shareCode', 'referralProgram.referralFriend.header', 'qrCodes.copy']);
     });
 
-    it('hides share report on an open report', () => {
+    it('lists share report on an open report', () => {
         // Given the same report before it is submitted
         mockReport = {...submittedReport, stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN};
 
         // When the share options are built
         const options = getShareOptions();
 
-        // Then a report that was never submitted cannot be emailed
-        expect(options.map((option) => option.text)).not.toContain('common.shareReport');
+        // Then the submitter can email the draft
+        expect(options.at(0)?.text).toBe('common.shareReport');
     });
 
     it('hides share report from a member who is not the submitter, the approver or an admin', () => {
