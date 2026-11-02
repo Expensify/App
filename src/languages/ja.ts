@@ -9842,6 +9842,12 @@ ${reportName}`,
             }
             return `月次レポートの提出日を「${newValue}」（以前は「${oldValue}」）に更新しました`;
         },
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `ワークスペースのタイムゾーンを「${newValue}」に設定しました`;
+            }
+            return `ワークスペースのタイムゾーンを「${newValue}」（以前は「${oldValue}」）に更新しました`;
+        },
         updateDefaultBillable: (oldValue: string, newValue: string) => `「クライアントへの経費再請求」を「${newValue}」に更新しました（以前は「${oldValue}」）`,
         updateDefaultReimbursable: (oldValue: string, newValue: string) => `「現金経費のデフォルト」を「${newValue}」（以前は「${oldValue}」）に更新しました`,
         updateDefaultTitleEnforced: (value: boolean) => `「デフォルトのレポートタイトルを適用」を有効にしました ${value ? 'オン' : 'オフ'}`,

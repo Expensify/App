@@ -10351,6 +10351,12 @@ const translations = {
             }
             return `updated the monthly report submission date to "${newValue}" (previously "${oldValue}")`;
         },
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `set the workspace timezone to "${newValue}"`;
+            }
+            return `updated the workspace timezone to "${newValue}" (previously "${oldValue}")`;
+        },
         updateDefaultBillable: (oldValue: string, newValue: string) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultReimbursable: (oldValue: string, newValue: string) => `updated "Cash expense default" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultTitleEnforced: (value: boolean) => `turned "Enforce default report titles" ${value ? 'on' : 'off'}`,

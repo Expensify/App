@@ -9597,6 +9597,12 @@ ${reportName}`,
             }
             return `将月度报表提交日期更新为“${newValue}”（之前为“${oldValue}”）`;
         },
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `将工作区时区设置为“${newValue}”`;
+            }
+            return `将工作区时区更新为“${newValue}”（之前为“${oldValue}”）`;
+        },
         updateDefaultBillable: (oldValue: string, newValue: string) => `已将“向客户重新计费报销”更新为“${newValue}”（之前为“${oldValue}”）`,
         updateDefaultReimbursable: (oldValue: string, newValue: string) => `已将“现金报销默认值”更新为“${newValue}”（之前为“${oldValue}”）`,
         updateDefaultTitleEnforced: (value: boolean) => `已将“强制使用默认报表标题”设置为开启 ${value ? '开' : '关'}`,

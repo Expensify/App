@@ -10039,6 +10039,12 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             }
             return `hat das Einreichungsdatum des Monatsberichts auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`;
         },
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `hat die Zeitzone des Arbeitsbereichs auf „${newValue}“ festgelegt`;
+            }
+            return `hat die Zeitzone des Arbeitsbereichs auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`;
+        },
         updateDefaultBillable: (oldValue: string, newValue: string) => `„Spesen an Kunden weiterberechnen“ wurde auf „${newValue}“ aktualisiert (zuvor „${oldValue}“)`,
         changedCustomReportNameFormula: (oldValue: string, newValue: string) => `hat die Formel für den benutzerdefinierten Berichtsnamen in „${newValue}“ geändert (zuvor „${oldValue}“)`,
         renamedWorkspaceNameAction: (oldName: string, newName: string) => `hat den Namen dieses Workspaces zu „${newName}“ geändert (zuvor „${oldName}“)`,

@@ -9949,6 +9949,12 @@ ${reportName}`,
             }
             return `actualizar la fecha de envío del informe mensual a "${newValue}" (previamente "${oldValue}")`;
         },
+        updateWorkspaceTimezone: (oldValue, newValue) => {
+            if (!oldValue) {
+                return `estableció la zona horaria del espacio de trabajo en "${newValue}"`;
+            }
+            return `actualizó la zona horaria del espacio de trabajo a "${newValue}" (previamente "${oldValue}")`;
+        },
         updateDefaultTitleEnforced: (value) => `cambió "Requerir título predeterminado de informe" a ${value ? 'activado' : 'desactivado'}`,
         changedCustomReportNameFormula: (oldValue, newValue) => `cambió la fórmula personalizado del nombre del informe a "${newValue}" (anteriormente "${oldValue}")`,
         updateWorkspaceDescription: (newDescription, oldDescription) =>
