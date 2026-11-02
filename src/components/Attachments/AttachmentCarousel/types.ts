@@ -30,4 +30,4 @@ type AttachmentCarouselProps = {
     onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
 };
 
-export type {AttachmentCarouselProps};
+export default AttachmentCarouselProps;

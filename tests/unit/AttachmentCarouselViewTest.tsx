@@ -131,7 +131,10 @@ describe('AttachmentCarouselView web', () => {
         pagerState = null;
         jest.mocked(canUseTouchScreen).mockReturnValue(true);
         jest.mocked(useFullScreenState).mockReturnValue(createMock<ReturnType<typeof useFullScreenState>>({isFullScreen: false}));
-        jest.mocked(CarouselItem).mockImplementation(({item, isFocused}) => <Text>{`${item.attachmentID ?? String(item.source)}:${String(isFocused)}`}</Text>);
+        jest.mocked(CarouselItem).mockImplementation(({item, isFocused}) => {
+            const sourceLabel = typeof item.source === 'object' ? JSON.stringify(item.source) : String(item.source);
+            return <Text>{`${item.attachmentID ?? sourceLabel}:${String(isFocused)}`}</Text>;
+        });
     });
 
     it('preserves PDF focus through rotation and a transient zero-width layout', () => {
@@ -216,7 +219,7 @@ describe('AttachmentCarouselView web', () => {
 
         // Then the destination is selected despite the small translation
         expect(props.setPage).toHaveBeenCalledWith(2);
-        expect(props.onNavigate).toHaveBeenCalledWith(props.attachments[2]);
+        expect(props.onNavigate).toHaveBeenCalledWith(props.attachments.at(2));
     });
 
     it('shares navigation across arrow buttons and keyboard shortcuts with bounds', () => {
