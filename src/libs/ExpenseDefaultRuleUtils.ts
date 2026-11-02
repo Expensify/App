@@ -611,11 +611,7 @@ function getCategoryOnlyExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule
         return undefined;
     }
 
-    for (const {rule} of getPolicyExpenseDefaultRules(rulesCollection, policyID)) {
-        if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            continue;
-        }
-
+    for (const {rule} of getPolicyExpenseDefaultRules(rulesCollection, policyID, true)) {
         if (!getCategoryOnlyFilterValues(rule).includes(categoryName)) {
             continue;
         }
@@ -690,11 +686,7 @@ function buildCopiedExpenseDefaultRules(rules: OnyxCollection<Rule> | undefined,
     const copiedRules: Record<string, Rule> = {};
     const created = new Date().toISOString();
 
-    for (const {rule} of getPolicyExpenseDefaultRules(rules, sourcePolicyID)) {
-        if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            continue;
-        }
-
+    for (const {rule} of getPolicyExpenseDefaultRules(rules, sourcePolicyID, true)) {
         copiedRules[rand64()] = {
             triggers: rule.triggers,
             filters: rule.filters,
@@ -712,7 +704,7 @@ function buildCopiedExpenseDefaultRules(rules: OnyxCollection<Rule> | undefined,
 
 /** How many expense default rules the policy has, ignoring ones being deleted. Used by the copy/duplicate feature lists. */
 function getExpenseDefaultRuleCount(rules: OnyxCollection<Rule> | undefined, policyID: string | undefined): number {
-    return getPolicyExpenseDefaultRules(rules, policyID).filter(({rule}) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    return getPolicyExpenseDefaultRules(rules, policyID, true).length;
 }
 
 /** Whether any of the policy's expense default rules failed to save. */

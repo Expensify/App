@@ -12,13 +12,14 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
-import useCompleteReviewWorkspaceSettingsTask from '@hooks/useCompleteReviewWorkspaceSettingsTask';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -32,6 +33,7 @@ import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {deleteRule, setRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
+import {completeReviewWorkspaceSettingsTask} from '@libs/actions/Task';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getTaxRateDisplayName, hasUsableTaxRates} from '@libs/CategoryTaxRulesUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
@@ -156,7 +158,8 @@ function ExpenseDefaultRulePageBase({
     testID,
 }: ExpenseDefaultRulePageBaseProps) {
     const {translate} = useLocalize();
-    const completeReviewWorkspaceSettingsTask = useCompleteReviewWorkspaceSettingsTask();
+    const {accountID} = useCurrentUserPersonalDetails();
+    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const policy = usePolicy(policyID);
@@ -366,7 +369,7 @@ function ExpenseDefaultRulePageBase({
         }
 
         setRule(policyID, buildExpenseDefaultRule(form, policy, existingRule?.triggers), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule, shouldUpdateMatchingTransactions);
-        completeReviewWorkspaceSettingsTask();
+        completeReviewWorkspaceSettingsTask(reviewWorkspaceSettingsTaskInformation, accountID);
         if (categorySettingsBackPath) {
             // Category settings enters through its own dynamic route, so the way back is the category the rule was
             // opened from rather than anything in the workspace Rules flow.
