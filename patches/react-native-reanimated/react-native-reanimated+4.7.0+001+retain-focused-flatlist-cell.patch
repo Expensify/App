@@ -1,0 +1,35 @@
+diff --git a/node_modules/react-native-reanimated/src/component/FlatList.tsx b/node_modules/react-native-reanimated/src/component/FlatList.tsx
+--- a/node_modules/react-native-reanimated/src/component/FlatList.tsx
++++ b/node_modules/react-native-reanimated/src/component/FlatList.tsx
+@@ -25,7 +25,8 @@ interface CellRendererComponentProps<ItemT = any> {
+   index: number;
+   item: ItemT;
+   onLayout?: ((event: LayoutChangeEvent) => void) | undefined;
++  onFocusCapture?: () => void;
+   children: React.ReactNode;
+   style?: StyleProp<AnimatedStyle<ViewStyle>>;
+ }
+ 
+@@ -43,6 +44,9 @@ const createCellRendererComponent = (
+         // eslint-disable-next-line @typescript-eslint/no-explicit-any
+         layout={itemLayoutAnimationRef?.current as any}
+         onLayout={props.onLayout}
++        // VirtualizedList uses this notification to retain the focused cell.
++        // Use onFocus because react-native-web View does not forward onFocusCapture.
++        onFocus={props.onFocusCapture}
+         style={[
+           props.style,
+           typeof cellRendererComponentStyleRef?.current === 'function'
+diff --git a/node_modules/react-native-reanimated/lib/module/component/FlatList.js b/node_modules/react-native-reanimated/lib/module/component/FlatList.js
+--- a/node_modules/react-native-reanimated/lib/module/component/FlatList.js
++++ b/node_modules/react-native-reanimated/lib/module/component/FlatList.js
+@@ -18,6 +18,9 @@ const createCellRendererComponent = (itemLayoutAnimationRef, cellRendererComponentStyleRef) => {
+     , {
+       layout: itemLayoutAnimationRef?.current,
+       onLayout: props.onLayout,
++      // VirtualizedList uses this notification to retain the focused cell.
++      // Use onFocus because react-native-web View does not forward onFocusCapture.
++      onFocus: props.onFocusCapture,
+       style: [props.style, typeof cellRendererComponentStyleRef?.current === 'function' ? cellRendererComponentStyleRef?.current({
+         index: props.index,
+         item: props.item
