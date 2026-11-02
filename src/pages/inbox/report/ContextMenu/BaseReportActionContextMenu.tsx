@@ -346,7 +346,7 @@ function BaseReportActionContextMenu({
      * shows the sign in modal. Else, executes the callback.
      */
     const interceptAnonymousUser = (callback: () => void, isAnonymousAction = false) => {
-        if (isAnonymousUser() && !isAnonymousAction) {
+        if (isAnonymousUser(session) && !isAnonymousAction) {
             hideContextMenu(false, () => {
                 signOutAndRedirectToSignIn();
             });
