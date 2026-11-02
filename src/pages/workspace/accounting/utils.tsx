@@ -527,7 +527,7 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.EXPORT_DATE,
                     CONST.RILLET_CONFIG.REIMBURSABLE,
                     CONST.RILLET_CONFIG.NON_REIMBURSABLE,
-                    CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE,
+                    ...(policy?.connections?.rillet?.config.export?.reimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.REIMBURSEMENT ? [CONST.RILLET_CONFIG.REIMBURSEMENT_ACCOUNT_CODE] : []),
                     CONST.RILLET_CONFIG.DEFAULT_VENDORID,
                     CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE,
                     CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
