@@ -3110,17 +3110,6 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTermsAccessibilityLabel: 'Ik ga akkoord met de algemene voorwaarden en het privacybeleid van Wise.',
                 error: 'Accepteer alle voorwaarden om door te gaan.',
             },
-            inReview: {
-                title: 'In beoordeling',
-                heading: 'We hebben alles wat we nodig hebben.\nJe hoort van ons!',
-                description: 'De meeste beoordelingen duren één tot twee dagen. We sturen je een bericht met een update.',
-                chatWithConcierge: 'Chatten met Concierge',
-            },
-            approved: {
-                title: 'Account goedgekeurd',
-                heading: 'Goedgekeurd om wereldwijd te betalen',
-                description: 'Betaal leden waar ze ook zijn.',
-            },
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Wereldwijde terugbetalingen instellen?',
