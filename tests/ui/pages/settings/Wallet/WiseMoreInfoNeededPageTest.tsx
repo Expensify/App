@@ -5,6 +5,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {setHasRadio} from '@libs/NetworkState';
 import openExternalLink from '@libs/openExternalLink';
 
 import WiseMoreInfoNeededPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseMoreInfoNeededPage';
@@ -86,6 +87,30 @@ describe('WiseMoreInfoNeededPage', () => {
 
         // Then the user leaves for Wise's form in the same tab
         expect(openExternalLink).toHaveBeenCalledWith(KYC_REVIEW_URL, undefined, true);
+    });
+
+    it('clears the stuck loading state when the connection comes back', async () => {
+        // Given the user pressed Continue and the connection dropped before the response, so no failureData resets isLoading
+        await renderPage();
+        fireEvent.press(screen.getByTestId(CONTINUE_BUTTON_TEST_ID));
+        act(() => {
+            setHasRadio(false);
+        });
+        jest.mocked(clearWiseKYCReviewEmbeddedLink).mockClear();
+
+        try {
+            // When the connection comes back
+            act(() => {
+                setHasRadio(true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the link state is cleared, so Continue stops spinning and can be pressed again
+            expect(clearWiseKYCReviewEmbeddedLink).toHaveBeenCalledTimes(1);
+        } finally {
+            // Network state is module-level, so restore it even if an assertion fails
+            setHasRadio(true);
+        }
     });
 
     it('goes back to the screen the flow started from', async () => {

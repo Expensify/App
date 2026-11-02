@@ -41,7 +41,8 @@ function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
     const [embeddedLink] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK);
 
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
+    // A read lost to a dropped connection applies no failureData, so reconnecting clears the stuck loading state
+    const {isOffline} = useNetwork({onReconnect: clearWiseKYCReviewEmbeddedLink});
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isWiseReimbursementsBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.WISE_REIMBURSEMENTS);
     const styles = useThemeStyles();
