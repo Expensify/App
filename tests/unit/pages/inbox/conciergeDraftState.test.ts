@@ -79,7 +79,7 @@ describe('conciergeDraftState', () => {
 
     it('keeps canonical entity Markdown while displaying only the prefix until final HTML arrives', () => {
         // Given an entity split across streamed snapshots
-        const bodyMarkdown = '**Lunch** &lt;client team&gt; &#42;alpha&#42; &amp;lt;literal&amp;gt;';
+        const bodyMarkdown = '**Lunch** &copy client &lt;client team&gt; &#42;alpha&#42; &amp;lt;literal&amp;gt;';
         const initialDraft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: '**Lunch** &'}), REPORT_ID, false);
         expect(getFirstMessageText(initialDraft)).toBe('Lunch ');
 
@@ -93,13 +93,13 @@ describe('conciergeDraftState', () => {
         expect(getFirstMessageText(updatedDraft)).toBe('Lunch ');
 
         // Then server-rendered HTML reveals the exact literal text in the same action
-        const finalRenderedHTML = '<comment><strong>Lunch</strong> &lt;client team&gt; &#42;alpha&#42; &amp;lt;literal&amp;gt;</comment>';
+        const finalRenderedHTML = '<comment><strong>Lunch</strong> &copy client &lt;client team&gt; &#42;alpha&#42; &amp;lt;literal&amp;gt;</comment>';
         const completedDraft = applyConciergeDraftEvent(updatedDraft, createDraftEvent({sequence: 3, status: 'completed', bodyMarkdown, finalRenderedHTML}), REPORT_ID, false);
         expect(completedDraft?.bodyMarkdown).toBe(bodyMarkdown);
         expect(completedDraft?.status).toBe('completed');
         expect(completedDraft?.reportAction.reportActionID).toBe(REPORT_ACTION_ID);
         expect(getFirstMessageHTML(completedDraft)).toBe(finalRenderedHTML);
-        expect(getFirstMessageText(completedDraft)).toBe('Lunch <client team> *alpha* &lt;literal&gt;');
+        expect(getFirstMessageText(completedDraft)).toBe('Lunch © client <client team> *alpha* &lt;literal&gt;');
     });
 
     it('waits for final HTML when an entity starts the draft', () => {
@@ -126,7 +126,7 @@ describe('conciergeDraftState', () => {
         expect(getFirstMessageText(initial)).toBe('Manufacturing ');
 
         // When later snapshots identify literal text and a query-string ampersand
-        const bodyMarkdown = 'Manufacturing & Wholesale, R&D expenses: https://example.com/?one=1&two=2';
+        const bodyMarkdown = 'Manufacturing & Wholesale, R&D; review it tomorrow: https://example.com/?one=1&two=2';
         const updated = applyConciergeDraftEvent(initial, createDraftEvent({sequence: 2, status: 'updated', bodyMarkdown}), REPORT_ID, false);
 
         // Then the whole draft is visible before the completed event
