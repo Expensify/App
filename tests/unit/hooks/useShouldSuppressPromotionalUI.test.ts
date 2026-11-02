@@ -146,4 +146,16 @@ describe('useShouldSuppressPromotionalUI', () => {
         // Then the new account gets its promotional UI as usual
         expect(result.current).toBe(false);
     });
+
+    it('returns false once the transition screen is left, as after cancelling the switch', () => {
+        // Given the same launch link, with the switch cancelled and Home on top of the transition screen
+        mockUseOnyx([false, LOADED], [false, LOADED], OUTGOING_EMAIL);
+        mockNavigation(OTHER_ACCOUNT_TRANSITION_URL, false);
+
+        // When the hook is read
+        const {result} = renderHook(() => useShouldSuppressPromotionalUI());
+
+        // Then the account that stayed signed in gets its promotional UI back
+        expect(result.current).toBe(false);
+    });
 });
