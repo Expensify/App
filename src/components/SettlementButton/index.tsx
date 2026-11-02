@@ -572,7 +572,8 @@ function SettlementButton({
     }, [shouldLoadABAData]);
 
     const handlePaymentOptionsShow = () => {
-        if (shouldLoadABAData) {
+        // Changes to reimbursement will come via pusher, so we only really need to load it if the data is missing, e.g. due to Onyx being cleared
+        if (shouldLoadABAData && !policy?.reimbursement) {
             openPaymentMethods();
         }
         onPaymentOptionsShow?.();

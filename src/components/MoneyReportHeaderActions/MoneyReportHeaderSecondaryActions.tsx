@@ -482,7 +482,8 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     }, [shouldLoadABAData]);
 
     const handleOptionsMenuShow = () => {
-        if (!shouldLoadABAData) {
+        // Changes to reimbursement will come via pusher, so we only really need to load it if the data is missing, e.g. due to Onyx being cleared
+        if (!shouldLoadABAData || policy?.reimbursement) {
             return;
         }
         openPaymentMethods();

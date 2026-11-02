@@ -437,6 +437,35 @@ describe('SettlementButton', () => {
             expect(onPaymentOptionsShow).toHaveBeenCalledTimes(1);
         });
 
+        it('does not load the payment methods again when the options open once they are loaded', async () => {
+            // Given an expense report on an AUD policy whose reimbursement details are already loaded
+            const expenseReport = createExpenseReport({currency: CONST.CURRENCY.AUD});
+            await setupOnyxState({
+                report: expenseReport,
+                chatReport: createChatReport(),
+                policy: createTestPolicy({outputCurrency: CONST.CURRENCY.AUD, reimbursement: {enabled: true, countries: {}}}),
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        currency={CONST.CURRENCY.AUD}
+                        iouReport={expenseReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the payment options are opened
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            showMeasuredPopover();
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they aren't loaded again, since any changes to them are pushed to the policy
+            expect(openPaymentMethods).not.toHaveBeenCalled();
+        });
+
         it('loads the payment methods as soon as the button shows on an AUD policy', async () => {
             // Given an expense report on an AUD policy, which can be paid via ABA
             const expenseReport = createExpenseReport({currency: CONST.CURRENCY.AUD});
