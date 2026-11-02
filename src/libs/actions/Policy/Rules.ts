@@ -369,6 +369,45 @@ function generateRule(policyID: string, prompt: string, ruleType?: GeneratedRule
     return generationID;
 }
 
+type AgentRuleFormID = typeof ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM | typeof ONYXKEYS.FORMS.EDIT_AGENT_RULE_FORM;
+
+/**
+ * Asks Concierge whether RuleBot can carry out an agent rule before the rule saves. The agent rule form shows its loading
+ * state until the answer arrives under `ONYXKEYS.GENERATED_RULE`. A failed request gets a `failed` answer, so the rule
+ * still saves.
+ * @returns the generationID the answer carries
+ */
+function checkAgentRulePrompt(formID: AgentRuleFormID, policyID: string, prompt: string): string {
+    const generationID = rand64();
+    type CheckAgentRuleKey = AgentRuleFormID | typeof ONYXKEYS.GENERATED_RULE;
+
+    const optimisticData: Array<OnyxUpdate<CheckAgentRuleKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: formID,
+            value: {isLoading: true},
+        },
+    ];
+    const failureData: Array<OnyxUpdate<CheckAgentRuleKey>> = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.GENERATED_RULE,
+            value: {generationID, state: CONST.GENERATED_RULE.STATE.FAILED},
+        },
+    ];
+
+    const parameters: GenerateRuleParams = {policyID, generationID, prompt};
+
+    API.write(WRITE_COMMANDS.GENERATE_RULE, parameters, {optimisticData, failureData});
+
+    return generationID;
+}
+
+/** Stops the loading state of an agent rule form */
+function stopAgentRuleCheckLoading(formID: AgentRuleFormID) {
+    Onyx.merge(formID, {isLoading: false});
+}
+
 /** Shows on the prompt form why a description did not become a rule */
 function setNewRulePromptError(state: GeneratedRuleState) {
     setNewRulePromptErrorMessage(PROMPT_ERROR_BY_STATE[state] ?? 'common.genericErrorMessage');
@@ -682,9 +721,11 @@ export {
     clearGeneratedRule,
     clearNewRulePrompt,
     stopNewRulePromptLoading,
+    checkAgentRulePrompt,
+    stopAgentRuleCheckLoading,
     updatePolicyAgentRule,
     deletePolicyAgentRule,
     clearMerchantRuleErrors,
     clearPolicyAgentRuleErrors,
 };
-export type {ImportedMerchantRule};
+export type {AgentRuleFormID, ImportedMerchantRule};

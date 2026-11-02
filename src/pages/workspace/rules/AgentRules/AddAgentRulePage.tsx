@@ -79,8 +79,16 @@ function AddAgentRulePage({
 
     const hasDraftPrompt = !!draftValues?.[INPUT_IDS.PROMPT]?.trim();
     const [selectedSuggestion, setSelectedSuggestion] = useState<SuggestedAgentRule>();
+
+    // A new suggestion replaces the text of the Write tab. Mount a new Write tab, so that a check of the old text stops
+    // and cannot save it.
+    const [suggestionPickCount, setSuggestionPickCount] = useState(0);
     const isDraftFromFallback = !!generationID && !selectedSuggestion;
     const fallbackExplanation = generatedRule?.generationID === generationID ? generatedRule?.explanation : undefined;
+
+    // A suggestion or a draft of the describe flow saves without a check while the admin leaves its text unchanged
+    const [fallbackDraftPrompt, setFallbackDraftPrompt] = useState<string>();
+    const checkedPrompt = selectedSuggestion?.prompt ?? fallbackDraftPrompt;
 
     // The draft can load after the first render. Open Write one time only, because the admin must still be able to go
     // to Suggestions.
@@ -88,6 +96,9 @@ function AddAgentRulePage({
     if (!didOpenTabForDraft && hasDraftPrompt) {
         setDidOpenTabForDraft(true);
         setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
+        if (generationID) {
+            setFallbackDraftPrompt(draftValues?.[INPUT_IDS.PROMPT]);
+        }
     }
 
     // Reset the active tab to Suggestions when the workspace changes.
@@ -132,6 +143,7 @@ function AddAgentRulePage({
         }
         setDraftValues(ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM, {[INPUT_IDS.PROMPT]: suggestion.prompt});
         setSelectedSuggestion(suggestion);
+        setSuggestionPickCount((count) => count + 1);
         setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
     };
 
@@ -254,24 +266,28 @@ function AddAgentRulePage({
                             onSelectSuggestion={selectSuggestion}
                         />
                     </View>
-                    {activeTab === CONST.TAB.AGENT_RULE.WRITE && (
-                        <>
-                            {isDraftFromFallback && (
-                                <Banner
-                                    text={
-                                        fallbackExplanation
-                                            ? translate('workspace.rules.agentRules.fallbackBannerWithExplanation', fallbackExplanation)
-                                            : translate('workspace.rules.agentRules.fallbackBanner')
-                                    }
-                                    icon={icons.Info}
-                                    shouldShowIcon
-                                    containerStyles={[styles.mh5, styles.mb3, styles.p4, styles.br3]}
-                                    textStyles={[styles.breakWord, styles.textSupporting]}
-                                />
-                            )}
-                            <AddAgentRuleWriteTab onSave={saveRule} />
-                        </>
-                    )}
+                    {/* The Write tab stays mounted on Suggestions, so that a running check and its answer stay with the admin's text */}
+                    <View style={[styles.flex1, activeTab !== CONST.TAB.AGENT_RULE.WRITE && styles.dNone]}>
+                        {isDraftFromFallback && (
+                            <Banner
+                                text={
+                                    fallbackExplanation
+                                        ? translate('workspace.rules.agentRules.fallbackBannerWithExplanation', fallbackExplanation)
+                                        : translate('workspace.rules.agentRules.fallbackBanner')
+                                }
+                                icon={icons.Info}
+                                shouldShowIcon
+                                containerStyles={[styles.mh5, styles.mb3, styles.p4, styles.br3]}
+                                textStyles={[styles.breakWord, styles.textSupporting]}
+                            />
+                        )}
+                        <AddAgentRuleWriteTab
+                            key={suggestionPickCount}
+                            policyID={policyID}
+                            checkedPrompt={checkedPrompt}
+                            onSave={saveRule}
+                        />
+                    </View>
                 </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
