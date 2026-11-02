@@ -105,6 +105,10 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
     const [pendingPolicySelection, setPendingPolicySelection] = useState<{policy: WorkspaceListItem; shouldShowEmptyReportConfirmation: boolean} | null>(null);
 
+    // Tapping a row used to create the report immediately, which closed the page on input (WCAG 3.2.2 On Input).
+    // The tap now only stages the workspace, and the report is created from an explicit Create button.
+    const [draftPolicy, setDraftPolicy] = useState<WorkspaceListItem>();
+
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
     const transactionsByReportID = buildTransactionsByReportID(allTransactions);
@@ -256,6 +260,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                 keyForList: `${policy.id}-${index}`,
                 isPolicyAdmin: isPolicyAdmin(policy),
                 shouldSyncFocus: true,
+                isSelected: draftPolicy?.policyID === policy.id,
             });
             index++;
         }
@@ -271,6 +276,14 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         value: searchTerm,
         onChangeText: setSearchTerm,
         headerMessage: getHeaderMessageForNonUserList(translate, areResultsFound, debouncedSearchTerm),
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        // This page creates a report rather than editing a value, so the button says "Create" instead of "Save".
+        text: translate('common.create'),
+        onConfirm: () => selectPolicy(draftPolicy),
+        isDisabled: !draftPolicy,
     };
 
     return (
@@ -295,7 +308,8 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                             <SelectionList<WorkspaceListItem>
                                 data={filteredAndSortedUserWorkspaces}
                                 ListItem={UserListItem}
-                                onSelectRow={selectPolicy}
+                                onSelectRow={setDraftPolicy}
+                                confirmButtonOptions={confirmButtonOptions}
                                 textInputOptions={textInputOptions}
                                 shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
                             />
