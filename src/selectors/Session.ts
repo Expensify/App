@@ -29,10 +29,10 @@ export {
     accountIDSelector,
     sessionEmailAndAccountIDSelector,
     authTokenSelector,
+    authTokenTypeSelector,
     authTokenTypeAndAccountIDSelector,
     hasNonAnonymousSessionSelector,
     isSupportalSessionSelector,
     isDelegateSessionSelector,
     isAnonymousSessionSelector,
-    authTokenTypeSelector,
 };
