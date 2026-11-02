@@ -516,7 +516,9 @@ function ExpenseDefaultRulePageBase({
                               };
                           })
                     : []),
-                hasUsableTaxRates(policy)
+                // A default the rule already sets keeps its row for the same reason a condition does, so turning the
+                // feature off leaves a value that is still applied visible rather than saved out of sight.
+                hasUsableTaxRates(policy) || form?.tax
                     ? {
                           key: 'tax',
                           description: translate('common.tax'),
@@ -532,7 +534,7 @@ function ExpenseDefaultRulePageBase({
                     onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_AMOUNT_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_AMOUNT.getRoute(policyID, ruleID))),
                     icon: icons.Cash,
                 },
-                isVendorFeatureEnabled
+                isVendorFeatureEnabled || form?.vendorID
                     ? {
                           key: 'vendorID',
                           description: translate('common.vendor'),
@@ -558,7 +560,7 @@ function ExpenseDefaultRulePageBase({
                         Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_REIMBURSABLE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID, ruleID))),
                     icon: icons.Paycheck,
                 },
-                isBillableEnabled
+                isBillableEnabled || form?.billable !== undefined
                     ? {
                           key: 'billable',
                           description: translate('common.billable'),
