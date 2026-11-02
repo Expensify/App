@@ -237,6 +237,7 @@ function useTrackExpenseSubmission({
                     isLinkedTrackedExpenseReportArchived,
                     odometerStart: isOdometerDistanceRequest ? item.comment?.odometerStart : undefined,
                     odometerEnd: isOdometerDistanceRequest ? item.comment?.odometerEnd : undefined,
+                    odometerUnit: isOdometerDistanceRequest ? (item.comment?.odometerUnit ?? undefined) : undefined,
                     isFromGlobalCreate: getIsFromGlobalCreate(item),
                     gpsCoordinates: isGPSDistanceRequest ? getStringifiedGPSCoordinates(gpsDraftDetails) : undefined,
                     distanceRequestType: getDistanceRequestType(transaction),

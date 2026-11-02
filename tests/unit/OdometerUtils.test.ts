@@ -1,5 +1,5 @@
 import type {OdometerResyncState} from '@libs/OdometerUtils';
-import {isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from '@libs/OdometerUtils';
+import {getOdometerTotalDistance, isExternalOdometerResync, shouldInitializeOdometerFromTransaction} from '@libs/OdometerUtils';
 
 // A steady state: initialized, transaction and local readings match, nothing being typed.
 const STEADY_STATE: OdometerResyncState = {
@@ -81,5 +81,31 @@ describe('shouldInitializeOdometerFromTransaction', () => {
 
     it('does not initialize when the transaction has no data and there is no resync', () => {
         expect(shouldInitializeOdometerFromTransaction(buildState({hasTransactionData: false, hasLocalState: false}), false)).toBe(false);
+    });
+});
+
+describe('getOdometerTotalDistance', () => {
+    // Readings of 1000 -> 1100 entered on a km workspace, then moved to a mi workspace, which converts the quantity
+    const CONVERTED_COMMENT = {odometerStart: 1000, odometerEnd: 1100, customUnit: {quantity: 62.1371}};
+
+    it('returns the difference between the readings when nothing is saved yet', () => {
+        expect(getOdometerTotalDistance(1000, 1100.5, undefined)).toBe(100.5);
+    });
+
+    it('returns the difference between the readings when the saved quantity was not converted', () => {
+        expect(getOdometerTotalDistance(1000, 1100, {odometerStart: 1000, odometerEnd: 1100, customUnit: {quantity: 100}})).toBe(100);
+    });
+
+    it('returns the converted quantity when the readings match the saved ones', () => {
+        expect(getOdometerTotalDistance(1000, 1100, CONVERTED_COMMENT)).toBe(62.1371);
+    });
+
+    it('scales changed readings by the same conversion factor', () => {
+        expect(getOdometerTotalDistance(1000, 1200, CONVERTED_COMMENT)).toBe(124.27);
+    });
+
+    it('returns the difference between the readings when the saved readings are not usable', () => {
+        expect(getOdometerTotalDistance(1000, 1100, {odometerStart: 1000, odometerEnd: 1000, customUnit: {quantity: 50}})).toBe(100);
+        expect(getOdometerTotalDistance(1000, 1100, {odometerStart: 1000, odometerEnd: 1100, customUnit: {quantity: null}})).toBe(100);
     });
 });

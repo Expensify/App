@@ -52,6 +52,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {MerchantRuleSuggestionField} from '@src/types/onyx/MerchantRuleSuggestion';
+import type {Unit} from '@src/types/onyx/Policy';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
@@ -1181,6 +1182,7 @@ type UpdateMoneyRequestDistanceParams = {
     isASAPSubmitBetaEnabled: boolean;
     odometerStart?: number;
     odometerEnd?: number;
+    odometerUnit?: Unit;
     distanceOriginalPolicy?: OnyxEntry<OnyxTypes.Policy>;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
@@ -1213,6 +1215,7 @@ function updateMoneyRequestDistance({
     isASAPSubmitBetaEnabled,
     odometerStart,
     odometerEnd,
+    odometerUnit,
     distanceOriginalPolicy,
     delegateAccountID,
     isTrackIntentUser,
@@ -1281,6 +1284,9 @@ function updateMoneyRequestDistance({
     }
     if (odometerEnd !== undefined) {
         params.odometerEnd = odometerEnd;
+    }
+    if (odometerUnit !== undefined) {
+        params.odometerUnit = odometerUnit;
     }
     const selectedRouteDistance = selectedRouteKey ? transaction?.routes?.[selectedRouteKey]?.distance : undefined;
     if (selectedRouteDistance) {

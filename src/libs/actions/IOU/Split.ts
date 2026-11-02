@@ -64,6 +64,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
+import type {Unit} from '@src/types/onyx/Policy';
 import type RecentlyUsedTags from '@src/types/onyx/RecentlyUsedTags';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {Receipt, ReceiptSource, SplitShares, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
@@ -119,6 +120,7 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     receipt?: Receipt;
     odometerStart?: number;
     odometerEnd?: number;
+    odometerUnit?: Unit;
     gpsCoordinates?: string;
     distanceRequestType?: string;
 
@@ -2110,6 +2112,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         receipt,
         odometerStart,
         odometerEnd,
+        odometerUnit,
         isFromGlobalCreate,
         gpsCoordinates,
         distanceRequestType,
@@ -2207,6 +2210,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             attendees: attendees ? JSON.stringify(attendees) : undefined,
             odometerStart,
             odometerEnd,
+            odometerUnit,
             gpsCoordinates,
             distanceRequestType,
             selectedRouteDistance,
@@ -2269,6 +2273,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 waypoints: validWaypoints,
                 odometerStart,
                 odometerEnd,
+                odometerUnit,
                 customUnitRateID,
             },
             shouldGenerateTransactionThreadReport: false,
@@ -2328,6 +2333,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             receipt,
             odometerStart,
             odometerEnd,
+            odometerUnit,
             created,
             category,
             tag,

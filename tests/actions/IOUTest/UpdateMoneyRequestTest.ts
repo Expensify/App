@@ -1898,6 +1898,75 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             expect(requestParams?.get('transactionID')).toBe(transactionID);
             expect(requestParams?.get('selectedRouteDistance')).toBe('1500');
         });
+
+        it('sends the unit the odometer readings were entered in, so the backend can convert them to the rate unit', async () => {
+            // Given an odometer expense with readings entered in km, now on a rate that uses miles
+            const transactionID = 'odometer_unit_transaction';
+            const policyID = 'odometer_unit_policy';
+            const parentReportID = 'odometer_unit_parent';
+            const transactionThreadReportID = 'odometer_unit_thread';
+            const fakeTransaction: Transaction = {
+                transactionID,
+                amount: 1500,
+                currency: CONST.CURRENCY.USD,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: 'Odometer',
+                reportID: parentReportID,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE, distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, quantity: 2.49},
+                    odometerStart: 2,
+                    odometerEnd: 6,
+                    odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                },
+            };
+            const fakePolicy = createRandomPolicy(1);
+            const transactionThreadReport = createMock<Report>({reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.EXPENSE});
+            const parentReport = createMock<Report>({reportID: parentReportID, type: CONST.REPORT.TYPE.IOU});
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+
+            // When the end reading is edited
+            updateMoneyRequestDistance({
+                isVendorMatchingBetaEnabled: false,
+                rules: undefined,
+                personalPolicyOutputCurrency: undefined,
+                reportPolicyTags: undefined,
+                transaction: fakeTransaction,
+                transactionThreadReport,
+                parentReport,
+                iouReportOwnerLogin: undefined,
+                recentWaypoints: [],
+                distance: 3.73,
+                policy: fakePolicy,
+                policyTagList: undefined,
+                policyCategories: undefined,
+                transactionBackup: undefined,
+                currentUserAccountIDParam: 123,
+                currentUserEmailParam: 'test@example.com',
+                isASAPSubmitBetaEnabled: false,
+                odometerStart: 2,
+                odometerEnd: 8,
+                odometerUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                violations: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                getCurrencySymbol: getCurrencySymbolLocal,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the UpdateMoneyRequestDistance request carries the readings' unit alongside the readings
+            const distanceRequest = mockFetch.mock.calls.find(([url]) => typeof url === 'string' && url.endsWith(`/${WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE}?`));
+            const requestBody = distanceRequest?.[1]?.body;
+            const requestParams = requestBody instanceof FormData ? requestBody : undefined;
+            expect(requestParams?.get('odometerEnd')).toBe('8');
+            expect(requestParams?.get('odometerUnit')).toBe(CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+        });
     });
 
     describe('updateMoneyRequestReimbursable', () => {
