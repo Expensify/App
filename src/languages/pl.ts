@@ -5414,6 +5414,10 @@ ${amount} dla ${merchant} - ${date}`,
                 title: 'ChatGPT',
                 subtitle: 'od OpenAI',
             },
+            grok: {
+                title: 'Grok',
+                subtitle: 'od xAI',
+            },
         },
         connections: {
             tabs: {
