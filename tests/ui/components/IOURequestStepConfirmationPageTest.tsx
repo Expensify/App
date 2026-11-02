@@ -40,6 +40,7 @@ import * as Split from '../../../src/libs/actions/IOU/Split';
 import * as TrackExpense from '../../../src/libs/actions/IOU/TrackExpense';
 import createRandomPolicy from '../../utils/collections/policies';
 import createMockScreenNavigation from '../../utils/createMockScreenNavigation';
+import getOnyxValue from '../../utils/getOnyxValue';
 import {setupGlobalFetchMock, signInWithTestUser, translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -1843,6 +1844,353 @@ describe('IOURequestStepConfirmationPageTest', () => {
             } finally {
                 canAddTransactionSpy.mockRestore();
             }
+        });
+
+        it('sends a quick-action expense started before an offline recipient synced to the existing chat with the real account', async () => {
+            // Given a chat with a recipient created offline, who still has an optimistic accountID
+            const chatReportID = '7001';
+            const realAccountID = 50;
+            const optimisticAccountID = 40;
+            const login = 'new.login@example.com';
+            const transactionID = 'tx-quick-action';
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [optimisticAccountID]: {accountID: optimisticAccountID, login, displayName: login, isOptimisticPersonalDetail: true},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                    reportID: chatReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                });
+
+                // And a second expense started from the FAB quick action for that chat, whose recipient the page fills in from the chat
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: chatReportID,
+                    amount: 2000,
+                    isAmountSet: true,
+                    currency: 'USD',
+                    merchant: 'Test',
+                    created: '2025-01-15',
+                    isFromGlobalCreate: true,
+                    isFromFloatingActionButton: true,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: chatReportID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When the first expense syncs while the page is open, replacing the optimistic accountID with the real one
+            await act(async () => {
+                await Onyx.update([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {[realAccountID]: {accountID: realAccountID, login, displayName: login}},
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+                        value: {participants: {[realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}},
+                    },
+                ]);
+                await Onyx.update([
+                    {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: null}},
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, value: {participants: {[optimisticAccountID]: null}}},
+                ]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user submits the second expense
+            fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+            // Then the expense goes to the existing chat with the real account, so the chat isn't rebuilt as a new one
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            const params = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(params?.participantParams.participant.accountID).toBe(realAccountID);
+            expect(params?.participantParams.participant.login).toBe(login);
+            expect(params?.report?.reportID).toBe(chatReportID);
+        });
+
+        it('sends an expense to an existing Expensify user to the existing chat when the server returns their account without a login', async () => {
+            // Given a chat with an existing Expensify user who was picked offline, so they still have an optimistic accountID
+            const chatReportID = '7002';
+            const realAccountID = 51;
+            const optimisticAccountID = 41;
+            const login = 'existing.user@example.com';
+            const transactionID = 'tx-existing-user';
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [optimisticAccountID]: {accountID: optimisticAccountID, login, displayName: login, isOptimisticPersonalDetail: true},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                    reportID: chatReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                });
+
+                // And a second expense to the same recipient, picked from the participant list while offline
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: chatReportID,
+                    amount: 2000,
+                    isAmountSet: true,
+                    currency: 'USD',
+                    merchant: 'Test',
+                    created: '2025-01-15',
+                    isFromGlobalCreate: true,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    participants: [{accountID: optimisticAccountID, login, reportID: chatReportID, selected: true}],
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: chatReportID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When the first expense syncs while the page is open, and the server returns the real account without its login
+            await act(async () => {
+                await Onyx.update([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {[realAccountID]: {accountID: realAccountID, displayName: 'Existing User'}},
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+                        value: {participants: {[realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}},
+                    },
+                ]);
+                await Onyx.update([
+                    {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: null}},
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, value: {participants: {[optimisticAccountID]: null}}},
+                ]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user submits the second expense
+            fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+            // Then the expense goes to the existing chat with the real account, found through the chat because there is no login
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            const params = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(params?.participantParams.participant.accountID).toBe(realAccountID);
+            expect(params?.report?.reportID).toBe(chatReportID);
+        });
+
+        it('sends an expense to the existing chat when the recipient synced without a login before the page opened', async () => {
+            // Given a second expense draft to an existing Expensify user who was picked offline, so the draft saved their optimistic accountID and their chat
+            const chatReportID = '7004';
+            const realAccountID = 53;
+            const optimisticAccountID = 43;
+            const login = 'synced.user@example.com';
+            const transactionID = 'tx-synced-before-open';
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: chatReportID,
+                    amount: 2000,
+                    isAmountSet: true,
+                    currency: 'USD',
+                    merchant: 'Test',
+                    created: '2025-01-15',
+                    isFromGlobalCreate: true,
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    participants: [{accountID: optimisticAccountID, login, reportID: chatReportID, selected: true}],
+                });
+
+                // And the first expense already synced, for example while the app was in the background, so the chat only lists the
+                // real account and the server returned it without its login
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[realAccountID]: {accountID: realAccountID, displayName: 'Synced User'}});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                    reportID: chatReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                });
+            });
+
+            // When the confirmation page opens only after the sync
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SUBMIT,
+                                            transactionID,
+                                            reportID: chatReportID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // And the user submits the second expense
+            fireEvent.press(await screen.findByText(getConfirmButtonRegex()));
+
+            // Then the expense goes to the existing chat with the real account, found through the chat the draft saved
+            await waitFor(() => expect(TrackExpense.requestMoney).toHaveBeenCalled());
+            const params = jest.mocked(TrackExpense.requestMoney).mock.calls.at(0)?.at(0);
+            expect(params?.participantParams.participant.accountID).toBe(realAccountID);
+            expect(params?.report?.reportID).toBe(chatReportID);
+        });
+
+        it("keeps the recipient's split share when their optimistic accountID is replaced on sync", async () => {
+            // Given a chat with a recipient created offline, who still has an optimistic accountID
+            const chatReportID = '7003';
+            const realAccountID = 52;
+            const optimisticAccountID = 42;
+            const login = 'split.login@example.com';
+            const transactionID = 'tx-split-share';
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [optimisticAccountID]: {accountID: optimisticAccountID, login, displayName: login, isOptimisticPersonalDetail: true},
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {
+                    reportID: chatReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [optimisticAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                });
+
+                // And a $30 split started from that chat, with $15 shares saved under the optimistic accountID
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+                    transactionID,
+                    reportID: chatReportID,
+                    amount: 3000,
+                    isAmountSet: true,
+                    currency: 'USD',
+                    merchant: 'Test',
+                    created: '2025-01-15',
+                    iouRequestType: CONST.IOU.REQUEST_TYPE.MANUAL,
+                    participants: [{accountID: optimisticAccountID, login, selected: true}],
+                    splitShares: {
+                        [ACCOUNT_ID]: {amount: 1500, isModified: false},
+                        [optimisticAccountID]: {amount: 1500, isModified: false},
+                    },
+                });
+            });
+
+            render(
+                <OnyxListItemProvider>
+                    <HTMLProviderWrapper>
+                        <CurrentUserPersonalDetailsProvider>
+                            <LocaleContextProvider>
+                                <IOURequestStepConfirmationWithWritableReportOrNotFound
+                                    route={{
+                                        key: 'Money_Request_Step_Confirmation',
+                                        name: 'Money_Request_Step_Confirmation',
+                                        params: {
+                                            action: CONST.IOU.ACTION.CREATE,
+                                            iouType: CONST.IOU.TYPE.SPLIT,
+                                            transactionID,
+                                            reportID: chatReportID,
+                                        },
+                                    }}
+                                    navigation={mockNavigation}
+                                />
+                            </LocaleContextProvider>
+                        </CurrentUserPersonalDetailsProvider>
+                    </HTMLProviderWrapper>
+                </OnyxListItemProvider>,
+            );
+
+            await waitForBatchedUpdatesWithAct();
+
+            // When the first expense syncs while the page is open, replacing the optimistic accountID with the real one
+            await act(async () => {
+                await Onyx.update([
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {[realAccountID]: {accountID: realAccountID, login, displayName: login}},
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
+                        value: {participants: {[realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}}},
+                    },
+                ]);
+                await Onyx.update([
+                    {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.PERSONAL_DETAILS_LIST, value: {[optimisticAccountID]: null}},
+                    {onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, value: {participants: {[optimisticAccountID]: null}}},
+                ]);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the draft's recipient and their $15 share both move to the real accountID, which the split row reads
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.participants?.at(0)?.accountID).toBe(realAccountID);
+            expect(draft?.splitShares?.[realAccountID]?.amount).toBe(1500);
+            expect(draft?.splitShares?.[optimisticAccountID]).toBeUndefined();
         });
     });
 
