@@ -155,7 +155,7 @@ describe('usePayViaABA', () => {
         expect(mockShowDecisionModal).toHaveBeenCalledWith(
             expect.objectContaining({
                 title: translateLocal('common.downloadFailedTitle'),
-                prompt: translateLocal('iou.employeesMissingABADepositAccount'),
+                prompt: translateLocal('iou.submittersMissingABADepositAccount'),
             }),
         );
     });

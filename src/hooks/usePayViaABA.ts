@@ -52,7 +52,7 @@ function usePayViaABA() {
         // We can say who's missing a bank account for single reports only
         const report = reportIDs.length === 1 ? getReportOrDraftReport(reportIDs.at(0)) : undefined;
         const name = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldFallbackToHidden: false, formatPhoneNumber});
-        return name ? translate('iou.missingABADepositAccount', {name}) : translate('iou.employeesMissingABADepositAccount');
+        return name ? translate('iou.missingABADepositAccount', {name}) : translate('iou.submittersMissingABADepositAccount');
     };
 
     const downloadABAFile = (reportIDs: string[], policy: OnyxEntry<Policy>, shouldReimburseHeldTransactions?: boolean) => {
