@@ -39,6 +39,8 @@ function RilletReimbursementAccountPage({policy}: WithPolicyConnectionsProps) {
     const reimbursementAccountCode = rilletConfig?.export?.reimbursementAccountCode;
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
 
+    const shouldBeBlocked = rilletConfig?.export?.reimbursable !== CONST.RILLET_EXPORT_REIMBURSABLE.REIMBURSEMENT;
+
     const data: AccountListItem[] =
         rilletData?.accounts
             ?.filter(
@@ -96,6 +98,7 @@ function RilletReimbursementAccountPage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            shouldBeBlocked={shouldBeBlocked}
             displayName="RilletReimbursementAccountPage"
             title="workspace.rillet.reimbursementAccount.label"
             data={filteredData}
