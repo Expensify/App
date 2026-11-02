@@ -2,7 +2,7 @@ import type SettlementButtonProps from '@components/SettlementButton/types';
 
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import type {PaymentOrApproveOption} from '@libs/PaymentUtils';
-import {formatPaymentMethods} from '@libs/PaymentUtils';
+import {formatPaymentMethods, getBusinessBankAccountOptions} from '@libs/PaymentUtils';
 import {canPayViaABA} from '@libs/PolicyUtils';
 import {
     doesReportBelongToWorkspace,
@@ -156,10 +156,18 @@ function usePaymentOptions({
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
-        if (isExpenseReport && shouldShowPayWithExpensifyOption) {
+        const shouldShowPayViaABAOption = isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy);
+
+        // An ABA account is also a business account, so only need to show the pay via business account option if there
+        // is another business account to pay with, e.g. one set up through Corpay
+        if (
+            isExpenseReport &&
+            shouldShowPayWithExpensifyOption &&
+            (!shouldShowPayViaABAOption || getBusinessBankAccountOptions(formatPaymentMethods(bankAccountList, fundList, styles, translate), currency).length > 0)
+        ) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
-        if (isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy)) {
+        if (shouldShowPayViaABAOption) {
             buttonOptions.push({
                 text: translate('iou.payViaABA'),
                 icon: icons.Paycheck,
@@ -280,6 +288,9 @@ function usePaymentOptions({
         hasPersonalBankAccount,
         policy,
         isOffline,
+        bankAccountList,
+        fundList,
+        styles,
     ]);
 
     return paymentButtonOptions;

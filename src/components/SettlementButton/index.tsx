@@ -304,10 +304,14 @@ function SettlementButton({
         }
 
         const shouldShowBusinessBankAccountOptions = isExpenseReport && shouldShowPayWithExpensifyOption && !isPersonalOnlyOption;
+        const shouldShowPayViaABAOption = isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy);
 
         if (shouldShowBusinessBankAccountOptions) {
             if (businessBankAccountOptionList.length === 0) {
-                buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+                // An ABA account is also a business account, so no need to show the generic pay via business account option
+                if (!shouldShowPayViaABAOption) {
+                    buttonOptions.push(paymentMethods[CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT]);
+                }
             } else {
                 for (const account of businessBankAccountOptionList) {
                     buttonOptions.push({
@@ -346,7 +350,7 @@ function SettlementButton({
             }
         }
 
-        if (isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy)) {
+        if (shouldShowPayViaABAOption) {
             buttonOptions.push({
                 ...paymentMethods[CONST.PAYMENT_METHODS.ABA],
                 // The file is downloaded straight from the API, which can't be queued for when the user is back online

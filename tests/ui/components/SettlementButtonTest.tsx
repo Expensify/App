@@ -724,6 +724,19 @@ describe('SettlementButton', () => {
 
             // Then "Pay via ABA" isn't offered, since there's no account for the ABA file to pay from
             expect(screen.queryByText(translateLocal('iou.payViaABA'))).toBeNull();
+
+            // And "Pay with business account" is, so the admin can still connect one
+            expect(screen.getByText(translateLocal('iou.settleBusiness', ''))).toBeTruthy();
+        });
+
+        it('does not offer to connect a business account once the workspace pays via ABA', async () => {
+            // Given an admin on an AUD workspace's report, with an open AU withdrawal account
+            // When the payment options are opened
+            await renderAUDExpenseReport();
+
+            // Then "Pay with business account" isn't offered, since it would only list the ABA account that's already connected
+            expect(screen.getByText(translateLocal('iou.payViaABA'))).toBeTruthy();
+            expect(screen.queryByText(translateLocal('iou.settleBusiness', ''))).toBeNull();
         });
 
         it('does not pay when the option is picked while offline', async () => {

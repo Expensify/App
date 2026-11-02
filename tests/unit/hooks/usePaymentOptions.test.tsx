@@ -18,12 +18,15 @@ import createRandomPolicy from '../../utils/collections/policies';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
+const ABA_BANK_ACCOUNT_ID = 1;
+const CORPAY_BANK_ACCOUNT_ID = 2;
+
 const policy: Policy = {
     ...createRandomPolicy(1),
     id: 'ABAPolicy',
     role: CONST.POLICY.ROLE.ADMIN,
     outputCurrency: CONST.CURRENCY.AUD,
-    reimbursement: {countries: {[CONST.COUNTRY.AU]: {bankAccountID: 1, state: CONST.BANK_ACCOUNT.STATE.OPEN}}},
+    reimbursement: {countries: {[CONST.COUNTRY.AU]: {bankAccountID: ABA_BANK_ACCOUNT_ID, state: CONST.BANK_ACCOUNT.STATE.OPEN}}},
 };
 const expenseReport = {reportID: '100', type: CONST.REPORT.TYPE.EXPENSE, policyID: policy.id, currency: CONST.CURRENCY.AUD} as Report;
 
@@ -31,10 +34,15 @@ function Wrapper({children}: {children: React.ReactNode}) {
     return <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>;
 }
 
-async function renderPaymentOptions(onPress = jest.fn()) {
+async function renderAllPaymentOptions(onPress = jest.fn()) {
     const {result} = renderHook(() => usePaymentOptions({iouReport: expenseReport, policyID: policy.id, currency: CONST.CURRENCY.AUD, onPress}), {wrapper: Wrapper});
     await waitForBatchedUpdatesWithAct();
-    return result.current.find((option) => option.text === translateLocal('iou.payViaABA'));
+    return result.current;
+}
+
+async function renderPaymentOptions(onPress = jest.fn()) {
+    const paymentOptions = await renderAllPaymentOptions(onPress);
+    return paymentOptions.find((option) => option.text === translateLocal('iou.payViaABA'));
 }
 
 describe('usePaymentOptions', () => {
@@ -73,6 +81,46 @@ describe('usePaymentOptions', () => {
 
         // Then the option isn't there, since there's no account for the ABA file to pay from
         expect(payViaABAOption).toBeUndefined();
+    });
+
+    it('only offers to connect a business account when the workspace cannot pay via ABA', async () => {
+        // Given an AUD workspace that can pay via ABA
+        // When its payment options are built
+        const paymentOptions = await renderAllPaymentOptions();
+
+        // Then "Pay with business account" isn't offered, since it would only list the ABA account that's already connected
+        expect(paymentOptions.some((option) => option.value === CONST.IOU.PAYMENT_TYPE.VBBA)).toBe(false);
+
+        // When the workspace no longer has an AU withdrawal account
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {reimbursement: {countries: null}});
+        });
+        const paymentOptionsWithoutABA = await renderAllPaymentOptions();
+
+        // Then "Pay with business account" is offered, so the admin can connect one
+        expect(paymentOptionsWithoutABA.some((option) => option.value === CONST.IOU.PAYMENT_TYPE.VBBA)).toBe(true);
+    });
+
+    it('still offers paying with a business account when the admin has one besides the ABA account', async () => {
+        // Given an AUD workspace that can pay via ABA, whose admin also has an open AUD business account set up through Corpay
+        const accountData = {type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.OPEN};
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {
+                [ABA_BANK_ACCOUNT_ID]: {
+                    methodID: ABA_BANK_ACCOUNT_ID,
+                    bankCurrency: CONST.CURRENCY.AUD,
+                    accountData: {...accountData, bankAccountID: ABA_BANK_ACCOUNT_ID, additionalData: {isForABA: true}},
+                },
+                [CORPAY_BANK_ACCOUNT_ID]: {methodID: CORPAY_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.AUD, accountData: {...accountData, bankAccountID: CORPAY_BANK_ACCOUNT_ID}},
+            });
+        });
+
+        // When its payment options are built
+        const paymentOptions = await renderAllPaymentOptions();
+
+        // Then "Pay with business account" is offered alongside "Pay via ABA", so the admin can still pay with the Corpay account
+        expect(paymentOptions.some((option) => option.value === CONST.IOU.PAYMENT_TYPE.VBBA)).toBe(true);
+        expect(paymentOptions.some((option) => option.value === CONST.PAYMENT_METHODS.ABA)).toBe(true);
     });
 
     it('disables paying via ABA while offline', async () => {

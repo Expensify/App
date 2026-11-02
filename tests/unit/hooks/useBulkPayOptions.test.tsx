@@ -82,6 +82,17 @@ describe('useBulkPayOptions', () => {
         expect(payViaABAOption).toBeUndefined();
     });
 
+    it('only offers to connect a business account when the selection cannot be paid via ABA', async () => {
+        // Given the user has no business account to pay with
+        // When the bulk pay options are built with and without "Pay via ABA"
+        const withABA = await getBulkPayButtonOptions(true);
+        const withoutABA = await getBulkPayButtonOptions(false);
+
+        // Then "Pay with business account" is only offered without it, since it would only list the ABA account that's already connected
+        expect(withABA?.some((option) => option.key === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT)).toBe(false);
+        expect(withoutABA?.some((option) => option.key === CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT)).toBe(true);
+    });
+
     it('disables paying via ABA while offline', async () => {
         // Given the user is offline
         await act(async () => {
