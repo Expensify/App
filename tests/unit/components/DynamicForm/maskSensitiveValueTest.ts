@@ -1,11 +1,19 @@
 import maskSensitiveValue, {getVisibleEnding} from '@components/DynamicForm/utils/maskSensitiveValue';
 
 describe('maskSensitiveValue', () => {
-    it('keeps the separators of a formatted value', () => {
-        // Given an SSN already formatted for display
+    it('shows an SSN as •••-••-1234', () => {
+        // Given a full nine digit SSN
         // When it is masked
-        // Then only the last four digits stay and the dashes are kept, so the masked value keeps its shape
-        expect(maskSensitiveValue('123-45-1234')).toBe('•••-••-1234');
+        // Then only the last four digits stay, in the usual SSN grouping, so the user can tell which number they entered
+        expect(maskSensitiveValue('123451234')).toBe('•••-••-1234');
+    });
+
+    it('keeps the SSN grouping for an SSN starting with zeros', () => {
+        // Given nine digit SSNs that the SSN validator rejects but the form accepts
+        // When they are masked
+        // Then they keep the same grouping as any other SSN on the confirmation page
+        expect(maskSensitiveValue('000000000')).toBe('•••-••-0000');
+        expect(maskSensitiveValue('000012345')).toBe('•••-••-2345');
     });
 
     it('keeps the last four characters of any other value', () => {
