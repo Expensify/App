@@ -1,7 +1,7 @@
 import CardFeedIcon from '@components/CardFeedIcon';
 import FeedSelector from '@components/FeedSelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -41,7 +41,7 @@ import type SCREENS from '@src/SCREENS';
 import type {TupleToUnion} from 'type-fest';
 
 import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
-import React, {useCallback, useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type CardReconciliationPageProps = WithPolicyConnectionsProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION>;
@@ -101,31 +101,35 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
         }
     };
 
-    const accountingAdvancedSettingsLink = useMemo(() => {
-        if (!policyID) {
-            return '';
-        }
-
+    let accountingAdvancedSettingsLink;
+    if (!policyID) {
+        accountingAdvancedSettingsLink = '';
+    } else {
         switch (connection) {
             case CONST.POLICY.CONNECTIONS.ROUTE.QBO:
-                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path}`;
+                accountingAdvancedSettingsLink = `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC.path}`;
+                break;
             case CONST.POLICY.CONNECTIONS.ROUTE.XERO:
-                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path}`;
+                accountingAdvancedSettingsLink = `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_AUTO_SYNC.path}`;
+                break;
             case CONST.POLICY.CONNECTIONS.ROUTE.NETSUITE:
-                return `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path}`;
+                accountingAdvancedSettingsLink = `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection)}/${DYNAMIC_ROUTES.NETSUITE_AUTO_SYNC.path}`;
+                break;
             case CONST.POLICY.CONNECTIONS.ROUTE.SAGE_INTACCT:
-                return `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID)}`;
+                accountingAdvancedSettingsLink = `${environmentURL}/${ROUTES.POLICY_ACCOUNTING_CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC.getRoute(policyID)}`;
+                break;
             default:
-                return '';
+                accountingAdvancedSettingsLink = '';
+                break;
         }
-    }, [connection, policyID, environmentURL]);
+    }
 
-    const fetchPolicyAccountingData = useCallback(() => {
+    const fetchPolicyAccountingData = () => {
         if (!policyID) {
             return;
         }
         openPolicyAccountingPage(policyID);
-    }, [policyID]);
+    };
 
     useEffect(() => {
         if (continuousReconciliation !== undefined) {
@@ -197,13 +201,13 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
                     )}
                     <OfflineWithFeedback pendingAction={continuousReconciliationPendingAction}>
                         {!!paymentBankAccountID && !!continuousReconciliation && (
-                            <MenuItemWithTopDescription
-                                style={styles.mt5}
-                                title={bankAccountTitle}
-                                description={translate('workspace.accounting.reconciliationAccount')}
-                                shouldShowRightIcon
-                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path))}
-                            />
+                            <View style={styles.mt5}>
+                                <MenuItemField
+                                    name={translate('workspace.accounting.reconciliationAccount')}
+                                    value={bankAccountTitle}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path))}
+                                />
+                            </View>
                         )}
                     </OfflineWithFeedback>
                 </ScrollView>

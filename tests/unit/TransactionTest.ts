@@ -71,13 +71,7 @@ function isCapturedOnyxData(value: unknown): value is CapturedOnyxData {
 }
 
 function isChangeTransactionsReportParams(value: unknown): value is ChangeTransactionsReportParams {
-    return (
-        isRecord(value) &&
-        typeof value.reportID === 'string' &&
-        typeof value.transactionList === 'string' &&
-        typeof value.transactionIDToReportActionAndThreadData === 'string' &&
-        (value.transactionIDToUpdatedCustomUnitRateID === undefined || typeof value.transactionIDToUpdatedCustomUnitRateID === 'string')
-    );
+    return isRecord(value) && typeof value.reportID === 'string' && typeof value.transactionList === 'string' && typeof value.transactionIDToReportActionAndThreadData === 'string';
 }
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
@@ -1944,6 +1938,9 @@ describe('Transaction', () => {
         });
 
         it('should auto-select a valid distance rate when moving a distance expense with an invalid P2P rate to a workspace', async () => {
+            // Given a distance expense with a P2P rate, which no workspace has, and a workspace with one valid rate
+            // The spy calls through so the optimistic data still lands in Onyx
+            const mockAPIWrite = jest.spyOn(API, 'write');
             const policyID = '100';
             const validRateID = 'valid_rate_1';
             const transaction = generateTransaction({
@@ -2002,6 +1999,7 @@ describe('Transaction', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
 
+            // When the expense moves to a report on that workspace
             changeTransactionsReport({
                 isVendorMatchingBetaEnabled: false,
                 transactionIDs: [transaction.transactionID],
@@ -2019,9 +2017,16 @@ describe('Transaction', () => {
             });
             await waitForBatchedUpdates();
 
+            // Then the optimistic transaction uses the workspace rate, so the UI shows the right amount right away
             const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`);
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
             expect(updatedTransaction?.comment?.customUnit?.defaultP2PRate).toBeUndefined();
+
+            // And the request does not send the locally picked rate, because the backend selects the rate itself
+            const [, parameters] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+            expect(parameters).not.toHaveProperty('transactionIDToUpdatedCustomUnitRateID');
+
+            mockAPIWrite.mockRestore();
         });
 
         it('should auto-select a valid distance rate when the current rate is disabled on the destination workspace', async () => {

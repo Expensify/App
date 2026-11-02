@@ -1,7 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
@@ -26,7 +25,7 @@ import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
     const {translate, localeCompare} = useLocalize();
@@ -37,7 +36,7 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
     const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const config = policy?.connections?.netsuite?.options?.config;
     const {subsidiaryList} = policy?.connections?.netsuite?.options?.data ?? {};
-    const selectedSubsidiary = useMemo(() => (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID), [subsidiaryList, config?.subsidiaryID]);
+    const selectedSubsidiary = (subsidiaryList ?? []).find((subsidiary) => subsidiary.internalID === config?.subsidiaryID);
 
     return (
         <ConnectionLayout
@@ -91,30 +90,26 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     config?.pendingFields,
                 )}
             >
-                <MenuItemWithTopDescription
-                    description={translate(`workspace.netsuite.import.customersOrJobs.title`)}
-                    title={getCustomersOrJobsLabelNetSuite(policy, translate)}
-                    shouldShowRightIcon
-                    numberOfLinesTitle={2}
+                <MenuItemField
+                    name={translate(`workspace.netsuite.import.customersOrJobs.title`)}
                     onPress={() => {
                         if (!policyID) {
                             return;
                         }
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS.getRoute(policyID));
                     }}
-                    brickRoadIndicator={
-                        areSettingsInErrorFields(
-                            [
-                                CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS,
-                                CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS,
-                                CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
-                            ],
-                            config?.errorFields,
-                        )
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : undefined
-                    }
-                />
+                    value={getCustomersOrJobsLabelNetSuite(policy, translate)}
+                    numberOfLinesValue={2}
+                >
+                    {areSettingsInErrorFields(
+                        [
+                            CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS,
+                            CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS,
+                            CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
+                        ],
+                        config?.errorFields,
+                    ) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
             {canUseTaxNetSuite(isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX), selectedSubsidiary?.country) && (
                 <ToggleSettingOptionRow

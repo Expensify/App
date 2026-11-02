@@ -42,12 +42,13 @@ import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {useCallback, useEffect, useState} from 'react';
+import {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 type AddExistingExpensePageType = PlatformStackScreenProps<AddExistingExpensesParamList, typeof SCREENS.ADD_EXISTING_EXPENSES_ROOT>;
 
 function AddExistingExpense({route}: AddExistingExpensePageType) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['FolderWithPapersAndWatch']);
     const [errorMessage, setErrorMessage] = useState<string>('');
@@ -74,11 +75,8 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
     const shouldFooterBeInsideList = useShouldFooterBeInsideList();
     const styles = useThemeStyles();
 
-    const transactionsSelector = useCallback(
-        (allTransactions: OnyxCollection<Transaction>) =>
-            getEligibleTransactionsToAdd({transactions: allTransactions, report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts}),
-        [report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts],
-    );
+    const transactionsSelector = (allTransactions: OnyxCollection<Transaction>) =>
+        getEligibleTransactionsToAdd({transactions: allTransactions, report, policy, cardList, currentUserAccountID, reportID, allOpenReports, openReportDrafts});
     const [transactions = getEmptyArray<Transaction>()] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {selector: transactionsSelector});
 
     const fetchMoreUnreportedTransactions = () => {
@@ -181,7 +179,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
                                     }
                                     interceptAnonymousUser(() => {
                                         startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID, draftTransactionIDs, undefined, false, backToReport);
-                                    });
+                                    }, session);
                                 },
                                 buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                             },

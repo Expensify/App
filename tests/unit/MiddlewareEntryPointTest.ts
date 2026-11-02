@@ -3,6 +3,8 @@ import {addMiddleware} from '@libs/Request';
 
 import appSetup from '@src/setup';
 
+jest.mock('@expensify/react-native-hybrid-app', () => ({isHybridApp: () => false}));
+
 jest.mock('@libs/Request', () => ({
     ...jest.requireActual<typeof RequestModule>('@libs/Request'),
     addMiddleware: jest.fn(),
@@ -17,11 +19,11 @@ jest.mock('@src/setup/platformSetup', () => jest.fn());
 jest.mock('@src/setup/telemetry', () => jest.fn());
 
 describe('src/setup attaches the API middlewares', () => {
-    it('registers all 16 middlewares when the composition root runs', () => {
+    it('registers all 17 middlewares when the composition root runs', () => {
         expect(jest.mocked(addMiddleware)).not.toHaveBeenCalled();
 
         appSetup();
 
-        expect(jest.mocked(addMiddleware)).toHaveBeenCalledTimes(16);
+        expect(jest.mocked(addMiddleware)).toHaveBeenCalledTimes(17);
     });
 });

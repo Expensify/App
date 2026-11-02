@@ -27,7 +27,7 @@ import type SCREENS from '@src/SCREENS';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
@@ -50,28 +50,22 @@ function SageIntacctDatePage({policy}: WithPolicyProps) {
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EXPORT_DATE>>();
     const backTo = route.params?.backTo;
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))));
-    }, [policyID, backTo]);
+    };
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.sageIntacct.exportDate.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.sageIntacct.exportDate.description')}</Text>
+        </View>
     );
 
-    const selectExportDate = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== exportConfig?.exportDate && policyID) {
-                updateSageIntacctExportDate(policyID, row.value, exportConfig?.exportDate);
-            }
-            goBack();
-        },
-        [exportConfig?.exportDate, policyID, goBack],
-    );
+    const selectExportDate = (row: MenuListItem) => {
+        if (row.value !== exportConfig?.exportDate && policyID) {
+            updateSageIntacctExportDate(policyID, row.value, exportConfig?.exportDate);
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen

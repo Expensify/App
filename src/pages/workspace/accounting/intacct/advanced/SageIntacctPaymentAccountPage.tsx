@@ -21,7 +21,7 @@ import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -32,29 +32,23 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const {config} = policy?.connections?.intacct ?? {};
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctBankAccounts(policy, config?.sync?.reimbursementAccountID), [policy, config?.sync?.reimbursementAccountID]);
+    const vendorSelectorOptions: SelectorType[] = getSageIntacctBankAccounts(policy, config?.sync?.reimbursementAccountID);
 
-    const updateDefaultVendor = useCallback(
-        ({value}: SelectorType) => {
-            if (value !== config?.sync?.reimbursementAccountID) {
-                updateSageIntacctSyncReimbursementAccountID(policyID, value, config?.sync?.reimbursementAccountID);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
-        },
-        [policyID, config?.sync?.reimbursementAccountID],
-    );
+    const updateDefaultVendor = ({value}: SelectorType) => {
+        if (value !== config?.sync?.reimbursementAccountID) {
+            updateSageIntacctSyncReimbursementAccountID(policyID, value, config?.sync?.reimbursementAccountID);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.sageIntacct.noAccountsFound')}
-                subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
-            />
-        ),
-        [illustrations.Telescope, translate],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.sageIntacct.noAccountsFound')}
+            subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
+        />
     );
 
     return (

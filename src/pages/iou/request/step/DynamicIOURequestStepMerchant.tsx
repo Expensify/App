@@ -41,7 +41,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -100,19 +100,16 @@ function DynamicIOURequestStepMerchant({
 
     const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backPath);
 
-    const validate = useCallback(
-        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
-            const merchantError = getMerchantError(value.moneyRequestMerchant, isMerchantFieldRequired);
+    const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM> = {};
+        const merchantError = getMerchantError(value.moneyRequestMerchant, isMerchantFieldRequired);
 
-            if (merchantError) {
-                errors.moneyRequestMerchant = getMerchantErrorMessage(translate, merchantError);
-            }
+        if (merchantError) {
+            errors.moneyRequestMerchant = getMerchantErrorMessage(translate, merchantError);
+        }
 
-            return errors;
-        },
-        [isMerchantFieldRequired, translate],
-    );
+        return errors;
+    };
 
     const updateMerchantRef = (value: string) => {
         setCurrentMerchant(value);
