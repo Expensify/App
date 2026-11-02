@@ -10,6 +10,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -67,18 +68,22 @@ type InsightsDashboardContentProps = {
 
     /** Changes how the headline chart aggregates: the time bucket, or Running total */
     onGroupByChange: (update: Partial<InsightsFilters>) => void;
+
+    /** Page header rendered at the top of the scroller, so it scrolls away with the charts */
+    children?: React.ReactNode;
 };
 
-function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange, children}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
     const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
-    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, pageGutter, styles.pb5], {
+    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, !shouldScrollMainHeader && pageGutter, styles.pb5], {
         hasBottomSafeAreaPadding: true,
         hasOfflineIndicatorPadding: true,
         fillsVisibleArea: isEmptyState,
@@ -103,32 +108,41 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             },
         } as const;
         return (
-            <FullPageErrorView
-                shouldShow
-                onButtonPress={onRetry}
-                {...failureViewByState[state]}
-            />
+            <>
+                {children}
+                <FullPageErrorView
+                    shouldShow
+                    onButtonPress={onRetry}
+                    {...failureViewByState[state]}
+                />
+            </>
         );
     }
 
     if (state === INSIGHTS_DASHBOARD_STATE.OFFLINE) {
         return (
-            <BlockingView
-                icon={icons.OfflineCloud}
-                iconColor={theme.offline}
-                title={translate('common.youAppearToBeOffline')}
-                subtitle={translate('common.thisFeatureRequiresInternet')}
-                addBottomSafeAreaPadding
-                addOfflineIndicatorBottomSafeAreaPadding
-            />
+            <>
+                {children}
+                <BlockingView
+                    icon={icons.OfflineCloud}
+                    iconColor={theme.offline}
+                    title={translate('common.youAppearToBeOffline')}
+                    subtitle={translate('common.thisFeatureRequiresInternet')}
+                    addBottomSafeAreaPadding
+                    addOfflineIndicatorBottomSafeAreaPadding
+                />
+            </>
         );
     }
 
     if (state === INSIGHTS_DASHBOARD_STATE.LOADING) {
         return (
-            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <ActivityIndicator size="large" />
-            </View>
+            <>
+                {children}
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator size="large" />
+                </View>
+            </>
         );
     }
 
@@ -139,6 +153,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                     {...scrollProps}
                     addBottomSafeAreaPadding
                 >
+                    {children}
                     {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
                 </ScrollView>
             </TabRootScrollViewMarker>
@@ -157,7 +172,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                 {...scrollProps}
                 addBottomSafeAreaPadding
             >
-                <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
+                {children}
+                <View style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}>
                     <InsightsChartWidget
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
@@ -211,6 +227,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
@@ -281,13 +298,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             />
         ) : null;
 
-    return (
-        <ScreenWrapper
-            shouldShowOfflineIndicatorInWideScreen
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            {...tabRootScreenWrapperProps}
-            testID="InsightsPage"
-        >
+    const header = (
+        <>
             <TopBar
                 breadcrumbLabel={translate('common.insights')}
                 shouldDisplayHelpButton
@@ -307,6 +319,17 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                     </View>
                 )
             )}
+        </>
+    );
+
+    return (
+        <ScreenWrapper
+            shouldShowOfflineIndicatorInWideScreen
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
+            {...tabRootScreenWrapperProps}
+            testID="InsightsPage"
+        >
+            {!shouldScrollMainHeader && header}
             <View style={styles.flex1}>
                 <Animated.View
                     key={state}
@@ -321,7 +344,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                         filters={filters}
                         onRetry={requestDashboard}
                         onGroupByChange={setFilters}
-                    />
+                    >
+                        {shouldScrollMainHeader && header}
+                    </InsightsDashboardContent>
                 </Animated.View>
             </View>
         </ScreenWrapper>
