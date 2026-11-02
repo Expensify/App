@@ -428,6 +428,15 @@ function reportParentChainSelector(reportID: string | undefined) {
     };
 }
 
+/** Keeps only the report fields `getVisibleTransactionViolations` reads. */
+const reportViolationVisibilitySelector = (report: OnyxEntry<Report>): OnyxEntry<Report> => {
+    if (!report) {
+        return report;
+    }
+    const {reportID, type, stateNum, statusNum, ownerAccountID, managerID, isWaitingOnBankAccount} = report;
+    return {reportID, type, stateNum, statusNum, ownerAccountID, managerID, isWaitingOnBankAccount};
+};
+
 /**
  * Creates a selector returning only the reports for the given IDs, so a consumer that knows the exact
  * reports it needs doesn't re-render when any other report in the account changes.
@@ -467,6 +476,7 @@ export {
     isDraftReportSelector,
     reportParentChainSelector,
     reportsByIDsSelector,
+    reportViolationVisibilitySelector,
 };
 
 export type {ReportAvatarFields, RoomAvatarFields, StableReport};
