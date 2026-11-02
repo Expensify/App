@@ -323,7 +323,7 @@
     "dotenv": "^16.0.3",
     "esbuild": "^0.28.1",
     "eslint": "^9.36.0",
-    "eslint-config-expensify": "4.0.8",
+    "eslint-config-expensify": "github:Expensify/eslint-config-expensify#9362673c0e7e45fbe6b664445d0c1da32c75de71",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-file-progress": "3.0.1",
     "eslint-plugin-jest": "^29.0.1",
