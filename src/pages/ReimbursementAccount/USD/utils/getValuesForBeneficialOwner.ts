@@ -8,6 +8,7 @@ import {SafeString} from 'expensify-common';
 type BeneficialOwnerValues = {
     firstName: string;
     lastName: string;
+    email: string;
     dob: string;
     ssnLast4: string;
     street: string;
@@ -21,6 +22,7 @@ function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, rei
         return {
             firstName: '',
             lastName: '',
+            email: '',
             dob: '',
             ssnLast4: '',
             street: '',
@@ -35,6 +37,7 @@ function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, rei
     const INPUT_KEYS = {
         firstName: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.FIRST_NAME}`,
         lastName: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.LAST_NAME}`,
+        email: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.EMAIL}`,
         dob: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.DOB}`,
         ssnLast4: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.SSN_LAST_4}`,
         street: `${beneficialOwnerPrefix}_${beneficialOwnerBeingModifiedID}_${beneficialOwnerInfoKey.STREET}`,
@@ -46,6 +49,7 @@ function getValuesForBeneficialOwner(beneficialOwnerBeingModifiedID: string, rei
     return {
         firstName: SafeString(reimbursementAccountDraft[INPUT_KEYS.firstName]),
         lastName: SafeString(reimbursementAccountDraft[INPUT_KEYS.lastName]),
+        email: SafeString(reimbursementAccountDraft[INPUT_KEYS.email]),
         dob: SafeString(reimbursementAccountDraft[INPUT_KEYS.dob]),
         ssnLast4: SafeString(reimbursementAccountDraft[INPUT_KEYS.ssnLast4]),
         street: SafeString(reimbursementAccountDraft[INPUT_KEYS.street]),
