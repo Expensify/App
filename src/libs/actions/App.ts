@@ -632,7 +632,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
     rollbackOngoingRequest();
     const sequentialQueue = getAll();
     // The cleared state has no Concierge reportID, so opening Concierge must wait for OpenApp instead of creating a duplicate chat
-    resetAllChecks();
+    resetAllChecks(true);
 
     Navigation.clearPreloadedRoutes();
     // The helper seeds the loading state and LAST_FULL_RECONNECT_TIME so consumers cannot evaluate transient

@@ -270,6 +270,29 @@ describe('actions/App', () => {
         await waitFor(() => expect(isServerDataReady).toBe(true));
     });
 
+    test('a caller waiting on onServerDataReady still runs when the cache is cleared again before OpenApp finishes', async () => {
+        // Given the cache was cleared while offline and a caller is waiting for OpenApp, like a Report a bug tap
+        jest.spyOn(Navigation, 'clearPreloadedRoutes').mockImplementation(() => {});
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+        await App.clearOnyxAndResetApp();
+        await waitForBatchedUpdates();
+        let isServerDataReady = false;
+        onServerDataReady().then(() => {
+            isServerDataReady = true;
+        });
+
+        // When the cache is cleared a second time and then the app goes back online and OpenApp finishes
+        await App.clearOnyxAndResetApp();
+        await waitForBatchedUpdates();
+        expect(isServerDataReady).toBe(false);
+        await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
+        SequentialQueue.flush();
+        await waitForBatchedUpdates();
+
+        // Then the waiting caller still runs, so the Report a bug tap is not lost
+        await waitFor(() => expect(isServerDataReady).toBe(true));
+    });
+
     test('a caller waiting on onServerDataReady before sign-out does not run after the next sign-in', async () => {
         // Given a caller that started waiting on onServerDataReady() before server data loaded
         resetAllChecks();
