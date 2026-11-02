@@ -1,5 +1,5 @@
 /**
- * ESLint plugin that enforces architectural constraints on ReportNameUtils.ts.
+ * oxlint JS plugin that enforces architectural constraints on ReportNameUtils.ts.
  *
  * `getReportName` must remain a pure read-only function — it reads from
  * pre-computed `reportAttributesDerivedValue` and must never call other
@@ -23,7 +23,7 @@ const noFunctionCallInGetReportName = {
 };
 
 export default {
-    meta: {name: 'eslint-plugin-report-name-utils'},
+    meta: {name: 'report-name-utils'},
     rules: {
         'no-function-call-in-get-report-name': noFunctionCallInGetReportName,
     },

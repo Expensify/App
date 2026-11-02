@@ -630,7 +630,7 @@ function SearchAutocompleteList({
         });
     }
     const nextStyledRecentReports = recentReportsOptions.map((option) => {
-        const report = getReportOrDraftReport(option.reportID, undefined, undefined, undefined, reports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.reportID}`]);
+        const report = getReportOrDraftReport({reportID: option.reportID, report: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${option.reportID}`]});
         const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
         const shouldParserToHTML = !!reportAction && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
         const keyForList = option.keyForList ?? option.reportID ?? (option.accountID ? String(option.accountID) : undefined);

@@ -51,6 +51,8 @@ const translations: TranslationDeepObject<typeof en> = {
         count: 'Nombre',
         cancel: 'Annuler',
         dismiss: 'Fermer',
+        resizeColumn: ({columnName}: {columnName: string}) => `Redimensionner la colonne ${columnName}`,
+        columnWidth: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Continuer',
         unshare: 'Arrêter le partage',
         yes: 'Oui',
@@ -6082,8 +6084,24 @@ ${amount} pour ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Compte de carte de crédit',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? "Nous utiliserons ce compte pour les cartes qui n'ont pas leur propre compte d'exportation."
+                    : "Choisissez un compte par défaut. Nous l'utiliserons pour les cartes qui n'ont pas leur propre compte d'exportation.",
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet
+                    ? "Nous utiliserons ce fournisseur pour les dépenses qui n'ont pas de fournisseur."
+                    : "Choisissez un fournisseur par défaut. Nous l'utiliserons pour les dépenses qui n'ont pas de fournisseur.",
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Frais de carte de crédit',
+                        nonReimbursableDescription:
+                            "Les dépenses des cartes d'entreprise seront exportées vers NetSuite en tant que frais de carte de crédit individuels, datés de chaque achat.",
+                        legacyTaxHelper:
+                            "Les frais de carte de crédit ne prennent pas en charge le NetSuite legacy tax. Si vous utilisez le legacy tax, choisissez un autre type d'exportation.",
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Notes de frais',
                         reimbursableDescription: 'Les dépenses payées de votre poche seront exportées sous forme de notes de frais vers NetSuite.',
@@ -6827,6 +6845,18 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Dernier jour du mois',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Dernier jour ouvrable du mois',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Jour du mois personnalisé',
+            },
+            reimbursable: {
+                title: 'Remboursable',
+                description: 'Choisissez comment les transactions par carte doivent être créées. Les nouvelles transactions suivront ces règles.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Toujours remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Toujours remboursé aux employés',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Toujours non remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Jamais remboursé aux employés',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Le plus souvent remboursé aux employés',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Non remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Parfois remboursé aux employés',
             },
             assign: 'Assigner',
             assignCard: 'Assigner une carte',
@@ -9673,6 +9703,27 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             enableNewAccountsTitle: 'Activer les nouveaux comptes importés',
             enableNewAccountsDescription: 'Les nouveaux comptes Zoho Books seront disponibles en tant que catégories.',
             reportingTagsImport: 'Tous les tags de rapport Zoho Books sont importés en tant que tags',
+            exportDescription: 'Configurer l’exportation des données Expensify vers Zoho Books.',
+            exportReimbursable: {label: 'Exporter les dépenses remboursables au format', values: {VENDOR_BILL: {label: 'Factures fournisseurs'}}},
+            exportDate: {
+                label: 'Date de la facture fournisseur',
+                description: 'Utiliser cette date lors de l’export des notes de frais vers Zoho Books.',
+                values: {
+                    LAST_EXPENSE: {label: 'Date de la dernière dépense', description: 'Date de la dépense la plus récente sur la note de frais.'},
+                    REPORT_EXPORTED: {label: 'Date d’exportation', description: 'Date à laquelle la note de frais a été exportée vers Zoho Books.'},
+                    REPORT_SUBMITTED: {label: 'Date de soumission', description: 'Date à laquelle la note de frais a été soumise pour approbation.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Exporter les dépenses de carte de société en', values: {EXPENSE: {label: 'Dépenses'}}},
+            defaultCompanyCardVendor: {
+                label: 'Fournisseur par défaut pour toutes les cartes de l’entreprise',
+                description: 'Choisissez un fournisseur Zoho Books par défaut pour les dépenses qui ne correspondent pas automatiquement.',
+            },
+            companyCardAccount: {label: 'Compte de carte d’entreprise', description: 'Choisissez où exporter les transactions de carte d’entreprise.'},
+            noVendorsFound: 'Aucun fournisseur trouvé',
+            noVendorsFoundDescription: 'Veuillez ajouter des fournisseurs dans Zoho Books et synchroniser de nouveau la connexion',
+            noAccountsFound: 'Aucun compte trouvé',
+            noAccountsFoundDescription: 'Veuillez ajouter des comptes dans Zoho Books et synchroniser à nouveau la connexion',
         },
         businessCentral: {
             businessCentralSetup: 'Configuration de Dynamics 365 Business Central',
@@ -10368,6 +10419,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `Autoriser les porteurs de carte ${enabled ? 'activé' : 'Désactivé'} à supprimer les transactions de carte pour le flux de cartes « ${feedName} »`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `a modifié le jour de fin de période de relevé du flux de carte « ${feedName} »${newValue ? ` à « ${newValue} »` : ''}${previousValue ? ` (précédemment « ${previousValue} »)` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `a modifié le paramètre de remboursement du flux de cartes "${feedName}"${newValue ? ` en "${newValue}"` : ''}${previousValue ? ` (auparavant "${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
@@ -10737,7 +10790,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mois dernier',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Depuis le début de l’année',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Cette année',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '12 derniers mois',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Cette semaine',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Semaine dernière',
@@ -10963,6 +11016,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         mergeReports: {
             title: 'Fusionner des notes de frais',
             description: 'Sélectionnez la note de frais à conserver. Toutes les dépenses y seront déplacées et les autres notes de frais seront supprimées.',
+            exportedWarning:
+                'Une ou plusieurs notes de frais sélectionnées ont déjà été exportées vers une intégration comptable. Les fusionner peut entraîner des doublons si elles sont exportées de nouveau.',
+            reportFieldsMismatch:
+                '<strong>Ces notes de frais ont des valeurs de champ de note de frais différentes.</strong> Pour les fusionner, faites d’abord correspondre les champs de note de frais sur chaque note de frais.',
             listPage: {noEligibleReportsFound: 'Aucune note de frais éligible trouvée', noEligibleReportsFoundSubtitle: 'Vous n’avez aucune note de frais pouvant être fusionnée.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} jusqu’à présent`,
@@ -12327,8 +12384,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
     },
     productMarketingWindow: {
-        heading: 'Connectez Expensify à Claude',
-        body: 'Recherchez, analysez et résumez vos données de dépenses directement dans Claude.',
+        member: {
+            heading: 'Le kilométrage en pilote automatique',
+            body: 'Accédez directement à vos trajets fréquents et corrigez l’emplacement d’un arrêt sans tout recommencer.',
+        },
+        admin: {
+            heading: 'Le kilométrage géré automatiquement',
+            body: 'Des taux kilométriques qui se mettent à jour d’eux-mêmes, et un contrôle total sur la façon dont les trajets sont enregistrés.',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Commencez <strong>ici&nbsp;!</strong></tooltip>',

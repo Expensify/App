@@ -99,6 +99,10 @@ const translations = {
         chartFailedToLoad: 'The chart could not be loaded. Please refresh the page and try again.',
         // @context Refers to closing or hiding a notification or message, not rejecting or ignoring something.
         dismiss: 'Dismiss',
+        // @context Accessible name of the draggable edge between two table columns. "columnName" is the heading of the column to the left of the edge.
+        resizeColumn: ({columnName}: {columnName: string}) => `Resize ${columnName} column`,
+        // @context Spoken by screen readers for the width of a table column while its edge is resized.
+        columnWidth: ({width}: {width: number}) => `${width} pixels`,
         // @context Used on a button to continue an action or workflow, not the formal or procedural sense of “to proceed.”
         proceed: 'Proceed',
         unshare: 'Unshare',
@@ -6281,8 +6285,20 @@ const translations = {
                     },
                 },
             },
+            creditCardAccount: 'Credit card account',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? "We'll use this account for cards that don't have their own export account."
+                    : "Choose a default account. We'll use it for cards that don't have their own export account.",
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? "We'll use this vendor for expenses that don't have a vendor." : "Choose a default vendor. We'll use it for expenses that don't have a vendor.",
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Credit card charges',
+                        nonReimbursableDescription: 'Company card expenses will export as individual credit card charges in NetSuite, dated with each purchase.',
+                        legacyTaxHelper: "Credit card charges don't support NetSuite legacy tax. If you use legacy tax, choose another export type.",
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Expense reports',
                         reimbursableDescription: 'Out-of-pocket expenses will export as expense reports to NetSuite.',
@@ -6991,6 +7007,53 @@ const translations = {
             enableNewAccountsTitle: 'Enable newly imported accounts',
             enableNewAccountsDescription: 'New Zoho Books accounts will be available as categories.',
             reportingTagsImport: 'All Zoho Books reporting tags import as tags',
+            exportDescription: 'Configure how Expensify data exports to Zoho Books.',
+            exportReimbursable: {
+                label: 'Export reimbursable expenses as',
+                values: {
+                    VENDOR_BILL: {
+                        label: 'Vendor bills',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Vendor bill date',
+                description: 'Use this date when exporting reports to Zoho Books.',
+                values: {
+                    LAST_EXPENSE: {
+                        label: 'Date of last expense',
+                        description: 'Date of the most recent expense on the report.',
+                    },
+                    REPORT_EXPORTED: {
+                        label: 'Export date',
+                        description: 'Date the report was exported to Zoho Books.',
+                    },
+                    REPORT_SUBMITTED: {
+                        label: 'Submitted date',
+                        description: 'Date the report was submitted for approval.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Export company card expenses as',
+                values: {
+                    EXPENSE: {
+                        label: 'Expenses',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Default vendor for all company cards',
+                description: "Choose a default Zoho Books vendor for expenses that don't match automatically.",
+            },
+            companyCardAccount: {
+                label: 'Company card account',
+                description: 'Choose where to export company card transactions.',
+            },
+            noVendorsFound: 'No vendors found',
+            noVendorsFoundDescription: 'Please add vendors in Zoho Books and sync the connection again',
+            noAccountsFound: 'No accounts found',
+            noAccountsFoundDescription: 'Please add accounts in Zoho Books and sync the connection again',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central setup',
@@ -7265,6 +7328,18 @@ const translations = {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Last day of the month',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Last business day of the month',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Custom day of month',
+            },
+            reimbursable: {
+                title: 'Reimbursable',
+                description: 'Choose how card transactions should be created. New transactions will follow these rules.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Always reimbursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Always paid back to employees',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Always non-reimbursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Never paid back to employees',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Reimbursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Most often paid back to employees',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Non-reimbursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Occasionally paid back to employees',
             },
             assign: 'Assign',
             assignCard: 'Assign card',
@@ -10226,6 +10301,8 @@ const translations = {
         updatedCardFeedLiability: (feedName: string, enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} cardholders to delete card transactions for card feed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `changed card feed "${feedName}" reimbursable setting${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
         agentRule: {
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `added the agent rule "${title}": ${prompt}` : `added an agent rule: ${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `updated the agent rule "${title}" to: ${prompt}` : `updated an agent rule to: ${prompt}`),
@@ -10975,7 +11052,7 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'This year',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Last 12 months',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'This week',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Last week',
@@ -11185,6 +11262,8 @@ const translations = {
         mergeReports: {
             title: 'Merge reports',
             description: 'Select the report to keep. All expenses will be moved into it and the other reports will be deleted.',
+            exportedWarning: 'One or more selected reports have already been exported to an accounting integration. Merging them may cause duplicate data if they are exported again.',
+            reportFieldsMismatch: '<strong>These reports have different report field values.</strong> To merge them, make the report fields match on each report first.',
             listPage: {
                 noEligibleReportsFound: 'No eligible reports found',
                 noEligibleReportsFoundSubtitle: "You don't have any reports that can be merged.",
@@ -12578,8 +12657,14 @@ const translations = {
         },
     },
     productMarketingWindow: {
-        heading: 'Connect Expensify to Claude',
-        body: 'Search, analyze, and summarize expense data directly in Claude.',
+        member: {
+            heading: 'Mileage on cruise control',
+            body: "Jump straight to your frequent trips and fix a trip's stop location without starting over.",
+        },
+        admin: {
+            heading: 'Mileage handled automatically',
+            body: 'Mileage rates that keep themselves current, plus total control over how trips get logged.',
+        },
     },
     productTrainingTooltip: {
         // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room

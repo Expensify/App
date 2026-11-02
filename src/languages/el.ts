@@ -51,6 +51,8 @@ const translations: TranslationDeepObject<typeof en> = {
         webGLNotSupported: 'Το πρόγραμμα περιήγησής σας δεν υποστηρίζει WebGL. Παρακαλούμε ενεργοποιήστε το ή αλλάξτε πρόγραμμα περιήγησης.',
         chartFailedToLoad: 'Δεν ήταν δυνατή η φόρτωση του γραφήματος. Ανανεώστε τη σελίδα και δοκιμάστε ξανά.',
         dismiss: 'Κλείσιμο',
+        resizeColumn: ({columnName}: {columnName: string}) => `Αλλαγή μεγέθους της στήλης ${columnName}`,
+        columnWidth: ({width}: {width: number}) => `${width} pixel`,
         proceed: 'Συνέχεια',
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
@@ -6153,8 +6155,22 @@ ${amount} για ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Λογαριασμός πιστωτικής κάρτας',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Θα χρησιμοποιήσουμε αυτόν τον λογαριασμό για κάρτες που δεν έχουν δικό τους λογαριασμό εξαγωγής.'
+                    : 'Επιλέξτε έναν προεπιλεγμένο λογαριασμό. Θα τον χρησιμοποιήσουμε για κάρτες που δεν έχουν δικό τους λογαριασμό εξαγωγής.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Θα χρησιμοποιήσουμε αυτόν τον προμηθευτή για έξοδα χωρίς προμηθευτή.'
+                    : 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή. Θα τον χρησιμοποιήσουμε για έξοδα χωρίς προμηθευτή.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Χρεώσεις πιστωτικής κάρτας',
+                        nonReimbursableDescription: 'Τα έξοδα εταιρικής κάρτας θα εξαχθούν στο NetSuite ως μεμονωμένες χρεώσεις πιστωτικής κάρτας, με την ημερομηνία κάθε αγοράς.',
+                        legacyTaxHelper: 'Οι χρεώσεις πιστωτικής κάρτας δεν υποστηρίζουν το NetSuite legacy tax. Αν χρησιμοποιείτε legacy tax, επιλέξτε άλλον τύπο εξαγωγής.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Αναφορές εξόδων',
                         reimbursableDescription: 'Τα έξοδα από ίδιους πόρους θα εξαχθούν ως αναφορές εξόδων στο NetSuite.',
@@ -6909,6 +6925,18 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Τελευταία ημέρα του μήνα',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Τελευταία εργάσιμη ημέρα του μήνα',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Προσαρμοσμένη ημέρα μήνα',
+            },
+            reimbursable: {
+                title: 'Επιστρεπτέο',
+                description: 'Επιλέξτε πώς θα δημιουργούνται οι συναλλαγές κάρτας. Οι νέες συναλλαγές θα ακολουθούν αυτούς τους κανόνες.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Πάντα επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Επιστρέφεται πάντα στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Πάντα μη επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Δεν επιστρέφεται ποτέ στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Επιστρέφεται συνήθως στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Μη επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Επιστρέφεται περιστασιακά στους υπαλλήλους',
             },
             assign: 'Ανάθεση',
             assignCard: 'Ανάθεση κάρτας',
@@ -9804,6 +9832,27 @@ ${reportName}`,
             enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
             enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Zoho Books θα είναι διαθέσιμοι ως κατηγορίες.',
             reportingTagsImport: 'Όλες οι ετικέτες αναφορών Zoho Books εισάγονται ως ετικέτες',
+            exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο Zoho Books.',
+            exportReimbursable: {label: 'Εξαγωγή αποζημιώσιμων εξόδων ως', values: {VENDOR_BILL: {label: 'Τιμολόγια προμηθευτών'}}},
+            exportDate: {
+                label: 'Ημερομηνία τιμολογίου προμηθευτή',
+                description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο Zoho Books.',
+                values: {
+                    LAST_EXPENSE: {label: 'Ημερομηνία τελευταίας δαπάνης', description: 'Ημερομηνία της πιο πρόσφατης δαπάνης στην αναφορά.'},
+                    REPORT_EXPORTED: {label: 'Ημερομηνία εξαγωγής', description: 'Ημερομηνία εξαγωγής της αναφοράς στο Zoho Books.'},
+                    REPORT_SUBMITTED: {label: 'Ημερομηνία υποβολής', description: 'Ημερομηνία που η αναφορά υποβλήθηκε για έγκριση.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Εξαγωγή εταιρικών εξόδων κάρτας ως', values: {EXPENSE: {label: 'Έξοδα'}}},
+            defaultCompanyCardVendor: {
+                label: 'Προεπιλεγμένος προμηθευτής για όλες τις εταιρικές κάρτες',
+                description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή Zoho Books για δαπάνες που δεν αντιστοιχίζονται αυτόματα.',
+            },
+            companyCardAccount: {label: 'Λογαριασμός εταιρικής κάρτας', description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.'},
+            noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
+            noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
+            noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
+            noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -10186,6 +10235,8 @@ ${reportName}`,
             `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} κατόχοι κάρτας να διαγράψουν συναλλαγές κάρτας για την τροφοδοσία κάρτας «${feedName}»`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `άλλαξε την ημέρα λήξης της περιόδου εκκαθάρισης της ροής κάρτας «${feedName}»${newValue ? `σε "${newValue}"` : ''}${previousValue ? `(προηγουμένως "${previousValue}")` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `άλλαξε τη ρύθμιση επιστρεπτέου του καναλιού κάρτας "${feedName}"${newValue ? ` σε "${newValue}"` : ''}${previousValue ? ` (προηγουμένως "${previousValue}")` : ''}`,
         agentRule: {
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `προσέθεσε τον κανόνα πράκτορα «${title}»: ${prompt}` : `προσέθεσε έναν κανόνα πράκτορα: ${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) =>
@@ -10913,7 +10964,7 @@ ${reportName}`,
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Ποτέ',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Τον προηγούμενο μήνα',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Αυτόν τον μήνα',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Έως σήμερα μέσα στο έτος',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Φέτος',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Τελευταίοι 12 μήνες',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Αυτή την εβδομάδα',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Την προηγούμενη εβδομάδα',
@@ -11117,6 +11168,10 @@ ${reportName}`,
         mergeReports: {
             title: 'Συγχώνευση αναφορών',
             description: 'Επιλέξτε την αναφορά που θέλετε να κρατήσετε. Όλες οι δαπάνες θα μετακινηθούν σε αυτήν και οι άλλες αναφορές θα διαγραφούν.',
+            exportedWarning:
+                'Μία ή περισσότερες από τις επιλεγμένες αναφορές έχουν ήδη εξαχθεί σε μια λογιστική διασύνδεση. Η συγχώνευσή τους μπορεί να προκαλέσει διπλά δεδομένα αν εξαχθούν ξανά.',
+            reportFieldsMismatch:
+                '<strong>Αυτές οι αναφορές έχουν διαφορετικές τιμές στα πεδία αναφοράς.</strong> Για να τις συγχωνεύσετε, κάντε πρώτα τα πεδία αναφοράς να ταιριάζουν σε κάθε αναφορά.',
             listPage: {noEligibleReportsFound: 'Δεν βρέθηκαν κατάλληλες αναφορές', noEligibleReportsFoundSubtitle: 'Δεν έχετε καμία αναφορά που να μπορεί να συγχωνευθεί.'},
         },
         goTo: ({destination}: {destination: string}) => `Μετάβαση στο ${destination}`,
@@ -12831,8 +12886,14 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
-        heading: 'Συνδέστε το Expensify με το Claude',
-        body: 'Αναζητήστε, αναλύστε και συνοψίστε δεδομένα δαπανών απευθείας στο Claude.',
+        member: {
+            heading: 'Χιλιόμετρα στον αυτόματο πιλότο',
+            body: 'Μεταβείτε απευθείας στις συχνές διαδρομές σας και διορθώστε την τοποθεσία μιας στάσης χωρίς να ξεκινήσετε από την αρχή.',
+        },
+        admin: {
+            heading: 'Χιλιόμετρα που διαχειρίζονται αυτόματα',
+            body: 'Τιμές χιλιομέτρων που ενημερώνονται από μόνες τους, καθώς και πλήρης έλεγχος στον τρόπο καταγραφής των διαδρομών.',
+        },
     },
     trialPaymentReminder: {
         title: 'Μείνετε μπροστά από την προθεσμία',
