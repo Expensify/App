@@ -3,9 +3,9 @@
  * expense at once, through the same hook the full-page selector uses, so both leave the expense in the same state.
  */
 import CategoryPickerModal from '@components/CategoryPicker/CategoryPickerModal';
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import type {ListItem} from '@components/SelectionList/types';
 
+import type {AnchoredFieldDropdownRenderProps} from '@hooks/useAnchoredFieldDropdown';
 import useOnyx from '@hooks/useOnyx';
 import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
 
@@ -24,7 +24,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 
-type MoneyRequestViewCategoryDropdownProps = ExpenseFieldDropdownRenderProps & {
+type MoneyRequestViewCategoryDropdownProps = AnchoredFieldDropdownRenderProps & {
     /** The saved expense the picked category is written to */
     transaction: OnyxTypes.Transaction;
 

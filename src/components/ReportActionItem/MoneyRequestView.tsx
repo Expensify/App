@@ -1058,16 +1058,24 @@ function MoneyRequestView({
         !!policy &&
         !shouldNavigateToUpgradePath &&
         !shouldShowCategoryDisabledAlert &&
-        hasEnabledOptions(policyCategories ?? {}) &&
         !updatedTransaction &&
         !isFromReviewDuplicates &&
-        !mergeTransactionID;
+        !mergeTransactionID &&
+        hasEnabledOptions(policyCategories ?? {});
 
     const navigateToCategoryStep = () => {
         const transactionID = transaction?.transactionID;
         if (!transactionID) {
             return;
         }
+        const categoryStepRoute = createDynamicRoute(
+            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                action: CONST.IOU.ACTION.EDIT,
+                iouType,
+                transactionID,
+                reportID: transactionThreadReport?.reportID,
+            }),
+        );
         if (shouldNavigateToUpgradePath && transactionThreadReport) {
             Navigation.navigate(
                 createDynamicRoute(
@@ -1077,41 +1085,14 @@ function MoneyRequestView({
                         transactionID,
                         reportID: transactionThreadReport?.reportID,
                         upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                        upgradeBackTo: createDynamicRoute(
-                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
-                                action: CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                transactionID,
-                                reportID: transactionThreadReport?.reportID,
-                            }),
-                        ),
+                        upgradeBackTo: categoryStepRoute,
                     }),
                 ),
             );
         } else if (!policy && shouldSelectPolicy) {
-            Navigation.navigate(
-                ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                    createDynamicRoute(
-                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
-                            action: CONST.IOU.ACTION.EDIT,
-                            iouType,
-                            transactionID,
-                            reportID: transactionThreadReport?.reportID,
-                        }),
-                    ),
-                ),
-            );
+            Navigation.navigate(ROUTES.SET_DEFAULT_WORKSPACE.getRoute(categoryStepRoute));
         } else {
-            Navigation.navigate(
-                createDynamicRoute(
-                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
-                        action: CONST.IOU.ACTION.EDIT,
-                        iouType,
-                        transactionID,
-                        reportID: transactionThreadReport?.reportID,
-                    }),
-                ),
-            );
+            Navigation.navigate(categoryStepRoute);
         }
     };
 

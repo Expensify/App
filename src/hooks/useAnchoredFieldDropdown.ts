@@ -1,10 +1,8 @@
 /**
- * Opens a field's list in a container anchored to its row, for rows that are not the expense form's bordered fields,
- * e.g. the push rows of the expense detail view. Places the container the way `ExpenseFieldDropdown` does on the
- * expense form, so a list opens in the same spot relative to its row on both screens.
+ * Opens a field's list in a container anchored to its row, rather than on its own page. The expense form's bordered
+ * fields use it through `ExpenseFieldDropdown`, and the push rows of the expense detail view use it directly, so a list
+ * opens in the same spot relative to its row on both screens.
  */
-import type {ExpenseFieldDropdownRenderProps} from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
-
 import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverContentHeight';
 
 import CONST from '@src/CONST';
@@ -54,6 +52,33 @@ type DropdownLayout = {
     shouldOpenAbove: boolean;
 };
 
+/** What a field's list needs to open in the container anchored to its row */
+type AnchoredFieldDropdownRenderProps = {
+    /** Whether the container is open */
+    isVisible: boolean;
+
+    /** Dismisses the container */
+    onClose: () => void;
+
+    /** Where the container is pinned, in window coordinates */
+    anchorPosition: {horizontal: number; vertical: number};
+
+    /** Which corner of the container `anchorPosition` names */
+    anchorAlignment: AnchorAlignment;
+
+    /** False once the container opens above the row, where it is positioned from its bottom edge instead */
+    shouldMeasureAnchorPositionFromTop: boolean;
+
+    /** Always false: the side is chosen here, and letting the pop-over flip again lands it on the row. */
+    shouldSwitchPositionIfOverflow: false;
+
+    /** Width of the row, which the container matches on a wide layout */
+    popoverWidth: number;
+
+    /** Tallest the container may be without running off the viewport */
+    popoverHeight: number;
+};
+
 type UseAnchoredFieldDropdownParams = {
     /** Opens the field's full-page selector, for a row left with too little room on either side for the container */
     onFallback: () => void;
@@ -76,7 +101,7 @@ type UseAnchoredFieldDropdownResult = {
     toggleDropdown: () => void;
 
     /** What the list's container needs to open in place */
-    dropdownProps: ExpenseFieldDropdownRenderProps;
+    dropdownProps: AnchoredFieldDropdownRenderProps;
 };
 
 function useAnchoredFieldDropdown({onFallback, listHeaderHeight = 0}: UseAnchoredFieldDropdownParams): UseAnchoredFieldDropdownResult {
@@ -160,3 +185,4 @@ function useAnchoredFieldDropdown({onFallback, listHeaderHeight = 0}: UseAnchore
 }
 
 export default useAnchoredFieldDropdown;
+export type {AnchoredFieldDropdownRenderProps};
