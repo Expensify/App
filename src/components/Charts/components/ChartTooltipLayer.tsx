@@ -39,8 +39,8 @@ type ChartTooltipLayerProps = {
     /** Called with how far the chart moved in the window while the tooltip is shown */
     onChartMoved?: (deltaX: number, deltaY: number) => void;
 
-    /** Hides a tooltip pinned by a touch tap, passed only while it is pinned */
-    onDismiss?: () => void;
+    /** Hides the tooltip */
+    onDismiss: () => void;
 
     /** Whether a compared tooltip shows how the primary series changed against the compared one */
     shouldShowTooltipChange?: boolean;

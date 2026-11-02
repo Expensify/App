@@ -1729,6 +1729,12 @@ function shouldReportActionBeVisible(
         return false;
     }
 
+    // Queued-for-export is a backend bookkeeping action with no user-facing message. Hide it explicitly so a future
+    // backend change that adds message text does not surface it in chat. Matches Auth's Report::HIDDEN_ACTIONS.
+    if (actionName === CONST.REPORT.ACTIONS.TYPE.QUEUED_FOR_EXPORT) {
+        return false;
+    }
+
     // Hide automatic TAKE_CONTROL actions created by OldDot's auto-pay workflow.
     // When automaticAction is true and there are no mentionedAccountIDs, this indicates
     // the TAKE_CONTROL was a side effect of auto-pay rather than a manual approver change.
@@ -3314,6 +3320,13 @@ function didMessageMentionCurrentUser(reportAction: OnyxInputOrEntry<ReportActio
  */
 function wasActionTakenByCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID?: number): boolean {
     return (currentUserAccountID ?? deprecatedCurrentUserAccountID) === reportAction?.actorAccountID;
+}
+
+/**
+ * Check if the current user authored the action. For report previews, the author is the last actor on the child report.
+ */
+function isReportActionFromCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
+    return currentUserAccountID === (isReportPreviewAction(reportAction) ? reportAction.childLastActorAccountID : reportAction?.actorAccountID);
 }
 
 /**
@@ -5923,7 +5936,9 @@ function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: 
     };
 
     const param = encodeURIComponent(`{"policyID": "${policyID}"}`);
-    const workspaceAccountingLink = shouldShowOldDotLink ? `${oldDotEnvironmentURL}/policy?param=${param}#connections` : `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
+    const workspaceAccountingLink = shouldShowOldDotLink
+        ? `${oldDotEnvironmentURL}/policy?param=${param}#connections`
+        : `${environmentURL}/${ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING)}`;
     let message = translate('report.actions.type.integrationSyncFailed', label, errorMessage, workspaceAccountingLink);
     if (recurrenceCount && recurrenceCount > 1) {
         message += ` ${translate('report.actions.type.integrationSyncFailedRecurrence', {count: recurrenceCount})}`;
@@ -6194,6 +6209,7 @@ export {
     shouldReportActionBeVisible,
     isReportActionVisible,
     wasActionTakenByCurrentUser,
+    isReportActionFromCurrentUser,
     isInviteOrRemovedAction,
     isActionableAddPaymentCard,
     isActionableCardFraudAlert,
