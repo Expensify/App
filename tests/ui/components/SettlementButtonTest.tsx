@@ -663,6 +663,77 @@ describe('SettlementButton', () => {
             expect(screen.getByText('Open Business Account')).toBeTruthy();
             expect(screen.queryByText('Setup Business Account')).toBeNull();
         });
+
+        it('filters out ABA accounts from invoice payment options', async () => {
+            // Given an AUD invoice, and an open AUD business account next to an open ABA account, which Expensify can't pay from
+            const invoiceReport = createInvoiceReport({currency: CONST.CURRENCY.AUD});
+            const businessAccountID = 11111;
+            const abaAccountID = 22222;
+            const bankAccountList: BankAccountList = {
+                [businessAccountID]: {
+                    methodID: businessAccountID,
+                    bankCurrency: CONST.CURRENCY.AUD,
+                    bankCountry: 'AU',
+                    title: 'Business Account',
+                    description: 'Account ending in 1111',
+                    accountData: {
+                        bankAccountID: businessAccountID,
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '000001111',
+                        addressName: 'Business Account',
+                    },
+                },
+                [abaAccountID]: {
+                    methodID: abaAccountID,
+                    bankCurrency: CONST.CURRENCY.AUD,
+                    bankCountry: 'AU',
+                    title: 'ABA Account',
+                    description: 'Account ending in 2222',
+                    accountData: {
+                        bankAccountID: abaAccountID,
+                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
+                        state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                        accountNumber: '000002222',
+                        addressName: 'ABA Account',
+                        additionalData: {isForABA: true},
+                    },
+                },
+            } as BankAccountList;
+
+            await setupOnyxState({
+                report: invoiceReport,
+                chatReport: createChatReport({
+                    chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+                    invoiceReceiver: {
+                        type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+                        policyID: POLICY_ID,
+                    },
+                }),
+                policy: createTestPolicy({outputCurrency: CONST.CURRENCY.AUD}),
+                bankAccountList,
+                betas: [CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY],
+            });
+
+            render(
+                <SettlementButtonWrapper>
+                    <SettlementButton
+                        {...defaultProps}
+                        currency={CONST.CURRENCY.AUD}
+                        iouReport={invoiceReport}
+                    />
+                </SettlementButtonWrapper>,
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // When the payment options are opened
+            fireEvent.press(screen.getByText(translateLocal('iou.settlePayment', '$100.00')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then only the business account is offered to pay the invoice through Expensify
+            expect(screen.getByText('Business Account')).toBeTruthy();
+            expect(screen.queryByText('ABA Account')).toBeNull();
+        });
     });
 
     describe('pay via ABA', () => {
