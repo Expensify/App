@@ -143,6 +143,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -175,6 +176,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -202,6 +204,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: true,
@@ -246,6 +249,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -279,6 +283,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -357,6 +362,7 @@ describe('SidebarUtils', () => {
             const {reportAction} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: MOCK_REPORT,
+                    policy: undefined,
                     chatReport: chatReportR14932,
                     reportActions: MOCK_REPORT_ACTIONS,
                     hasViolations: false,
@@ -383,6 +389,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: chatReportR14932,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -577,6 +584,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: chatReportR14932,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -666,6 +674,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: chatReport,
+                policy: undefined,
                 chatReport,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -745,6 +754,7 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: chatReportR14932,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -845,6 +855,7 @@ describe('SidebarUtils', () => {
             const {reason} =
                 SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                     report: policyExpenseChat,
+                    policy: undefined,
                     chatReport: policyExpenseChat,
                     reportActions: {} as OnyxEntry<ReportActions>,
                     hasViolations: true,
@@ -919,6 +930,7 @@ describe('SidebarUtils', () => {
             // When: called with isOffline=false — the pending-delete action is skipped, leaving the live one as the single thread.
             const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: MOCK_CHAT_REPORT,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -992,6 +1004,7 @@ describe('SidebarUtils', () => {
             // When: called with isOffline=true — the pending-delete action is included, making 2 IOU actions.
             const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: MOCK_REPORT,
+                policy: undefined,
                 chatReport: MOCK_CHAT_REPORT,
                 reportActions: MOCK_REPORT_ACTIONS,
                 hasViolations: false,
@@ -1071,6 +1084,7 @@ describe('SidebarUtils', () => {
             // When: the passed currentUserAccountID matches the action's actor, the smartscan action is flagged as requiring attention.
             const matchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: chatReport,
+                policy: undefined,
                 chatReport,
                 reportActions,
                 hasViolations: false,
@@ -1088,6 +1102,7 @@ describe('SidebarUtils', () => {
             // When: the passed currentUserAccountID does NOT match, the action is not attributed to the current user, so no smartscan action is returned.
             const nonMatchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
                 report: chatReport,
+                policy: undefined,
                 chatReport,
                 reportActions,
                 hasViolations: false,
@@ -1168,6 +1183,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report: MOCK_REPORT,
+                policy: undefined,
                 reports: MOCK_REPORTS,
                 currentReportId: undefined,
                 isInFocusMode: true,
@@ -1180,6 +1196,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1282,6 +1299,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report: MOCK_TRANSACTION_THREAD_REPORT,
+                policy: undefined,
                 reports: MOCK_REPORTS,
                 currentReportId: undefined,
                 isInFocusMode: true,
@@ -1294,6 +1312,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: true, hasErrorsOtherThanFailedReceipt: true});
@@ -1303,6 +1322,7 @@ describe('SidebarUtils', () => {
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 // @ts-expect-error Intentionally exercise the runtime guard with invalid input.
                 report: undefined,
+                policy: undefined,
                 reports: {},
                 currentReportId: undefined,
                 isInFocusMode: false,
@@ -1314,6 +1334,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1321,6 +1342,7 @@ describe('SidebarUtils', () => {
 
         it('returns shouldDisplay as false for unsupported report type', () => {
             const result = SidebarUtils.shouldDisplayReportInLHN({
+                policy: undefined,
                 report: {
                     ...createRandomReport(1, undefined),
                     type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
@@ -1337,6 +1359,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(result).toStrictEqual({shouldDisplay: false});
@@ -1350,6 +1373,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report,
+                policy: undefined,
                 reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
                 currentReportId: '1',
                 isInFocusMode: false,
@@ -1362,6 +1386,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(result).toBeDefined();
@@ -1376,6 +1401,7 @@ describe('SidebarUtils', () => {
 
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report,
+                policy: undefined,
                 reports: {[`${ONYXKEYS.COLLECTION.REPORT}1`]: report},
                 currentReportId: '1',
                 isInFocusMode: false,
@@ -1388,6 +1414,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(result).toBeDefined();
@@ -1424,6 +1451,7 @@ describe('SidebarUtils', () => {
             // When the empty chat is identified as the Concierge chat, it should be displayed
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report,
+                policy: undefined,
                 reports,
                 currentReportId: undefined,
                 isInFocusMode: false,
@@ -1436,6 +1464,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID,
+                session: undefined,
             });
 
             expect(result.shouldDisplay).toBe(true);
@@ -1464,6 +1493,7 @@ describe('SidebarUtils', () => {
             // When a non-matching conciergeReportID is supplied, the empty chat is excluded from the LHN
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 report,
+                policy: undefined,
                 reports,
                 currentReportId: undefined,
                 isInFocusMode: false,
@@ -1476,6 +1506,7 @@ describe('SidebarUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 hasGuidesEmails: false,
                 conciergeReportID: 'a-different-report-id',
+                session: undefined,
             });
 
             expect(result.shouldDisplay).toBe(false);
@@ -1500,38 +1531,8 @@ describe('SidebarUtils', () => {
             });
 
             it('keeps a hidden public room in the LHN when it is not the focused report', async () => {
-                const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
-                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
-                const reports: OnyxCollection<Report> = {[reportKey]: report};
-
-                await act(async () => {
-                    await Onyx.multiSet({
-                        [ONYXKEYS.SESSION]: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
-                        [reportKey]: report,
-                    });
-                });
-                await waitForBatchedUpdates();
-
-                const result = SidebarUtils.shouldDisplayReportInLHN({
-                    report,
-                    reports,
-                    currentReportId: OTHER_FOCUSED_REPORT_ID,
-                    isInFocusMode: false,
-                    isDefaultRoomsBetaEnabled: false,
-                    transactionViolations: {},
-                    draftComment: undefined,
-                    transactions: {},
-                    isOffline: false,
-                    currentUserLogin: CURRENT_USER_LOGIN,
-                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                    hasGuidesEmails: false,
-                    conciergeReportID: undefined,
-                });
-
-                expect(result.shouldDisplay).toBe(true);
-            });
-
-            it('drops the same hidden public room for an authenticated (non-anonymous) user', async () => {
+                // Given a hidden public room, a signed-in session stored in Onyx and an anonymous session passed in,
+                // so the result proves shouldDisplayReportInLHN reads the passed session rather than the stored one
                 const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
                 const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
                 const reports: OnyxCollection<Report> = {[reportKey]: report};
@@ -1544,8 +1545,10 @@ describe('SidebarUtils', () => {
                 });
                 await waitForBatchedUpdates();
 
+                // When checking whether the room is displayed in the LHN
                 const result = SidebarUtils.shouldDisplayReportInLHN({
                     report,
+                    policy: undefined,
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
@@ -1558,12 +1561,53 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    session: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
                 });
 
+                // Then the anonymous user keeps the public room in the LHN
+                expect(result.shouldDisplay).toBe(true);
+            });
+
+            it('drops the same hidden public room for an authenticated (non-anonymous) user', async () => {
+                // Given a hidden public room, an anonymous session stored in Onyx and a signed-in session passed in,
+                // so the result proves the passed session wins over the stored one
+                const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
+                const reports: OnyxCollection<Report> = {[reportKey]: report};
+
+                await act(async () => {
+                    await Onyx.multiSet({
+                        [ONYXKEYS.SESSION]: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+                        [reportKey]: report,
+                    });
+                });
+                await waitForBatchedUpdates();
+
+                // When checking whether the room is displayed in the LHN
+                const result = SidebarUtils.shouldDisplayReportInLHN({
+                    report,
+                    policy: undefined,
+                    reports,
+                    currentReportId: OTHER_FOCUSED_REPORT_ID,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    transactionViolations: {},
+                    draftComment: undefined,
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    hasGuidesEmails: false,
+                    conciergeReportID: undefined,
+                    session: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN},
+                });
+
+                // Then the signed-in user does not get the anonymous override
                 expect(result.shouldDisplay).toBe(false);
             });
 
             it('does not apply the override to a non-public hidden room for an anonymous user', async () => {
+                // Given a hidden room that is not public and an anonymous session, because the override only covers public rooms
                 const report = buildPublicRoom(undefined);
                 const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
                 const reports: OnyxCollection<Report> = {[reportKey]: report};
@@ -1576,8 +1620,10 @@ describe('SidebarUtils', () => {
                 });
                 await waitForBatchedUpdates();
 
+                // When checking whether the room is displayed in the LHN
                 const result = SidebarUtils.shouldDisplayReportInLHN({
                     report,
+                    policy: undefined,
                     reports,
                     currentReportId: OTHER_FOCUSED_REPORT_ID,
                     isInFocusMode: false,
@@ -1590,9 +1636,91 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     hasGuidesEmails: false,
                     conciergeReportID: undefined,
+                    session: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
                 });
 
+                // Then the non-public room stays hidden
                 expect(result.shouldDisplay).toBe(false);
+            });
+
+            it('passes the session through getReportsToDisplayInLHN so an anonymous user keeps the public room', async () => {
+                // Given a hidden public room, a signed-in session stored in Onyx and an anonymous session passed in,
+                // so the result proves getReportsToDisplayInLHN forwards the passed session to shouldDisplayReportInLHN
+                const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
+                const reports: OnyxCollection<Report> = {[reportKey]: report};
+
+                await act(async () => {
+                    await Onyx.multiSet({
+                        [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN},
+                        [reportKey]: report,
+                    });
+                });
+                await waitForBatchedUpdates();
+
+                // When building the LHN list from scratch
+                const result = SidebarUtils.getReportsToDisplayInLHN({
+                    currentReportId: OTHER_FOCUSED_REPORT_ID,
+                    policies: {},
+                    reports,
+                    isDefaultRoomsBetaEnabled: false,
+                    priorityMode: CONST.PRIORITY_MODE.DEFAULT,
+                    draftComments: {},
+                    transactionViolations: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                    session: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+                });
+
+                // Then the public room is in the LHN list
+                expect(result[reportKey]).toBeDefined();
+            });
+
+            it('passes the session through updateReportsToDisplayInLHN so an anonymous user keeps the public room', async () => {
+                // Given a hidden public room, a signed-in session stored in Onyx and an anonymous session passed in,
+                // so the result proves updateReportsToDisplayInLHN forwards the passed session to shouldDisplayReportInLHN
+                const report = buildPublicRoom(CONST.REPORT.VISIBILITY.PUBLIC);
+                const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${PUBLIC_ROOM_ID}` as const;
+                const reports: OnyxCollection<Report> = {[reportKey]: report};
+
+                await act(async () => {
+                    await Onyx.multiSet({
+                        [ONYXKEYS.SESSION]: {accountID: CURRENT_USER_ACCOUNT_ID, email: CURRENT_USER_LOGIN},
+                        [reportKey]: report,
+                    });
+                });
+                await waitForBatchedUpdates();
+
+                // When incrementally updating an empty LHN list with the public room
+                const result = SidebarUtils.updateReportsToDisplayInLHN({
+                    displayedReports: {},
+                    policies: {},
+                    reports,
+                    updatedReportsKeys: [reportKey],
+                    currentReportId: OTHER_FOCUSED_REPORT_ID,
+                    isInFocusMode: false,
+                    isDefaultRoomsBetaEnabled: false,
+                    transactionViolations: {},
+                    reportNameValuePairs: {},
+                    reportAttributes: undefined,
+                    draftComments: {},
+                    transactions: {},
+                    isOffline: false,
+                    currentUserLogin: CURRENT_USER_LOGIN,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    guideAccountIDs: [],
+                    conciergeReportID: undefined,
+                    session: {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS},
+                });
+
+                // Then the public room is added to the LHN list
+                expect(result[reportKey]).toBeDefined();
             });
         });
     });
@@ -4826,6 +4954,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
@@ -4841,6 +4970,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result).toBe(displayedReports);
@@ -4852,6 +4982,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: ['0'],
                     currentReportId: undefined,
@@ -4867,6 +4998,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -4878,6 +5010,7 @@ describe('SidebarUtils', () => {
             it('should return an empty object when reports is undefined', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports: undefined,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4891,6 +5024,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result).toEqual({});
@@ -4899,6 +5033,7 @@ describe('SidebarUtils', () => {
             it('should return an empty object when reports is empty', () => {
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports: {},
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4912,6 +5047,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result).toEqual({});
@@ -4924,6 +5060,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4937,6 +5074,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result).toEqual({});
@@ -4963,6 +5101,7 @@ describe('SidebarUtils', () => {
                 // When the LHN report set is built
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -4984,6 +5123,7 @@ describe('SidebarUtils', () => {
                     },
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // Then it belongs in the Unread tab
@@ -5035,6 +5175,7 @@ describe('SidebarUtils', () => {
                 // last visible message from the report actions itself
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: report.reportID,
+                    policies: {},
                     reports: {[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report},
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -5048,6 +5189,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // Then it is still displayed, but not flagged for the Unread tab. Asserting it is displayed matters:
@@ -5067,6 +5209,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -5080,6 +5223,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // The function should run without errors with isOffline=false
@@ -5097,6 +5241,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -5110,6 +5255,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // The function should run without errors with isOffline=true
@@ -5127,6 +5273,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: '1',
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -5140,6 +5287,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result[`${ONYXKEYS.COLLECTION.REPORT}1`]).toBeUndefined();
@@ -5167,6 +5315,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: undefined,
+                    policies: {},
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -5180,6 +5329,7 @@ describe('SidebarUtils', () => {
                     reportAttributes: undefined,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // Should not throw and should return a valid result
@@ -5196,6 +5346,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
@@ -5211,6 +5362,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -5225,6 +5377,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}999`],
                     currentReportId: '1',
@@ -5240,6 +5393,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // No changes expected since the updated key doesn't exist in reports
@@ -5252,6 +5406,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: ['0'],
                     currentReportId: undefined,
@@ -5267,6 +5422,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 expect(result).not.toBe(displayedReports);
@@ -5290,6 +5446,7 @@ describe('SidebarUtils', () => {
 
                 const result = SidebarUtils.updateReportsToDisplayInLHN({
                     displayedReports,
+                    policies: {},
                     reports,
                     updatedReportsKeys: [`${ONYXKEYS.COLLECTION.REPORT}1`],
                     currentReportId: '1',
@@ -5305,6 +5462,7 @@ describe('SidebarUtils', () => {
                     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     guideAccountIDs: [],
                     conciergeReportID: undefined,
+                    session: undefined,
                 });
 
                 // Should not throw and should return a valid result
