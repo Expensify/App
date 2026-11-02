@@ -23,8 +23,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
+import {StackActions} from '@react-navigation/native';
 import React, {useEffect, useState} from 'react';
 
 import NotFoundPage from './ErrorPage/NotFoundPage';
@@ -126,6 +127,16 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                     isDelegateSession: isDelegateSession(session),
                     isSupportalLogin,
                 });
+
+                // The sign-out keeps only the top route of the root stack. Pop what the outgoing account opened on top of this page
+                // while the prompt was open, so the route that survives is this one, with the link's params, instead of that screen.
+                const rootState = navigationRef.getRootState();
+                const topRootIndex = rootState.index ?? rootState.routes.length - 1;
+                const transitionIndex = rootState.routes.findLastIndex((rootRoute, idx) => idx < topRootIndex && rootRoute.name === SCREENS.TRANSITION_BETWEEN_APPS);
+                if (transitionIndex !== -1) {
+                    navigationRef.dispatch({...StackActions.pop(topRootIndex - transitionIndex), target: rootState.key});
+                }
+
                 // We don't want to close react-native app in this particular case.
                 signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER)?.then(() => {
                     // The public transition page only mounts when the URL path is still /transition. Anything that navigated while the prompt
@@ -134,10 +145,7 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                     if (CONFIG.IS_HYBRID_APP || shortLivedAuthToken === getLastShortAuthToken()) {
                         return;
                     }
-                    // The sign-out keeps the last route of the previous account's stack, so land on exitTo explicitly instead of on
-                    // whatever that account navigated to while the prompt was open. A workspace/new link goes Home, because
-                    // App.setUpPoliciesAndNavigate owns that route.
-                    signInWithShortLivedAuthToken(shortLivedAuthToken, undefined, false, exitTo && exitTo !== ROUTES.WORKSPACE_NEW ? exitTo : ROUTES.HOME, linkEmail).catch((error) =>
+                    signInWithShortLivedAuthToken(shortLivedAuthToken, undefined, false, undefined, undefined).catch((error) =>
                         Log.warn('Unable to sign in with shortLivedAuthToken', {error}),
                     );
                 });
