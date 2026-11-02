@@ -1823,13 +1823,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                 // Bills have no parent chat, so they are paid before the chat report lookup that money requests and invoices need
                 if (isBillReport(iouReport)) {
-                    // ReimburseReport pays bills by ACH only in USD, which is why BillPaymentButton disables ACH for other currencies
+                    // ACH payments are only in USD, which is why BillPaymentButton disables ACH for other currencies
                     if (resolvedPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE && iouReport.currency !== CONST.CURRENCY.USD) {
                         Log.info('[BulkPay] Skipping bill: ACH pays only USD bills', false, {reportID: item.reportID, currency: iouReport.currency});
                         continue;
                     }
                     const bankAccountID = additionalData?.bankAccountID ?? workspaceMethodID ?? reportPolicy?.achAccount?.bankAccountID;
-                    payBill(iouReport, resolvedPaymentType, bankAccountID, hash, currentSearchKey);
+                    payBill({
+                        report: iouReport,
+                        paymentMethodType: resolvedPaymentType,
+                        bankAccountID,
+                        searchHash: hash,
+                        searchKey: currentSearchKey,
+                        getCurrencyDecimals,
+                        delegateAccountID,
+                    });
                     paidReportCount += 1;
                     continue;
                 }
