@@ -121,9 +121,9 @@ export type {default as UpdateDigitsSyncReimbursedReportsParams} from './UpdateD
 export type {default as UpdateDigitsBillPaymentAccountParams} from './UpdateDigitsBillPaymentAccountParams';
 export type {default as UpdateDigitsSyncExpensifyCardSettlementsParams} from './UpdateDigitsSyncExpensifyCardSettlementsParams';
 export type {default as UpdateDigitsSettlementsAccountParams} from './UpdateDigitsSettlementsAccountParams';
-export type {default as UpdateDigitsSyncTravelInvoicingSettlementsParams} from './UpdateDigitsSyncTravelInvoicingSettlementsParams';
-export type {default as UpdateDigitsTravelInvoicingSettlementsAccountParams} from './UpdateDigitsTravelInvoicingSettlementsAccountParams';
-export type {default as UpdateDigitsTravelInvoicingPayableAccountParams} from './UpdateDigitsTravelInvoicingPayableAccountParams';
+export type {default as UpdateDigitsSyncTravelBillingSettlementsParams} from './UpdateDigitsSyncTravelBillingSettlementsParams';
+export type {default as UpdateDigitsTravelBillingSettlementsAccountParams} from './UpdateDigitsTravelBillingSettlementsAccountParams';
+export type {default as UpdateDigitsTravelBillingPayableAccountParams} from './UpdateDigitsTravelBillingPayableAccountParams';
 export type {default as SyncPolicyToZohoBooksParams} from './SyncPolicyToZohoBooksParams';
 export type {default as UpdateZohoBooksSubsidiaryParams} from './UpdateZohoBooksSubsidiaryParams';
 export type {default as UpdateZohoBooksFieldMappingParams} from './UpdateZohoBooksFieldMappingParams';
