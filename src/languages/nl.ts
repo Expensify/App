@@ -3038,6 +3038,26 @@ const translations: TranslationDeepObject<typeof en> = {
                 description: 'Bedrijfsomschrijving',
                 descriptionHint: 'Beschrijf kort wat je bedrijf doet.',
             },
+            sourceOfWealth: {
+                label: 'Waar komt het geld van je bedrijf vandaan?',
+                description: 'Onze betaalpartner moet de herkomst van het geld controleren.',
+                options: {
+                    REVENUE: 'Bedrijfsomzet',
+                    PERSONAL_FUNDING: 'Eigen financiering',
+                    BUSINESS_LOAN: 'Zakelijke lening',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Financiering en investeringen van aandeelhouders',
+                    INVESTMENT_INCOME: 'Beleggingsinkomsten',
+                    DONATIONS: 'Donaties',
+                    GRANTS: 'Subsidies',
+                    LEGAL: 'Juridische schikking',
+                },
+            },
+            sourceOfWealthProof: {
+                title: 'Document over de herkomst van het geld',
+                description: 'Upload een document dat de belangrijkste herkomst van het geld van je bedrijf laat zien.',
+                file: 'Document over de herkomst van het geld',
+                fileDescription: 'Belastingdocument, gecontroleerde jaarrekening of bankafschrift.',
+            },
             terms: {
                 title: 'Voorwaarden accepteren',
                 subtitle: 'Accepteer de onderstaande voorwaarden.',

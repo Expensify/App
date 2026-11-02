@@ -37,8 +37,8 @@ import {deepEqual} from 'fast-equals';
 import pick from 'lodash/pick';
 import React, {useEffect, useState} from 'react';
 
-import US from './forms/US';
 import getWiseBusinessOnboardingPrefill, {getMissingPrefill, WISE_BUSINESS_ACCOUNT_KEYS} from './getWiseBusinessOnboardingPrefill';
+import getWiseOnboardingForm, {getFirstUnansweredRequirementPageKey, getOnboardingStep} from './getWiseOnboardingForm';
 
 type WiseBusinessOnboardingPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_BUSINESS_ONBOARDING>;
 
@@ -157,6 +157,21 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, missingPrefill);
     }, [isPrefillPending, missingPrefill]);
 
+    // The business page's save answers with the requirements Expensify collects before Submit, such as enhanced due diligence for a high-risk industry
+    const kycRequirements = businessAccount?.data?.bankAccountID === bankAccountID ? businessAccount.data.wise?.kycRequirements : undefined;
+    const form = getWiseOnboardingForm(kycRequirements);
+    const buildRoute = (pageName: string, action?: 'edit') => createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageName, action), introPath);
+
+    // Next on the business page reaches the confirmation page before its save answers, so a requirement that arrives later takes the user to its page
+    const unansweredRequirementPageKey =
+        isPrefillDone && route.params.subPage === CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY ? getFirstUnansweredRequirementPageKey(form, toDynamicFormValues(draft)) : undefined;
+    useEffect(() => {
+        if (!unansweredRequirementPageKey) {
+            return;
+        }
+        Navigation.navigate(buildRoute(unansweredRequirementPageKey), {forceReplace: true});
+    }, [unansweredRequirementPageKey, buildRoute]);
+
     if (!isPrefillDone || !isWiseReimbursementsBetaEnabled) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
@@ -167,18 +182,18 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
 
     return (
         <DynamicFormFlow
-            schema={US}
+            schema={form}
             formID={ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM}
             headerTitle={translate('walletPage.wiseGlobalReimbursementsIntro.headerTitle')}
             confirmationTitle={translate('walletPage.wiseOnboarding.confirmationTitle')}
             testID="WiseBusinessOnboardingPage"
             layout="pages"
             maxFileSize={CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE}
-            buildRoute={(pageName, action) => createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageName, action), introPath)}
+            buildRoute={buildRoute}
             shouldReplaceRoute
             onBack={goBackToIntro}
             // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
-            onPageSubmit={(page, answers, sensitiveAnswers) => saveWiseOnboardingPage(bankAccountID, page, answers, sensitiveAnswers)}
+            onPageSubmit={(page, answers, sensitiveAnswers) => saveWiseOnboardingPage(bankAccountID, {...page, key: getOnboardingStep(form, page.key)}, answers, sensitiveAnswers)}
             submitError={saveError}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
             isSubmitting={false}

@@ -3125,6 +3125,26 @@ const translations = {
                 description: 'Business description',
                 descriptionHint: 'Briefly describe what your company does.',
             },
+            sourceOfWealth: {
+                label: "Where does your company's money come from?",
+                description: 'Our payments partner needs to verify the source of funds.',
+                options: {
+                    REVENUE: 'Business revenue',
+                    PERSONAL_FUNDING: 'Personal funding',
+                    BUSINESS_LOAN: 'Business loan',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: 'Funding & shareholder investments',
+                    INVESTMENT_INCOME: 'Investment income',
+                    DONATIONS: 'Donations',
+                    GRANTS: 'Grants',
+                    LEGAL: 'Legal settlement',
+                },
+            },
+            sourceOfWealthProof: {
+                title: 'Source of funds document',
+                description: "Upload a document showing your company's main source of funds.",
+                file: 'Source of funds document',
+                fileDescription: 'Tax document, audited financial statement, or bank statement.',
+            },
             terms: {
                 title: 'Accept terms',
                 subtitle: 'Please accept the terms below.',

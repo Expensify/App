@@ -2939,6 +2939,26 @@ const translations: TranslationDeepObject<typeof en> = {
                 description: '企业描述',
                 descriptionHint: '简要描述贵公司的业务。',
             },
+            sourceOfWealth: {
+                label: '贵公司的资金来自哪里？',
+                description: '我们的支付合作伙伴需要核实资金来源。',
+                options: {
+                    REVENUE: '业务收入',
+                    PERSONAL_FUNDING: '个人资金',
+                    BUSINESS_LOAN: '商业贷款',
+                    FUNDING_AND_SHAREHOLDER_INVESTMENTS: '融资和股东投资',
+                    INVESTMENT_INCOME: '投资收益',
+                    DONATIONS: '捐赠',
+                    GRANTS: '补助金',
+                    LEGAL: '法律和解',
+                },
+            },
+            sourceOfWealthProof: {
+                title: '资金来源证明文件',
+                description: '上传一份能说明贵公司主要资金来源的文件。',
+                file: '资金来源证明文件',
+                fileDescription: '税务文件、经审计的财务报表或银行对账单。',
+            },
             terms: {
                 title: '接受条款',
                 subtitle: '请接受以下条款。',
