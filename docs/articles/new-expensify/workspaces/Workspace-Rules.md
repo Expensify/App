@@ -164,7 +164,7 @@ A **Description hint** appears below the **Description** field on an expense onc
 
 ## Where to find report-level rules
 
-Rules that apply to a whole expense report are on the **Advanced** tab of the **Workflows** page, not on the **Rules** page. They are **Prevent self-approvals**, **Auto-approve compliant reports**, and **Auto-pay approved reports**.
+Rules that apply to a whole expense report are on the **Advanced** tab of the **Workflows** page, not on the **Rules** page. They are **Prevent self-approvals**, **Prevent marking non-reimbursable reports as paid**, **Auto-approve compliant reports**, and **Auto-pay approved reports**.
 
 [Learn how to configure Workspace Workflows](/articles/new-expensify/workspaces/Workspace-Workflows).
 

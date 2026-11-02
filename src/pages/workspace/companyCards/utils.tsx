@@ -204,7 +204,7 @@ function getPolicyCardExportSettings(
     policy?: Policy,
     backTo?: string | undefined,
 ): CardExportSettings | undefined {
-    const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
+    const basePath = ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');

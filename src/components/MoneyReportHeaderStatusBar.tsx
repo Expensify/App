@@ -14,7 +14,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import Icon from './Icon';
@@ -32,25 +32,16 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     const theme = useTheme();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch', 'Box']);
-    const iconMap: IconMap = useMemo(
-        () => ({
-            [CONST.NEXT_STEP.ICONS.HOURGLASS]: icons.Hourglass,
-            [CONST.NEXT_STEP.ICONS.CHECKMARK]: icons.Checkmark,
-            [CONST.NEXT_STEP.ICONS.STOPWATCH]: icons.Stopwatch,
-            [CONST.NEXT_STEP.ICONS.BOX]: icons.Box,
-        }),
-        [icons],
-    );
+    const iconMap: IconMap = {
+        [CONST.NEXT_STEP.ICONS.HOURGLASS]: icons.Hourglass,
+        [CONST.NEXT_STEP.ICONS.CHECKMARK]: icons.Checkmark,
+        [CONST.NEXT_STEP.ICONS.STOPWATCH]: icons.Stopwatch,
+        [CONST.NEXT_STEP.ICONS.BOX]: icons.Box,
+    };
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
 
-    const messageContent = useMemo(() => {
-        if (!nextStep) {
-            return '';
-        }
-
-        return buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber);
-    }, [nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber]);
+    const messageContent = !nextStep ? '' : buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>

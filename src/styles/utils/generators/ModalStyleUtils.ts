@@ -55,6 +55,9 @@ type GetModalStylesOptions = {
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
     shouldDisplayBelowModals?: boolean;
     isStackedOnRHP?: boolean;
+
+    /** Width of a right docked modal's card, which must match the RHP card it covers. */
+    rightDockedCardWidth?: number;
 };
 
 type GetModalStylesStyleUtil = {
@@ -73,6 +76,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         enableEdgeToEdgeBottomSafeAreaPadding = false,
         shouldDisplayBelowModals = false,
         isStackedOnRHP = false,
+        rightDockedCardWidth = variables.rhpWidth,
     }): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
@@ -289,7 +293,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 break;
             case CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED: {
                 // Border-box card inset on every side. Both terms must match RightModalNavigator's frame or the two cards sit 2px apart and their borders read as one doubled line.
-                const rightDockedBoxWidth = variables.rhpWidth + 2 * variables.rhpFloatingCardBorderWidth + 2 * variables.rhpFloatingCardMargin;
+                const rightDockedBoxWidth = rightDockedCardWidth + 2 * variables.rhpFloatingCardBorderWidth + 2 * variables.rhpFloatingCardMargin;
                 modalStyle = {
                     ...modalStyle,
                     marginLeft: isSmallScreenWidth ? 0 : windowWidth - rightDockedBoxWidth,
