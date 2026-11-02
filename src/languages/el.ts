@@ -4497,6 +4497,7 @@ ${amount} για ${merchant} - ${date}`,
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} με κατάληξη ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Οι ερωτήσεις σε αυτή τη σελίδα άλλαξαν',
+        onFile: 'Καταχωρισμένο',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',

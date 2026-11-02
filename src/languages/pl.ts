@@ -4464,6 +4464,7 @@ ${amount} dla ${merchant} - ${date}`,
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} z końcówką ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Pytania na tej stronie się zmieniły',
+        onFile: 'W systemie',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Kod SWIFT/BIC musi mieć długość 8 lub 11 znaków, z 6 literami, po których następują 2 lub 5 liter lub cyfr.',
