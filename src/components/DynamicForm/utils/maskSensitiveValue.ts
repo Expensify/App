@@ -1,6 +1,7 @@
-import {isValidSSNFullNine} from '@libs/ValidationUtils';
-
 const VISIBLE_CHARACTERS = 4;
+
+/** Any nine digits get the SSN grouping. The SSN validator is not used here, because the form may accept numbers it rejects, such as one starting with 0000. */
+const NINE_DIGITS = /^\d{9}$/;
 
 /** The characters a masked value leaves visible: the last four, or at most half of a short value */
 function getVisibleEnding(value: string): string {
@@ -11,7 +12,7 @@ function getVisibleEnding(value: string): string {
 function maskSensitiveValue(value: string): string {
     const ending = getVisibleEnding(value);
     const masked = '•'.repeat(value.length - ending.length) + ending;
-    return isValidSSNFullNine(value) ? `${masked.slice(0, 3)}-${masked.slice(3, 5)}-${masked.slice(5)}` : masked;
+    return NINE_DIGITS.test(value) ? `${masked.slice(0, 3)}-${masked.slice(3, 5)}-${masked.slice(5)}` : masked;
 }
 
 export default maskSensitiveValue;
