@@ -30,7 +30,6 @@ import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
-import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
@@ -93,9 +92,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyData = usePolicyData(policyId);
     const {policy, categories: policyCategories} = policyData;
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    // An expense default matching on a category has to follow a rename, so the rules have to be on hand before one.
-    useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
     const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.categories');
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
@@ -287,7 +283,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             action: () => navigateToCategory(value),
             onToggleEnabled: (enabled: boolean) => handleCategoryToggle(enabled, value),
             onRenameName: (newName: string) =>
-                showInlineEditError(renameCategoryInline(translate, policyData, value.name, newName, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion(), rules)),
+                showInlineEditError(renameCategoryInline(translate, policyData, value.name, newName, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion())),
             dismissError: () => clearCategoryErrors(policyId, value.name, policyCategories),
         });
 

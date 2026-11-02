@@ -22,7 +22,6 @@ import {
     isDefaultMccGroupID,
 } from '@libs/actions/Policy/OptimisticPolicyCategoriesAndMccGroups';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
-import {getExpenseDefaultConditionSummary} from '@libs/ExpenseDefaultRuleUtils';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -34,10 +33,9 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {MockFetch} from '../utils/TestHelper';
 
-import createRandomPolicy, {createCategoryTaxRulesCollection} from '../utils/collections/policies';
+import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomPolicyTags from '../utils/collections/policyTags';
-import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -147,56 +145,6 @@ describe('actions/PolicyCategory', () => {
         });
     });
     describe('renameWorkspaceCategory', () => {
-        it('rewrites the expense default that matches on the renamed category', async () => {
-            // Given a policy whose expense default puts a tax rate on a category
-            const fakePolicy = createRandomPolicy(0);
-            const fakeCategories = createRandomPolicyCategories(3);
-            const oldCategoryName = Object.keys(fakeCategories).at(0) ?? '';
-            const newCategoryName = 'Updated category';
-            const rules = createCategoryTaxRulesCollection(fakePolicy.id, oldCategoryName, 'id_TAX_RATE_1');
-            mockFetch?.pause?.();
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-
-            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-
-            // When the category is renamed
-            renamePolicyCategory(policyData.current, {oldName: oldCategoryName, newName: newCategoryName}, false, {}, rules);
-            await waitForBatchedUpdates();
-
-            // Then the rule matches on the new name, so it keeps applying to the category it was written for
-            const renamedRule = await getOnyxValue(`${ONYXKEYS.COLLECTION.RULE}categoryTaxRule`);
-            expect(getExpenseDefaultConditionSummary(renamedRule?.filters).categories).toStrictEqual([newCategoryName]);
-
-            await mockFetch?.resume?.();
-            await waitForBatchedUpdates();
-        });
-
-        it('leaves an expense default that matches on another category alone', async () => {
-            // Given a policy whose expense default matches on a category other than the one being renamed
-            const fakePolicy = createRandomPolicy(0);
-            const fakeCategories = createRandomPolicyCategories(3);
-            const oldCategoryName = Object.keys(fakeCategories).at(0) ?? '';
-            const untouchedCategoryName = Object.keys(fakeCategories).at(1) ?? '';
-            const rules = createCategoryTaxRulesCollection(fakePolicy.id, untouchedCategoryName, 'id_TAX_RATE_1');
-            mockFetch?.pause?.();
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${fakePolicy.id}`, fakeCategories);
-
-            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
-
-            // When a different category is renamed
-            renamePolicyCategory(policyData.current, {oldName: oldCategoryName, newName: 'Updated category'}, false, {}, rules);
-            await waitForBatchedUpdates();
-
-            // Then that rule is untouched, since the category it names still exists under that name
-            const untouchedRule = await getOnyxValue(`${ONYXKEYS.COLLECTION.RULE}categoryTaxRule`);
-            expect(untouchedRule).toBeUndefined();
-
-            await mockFetch?.resume?.();
-            await waitForBatchedUpdates();
-        });
-
         it('Rename category', async () => {
             const fakePolicy = createRandomPolicy(0);
             const fakeCategories = createRandomPolicyCategories(3);

@@ -580,100 +580,6 @@ function getCategoryExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | 
     return getPolicyExpenseDefaultRules(rulesCollection, policyID).filter(({rule}) => getExpenseDefaultConditionSummary(rule.filters).categories.includes(categoryName));
 }
 
-/** A filter tree with every category condition naming `oldName` rewritten to `newName`. */
-function renameCategoryInFilters(node: RuleFilterNode, oldName: string, newName: string): RuleFilterNode {
-    if (isRuleFilterComparison(node)) {
-        if (node.left !== CONDITION.CATEGORY) {
-            return node;
-        }
-
-        if (Array.isArray(node.right)) {
-            return {...node, right: node.right.map((value) => (value === oldName ? newName : value))};
-        }
-
-        return node.right === oldName ? {...node, right: newName} : node;
-    }
-
-    return {...node, left: renameCategoryInFilters(node.left, oldName, newName), right: renameCategoryInFilters(node.right, oldName, newName)};
-}
-
-/**
- * The policy's expense defaults that name a category, keyed by Onyx key and rewritten to its new name.
- *
- * A rule matches on the category's name, so a rename leaves it pointing at a category that no longer exists. The
- * rename response does not carry the rules, so the collection is corrected alongside the category itself.
- */
-function getExpenseDefaultRulesAfterCategoryRename(
-    rulesCollection: OnyxCollection<Rule> | undefined,
-    policyID: string | undefined,
-    oldName: string,
-    newName: string,
-): Array<{ruleKey: `${typeof ONYXKEYS.COLLECTION.RULE}${string}`; rule: Rule}> {
-    if (!oldName || !newName || oldName === newName) {
-        return [];
-    }
-
-    const renamedRules: Array<{ruleKey: `${typeof ONYXKEYS.COLLECTION.RULE}${string}`; rule: Rule}> = [];
-
-    for (const {ruleID, rule} of getPolicyExpenseDefaultRules(rulesCollection, policyID)) {
-        if (!rule.filters || !getExpenseDefaultConditionSummary(rule.filters).categories.includes(oldName)) {
-            continue;
-        }
-
-        renamedRules.push({ruleKey: `${ONYXKEYS.COLLECTION.RULE}${ruleID}`, rule: {...rule, filters: renameCategoryInFilters(rule.filters, oldName, newName)}});
-    }
-
-    return renamedRules;
-}
-
-/**
- * The policy's expense defaults that set a tax rate, keyed by Onyx key and pointed at its new code.
- *
- * A rule stores the rate's external ID, so changing a tax's code leaves the rule naming one the policy no longer
- * has. The rate then reads as unselectable and the expense quietly falls back to the workspace default.
- */
-function getExpenseDefaultRulesAfterTaxCodeChange(
-    rulesCollection: OnyxCollection<Rule> | undefined,
-    policyID: string | undefined,
-    oldTaxCode: string,
-    newTaxCode: string,
-): Array<{ruleKey: `${typeof ONYXKEYS.COLLECTION.RULE}${string}`; rule: Rule}> {
-    if (!oldTaxCode || !newTaxCode || oldTaxCode === newTaxCode) {
-        return [];
-    }
-
-    const updatedRules: Array<{ruleKey: `${typeof ONYXKEYS.COLLECTION.RULE}${string}`; rule: Rule}> = [];
-
-    for (const {ruleID, rule} of getPolicyExpenseDefaultRules(rulesCollection, policyID)) {
-        if (!isExpenseDefaultRule(rule)) {
-            continue;
-        }
-
-        let hasOldTaxCode = false;
-        const updatedActions = fromIndexMap(rule.actions).map((action) => {
-            if (action.name !== ACTION.SET || action.field !== FIELD.TAX || !isExpenseDefaultTaxValue(action.value) || action.value.field_id_TAX.externalID !== oldTaxCode) {
-                return action;
-            }
-
-            hasOldTaxCode = true;
-            return {
-                ...action,
-                // field_id_TAX is the name the rules engine gives this key, so it can't follow our casing convention
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                value: {field_id_TAX: {...action.value.field_id_TAX, externalID: newTaxCode}},
-            };
-        });
-
-        if (!hasOldTaxCode) {
-            continue;
-        }
-
-        updatedRules.push({ruleKey: `${ONYXKEYS.COLLECTION.RULE}${ruleID}`, rule: {...rule, actions: toIndexMap(updatedActions)}});
-    }
-
-    return updatedRules;
-}
-
 /**
  * The tax rate a category's own expense default applies, or undefined when the category has none.
  *
@@ -831,8 +737,6 @@ export {
     getCategoryOnlyExpenseDefaultTaxID,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
-    getExpenseDefaultRulesAfterCategoryRename,
-    getExpenseDefaultRulesAfterTaxCodeChange,
     getExpenseDefaultRuleSummaryFields,
     getExpenseDefaultFormValues,
     getPolicyExpenseDefaultRules,

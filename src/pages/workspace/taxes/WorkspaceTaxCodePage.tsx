@@ -7,16 +7,14 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
-import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setPolicyTaxCode, validateTaxCode} from '@libs/actions/TaxRate';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {arePolicyRulesEnabled, getDistanceRateCustomUnit, isTaxCodeCustomized as isTaxCodeCustomizedUtil} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, isTaxCodeCustomized as isTaxCodeCustomizedUtil} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -38,10 +36,6 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const currentTaxCode = route.params.taxID;
 
     const policy = usePolicy(policyID);
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    // An expense default naming this tax rate has to follow the code, so the rules have to be on hand before a change.
-    useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
     const {inputCallbackRef} = useAutoFocusInput();
 
     const distanceRateCustomUnit = getDistanceRateCustomUnit(policy);
@@ -66,7 +60,6 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
             policy?.taxRates?.defaultExternalID,
             distanceRateCustomUnit,
             policy?.rules?.expenseRules,
-            rules,
         );
         Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, currentTaxCode));
     };

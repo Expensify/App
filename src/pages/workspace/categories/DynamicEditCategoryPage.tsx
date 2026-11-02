@@ -4,17 +4,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
-import useRulesPrefetch from '@hooks/useRulesPrefetch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getCategoryNameError, getCategoryNameErrorMessage, getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {arePolicyRulesEnabled} from '@libs/PolicyUtils';
 import StringUtils from '@libs/StringUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -24,7 +21,7 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {renamePolicyCategory} from '@userActions/Policy/Category';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
+import type ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -39,9 +36,6 @@ type DynamicEditCategoryPageProps =
 function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
     const {policyID, categoryName: currentCategoryName} = route.params;
     const policyData = usePolicyData(policyID);
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    // An expense default matching on a category has to follow a rename, so the rules have to be on hand before one.
-    useRulesPrefetch(arePolicyRulesEnabled(policyData.policy, policyData.categories));
     const {categories: policyCategories} = policyData;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -67,7 +61,7 @@ function DynamicEditCategoryPage({route}: DynamicEditCategoryPageProps) {
         const newCategoryName = StringUtils.sanitizeName(values.categoryName);
         // Do not call the API if the edited category name is the same as the current category name
         if (decodedCategoryName !== newCategoryName) {
-            renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName}, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion(), rules);
+            renamePolicyCategory(policyData, {oldName: currentCategoryName, newName: newCategoryName}, isVendorMatchingBetaEnabled, getReviewWorkspaceSettingsTaskCompletion());
         }
 
         // Ensure Onyx.update is executed before navigation to prevent UI blinking issues, affecting the category name and rate.

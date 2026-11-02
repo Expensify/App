@@ -11,7 +11,6 @@ import type {
     UpdatePolicyTaxValueParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getExpenseDefaultRulesAfterTaxCodeChange} from '@libs/ExpenseDefaultRuleUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {getFieldRequiredErrors, isExistingTaxCode, isExistingTaxName, isValidPercentage} from '@libs/ValidationUtils';
 
@@ -21,12 +20,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceNewTaxForm';
 // eslint-disable-next-line import/no-named-default
 import {default as INPUT_IDS_TAX_CODE} from '@src/types/form/WorkspaceTaxCodeForm';
-import type {Policy, Rule, TaxRate, TaxRates} from '@src/types/onyx';
+import type {Policy, TaxRate, TaxRates} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {CustomUnit, ExpenseRule, Rate} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {NullishDeep, OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -552,10 +551,7 @@ function setPolicyTaxCode(
     oldDefaultExternalID: string | undefined,
     distanceRateCustomUnit: CustomUnit | undefined,
     expenseRules: ExpenseRule[] = [],
-    rules?: OnyxCollection<Rule>,
 ) {
-    // An expense default stores the rate's external ID, so it has to follow the code or it stops resolving.
-    const updatedExpenseDefaultTaxRules = getExpenseDefaultRulesAfterTaxCodeChange(rules, policyID, oldTaxCode, newTaxCode);
     const hasExpenseRuleWithOldTaxCode = expenseRules.some((rule) => rule.tax?.field_id_TAX?.externalID === oldTaxCode);
     const optimisticExpenseRules = expenseRules.map((rule) => {
         if (rule.tax?.field_id_TAX?.externalID !== oldTaxCode) {
@@ -590,7 +586,7 @@ function setPolicyTaxCode(
     // this rate while the rename is still optimistic or was made offline.
     const previousTaxCodes = [...new Set([...(originalTaxRate.previousTaxCodes ?? []), oldTaxCode])];
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -616,9 +612,6 @@ function setPolicyTaxCode(
                     ...(hasExpenseRuleWithOldTaxCode && {rules: {expenseRules: optimisticExpenseRules}}),
                 },
             },
-            // SET rather than MERGE, because the actions are stored under numeric keys that a merge would blend
-            // with the ones already there rather than replace.
-            ...updatedExpenseDefaultTaxRules.map(({ruleKey, rule}) => ({onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: rule})),
         ],
         successData: [
             {
@@ -668,7 +661,6 @@ function setPolicyTaxCode(
                     ...(hasExpenseRuleWithOldTaxCode && {rules: {expenseRules}}),
                 },
             },
-            ...updatedExpenseDefaultTaxRules.map(({ruleKey}) => ({onyxMethod: Onyx.METHOD.SET, key: ruleKey, value: rules?.[ruleKey] ?? null})),
         ],
     };
 
