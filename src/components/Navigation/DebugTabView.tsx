@@ -103,6 +103,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.completeHrSetup';
         case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
             return 'debug.indicatorStatus.theresAProblemWithAnHRConnection';
+        case CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS:
+            return 'debug.indicatorStatus.theresAProblemWithYourAgent';
         default:
             return undefined;
     }
@@ -129,7 +131,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_SUBSCRIPTION_INFO:
             return ROUTES.SETTINGS_SUBSCRIPTION.route;
         case CONST.INDICATOR_STATUS.HAS_SYNC_ERRORS:
-            return ROUTES.WORKSPACE_ACCOUNTING.getRoute(indicatorPolicyID);
+            return ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(indicatorPolicyID);
         case CONST.INDICATOR_STATUS.HAS_USER_WALLET_ERRORS:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_WALLET_TERMS_ERRORS:
@@ -138,7 +140,9 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
         case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
-            return ROUTES.WORKSPACE_HR.getRoute(indicatorPolicyID);
+            return ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(indicatorPolicyID);
+        case CONST.INDICATOR_STATUS.HAS_AGENT_ERRORS:
+            return ROUTES.SETTINGS_AGENTS;
         default:
             return undefined;
     }

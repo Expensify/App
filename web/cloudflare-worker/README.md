@@ -10,7 +10,7 @@ Every request runs the Worker first (`run_worker_first: true`), which reads the 
 
 | Request | Response |
 | --- | --- |
-| Any path | Security headers: HSTS, CSP, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Document-Policy` |
+| Any path | Security headers: HSTS, CSP, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Cross-Origin-Opener-Policy`, `Document-Policy` |
 | HTML (`/`, `/index.html`, any SPA deep link) | Each `<script nonce="nonce-random-value">` gets a per-request nonce that matches the CSP. `Cache-Control: no-cache`, with no `ETag` or `Last-Modified`, since a 304 would pair a cached body with a new nonce |
 | Content-hashed files (`main-<16 hex>.bundle.js`, `name.<10 hex>.css`) | `Cache-Control: public, max-age=31536000, immutable` |
 | Files with fixed names (`version.json`, `service-worker.js`, `manifest.json`, ...) | Default `public, max-age=0, must-revalidate`, with an `ETag` |
@@ -18,6 +18,7 @@ Every request runs the Worker first (`run_worker_first: true`), which reads the 
 | A request with a matching `If-None-Match` | `304`, answered by the Worker for every non-HTML file |
 | A file the current build doesn't have (`/main-<old hash>.bundle.js`) | The file from a previous build, if the environment has a `PREVIOUS_BUILDS` bucket that holds it (see [Files from previous builds](#files-from-previous-builds)). Otherwise `404`, also when the bucket can't be read, so a stale tab gets a `ChunkLoadError` and recovers instead of parsing HTML as JavaScript |
 | Any other path that does not exist (`/r/123`) | The app shell (`index.html`) with `200` |
+| A `POST`, such as a form submit the app didn't cancel | `303` to the same URL, so the browser loads that page with a `GET` |
 | `/.well-known/apple-app-site-association` and `/apple-app-site-association` | The same file with `Content-Type: application/json` |
 
 [`.assetsignore`](.assetsignore) keeps source maps (`*.map`) out of the upload. Wrangler's `build` command (`scripts/prepareDist.sh`) copies it into `dist/` before every `wrangler dev` and `wrangler deploy`, so always run wrangler from this directory.
@@ -56,11 +57,13 @@ Use your chosen `WEB_PORT` if different. This is a local API, not a separate hos
 
 ### 1. Install
 
-Root `npm install` installs these dependencies too. For an independent Worker checkout or CI job, install just this package:
+This package is an npm workspace, so root `npm install` links it and installs its dependencies. Shared packaging helpers are imported through `@expensify/new-expensify-cloudflare-worker/pr-testing-config`.
+
+The separate Worker lockfile is retained for lightweight deployment/test jobs and the local CLI bootstrap. To install only that locked toolchain, without installing the whole App workspace graph:
 
 ```bash
 cd web/cloudflare-worker
-npm ci
+npm ci --workspaces=false
 ```
 
 ### 2. Get a web build in `dist/`
@@ -181,28 +184,32 @@ Never commit credentials, account IDs or `.dev.vars` files here. This is a publi
 
 ## PR-testing Worker
 
-[`src/prTesting.ts`](src/prTesting.ts) serves `https://<PR number>.pr-testing.expensify.com` from the existing public S3 prefix `https://ad-hoc-expensify-cash.s3.amazonaws.com/web/<PR number>/`. It shares the security headers and CSP definitions with the static-assets Worker, with PR-testing font and frame origins. It also allows the App template's inline script hashes.
+Every ad-hoc web build for a PR deploys that build's `src/index.ts` and matching web assets together to `pr-testing-expensify-<PR number>`. Each PR has one stable Worker resource. Subsequent authorized builds update that Worker, including after the PR closes. No automatic expiry or deletion is included.
 
-This is one wildcard Worker, not a Worker per PR. Ad-hoc builds still upload to S3 in `.github/workflows/buildAdHoc.yml`; no build or hosting changes are needed. The existing non-200-to-`index.html` fallback is preserved. `/`, `/index.html`, `/service-worker.js` and fallback HTML bypass forced edge caching. HTML also drops validators and gets `Cache-Control: no-cache` so each rewritten nonce matches its CSP.
+The public URL stays `https://<PR number>.pr-testing.expensify.com`. Previews use Workers Static Assets with the staging policy. No production secrets, R2 buckets or service bindings are attached. A stale tab requesting a chunk absent from the new build gets a 404 and uses the existing reload recovery.
 
-[`wrangler.pr-testing.jsonc`](wrangler.pr-testing.jsonc) is deliberately separate from the static-assets config: PR testing needs neither `dist/` nor an `ASSETS` or `PREVIOUS_BUILDS` binding. It retains the existing Worker name (`pr-testing-expensify`) and compatibility date. Its existing `*.pr-testing.expensify.com/*` route stays managed in Cloudflare, so deploys need no zone access.
+### Build and deployment
 
-### Migration and deployment
+There are two different kinds of code here:
 
-1. Grant `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` access to edit the existing `pr-testing-expensify` Worker, in addition to the staging and production Workers. Keep `CLOUDFLARE_ACCOUNT_ID` in GitHub secrets.
-2. Merge the App PR, then manually run **Deploy PR-testing Cloudflare Worker** (`.github/workflows/deployPRTestingWorker.yml`) on `main`. It requires membership in the web deployer, key holder or mobile deployer team, matching the old repository's deploy authorization. It runs the package's type check and tests before deploying.
-3. Verify an existing PR hostname, a deep link, its service worker and two different PR builds. Rebuild one PR and check that the new build appears without stale HTML or CSP errors.
-4. Only after that deployment is verified, merge the companion Cloudflare-Workers cleanup PR. Do not delete the live Worker or its wildcard route. If Workers Builds is connected to the old repository, disconnect that integration during the handoff so it cannot deploy the old code again.
+```text
+GitHub Actions (deployment tooling, not a Worker):
+  prepareWeb       -> adhocCloudflareWorkerDeployer.ts register -> pin SHA + record build request
+  buildWeb         -> compile that SHA's src/index.ts + build dist/
+  deployWebAdHoc   -> adhocCloudflareWorkerDeployer.ts deploy -> publish code/assets together and verify
 
-The workflow is manual, like the old repository's deploy workflow; it does not redeploy this shared Worker for every ad-hoc build. A rollback before cleanup can redeploy the previous commit from Cloudflare-Workers. After cleanup, use a previous Worker version in Cloudflare to roll back.
-
-Local verification, without credentials or uploading anything:
-
-```bash
-npm ci
-npm run typecheck
-npm test
-npx wrangler deploy --dry-run --config wrangler.pr-testing.jsonc
+Cloudflare (request handling):
+  PR hostname -> tiny build-status wrapper -> compiled src/index.ts -> this PR's Static Assets
 ```
 
-The PR-testing tests bundle the real configuration and run it in workerd with all requests to S3 intercepted. They verify PR isolation, edge-cache options, SPA fallbacks, nonce matching, shared security headers and service-worker caching without reading live builds.
+**The runtime is shared with the main app Worker.** `buildWeb` bundles the existing `web/cloudflare-worker/src/index.ts` from the same App SHA as the web build. CSP, nonces, security headers, Brotli, caching and SPA routing are not reimplemented in the CI tooling. The preview wrapper answers the reserved build-status endpoint and delegates every application request unchanged. `scripts/adhocCloudflareWorkerDeployer.ts` runs only in CI.
+
+The deployment CLI runs in Bun with TypeScript, uses the shared `expensify-common/CLI` parser for typed commands/options, and uses `GithubUtils.octokit` for GitHub authentication and REST calls. It uses `Bun.sleep`, `Bun.file` and `Bun.spawn` for local orchestration; Wrangler remains the trusted Node CLI. Pure typed packaging helpers in `web/cloudflare-worker/scripts/prTestingConfig.ts` are shared with the standalone workerd tests without pulling the App CLI/GitHub dependencies into that package.
+
+The existing test-build authorization and reviewed-code confirmation still apply. `.github/workflows/buildAdHoc.yml` resolves one immutable App SHA before building and registers the request as a GitHub deployment in `pr-testing-<PR number>`. `buildWeb.yml` compiles the web app and bundles the Worker from that same SHA without Cloudflare credentials.
+
+The `deployWebAdHoc` job runs trusted tooling from the caller workflow's SHA on `main`, never from `APP_REF`. Downloaded artifacts cannot supply deployment targets, hooks or privileged bindings. Only compatibility date and flags are accepted from the branch's runtime manifest. `extractPRTestingAssets` copies validated regular files without following links or exposing source maps. Dependencies and build hooks run without Cloudflare credentials.
+
+The trusted wrapper forwards application responses unchanged, including Brotli encoding and CSP nonces. Its reserved `/__expensify_preview` endpoint reports the SHA/run/attempt; `/preview-build.json` in Static Assets carries the same identity. Both must match before the build is reported as deployed. A failed new build never gets a success status just because an old version still serves that hostname.
+
+Manual ad-hoc builds cancel an earlier run for the same App/mobile target, using each repository's PR number or ref. Push-to-main builds use a separate concurrency group and queue every push without cancellation, preserving builds for regression bisection. Deployment identity checks also reject stale artifacts from retries.

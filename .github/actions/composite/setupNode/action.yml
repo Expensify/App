@@ -128,6 +128,10 @@ runs:
         max_attempts: 3
         command: npm ci
 
+    - name: Add project binaries to PATH
+      shell: bash
+      run: echo "$PWD/node_modules/.bin" >> "$GITHUB_PATH"
+
     - name: Mark sticky disks as installed
       if: steps.runner-info.outputs.use-sticky-disk == 'true'
       shell: bash

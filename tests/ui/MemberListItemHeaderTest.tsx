@@ -5,7 +5,7 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MemberListItemHeader from '@components/Search/SearchList/ListItem/MemberListItemHeader';
-import type {TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {TransactionApproverGroupListItemType, TransactionMemberGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -41,7 +41,25 @@ const createMemberItem = (overrides: Partial<TransactionMemberGroupListItemType>
         ...overrides,
     });
 
-function renderHeader(item: TransactionMemberGroupListItemType, props: Partial<Omit<Parameters<typeof MemberListItemHeader>[0], 'member'>> = {}) {
+/** Either row the header renders: a submitter when grouping by from, an approver when grouping by approver */
+type MemberHeaderItem = Parameters<typeof MemberListItemHeader>[0]['member'];
+
+// SearchUIUtils builds the approver row the same way, from the approver's personal details.
+const createApproverItem = (): TransactionApproverGroupListItemType =>
+    createMock<TransactionApproverGroupListItemType>({
+        groupedBy: CONST.SEARCH.GROUP_BY.APPROVER,
+        accountID: 456,
+        displayName: 'Jordan Lee',
+        login: 'jordan@example.com',
+        keyForList: 'group_456',
+        transactions: [],
+        count: 7,
+        total: 12345,
+        currency: 'USD',
+        formattedApprover: 'Jordan Lee',
+    });
+
+function renderHeader(item: MemberHeaderItem, props: Partial<Omit<Parameters<typeof MemberListItemHeader>[0], 'member'>> = {}) {
     const {state, actions} = createMockSearchContext();
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider]}>
@@ -72,12 +90,23 @@ describe('MemberListItemHeader', () => {
         jest.clearAllMocks();
     });
 
-    testSearchGroupHeader({
+    testSearchGroupHeader<MemberHeaderItem>({
         createItem: createMemberItem,
         renderHeader: (item, props, onCheckboxPress) => renderHeader(item, {...props, onCheckboxPress}),
         identifyingColumn: CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
         identifyingText: 'Alex Rivera',
         cellText: /^(\$123\.45|Alex Rivera|7)$/,
+    });
+
+    describe('when grouped by approver', () => {
+        // The approver grouping reuses this header and only swaps the column that shows the name.
+        testSearchGroupHeader<MemberHeaderItem>({
+            createItem: createApproverItem,
+            renderHeader: (item, props, onCheckboxPress) => renderHeader(item, {...props, onCheckboxPress, nameColumn: CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER}),
+            identifyingColumn: CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER,
+            identifyingText: 'Jordan Lee',
+            cellText: /^(\$123\.45|Jordan Lee|7)$/,
+        });
     });
 
     it('uses the explicit narrow prop and falls back to the display name for an empty login', async () => {

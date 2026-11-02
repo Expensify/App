@@ -9,14 +9,20 @@ import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 
+import navigationRef from '@navigation/navigationRef';
+
+import useAccessibleDashboards from '@pages/Insights/useAccessibleDashboards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import type {InsightsDashboardID} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 
+import getInsightsTabRoute from './getInsightsTabRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 
@@ -30,6 +36,7 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['PieChart']);
+    const [accessibleDashboards = getEmptyArray<InsightsDashboardID>()] = useAccessibleDashboards();
     const isSelected = selectedTab === NAVIGATION_TABS.INSIGHTS;
 
     const navigateToInsights = () => {
@@ -38,7 +45,8 @@ function InsightsTabButton({selectedTab, isWideLayout}: InsightsTabButtonProps) 
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            Navigation.navigate(ROUTES.INSIGHTS.getRoute(CONST.INSIGHTS.DASHBOARD.SPEND));
+            const rootState = navigationRef.isReady() ? navigationRef.getRootState() : undefined;
+            Navigation.navigate(getInsightsTabRoute(rootState, accessibleDashboards));
         }, session);
     };
 

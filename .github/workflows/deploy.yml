@@ -762,7 +762,7 @@ jobs:
 
       - name: Install Cloudflare Worker dependencies
         working-directory: web/cloudflare-worker
-        run: npm ci
+        run: npm ci --workspaces=false
 
       - name: Deploy to Cloudflare Workers
         working-directory: web/cloudflare-worker

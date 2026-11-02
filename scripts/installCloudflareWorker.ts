@@ -1,6 +1,6 @@
 /**
- * Install the independently locked Worker tooling during local App setup, so `npm run web` can run it. CI jobs that need
- * the Worker install it themselves, and local installs skip it until its lockfile changes.
+ * Ensure the local web launcher has the Worker CLI from its standalone lockfile, even when workspace dependencies are
+ * hoisted. CI uses workspace dependencies or standalone test installs. Local installs skip it until its lockfile changes.
  */
 import {$} from 'bun';
 import path from 'node:path';
@@ -9,7 +9,7 @@ import path from 'node:path';
 const INSTALLED_LOCKFILE_HASH_PATH = 'node_modules/.app-installed-lockfile-hash';
 
 async function runNpmCI(workerDir: string): Promise<void> {
-    await $`npm ci --include=dev`.cwd(workerDir);
+    await $`npm ci --include=dev --workspaces=false`.cwd(workerDir);
 }
 
 async function installCloudflareWorker(workerDir: string, env: Record<string, string | undefined> = Bun.env, install = runNpmCI): Promise<boolean> {

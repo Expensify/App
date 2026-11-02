@@ -4,6 +4,9 @@
     "private": true,
     "description": "Cloudflare Worker that serves the New Expensify web build with Workers Static Assets.",
     "type": "module",
+    "exports": {
+        "./pr-testing-config": "./scripts/prTestingConfig.ts"
+    },
     "scripts": {
         "prepare-dist": "./scripts/prepareDist.sh",
         "dev": "wrangler dev",
@@ -16,7 +19,6 @@
     "devDependencies": {
         "@types/node": "24.19.0",
         "@types/ws": "8.18.1",
-        "miniflare": "5.20261019.2-beta",
         "typescript": "7.0.2",
         "wrangler": "4.152.0",
         "ws": "8.21.0"
