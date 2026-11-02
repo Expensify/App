@@ -1,5 +1,12 @@
 import type {RootStackNavigatorAction} from '@libs/Navigation/AppNavigator/createRootStackNavigator/types';
 import addRootHistoryRouterExtension from '@libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtension';
+import {
+    applyRevealPaddingOffset,
+    getFrozenHistoryStateForRemoveFullscreenUnderRHP,
+    getFrozenHistoryStateForReplaceFullscreenUnderRHP,
+    getTrailingStringEntries,
+    removeTopModalHistoryGuardEntry,
+} from '@libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtensionUtils';
 import type {CustomHistoryEntry} from '@libs/Navigation/AppNavigator/routerExtensions/types';
 import type {PlatformStackNavigationState, PlatformStackRouterOptions} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -45,10 +52,6 @@ function makeState(routes: Array<NavigationRoute<ParamListBase, string>>, overri
     };
 }
 
-function isCustomHistoryEntry(entry: unknown): entry is CustomHistoryEntry {
-    return typeof entry === 'string' || (typeof entry === 'object' && entry !== null && 'key' in entry && 'name' in entry);
-}
-
 const CONFIG_OPTIONS: RouterConfigOptions = {
     routeNames: ['ScreenA', 'ScreenB'],
     routeParamList: {},
@@ -65,14 +68,17 @@ function createMockRouterFactory(actionHandler?: (state: TestState, action: Root
                 return makeState([route]);
             },
 
-            getRehydratedState(partialState: PartialState<TestState>): TestState {
+            getRehydratedState(partialState: PartialState<TestState> | TestState): TestState {
+                if (partialState.stale === false) {
+                    return partialState;
+                }
                 const routes = partialState.routes.map((r) => ({
                     key: r.key ?? `${r.name}-rehydrated`,
                     name: r.name,
                     params: r.params,
                 }));
                 return makeState(routes, {
-                    history: partialState.history?.filter(isCustomHistoryEntry),
+                    history: partialState.history,
                 });
             },
 
@@ -824,5 +830,64 @@ describe('addRootHistoryRouterExtension', () => {
 
             expect(newState?.history?.at(-1)).toBe(modalTag('m1'));
         });
+    });
+});
+
+describe('raw root history preservation', () => {
+    it('copies opaque entries through reveal freezes and preserves leading-only padding', () => {
+        // Given framework history with a frozen opaque member and padding after another entry
+        const opaque = Object.freeze({overlay: 'unrecognized'});
+        const route = makeRoute('ScreenA', 'raw-a');
+        const history: unknown[] = [REVEAL_PADDING, opaque, REVEAL_PADDING, route];
+        Object.freeze(history);
+        const state = makeState([route], {history});
+        const rehydrate = (newState: PartialState<TestState> | TestState) =>
+            makeState(
+                newState.routes.map((r) => makeRoute(r.name, r.key)),
+                {history: [opaque, route]},
+            );
+
+        // When existing reveal helpers freeze or pad this raw framework history
+        const replaced = getFrozenHistoryStateForReplaceFullscreenUnderRHP(state, state, CONFIG_OPTIONS, null, rehydrate).state;
+        const removed = getFrozenHistoryStateForRemoveFullscreenUnderRHP(state, state, CONFIG_OPTIONS, rehydrate);
+        const padded = applyRevealPaddingOffset(state, makeState([route], {history: [opaque, route]}));
+
+        // Then freezes copy only the container and only the leading padding contributes to the offset
+        expect(replaced.history).toEqual(history);
+        expect(removed.history).toEqual(history);
+        expect(replaced.history).not.toBe(history);
+        expect(removed.history).not.toBe(history);
+        expect(replaced.history?.at(1)).toBe(opaque);
+        expect(padded.history).toEqual([REVEAL_PADDING, opaque, route]);
+        expect(padded.history?.at(1)).toBe(opaque);
+    });
+
+    it('rebuilds routes while preserving the trailing overlay run after an opaque boundary', () => {
+        // Given a full stale:false state and nested modal guards after an opaque entry
+        const opaque = Object.freeze({overlay: 'unrecognized'});
+        const route = makeRoute('ScreenA', 'raw-a');
+        const outer = `${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:outer`;
+        const inner = `${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:inner`;
+        const history: unknown[] = [route, outer, opaque, SIDE_PANEL, inner];
+        Object.freeze(history);
+        const state = makeState([route], {history});
+        const options = createMock<PlatformStackRouterOptions>({});
+        const underlying = createMockRouterFactory()(options);
+        const rehydration = jest.spyOn(underlying, 'getRehydratedState');
+        const router = addRootHistoryRouterExtension(() => underlying)(options);
+
+        // When the real root extension rehydrates and the top guard is consumed
+        const result = router.getRehydratedState(state, CONFIG_OPTIONS);
+        const consumed = removeTopModalHistoryGuardEntry(history);
+
+        // Then stale:false reaches the underlying router and only the trailing strings survive the intentional rebuild
+        expect(rehydration).toHaveBeenCalledWith(state, CONFIG_OPTIONS);
+        expect(rehydration.mock.calls.at(0)?.at(0)).toBe(state);
+        expect(result.stale).toBe(false);
+        expect(result.history).toEqual([route, SIDE_PANEL, inner]);
+        expect(getTrailingStringEntries(history)).toEqual([SIDE_PANEL, inner]);
+        expect(consumed).toEqual([route, outer, opaque, SIDE_PANEL]);
+        expect(consumed.at(2)).toBe(opaque);
+        expect(history).toHaveLength(5);
     });
 });
