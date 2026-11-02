@@ -2,7 +2,9 @@ import {
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
     getCategoryExpenseDefaultRules,
+    getCategoryOnlyExpenseDefaultTaxID,
     getExpenseDefaultConditionSummary,
+    getExpenseDefaultRulesAfterTaxCodeChange,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
     getExpenseDefaultFormValues,
@@ -749,6 +751,83 @@ describe('ExpenseDefaultRuleUtils', () => {
             const rule = buildRuleWithOverrides({actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'a@b.com'}])});
 
             expect(getExpenseDefaultRuleSummaryFields(rule)).toEqual([]);
+        });
+    });
+    describe('getCategoryOnlyExpenseDefaultTaxID', () => {
+        const policyID = '1';
+        const buildRule = (filters: RuleFilterNode): Rule => ({
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: policyID,
+            triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+            filters,
+            actions: toIndexMap([
+                {
+                    name: CONST.RULES.ACTIONS.SET,
+                    field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    value: {field_id_TAX: {externalID: 'id_TAX_RATE_1'}},
+                },
+            ]),
+        });
+
+        it('resolves the rate when the rule matches the category exactly', () => {
+            // Given a rule matching on one category with the equals operator
+            const rules = {[`${ONYXKEYS.COLLECTION.RULE}1`]: buildRule({left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']})};
+
+            // When the rate for that category is resolved
+            // Then the rule's rate is used
+            expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Travel')).toBe('id_TAX_RATE_1');
+        });
+
+        it('ignores a rule that matches every category except this one', () => {
+            // Given a rule that names the category but excludes it, which the editor refuses and so cannot create
+            const rules = {[`${ONYXKEYS.COLLECTION.RULE}1`]: buildRule({left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, right: ['Travel']})};
+
+            // When the rate for that category is resolved
+            // Then no rate is taken, because the rule is written to leave this category alone
+            expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Travel')).toBeUndefined();
+        });
+    });
+
+    describe('getExpenseDefaultRulesAfterTaxCodeChange', () => {
+        const policyID = '1';
+        const buildTaxRule = (externalID: string): Rule => ({
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: policyID,
+            triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+            filters: {left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']},
+            actions: toIndexMap([
+                {
+                    name: CONST.RULES.ACTIONS.SET,
+                    field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    value: {field_id_TAX: {externalID}},
+                },
+            ]),
+        });
+
+        it('points a rule that names the old tax code at the new one', () => {
+            // Given a rule setting the tax rate whose code is about to change
+            const rules = {[`${ONYXKEYS.COLLECTION.RULE}1`]: buildTaxRule('id_TAX_RATE_1')};
+
+            // When the code changes
+            const updated = getExpenseDefaultRulesAfterTaxCodeChange(rules, policyID, 'id_TAX_RATE_1', 'id_TAX_RATE_2');
+
+            // Then the rule names the new code, so it keeps resolving to the same rate
+            expect(updated).toHaveLength(1);
+            expect(getExpenseDefaultRuleSummaryFields(updated.at(0)?.rule).at(0)?.value).toStrictEqual({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                field_id_TAX: {externalID: 'id_TAX_RATE_2'},
+            });
+        });
+
+        it('leaves a rule that names another tax code alone', () => {
+            // Given a rule setting a tax rate other than the one being changed
+            const rules = {[`${ONYXKEYS.COLLECTION.RULE}1`]: buildTaxRule('id_TAX_RATE_3')};
+
+            // When a different code changes
+            // Then nothing is rewritten, so the rule is not sent in an update it has no part in
+            expect(getExpenseDefaultRulesAfterTaxCodeChange(rules, policyID, 'id_TAX_RATE_1', 'id_TAX_RATE_2')).toStrictEqual([]);
         });
     });
 });

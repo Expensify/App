@@ -15,7 +15,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {getRuleDeletionPendingAction} from './CategoryTaxRulesUtils';
-import {getCategoryExpenseDefaultRules, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID} from './ExpenseDefaultRuleUtils';
+import {getCategoryExpenseDefaultRules, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID, isEditableExpenseDefaultRule} from './ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
 import {getExpenseDefaultConditionText, getExpenseDefaultRuleDescription} from './MerchantTypeRulesUtils';
 import {
@@ -135,6 +135,9 @@ function getCategoryContextualRules({
         // those retires the rule with them.
         const rulePendingAction = rule.pendingAction ?? getRuleDeletionPendingAction(policy, policyCategories, categoryName, getExpenseDefaultTaxID(rule));
         const isRulePendingDelete = rulePendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        // The editor refuses a rule it cannot represent, such as one built from an `or` tree, so opening this row
+        // would land on Not Found. It stays listed, because the rule does apply to the category.
+        const isRuleOpenable = isEditableExpenseDefaultRule(rule);
         if (!isOffline && isRulePendingDelete) {
             continue;
         }
@@ -146,7 +149,7 @@ function getCategoryContextualRules({
             conditionSummary: getExpenseDefaultConditionText(rule.filters, translate, true),
             dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute(ruleID),
             pendingAction: rulePendingAction,
-            isDisabled: isRulePendingDelete,
+            isDisabled: isRulePendingDelete || !isRuleOpenable,
         });
     }
 
