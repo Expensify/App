@@ -156,4 +156,17 @@ describe('useExportedToFilterOptions', () => {
         // Then the reconciliation flag is on, since the selector keeps the role and card product fields
         expect(mockGetExportTemplates.mock.calls.at(0)?.at(8)).toBe(true);
     });
+
+    it('returns the same options array when it re-renders with unchanged data', async () => {
+        // Given a connected policy, so the options include an integration label next to the export templates
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, buildPolicyWithConnection('1', CONST.POLICY.CONNECTIONS.NAME.QBO));
+        const {result, rerender} = renderHook(() => useExportedToFilterOptions());
+        const firstOptions = result.current.exportedToFilterOptions;
+
+        // When the hook re-renders without a data change, as it does on every keystroke in the Search input
+        rerender({});
+
+        // Then it returns the same array, so the Search input keeps its markdown parser instead of registering a new one
+        expect(result.current.exportedToFilterOptions).toBe(firstOptions);
+    });
 });

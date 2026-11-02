@@ -13,7 +13,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setSearchContext} from '@libs/actions/Search';
-import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
 import {getAutocompleteCategories, getAutocompleteTags, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -23,11 +22,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ForwardedRef} from 'react';
 import type {StyleProp, TextInputProps, TextStyle, ViewStyle} from 'react-native';
 
-import React, {useEffect, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
+
+const EMPTY_AUTOCOMPLETE_LIST: string[] = [];
 
 type SearchAutocompleteInputProps = {
     /** Value of TextInput */
@@ -103,23 +104,19 @@ function SearchAutocompleteInput({
     const inputEventTimeStampRef = useRef<number | undefined>(undefined);
     const autoFocusAfterNav = useFocusAfterNav(inputRef, shouldDelayFocus);
     const {currencyList} = useCurrencyListState();
-    const currencyAutocompleteList = Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired);
-    const currencySharedValue = useSharedValue(currencyAutocompleteList);
+    const currencies = new Set(Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired));
 
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
-    const categoryAutocompleteList = getAutocompleteCategories(allPolicyCategories);
-    const categorySharedValue = useSharedValue(categoryAutocompleteList);
+    const [categoryNames = EMPTY_AUTOCOMPLETE_LIST] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: getAutocompleteCategories});
+    const categories = new Set(categoryNames);
 
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
-    const tagAutocompleteList = getAutocompleteTags(allPoliciesTags);
-    const tagSharedValue = useSharedValue(tagAutocompleteList);
+    const [tagNames = EMPTY_AUTOCOMPLETE_LIST] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: getAutocompleteTags});
+    const tags = new Set(tagNames);
 
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const emailList = Object.keys(loginList ?? {});
-    const emailListSharedValue = useSharedValue(emailList);
+    const userLogins = new Set(Object.keys(loginList ?? {}));
 
     const {exportedToFilterOptions} = useExportedToFilterOptions();
-    const exportedToSharedValue = useSharedValue(exportedToFilterOptions);
+    const exportedTo = new Set(exportedToFilterOptions);
 
     const offlineMessage: string = isOffline && shouldShowOfflineMessage ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
@@ -139,51 +136,13 @@ function SearchAutocompleteInput({
         };
     });
 
-    useEffect(() => {
-        scheduleOnLiveMarkdownRuntime(() => {
-            'worklet';
-
-            emailListSharedValue.set(emailList);
-        });
-    }, [emailList, emailListSharedValue]);
-
-    useEffect(() => {
-        scheduleOnLiveMarkdownRuntime(() => {
-            'worklet';
-
-            currencySharedValue.set(currencyAutocompleteList);
-        });
-    }, [currencyAutocompleteList, currencySharedValue]);
-
-    useEffect(() => {
-        scheduleOnLiveMarkdownRuntime(() => {
-            'worklet';
-
-            categorySharedValue.set(categoryAutocompleteList);
-        });
-    }, [categorySharedValue, categoryAutocompleteList]);
-
-    useEffect(() => {
-        scheduleOnLiveMarkdownRuntime(() => {
-            'worklet';
-
-            tagSharedValue.set(tagAutocompleteList);
-        });
-    }, [tagSharedValue, tagAutocompleteList]);
-
-    useEffect(() => {
-        scheduleOnLiveMarkdownRuntime(() => {
-            'worklet';
-
-            exportedToSharedValue.set(exportedToFilterOptions);
-        });
-    }, [exportedToSharedValue, exportedToFilterOptions]);
-
     const currentUserDisplayName = currentUserPersonalDetails.displayName ?? '';
+
+    // The parser runs on the locked Live Markdown runtime, so reading a SharedValue here can deadlock the app.
     const parser = (input: string) => {
         'worklet';
 
-        return parseForLiveMarkdown(input, currentUserDisplayName, substitutionMap, emailListSharedValue, currencySharedValue, categorySharedValue, tagSharedValue, exportedToSharedValue);
+        return parseForLiveMarkdown(input, currentUserDisplayName, substitutionMap, {userLogins, currencies, categories, tags, exportedTo});
     };
 
     const clearInput = () => {
