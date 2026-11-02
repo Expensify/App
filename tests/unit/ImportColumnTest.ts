@@ -1,5 +1,7 @@
 import {findColumnName} from '@components/ImportColumn';
 
+import {getApproverColumnRole} from '@libs/importSpreadsheetUtils';
+
 import CONST from '@src/CONST';
 
 describe('findColumnName', () => {
@@ -71,5 +73,36 @@ describe('findColumnName', () => {
         // When a "Payroll Code" header is auto-detected
         // Then it maps to the members-import payroll role
         expect(findColumnName('Payroll Code', columnRoles)).toBe(CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2);
+    });
+
+    it("maps each approver's headers to that approver's columns when they are selectable", () => {
+        // Given the members import offering the columns of the first two approvers
+        const columnRoles = [
+            {text: 'Ignore', value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
+            ...[1, 2].flatMap((position) => [
+                {text: `Approver ${position}`, value: getApproverColumnRole(position, 'approver')},
+                {text: `Approver ${position} limit`, value: getApproverColumnRole(position, 'approvalLimit')},
+                {text: `Approver ${position} over limit approver`, value: getApproverColumnRole(position, 'overLimitApprover')},
+            ]),
+        ];
+
+        // When the headers of an exported workflow are auto-detected
+        // Then each one maps to its approver's column, whatever its casing and separators
+        expect(findColumnName('Approver 1', columnRoles)).toBe(getApproverColumnRole(1, 'approver'));
+        expect(findColumnName('Approver 2 limit', columnRoles)).toBe(getApproverColumnRole(2, 'approvalLimit'));
+        expect(findColumnName('approver_2_over-limit approver', columnRoles)).toBe(getApproverColumnRole(2, 'overLimitApprover'));
+
+        // And an approver whose columns aren't offered stays unmapped
+        expect(findColumnName('Approver 3', columnRoles)).toBe('');
+    });
+
+    it('leaves the headers of approvers past the ones the import reads unmapped', () => {
+        // Given headers for the last approver the import reads and the one after it
+        const lastApprover = CONST.IMPORT_SPREADSHEET.MAX_APPROVERS;
+
+        // When they are auto-detected
+        // Then only the last approver the import reads gets a column
+        expect(findColumnName(`Approver ${lastApprover}`)).toBe(getApproverColumnRole(lastApprover, 'approver'));
+        expect(findColumnName(`Approver ${lastApprover + 1}`)).toBe('');
     });
 });

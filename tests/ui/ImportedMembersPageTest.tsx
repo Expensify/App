@@ -5,6 +5,7 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as Member from '@libs/actions/Policy/Member';
+import {getApproverColumnRole} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ImportedMembersPage from '@pages/workspace/members/ImportedMembersPage';
@@ -89,6 +90,10 @@ function buildControlPolicyForPeopleAdmin(): Policy {
             [PEOPLE_ADMIN_EMAIL]: {email: PEOPLE_ADMIN_EMAIL, role: CONST.POLICY.ROLE.PEOPLE_ADMIN},
         },
     } as Policy;
+}
+
+function buildControlPolicy(): Policy {
+    return {...buildSubmitPolicy(), name: 'Test Control Workspace', type: CONST.POLICY.TYPE.CORPORATE} as Policy;
 }
 
 function buildSpreadsheet(mappedColumns: string[], data: string[][]): ImportedSpreadsheet {
@@ -224,7 +229,123 @@ describe('ImportedMembersPage', () => {
             expect.objectContaining({id: POLICY_ID}),
             [expect.objectContaining({email: 'new-member@example.com', role: CONST.POLICY.ROLE.USER})],
             true,
+            {},
         );
         expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('/imported/confirmation'));
+    });
+
+    it('imports the approvers each row lists, adding the approvers who are not members yet', async () => {
+        // Given multiple approvers, and a row whose first approver has a limit with a new over limit approver, then a new second approver
+        await seedOnyx(
+            buildSpreadsheet(
+                [
+                    CONST.CSV_IMPORT_COLUMNS.EMAIL,
+                    getApproverColumnRole(1, 'approver'),
+                    getApproverColumnRole(1, 'approvalLimit'),
+                    getApproverColumnRole(1, 'overLimitApprover'),
+                    getApproverColumnRole(2, 'approver'),
+                ],
+                [
+                    ['Email', 'member@example.com'],
+                    ['Approver 1', ADMIN_EMAIL],
+                    ['Approver 1 limit', '100'],
+                    ['Approver 1 over limit approver', 'director@example.com'],
+                    ['Approver 2', 'cfo@example.com'],
+                ],
+            ),
+            buildControlPolicy(),
+        );
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+            await waitForBatchedUpdatesWithAct();
+        });
+        const setImportedSpreadsheetMemberDataSpy = jest.spyOn(Member, 'setImportedSpreadsheetMemberData');
+
+        renderImportedMembersPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the spreadsheet is imported
+        fireEvent.press(screen.getByText(IMPORT_BUTTON_TEXT));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the member gets the approvers in order, with the limit in cents, and the new approvers join the workspace too
+        expect(setImportedSpreadsheetMemberDataSpy).toHaveBeenCalledWith(
+            [
+                {email: 'member@example.com', role: '', approvers: [{email: ADMIN_EMAIL, approvalLimit: 10000, overLimitForwardsTo: 'director@example.com'}, {email: 'cfo@example.com'}]},
+                {email: 'director@example.com', role: ''},
+                {email: 'cfo@example.com', role: ''},
+            ],
+            false,
+        );
+
+        // And the admin confirms the role of the new members first
+        expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining('/imported/confirmation'));
+    });
+
+    it('blocks the import of a row that skips an approver', async () => {
+        // Given multiple approvers, and a row with a second approver but no first one
+        await seedOnyx(
+            buildSpreadsheet(
+                [CONST.CSV_IMPORT_COLUMNS.EMAIL, getApproverColumnRole(1, 'approver'), getApproverColumnRole(2, 'approver')],
+                [
+                    ['Email', 'member@example.com'],
+                    ['Approver 1', ''],
+                    ['Approver 2', 'cfo@example.com'],
+                ],
+            ),
+            buildControlPolicy(),
+        );
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+            await waitForBatchedUpdatesWithAct();
+        });
+        const importPolicyMembersSpy = jest.spyOn(Member, 'importPolicyMembers');
+        const setImportedSpreadsheetMemberDataSpy = jest.spyOn(Member, 'setImportedSpreadsheetMemberData');
+
+        renderImportedMembersPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the spreadsheet is imported
+        fireEvent.press(screen.getByText(IMPORT_BUTTON_TEXT));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then nothing is imported and the admin is told which row to fix
+        expect(screen.getByText('Oops! Row 2 is missing an approver. Please list approvers in order, starting with Approver 1, and try again.')).toBeTruthy();
+        expect(importPolicyMembersSpy).not.toHaveBeenCalled();
+        expect(setImportedSpreadsheetMemberDataSpy).not.toHaveBeenCalled();
+    });
+
+    it('leaves the approver columns unmapped while approvals are off', async () => {
+        // Given multiple approvers on a workspace with approvals off, and a spreadsheet whose approver column isn't mapped yet
+        await seedOnyx(
+            buildSpreadsheet(
+                [CONST.CSV_IMPORT_COLUMNS.EMAIL],
+                [
+                    ['Email', 'member@example.com'],
+                    ['Approver 1', 'cfo@example.com'],
+                ],
+            ),
+            {...buildControlPolicy(), approvalMode: CONST.POLICY.APPROVAL_MODE.OPTIONAL},
+        );
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+            await waitForBatchedUpdatesWithAct();
+        });
+        const importPolicyMembersSpy = jest.spyOn(Member, 'importPolicyMembers').mockResolvedValue({
+            titleKey: 'spreadsheet.importSuccessfulTitle',
+            promptKey: 'spreadsheet.importMembersAdded',
+            promptKeyParams: {count: 1},
+        });
+
+        renderImportedMembersPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When the spreadsheet is imported
+        fireEvent.press(screen.getByText(IMPORT_BUTTON_TEXT));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the approver header isn't mapped, because the workflow it would set up couldn't route anything yet, so the
+        // member is imported right away without approvers
+        expect(importPolicyMembersSpy).toHaveBeenCalledWith(expect.objectContaining({id: POLICY_ID}), [{email: 'member@example.com', role: ''}], false, {});
     });
 });

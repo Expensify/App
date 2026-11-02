@@ -5,6 +5,7 @@ import ApproverSelectionList from '@components/ApproverSelectionList';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {convertPolicyEmployeesToApprovalWorkflows} from '@libs/WorkflowUtils';
@@ -117,7 +118,7 @@ async function editWorkflowWithRemovedApprover() {
 
 async function renderPage(approverIndex: number) {
     const result = render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, PersonalDetailsByLoginProvider, LocaleContextProvider]}>
             <WorkspaceWorkflowsApprovalsApproverPage
                 // @ts-expect-error - the page only reads route.name and route.params
                 route={{name: SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_APPROVER_CHANGE, params: {policyID: POLICY_ID, approverIndex}}}
@@ -209,6 +210,31 @@ describe('WorkspaceWorkflowsApprovalsApproverPage', () => {
 
         // Then they can't be picked again
         expect(getRows().some((row) => row.login === REMOVED_EMAIL)).toBe(false);
+    });
+
+    it("never offers another step's additional approver for reports over the limit, but still offers a step its own", async () => {
+        // Given the rules-based workflow Bob > Erin > an approver who left, where Bob's reports over his limit also go to the admin
+        const approvalWorkflow = await getOnyxValue(ONYXKEYS.APPROVAL_WORKFLOW);
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.MULTIPLE_APPROVERS]);
+            await Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {
+                approvers: approvalWorkflow?.approvers.map((approver, index) => (index === 0 && approver ? {...approver, approvalLimit: 5000, overLimitForwardsTo: ADMIN_EMAIL} : approver)),
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // When the admin opens Erin's slot
+        const {unmount} = await renderPage(1);
+
+        // Then the admin can't be picked, since approving there would make Bob's limit add no one
+        expect(getRows().some((row) => row.login === ADMIN_EMAIL)).toBe(false);
+        unmount();
+
+        // When the admin opens Bob's own slot
+        await renderPage(0);
+
+        // Then the admin can be picked, since replacing Bob clears his limit
+        expect(getRows().some((row) => row.login === ADMIN_EMAIL)).toBe(true);
     });
 
     it('lists a flagged approver only once when they are back on the workspace', async () => {

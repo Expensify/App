@@ -11,6 +11,8 @@ inputs:
     description: 'True if we are deploying to production'
     required: false
 outputs:
+  PREVIOUS_TAG:
+    description: Previous release tag used to bound the deployment comparison
   PR_LIST:
     description: Array of pull request numbers
   MOBILE_EXPENSIFY_PR_LIST:

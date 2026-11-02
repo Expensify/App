@@ -32,7 +32,7 @@ type UseMergeProviderCardDetailsParams = {
     onDisconnect?: (disconnect: () => void) => void;
 };
 
-/** The status text, sync error and overflow menu of a Merge provider, shared by the HR and Recruiting cards and their Connections panel */
+/** The status text, sync error and overflow menu of a Merge provider on the Connections HR and Recruiting panels */
 function useMergeProviderCardDetails({card, policy, handleConnect, canWriteMoreFeatures, showReadOnlyModal, onDisconnect}: UseMergeProviderCardDetailsParams) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();

@@ -17,6 +17,7 @@ import isSensitiveField from './isSensitiveField';
 import isSupportedField from './isSupportedField';
 import {getListItems} from './listItems';
 import maskSensitiveValue, {getVisibleEnding} from './maskSensitiveValue';
+import {getAllFields} from './paginate';
 import summarizeListItem, {getListItemFallbackTitle} from './summarizeListItem';
 
 /** One avatar row per list entry, which opens the entry. A readonly list gets plain rows that open nothing. */
@@ -42,6 +43,27 @@ function getListItemRows(
     });
 }
 
+/**
+ * Maps each "I don't have X" link to the question it replaces, such as "I don't have a social security number" to the SSN.
+ * The question must be one the form asks while the link is off. A link that replaces no question is not in the map.
+ */
+function getOptedOutFieldByLink(pages: DynamicFormPage[], values: DynamicFormValues, allFields: DynamicFormField[]): Map<string, DynamicFormField> {
+    const optedOutFieldByLink = new Map<string, DynamicFormField>();
+    for (const link of allFields) {
+        if (link.type !== 'boolean' || link.presentation !== 'link') {
+            continue;
+        }
+        const valuesWithLinkOff = {...values, [link.key]: false};
+        const optedOutField = getAllFields(pages.filter((page) => isPageShown(page, valuesWithLinkOff, allFields))).find(
+            ({showWhen}) => showWhen?.key === link.key && showWhen.equals.includes('false') && !showWhen.equals.includes('true'),
+        );
+        if (optedOutField) {
+            optedOutFieldByLink.set(link.key, optedOutField);
+        }
+    }
+    return optedOutFieldByLink;
+}
+
 /** One section per shown page holding its visible answers, with each list entry as an avatar row and an empty list as a plain row. Tapping a row opens the page or entry to edit. Readonly rows open nothing. */
 function getConfirmationItems(
     pages: DynamicFormPage[],
@@ -51,12 +73,17 @@ function getConfirmationItems(
     onEditPage: (pageIndex: number) => void,
     onEditListItem: (listKey: string, itemID: string) => void,
 ): SummaryGroup[] {
+    const optedOutFieldByLink = getOptedOutFieldByLink(pages, values, allFields);
+
     return pages.flatMap((page, pageIndex): SummaryGroup[] => {
         if (!isPageShown(page, values, allFields)) {
             return [];
         }
 
-        const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields);
+        // A link that is off has no row, because the question it replaces already shows the answer.
+        const fields = getVisibleFields(getContentFields(page.content).filter(isSupportedField), values, allFields).filter(
+            (field) => values[field.key] === true || !optedOutFieldByLink.has(field.key),
+        );
 
         if (fields.length === 0) {
             return [];
@@ -81,12 +108,14 @@ function getConfirmationItems(
                     const isEditable = !field.readonly;
                     const fieldLabel = getFieldLabel(field, translate);
                     const isMasked = isSensitiveField(field) && !!getVisibleEnding(answer);
+                    const shownAnswer = isSensitiveField(field) ? maskSensitiveValue(answer) : answer;
+                    const optedOutField = values[field.key] === true ? optedOutFieldByLink.get(field.key) : undefined;
 
                     return [
                         {
                             id: field.key,
-                            description: fieldLabel,
-                            title: isSensitiveField(field) ? maskSensitiveValue(answer) : answer,
+                            description: optedOutField ? getFieldLabel(optedOutField, translate) : fieldLabel,
+                            title: optedOutField ? fieldLabel : shownAnswer,
                             // Screen readers would read out each bullet of the mask
                             accessibilityLabel: isMasked ? translate('dynamicForm.maskedValueLabel', {label: fieldLabel, ending: getVisibleEnding(answer)}) : undefined,
                             shouldShowRightIcon: isEditable,
