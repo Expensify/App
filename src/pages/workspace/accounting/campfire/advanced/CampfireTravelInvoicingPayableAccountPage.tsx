@@ -3,7 +3,7 @@ import type {SelectorType} from '@components/SelectionScreen';
 import useOnyx from '@hooks/useOnyx';
 import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
-import {clearCampfireErrorField, updateCampfireTravelInvoicingPayableAccount} from '@libs/actions/connections/Campfire';
+import {clearCampfireErrorField, updateCampfireTravelBillingPayableAccount} from '@libs/actions/connections/Campfire';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
@@ -50,7 +50,7 @@ function CampfireTravelInvoicingPayableAccountPage({policy}: WithPolicyConnectio
 
     const setPayableAccount = (item: SelectorType<string>) => {
         if (item.value !== travelInvoicingPayableAccountID && policyID) {
-            updateCampfireTravelInvoicingPayableAccount(policyID, item.value, travelInvoicingPayableAccountID);
+            updateCampfireTravelBillingPayableAccount(policyID, item.value, travelInvoicingPayableAccountID);
         }
         Navigation.goBack(backPath);
     };

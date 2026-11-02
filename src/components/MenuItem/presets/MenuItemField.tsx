@@ -8,12 +8,17 @@ import MenuItemFieldNamePlaceholder from '@components/MenuItem/leaves/content/Me
 import MenuItemFieldValue from '@components/MenuItem/leaves/content/MenuItemFieldValue';
 import MenuItemChevron from '@components/MenuItem/leaves/trailing/icons/MenuItemChevron';
 
+import useOnyx from '@hooks/useOnyx';
+
 import hasRenderableChildren from '@libs/hasRenderableChildren';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import type {PropsWithChildren, ReactNode} from 'react';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 type MenuItemFieldRowProps = PropsWithChildren<{
@@ -98,12 +103,14 @@ function MenuItemFieldPreset({
     testID,
     shouldAllowTextSelection = isValueSelectable,
 }: MenuItemFieldProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     return (
         <MenuItemRoot
-            onPress={onPress ? callFunctionIfActionIsAllowed(onPress) : undefined}
+            onPress={onPress ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}
             isDisabled={isDisabled}
             sentryLabel={sentryLabel}
             testID={testID}
+            accessibilityLabel={[name, value].filter(Boolean).join(', ')}
             shouldAllowTextSelection={shouldAllowTextSelection}
         >
             <MenuItemFieldRow

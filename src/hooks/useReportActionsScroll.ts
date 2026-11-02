@@ -250,12 +250,12 @@ function useReportActionsScroll({
         getVisibleIndexRange: () => {
             const list = getListRef()?.current;
             // getLayout is the one accessor that does not throw before FlashList has laid out
-            if (!list?.getLayout(0)) {
+            if (!list?.getLayout?.(0)) {
                 return undefined;
             }
-            const range = list.computeVisibleIndices();
+            const range = list.computeVisibleIndices?.();
             // An empty viewport comes back as {-1, -2}, which would read as "target above", so fall back to the reported items
-            return range.startIndex < 0 ? undefined : range;
+            return range && range.startIndex >= 0 ? range : undefined;
         },
         shouldBeAlignedToTop,
     });
