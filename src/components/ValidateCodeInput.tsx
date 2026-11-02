@@ -4,6 +4,7 @@ import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Accessibility from '@libs/Accessibility';
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
 import {isNumeric} from '@libs/ValidationUtils';
 
@@ -16,7 +17,7 @@ import type {ValueOf} from 'type-fest';
 import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {GestureDetector, useTapGesture} from 'react-native-gesture-handler';
-import Animated, {useAnimatedStyle, useSharedValue, withDelay, withRepeat, withSequence, withTiming} from 'react-native-reanimated';
+import Animated, {css} from 'react-native-reanimated';
 
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 
@@ -24,6 +25,22 @@ import FormHelpMessage from './FormHelpMessage';
 import Text from './Text';
 import TextInput from './TextInput';
 import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
+
+const CURSOR_BLINK_MIDPOINT = '50%';
+
+const animations = css.create({
+    // Cursor is visible for the first half of every second and hidden for the second half
+    cursorBlink: {
+        animationName: css.keyframes({
+            from: {opacity: 1},
+            [CURSOR_BLINK_MIDPOINT]: {opacity: 0},
+            to: {opacity: 1},
+        }),
+        animationDuration: '1000ms',
+        animationTimingFunction: 'step-end',
+        animationIterationCount: 'infinite',
+    },
+});
 
 const TEXT_INPUT_EMPTY_STATE = '';
 
@@ -447,16 +464,7 @@ function ValidateCodeInput({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastPressedDigit, isDisableKeyboard]);
 
-    const cursorOpacity = useSharedValue(1);
-
-    useEffect(() => {
-        cursorOpacity.set(withRepeat(withSequence(withDelay(500, withTiming(0, {duration: 0})), withDelay(500, withTiming(1, {duration: 0}))), -1, false));
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const animatedCursorStyle = useAnimatedStyle(() => ({
-        opacity: cursorOpacity.get(),
-    }));
+    const isReducedMotionEnabled = Accessibility.useReducedMotion();
 
     return (
         <>
@@ -539,7 +547,7 @@ function ValidateCodeInput({
                                         >
                                             {!!char && <Text style={[styles.validateCodeInput, styles.textAlignCenter, styles.opacity0]}>{char}</Text>}
                                             <Text style={[styles.validateCodeInput, {width: 1}]}> </Text>
-                                            <Animated.Text style={[styles.validateCodeInputCursor, animatedCursorStyle, cursorMargin]}>│</Animated.Text>
+                                            <Animated.Text style={[styles.validateCodeInputCursor, !isReducedMotionEnabled && animations.cursorBlink, cursorMargin]}>│</Animated.Text>
                                         </View>
                                     )}
                                 </View>
