@@ -1,7 +1,7 @@
 /** Turns key presses on a focused column edge into what they do to the column. */
 import CONST from '@src/CONST';
 
-/** Arrows move the edge, Enter and Space stand in for click and double-click. */
+/** Arrows move the edge, Enter and Space stand in for a click. */
 type KeyboardResizeAction = {type: 'step'; step: number} | {type: 'toggleFit'};
 
 /** `undefined` for keys a column edge leaves alone. */

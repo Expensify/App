@@ -775,7 +775,7 @@ describe('useColumnResize', () => {
             getHandleProps().onKeyDown?.(createKeyboardEvent(handleElement, ' ').event);
         });
 
-        // Then the column is handed back to content sizing, the same as a double-click, since one key can't tell the two apart
+        // Then the column is handed back to content sizing, the same as a second click
         expect(setTableColumnWidths).toHaveBeenCalledTimes(2);
         expect(setTableColumnWidths).toHaveBeenLastCalledWith(COLUMN_RESIZING_ID, null);
     });
