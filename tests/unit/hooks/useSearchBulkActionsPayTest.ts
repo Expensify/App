@@ -609,7 +609,14 @@ describe('useSearchBulkActions - bulk pay chat report fallback', () => {
         await selectBulkPay();
 
         // Then the bill should use the bill payment action instead of the money request action
-        expect(payBill).toHaveBeenCalledWith(expect.objectContaining({reportID: '1', type: CONST.REPORT.TYPE.BILL}), CONST.IOU.PAYMENT_TYPE.ELSEWHERE, undefined, 12345, undefined);
+        expect(payBill).toHaveBeenCalledWith(
+            expect.objectContaining({
+                report: expect.objectContaining({reportID: '1', type: CONST.REPORT.TYPE.BILL}),
+                paymentMethodType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                bankAccountID: undefined,
+                searchHash: 12345,
+            }),
+        );
         expect(payMoneyRequest).not.toHaveBeenCalled();
     });
 
