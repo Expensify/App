@@ -7,6 +7,7 @@ import {useShowContextMenuState} from '@components/ShowContextMenuContext';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
@@ -17,9 +18,11 @@ import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {
     canOverlayReceiptPDF,
     hasEReceipt,
+    hasLocallyKnownDistance,
     hasPendingDistanceReceiptRegeneration,
     hasReceiptSource,
     isDistanceRequest,
+    isFetchingWaypointsFromServer,
     isManualDistanceRequest,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
@@ -95,6 +98,9 @@ type ReportActionItemImageProps = {
     /** Whether to use the thumbnail image instead of the full image */
     shouldUseThumbnailImage?: boolean;
 
+    /** Whether to keep the stored map receipt offline while it regenerates, if the route hasn't changed */
+    shouldUseCachedMapWhenOffline?: boolean;
+
     /** Whether the receipt can be hover-zoomed. When true, remote PDFs render the actual PDF on top of the thumbnail so magnification stays sharp (web only). */
     canZoomReceipt?: boolean;
 
@@ -138,6 +144,7 @@ function ReportActionItemImage({
     shouldUseFullHeight,
     report: reportProp,
     shouldUseThumbnailImage,
+    shouldUseCachedMapWhenOffline = false,
     canZoomReceipt = false,
     pdfPage,
     onPDFLoadSuccess,
@@ -149,11 +156,17 @@ function ReportActionItemImage({
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const {report: contextReport, transactionThreadReport} = useShowContextMenuState();
+    const {isOffline} = useNetwork();
     const isMapDistanceRequest = !!transaction && isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     // While the receipt is regenerating its stored URL is stale, so draw the live route from `routes.coordinates`
     // (via `ConfirmedRoute`) instead of loading the now-404'd image.
-    const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction));
+    // Offline `ConfirmedRoute` can only draw a placeholder, while the queued edit hasn't touched the stored map yet.
+    // Keep that map when the route is unchanged. A route edit nulls the distance or flags `waypoints`/`routes`.
+    const hasPendingRouteChange = isFetchingWaypointsFromServer(transaction) || !!transaction?.pendingFields?.routes;
+    const canUseCachedMapOffline =
+        shouldUseCachedMapWhenOffline && isOffline && typeof transaction?.receipt?.source === 'string' && hasLocallyKnownDistance(transaction) && !hasPendingRouteChange;
+    const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction)) && !canUseCachedMapOffline;
     const navigateToReceipt = () => {
         deferReceiptNavigation(() => {
             Navigation.navigate(
