@@ -8,7 +8,7 @@ import saveLastRoute from '@libs/saveLastRoute';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {FileObject} from '@src/types/utils/Attachment';
+import type {FileObject, ImagePickerResponse} from '@src/types/utils/Attachment';
 
 import type {ReactNativeBlobUtilReadStream} from 'react-native-blob-util';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -711,13 +711,19 @@ const getImageDimensionsAfterResize = async (file: FileObject): Promise<{width: 
     return calculateScaledDimensions(width, height);
 };
 
-const createFile = (file: File): FileObject => {
+const createFile = (file: File & Pick<ImagePickerResponse, 'width' | 'height'>): FileObject => {
     if (getPlatform() === CONST.PLATFORM.ANDROID || getPlatform() === CONST.PLATFORM.IOS) {
-        return {
+        const nativeFile: FileObject = {
             uri: file.uri,
             name: file.name,
             type: file.type,
         };
+        // Keep the dimensions so the optimistic attachment renders at its real aspect ratio instead of jumping from a square on load.
+        // Only add them when set, because the optimistic HTML writes the attribute whenever the key exists, even if the value is undefined.
+        if (file.width && file.height) {
+            return {...nativeFile, width: file.width, height: file.height};
+        }
+        return nativeFile;
     }
     const clonedFile = new File([file], file.name, {
         type: file.type,
