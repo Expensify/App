@@ -5166,6 +5166,13 @@ ${amount} per ${merchant} - ${date}`,
             message:
                 'Sei membro di uno spazio di lavoro con viaggi abilitati, ma non è il tuo spazio di lavoro predefinito. Per prenotare, abilita i viaggi sul tuo spazio di lavoro predefinito oppure imposta come predefinito uno spazio di lavoro con viaggi abilitati.',
         },
+        approval: {
+            status: {outstanding: 'In sospeso', approved: 'Approvato', rejected: 'Rifiutato', canceled: 'Annullata'},
+            deadline: {
+                softApproval: (time: string) => `Approvazione automatica tra ${time}. Cancellazione gratuita fino ad allora.`,
+                hardApproval: (time: string) => `Annullamento automatico tra ${time} se non approvata.`,
+            },
+        },
     },
     workspace: {
         common: {
@@ -10894,11 +10901,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         trip: {
             tripName: 'Nome del viaggio',
             traveler: 'Viaggiatore',
-            status: {
-                upcoming: 'In arrivo',
-                done: 'Completato',
-                canceled: 'Annullato',
-            },
+            status: {upcoming: 'In arrivo', done: 'Completato', canceled: 'Annullato', outstanding: 'In sospeso', rejected: 'Rifiutato'},
         },
         tabs: {
             expenseReports: 'Note spese',

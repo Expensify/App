@@ -5089,6 +5089,13 @@ ${amount} para ${merchant} - ${date}`,
             message:
                 'Eres miembro de un espacio de trabajo con viajes habilitados, pero no es tu espacio de trabajo predeterminado. Para reservar, habilita los viajes en tu espacio de trabajo predeterminado o cambia tu espacio de trabajo predeterminado a uno que tenga los viajes habilitados.',
         },
+        approval: {
+            status: {outstanding: 'Pendiente', approved: 'Aprobado', rejected: 'Rechazado', canceled: 'Cancelado'},
+            deadline: {
+                softApproval: (time: string) => `Se aprueba automáticamente en ${time}. Cancelación gratuita hasta entonces.`,
+                hardApproval: (time: string) => `Se cancela automáticamente en ${time} si no se aprueba.`,
+            },
+        },
     },
     proactiveAppReview: {
         title: '¿Te gusta New Expensify?',
@@ -10446,15 +10453,7 @@ ${reportName}`,
         screenShareRequest: 'Expensify te está invitando a compartir la pantalla',
     },
     search: {
-        trip: {
-            tripName: 'Nombre del viaje',
-            traveler: 'Viajero',
-            status: {
-                upcoming: 'Próximo',
-                done: 'Finalizado',
-                canceled: 'Cancelado',
-            },
-        },
+        trip: {tripName: 'Nombre del viaje', traveler: 'Viajero', status: {upcoming: 'Próximo', done: 'Finalizado', canceled: 'Cancelado', outstanding: 'Pendiente', rejected: 'Rechazado'}},
         tabs: {
             expenseReports: 'Informes de gastos',
             reports: 'Informes',

@@ -5010,6 +5010,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             title: '你目前还不能预订行程',
             message: '您是已启用差旅功能的工作区成员，但该工作区不是您的默认工作区。要预订，请在您的默认工作区启用差旅功能，或将默认工作区切换为已启用差旅功能的工作区。',
         },
+        approval: {
+            status: {outstanding: '未结', approved: '已批准', rejected: '已拒绝', canceled: '已取消'},
+            deadline: {softApproval: (time: string) => `将在 ${time} 后自动批准。在此之前可免费取消。`, hardApproval: (time: string) => `若未获批准，将在 ${time} 后自动取消。`},
+        },
     },
     workspace: {
         common: {
@@ -7283,7 +7287,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 title: '复制成员',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？`,
-                    // Chinese has no "one" plural category, so handle the single-workspace case here
                     other: count === 1 ? `确定要用此工作区的成员替换 ${targetWorkspaceName} 的成员吗？` : `确定要用此工作区的成员替换 ${count} 个工作区的成员吗？`,
                 }),
             },
@@ -10456,15 +10459,7 @@ ${reportName}`,
             pleaseSelectDatesForBothFromAndTo: '请选择起始和结束日期',
         },
         spendOverTime: '随时间支出',
-        trip: {
-            tripName: '行程名称',
-            traveler: '出行人',
-            status: {
-                upcoming: '即将开始',
-                done: '已完成',
-                canceled: '已取消',
-            },
-        },
+        trip: {tripName: '行程名称', traveler: '出行人', status: {upcoming: '即将开始', done: '已完成', canceled: '已取消', outstanding: '未结', rejected: '已拒绝'}},
         tabs: {
             expenseReports: '报销报告',
             reports: '报表',

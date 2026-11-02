@@ -8684,6 +8684,8 @@ const CONST = {
             UPCOMING: 'upcoming',
             DONE: 'done',
             CANCELED: 'canceled',
+            OUTSTANDING: 'outstanding',
+            REJECTED: 'rejected',
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -9951,6 +9953,21 @@ const CONST = {
             BOOKING_OTHER_UPDATE: 'BOOKING_OTHER_UPDATE',
             REFUND: 'REFUND',
             EXCHANGE: 'EXCHANGE',
+        },
+        BOOKING_APPROVAL: {
+            STATUS: {
+                OUTSTANDING: 'outstanding',
+                APPROVED: 'approved',
+                REJECTED: 'rejected',
+                CANCELED: 'canceled',
+                NOT_REQUIRED: 'notRequired',
+            },
+            TYPE: {
+                HARD: 'HARD_APPROVAL',
+                SOFT: 'SOFT_APPROVAL',
+                PASSIVE: 'PASSIVE_APPROVAL',
+                PRE: 'PRE_APPROVAL',
+            },
         },
         /**
          * The Travel Billing feed type constant.

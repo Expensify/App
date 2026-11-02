@@ -27,6 +27,8 @@ function TripStatusCell({status}: TripStatusCellProps) {
         [CONST.SEARCH.TRIP_STATUS.UPCOMING]: theme.reportStatusBadge.approved,
         [CONST.SEARCH.TRIP_STATUS.DONE]: theme.reportStatusBadge.paid,
         [CONST.SEARCH.TRIP_STATUS.CANCELED]: theme.reportStatusBadge.unreported,
+        [CONST.SEARCH.TRIP_STATUS.OUTSTANDING]: theme.reportStatusBadge.outstanding,
+        [CONST.SEARCH.TRIP_STATUS.REJECTED]: theme.reportStatusBadge.closed,
     }[status];
 
     return (
