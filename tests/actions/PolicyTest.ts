@@ -3932,6 +3932,7 @@ describe('actions/Policy', () => {
                 transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
                 personalDetailsList: {},
+                personalDetailsByLogins: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -3996,6 +3997,7 @@ describe('actions/Policy', () => {
                 transactionViolations: {},
                 isASAPSubmitBetaEnabled: undefined,
                 personalDetailsList: {},
+                personalDetailsByLogins: undefined,
             });
             await waitForBatchedUpdates();
 
@@ -4043,6 +4045,7 @@ describe('actions/Policy', () => {
                 transactionViolations: {},
                 isASAPSubmitBetaEnabled: false,
                 personalDetailsList: {},
+                personalDetailsByLogins: undefined,
             });
             await waitForBatchedUpdates();
 
