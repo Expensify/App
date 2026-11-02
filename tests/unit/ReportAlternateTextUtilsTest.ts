@@ -299,6 +299,26 @@ describe('ReportAlternateTextUtils', () => {
             expect(result).toBe('Mystery Person');
         });
 
+        it('should fall back to the action person text when the actor personal details have no name', () => {
+            // Given an actor from another company, like a bill's payer on the vendor's invoice, whose personal details have no name or login
+            const personalDetails = {...PERSONAL_DETAILS, 42: {accountID: 42}};
+
+            // When the LHN names the actor of the last action
+            const result = getLastActorDisplayNameFromLastVisibleActions(
+                makeReport(),
+                null,
+                CURRENT_USER_ACCOUNT_ID,
+                personalDetails,
+                false,
+                translateLocal,
+                undefined,
+                makeAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, {actorAccountID: 42, person: [{type: 'TEXT', style: 'strong', text: 'payer@company.com'}]}),
+            );
+
+            // Then it uses the name saved on the action instead of Hidden
+            expect(result).toBe('payer@company.com');
+        });
+
         it('should fall back to the passed lastActorDetails when there is no last action', () => {
             const result = getLastActorDisplayNameFromLastVisibleActions(makeReport(), PERSONAL_DETAILS[2] ?? null, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, false, translateLocal);
             expect(result).toBe('Bob');
