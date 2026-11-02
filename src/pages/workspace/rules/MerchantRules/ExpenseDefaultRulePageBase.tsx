@@ -539,6 +539,10 @@ function ExpenseDefaultRulePageBase({
                           key: 'vendorID',
                           description: translate('common.vendor'),
                           title: vendorDisplayName,
+                          // The vendor picker reads the connection's vendors, so it has nothing to show once the
+                          // integration stops supplying them and answers with Not Found. The row stays readable so the
+                          // vendor the rule still applies is not hidden, but it leads nowhere.
+                          isLocked: !isVendorFeatureEnabled,
                           onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_VENDOR_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_VENDOR.getRoute(policyID, ruleID))),
                           icon: icons.Basket,
                       }
