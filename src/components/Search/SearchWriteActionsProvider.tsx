@@ -154,6 +154,7 @@ function useReconcileSelectionWithData({
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {applySelection} = useSearchSelectionActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     useEffect(() => {
         const shouldReconcileMovedExcludedTransaction =
@@ -279,6 +280,7 @@ function useReconcileSelectionWithData({
                         allowNegativeAmount: true,
                         parentReport: itemParentReport,
                         rules,
+                        policies,
                     });
 
                     const liveSelectionEntry: SelectedTransactionInfo = {
@@ -364,6 +366,7 @@ function useReconcileSelectionWithData({
                     allowNegativeAmount: true,
                     parentReport: itemParentReport,
                     rules,
+                    policies,
                 });
 
                 const liveSelectionEntry: SelectedTransactionInfo = {
@@ -539,6 +542,7 @@ function SearchWriteActionsProvider({
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {applySelection, getSelectedTransactions, getExcludedTransactions, getAreAllMatchingItemsSelected} = useSearchSelectionActions();
 
     const {openGroupKeys, shiftRangeGroupsActions} = useOpenGroupsRegistry(searchHash);
@@ -586,6 +590,7 @@ function SearchWriteActionsProvider({
             allowNegativeAmount: true,
             parentReport,
             rules,
+            policies,
         });
     };
 
@@ -741,6 +746,7 @@ function SearchWriteActionsProvider({
                     selfDMReport,
                     parentReport: itemParentReport,
                     rules,
+                    policies,
                 });
 
                 if (areItemsGrouped && isGroupedItemArray(filteredData)) {

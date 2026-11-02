@@ -573,6 +573,7 @@ function useSelectedTransactionsActions({
                 getLoginByAccountID(report?.ownerAccountID, personalDetails),
                 policy,
                 parentReport,
+                allPolicies,
             );
 
         if (canSplitTransaction) {

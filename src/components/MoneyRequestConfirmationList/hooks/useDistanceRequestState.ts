@@ -88,7 +88,7 @@ function useDistanceRequestState({
     });
     const distanceRate = mileageRate.rate;
     const distanceUnit = mileageRate.unit;
-    const calculateFromTransactionData = isMovingTransactionFromTrackExpense && !distanceRate;
+    const calculateFromTransactionData = isMovingTransactionFromTrackExpense && distanceRate === undefined;
     const customUnit = transaction?.comment?.customUnit;
     const unit = calculateFromTransactionData ? customUnit?.distanceUnit : distanceUnit;
     const backCalculationQuantity = customUnit?.quantity;
@@ -124,7 +124,7 @@ function useDistanceRequestState({
         !transaction?.errorFields?.route &&
         !DistanceRequestUtils.hasCommuterExclusionPreviewForPolicy(transaction, policy);
 
-    const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate || isCommuterExclusionPreviewPending) && !isMovingTransactionFromTrackExpense;
+    const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || rate === undefined || isCommuterExclusionPreviewPending) && !isMovingTransactionFromTrackExpense;
 
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(reimbursableDistanceInMeters, amountUnit, rate ?? 0);
 

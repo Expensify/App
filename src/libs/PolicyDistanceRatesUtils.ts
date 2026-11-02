@@ -83,7 +83,7 @@ function getDistanceRateNameErrorMessage(translate: LocalizedTranslate, error: D
 }
 
 /**
- * Validates a distance rate amount against the same rules as the RHP edit form (format and > 0).
+ * Validates a distance rate amount against the same rules as the RHP edit form (format and >= 0).
  * Returns an error code, or undefined when the value is valid.
  */
 function getDistanceRateValueError(rate: string, toLocaleDigit: (arg: string) => string): DistanceRateValueError | undefined {
@@ -91,11 +91,12 @@ function getDistanceRateValueError(rate: string, toLocaleDigit: (arg: string) =>
     const decimalSeparator = toLocaleDigit('.');
     // Allow one more decimal place for accuracy
     const rateValueRegex = RegExp(String.raw`^-?\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}([${getPermittedDecimalSeparator(decimalSeparator)}]\d{0,${CONST.MAX_TAX_RATE_DECIMAL_PLACES}})?$`, 'i');
+    const rateValue = parseFloatAnyLocale(parsedRate);
 
-    if (!rateValueRegex.test(parsedRate) || parsedRate === '') {
+    if (!rateValueRegex.test(parsedRate) || parsedRate === '' || Number.isNaN(rateValue)) {
         return CONST.INPUT_VALIDATION_ERRORS.INVALID;
     }
-    if (parseFloatAnyLocale(parsedRate) <= 0) {
+    if (rateValue < 0) {
         return CONST.INPUT_VALIDATION_ERRORS.TOO_LOW;
     }
 
