@@ -1544,7 +1544,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             mockFetch?.pause?.();
 
-            markReportPaymentReceived(chatReport, reimbursedReport, currentUserAccountID, currentUserEmail, mockChatReportActions, false, undefined, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived(
+                translateLocal,
+                chatReport,
+                reimbursedReport,
+                currentUserAccountID,
+                currentUserEmail,
+                mockChatReportActions,
+                false,
+                undefined,
+                getCurrencyDecimalsLocal,
+                undefined,
+            );
             await waitForBatchedUpdates();
 
             const updatedChatReport = await new Promise<OnyxEntry<Report>>((resolve) => {
@@ -1952,6 +1963,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
         it('does nothing when the chat report is missing', () => {
             markReportPaymentReceived(
+                translateLocal,
                 undefined,
                 {
                     ...createRandomReport(1, undefined),
@@ -1970,7 +1982,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
         });
 
         it('does nothing when the IOU report is missing', () => {
-            markReportPaymentReceived(createRandomReport(1, undefined), undefined, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, false, {}, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived(
+                translateLocal,
+                createRandomReport(1, undefined),
+                undefined,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                false,
+                {},
+                getCurrencyDecimalsLocal,
+                undefined,
+            );
 
             expect(writeSpy).not.toHaveBeenCalled();
         });
@@ -1980,7 +2003,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the submitter marks the payment as received
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived(
+                translateLocal,
+                chatReport,
+                reimbursedReport,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                chatReportActions,
+                false,
+                {},
+                getCurrencyDecimalsLocal,
+                undefined,
+            );
 
             // Then the expense report optimistically moves to the reimbursed state and the chat drops its iouReportID
             const [command, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
@@ -2003,7 +2037,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the submitter marks the payment as received
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived(
+                translateLocal,
+                chatReport,
+                reimbursedReport,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                chatReportActions,
+                false,
+                {},
+                getCurrencyDecimalsLocal,
+                undefined,
+            );
 
             // Then a PAY action is added to the expense report, reported to the API and pending
             const [, parameters] = getRequiredWriteCall(writeSpy.mock.calls, 0);
@@ -2036,7 +2081,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the payment is marked as received with no violations
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived(
+                translateLocal,
+                chatReport,
+                reimbursedReport,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                chatReportActions,
+                false,
+                {},
+                getCurrencyDecimalsLocal,
+                undefined,
+            );
 
             // Then the chat keeps its outstanding flag because the sibling report is still awaiting the user
             expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
@@ -2050,6 +2106,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
 
             // When the payment is marked as received with those violations
             markReportPaymentReceived(
+                translateLocal,
                 chatReport,
                 reimbursedReport,
                 CURRENT_USER_ACCOUNT_ID,
@@ -2076,7 +2133,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the payment is marked as received while an empty violations collection is passed in
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived(
+                translateLocal,
+                chatReport,
+                reimbursedReport,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                chatReportActions,
+                false,
+                {},
+                getCurrencyDecimalsLocal,
+                undefined,
+            );
 
             // Then the outstanding flag still reflects the argument (no auto-rejection), proving the global collection is ignored
             expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
@@ -2091,7 +2159,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             await waitForBatchedUpdates();
 
             // When the caller has no violations loaded yet and passes undefined
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, undefined, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived(
+                translateLocal,
+                chatReport,
+                reimbursedReport,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                chatReportActions,
+                false,
+                undefined,
+                getCurrencyDecimalsLocal,
+                undefined,
+            );
 
             // Then it behaves like an empty collection rather than falling back to Onyx
             expect(getOptimisticChatReportValue(chatReport.reportID)).toMatchObject({
@@ -2104,7 +2183,18 @@ describe('actions/IOU/PayMoneyRequest', () => {
             const {chatReport, reimbursedReport, chatReportActions} = await setUpChatWithOutstandingSibling();
 
             // When the submitter marks the payment as received
-            markReportPaymentReceived(chatReport, reimbursedReport, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, chatReportActions, false, {}, getCurrencyDecimalsLocal, undefined);
+            markReportPaymentReceived(
+                translateLocal,
+                chatReport,
+                reimbursedReport,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                chatReportActions,
+                false,
+                {},
+                getCurrencyDecimalsLocal,
+                undefined,
+            );
 
             // Then a server confirmation clears the pending fields
             const successReport = getRequiredOnyxUpdate(getOnyxDataArg(), 'successData', `${ONYXKEYS.COLLECTION.REPORT}${reimbursedReport.reportID}`, Onyx.METHOD.MERGE, true).value;

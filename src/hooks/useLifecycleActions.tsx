@@ -399,6 +399,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         () => {
                             startAnimation();
                             markReportPaymentReceived(
+                                translate,
                                 chatReport,
                                 moneyRequestReport,
                                 accountID,
@@ -417,6 +418,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
                 startAnimation();
                 markReportPaymentReceived(
+                    translate,
                     chatReport,
                     moneyRequestReport,
                     accountID,

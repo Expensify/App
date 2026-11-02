@@ -1,4 +1,5 @@
 import type {PaymentMethod} from '@components/KYCWall/types';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -8,7 +9,6 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import {shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import {translateLocal} from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
@@ -993,6 +993,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
 }
 
 function markReportPaymentReceived(
+    translate: LocalizedTranslate,
     chatReport: OnyxEntry<OnyxTypes.Report>,
     iouReport: OnyxEntry<OnyxTypes.Report>,
     currentUserAccountID: number,
@@ -1025,9 +1026,8 @@ function markReportPaymentReceived(
     // buildOptimisticIOUReportAction formats the action's `message` as "paid ... elsewhere", so override it with
     // the "received payment" copy here. Keeping the action's message in sync fixes the optimistic chat/report
     // preview, which derives lastMessageText/lastMessageHtml from this action.
-    // translateLocal is used because this runs outside a React component where the useLocalize hook is unavailable.
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const receivedPaymentMessage = getElsewherePaymentReportActionMessage(translateLocal, optimisticIOUReportAction.originalMessage);
+    const receivedPaymentMessage = getElsewherePaymentReportActionMessage(translate, optimisticIOUReportAction.originalMessage);
     optimisticIOUReportAction.message = [{html: receivedPaymentMessage, text: receivedPaymentMessage, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}];
 
     const reportPreviewAction = getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);
