@@ -127,7 +127,17 @@ function LogOutPreviousUserPage({route}: LogOutPreviousUserPageProps) {
                     isSupportalLogin,
                 });
                 // We don't want to close react-native app in this particular case.
-                signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER);
+                signOutAndRedirectToSignIn(false, isSupportalLogin, true, undefined, CONST.SIGN_OUT_REASON.LOGIN_AS_NEW_USER)?.then(() => {
+                    // The public transition page only mounts when the URL path is still /transition. Anything that navigated while the prompt
+                    // was open has changed that path, so the token from the route params is redeemed here instead. HybridApp reads the link from
+                    // the native launch URL, which no navigation can change, so it keeps its own flow.
+                    if (CONFIG.IS_HYBRID_APP || shortLivedAuthToken === getLastShortAuthToken()) {
+                        return;
+                    }
+                    signInWithShortLivedAuthToken(shortLivedAuthToken, undefined, false, undefined, undefined).catch((error) =>
+                        Log.warn('Unable to sign in with shortLivedAuthToken', {error}),
+                    );
+                });
             });
             return;
         }
