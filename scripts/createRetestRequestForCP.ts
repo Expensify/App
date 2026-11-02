@@ -8,7 +8,7 @@ import CLI from 'expensify-common/CLI';
 // GitHub REST API request fields are snake_case (per_page, commit_sha, pull_number), which this rule would otherwise flag.
 /* eslint-disable @typescript-eslint/naming-convention */
 
-// GitHub limits list and compare responses to 100 entries per page.
+// GitHub limits issue and pull request commit lists to 100 entries per page.
 const GITHUB_PAGE_SIZE = 100;
 
 /**
@@ -18,7 +18,7 @@ const GITHUB_PAGE_SIZE = 100;
  * It fires only when all three are true:
  *   1. The cherry-pick is included in a staging deploy on all platforms.
  *   2. The cherry-picked PR is on the current StagingDeployCash checklist.
- *   3. An issue linked in that PR's body is an unresolved deploy blocker on that same checklist.
+ *   3. An issue linked in that PR's body is listed as a deploy blocker on that same checklist.
  */
 
 // Slack workflow webhook trigger. Empty values are rejected by Slack, so blanks are sent as this instead.
@@ -33,6 +33,7 @@ const WHITELIST_ENTRY_REGEX = /'github'\s*=>\s*'([^']+)'[\s\S]{0,400}?'slack'\s*
 
 const RETEST_MARKER_PREFIX = '<!-- retest-requested:';
 const CHERRY_PICK_RETEST_MARKER_PREFIX = '<!-- retest-requested-cp:';
+const PENDING_RETEST_MARKER_PREFIX = '<!-- retest-request-pending-cp:';
 const RETEST_MARKER_SUFFIX = ' -->';
 const RETEST_MARKER_REGEX = new RegExp(`${RETEST_MARKER_PREFIX}([^\\s]+)${RETEST_MARKER_SUFFIX}`);
 
@@ -41,14 +42,21 @@ const getRetestMarker = (tag: string) => `${RETEST_MARKER_PREFIX}${tag}${RETEST_
 
 // A later deploy can include the same cherry-pick, so its commit needs a marker independent of the deploy tag.
 const getCherryPickRetestMarker = (sha: string) => `${CHERRY_PICK_RETEST_MARKER_PREFIX}${sha}${RETEST_MARKER_SUFFIX}`;
+const getPendingRetestMarker = (sha: string) => `${PENDING_RETEST_MARKER_PREFIX}${sha}${RETEST_MARKER_SUFFIX}`;
 
 const DEPLOYER_CHANNEL_ID = 'C07J32337';
 const RETESTS_CHANNEL_ID = 'C09V78U42D8';
 const SLACK_HISTORY_PAGE_SIZE = 100;
 const CHERRY_PICK_REQUEST_HISTORY_MAX_PAGES = 20;
 const RETEST_MESSAGE_HISTORY_MAX_PAGES = 1;
+const RETEST_RECOVERY_HISTORY_MAX_PAGES = 20;
 const RETEST_MESSAGE_LOOKUP_ATTEMPTS = 6;
 const RETEST_MESSAGE_LOOKUP_DELAY_MS = 5000;
+const HTTP_CLIENT_ERROR_MIN = 400;
+const HTTP_SERVER_ERROR_MIN = 500;
+const HTTP_REQUEST_TIMEOUT = 408;
+const HTTP_CLIENT_CLOSED_REQUEST = 499;
+const RETEST_WEBHOOK_ERROR_NAME = 'RetestWebhookError';
 
 type RetestHit = {
     prNumber: number;
@@ -72,6 +80,23 @@ type DeployedCommit = {
     sha: string;
     message: string;
 };
+
+type RevertTargets = {
+    commitSHAs: string[];
+    pullNumbers: number[];
+};
+
+type RetestWebhookError = Error & {status: number};
+
+class PendingRetestRequestError extends Error {
+    readonly deployTag: string;
+
+    constructor(prNumber: number, deployTag: string) {
+        super(`Retest for PR #${prNumber} on ${deployTag} is pending; check Slack before retrying.`);
+        this.name = 'PendingRetestRequestError';
+        this.deployTag = deployTag;
+    }
+}
 
 type SlackMessage = {
     text?: string;
@@ -97,6 +122,10 @@ type SlackPermalinkResponse = SlackResponse & {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null;
+}
+
+function isRetestWebhookError(error: unknown): error is RetestWebhookError {
+    return error instanceof Error && error.name === RETEST_WEBHOOK_ERROR_NAME && 'status' in error && typeof error.status === 'number';
 }
 
 function isSlackResponse(value: unknown): value is SlackResponse {
@@ -161,21 +190,16 @@ async function getPreviousChecklistTag(checklistNumber: number): Promise<string>
 
 /** Fetch every commit in the release; GitHub truncates unpaginated comparisons at 250 commits. */
 async function getDeployedCommits(previousTag: string, deploySHA: string): Promise<DeployedCommit[]> {
-    const commits: DeployedCommit[] = [];
-    for (let page = 1; ; page++) {
-        const {data: comparison} = await GithubUtils.octokit.repos.compareCommits({
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            base: previousTag,
-            head: deploySHA,
-            per_page: GITHUB_PAGE_SIZE,
-            page,
-        });
-        commits.push(...comparison.commits.map((commit) => ({sha: commit.sha, message: commit.commit.message})));
-        if (comparison.commits.length < GITHUB_PAGE_SIZE) {
-            return commits;
-        }
-    }
+    const commits = await GithubUtils.getCommitHistoryBetweenTags(previousTag, deploySHA, CONST.APP_REPO);
+    return commits.map((commit) => ({sha: commit.commit, message: commit.subject}));
+}
+
+const CHERRY_PICK_SOURCE_REGEX = /cherry picked from commit ([0-9a-f]{7,40})/g;
+const REVERTED_COMMIT_REGEX = /\bthis reverts commit ([0-9a-f]{7,40})\b/gi;
+const APP_PULL_REFERENCE = `(?:${CONST.APP_REPO_URL.replaceAll('.', '\\.')}/pull/|${CONST.GITHUB_OWNER}/${CONST.APP_REPO}#|(?<![\\w/.-])#)(\\d+)`;
+
+function getCherryPickSourceSHAs(message: string): string[] {
+    return [...message.matchAll(CHERRY_PICK_SOURCE_REGEX)].map((match) => match[1]);
 }
 
 /**
@@ -188,10 +212,10 @@ function getCherryPicks(commits: DeployedCommit[]): CherryPick[] {
     const cherryPicksBySourceSHA = new Map<string, CherryPick>();
     for (const {sha, message} of commits) {
         const actor = message.match(/\(cherry-picked to .* by (.+?)\)/)?.[1] ?? '';
-        for (const match of message.matchAll(/cherry picked from commit ([0-9a-f]{7,40})/g)) {
+        for (const sourceSHA of getCherryPickSourceSHAs(message)) {
             // Reinsert repeated sources so PRs associated with multiple commits use the latest pick and requester.
-            cherryPicksBySourceSHA.delete(match[1]);
-            cherryPicksBySourceSHA.set(match[1], {sourceSHA: match[1], cherryPickSHA: sha, actor});
+            cherryPicksBySourceSHA.delete(sourceSHA);
+            cherryPicksBySourceSHA.set(sourceSHA, {sourceSHA, cherryPickSHA: sha, actor});
         }
     }
     return [...cherryPicksBySourceSHA.values()];
@@ -211,6 +235,165 @@ async function getCherryPicksByPullRequest(cherryPicks: CherryPick[]): Promise<M
         }
     }
     return cherryPickByPR;
+}
+
+function getRevertedCommitSHAs(text: string): string[] {
+    return [...text.matchAll(REVERTED_COMMIT_REGEX)].map((match) => match[1].toLowerCase());
+}
+
+function getRevertedPullNumbers(text: string): number[] {
+    const pullNumbers = new Set<number>();
+    // Revert descriptions can mention unrelated PRs, so only explicit targets and revert lists count.
+    const directReference = new RegExp(`\\brevert(?:s|ed|ing)?\\b\\s+(?:(?:of|the|a|PR|pull request)\\s+)*(?:\\[[^\\]\\n]+\\]\\()?${APP_PULL_REFERENCE}`, 'gi');
+    const pullReference = new RegExp(APP_PULL_REFERENCE, 'gi');
+    for (const match of text.matchAll(directReference)) {
+        pullNumbers.add(Number.parseInt(match[1], 10));
+    }
+
+    const lines = text.split(/\r?\n/);
+    for (let index = 0; index < lines.length; index++) {
+        if (!/\brevert(?:s|ed|ing)?\b[^\r\n]*:\s*$/i.test(lines[index])) {
+            continue;
+        }
+        let listStarted = false;
+        for (const line of lines.slice(index + 1)) {
+            if (!line.trim() && !listStarted) {
+                continue;
+            }
+            if (!/^\s*[-*]\s+/.test(line)) {
+                break;
+            }
+            listStarted = true;
+            for (const match of line.matchAll(pullReference)) {
+                pullNumbers.add(Number.parseInt(match[1], 10));
+            }
+        }
+    }
+    return [...pullNumbers];
+}
+
+function getDeployedPullNumber(message: string): number | undefined {
+    const subject = message.split('\n')[0] ?? '';
+    const match = subject.match(/^Merge pull request #(\d+)\b/) ?? subject.match(/\(#(\d+)\)\s*$/);
+    return match ? Number.parseInt(match[1], 10) : undefined;
+}
+
+function isRevertCommit(message: string): boolean {
+    const lines = message.split('\n');
+    const subject = lines[0] ?? '';
+    const title = subject.startsWith('Merge pull request #') ? (lines.slice(1).find((line) => line.trim()) ?? '') : subject;
+    return /^(?:\[[^\]]+\]\s*)*(?:revert(?:s|ed)?|rollback|roll back)\b/i.test(title.trim());
+}
+
+/** Cherry-picking a revert PR's merge commit can omit the revert trailers from its individual commits. */
+async function getRevertTargetsForPullRequest(pullNumber: number): Promise<RevertTargets> {
+    const {data: pull} = await GithubUtils.octokit.pulls.get({
+        owner: CONST.GITHUB_OWNER,
+        repo: CONST.APP_REPO,
+        pull_number: pullNumber,
+    });
+    const texts = [pull.title, pull.body ?? ''];
+    for (let page = 1; ; page++) {
+        const {data: commits} = await GithubUtils.octokit.pulls.listCommits({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            pull_number: pullNumber,
+            per_page: GITHUB_PAGE_SIZE,
+            page,
+        });
+        texts.push(...commits.map((commit) => commit.commit.message));
+        if (commits.length < GITHUB_PAGE_SIZE) {
+            break;
+        }
+    }
+    return {
+        commitSHAs: [...new Set(texts.flatMap(getRevertedCommitSHAs))],
+        pullNumbers: [...new Set(texts.flatMap(getRevertedPullNumbers))],
+    };
+}
+
+function hasRevertedSHA(sha: string, revertedSHAs: Set<string>): boolean {
+    for (const revertedSHA of revertedSHAs) {
+        // Either trailer can use Git's abbreviated SHA, so compare both prefixes.
+        if (sha.startsWith(revertedSHA) || revertedSHA.startsWith(sha)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/** Ignore picks that were undone before this deploy, while keeping re-picks and reverted reverts. */
+async function filterRevertedCherryPicks(commits: DeployedCommit[], cherryPickByPR: Map<number, CherryPick>): Promise<Map<number, CherryPick>> {
+    const pickSHAs = new Set([...cherryPickByPR.values()].map((pick) => pick.cherryPickSHA));
+    const firstPickIndex = commits.findIndex((commit) => pickSHAs.has(commit.sha));
+    if (firstPickIndex < 0) {
+        throw new Error('Could not find the cherry-picked commits in the deployment history.');
+    }
+    // Reverts before every candidate cannot undo those picks and do not need GitHub lookups.
+    const relevantCommits = commits.slice(firstPickIndex);
+    const revertTargetsByCommit = new Map<string, RevertTargets>();
+    const revertTargetsByPR = new Map<number, RevertTargets>();
+    for (const commit of relevantCommits) {
+        const commitSHAs = getRevertedCommitSHAs(commit.message);
+        const pullNumbers: number[] = [];
+        const pullNumber = getDeployedPullNumber(commit.message);
+        if (pullNumber && isRevertCommit(commit.message)) {
+            let targets = revertTargetsByPR.get(pullNumber);
+            if (!targets) {
+                targets = await getRevertTargetsForPullRequest(pullNumber);
+                revertTargetsByPR.set(pullNumber, targets);
+            }
+            commitSHAs.push(...targets.commitSHAs);
+            pullNumbers.push(...targets.pullNumbers);
+            if (commitSHAs.length === 0 && pullNumbers.length === 0) {
+                throw new Error(`Could not identify the target of revert PR #${pullNumber}.`);
+            }
+        }
+        if (commitSHAs.length > 0 || pullNumbers.length > 0) {
+            revertTargetsByCommit.set(commit.sha, {commitSHAs, pullNumbers});
+        }
+    }
+    if (revertTargetsByCommit.size === 0) {
+        return cherryPickByPR;
+    }
+
+    const activePicks = new Map(cherryPickByPR);
+    const pullNumbersByCommit = new Map<string, number[]>();
+    for (const [pullNumber, cherryPick] of cherryPickByPR) {
+        const pullNumbers = pullNumbersByCommit.get(cherryPick.cherryPickSHA) ?? [];
+        pullNumbers.push(pullNumber);
+        pullNumbersByCommit.set(cherryPick.cherryPickSHA, pullNumbers);
+    }
+    const revertedSHAs = new Set<string>();
+    const revertedPullNumbers = new Set<number>();
+    // Newer reverts have to be applied first so an undone revert cannot cancel its targets.
+    for (const commit of relevantCommits.toReversed()) {
+        const pullNumber = getDeployedPullNumber(commit.message);
+        const pickedPRs = pullNumbersByCommit.get(commit.sha) ?? [];
+        const isReverted =
+            hasRevertedSHA(commit.sha, revertedSHAs) ||
+            getCherryPickSourceSHAs(commit.message).some((sha) => hasRevertedSHA(sha, revertedSHAs)) ||
+            (pullNumber !== undefined && revertedPullNumbers.has(pullNumber)) ||
+            pickedPRs.some((number) => revertedPullNumbers.has(number));
+        // A reverted revert no longer cancels its own targets.
+        if (isReverted) {
+            for (const number of pickedPRs) {
+                activePicks.delete(number);
+            }
+            continue;
+        }
+        const targets = revertTargetsByCommit.get(commit.sha);
+        if (!targets) {
+            continue;
+        }
+        for (const sha of targets.commitSHAs) {
+            revertedSHAs.add(sha);
+        }
+        for (const number of targets.pullNumbers) {
+            revertedPullNumbers.add(number);
+        }
+    }
+    return activePicks;
 }
 
 /** Map every GitHub login in the employee whitelist to its Slack member ID. */
@@ -269,6 +452,8 @@ function getLinkedIssueNumbers(prBody: string | null): number[] {
 /** Find the original tag so reruns can avoid duplicate requests and locate the existing Slack message. */
 async function getRequestedRetestTag(prNumber: number, cherryPickSHA: string, deployTag: string): Promise<string | undefined> {
     const comments = await GithubUtils.getAllComments(prNumber);
+    const legacyTags: string[] = [];
+    let pendingTag: string | undefined;
     for (const comment of comments) {
         const tag = comment?.match(RETEST_MARKER_REGEX)?.[1];
         if (!comment || !tag) {
@@ -277,24 +462,47 @@ async function getRequestedRetestTag(prNumber: number, cherryPickSHA: string, de
         if (comment.includes(getCherryPickRetestMarker(cherryPickSHA))) {
             return tag;
         }
-        if (comment.includes(CHERRY_PICK_RETEST_MARKER_PREFIX)) {
+        if (comment.includes(getPendingRetestMarker(cherryPickSHA))) {
+            pendingTag = tag;
+            continue;
+        }
+        if (comment.includes(CHERRY_PICK_RETEST_MARKER_PREFIX) || comment.includes(PENDING_RETEST_MARKER_PREFIX)) {
             continue;
         }
         if (tag === deployTag) {
             return tag;
         }
 
-        // Older comments only record the tag; check that the tagged deploy contained this exact pick.
-        const {data: comparison} = await GithubUtils.octokit.repos.compareCommits({
-            owner: CONST.GITHUB_OWNER,
-            repo: CONST.APP_REPO,
-            base: cherryPickSHA,
-            head: tag,
-            per_page: 1,
-        });
-        if (comparison.status === 'ahead' || comparison.status === 'identical') {
-            return tag;
+        legacyTags.push(tag);
+    }
+
+    let firstError: unknown;
+    let didFail = false;
+    for (const tag of legacyTags) {
+        try {
+            // Older comments only record the tag; check that the tagged deploy contained this exact pick.
+            const {data: comparison} = await GithubUtils.octokit.repos.compareCommits({
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                base: cherryPickSHA,
+                head: tag,
+                per_page: 1,
+            });
+            if (comparison.status === 'ahead' || comparison.status === 'identical') {
+                return tag;
+            }
+        } catch (error) {
+            if (!didFail) {
+                firstError = error;
+                didFail = true;
+            }
         }
+    }
+    if (pendingTag) {
+        throw new PendingRetestRequestError(prNumber, pendingTag);
+    }
+    if (didFail) {
+        throw firstError;
     }
     return undefined;
 }
@@ -314,6 +522,10 @@ function buildRetestPayload(hit: RetestHit, deployTag: string): Record<string, s
     };
 }
 
+function buildRetestComment(hit: RetestHit, deployTag: string): string {
+    return `${getRetestMarker(deployTag)}\n${getCherryPickRetestMarker(hit.cherryPickSHA)}\n🔁 Filed a Staging retest request for deploy blockers ${hit.blockerIssueURLs.join(', ')} after this PR was cherry-picked to staging.`;
+}
+
 /** POST the retest request to the Slack workflow webhook. */
 async function fireRetestRequest(hit: RetestHit, deployTag: string, webhookURL: string): Promise<void> {
     const payload = buildRetestPayload(hit, deployTag);
@@ -324,7 +536,10 @@ async function fireRetestRequest(hit: RetestHit, deployTag: string, webhookURL: 
         body: JSON.stringify(payload),
     });
     if (!response.ok) {
-        throw new Error(`Slack webhook returned ${response.status} ${response.statusText}: ${await response.text()}`);
+        throw Object.assign(new Error(`Slack webhook returned ${response.status} ${response.statusText}: ${await response.text()}`), {
+            name: RETEST_WEBHOOK_ERROR_NAME,
+            status: response.status,
+        });
     }
 }
 
@@ -394,15 +609,30 @@ async function findSlackMessage(
     return undefined;
 }
 
+function hasRetestRequestReference(message: SlackMessage, reference: string): boolean {
+    const text = message.text ?? '';
+    let index = text.indexOf(reference);
+    while (index >= 0) {
+        const nextCharacter = text[index + reference.length];
+        // A shorter PR number must not match the prefix of a longer one.
+        if (nextCharacter === undefined || !/\d/.test(nextCharacter)) {
+            return true;
+        }
+        index = text.indexOf(reference, index + reference.length);
+    }
+    return false;
+}
+
 /** Slack Workflow Builder posts asynchronously, so wait briefly for the retest request to appear. */
-async function findRetestRequestMessage(hit: RetestHit, deployTag: string, token: string): Promise<SlackMessage | undefined> {
+async function findRetestRequestMessage(hit: RetestHit, deployTag: string, token: string, maxPages = RETEST_MESSAGE_HISTORY_MAX_PAGES): Promise<SlackMessage | undefined> {
     const reference = getRetestRequestReference(hit, deployTag);
     for (let attempt = 1; attempt <= RETEST_MESSAGE_LOOKUP_ATTEMPTS; attempt++) {
         const message = await findSlackMessage(
             RETESTS_CHANNEL_ID,
             token,
-            (candidate) => isTopLevelSlackMessage(candidate) && candidate.text?.includes(reference) === true,
-            RETEST_MESSAGE_HISTORY_MAX_PAGES,
+            (candidate) => isTopLevelSlackMessage(candidate) && hasRetestRequestReference(candidate, reference),
+            // A newly posted request appears on the newest page; only the first lookup needs older pages.
+            attempt === 1 ? maxPages : RETEST_MESSAGE_HISTORY_MAX_PAGES,
         );
         if (message) {
             return message;
@@ -448,8 +678,8 @@ function buildRetestLinkReply(threadTS: string, retestPermalink: string): Record
 }
 
 /** Add the retest request link to the Cherry Pick Request that triggered the deploy. */
-async function postRetestRequestLink(hit: RetestHit, deployTag: string, token: string, deployerWebhookURL: string): Promise<void> {
-    const retestRequest = await findRetestRequestMessage(hit, deployTag, token);
+async function postRetestRequestLink(hit: RetestHit, deployTag: string, token: string, deployerWebhookURL: string, existingRequest?: SlackMessage): Promise<void> {
+    const retestRequest = existingRequest ?? (await findRetestRequestMessage(hit, deployTag, token));
     if (!retestRequest) {
         console.warn(`Could not find the retest request for PR #${hit.prNumber} on ${deployTag}.`);
         return;
@@ -483,6 +713,94 @@ async function postRetestRequestLink(hit: RetestHit, deployTag: string, token: s
     console.log(`Added the retest request link to the Cherry Pick Request thread for PR #${hit.prNumber}.`);
 }
 
+/** Keep an unavailable legacy tag or a failed request from blocking the other fixes in this deploy. */
+async function fileRetestRequests(hits: RetestHit[], deployTag: string, webhookURL: string, slackToken?: string, deployerWebhookURL?: string): Promise<void> {
+    const failedPRs: number[] = [];
+    for (const hit of hits) {
+        try {
+            let requestedTag: string | undefined;
+            let recoveredRequest: SlackMessage | undefined;
+            try {
+                requestedTag = await getRequestedRetestTag(hit.prNumber, hit.cherryPickSHA, deployTag);
+            } catch (error) {
+                if (!(error instanceof PendingRetestRequestError) || !slackToken) {
+                    throw error;
+                }
+                // A webhook can succeed even if its confirmation comment fails. Never post again until Slack confirms the outcome.
+                recoveredRequest = await findRetestRequestMessage(hit, error.deployTag, slackToken, RETEST_RECOVERY_HISTORY_MAX_PAGES);
+                if (!recoveredRequest) {
+                    throw error;
+                }
+                await GithubUtils.createComment(CONST.APP_REPO, hit.prNumber, buildRetestComment(hit, error.deployTag));
+                requestedTag = error.deployTag;
+            }
+            if (!requestedTag) {
+                // Save the pending state before the webhook so a failed confirmation cannot cause a duplicate.
+                const pendingComment = await GithubUtils.createComment(
+                    CONST.APP_REPO,
+                    hit.prNumber,
+                    `${getRetestMarker(deployTag)}\n${getPendingRetestMarker(hit.cherryPickSHA)}\n⏳ Staging retest request is being filed. If it stays pending, check #retests before retrying.`,
+                );
+                try {
+                    await fireRetestRequest(hit, deployTag, webhookURL);
+                } catch (error) {
+                    // Timeouts and client disconnects can be ambiguous even when returned as 4xx responses.
+                    if (
+                        isRetestWebhookError(error) &&
+                        error.status >= HTTP_CLIENT_ERROR_MIN &&
+                        error.status < HTTP_SERVER_ERROR_MIN &&
+                        error.status !== HTTP_REQUEST_TIMEOUT &&
+                        error.status !== HTTP_CLIENT_CLOSED_REQUEST
+                    ) {
+                        try {
+                            // A client error confirms Slack rejected the request, so a later deploy may retry it.
+                            await GithubUtils.octokit.issues.updateComment({
+                                owner: CONST.GITHUB_OWNER,
+                                repo: CONST.APP_REPO,
+                                comment_id: pendingComment.data.id,
+                                body: `⚠️ Slack rejected the Staging retest request (HTTP ${error.status}). A later deploy can retry it.`,
+                            });
+                        } catch (updateError) {
+                            console.error(`Could not record the rejected retest request for PR #${hit.prNumber}.`, updateError);
+                        }
+                    }
+                    throw error;
+                }
+                await GithubUtils.octokit.issues.updateComment({
+                    owner: CONST.GITHUB_OWNER,
+                    repo: CONST.APP_REPO,
+                    comment_id: pendingComment.data.id,
+                    body: buildRetestComment(hit, deployTag),
+                });
+                console.log(`Filed retest request for PR #${hit.prNumber} (blockers ${hit.blockerIssueURLs.join(', ')}).`);
+            } else {
+                console.log(`Retest for PR #${hit.prNumber} was already filed on ${requestedTag}.`);
+                // Searching old Slack history on every deploy can delay new requests; the original deploy can retry its link.
+                if (requestedTag !== deployTag && !recoveredRequest) {
+                    continue;
+                }
+            }
+
+            if (!slackToken || !deployerWebhookURL) {
+                console.warn(`Cannot add the retest request link for PR #${hit.prNumber}: ${!slackToken ? 'SLACK_RETEST_USER_TOKEN' : 'SLACK_WEBHOOK'} is not configured.`);
+                continue;
+            }
+            try {
+                await postRetestRequestLink(hit, requestedTag ?? deployTag, slackToken, deployerWebhookURL, recoveredRequest);
+            } catch (error) {
+                // The retest has already been filed. Keep a Slack lookup or reply failure from marking the deploy unsuccessful.
+                console.warn(`Could not add the retest request link to the Cherry Pick Request thread for PR #${hit.prNumber}.`, error);
+            }
+        } catch (error) {
+            failedPRs.push(hit.prNumber);
+            console.error(`Could not process the retest request for PR #${hit.prNumber}.`, error);
+        }
+    }
+    if (failedPRs.length > 0) {
+        throw new Error(`Could not process retest requests for PRs ${failedPRs.map((number) => `#${number}`).join(', ')}.`);
+    }
+}
+
 async function run(): Promise<void> {
     // Gate 1 (staging deployed on all platforms) is enforced by the job's `if:` in deploy.yml.
     const cli = new CLI({
@@ -514,9 +832,9 @@ async function run(): Promise<void> {
     }
 
     const checklistPRNumbers = new Set(checklist.PRList.map((item) => item.number));
-    const blockerIssueByNumber = new Map(checklist.deployBlockers.filter((item) => !item.isChecked).map((item) => [item.number, item.url]));
+    const blockerIssueByNumber = new Map(checklist.deployBlockers.map((item) => [item.number, item.url]));
     if (checklistPRNumbers.size === 0 || blockerIssueByNumber.size === 0) {
-        console.log('No checklist pull requests or unresolved deploy blockers, nothing to file.');
+        console.log('No checklist pull requests or deploy blockers, nothing to file.');
         return;
     }
 
@@ -529,26 +847,23 @@ async function run(): Promise<void> {
     }
 
     const cherryPickByPR = await getCherryPicksByPullRequest(cherryPicks);
-    if (cherryPickByPR.size === 0) {
-        console.log('No original PRs resolved from cherry-pick source commits, nothing to do.');
+    const checklistCherryPicks = new Map([...cherryPickByPR].filter(([prNumber]) => checklistPRNumbers.has(prNumber)));
+    if (checklistCherryPicks.size === 0) {
+        console.log('No cherry-picked PRs found on the deploy checklist, nothing to do.');
         return;
     }
+    const activeCherryPickByPR = await filterRevertedCherryPicks(commits, checklistCherryPicks);
 
     let slackIDsByGithubLogin: Map<string, string> | undefined;
     const hits: RetestHit[] = [];
-    for (const [prNumber, cherryPick] of cherryPickByPR) {
-        // Gate 2: the cherry-picked PR must be on the current checklist.
-        if (!checklistPRNumbers.has(prNumber)) {
-            continue;
-        }
-
+    for (const [prNumber, cherryPick] of activeCherryPickByPR) {
         const {data: pull} = await GithubUtils.octokit.pulls.get({
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
             pull_number: prNumber,
         });
 
-        // Gate 3: the PR body must link at least one unresolved deploy blocker on the checklist.
+        // Gate 3: the PR body must link at least one deploy blocker on the checklist.
         // A PR can fix several blockers, so collect every match into one request.
         const blockerIssueURLs = getLinkedIssueNumbers(pull.body)
             .filter((issueNumber) => blockerIssueByNumber.has(issueNumber))
@@ -574,36 +889,7 @@ async function run(): Promise<void> {
         return;
     }
 
-    for (const hit of hits) {
-        const requestedTag = await getRequestedRetestTag(hit.prNumber, hit.cherryPickSHA, deployTag);
-        if (!requestedTag) {
-            await fireRetestRequest(hit, deployTag, webhookURL);
-            const blockerList = hit.blockerIssueURLs.join(', ');
-            await GithubUtils.createComment(
-                CONST.APP_REPO,
-                hit.prNumber,
-                `${getRetestMarker(deployTag)}\n${getCherryPickRetestMarker(hit.cherryPickSHA)}\n🔁 Filed a Staging retest request for deploy blockers ${blockerList} after this PR was cherry-picked to staging.`,
-            );
-            console.log(`Filed retest request for PR #${hit.prNumber} (blockers ${blockerList}).`);
-        } else {
-            console.log(`Retest for PR #${hit.prNumber} was already filed on ${requestedTag}.`);
-            // Searching old Slack history on every deploy can delay new requests; the original deploy can retry its link.
-            if (requestedTag !== deployTag) {
-                continue;
-            }
-        }
-
-        if (!slackToken || !deployerWebhookURL) {
-            console.warn(`Cannot add the retest request link for PR #${hit.prNumber}: ${!slackToken ? 'SLACK_RETEST_USER_TOKEN' : 'SLACK_WEBHOOK'} is not configured.`);
-            continue;
-        }
-        try {
-            await postRetestRequestLink(hit, deployTag, slackToken, deployerWebhookURL);
-        } catch (error) {
-            // The retest has already been filed. Keep a Slack lookup or reply failure from marking the deploy unsuccessful.
-            console.warn(`Could not add the retest request link to the Cherry Pick Request thread for PR #${hit.prNumber}.`, error);
-        }
-    }
+    await fileRetestRequests(hits, deployTag, webhookURL, slackToken, deployerWebhookURL);
 }
 
 if (require.main === module) {
@@ -616,14 +902,18 @@ if (require.main === module) {
 export default run;
 export {
     getCherryPicks,
+    filterRevertedCherryPicks,
+    getRevertedPullNumbers,
     getDeployedCommits,
     getPreviousChecklistTag,
     getRequestedRetestTag,
+    fileRetestRequests,
     getLinkedIssueNumbers,
     buildRetestPayload,
     buildRetestLinkReply,
     getRetestMarker,
     getCherryPickRetestMarker,
+    getPendingRetestMarker,
     getRetestRequestReference,
     getSlackAuthor,
     isCherryPickRequest,

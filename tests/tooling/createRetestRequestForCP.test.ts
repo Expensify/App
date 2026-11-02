@@ -11,11 +11,15 @@ import type {InternalOctokit} from '@github/libs/GithubUtils';
 import run, {
     buildRetestLinkReply,
     buildRetestPayload,
+    fileRetestRequests,
+    filterRevertedCherryPicks,
     getCherryPickRetestMarker,
     getCherryPicks,
     getDeployedCommits,
     getLinkedIssueNumbers,
     getPreviousChecklistTag,
+    getPendingRetestMarker,
+    getRevertedPullNumbers,
     getRetestMarker,
     getRetestRequestReference,
     getRequestedRetestTag,
@@ -35,6 +39,7 @@ type ListForRepo = InternalOctokit['rest']['issues']['listForRepo'];
 type ListForRepoResponse = Awaited<ReturnType<ListForRepo>>;
 type ListPulls = InternalOctokit['rest']['repos']['listPullRequestsAssociatedWithCommit'];
 type GetPull = InternalOctokit['rest']['pulls']['get'];
+type UpdateComment = InternalOctokit['rest']['issues']['updateComment'];
 
 let compareCommits: Mock<CompareCommits>;
 let listForRepo: Mock<ListForRepo>;
@@ -159,13 +164,12 @@ describe('createRetestRequestForCP', () => {
         it('fetches picks beyond GitHub’s unpaginated comparison limit', async () => {
             // Given a large release where three consecutive picks appear after the first 300 commits
             const ordinaryCommits = Array.from({length: 300}, (_, index) => ({sha: `commit-${index}`, commit: {message: 'A normal commit'}}));
-            for (let page = 0; page < 3; page++) {
-                compareCommits.mockResolvedValueOnce(createMock<CompareResponse>({data: {commits: ordinaryCommits.slice(page * 100, (page + 1) * 100)}}));
-            }
+            compareCommits.mockResolvedValueOnce(createMock<CompareResponse>({data: {commits: ordinaryCommits.slice(0, 250)}}));
             compareCommits.mockResolvedValueOnce(
                 createMock<CompareResponse>({
                     data: {
                         commits: [
+                            ...ordinaryCommits.slice(250),
                             {sha: 'pick-a', commit: {message: '(cherry picked from commit aaaaaaa)\n\n(cherry-picked to staging by first)'}},
                             {sha: 'pick-b', commit: {message: '(cherry picked from commit bbbbbbb)\n\n(cherry-picked to staging by second)'}},
                             {sha: 'pick-c', commit: {message: '(cherry picked from commit ccccccc)\n\n(cherry-picked to staging by third)'}},
@@ -183,8 +187,244 @@ describe('createRetestRequestForCP', () => {
                 {sourceSHA: 'bbbbbbb', cherryPickSHA: 'pick-b', actor: 'second'},
                 {sourceSHA: 'ccccccc', cherryPickSHA: 'pick-c', actor: 'third'},
             ]);
-            expect(compareCommits).toHaveBeenCalledTimes(4);
-            expect(compareCommits).toHaveBeenLastCalledWith(expect.objectContaining({base: '9.5.23-3-staging', head: 'deployed-sha', per_page: 100, page: 4}));
+            expect(compareCommits).toHaveBeenCalledTimes(2);
+            expect(compareCommits).toHaveBeenLastCalledWith(expect.objectContaining({base: '9.5.23-3-staging', head: 'deployed-sha', per_page: 250, page: 2}));
+        });
+    });
+
+    describe('reverted cherry-picks', () => {
+        const sourceSHA = 'a'.repeat(40);
+        const pickSHA = 'b'.repeat(40);
+        const revertSHA = 'c'.repeat(40);
+        const pick = {sourceSHA, cherryPickSHA: pickSHA, actor: 'first'};
+        const pickedCommit = {sha: pickSHA, message: `Merge pull request #101 from example/fix\n\nFix\n\n(cherry picked from commit ${sourceSHA})`};
+
+        it('drops a pick reverted by its staged commit SHA or original merge SHA', async () => {
+            // Given the fix was picked and then reverted before the successful deploy
+            const candidates = new Map([[101, pick]]);
+
+            // When Git's revert trailer names either form of the commit
+            const byPick = await filterRevertedCherryPicks([pickedCommit, {sha: revertSHA, message: `Revert "Fix"\n\nThis reverts commit ${pickSHA}.`}], candidates);
+            const bySource = await filterRevertedCherryPicks([pickedCommit, {sha: revertSHA, message: `Revert "Fix"\n\nThis reverts commit ${sourceSHA}.`}], candidates);
+            const byShortSHA = await filterRevertedCherryPicks([pickedCommit, {sha: revertSHA, message: `Revert "Fix"\n\nThis reverts commit ${pickSHA.slice(0, 7)}.`}], candidates);
+
+            // Then QA is not asked to test a fix missing from the deployed tree
+            expect([...byPick]).toEqual([]);
+            expect([...bySource]).toEqual([]);
+            expect([...byShortSHA]).toEqual([]);
+        });
+
+        it('ignores unrelated revert PRs from before the first candidate pick', async () => {
+            // Given an older revert has no bearing on a later cherry-pick
+            const earlierRevert = {sha: revertSHA, message: 'Merge pull request #102 from example/revert\n\nRevert an older change'};
+            const getPull = jest.spyOn(octokit.rest.pulls, 'get');
+
+            try {
+                // When the release history is scanned
+                const active = await filterRevertedCherryPicks([earlierRevert, pickedCommit], new Map([[101, pick]]));
+
+                // Then the fix remains eligible without looking up the unrelated revert
+                expect([...active]).toEqual([[101, pick]]);
+                expect(getPull).not.toHaveBeenCalled();
+            } finally {
+                getPull.mockRestore();
+            }
+        });
+
+        it('keeps a later re-pick of a reverted fix', async () => {
+            // Given the original pick was reverted and then picked again
+            const newPickSHA = 'd'.repeat(40);
+            const commits = [
+                pickedCommit,
+                {sha: revertSHA, message: `Revert "Fix"\n\nThis reverts commit ${pickSHA}.`},
+                {sha: newPickSHA, message: `Merge pull request #101 from example/fix\n\nFix\n\n(cherry picked from commit ${sourceSHA})`},
+            ];
+            const candidates = new Map([[101, {...pick, cherryPickSHA: newPickSHA, actor: 'second'}]]);
+
+            // When the deployed history is inspected
+            const active = await filterRevertedCherryPicks(commits, candidates);
+
+            // Then the re-applied fix remains eligible for a retest
+            expect([...active]).toEqual([[101, {...pick, cherryPickSHA: newPickSHA, actor: 'second'}]]);
+        });
+
+        it('keeps a pick when its revert was itself reverted', async () => {
+            // Given a revert was undone before the successful deployment
+            const commits = [
+                pickedCommit,
+                {sha: revertSHA, message: `Revert "Fix"\n\nThis reverts commit ${pickSHA}.`},
+                {sha: 'd'.repeat(40), message: `Revert "Revert Fix"\n\nThis reverts commit ${revertSHA}.`},
+            ];
+
+            // When the history is inspected from the deployed commit backwards
+            const active = await filterRevertedCherryPicks(commits, new Map([[101, pick]]));
+
+            // Then the restored fix is still retested
+            expect([...active]).toEqual([[101, pick]]);
+        });
+
+        it('recognizes a cherry-picked revert PR even when its commit has no revert trailer', async () => {
+            // Given the revert PR describes its target, as GitHub-generated App revert PRs do
+            const revertSource = 'd'.repeat(40);
+            const revertPick = {sourceSHA: revertSource, cherryPickSHA: revertSHA, actor: 'second'};
+            const commits = [
+                pickedCommit,
+                {sha: revertSHA, message: `Merge pull request #102 from example/revert\n\n[CP Staging] Revert "Fix"\n\n(cherry picked from commit ${revertSource})`},
+            ];
+            const getPull = jest
+                .spyOn(octokit.rest.pulls, 'get')
+                .mockResolvedValueOnce(createMock<Awaited<ReturnType<GetPull>>>({data: {title: '[CP Staging] Revert "Fix"', body: 'Reverts Expensify/App#101.'}}));
+            const listCommits = jest
+                .spyOn(octokit.rest.pulls, 'listCommits')
+                .mockResolvedValueOnce(createMock<Awaited<ReturnType<InternalOctokit['rest']['pulls']['listCommits']>>>({data: [{commit: {message: 'Revert "Fix"'}}]}));
+
+            try {
+                // When the deploy includes both the fix and its revert
+                const active = await filterRevertedCherryPicks(
+                    commits,
+                    new Map([
+                        [101, pick],
+                        [102, revertPick],
+                    ]),
+                );
+
+                // Then only the revert PR remains eligible, since it may itself fix a blocker
+                expect([...active]).toEqual([[102, revertPick]]);
+                expect(getPull).toHaveBeenCalledWith(expect.objectContaining({pull_number: 102}));
+            } finally {
+                getPull.mockRestore();
+                listCommits.mockRestore();
+            }
+        });
+
+        it('reads a revert PR’s individual commits when its merge message lost the trailers', async () => {
+            // Given a revert PR has no explicit PR link but its original commit names the reverted merge
+            const revert = {sha: revertSHA, message: 'Merge pull request #102 from example/revert\n\nRevert "Fix"'};
+            const getPull = jest.spyOn(octokit.rest.pulls, 'get').mockResolvedValueOnce(createMock<Awaited<ReturnType<GetPull>>>({data: {title: 'Revert "Fix"', body: ''}}));
+            const listCommits = jest
+                .spyOn(octokit.rest.pulls, 'listCommits')
+                .mockResolvedValueOnce(
+                    createMock<Awaited<ReturnType<InternalOctokit['rest']['pulls']['listCommits']>>>({data: [{commit: {message: `Revert "Fix"\n\nThis reverts commit ${sourceSHA}.`}}]}),
+                );
+
+            try {
+                // When the successful deploy contains the cherry-picked revert
+                const active = await filterRevertedCherryPicks([pickedCommit, revert], new Map([[101, pick]]));
+
+                // Then the original fix is excluded even though the deployed merge has no trailer
+                expect([...active]).toEqual([]);
+                expect(listCommits).toHaveBeenCalledWith(expect.objectContaining({pull_number: 102}));
+            } finally {
+                getPull.mockRestore();
+                listCommits.mockRestore();
+            }
+        });
+
+        it('handles a revert PR that undoes several merged fixes', async () => {
+            // Given one revert PR contains separate Git reverts for two cherry-picked fixes
+            const otherSource = 'd'.repeat(40);
+            const otherPick = {sourceSHA: otherSource, cherryPickSHA: 'e'.repeat(40), actor: 'second'};
+            const commits = [
+                pickedCommit,
+                {sha: otherPick.cherryPickSHA, message: `Merge pull request #103 from example/other\n\nOther fix\n\n(cherry picked from commit ${otherSource})`},
+                {sha: revertSHA, message: 'Merge pull request #102 from example/revert\n\nRevert both fixes'},
+            ];
+            const getPull = jest.spyOn(octokit.rest.pulls, 'get').mockResolvedValueOnce(createMock<Awaited<ReturnType<GetPull>>>({data: {title: 'Revert both fixes', body: ''}}));
+            const listCommits = jest.spyOn(octokit.rest.pulls, 'listCommits').mockResolvedValueOnce(
+                createMock<Awaited<ReturnType<InternalOctokit['rest']['pulls']['listCommits']>>>({
+                    data: [{commit: {message: `This reverts commit ${sourceSHA}.`}}, {commit: {message: `This reverts commit ${otherSource}.`}}],
+                }),
+            );
+
+            try {
+                // When the deployed revert is inspected
+                const active = await filterRevertedCherryPicks(
+                    commits,
+                    new Map([
+                        [101, pick],
+                        [103, otherPick],
+                    ]),
+                );
+
+                // Then neither missing fix is sent to QA
+                expect([...active]).toEqual([]);
+            } finally {
+                getPull.mockRestore();
+                listCommits.mockRestore();
+            }
+        });
+
+        it('keeps the original pick when a revert PR is reverted by another PR', async () => {
+            // Given the fix was reverted in one PR and that revert was itself reverted in another
+            const revertSource = 'd'.repeat(40);
+            const restoreSHA = 'e'.repeat(40);
+            const restoreSource = 'f'.repeat(40);
+            const revertPick = {sourceSHA: revertSource, cherryPickSHA: revertSHA, actor: 'second'};
+            const restorePick = {sourceSHA: restoreSource, cherryPickSHA: restoreSHA, actor: 'third'};
+            const commits = [
+                pickedCommit,
+                {sha: revertSHA, message: `Merge pull request #102 from example/revert\n\nRevert "Fix"\n\n(cherry picked from commit ${revertSource})`},
+                {sha: restoreSHA, message: `Merge pull request #103 from example/restore\n\nRevert "Revert Fix"\n\n(cherry picked from commit ${restoreSource})`},
+            ];
+            const getPull = jest
+                .spyOn(octokit.rest.pulls, 'get')
+                .mockResolvedValueOnce(createMock<Awaited<ReturnType<GetPull>>>({data: {title: 'Revert "Fix"', body: 'Reverts Expensify/App#101.'}}))
+                .mockResolvedValueOnce(createMock<Awaited<ReturnType<GetPull>>>({data: {title: 'Revert "Revert Fix"', body: 'Reverts Expensify/App#102.'}}));
+            const listCommits = jest.spyOn(octokit.rest.pulls, 'listCommits').mockResolvedValue(createMock<Awaited<ReturnType<InternalOctokit['rest']['pulls']['listCommits']>>>({data: []}));
+
+            try {
+                // When the final staging deploy is examined
+                const active = await filterRevertedCherryPicks(
+                    commits,
+                    new Map([
+                        [101, pick],
+                        [102, revertPick],
+                        [103, restorePick],
+                    ]),
+                );
+
+                // Then the restored fix and the second revert remain, but the first revert is excluded
+                expect([...active]).toEqual([
+                    [101, pick],
+                    [103, restorePick],
+                ]);
+            } finally {
+                getPull.mockRestore();
+                listCommits.mockRestore();
+            }
+        });
+
+        it('finds explicit revert links without treating other context as reverted PRs', () => {
+            // Given a revert lists its target and mentions other PRs for context
+            const text = `Reverts Expensify/App#101. Its base, Expensify/App#102, was reverted first in Expensify/App#103.\n\nDirectly reverts the follow-ups:\n\n- ${CONST.APP_REPO_URL}/pull/104\n- ${CONST.APP_REPO_URL}/pull/105\n\nMore context: ${CONST.APP_REPO_URL}/pull/106`;
+
+            // When the revert references are parsed
+            const numbers = getRevertedPullNumbers(text);
+
+            // Then only the explicitly reverted PRs are excluded
+            expect(numbers).toEqual([101, 104, 105]);
+            expect(getRevertedPullNumbers(`Reverts [the original fix](${CONST.APP_REPO_URL}/pull/107).`)).toEqual([107]);
+            expect(getRevertedPullNumbers('Reverts OtherOrg/OtherRepo#108.')).toEqual([]);
+        });
+
+        it('fails safely when a revert PR does not identify what it undoes', async () => {
+            // Given the revert has neither a PR reference nor a Git revert trailer
+            const revert = {sha: revertSHA, message: 'Merge pull request #102 from example/revert\n\nRevert "Fix"'};
+            const getPull = jest.spyOn(octokit.rest.pulls, 'get').mockResolvedValueOnce(createMock<Awaited<ReturnType<GetPull>>>({data: {title: 'Revert "Fix"', body: ''}}));
+            const listCommits = jest
+                .spyOn(octokit.rest.pulls, 'listCommits')
+                .mockResolvedValueOnce(createMock<Awaited<ReturnType<InternalOctokit['rest']['pulls']['listCommits']>>>({data: [{commit: {message: 'Revert "Fix"'}}]}));
+
+            try {
+                // When the deploy is inspected
+                const result = filterRevertedCherryPicks([pickedCommit, revert], new Map([[101, pick]]));
+
+                // Then the job reports the ambiguity rather than requesting an invalid retest
+                await expect(result).rejects.toThrow('Could not identify the target of revert PR #102.');
+            } finally {
+                getPull.mockRestore();
+                listCommits.mockRestore();
+            }
         });
     });
 
@@ -261,11 +501,270 @@ describe('createRetestRequestForCP', () => {
             // Then the scan fails instead of filing an unverified duplicate
             await expect(result).rejects.toThrow('GitHub unavailable');
         });
+
+        it('checks exact markers before comparing an older missing tag', async () => {
+            // Given a deleted legacy tag appears before a completed marker for this exact pick
+            getAllComments.mockResolvedValueOnce([getRetestMarker('deleted-staging'), `${getRetestMarker('9.5.24-5-staging')}\n${getCherryPickRetestMarker('pick-a')}`]);
+
+            // When the existing request is located
+            const tag = await getRequestedRetestTag(123, 'pick-a', '9.5.24-6-staging');
+
+            // Then the exact marker prevents a needless lookup of the deleted tag
+            expect(tag).toBe('9.5.24-5-staging');
+            expect(compareCommits).not.toHaveBeenCalled();
+        });
+
+        it('checks later legacy markers when an earlier tag is missing', async () => {
+            // Given one legacy tag was deleted but a later tagged deploy contains the pick
+            getAllComments.mockResolvedValueOnce([getRetestMarker('deleted-staging'), getRetestMarker('9.5.24-5-staging')]);
+            compareCommits.mockRejectedValueOnce(Object.assign(new Error('Tag not found'), {status: 404}));
+            compareCommits.mockResolvedValueOnce(createMock<CompareResponse>({data: {status: 'ahead'}}));
+
+            // When the old requests are compared to the pick
+            const tag = await getRequestedRetestTag(123, 'pick-a', '9.5.24-6-staging');
+
+            // Then the valid marker is reused rather than failing or filing a duplicate
+            expect(tag).toBe('9.5.24-5-staging');
+            expect(compareCommits).toHaveBeenCalledTimes(2);
+        });
+
+        it('prefers a completed marker to an older pending marker for the same pick', async () => {
+            // Given a pending request was later confirmed in a separate comment
+            getAllComments.mockResolvedValueOnce([
+                `${getRetestMarker('9.5.24-3-staging')}\n${getPendingRetestMarker('pick-a')}`,
+                `${getRetestMarker('9.5.24-3-staging')}\n${getCherryPickRetestMarker('pick-a')}`,
+            ]);
+
+            // When the next deploy checks for an existing request
+            const tag = await getRequestedRetestTag(123, 'pick-a', '9.5.24-5-staging');
+
+            // Then the completed marker wins and no duplicate is posted
+            expect(tag).toBe('9.5.24-3-staging');
+        });
+
+        it('continues the batch when a legacy tag is missing without duplicating that request', async () => {
+            // Given one PR has an unresolvable old marker and another needs a retest
+            const hit: RetestHit = {
+                prNumber: 101,
+                prURL: `${CONST.APP_REPO_URL}/pull/101`,
+                prAuthor: 'author',
+                cherryPickSHA: 'pick-a',
+                blockerIssueURLs: [`${CONST.APP_REPO_URL}/issues/201`],
+                prTitle: 'First fix',
+                author: 'first',
+            };
+            getAllComments.mockImplementation(async (number) => (number === 101 ? [getRetestMarker('deleted-staging')] : []));
+            compareCommits.mockRejectedValueOnce(Object.assign(new Error('Tag not found'), {status: 404}));
+            const createComment = jest.spyOn(GithubUtils, 'createComment').mockResolvedValue(createMock<Awaited<ReturnType<typeof GithubUtils.createComment>>>({data: {id: 1}}));
+            const updateComment = jest.spyOn(octokit.rest.issues, 'updateComment').mockResolvedValue(createMock<Awaited<ReturnType<UpdateComment>>>({}));
+            const mockFetch = Object.assign(async () => new Response('', {status: 200}), {preconnect: globalThis.fetch.preconnect});
+            const postWebhook = jest.spyOn(globalThis, 'fetch').mockImplementation(mockFetch);
+
+            try {
+                // When the batch processes both PRs
+                const result = fileRetestRequests(
+                    [hit, {...hit, prNumber: 102, prURL: `${CONST.APP_REPO_URL}/pull/102`, cherryPickSHA: 'pick-b'}],
+                    'current-staging',
+                    'https://example.com/retest',
+                );
+
+                // Then the other request is filed and the uncertain PR is reported for manual attention
+                await expect(result).rejects.toThrow('Could not process retest requests for PRs #101.');
+                expect(postWebhook).toHaveBeenCalledTimes(1);
+                expect(createComment).toHaveBeenCalledTimes(1);
+                expect(createComment.mock.calls[0]?.[1]).toBe(102);
+                expect(updateComment).toHaveBeenCalledTimes(1);
+            } finally {
+                createComment.mockRestore();
+                updateComment.mockRestore();
+                postWebhook.mockRestore();
+            }
+        });
+
+        it('does not post again when Slack accepted a request but the confirmation update failed', async () => {
+            // Given Slack accepts a request after its pending marker was saved, but GitHub cannot confirm it
+            const hit: RetestHit = {
+                prNumber: 101,
+                prURL: `${CONST.APP_REPO_URL}/pull/101`,
+                prAuthor: 'author',
+                cherryPickSHA: 'pick-a',
+                blockerIssueURLs: [`${CONST.APP_REPO_URL}/issues/201`],
+                prTitle: 'First fix',
+                author: 'first',
+            };
+            const comments: string[] = [];
+            getAllComments.mockImplementation(async () => comments);
+            const createComment = jest.spyOn(GithubUtils, 'createComment').mockImplementation(async (_repo, _number, body) => {
+                comments.push(body);
+                return createMock<Awaited<ReturnType<typeof GithubUtils.createComment>>>({data: {id: 1}});
+            });
+            const updateComment = jest.spyOn(octokit.rest.issues, 'updateComment').mockRejectedValueOnce(new Error('GitHub unavailable'));
+            const mockFetch = Object.assign(
+                async () => {
+                    expect(comments[0]).toContain(getPendingRetestMarker('pick-a'));
+                    return new Response('', {status: 200});
+                },
+                {preconnect: globalThis.fetch.preconnect},
+            );
+            const postWebhook = jest.spyOn(globalThis, 'fetch').mockImplementation(mockFetch);
+
+            try {
+                // When the failed deployment is followed by a different staging deploy without Slack lookup credentials
+                await expect(fileRetestRequests([hit], 'first-staging', 'https://example.com/retest')).rejects.toThrow('Could not process retest requests for PRs #101.');
+                await expect(fileRetestRequests([hit], 'second-staging', 'https://example.com/retest')).rejects.toThrow('Could not process retest requests for PRs #101.');
+
+                // Then the pending marker prevents a second webhook and leaves the uncertain request for follow-up
+                expect(postWebhook).toHaveBeenCalledTimes(1);
+                expect(comments[0]).toContain(getPendingRetestMarker('pick-a'));
+            } finally {
+                createComment.mockRestore();
+                updateComment.mockRestore();
+                postWebhook.mockRestore();
+            }
+        });
+
+        it('retries a request after Slack confirms it was rejected', async () => {
+            // Given Slack rejects the first webhook with a client error
+            const hit: RetestHit = {
+                prNumber: 101,
+                prURL: `${CONST.APP_REPO_URL}/pull/101`,
+                prAuthor: 'author',
+                cherryPickSHA: 'pick-a',
+                blockerIssueURLs: [`${CONST.APP_REPO_URL}/issues/201`],
+                prTitle: 'First fix',
+                author: 'first',
+            };
+            const comments: string[] = [];
+            getAllComments.mockImplementation(async () => comments);
+            const createComment = jest.spyOn(GithubUtils, 'createComment').mockImplementation(async (_repo, _number, body) => {
+                comments.push(body);
+                return createMock<Awaited<ReturnType<typeof GithubUtils.createComment>>>({data: {id: comments.length}});
+            });
+            const updateCommentStatics = {endpoint: octokit.rest.issues.updateComment.endpoint, defaults: octokit.rest.issues.updateComment.defaults};
+            const updateCommentBody = async (parameters?: Parameters<UpdateComment>[0]): Promise<Awaited<ReturnType<UpdateComment>>> => {
+                if (!parameters || !('comment_id' in parameters) || !('body' in parameters) || typeof parameters.body !== 'string') {
+                    throw new Error('Expected a comment update.');
+                }
+                comments[parameters.comment_id - 1] = parameters.body;
+                return createMock<Awaited<ReturnType<UpdateComment>>>({data: {id: parameters.comment_id}});
+            };
+            const updateComment = jest.spyOn(octokit.rest.issues, 'updateComment').mockImplementation(Object.assign(updateCommentBody, updateCommentStatics));
+            const fetchSpy = jest
+                .spyOn(globalThis, 'fetch')
+                .mockResolvedValueOnce(new Response('Rejected', {status: 400}))
+                .mockResolvedValueOnce(new Response('', {status: 200}));
+
+            try {
+                // When the failed request is followed by another staging deploy
+                await expect(fileRetestRequests([hit], 'first-staging', 'https://example.com/retest')).rejects.toThrow('Could not process retest requests for PRs #101.');
+                expect(comments[0]).not.toContain(getPendingRetestMarker('pick-a'));
+                await fileRetestRequests([hit], 'second-staging', 'https://example.com/retest');
+
+                // Then the confirmed rejection can be retried and the new request is recorded
+                expect(fetchSpy).toHaveBeenCalledTimes(2);
+                expect(comments[1]).toContain(getCherryPickRetestMarker('pick-a'));
+            } finally {
+                createComment.mockRestore();
+                updateComment.mockRestore();
+                fetchSpy.mockRestore();
+            }
+        });
+
+        it.each([408, 499, 503])('keeps a pending marker when webhook status %i is ambiguous', async (status) => {
+            // Given the webhook result does not prove whether Slack accepted the request
+            const hit: RetestHit = {
+                prNumber: 101,
+                prURL: `${CONST.APP_REPO_URL}/pull/101`,
+                prAuthor: 'author',
+                cherryPickSHA: 'pick-a',
+                blockerIssueURLs: [`${CONST.APP_REPO_URL}/issues/201`],
+                prTitle: 'First fix',
+                author: 'first',
+            };
+            const comments: string[] = [];
+            getAllComments.mockImplementation(async () => comments);
+            const createComment = jest.spyOn(GithubUtils, 'createComment').mockImplementation(async (_repo, _number, body) => {
+                comments.push(body);
+                return createMock<Awaited<ReturnType<typeof GithubUtils.createComment>>>({data: {id: 1}});
+            });
+            const updateComment = jest.spyOn(octokit.rest.issues, 'updateComment').mockResolvedValue(createMock<Awaited<ReturnType<UpdateComment>>>({}));
+            const fetchSpy = jest.spyOn(globalThis, 'fetch').mockResolvedValueOnce(new Response('Uncertain', {status}));
+
+            try {
+                // When a later deploy tries again without Slack lookup credentials
+                await expect(fileRetestRequests([hit], 'first-staging', 'https://example.com/retest')).rejects.toThrow('Could not process retest requests for PRs #101.');
+                await expect(fileRetestRequests([hit], 'second-staging', 'https://example.com/retest')).rejects.toThrow('Could not process retest requests for PRs #101.');
+
+                // Then the pending marker prevents another webhook until the outcome is checked
+                expect(fetchSpy).toHaveBeenCalledTimes(1);
+                expect(updateComment).not.toHaveBeenCalled();
+                expect(comments[0]).toContain(getPendingRetestMarker('pick-a'));
+            } finally {
+                createComment.mockRestore();
+                updateComment.mockRestore();
+                fetchSpy.mockRestore();
+            }
+        });
+
+        it('recovers an exact pending request from an older Slack history page and reuses it for the link', async () => {
+            // Given the newest history page has a different PR with the same number prefix
+            const hit: RetestHit = {
+                prNumber: 101,
+                prURL: `${CONST.APP_REPO_URL}/pull/101`,
+                prAuthor: 'author',
+                cherryPickSHA: 'pick-a',
+                blockerIssueURLs: [`${CONST.APP_REPO_URL}/issues/201`],
+                prTitle: 'First fix',
+                author: 'first',
+            };
+            getAllComments.mockResolvedValueOnce([`${getRetestMarker('first-staging')}\n${getPendingRetestMarker('pick-a')}`]);
+            const createComment = jest.spyOn(GithubUtils, 'createComment').mockResolvedValue(createMock<Awaited<ReturnType<typeof GithubUtils.createComment>>>({data: {id: 1}}));
+            const retestPermalink = 'https://example.com/retest-message';
+            const fetchSpy = jest
+                .spyOn(globalThis, 'fetch')
+                .mockResolvedValueOnce(
+                    new Response(JSON.stringify({ok: true, messages: [{ts: '111.111', text: 'Retest ID: first-staging / App PR #1010'}], response_metadata: {next_cursor: 'next-page'}}), {
+                        status: 200,
+                    }),
+                )
+                .mockResolvedValueOnce(new Response(JSON.stringify({ok: true, messages: [{ts: '123.456', text: 'Retest ID: first-staging / App PR #101\n'}]}), {status: 200}))
+                .mockResolvedValueOnce(new Response(JSON.stringify({ok: true, permalink: retestPermalink}), {status: 200}))
+                .mockResolvedValueOnce(
+                    new Response(JSON.stringify({ok: true, messages: [{ts: '789.000', text: `*Cherry Pick Request* Link to PR: <${hit.prURL}> *Where:* staging`}]}), {status: 200}),
+                )
+                .mockResolvedValueOnce(new Response(JSON.stringify({ok: true, messages: [{ts: '789.000', text: 'Parent request'}]}), {status: 200}))
+                .mockResolvedValueOnce(new Response('', {status: 200}));
+
+            try {
+                // When the later deploy recovers and links the pending request
+                await fileRetestRequests([hit], 'second-staging', 'https://example.com/retest', 'slack-token', 'https://example.com/deployer');
+
+                // Then it finds PR 101 on the second page, reuses that message, and never fires the retest webhook
+                expect(fetchSpy.mock.calls.map((call) => call[0])).toEqual([
+                    'https://slack.com/api/conversations.history',
+                    'https://slack.com/api/conversations.history',
+                    'https://slack.com/api/chat.getPermalink',
+                    'https://slack.com/api/conversations.history',
+                    'https://slack.com/api/conversations.replies',
+                    'https://example.com/deployer',
+                ]);
+                const secondPageBody = fetchSpy.mock.calls[1]?.[1]?.body;
+                if (typeof secondPageBody !== 'string') {
+                    throw new Error('Expected the Slack history request.');
+                }
+                const secondPage: unknown = JSON.parse(secondPageBody);
+                expect(secondPage).toEqual(expect.objectContaining({cursor: 'next-page'}));
+                expect(createComment.mock.calls[0]?.[2]).toContain(getCherryPickRetestMarker('pick-a'));
+            } finally {
+                createComment.mockRestore();
+                fetchSpy.mockRestore();
+            }
+        });
     });
 
     describe('staging deploy', () => {
-        it('does not scan release history when all blockers are resolved', async () => {
-            // Given the checklist contains a PR but its only blocker has already been verified
+        it('does not scan release history when there are no checklist blockers', async () => {
+            // Given the checklist contains a PR but no deploy blockers
             const checklist = {
                 number: 901,
                 url: 'https://api.github.com/repos/Expensify/App/issues/901',
@@ -279,7 +778,6 @@ describe('createRetestRequestForCP', () => {
                     '',
                     '',
                     '**Deploy Blockers:**',
-                    `- [x] ${CONST.APP_REPO_URL}/issues/201`,
                     '',
                 ].join('\n'),
             };
@@ -308,7 +806,7 @@ describe('createRetestRequestForCP', () => {
         });
 
         it('requests every outstanding pick once, including picks from canceled deploys', async () => {
-            // Given three blocker fixes were picked before a successful deploy, plus a resolved blocker and a PR outside the checklist
+            // Given several blocker fixes were picked before a successful deploy, including a checked blocker and a subsequently reverted fix
             const previousChecklist = {
                 number: 900,
                 url: 'https://api.github.com/repos/Expensify/App/issues/900',
@@ -325,12 +823,13 @@ describe('createRetestRequestForCP', () => {
                     '**Release Version:** `9.5.24-5`',
                     '',
                     '**This release contains changes from the following pull requests:**',
-                    ...[101, 102, 103, 104].map((number) => `- [ ] ${CONST.APP_REPO_URL}/pull/${number}`),
+                    ...[101, 102, 103, 104, 106].map((number) => `- [ ] ${CONST.APP_REPO_URL}/pull/${number}`),
                     '',
                     '',
                     '**Deploy Blockers:**',
                     ...[201, 202, 203].map((number) => `- [ ] ${CONST.APP_REPO_URL}/issues/${number}`),
                     `- [x] ${CONST.APP_REPO_URL}/issues/204`,
+                    `- [ ] ${CONST.APP_REPO_URL}/issues/206`,
                     '',
                 ].join('\n'),
             };
@@ -344,10 +843,16 @@ describe('createRetestRequestForCP', () => {
                 {source: 'ccccccc', sha: 'pick-c', pr: 103, actor: 'third'},
                 {source: 'ddddddd', sha: 'pick-d', pr: 104, actor: 'fourth'},
                 {source: 'eeeeeee', sha: 'pick-e', pr: 105, actor: 'fifth'},
+                {source: 'fffffff', sha: 'f'.repeat(40), pr: 106, actor: 'sixth'},
             ];
             const compare = async (): Promise<CompareResponse> =>
                 createMock<CompareResponse>({
-                    data: {commits: picks.map((pick) => ({sha: pick.sha, commit: {message: `(cherry picked from commit ${pick.source})\n\n(cherry-picked to staging by ${pick.actor})`}}))},
+                    data: {
+                        commits: [
+                            ...picks.map((pick) => ({sha: pick.sha, commit: {message: `(cherry picked from commit ${pick.source})\n\n(cherry-picked to staging by ${pick.actor})`}})),
+                            {sha: 'd'.repeat(40), commit: {message: `Revert "Sixth fix"\n\nThis reverts commit ${'f'.repeat(40)}.`}},
+                        ],
+                    },
                 });
             compareCommits.mockImplementation(Object.assign(compare, compareStatics));
             let includeChecklistPRs = false;
@@ -369,11 +874,30 @@ describe('createRetestRequestForCP', () => {
                 .spyOn(octokit.rest.repos, 'getContent')
                 .mockResolvedValue(createMock<Awaited<ReturnType<InternalOctokit['rest']['repos']['getContent']>>>({data: {content: ''}}));
             const comments = new Map<number, string[]>();
+            const commentLocations = new Map<number, {prNumber: number; index: number}>();
+            let nextCommentID = 1;
             getAllComments.mockImplementation(async (number) => comments.get(number) ?? []);
             const createComment = jest.spyOn(GithubUtils, 'createComment').mockImplementation(async (_repo, number, body) => {
-                comments.set(number, [...(comments.get(number) ?? []), body]);
-                return createMock<Awaited<ReturnType<typeof GithubUtils.createComment>>>({});
+                const entries = [...(comments.get(number) ?? []), body];
+                comments.set(number, entries);
+                const id = nextCommentID++;
+                commentLocations.set(id, {prNumber: number, index: entries.length - 1});
+                return createMock<Awaited<ReturnType<typeof GithubUtils.createComment>>>({data: {id}});
             });
+            const updateCommentStatics = {endpoint: octokit.rest.issues.updateComment.endpoint, defaults: octokit.rest.issues.updateComment.defaults};
+            const updateCommentBody = async (parameters?: Parameters<UpdateComment>[0]): Promise<Awaited<ReturnType<UpdateComment>>> => {
+                if (!parameters || !('comment_id' in parameters) || !('body' in parameters) || typeof parameters.body !== 'string') {
+                    throw new Error('Expected a comment update.');
+                }
+                const location = commentLocations.get(parameters.comment_id);
+                const entries = location ? comments.get(location.prNumber) : undefined;
+                if (!location || !entries) {
+                    throw new Error('Expected the pending comment.');
+                }
+                entries[location.index] = parameters.body;
+                return createMock<Awaited<ReturnType<UpdateComment>>>({data: {id: parameters.comment_id}});
+            };
+            const updateComment = jest.spyOn(octokit.rest.issues, 'updateComment').mockImplementation(Object.assign(updateCommentBody, updateCommentStatics));
             const mockFetch = Object.assign(async () => new Response('', {status: 200}), {preconnect: globalThis.fetch.preconnect});
             const postWebhook = jest.spyOn(globalThis, 'fetch').mockImplementation(mockFetch);
             const originalArgv = process.argv;
@@ -400,9 +924,10 @@ describe('createRetestRequestForCP', () => {
                 process.argv = ['bun', 'script', '--deploy-sha=next-sha', '--deploy-tag=9.5.24-6-staging'];
                 await run();
 
-                // Then each outstanding fix has exactly one request, and resolved or unrelated PRs have none
-                expect(postWebhook).toHaveBeenCalledTimes(3);
-                expect(createComment).toHaveBeenCalledTimes(3);
+                // Then every deployed fix gets one request, including checked blockers, while reverted and unrelated PRs get none
+                expect(postWebhook).toHaveBeenCalledTimes(4);
+                expect(createComment).toHaveBeenCalledTimes(4);
+                expect(updateComment).toHaveBeenCalledTimes(4);
                 const payloads = postWebhook.mock.calls.map((call) => {
                     const body = call[1]?.body;
                     if (typeof body !== 'string') {
@@ -421,8 +946,8 @@ describe('createRetestRequestForCP', () => {
                     }
                     return {cpLink: payload.cpLink, author: payload.author};
                 });
-                expect(payloads.map((payload) => payload.cpLink)).toEqual([101, 102, 103].map((number) => `${CONST.APP_REPO_URL}/pull/${number}`));
-                expect(payloads.map((payload) => payload.author)).toEqual(['first', 'second', 'third']);
+                expect(payloads.map((payload) => payload.cpLink)).toEqual([101, 102, 103, 104].map((number) => `${CONST.APP_REPO_URL}/pull/${number}`));
+                expect(payloads.map((payload) => payload.author)).toEqual(['first', 'second', 'third', 'fourth']);
                 expect(comments.get(101)?.[0]).toContain(getCherryPickRetestMarker('pick-a'));
 
                 // When the first PR is picked again after a revert
@@ -431,7 +956,7 @@ describe('createRetestRequestForCP', () => {
                 await run();
 
                 // Then only the new pick gets another retest request
-                expect(postWebhook).toHaveBeenCalledTimes(4);
+                expect(postWebhook).toHaveBeenCalledTimes(5);
                 expect(comments.get(101)?.[1]).toContain(getCherryPickRetestMarker('new-pick-a'));
             } finally {
                 process.argv = originalArgv;
@@ -454,6 +979,7 @@ describe('createRetestRequestForCP', () => {
                 getPull.mockRestore();
                 getContent.mockRestore();
                 createComment.mockRestore();
+                updateComment.mockRestore();
                 postWebhook.mockRestore();
             }
         });
