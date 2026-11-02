@@ -2,7 +2,6 @@
  * Builds the accounting listings for the Connections page and starts the accounting connect flows from them.
  * Must be rendered inside an AccountingContextProvider.
  */
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -37,7 +36,6 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     const styles = useThemeStyles();
     const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {startIntegrationFlow} = useAccountingActions();
     const {activeIntegration, popoverAnchorRefs} = useAccountingState();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
@@ -133,7 +131,6 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         const integrationData = getAccountingIntegrationData(name, policyID, translate, NO_REUSABLE_CONNECTIONS, {
             expensifyIcons: accountingIcons,
             isIntuitEnterpriseSuiteOverride: isIntuitEnterpriseSuite,
-            isUnifiedConnectionsBetaEnabled,
         });
         if (!integrationData) {
             return [];

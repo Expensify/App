@@ -69,7 +69,7 @@ function TwoFactorAuthWrapper({stepName, title, stepCounter, onBackButtonPress, 
 
     const route = useRoute();
     const backTo = (route.params as {backTo?: Route} | undefined)?.backTo;
-    const defaultGoBack = () => quitAndNavigateBack(backTo ?? ROUTES.SETTINGS_SECURITY);
+    const defaultGoBack = () => quitAndNavigateBack(!!account?.requiresTwoFactorAuth, backTo ?? ROUTES.SETTINGS_SECURITY);
 
     return (
         <ScreenWrapper

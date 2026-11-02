@@ -1,6 +1,6 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isGroupedItemArray, isGroupEntry, isTransactionGroupListItemType, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isGroupedItemArray, isGroupEntry, isTransactionGroupListItemType, isTransactionListItemType, isTransactionReportGroupListItemType, isTripListItemType} from '@libs/SearchUIUtils';
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
@@ -489,7 +489,7 @@ function resolveGroupChildren(group: TransactionGroupListItemType, openGroupKeys
 
 type ShiftRangeSource = {
     /** Each group header followed by the rows it carries, in visual order */
-    items: SearchListItem[];
+    items: Array<SearchData[number]>;
 
     childrenByGroupKey: Map<string, TransactionListItemType[]>;
 
@@ -497,15 +497,23 @@ type ShiftRangeSource = {
     groupKeyByChildKey: Map<string, string>;
 };
 
+const NO_SELECTABLE_ROWS: Array<SearchData[number]> = [];
+
+/** The rows selection can act on. Trip rows can't be selected, so a trip list has none. */
+function getSelectableRows(data: SearchListItem[]): Array<SearchData[number]> {
+    const isSelectable = (rows: SearchListItem[]): rows is Array<SearchData[number]> => !rows.some(isTripListItemType);
+    return isSelectable(data) ? data : NO_SELECTABLE_ROWS;
+}
+
 /** One pass, so what a range spans and who owns each row cannot disagree. Flattens only in group-by views. */
-function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: OpenGroupKeys, groupsAreHeaders: boolean): ShiftRangeSource {
+function buildShiftRangeSource(sortedData: Array<SearchData[number]>, openGroupKeys: OpenGroupKeys, groupsAreHeaders: boolean): ShiftRangeSource {
     const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
     const groupKeyByChildKey = new Map<string, string>();
     if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
         return {items: sortedData, childrenByGroupKey, groupKeyByChildKey};
     }
 
-    const items: SearchListItem[] = [];
+    const items: Array<SearchData[number]> = [];
     for (const group of sortedData) {
         items.push(group);
         if (!group.keyForList) {
@@ -729,6 +737,7 @@ export {
     prepareTransactionsList,
     deriveSelectedReports,
     buildShiftRangeSource,
+    getSelectableRows,
     applyShiftRangeBatchToSelection,
     spellOutGroupSelection,
     isGroupSelected,

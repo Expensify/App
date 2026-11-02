@@ -76,7 +76,7 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
         secondaryColor: colorStyles?.color,
         titleColor: colorStyles?.titleColor,
         MCCIcon: icons.CreditCardExclamation,
-        backgroundImage: eReceiptBGs.EReceiptBG_Green,
+        backgroundImage: eReceiptBGs.EReceiptBGGreen,
         titleText: translate('multifactorAuthentication.reviewTransaction.attemptedTransaction'),
     };
 
