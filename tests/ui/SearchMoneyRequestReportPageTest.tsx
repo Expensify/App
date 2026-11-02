@@ -73,6 +73,7 @@ jest.mock('@userActions/Report', () => ({
     openReport: jest.fn(),
     updateLastVisitTime: jest.fn(),
     clearDeleteTransactionNavigateBackUrl: jest.fn(),
+    clearDeleteTransactionNavigateBackUrlAfterTransitions: jest.fn(),
 }));
 
 // All child components are mocked to null: none of them need to actually render for these tests,

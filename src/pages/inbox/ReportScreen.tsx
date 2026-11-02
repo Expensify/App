@@ -120,7 +120,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                         >
                             {!shouldDeferNonEssentials && (
                                 <>
-                                    <DeleteTransactionNavigateBackHandler />
+                                    <DeleteTransactionNavigateBackHandler reportID={reportIDFromRoute} />
                                     <ReportRouteParamHandler />
                                     <OneTransactionThreadRedirectHandler />
                                     <ReportFetchHandler />
