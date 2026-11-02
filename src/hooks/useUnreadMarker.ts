@@ -62,10 +62,6 @@ function useUnreadMarker({
 
     const [unreadMarkerTime, setUnreadMarkerTime] = useState(reportLastReadTime);
 
-    if (unreadMarkerTime === '' && reportLastReadTime !== '') {
-        setUnreadMarkerTime(reportLastReadTime);
-    }
-
     useEffect(() => {
         if (isAnonymousUser) {
             return;

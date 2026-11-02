@@ -6,6 +6,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -60,6 +61,7 @@ function DateField({
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const policy = usePolicy(report?.policyID);
+    const personalPolicy = usePersonalPolicy();
 
     const dateState = useTransactionSelector(transactionID, dateStateSelector);
     const transaction = useTransactionSelector(transactionID, (t) => t);
@@ -104,6 +106,7 @@ function DateField({
                 policyForTrackExpense,
                 lastSelectedDistanceRates,
                 isDraft: shouldUseTransactionDraft(action),
+                personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             });
         }
     };

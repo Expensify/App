@@ -11,6 +11,7 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -119,17 +120,25 @@ function useSelectionModePayment({
     const isInvoiceReport = isInvoiceReportUtil(moneyRequestReport);
     const isAnyTransactionOnHold = hasHeldExpensesFromTransactions(transactions);
 
-    const shouldBlockAction = (paymentMethodType?: PaymentMethodType) => {
+    const presentBlockingAction = (action: () => void, deferBlockingPresentation: boolean) => {
+        if (deferBlockingPresentation) {
+            deferModalPresentationAfterPopoverDismiss(action);
+        } else {
+            action();
+        }
+    };
+
+    const shouldBlockAction = (paymentMethodType?: PaymentMethodType, deferBlockingPresentation = false) => {
         if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
+            presentBlockingAction(showDelegateNoAccessModal, deferBlockingPresentation);
             return true;
         }
         if (isAccountLocked) {
-            showLockedAccountModal();
+            presentBlockingAction(showLockedAccountModal, deferBlockingPresentation);
             return true;
         }
         if (!isUserValidated && paymentMethodType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+            presentBlockingAction(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path)), deferBlockingPresentation);
             return true;
         }
         return false;
@@ -242,7 +251,7 @@ function useSelectionModePayment({
     })();
 
     const handleWorkspaceSelected = (wp: OnyxTypes.Policy) => {
-        if (shouldBlockAction()) {
+        if (shouldBlockAction(undefined, true)) {
             return;
         }
         kycWallRef.current?.continueAction?.({policy: wp});
@@ -269,10 +278,7 @@ function useSelectionModePayment({
         return result;
     })();
 
-    const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
-        if (shouldBlockAction(iouPaymentType)) {
-            return;
-        }
+    const invokePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         selectPaymentType({
             event,
             iouPaymentType,
@@ -296,6 +302,13 @@ function useSelectionModePayment({
         });
     };
 
+    const onSelectionModePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
+        if (shouldBlockAction(iouPaymentType, true)) {
+            return;
+        }
+        invokePaymentSelect(event, iouPaymentType, triggerKYCFlow);
+    };
+
     const selectionModeKYCSuccess = (type?: PaymentMethodType) => {
         confirmPayment({paymentType: type});
     };
@@ -306,6 +319,7 @@ function useSelectionModePayment({
     return {
         confirmPayment,
         shouldBlockAction,
+        invokePaymentSelect,
         onSelectionModePaymentSelect,
         selectionModeKYCSuccess,
         paymentSubMenuItems,

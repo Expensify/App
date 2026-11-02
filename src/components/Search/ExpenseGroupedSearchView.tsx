@@ -418,6 +418,4 @@ function ExpenseGroupedSearchView({
     );
 }
 
-ExpenseGroupedSearchView.displayName = 'ExpenseGroupedSearchView';
-
 export default ExpenseGroupedSearchView;

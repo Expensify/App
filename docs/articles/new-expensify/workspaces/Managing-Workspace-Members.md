@@ -39,12 +39,15 @@ You can filter the member list by role to quickly find specific groups of member
 2. Click the role filter dropdown at the top of the member list.
 3. Select one of the available roles:
    - **All members** – Shows all workspace members (default).
-   - **Admins** – Shows only members with the Admin role.
    - **Approvers** – Shows only members who are designated approvers.
+   - **Workspace Admins** – Shows only members with the Admin role (not available on Submit workspaces).
+   - **Editors** – Shows only members with the Editor role (Submit workspaces only).
    - **Card Admins** – Shows only members with the Card Admin role (Control workspaces only).
    - **Auditors** – Shows only members with the Auditor role (Control workspaces only).
 
 The member list updates immediately to show only members matching the selected role. You can also combine the role filter with the search bar to narrow results further.
+
+The roles available in the filter depend on your workspace type, so the options change if you switch your workspace plan. If you’ve filtered by a role that is no longer available after a plan change, the filter automatically resets to **All members**.
 
 If no members match the selected filter, an empty state is displayed with the message: "No members match this filter."
 

@@ -324,7 +324,7 @@ function MoneyReportHeaderSelectionDropdown({reportID, primaryAction, isReportIn
                     iouReport={moneyRequestReport}
                     onPaymentSelect={onSelectionModePaymentSelect}
                     onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
-                        if (shouldBlockAction()) {
+                        if (shouldBlockAction(undefined, true)) {
                             return;
                         }
                         triggerKYCFlow({policy: selectedPolicy});

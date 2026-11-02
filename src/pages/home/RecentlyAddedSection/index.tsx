@@ -83,7 +83,12 @@ function RecentlyAddedSection() {
         const siblingTransactionIDs = transactions.map((sibling) => sibling.transactionID);
         const siblingDescriptorsByTransactionID = transactions.reduce<Record<string, TransactionThreadNavigationDescriptor>>((map, sibling) => {
             // eslint-disable-next-line no-param-reassign
-            map[sibling.transactionID] = {reportID: sibling.reportID, threadReportID: sibling.threadReportID, transaction: sibling.transaction};
+            map[sibling.transactionID] = {
+                reportID: sibling.reportID,
+                transaction: sibling.transaction,
+                reportAction: sibling.reportAction,
+                report: sibling.report,
+            };
             return map;
         }, {});
 

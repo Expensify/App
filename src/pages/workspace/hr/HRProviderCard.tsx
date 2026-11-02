@@ -1,4 +1,5 @@
 import React from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/Button';
@@ -7,6 +8,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
+import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -30,7 +32,7 @@ type HRProviderCardProps = {
     /** The workspace policy that owns this HR integration. */
     policy: Policy | undefined;
 
-    /** Callback invoked when the user taps the "Connect" button for an unconnected provider. */
+    /** Callback invoked when the user taps the "Connect" or "Reconnect" button. */
     handleConnect: () => void;
 
     /** Whether the current user can edit this HR connection. */
@@ -55,38 +57,65 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
     let connectionDescription: string | undefined;
     if (card.isSyncInProgress) {
         connectionDescription = card.syncStageInProgress ? translate('workspace.hr.syncStageName', {stage: card.syncStageInProgress}) : translate('workspace.hr.syncing');
-    } else if (card.successfulDate && !card.hasError) {
+    } else if (!card.successfulDate) {
+        connectionDescription = translate('workspace.hr.notSync');
+    } else {
         connectionDescription = translate('workspace.hr.lastSync', datetimeToRelative(card.successfulDate));
     }
 
-    let lastSyncErrorMessage: string | undefined;
-    if (card.hasError) {
+    let lastSyncErrorMessage: ReactNode | undefined;
+    if (card.needsReconnect) {
+        lastSyncErrorMessage = (
+            <>
+                {`${translate('workspace.hr.authenticationError', card.displayName)} `}
+                <TextLink
+                    style={[styles.link, styles.fontSizeLabel]}
+                    onPress={handleConnect}
+                >
+                    {translate('workspace.hr.reconnectLink')}
+                </TextLink>
+            </>
+        );
+    } else if (card.hasError) {
         const genericError = translate('workspace.hr.syncError', card.displayName);
         lastSyncErrorMessage = card.lastSyncErrorMessage ? `${genericError} ("${card.lastSyncErrorMessage}")` : genericError;
     }
 
+    const getPrimaryMenuItem = (): ThreeDotsMenuProps['menuItems'][number] => {
+        if (card.needsReconnect) {
+            return {
+                icon: icons.Sync,
+                text: translate('workspace.hr.reconnect'),
+                onSelected: handleConnect,
+                disabled: isOffline,
+            };
+        }
+        if (card.completeSetupRoute) {
+            return {
+                icon: icons.CheckCircle,
+                text: translate('workspace.hr.mergeHR.completeSetup'),
+                onSelected: () => {
+                    if (!canWriteMoreFeatures) {
+                        showReadOnlyModal();
+                        return;
+                    }
+                    if (card.completeSetupRoute) {
+                        Navigation.navigate(card.completeSetupRoute);
+                    }
+                },
+                disabled: isOffline,
+            };
+        }
+        return {
+            icon: icons.Sync,
+            text: translate('workspace.hr.syncNow'),
+            onSelected: () => syncConnection(policy, card.connectionName),
+            disabled: isOffline,
+        };
+    };
+
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = [
-        card.completeSetupRoute
-            ? {
-                  icon: icons.CheckCircle,
-                  text: translate('workspace.hr.mergeHR.completeSetup'),
-                  onSelected: () => {
-                      if (!canWriteMoreFeatures) {
-                          showReadOnlyModal();
-                          return;
-                      }
-                      if (card.completeSetupRoute) {
-                          Navigation.navigate(card.completeSetupRoute);
-                      }
-                  },
-                  disabled: isOffline,
-              }
-            : {
-                  icon: icons.Sync,
-                  text: translate('workspace.hr.syncNow'),
-                  onSelected: () => syncConnection(policy, card.connectionName),
-                  disabled: isOffline,
-              },
+        getPrimaryMenuItem(),
         {
             icon: icons.Trashcan,
             text: translate('workspace.hr.disconnect'),
@@ -114,13 +143,7 @@ function HRProviderCard({card, policy, handleConnect, canWriteMoreFeatures, show
             <Button
                 small
                 text={translate('workspace.hr.connect')}
-                onPress={() => {
-                    if (!canWriteMoreFeatures) {
-                        showReadOnlyModal();
-                        return;
-                    }
-                    handleConnect();
-                }}
+                onPress={handleConnect}
                 innerStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                 hoverStyles={!canWriteMoreFeatures ? [styles.buttonOpacityDisabled, styles.buttonDisabled] : undefined}
                 isDisabled={isOffline}

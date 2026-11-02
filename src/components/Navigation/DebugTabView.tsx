@@ -78,6 +78,8 @@ function getSettingsMessage(status: IndicatorStatus | undefined): TranslationPat
             return 'debug.indicatorStatus.aBankAccountIsLocked';
         case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
             return 'debug.indicatorStatus.completeHrSetup';
+        case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
+            return 'debug.indicatorStatus.theresAProblemWithAnHRConnection';
         default:
             return undefined;
     }
@@ -112,6 +114,7 @@ function getSettingsRoute(status: IndicatorStatus | undefined, reimbursementAcco
         case CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT:
             return ROUTES.SETTINGS_WALLET;
         case CONST.INDICATOR_STATUS.HAS_MERGE_HR_SETUP_NEEDED:
+        case CONST.INDICATOR_STATUS.HAS_HR_CONNECTION_ERROR:
             return ROUTES.WORKSPACE_HR.getRoute(indicatorPolicyID);
         default:
             return undefined;

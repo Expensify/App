@@ -181,8 +181,9 @@ function IOURequestStepUpgrade({
                 const shouldKeepOriginalReport = isTrack || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE;
                 if (!shouldKeepOriginalReport) {
                     setTransactionReport(transactionID, {reportID: expenseReportID}, true);
-                    // Let the confirmation step decide the distance rate because policy data is not fully available at this step
-                    setCustomUnitRateID(transactionID, '-1', undefined, undefined);
+                    // Let the confirmation step decide the distance rate because policy data is not fully available at this step.
+                    // personalPolicyOutputCurrency is intentionally omitted: no transaction is passed, so setCustomUnitRateID never resolves a rate and the currency is never read.
+                    setCustomUnitRateID(transactionID, '-1', undefined, undefined, false, undefined);
                     Navigation.setParams({reportID: expenseReportID});
                 }
 

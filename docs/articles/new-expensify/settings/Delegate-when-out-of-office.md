@@ -1,7 +1,7 @@
 ---
 title: Delegate When Out of Office
 description: Assign a vacation delegate to approve reports on your behalf while you're away.
-keywords: [New Expensify, delegate approvals, out-of-office approver, vacation, out of office, approval delegation, temporary delegate, vacation delegate, copilot vs delegate]
+keywords: [New Expensify, delegate approvals, out-of-office approver, vacation, out of office, approval delegation, temporary delegate, vacation delegate, copilot vs delegate, copilot, shared access, proxy, behalf of]
 ---
 
 If you're out of the office or on vacation, you can assign a **Vacation Delegate** to handle your approvals while you're away.
@@ -53,3 +53,9 @@ No. Clearing your status won't affect your delegate. You'll need to manually rem
 ## What if my delegate isn’t in the same workspace?
 
 If your delegate isn’t part of your workspace, Workspace Admins will be notified by email and prompted to add them.
+
+## What should I use if someone needs to manage my expenses permanently?
+
+A Vacation Delegate is intended for temporary approval coverage while you're away. If someone needs ongoing access to manage expenses on your behalf—such as an executive assistant, accountant, or bookkeeper, [add them as a Copilot](/articles/new-expensify/settings/Manage-Copilot-Access) instead.
+
+Copilots provide long-term account access for expense management, while Vacation Delegates are designed for temporary approval coverage.

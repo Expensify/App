@@ -294,16 +294,41 @@ async function changePINForCard({cardID, pin, signedChallenge, authenticationMet
     }
 }
 
-async function revealCardDetailsWithSCA({cardID, signedChallenge, authenticationMethod}: MultifactorAuthenticationScenarioParameters['REVEAL-CARD-DETAILS']) {
+async function setPersonalDetailsAndRevealExpensifyCardWithSCA(params: MultifactorAuthenticationScenarioParameters['SET-PERSONAL-DETAILS-AND-REVEAL-CARD-DETAILS']) {
+    // `isFromMissingDetailsFlow` is a UI-only flag consumed by the scenario callback to drive
+    // post-reveal navigation; the backend doesn't expect it.
+    const {isFromMissingDetailsFlow, ...apiParams} = params;
     try {
         const response = await makeRequestWithSideEffects(
-            SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS_WITH_SCA,
-            {cardID, signedChallenge: JSON.stringify(signedChallenge), authenticationMethod},
-            {},
+            SIDE_EFFECT_REQUEST_COMMANDS.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD,
+            {
+                ...apiParams,
+                signedChallenge: JSON.stringify(apiParams.signedChallenge),
+            },
+            {
+                optimisticData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                        value: {
+                            isLoading: true,
+                        },
+                    },
+                ],
+                finallyData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                        value: {
+                            isLoading: false,
+                        },
+                    },
+                ],
+            },
         );
 
         const {jsonCode, message, pan, expiration, cvv} = response ?? {};
-        const parsed = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_DETAILS_WITH_SCA, message);
+        const parsed = parseHttpResponse(jsonCode, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, message);
 
         return {
             ...parsed,
@@ -314,8 +339,8 @@ async function revealCardDetailsWithSCA({cardID, signedChallenge, authentication
             },
         };
     } catch (error) {
-        Log.hmmm('[MultifactorAuthentication] Failed to reveal card details for card', {error});
-        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.REVEAL_CARD_DETAILS_WITH_SCA, undefined);
+        Log.hmmm('[MultifactorAuthentication] Failed to set personal details and reveal card details for card', {error});
+        return parseHttpResponse(undefined, CONST.MULTIFACTOR_AUTHENTICATION.API_RESPONSE_MAP.SET_PERSONAL_DETAILS_AND_REVEAL_EXPENSIFY_CARD, undefined);
     }
 }
 
@@ -426,7 +451,7 @@ export {
     setPersonalDetailsAndShipExpensifyCardsWithPIN,
     revealPINForCard,
     changePINForCard,
-    revealCardDetailsWithSCA,
+    setPersonalDetailsAndRevealExpensifyCardWithSCA,
     isTransactionStillPending3DSReview,
     denyTransaction,
     authorizeTransaction,

@@ -1,5 +1,5 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
-/* eslint-disable import/extensions */
+
 const {pickLauncher, consumeLauncher, setActivePopoverLauncher, scheduleClearActivePopoverLauncher, resetLauncherStackForTests} = require<{
     pickLauncher: () => HTMLElement | null;
     consumeLauncher: (element: HTMLElement) => void;
@@ -7,7 +7,6 @@ const {pickLauncher, consumeLauncher, setActivePopoverLauncher, scheduleClearAct
     scheduleClearActivePopoverLauncher: (element?: HTMLElement) => void;
     resetLauncherStackForTests: () => void;
 }>('../../src/libs/LauncherStack.ts');
-/* eslint-enable import/extensions */
 
 function appendButton(): HTMLButtonElement {
     const button = document.createElement('button');

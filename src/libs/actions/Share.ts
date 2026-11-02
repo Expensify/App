@@ -11,6 +11,10 @@ function clearShareData() {
     Onyx.multiSet({
         [ONYXKEYS.SHARE_TEMP_FILE]: null,
         [ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS]: null,
+        // Also clear any file validated in a previous share session. Otherwise a HEIC/`image/*` share
+        // could reuse the previous session's validated file (which ShareDetailsPage uploads) during the
+        // window before the new async validation overwrites VALIDATED_FILE_OBJECT.
+        [ONYXKEYS.VALIDATED_FILE_OBJECT]: null,
     });
 }
 

@@ -32,7 +32,7 @@ type SidePanelStateContextProps = {
 };
 
 type SidePanelActionsContextProps = {
-    openSidePanel: () => void;
+    openSidePanel: (options?: {forceConcierge?: boolean}) => void;
     closeSidePanel: (options?: {afterTransition?: () => void}) => void;
 };
 
@@ -86,7 +86,7 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const isPolicyActive = shouldShowPolicy(activePolicy, false, sessionEmail ?? '');
     const adminsChatReportID = activePolicy?.chatReportIDAdmins?.toString();
 
-    const reportID = (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
+    const reportID = !sidePanelNVP?.forceConcierge && (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
 
     const onCloseCompleteRef = useRef<(() => void) | undefined>(undefined);
     const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
@@ -143,9 +143,9 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
     };
 
-    const openSidePanel = () => {
+    const openSidePanel = (options?: {forceConcierge?: boolean}) => {
         setSessionStartTime(DateUtils.getDBTime());
-        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth);
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge);
     };
 
     // Because of the React Compiler we don't need to memoize it manually

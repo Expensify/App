@@ -2858,6 +2858,7 @@ export type {
     CommuterExclusions,
     NetSuiteConnectionData,
     MergeHRConnectionConfig,
+    MergeHRConnectionLastSync,
     GustoConnectionConfig,
     ZenefitsConnectionConfig,
     Vendor,
