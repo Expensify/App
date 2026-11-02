@@ -107,6 +107,7 @@ function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
                         text={translate('common.continue')}
                         isDisabled={isOffline}
                         isLoading={!!embeddedLink?.isLoading}
+                        sentryLabel={CONST.SENTRY_LABEL.WISE_MORE_INFO_NEEDED.CONTINUE}
                         onPress={() => {
                             setHasRequestedLink(true);
                             getWiseKYCReviewEmbeddedLink(bankAccountID);

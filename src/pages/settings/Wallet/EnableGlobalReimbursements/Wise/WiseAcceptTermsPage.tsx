@@ -95,7 +95,7 @@ function WiseAcceptTermsPage() {
             return;
         }
         clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-        // TODO: Remove once SubmitWiseBusinessOnboarding decides when Wise needs more details
+        // Until Auth ships SubmitWiseBusinessOnboarding, Confirm always opens the more info needed page
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introPath), {forceReplace: true});
     };
 
@@ -137,6 +137,7 @@ function WiseAcceptTermsPage() {
                     containerStyles={[styles.mh0, styles.mt5]}
                     enabledWhenOffline={false}
                     shouldShowLoadingImmediatelyOnPress={false}
+                    sentryLabel={CONST.SENTRY_LABEL.WISE_ACCEPT_TERMS.CONFIRM}
                 />
             </ScrollView>
         </ScreenWrapper>

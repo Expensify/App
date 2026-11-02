@@ -10199,6 +10199,12 @@ const CONST = {
             CTA: 'WiseGlobalReimbursementsWorkspaceBanner-CTA',
             DISMISS: 'WiseGlobalReimbursementsWorkspaceBanner-Dismiss',
         },
+        WISE_ACCEPT_TERMS: {
+            CONFIRM: 'WiseAcceptTerms-Confirm',
+        },
+        WISE_MORE_INFO_NEEDED: {
+            CONTINUE: 'WiseMoreInfoNeeded-Continue',
+        },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
             DISMISS: 'ProductMarketingWindow-Dismiss',
