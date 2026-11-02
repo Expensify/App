@@ -30,9 +30,9 @@ enum CertificatePinning {
     /// Keep in sync with `enforcePinning` in config/certificatePinning/pins.json and CertificatePinning.kt.
     private static let enforcePinning = false
 
-    /// Identifies the pin list a client shipped with, independent of the app version: the `_lastGenerated`
-    /// value of config/certificatePinning/pins.json these hashes were copied from. Update it together with
-    /// the hashes. Reported as `certificate_pinning_pin_set_version`.
+    /// Identifies the shipped pin set independently of the app version using `_lastGenerated`
+    /// from config/certificatePinning/pins.json. Update it with the hashes.
+    /// Reported as `certificate_pinning_pin_set_version`.
     private static let pinSetVersion = "2026-09-14"
 
     private static let certificatePinningHostTag = "certificate_pinning_host"
@@ -127,16 +127,15 @@ enum CertificatePinning {
 
     // MARK: - Reporting
     //
-    // TrustKit only says *that* a pin did not match; the attributes below record *what* iOS validated
-    // (the full chain, the trust anchor, how the device trusts that anchor, and the network context) so
-    // a mismatch in Sentry can be classified as a CA we do not pin versus a TLS-intercepting proxy
-    // without a device in hand. Keep this set in sync with Mobile-Expensify's
-    // iOS/Expensify/CertificatePinningReporter.m and the table in config/certificatePinning/README.md.
+    // Record TrustKit's certificate chain, a fresh system trust result, and network settings
+    // to help investigate pin failures in Sentry. These fields help distinguish an unpinned
+    // CA from a proxy, but do not establish the cause on their own.
+    // Keep these fields in sync with Mobile-Expensify's iOS/Expensify/CertificatePinningReporter.m
+    // and the field descriptions in config/certificatePinning/README.md.
     //
-    // Sentry's attribute converter matches Bool before Int, so any number holding 0 or 1 lands as a
-    // boolean and the column type flaps between releases. Enum values are therefore strings, counts
-    // that can be 0 or 1 are strings, real flags are Bool, and the validation duration is reported in
-    // microseconds (never 0 or 1 in practice).
+    // In attributes, enum names and counts are strings, flags are Bool, and validation
+    // duration is an integer number of microseconds. Send fields listed in extraKeys as
+    // extras and convert all other values to strings for tags.
 
     /// Serial queue TrustKit invokes the callback on. Everything below that mutates static state runs here.
     private static let reportingQueue = DispatchQueue(label: "com.expensify.certificatePinning.reporting", qos: .utility)
@@ -159,7 +158,7 @@ enum CertificatePinning {
             } else if path.usesInterfaceType(.wiredEthernet) {
                 currentInterfaceType = "wired"
             } else if path.usesInterfaceType(.other) {
-                currentInterfaceType = "other" // VPN or tunnel
+                currentInterfaceType = "other" // Virtual or otherwise unknown interface
             } else {
                 currentInterfaceType = "unknown"
             }
@@ -182,10 +181,9 @@ enum CertificatePinning {
         occurrenceCounts[dedupKey] = occurrence
 
         var attributes: [String: Any] = [
-            // Existing attributes, unchanged
             certificatePinningHostTag: hostname,
             certificatePinningModeTag: enforcePinning ? "enforce" : "monitor",
-            // Typed replacement for the old numeric `certificate_pinning_evaluation_result`
+            // TrustKit's evaluation result and connection decision, plus the system trust result
             "certificate_pinning_result": resultName,
             "certificate_pinning_trust_decision": name(of: result.finalTrustDecision),
             "certificate_pinning_sec_trust_result": name(of: trustResult),
@@ -196,7 +194,6 @@ enum CertificatePinning {
             "certificate_pinning_anchor_subject": subjects.last ?? "",
             "certificate_pinning_anchor_fingerprint": anchorFingerprint,
             "certificate_pinning_anchor_self_signed": anchor.map(isSelfSigned) ?? false,
-            // Context
             "certificate_pinning_pin_set_version": pinSetVersion,
             "certificate_pinning_validation_duration_us": Int((result.validationDuration * 1_000_000).rounded()),
             "certificate_pinning_interface": interfaceType(),
@@ -208,8 +205,8 @@ enum CertificatePinning {
             attributes["certificate_pinning_trust_errors"] = trustErrors
         }
 
-        // One captured error per failed validation in both modes, exactly as before; the detail above
-        // rides along as tags and extras.
+        // Capture one error for each failed validation in either mode, with these attributes
+        // attached as tags and extras.
         let error = NSError(
             domain: "CertificatePinning",
             code: result.evaluationResult.rawValue,
@@ -249,9 +246,9 @@ enum CertificatePinning {
         }
     }
 
-    /// `proceed` means the anchor is explicitly trusted by the user or an MDM profile ("Enable Full Trust for
-    /// Root Certificates"); `unspecified` means a system root with no user override. This is the cheapest
-    /// single signal separating a TLS-intercepting proxy from a public CA we do not pin.
+    /// `proceed` indicates a successful evaluation based on a user trust decision;
+    /// `unspecified` indicates success without an explicit user decision.
+    /// Neither result alone identifies a proxy or proves the anchor is a public CA.
     private static func name(of result: SecTrustResultType) -> String {
         switch result {
         case .invalid: return "invalid"
@@ -308,11 +305,11 @@ enum CertificatePinning {
         return subject == issuer
     }
 
-    /// Re-runs the system trust evaluation on the chain TrustKit validated. TrustKit 3.x does not expose the
-    /// original SecTrust, so this is the only way to learn how the device classified the anchor
-    /// (`SecTrustResultType`) and, for an untrusted chain, why ("expired", "not trusted", hostname mismatch...).
-    /// Revocation checking is best-effort and may touch the network, which is why this never runs on the
-    /// main queue.
+    /// Evaluates TrustKit's certificate chain with an SSL policy for hostname.
+    /// Returns the new evaluation's SecTrustResultType and any error messages.
+    /// TrustKit does not expose its original SecTrust in the callback, so this evaluation
+    /// may differ from the original. It runs on reportingQueue because trust evaluation
+    /// can block while fetching certificates or checking revocation.
     private static func evaluate(_ certificates: [SecCertificate], hostname: String) -> (SecTrustResultType, String) {
         guard !certificates.isEmpty else {
             return (.invalid, "")
@@ -348,9 +345,10 @@ enum CertificatePinning {
 
     // MARK: Network context
 
-    /// Presence only: never the proxy host or PAC URL, which would identify the customer's network. Per-interface
-    /// settings under `__SCOPED__` reveal tunnels (utun/ipsec/ppp/tap), which is where per-app VPN and TLS
-    /// inspection usually live.
+    /// Reports whether HTTP proxy and PAC settings are enabled, and whether `__SCOPED__`
+    /// contains an interface whose name starts with utun, tun, tap, ppp, or ipsec.
+    /// These names suggest a tunnel but do not prove this connection uses a VPN.
+    /// The proxy host and PAC URL are omitted to protect network details.
     private static func networkContext() -> [String: Any] {
         let proxy = CFNetworkCopySystemProxySettings()?.takeRetainedValue() as? [String: Any] ?? [:]
         let httpProxy = (proxy[kCFNetworkProxiesHTTPEnable as String] as? Bool) ?? false

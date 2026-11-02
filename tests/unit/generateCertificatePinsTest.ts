@@ -27,11 +27,9 @@ const repoRoot = path.resolve(__dirname, '../..');
 const scriptPath = path.join(repoRoot, 'scripts/generateCertificatePins.sh');
 const pinsJsonPath = path.join(repoRoot, 'config/certificatePinning/pins.json');
 /**
- * The HybridApp pin lists live in the Mobile-Expensify submodule and are what actually ships to the stores.
- * They drifted from pins.json once already (the Sectigo roots were missing for a month and every HybridApp
- * build reported the 2026-10 Sectigo chain on staging.expensify.com as a mismatch), so they are checked
- * here too whenever the submodule is checked out. CI for this suite does not fetch the submodule, so that
- * check only runs locally and in HybridApp builds; a missing submodule is skipped rather than failed.
+ * Keep the HybridApp pin lists used in store builds in sync with pins.json.
+ * Include each Mobile-Expensify file that exists when this suite runs.
+ * Missing files are skipped so the suite can run without the submodule.
  */
 const hybridAppPinFiles = [
     'Mobile-Expensify/Android/res/xml/network_security_config_enforce.xml',
