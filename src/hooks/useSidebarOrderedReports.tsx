@@ -310,6 +310,7 @@ function SidebarOrderedReportsContextProvider({
         guideAccountIDs,
         prevGuideAccountIDs,
         session,
+        allPolicies,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.
