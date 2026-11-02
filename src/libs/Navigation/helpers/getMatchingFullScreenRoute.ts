@@ -214,7 +214,8 @@ function getMatchingFullScreenRoute(route: NavigationRoute, isDeeplink = false) 
     // Handle dynamic routes: find the appropriate full screen route.
     // Iterate all candidates so that a false-positive first match (e.g. a tag named "gl-code"
     // colliding with the registered static suffix) does not produce a NOT_FOUND state.
-    if (route.path) {
+    // Static screens are skipped because their path can end like a dynamic suffix by coincidence (`settings/card/:cardID` ends like `card/:cardID`).
+    if (route.path && isDynamicScreen) {
         const allSuffixMatches = findAllMatchingDynamicSuffixes(route.path);
         for (const suffixMatch of allSuffixMatches) {
             const pathWithoutDynamicSuffix = getPathWithoutDynamicSuffix(suffixMatch.pathUsedForMatching, suffixMatch.actualSuffix, suffixMatch.pattern);

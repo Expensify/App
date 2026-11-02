@@ -12,17 +12,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import {hasAcceptedTravelTerms, isPaidGroupPolicy, isPolicyAccessible, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {hasAcceptedTravelTerms, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
+import {createHasTravelEnabledPolicySelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -41,31 +43,33 @@ function QuickCreationActionsBar() {
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(activePolicyID)}`);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
-    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup: false});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     // A new report has no expenses yet, so it can't have violations.
     const hasViolations = false;
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const travelEnabledPolicy = Object.values(allPolicies ?? {}).find((policy) => isWorkspaceProvisionedForTravel(policy?.travelSettings) && isPolicyAccessible(policy, email ?? ''));
+    const hasTravelEnabledPolicySelector = createHasTravelEnabledPolicySelector(email);
+    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasTravelEnabledPolicySelector});
 
-    const shouldShowBookTravel = !!travelEnabledPolicy;
+    const shouldShowBookTravel = !!hasTravelEnabledPolicy;
 
     const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const isTravelReady =
-        !(!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(travelEnabledPolicy)) &&
-        hasAcceptedTravelTerms(travelEnabledPolicy, travelSettings);
+        !(!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) &&
+        hasAcceptedTravelTerms(activePolicy, travelSettings);
 
     const handleCreateWorkspaceReport = (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
         if (!policy?.id) {
@@ -100,24 +104,25 @@ function QuickCreationActionsBar() {
     const handleExpense = () =>
         interceptAnonymousUser(() => {
             startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-        });
+        }, session);
 
     const handleDistance = () =>
         interceptAnonymousUser(() => {
             startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, lastDistanceExpenseType);
-        });
+        }, session);
 
     const handleBookTravel = () =>
         interceptAnonymousUser(() => {
-            if (isTravelReady) {
-                if (blockIfDefaultWorkspaceLacksTravel()) {
-                    return;
-                }
-                openTravelDotLink(travelEnabledPolicy?.id);
+            if (blockIfDefaultWorkspaceLacksTravel()) {
                 return;
             }
-            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(travelEnabledPolicy?.id));
-        });
+
+            if (isTravelReady) {
+                openTravelDotLink(activePolicy?.id);
+                return;
+            }
+            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
+        }, session);
 
     return (
         <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
