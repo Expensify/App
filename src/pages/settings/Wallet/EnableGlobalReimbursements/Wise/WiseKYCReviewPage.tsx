@@ -1,5 +1,6 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
+import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -12,19 +13,21 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import openExternalLink from '@libs/openExternalLink';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
-import {openWiseKYCReviewForm} from '@userActions/Wise';
+import {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink} from '@userActions/Wise';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 
 type WiseKYCReviewPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW>;
 
@@ -50,6 +53,19 @@ function WiseKYCReviewPage({route}: WiseKYCReviewPageProps) {
         goBackToTerms();
     }, [isWiseReimbursementsBetaEnabled, goBackToTerms]);
 
+    // Only a link asked for on this visit redirects, so a fetch that returns after an earlier visit closed does not
+    const [hasRequestedLink, setHasRequestedLink] = useState(false);
+    const url = kycReviewLink?.url;
+    useEffect(() => {
+        if (!hasRequestedLink || !url) {
+            return;
+        }
+        openExternalLink(url, undefined, true);
+    }, [hasRequestedLink, url]);
+
+    // The link carries a token, so it does not outlive the page
+    useEffect(() => () => clearWiseKYCReviewEmbeddedLink(), []);
+
     if (!isWiseReimbursementsBetaEnabled) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
@@ -67,12 +83,21 @@ function WiseKYCReviewPage({route}: WiseKYCReviewPageProps) {
                     <ConfirmationPage.Description style={styles.textSupporting}>{translate('walletPage.wiseOnboarding.kycReview.subtitle')}</ConfirmationPage.Description>
                 </ConfirmationPage.Content>
                 <FixedFooter>
+                    {!!kycReviewLink?.errors && (
+                        <FormHelpMessage
+                            message={getLatestErrorMessage(kycReviewLink)}
+                            style={styles.mb3}
+                        />
+                    )}
                     {/* A read is not queued offline, so the link can only be fetched online */}
                     <ConfirmationPage.PrimaryButton
                         text={translate('common.continue')}
                         isDisabled={isOffline}
                         isLoading={!!kycReviewLink?.isLoading}
-                        onPress={() => openWiseKYCReviewForm(bankAccountID)}
+                        onPress={() => {
+                            setHasRequestedLink(true);
+                            getWiseKYCReviewEmbeddedLink(bankAccountID);
+                        }}
                     />
                 </FixedFooter>
             </ConfirmationPage>

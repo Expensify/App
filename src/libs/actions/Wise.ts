@@ -1,27 +1,44 @@
-import asyncOpenURL from '@libs/asyncOpenURL';
+import {read} from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {OnyxData} from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
 
-const MOCK_RESPONSE_DELAY_MS = 1000;
+/** Fetches a fresh link to Wise's hosted KYC form for the bank account. The server puts the link in `wiseKYCReviewEmbeddedLink`. */
+function getWiseKYCReviewEmbeddedLink(bankAccountID: number) {
+    const onyxData: OnyxData<typeof ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK,
+                value: {isLoading: true},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK,
+                value: {isLoading: false},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK,
+                value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        ],
+    };
 
-/** Fetches a fresh link to Wise's hosted KYC form for the bank account and redirects the user to it */
-function openWiseKYCReviewForm(bankAccountID: number) {
-    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {isLoading: true});
-
-    // TODO: Call GetWiseKYCReviewEmbeddedLink once Auth ships it (https://github.com/Expensify/Expensify/issues/690547). Until then a fake link arrives after a delay.
-    const linkPromise = new Promise<string>((resolve) => {
-        setTimeout(() => resolve(`https://sandbox.transferwise.tech/kyc-review?bankAccountID=${bankAccountID}`), MOCK_RESPONSE_DELAY_MS);
-    });
-
-    asyncOpenURL(
-        linkPromise.finally(() => Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {isLoading: false})),
-        (url) => url,
-        undefined,
-        true,
-    );
+    read(READ_COMMANDS.GET_WISE_KYC_REVIEW_EMBEDDED_LINK, {bankAccountID}, onyxData);
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {openWiseKYCReviewForm};
+/** Drops the link, which carries a token */
+function clearWiseKYCReviewEmbeddedLink() {
+    Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, null);
+}
+
+export {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink};
