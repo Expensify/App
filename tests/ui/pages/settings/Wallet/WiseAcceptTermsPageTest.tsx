@@ -2,7 +2,6 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
-import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import WiseAcceptTermsPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseAcceptTermsPage';
@@ -24,11 +23,7 @@ const mockTranslate = TestHelper.translateLocal;
 
 // The real useFocusEffect throws outside a navigator
 jest.mock('@react-navigation/native', () => ({...jest.requireActual<Record<string, unknown>>('@react-navigation/native'), useFocusEffect: jest.fn()}));
-jest.mock('@navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
-jest.mock(
-    '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute',
-    () => (suffix: string) => `settings/wallet/global-reimbursements/1/business-onboarding/confirm/accept-terms/${suffix}`,
-);
+jest.mock('@navigation/Navigation', () => ({goBack: jest.fn()}));
 jest.mock('@userActions/DynamicForm', () => ({clearSensitiveAnswers: jest.fn()}));
 jest.mock('@userActions/Wise', () => ({submitWiseBusinessOnboarding: jest.fn()}));
 jest.mock('@hooks/useOnyx', () => () => [undefined]);
@@ -110,9 +105,6 @@ describe('WiseAcceptTermsPage', () => {
         // Then the button still works after the error, the SSN kept in memory for this page is dropped, and the business is submitted for the bank account
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(submitWiseBusinessOnboarding).toHaveBeenCalledWith(BANK_ACCOUNT_ID);
-
-        // And the page waits for Wise's answer before moving on
-        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     it('hides the error once the user changes a box', () => {

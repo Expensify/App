@@ -96,18 +96,12 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
         goBackToConfirmation();
     }, [isWiseReimbursementsBetaEnabled, goBackToConfirmation]);
 
-    // The status the submit returns decides the next page. There is no In review page yet, so that status closes the flow.
+    // Wise needs more details when the submit returns ACTION_REQUIRED
     useEffect(() => {
-        if (!wasSubmitting || isSubmitting || submitError) {
+        if (!wasSubmitting || isSubmitting || submitError || wiseStatus !== CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED) {
             return;
         }
-        if (wiseStatus === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED) {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path));
-            return;
-        }
-        if (wiseStatus === CONST.WISE.ONBOARDING_STATUS.IN_REVIEW) {
-            Navigation.dismissModal();
-        }
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path));
     }, [wasSubmitting, isSubmitting, submitError, wiseStatus]);
 
     const confirm = () => {

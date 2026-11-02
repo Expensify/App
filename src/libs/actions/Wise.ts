@@ -7,8 +7,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {OnyxUpdate} from 'react-native-onyx';
-
 import Onyx from 'react-native-onyx';
 
 /** Fetches a fresh link to Wise's hosted KYC form for the bank account. The server puts the link in `wiseKYCReviewEmbeddedLink`. */
@@ -46,15 +44,13 @@ function clearWiseKYCReviewEmbeddedLink() {
 }
 
 // TODO: Remove once Auth ships SubmitWiseBusinessOnboarding. It answers the way the command is documented, with the status Wise always returns at launch.
-function mockSubmitWiseBusinessOnboarding({bankAccountID}: SubmitWiseBusinessOnboardingParams, {optimisticData, successData}: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT>) {
-    const status = CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED;
-    const serverData: Array<OnyxUpdate<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.BANK_ACCOUNT_LIST>> = [
-        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.REIMBURSEMENT_ACCOUNT, value: {achData: {wise: {status}}}},
-        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.BANK_ACCOUNT_LIST, value: {[bankAccountID]: {accountData: {additionalData: {wise: {status}}}}}},
-    ];
+function mockSubmitWiseBusinessOnboarding(params: SubmitWiseBusinessOnboardingParams, {optimisticData, successData}: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT>) {
     Onyx.update(optimisticData ?? []);
     setTimeout(() => {
-        Onyx.update([...serverData, ...(successData ?? [])]);
+        Onyx.update([
+            {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.REIMBURSEMENT_ACCOUNT, value: {achData: {wise: {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}}}},
+            ...(successData ?? []),
+        ]);
     }, 1500);
 }
 
