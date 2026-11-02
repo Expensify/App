@@ -3194,7 +3194,12 @@ const translations = {
             title: 'Set up global reimbursements?',
             subtitle: 'Pay members worldwide in their local currency.',
             payingReportSubtitle: 'The company and employee bank accounts use different currencies.',
+            payingMultipleReportsSubtitle: 'None of these reports could be paid because the company and employee bank accounts use different currencies.',
             getStarted: 'Get started',
+        },
+        wiseGlobalReimbursementsBulkPayModal: {
+            title: (lastFour: string) => (lastFour ? `Pay with x${lastFour}` : 'Pay with bank account'),
+            description: 'These reports weren’t paid with the bank account because they require global reimbursements. Get started with the process below.',
         },
         wiseGlobalReimbursementsBanner: {
             title: 'Pay people worldwide',

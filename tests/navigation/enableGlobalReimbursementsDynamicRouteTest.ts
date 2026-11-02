@@ -114,6 +114,17 @@ describe('Enable global reimbursements dynamic routes', () => {
             expect(route).toBe('r/123/global-reimbursements/456');
         });
 
+        it('keeps the multiple reports flag on the intro opened by bulk pay', () => {
+            // Given bulk pay could not pay any of the selected reports on the search root
+            const signalPath = 'search';
+
+            // When the intro route is built for several reports
+            const route = getWiseGlobalReimbursementsIntroNavigationRoute(456, signalPath, true);
+
+            // Then the intro is nested over search and carries the flag, so it shows the copy for several reports
+            expect(route).toBe('search/global-reimbursements/456?isPayingMultipleReports=true');
+        });
+
         it('falls back to the wallet when the signal arrives on an unsupported screen', () => {
             // Given the admin navigated to a screen that is not an intro entry screen
             const signalPath = 'settings/preferences';
