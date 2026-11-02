@@ -70,6 +70,16 @@ Onyx.connectWithoutView({
     },
 });
 
+/** The account ID, from the session or, before the session carries it, the credentials. */
+function currentAccountID(): number | undefined {
+    return state.session?.accountID ?? state.credentials?.accountID;
+}
+
+/** The signed-in login, from the session or, before the session carries it, the credentials. */
+function sessionLogin(): string | undefined {
+    return state.session?.email ?? state.credentials?.login;
+}
+
 /** A real (non-anonymous) session token. */
 function isSignedIn(): boolean {
     return !!state.session?.authToken && !isAnonymousUser(state.session);
@@ -90,4 +100,4 @@ function isCompleteGuidedSetupQueued(): boolean {
     return (state.persistedRequests ?? []).some((request) => request.command === 'CompleteGuidedSetup');
 }
 
-export {state, isSignedIn, onboardingCompletedFlag, isCompleteGuidedSetupQueued};
+export {state, currentAccountID, sessionLogin, isSignedIn, onboardingCompletedFlag, isCompleteGuidedSetupQueued};

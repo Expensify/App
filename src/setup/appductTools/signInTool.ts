@@ -2,7 +2,8 @@ import {beginSignIn, signUpUser} from '@userActions/Session';
 
 import type {AppductTool} from './types';
 
-import {isSignedIn, state} from './appductState';
+import {currentAccountID, isSignedIn, sessionLogin, state} from './appductState';
+import {TOOL_RESULT_SCHEMA} from './types';
 import waitFor from './waitFor';
 
 /**
@@ -24,15 +25,11 @@ function registerSignInTool(registerTool: (tool: AppductTool) => void) {
 
     const identityState = () => ({
         signedIn: true,
-        accountID: state.session?.accountID ?? state.credentials?.accountID ?? null,
-        login: state.session?.email ?? state.credentials?.login ?? null,
+        accountID: currentAccountID() ?? null,
+        login: sessionLogin() ?? null,
     });
 
-    /** The session login can arrive on the session, the credentials, or the personal details. */
-    const signedInAs = (email: string) => {
-        const login = (state.session?.email ?? state.credentials?.login ?? '').toLowerCase();
-        return login === email.toLowerCase();
-    };
+    const signedInAs = (email: string) => (sessionLogin() ?? '').toLowerCase() === email.toLowerCase();
 
     registerTool({
         name: 'sign_in',
@@ -47,16 +44,7 @@ function registerSignInTool(registerTool: (tool: AppductTool) => void) {
             },
             required: ['email'],
         },
-        outputSchema: {
-            type: 'object',
-            properties: {
-                ok: {type: 'boolean'},
-                already: {type: 'boolean'},
-                state: {type: 'object'},
-                reason: {type: 'string'},
-            },
-            required: ['ok'],
-        },
+        outputSchema: TOOL_RESULT_SCHEMA,
         timeoutMs: 120_000,
         handler: async (input) => {
             // Defensive reads: the raw JSON Schema drives export, the handler is
@@ -81,7 +69,7 @@ function registerSignInTool(registerTool: (tool: AppductTool) => void) {
                 if (!signedInAs(email)) {
                     return {
                         ok: false,
-                        reason: `already signed in as ${state.session?.email ?? state.credentials?.login ?? 'an unknown login'}, not ${email}`,
+                        reason: `already signed in as ${sessionLogin() ?? 'an unknown login'}, not ${email}`,
                     };
                 }
                 return {ok: true, already: true, state: identityState()};

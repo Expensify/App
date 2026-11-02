@@ -16,6 +16,18 @@ type ToolResult = {
 /** Raw JSON Schema objects are accepted by both Appduct SDK entries. */
 type ToolSchema = Record<string, unknown>;
 
+/** The `ToolResult` envelope as a schema; every tool declares it as its output. */
+const TOOL_RESULT_SCHEMA: ToolSchema = {
+    type: 'object',
+    properties: {
+        ok: {type: 'boolean'},
+        already: {type: 'boolean'},
+        state: {type: 'object'},
+        reason: {type: 'string'},
+    },
+    required: ['ok'],
+};
+
 type ToolHandler = (input: Record<string, unknown>) => Promise<ToolResult>;
 
 /**
@@ -35,4 +47,5 @@ type AppductTool = {
 /** What a platform entry hands the shared module: Appduct's `registerTool`. */
 type RegisterTool = (tool: AppductTool) => void;
 
+export {TOOL_RESULT_SCHEMA};
 export type {AppductTool, RegisterTool};

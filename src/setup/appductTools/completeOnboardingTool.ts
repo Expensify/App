@@ -15,7 +15,8 @@ import {hasSeenTourSelector} from '@selectors/Onboarding';
 
 import type {AppductTool} from './types';
 
-import {isCompleteGuidedSetupQueued, isSignedIn, onboardingCompletedFlag, state} from './appductState';
+import {currentAccountID, isCompleteGuidedSetupQueued, isSignedIn, onboardingCompletedFlag, state} from './appductState';
+import {TOOL_RESULT_SCHEMA} from './types';
 import waitFor from './waitFor';
 
 /**
@@ -48,16 +49,7 @@ function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => voi
             },
             required: ['firstName', 'lastName'],
         },
-        outputSchema: {
-            type: 'object',
-            properties: {
-                ok: {type: 'boolean'},
-                already: {type: 'boolean'},
-                state: {type: 'object'},
-                reason: {type: 'string'},
-            },
-            required: ['ok'],
-        },
+        outputSchema: TOOL_RESULT_SCHEMA,
         timeoutMs: 180_000,
         handler: async (input) => {
             // Defensive reads: the raw JSON Schema drives export, the handler is
@@ -77,24 +69,19 @@ function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => voi
                 return {ok: false, reason: preconditionFailure(budget)};
             }
 
-            // The modal is only mounted while the flag is false (AuthScreens
-            // registers the navigator on that condition). With nothing queued,
-            // a completed flag means a previous call or the UI already did the
-            // work; still run the post-completion navigation so a modal left
-            // mounted by an interrupted exit gets closed.
-            if (onboardingCompletedFlag() === true && !isCompleteGuidedSetupQueued()) {
-                exitOnboardingNavigation();
-                await waitFor(onboardingModalClosed, 5_000);
-                return {ok: true, already: true, state: {onboardingCompleted: true, onboardingModalClosed: onboardingModalClosed()}};
-            }
-
             // A request still queued from an earlier call: do not post a second
-            // CompleteGuidedSetup, wait for that one instead.
+            // CompleteGuidedSetup, wait for that one instead. With nothing queued,
+            // a completed flag means a previous call or the UI already did the
+            // work; the exit below still runs so a modal left mounted by an
+            // interrupted exit gets closed.
+            let already = false;
             if (isCompleteGuidedSetupQueued()) {
                 const drained = await waitFor(() => !isCompleteGuidedSetupQueued() && onboardingCompletedFlag() === true, budget);
                 if (!drained) {
                     return {ok: false, reason: 'a CompleteGuidedSetup request stayed queued past the timeout, or its response reverted the flag'};
                 }
+            } else if (onboardingCompletedFlag() === true) {
+                already = true;
             } else {
                 // LOOKING_AROUND needs the Concierge report as its target chat.
                 // Without a reportID, prepareOnboardingOnyxData returns nothing
@@ -106,7 +93,6 @@ function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => voi
                 }
 
                 const {onboardingMessages} = getOnboardingMessages(IntlStore.getCurrentLocale());
-                const accountID = state.session?.accountID ?? state.credentials?.accountID;
 
                 await completeOnboarding({
                     engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
@@ -118,7 +104,7 @@ function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => voi
                     introSelected: state.introSelected,
                     isSelfTourViewed: hasSeenTourSelector(state.onboarding),
                     conciergeChat: state.conciergeChat,
-                    currentUserAccountID: accountID ?? CONST.DEFAULT_NUMBER_ID,
+                    currentUserAccountID: currentAccountID() ?? CONST.DEFAULT_NUMBER_ID,
                     delegateAccountID: undefined,
                 });
 
@@ -145,7 +131,8 @@ function registerCompleteOnboardingTool(registerTool: (tool: AppductTool) => voi
             exitOnboardingNavigation();
             await waitFor(onboardingModalClosed, 5_000);
 
-            return {ok: true, state: {onboardingCompleted: true, onboardingModalClosed: onboardingModalClosed()}};
+            const result = {ok: true, state: {onboardingCompleted: true, onboardingModalClosed: onboardingModalClosed()}};
+            return already ? {...result, already: true} : result;
         },
     });
 }
