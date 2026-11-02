@@ -10964,6 +10964,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             insights: 'Einblicke',
             topSpenders: 'Höchste Ausgaben',
             topCategories: 'Topkategorien',
+            topTags: 'Top-Tags',
             topMerchants: 'Top-Händler',
             violationsBySubmitter: 'Verstöße durch Einreichende',
             travel: 'Reisen',

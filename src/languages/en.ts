@@ -10877,6 +10877,7 @@ const translations = {
             topSpenders: 'Top spenders',
             topCategories: 'Top categories',
             topMerchants: 'Top merchants',
+            topTags: 'Top tags',
             violationsBySubmitter: 'Violations by submitter',
             travel: 'Travel',
             trips: 'Trips',

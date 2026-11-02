@@ -192,6 +192,33 @@ describe('insightsQueries', () => {
             expect(parsePayload(compared)?.inputQuery).toContain(`compare:${CONST.SEARCH.COMPARE.PREVIOUS_PERIOD}`);
         });
 
+        it('requests tag rankings and comparisons with the selected workspace and currency', () => {
+            // Given a dashboard narrowed to one workspace in euros
+            const filters: InsightsFilters = {...FILTERS, policyIDs: ['A1'], groupCurrency: 'EUR'};
+
+            // When its charts and comparison queries are built
+            const request = buildInsightsJsonQuery(CONST.INSIGHTS.DASHBOARD.SPEND, filters, SPEND_SPEC.supportingCharts);
+            const tags = request?.supportingCharts.find(({chart}) => chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS);
+            const averageQueryJSON = tags && buildSearchQueryJSON(applyInsightsFilters(tags.chart, filters, CONST.SEARCH.COMPARE.AVERAGE));
+
+            // Then tags use their own top-ten ranking and snapshot hashes for every period
+            expect(tags?.queryJSON).toMatchObject({
+                groupBy: CONST.SEARCH.GROUP_BY.TAG,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL,
+                sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+                limit: CONST.INSIGHTS.RANKING_LIMIT,
+            });
+            for (const query of [tags?.queryJSON, tags?.previousPeriodQueryJSON, averageQueryJSON]) {
+                expect(query?.inputQuery).toContain('policyID:A1');
+                expect(query?.inputQuery).toContain('groupCurrency:EUR');
+            }
+            expect(parsePayload(request)?.insightsHashes.topTags).toEqual({
+                snapshotHash: tags?.queryJSON?.hash,
+                previousPeriodSnapshotHash: tags?.previousPeriodQueryJSON?.hash,
+                averageSnapshotHash: averageQueryJSON?.hash,
+            });
+        });
+
         it('requests only the supporting charts shown on the dashboard', () => {
             // Given the spend dashboard with only its first supporting chart shown, as when no workspace in scope is eligible for the rest
             const [shownChart, ...hiddenCharts] = SPEND_SPEC.supportingCharts;
@@ -317,7 +344,7 @@ describe('insightsQueries', () => {
             expect(chartQuery).toContain(`${CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE}:${CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}`);
         });
 
-        it('caps every bar and pie chart, and so its inline table, to the top search limit', () => {
+        it('caps every bar and pie chart, and so its inline table, to its ranking limit', () => {
             // Given the charts that list their groups in an inline table below them
             const chartsWithTable = SPEND_SPEC.supportingCharts.filter((chart) => chart.view === CONST.SEARCH.VIEW.BAR || chart.view === CONST.SEARCH.VIEW.PIE);
             expect(chartsWithTable.length).toBeGreaterThan(0);
@@ -325,8 +352,8 @@ describe('insightsQueries', () => {
             // When the page filters are applied to each of them
             const limits = chartsWithTable.map((chart) => buildSearchQueryJSON(applyInsightsFilters(chart, FILTERS))?.limit);
 
-            // Then every query asks the backend for at most the top search limit, which is all the chart and its table show
-            expect(limits).toEqual(chartsWithTable.map(() => CONST.SEARCH.TOP_SEARCH_LIMIT));
+            // Then tags show ten rows while the existing charts keep their top search limit
+            expect(limits).toEqual(chartsWithTable.map((chart) => (chart.graphKey === CONST.INSIGHTS.GRAPH.TOP_TAGS ? CONST.INSIGHTS.RANKING_LIMIT : CONST.SEARCH.TOP_SEARCH_LIMIT)));
         });
 
         it('groups a chart that declares no group-by the way the page filters do', () => {
