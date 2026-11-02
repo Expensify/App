@@ -324,6 +324,13 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             .filter(Boolean) as MenuItemWithLink[];
     };
     const otherIntegrationsItems = getOtherIntegrationsItems();
+    const exactOnlineWaitlistRow = (
+        <ExactOnlineWaitlistRow
+            policy={policy}
+            style={styles.sectionMenuItemTopDescription}
+            titleWrapperStyle={!shouldUseNarrowLayout && [styles.flexRow, styles.alignItemsCenter, styles.gap3]}
+        />
+    );
 
     let derivedValue;
     // If they have an onboarding specialist assigned display the following and link to the #admins room with the account executive.
@@ -405,7 +412,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                     </Text>
                                 </FormHelpMessage>
                             )}
-                            {!!otherIntegrationsItems && (
+                            {otherIntegrationsItems ? (
                                 <CollapsibleSection
                                     title={translate('workspace.accounting.other')}
                                     wrapperStyle={[styles.pr3, styles.mt5, styles.pv3]}
@@ -416,13 +423,11 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                                         menuItems={otherIntegrationsItems}
                                         shouldUseSingleExecution
                                     />
+                                    {exactOnlineWaitlistRow}
                                 </CollapsibleSection>
+                            ) : (
+                                exactOnlineWaitlistRow
                             )}
-                            <ExactOnlineWaitlistRow
-                                policy={policy}
-                                style={styles.sectionMenuItemTopDescription}
-                                titleWrapperStyle={!shouldUseNarrowLayout && [styles.flexRow, styles.alignItemsCenter, styles.gap3]}
-                            />
                             {!!account?.guideDetails?.email && !hasAccountingConnections(policy) && canWriteAccounting && (
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                                     <Icon

@@ -59,8 +59,8 @@ function renderWidget() {
                 snapshot={undefined}
                 previousPeriodQueryJSON={undefined}
                 previousPeriodSnapshot={undefined}
-                averageQueryJSON={undefined}
-                averageSnapshot={undefined}
+                averageTotal={undefined}
+                isDashboardLoaded={undefined}
                 filters={FILTERS}
                 onRetry={jest.fn()}
             />
@@ -85,7 +85,7 @@ describe('Insights chart CSV action', () => {
         jest.mocked(useInsightsChartData).mockReturnValue({
             data: DATA,
             state: INSIGHTS_CHART_STATE.READY,
-            comparison: {data: DATA.map((item) => ({...item, total: 99999})), label: 'Average', color: '#000000'},
+            comparison: {data: DATA.map((item) => ({...item, total: 99999})), color: '#000000'},
         });
 
         // When the user selects Download CSV
@@ -95,12 +95,8 @@ describe('Insights chart CSV action', () => {
         expect(menuItems?.map((item) => item.text)).toEqual(['View on Spend', 'Download CSV']);
         menuItems?.at(1)?.onSelected?.();
 
-        // Then the existing local download helper receives only grouped current-period values and zero-filled gaps
-        expect(localFileDownload).toHaveBeenCalledWith(
-            `Expensify-${CHART.graphKey}.csv`,
-            '\uFEFFDate,Expenses,Total,Currency\r\n2026-01-01,0,0.00,USD\r\n2026-02-01,2,123.45,USD\r\n2026-03-01,0,0.00,USD',
-            expect.any(Function),
-        );
+        // Then the existing local download helper receives only the grouped current-period values
+        expect(localFileDownload).toHaveBeenCalledWith(`Expensify-${CHART.graphKey}.csv`, '\uFEFFDate,Expenses,Total,Currency\r\n2026-02-01,2,123.45,USD', expect.any(Function));
     });
 
     it.each([INSIGHTS_CHART_STATE.LOADING, INSIGHTS_CHART_STATE.EMPTY, INSIGHTS_CHART_STATE.ERROR, INSIGHTS_CHART_STATE.OFFLINE])(

@@ -43,6 +43,7 @@ function SearchActionsBarCreateButton() {
     const [createMenuPosition, setCreateMenuPosition] = useState<{horizontal: number; vertical: number}>({horizontal: 0, vertical: 0});
     const {calculatePopoverPosition} = usePopoverPosition();
 
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -104,7 +105,7 @@ function SearchActionsBarCreateButton() {
             onSelected: () =>
                 interceptAnonymousUser(() => {
                     startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-                }),
+                }, session),
         },
         {
             icon: expensifyIcons.Location,
@@ -112,7 +113,7 @@ function SearchActionsBarCreateButton() {
             onSelected: () =>
                 interceptAnonymousUser(() => {
                     startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-                }),
+                }, session),
         },
         ...(isCreateReportVisible
             ? [

@@ -3,12 +3,14 @@ import path from 'node:path';
 
 import type {LintMessage, ProcessorContext} from '../types';
 
+// eslint-disable-next-line import/extensions
+import {shouldSkipReactCompiler} from '../../../config/reactCompiler/checkWithOxc.mjs';
+// eslint-disable-next-line import/extensions
+import {EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN, RULES_SUPPRESSED_BY_REACT_COMPILER} from '../../../config/reactCompiler/suppressedRules.mjs';
 import WorkerPool from '../../utils/WorkerPool';
 import Processor from '../Processor';
 
-const RULES_SUPPRESSED_BY_REACT_COMPILER = new Set(['react/jsx-no-constructed-context-values', 'rulesdir/no-inline-useOnyx-selector']);
 const MANUAL_MEMOIZATION_RULE = 'rulesdir/no-manual-memoization';
-const EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN = /\buseCallback\(\) Hook\b|\buseMemo\(\) Hook\b/;
 const CACHE_DIR = 'node_modules/.cache/react-compiler';
 const REACT_COMPILER_FINGERPRINT_FILES = [
     'config/babel/oxcReactCompilerConfig.js',
@@ -27,10 +29,6 @@ function isSuppressibleMessage(message: LintMessage): boolean {
         return true;
     }
     return message.ruleID === 'react-hooks/exhaustive-deps' && EXHAUSTIVE_DEPS_USECALLBACK_USEMEMO_PATTERN.test(message.message);
-}
-
-function shouldSkipCompiler(filename: string): boolean {
-    return filename.includes('/tests/') || filename.includes('node_modules/');
 }
 
 function cachePath(projectRoot: string, hash: string): string {
@@ -160,7 +158,7 @@ async function filterReactCompilerMessages(
 
     const candidateNames: string[] = [];
     for (const [filename, fileMessages] of byFile) {
-        if (shouldSkipCompiler(filename)) {
+        if (shouldSkipReactCompiler(filename)) {
             continue;
         }
         if (fileMessages.some((message) => isSuppressibleMessage(message) || message.ruleID === MANUAL_MEMOIZATION_RULE)) {
