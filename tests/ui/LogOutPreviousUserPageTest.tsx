@@ -185,3 +185,31 @@ describe('LogOutPreviousUserPage', () => {
         expect(topRouteAtSignOut).toBe(SCREENS.TRANSITION_BETWEEN_APPS);
     });
 });
+
+it('keeps the transition route, not the modal opened over it, on top when signing out for a link into another account', async () => {
+    // Given an account signed in to NewDot and a transition link for a different account
+    mockInitialURL = OTHER_ACCOUNT_TRANSITION_URL;
+    await act(async () => {
+        await Onyx.set(ONYXKEYS.SESSION, {email: OUTGOING_EMAIL, accountID: OUTGOING_ACCOUNT_ID, authToken: OUTGOING_AUTH_TOKEN});
+    });
+
+    // The sign-out keeps only the top root route, so record which route is on top when it runs
+    let topRouteAtSignOut: string | undefined;
+    jest.mocked(signOutAndRedirectToSignIn).mockImplementationOnce(() => {
+        topRouteAtSignOut = navigationRef.getRootState()?.routes.at(-1)?.name;
+        return undefined;
+    });
+
+    // Given a modal the signed-in account opened on its own over the transition page while the prompt was open
+    renderPage({shortLivedAuthToken: 'token', email: INCOMING_EMAIL, exitTo: ROUTES.HOME, shouldForceLogin: ''}, true);
+    await waitForBatchedUpdatesWithAct();
+    expect(navigationRef.getRootState()?.routes.at(-1)?.name).toBe(SCREENS.CONCIERGE);
+
+    // When the switch is confirmed
+    fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')}));
+    await waitForBatchedUpdatesWithAct();
+
+    // Then the transition route is on top when the previous account is signed out, so the public transition page can redeem the token from its params
+    expect(signOutAndRedirectToSignIn).toHaveBeenCalledTimes(1);
+    expect(topRouteAtSignOut).toBe(SCREENS.TRANSITION_BETWEEN_APPS);
+});
