@@ -179,7 +179,12 @@ function ExpenseFieldRow({
                         </>
                     )}
                     {isInteractive && <MenuItem.DownCaret />}
-                    {shouldShowCopy && <MenuItem.Copy value={copyValue} />}
+                    {shouldShowCopy && (
+                        <MenuItem.Copy
+                            value={copyValue}
+                            shouldReserveSpace
+                        />
+                    )}
                 </MenuItem.Trailing>
             )}
         </MenuItem.Row>
