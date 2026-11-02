@@ -4,7 +4,7 @@ import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportR
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID} from '@libs/ReportUtils';
 
-import {isNoSupportRepAvailableResponse, openSupportTicket} from '@userActions/Report';
+import {isNoSupportRepAvailableResponse, navigateToSupportTicket, openSupportTicket} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -259,6 +259,29 @@ describe('actions/Report', () => {
         // Then the App navigates to the report returned by the server
         expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID: resolvedSupportTicketReportID});
         expect(mockNavigate).toHaveBeenCalledWith(`r/${resolvedSupportTicketReportID}`);
+    });
+
+    it('opens an existing support ticket in the current context', () => {
+        // Given an existing support ticket
+        const supportTicketReportID = 'existingSupportTicketReportID';
+        mockGetReportRouteForCurrentContext.mockImplementation(({reportID}) => `r/${reportID}`);
+
+        // When the customer opens it
+        navigateToSupportTicket(supportTicketReportID);
+
+        // Then the App navigates to the ticket's report route
+        expect(mockGetReportRouteForCurrentContext).toHaveBeenCalledWith({reportID: supportTicketReportID});
+        expect(mockNavigate).toHaveBeenCalledWith(`r/${supportTicketReportID}`);
+    });
+
+    it.each([undefined, ''])('does not navigate when the support ticket report ID is %p', (supportTicketReportID) => {
+        // Given a support ticket without a report ID
+        // When the customer tries to open it
+        navigateToSupportTicket(supportTicketReportID);
+
+        // Then the App stays where it is instead of opening an empty report route
+        expect(mockGetReportRouteForCurrentContext).not.toHaveBeenCalled();
+        expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('recognizes the no-rep response', () => {

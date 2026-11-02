@@ -5202,6 +5202,14 @@ function dismissFailedSupportTicket(supportTicketReportID: string, parentReportI
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: null});
 }
 
+/** Opens a support ticket without going through createChildReport, which would overwrite an unloaded ticket with an optimistic chat. */
+function navigateToSupportTicket(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    Navigation.navigate(getReportRouteForCurrentContext({reportID}));
+}
+
 /**
  * Removes the report after failure to create. Also removes it's related report actions and next step from Onyx.
  */
@@ -9415,6 +9423,7 @@ export {
     openSupportTicket,
     isNoSupportRepAvailableResponse,
     dismissFailedSupportTicket,
+    navigateToSupportTicket,
     clearAllReportActionDrafts,
     clearReportActionDrafts,
     deleteReportComment,
