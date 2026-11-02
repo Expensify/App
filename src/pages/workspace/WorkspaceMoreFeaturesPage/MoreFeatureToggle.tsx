@@ -61,7 +61,8 @@ function MoreFeatureToggle({icon, title, subtitle, isActive, pendingAction, onTo
                 <View
                     style={[
                         styles.workspaceSectionMoreFeaturesItem,
-                        shouldUseNarrowLayout && styles.flexBasis100,
+                        // Uses width, not flexBasis, since native Yoga caches a flexBasis percentage across rotations.
+                        shouldUseNarrowLayout && [styles.flexBasisAuto, styles.w100],
                         shouldUseNarrowLayout && StyleUtils.getMinimumWidth(0),
                         hovered && isActive && !!onPress && styles.hoveredComponentBG,
                     ]}
