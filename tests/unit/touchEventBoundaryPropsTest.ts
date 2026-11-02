@@ -82,12 +82,42 @@ describe('touchEventBoundaryProps', () => {
         expect(wasLogged).toBe(false);
     });
 
-    it('does not report a sentryLabel that is not one of the labels in CONST', () => {
-        // Given a sentryLabel built at runtime instead of taken from CONST.SENTRY_LABEL
+    it('does not report a sentryLabel that is not a known label', () => {
+        // Given a sentryLabel that is neither in CONST.SENTRY_LABEL nor built with a known prefix or suffix
         // When the user taps the element with that label
-        const {wasLogged} = touch({sentryLabel: 'Search-Advanced-Filter-john.smith@example.com'});
+        const {wasLogged} = touch({sentryLabel: 'john.smith@example.com'});
 
         // Then it is treated like a missing label, so a label can never carry data that wasn't written in the code
         expect(wasLogged).toBe(false);
     });
+
+    it.each([
+        `${CONST.SENTRY_LABEL.LHN.OPTION_ROW}-ClearButton`,
+        'Search-Filter-merchant',
+        'Search-Filter-statusNot',
+        'Search-Filter-reportField-project-code',
+        'Search-Advanced-Filter-category',
+        'Search-FilterPopupApply-tag',
+        `${CONST.SENTRY_LABEL.SOCIALS.LINK}-Twitter`,
+        'DynamicHRSyncResultsPage-SkippedEmployees',
+    ])('reports a sentryLabel built at runtime in a known format: %s', (sentryLabel) => {
+        // Given a sentryLabel built from values in the code
+        // When the user taps the element with that label
+        const {label} = touch({sentryLabel});
+
+        // Then the tap is named after it
+        expect(label).toBe(sentryLabel);
+    });
+
+    it.each(['Search-Filter', 'ClearButton', 'Report-Search-Filter-tag', 'LHN-OptionRow-ClearButton-Icon'])(
+        'does not report a sentryLabel that only contains a known prefix or suffix: %s',
+        (sentryLabel) => {
+            // Given a sentryLabel that doesn't start with a known prefix or end with a known suffix
+            // When the user taps the element with that label
+            const {wasLogged} = touch({sentryLabel});
+
+            // Then the tap is not reported
+            expect(wasLogged).toBe(false);
+        },
+    );
 });
