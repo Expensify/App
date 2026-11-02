@@ -711,6 +711,8 @@ export type {default as OpenSearchPageParams} from './OpenSearchPageParams';
 export type {default as ParseExpenseFiltersParams} from './ParseExpenseFiltersParams';
 export type {default as OpenSearchTagFiltersPageParams} from './OpenSearchTagFiltersPageParams';
 export type {default as OpenSearchTagFiltersPageResponse} from './OpenSearchTagFiltersPageResponse';
+export type {default as OpenSearchUserFiltersPageParams} from './OpenSearchUserFiltersPageParams';
+export type {default as OpenSearchUserFiltersPageResponse} from './OpenSearchUserFiltersPageResponse';
 export type {default as OpenBulkChangeApproverPageParams} from './OpenBulkChangeApproverPageParams';
 export type {default as SetPolicyRequireCompanyCardsEnabledParams} from './SetPolicyRequireCompanyCardsEnabled';
 export type {default as SetTechnicalContactEmailParams} from './SetTechnicalContactEmailParams';
