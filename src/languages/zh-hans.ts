@@ -6254,7 +6254,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 },
             },
             syncReimbursedReports: '同步已报销报表',
-            syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔付款。',
+            syncReimbursedReportsDescription: '当报表通过 ACH 支付时，将在此账户中生成一笔账单付款。',
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
             syncTravelBillingSettlements: '同步合并差旅结算',

@@ -6535,7 +6535,7 @@ ${amount} para ${merchant} - ${date}`,
                 },
             },
             syncReimbursedReports: 'Sincronizar informes reembolsados',
-            syncReimbursedReportsDescription: 'Cuando se paga un informe mediante ACH, se generará un pago en esta cuenta.',
+            syncReimbursedReportsDescription: 'Cuando un informe se pague mediante ACH, se generará un pago de factura en esta cuenta.',
             billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en DualEntry.'},
             fxExpenseAccount: {
                 label: 'Cuenta de comisión por conversión de divisa de DualEntry',

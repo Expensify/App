@@ -6617,7 +6617,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 },
             },
             syncReimbursedReports: 'Sincronizza i report rimborsati',
-            syncReimbursedReportsDescription: 'Quando un report viene pagato tramite ACH, verrà generato un pagamento su questo conto.',
+            syncReimbursedReportsDescription: 'Quando un report viene pagato tramite ACH, in questo conto verrà generato un pagamento di una fattura.',
             billPaymentAccount: {label: 'Conto per il pagamento delle fatture', description: 'Scegli da dove pagare le fatture e creeremo il pagamento in DualEntry.'},
             fxExpenseAccount: {
                 label: 'Conto commissioni conversione valuta DualEntry',

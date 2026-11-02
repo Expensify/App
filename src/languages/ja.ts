@@ -6540,7 +6540,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 },
             },
             syncReimbursedReports: '精算済みレポートを同期',
-            syncReimbursedReportsDescription: 'レポートがACHで支払われたとき、この口座で支払いが作成されます。',
+            syncReimbursedReportsDescription: 'レポートが ACH 経由で支払われると、この勘定科目で支払伝票が作成されます。',
             billPaymentAccount: {label: '請求支払口座', description: '請求書の支払元を選択すると、DualEntry 内に支払いを作成します。'},
             fxExpenseAccount: {
                 label: 'DualEntry 通貨換算手数料勘定',
