@@ -1,4 +1,4 @@
-import {getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
+import {getEmployeeListLogin, getMemberLoginByAccountID} from '@libs/WorkArrangementUtils';
 
 import type {PersonalDetails, PersonalDetailsList, Policy} from '@src/types/onyx';
 
@@ -20,10 +20,14 @@ type WorkspaceMemberFromRoute = {
 /**
  * Resolves the workspace member a member page was opened for. The route may hold the optimistic accountID of a member
  * who was just invited, which stops matching personal details once the backend supplies the real one, so the member
- * is resolved by login instead.
+ * is resolved by login instead. A member invited with a secondary login also switches to their primary login, so the
+ * personal details login is only trusted once it maps to a listed employee.
  */
 function useWorkspaceMemberFromRoute(policy: OnyxEntry<Policy>, personalDetails: OnyxEntry<PersonalDetailsList>, routeAccountID: number): WorkspaceMemberFromRoute {
-    const memberLogin = personalDetails?.[routeAccountID]?.login ?? getMemberLoginByAccountID(policy, routeAccountID);
+    const personalDetailsLogin = personalDetails?.[routeAccountID]?.login;
+    const employeeListLogin = personalDetailsLogin ? getEmployeeListLogin(policy, personalDetailsLogin) : '';
+    // Keep the personal details login when no listed employee matches, so the member's personal details still resolve
+    const memberLogin = employeeListLogin || getMemberLoginByAccountID(policy, routeAccountID) || (personalDetailsLogin ?? '');
     const memberPersonalDetails = usePersonalDetailByLogin(memberLogin);
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
 

@@ -195,4 +195,71 @@ describe('WorkspaceMemberDetailsRolePage', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    describe('when the invite used a secondary login', () => {
+        const primaryAccountID = 7777;
+        const primaryEmail = 'primary@example.com';
+        const secondaryEmail = 'secondary@example.com';
+        const optimisticAccountID = generateAccountID(secondaryEmail);
+
+        beforeEach(async () => {
+            // The backend lists the member under their primary login and records which secondary login was invited
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    primaryLoginsInvited: {[secondaryEmail]: primaryEmail},
+                    employeeList: {[primaryEmail]: {email: primaryEmail, role: CONST.POLICY.ROLE.USER}},
+                });
+                await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                    [primaryAccountID]: TestHelper.buildPersonalDetails(primaryEmail, primaryAccountID, 'Primary'),
+                });
+            });
+        });
+
+        it('should keep showing the role list and update the primary member after the invite syncs', async () => {
+            // Given a Role page whose route holds the optimistic accountID of the secondary login, which has no personal details entry
+            // once the invite syncs
+            const {unmount} = renderPage({policyID: policy.id, accountID: String(optimisticAccountID)});
+            await waitForBatchedUpdatesWithAct();
+
+            // When the admin picks a new role for the member and saves it
+            await waitFor(() => {
+                expect(screen.getByText('Workspace admin')).toBeOnTheScreen();
+            });
+            expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+            fireEvent.press(screen.getByText('Workspace admin'));
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.save')));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the update targets the primary login and real accountID the member is listed under
+            expect(updateWorkspaceMembersRoleMock).toHaveBeenCalledWith(expect.objectContaining({id: policy.id}), [primaryEmail], [primaryAccountID], CONST.POLICY.ROLE.ADMIN);
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should keep showing the role list while the optimistic personal details still hold the secondary login', async () => {
+            // Given the backend already listed the member under their primary login, but the optimistic personal details entry
+            // with the secondary login hasn't been cleaned up yet
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                    [optimisticAccountID]: TestHelper.buildPersonalDetails(secondaryEmail, optimisticAccountID, 'Secondary'),
+                });
+            });
+
+            // When the page renders
+            const {unmount} = renderPage({policyID: policy.id, accountID: String(optimisticAccountID)});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the secondary login is mapped to the primary member, so the role list shows instead of the not found page
+            await waitFor(() => {
+                expect(screen.getByTestId('WorkspaceMemberDetailsRolePage')).toBeOnTheScreen();
+            });
+            expect(screen.getByText('Workspace admin')).toBeOnTheScreen();
+            expect(screen.queryByTestId('NotFoundPage')).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+    });
 });
