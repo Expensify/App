@@ -609,6 +609,7 @@ const SCREENS = {
             QUICKBOOKS_DESKTOP_ITEMS: 'Policy_Accounting_Quickbooks_Desktop_Import_Items',
             XERO_SETUP: 'Policy_Accounting_Xero_Setup',
             ZOHO_BOOKS_OAUTH: 'Policy_Accounting_Zoho_Books_OAuth',
+            ZOHO_BOOKS_IMPORT: 'Policy_Accounting_Zoho_Books_Import',
             ZOHO_BOOKS_EXISTING_CONNECTIONS: 'Policy_Accounting_Zoho_Books_Existing_Connections',
             ZOHO_BOOKS_ORGANIZATION_SELECTOR: 'Policy_Accounting_Zoho_Books_Organization_Selector',
             XERO_IMPORT: 'Policy_Accounting_Xero_Import',

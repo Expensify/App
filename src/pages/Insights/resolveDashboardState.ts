@@ -26,7 +26,8 @@ type InsightsDashboardState = ValueOf<typeof INSIGHTS_DASHBOARD_STATE>;
 type InsightsDashboardChart = InsightsChartQuery & {
     snapshot: OnyxEntry<SearchResults>;
     previousPeriodSnapshot?: OnyxEntry<SearchResults>;
-    averageSnapshot?: OnyxEntry<SearchResults>;
+    averageTotal?: number;
+    isDashboardLoaded?: boolean;
 };
 
 /** Checks whether GetInsights has responded for the dashboard's filters, since only its response sets `inputQuery`. */

@@ -651,6 +651,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_ITEMS]: {path: ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ITEMS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_SETUP]: {path: ROUTES.POLICY_ACCOUNTING_XERO_SETUP.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_OAUTH]: {path: ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_OAUTH.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXISTING_CONNECTIONS]: {path: ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_EXISTING_CONNECTIONS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_ORGANIZATION_SELECTOR]: {path: ROUTES.POLICY_ACCOUNTING_ZOHO_BOOKS_ORGANIZATION_SELECTOR.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_XERO_IMPORT.route},
@@ -2417,7 +2418,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.SECURITY]: {
-                            path: ROUTES.SETTINGS_SECURITY,
+                            path: ROUTES.SETTINGS_SECURITY.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.COPILOT]: {

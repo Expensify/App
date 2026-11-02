@@ -92,7 +92,6 @@ type InsightsChartQuery = {
     chart: InsightsChartSpec;
     queryJSON: Readonly<SearchQueryJSON> | undefined;
     previousPeriodQueryJSON?: Readonly<SearchQueryJSON>;
-    averageQueryJSON?: Readonly<SearchQueryJSON>;
 };
 
 type InsightsGraphHashes = {
@@ -103,13 +102,17 @@ type InsightsGraphHashes = {
 type InsightsGraphHashEntry = [InsightsGraphKey, InsightsGraphHashes];
 
 /** Returns the chart's graph slot paired with the hashes its current period, previous period and average are stored under. */
-function buildSnapshotHashEntry({chart, queryJSON, previousPeriodQueryJSON, averageQueryJSON}: InsightsChartQuery): InsightsGraphHashEntry | undefined {
+function buildSnapshotHashEntry(
+    {chart, queryJSON, previousPeriodQueryJSON}: InsightsChartQuery,
+    dashboard: InsightsDashboardID,
+    filters: InsightsFilters,
+): InsightsGraphHashEntry | undefined {
     const snapshotHash = queryJSON?.hash;
     if (!snapshotHash) {
         return undefined;
     }
     const previousPeriodSnapshotHash = previousPeriodQueryJSON?.hash;
-    const averageSnapshotHash = averageQueryJSON?.hash;
+    const averageSnapshotHash = buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard)?.hash;
     if (!previousPeriodSnapshotHash || !averageSnapshotHash) {
         return undefined;
     }
@@ -145,11 +148,12 @@ function buildInsightsJsonQuery(dashboard: InsightsDashboardID, filters: Insight
         chart,
         queryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters), dashboard),
         previousPeriodQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.PREVIOUS_PERIOD), dashboard),
-        averageQueryJSON: buildDashboardQuery(applyInsightsFilters(chart, filters, CONST.SEARCH.COMPARE.AVERAGE), dashboard),
     });
     const headlineChart = buildChartQuery(spec.headlineChart);
     const supportingCharts = supportingChartSpecs.map(buildChartQuery);
-    const graphEntries = [headlineChart, ...supportingCharts].map(buildSnapshotHashEntry).filter((entry): entry is InsightsGraphHashEntry => !!entry);
+    const graphEntries = [headlineChart, ...supportingCharts]
+        .map((chartQuery) => buildSnapshotHashEntry(chartQuery, dashboard, filters))
+        .filter((entry): entry is InsightsGraphHashEntry => !!entry);
     const insightsHashes: InsightsDashboard['graphs'] = Object.fromEntries(graphEntries);
 
     return {

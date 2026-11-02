@@ -1261,6 +1261,15 @@ const translations: TranslationDeepObject<typeof en> = {
             yearLabel: (year?: number) => (year === undefined ? 'Έτος' : `Έτος ${year}`),
             increase: (percentage: string) => `Αύξηση ${percentage}`,
             decrease: (percentage: string) => `Μείωση ${percentage}`,
+            dailyAverage: 'Ημερήσιος μέσος όρος',
+            weeklyAverage: 'Εβδομαδιαίος μέσος όρος',
+            monthlyAverage: 'Μηνιαίος μέσος όρος',
+            quarterlyAverage: 'Τριμηνιαίος μέσος όρος',
+            yearlyAverage: 'Ετήσιος μέσος όρος',
+            allSpenderAverage: 'Μέσος όρος όλων των δαπανών',
+            allMerchantAverage: 'Μέσος όρος όλων των εμπόρων',
+            allCategoryAverage: 'Μέσος όρος όλων των κατηγοριών',
+            averageValue: (amount: string) => `${amount} κατά μέσο όρο`,
         },
         compliance: 'Συμμόρφωση',
         runningTotal: 'Τρέχον σύνολο',
@@ -3376,6 +3385,7 @@ ${amount} για ${merchant} - ${date}`,
         approverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα ή διαγράψτε αυτή τη ροή εργασίας.',
         defaultWorkflowApproverNotWorkspaceMember: 'Αυτός ο εγκρίνων δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο εγκρίνοντα.',
         overLimitApproverNotWorkspaceMember: 'Ο πρόσθετος εγκρίνων για αναφορές πάνω από το όριο δεν είναι πλέον μέλος του χώρου εργασίας. Επιλέξτε νέο πρόσθετο εγκρίνοντα.',
+        overLimitApproverInWorkflow: 'Ο επιπλέον εγκρίνων για αναφορές πάνω από το όριο είναι ήδη εγκρίνων σε αυτή τη ροή εργασίας. Επιλέξτε έναν διαφορετικό επιπλέον εγκρίνοντα.',
         approverCircularReference: (name1: string, name2: string) =>
             `Ο/Η <strong>${name1}</strong> ήδη εγκρίνει αναφορές προς τον/την <strong>${name2}</strong>. Παρακαλούμε επιλέξτε διαφορετικό εγκρίνων για να αποφύγετε έναν κυκλικό κύκλο έγκρισης.`,
         emptyContent: {
@@ -4010,7 +4020,7 @@ ${amount} για ${merchant} - ${date}`,
 
                         1. Κάντε κλικ στο *χώρο εργασίας*.
                         2. Επιλέξτε τον χώρο εργασίας σας.
-                        3. Κάντε κλικ στο *λογιστική*.
+                        3. Κάντε κλικ στις *Συνδέσεις*.
                         4. Βρείτε το ${integrationName}.
                         5. Κάντε κλικ στο *σύνδεση*.
 
@@ -5101,6 +5111,7 @@ ${amount} για ${merchant} - ${date}`,
             roomType: 'Τύπος δωματίου',
             cancellation: 'Πολιτική ακύρωσης',
             cancellationUntil: 'Δωρεάν ακύρωση έως',
+            hotelLocalTime: 'τοπική ώρα του ξενοδοχείου',
             confirmation: 'Αριθμός επιβεβαίωσης',
             cancellationPolicies: {
                 unknown: 'Άγνωστο',
@@ -5238,9 +5249,9 @@ ${amount} για ${merchant} - ${date}`,
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ομαδικά ταξίδια όπως αυτό απευθείας στο Expensify; Γλιτώστε ταλαιπωρία την επόμενη φορά και δοκιμάστε το εργαλείο μας <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Η ταξιδιωτική λειτουργία δεν είναι ενεργοποιημένη',
+            title: 'Δεν μπορείτε ακόμη να κάνετε κράτηση ταξιδιού',
             message:
-                'Για να κάνετε κράτηση, ενεργοποιήστε τα ταξίδια στον προεπιλεγμένο χώρο εργασίας σας ή αλλάξτε τον προεπιλεγμένο χώρο εργασίας σε κάποιον όπου τα ταξίδια είναι ενεργοποιημένα.',
+                'Είστε μέλος ενός χώρου εργασίας με ενεργοποιημένα ταξίδια, αλλά δεν είναι ο προεπιλεγμένος χώρος εργασίας σας. Για να κάνετε κράτηση, ενεργοποιήστε τα ταξίδια στον προεπιλεγμένο χώρο εργασίας σας ή αλλάξτε τον προεπιλεγμένο χώρο εργασίας σας σε έναν με ενεργοποιημένα ταξίδια.',
         },
     },
     proactiveAppReview: {
@@ -5391,8 +5402,6 @@ ${amount} για ${merchant} - ${date}`,
             },
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Ιδιοκτήτης';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Διαχειριστής χώρου εργασίας';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -5456,22 +5465,14 @@ ${amount} για ${merchant} - ${date}`,
             description: 'Καλά νέα 🎉. Επικοινωνήστε μαζί μας αν χρειαστούν βοήθεια με τη ρύθμιση.',
         },
         mcp: {
-            connectors: 'Συνδέσεις',
-            connectorsSubtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
-            connect: 'Σύνδεση',
-            helpPrompt: 'Χρειάζεστε βοήθεια με τη σύνδεση;',
-            helpLink: 'Διαβάστε τον οδηγό μας.',
             claude: {
                 title: 'Claude',
-                subtitle: 'από την Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'από την Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'από την OpenAI',
             },
         },
         connections: {
@@ -7139,10 +7140,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 title: 'Οργανώστε',
                 subtitle: 'Ομαδοποιήστε και αναλύστε τις δαπάνες, καταγράψτε κάθε φόρο που πληρώθηκε.',
             },
-            integrateSection: {
-                title: 'Ενσωμάτωση',
-                subtitle: 'Συνδέστε το Expensify με δημοφιλή χρηματοοικονομικά προϊόντα.',
-            },
             distanceRates: {
                 title: 'Τιμές χιλιομετρικής αποζημίωσης',
                 subtitle: 'Προσθέστε, ενημερώστε και εφαρμόστε τιμές.',
@@ -7385,26 +7382,18 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
             },
             receiptPartners: {
                 title: 'Συνεργάτες αποδείξεων',
-                subtitle: 'Αυτόματη εισαγωγή αποδείξεων.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Όχι και τόσο γρήγορα...',
                 featureEnabledText: 'Για να ενεργοποιήσετε ή να απενεργοποιήσετε αυτή τη λειτουργία, θα χρειαστεί να αλλάξετε τις ρυθμίσεις εισαγωγής λογιστικής.',
-                disconnectText: 'Για να απενεργοποιήσετε τη λογιστική, θα χρειαστεί να αποσυνδέσετε τη λογιστική σύνδεση από τον χώρο εργασίας σας.',
                 manageSettings: 'Διαχείριση ρυθμίσεων',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Αποσύνδεση του Uber',
-                disconnectText: 'Για να απενεργοποιήσετε αυτή τη λειτουργία, αποσυνδέστε πρώτα την ενσωμάτωση Uber for Business.',
                 description: 'Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε αυτήν την ενοποίηση;',
-                confirmText: 'Εντάξει',
-            },
-            hrWarningModal: {
-                disconnectText: ({integration}: {integration: string}) => `Για να απενεργοποιήσετε το HR, αποσυνδέστε πρώτα το ${integration} από αυτόν τον χώρο εργασίας.`,
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Όχι και τόσο γρήγορα...',
@@ -7426,10 +7415,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 subtitle: 'Ταιριάξτε τα έξοδα κάρτας με προμηθευτές που έχουν εισαχθεί από το λογιστικό σας λογισμικό.',
                 disabledTitle: 'Όχι τόσο γρήγορα...',
                 disabledMessage: 'Για να ενεργοποιήσετε ή να απενεργοποιήσετε αυτήν τη λειτουργία, θα πρέπει να αλλάξετε τις ρυθμίσεις εισαγωγής λογιστικής.',
-            },
-            recruitingWarningModal: {
-                disconnectText: ({integration}: {integration: string}) =>
-                    `Για να απενεργοποιήσετε την προσέλκυση προσωπικού, αποσυνδέστε πρώτα το ${integration} από αυτόν τον χώρο εργασίας.`,
             },
         },
         reports: {
@@ -7703,6 +7688,13 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 continue: 'Συνέχεια χωρίς μέλη',
                 description: 'Η αντιγραφή ροών εργασίας χωρίς μέλη δεν θα αντιγράψει τις ροές εργασίας έγκρισης. Οι ρυθμίσεις υποβολής και πληρωμής θα αντιγραφούν κανονικά.',
             },
+            confirmMembers: {
+                title: 'Αντιγραφή μελών',
+                prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
+                    one: `Είστε σίγουροι ότι θέλετε να αντικαταστήσετε τα μέλη του ${targetWorkspaceName} με τα μέλη αυτού του χώρου εργασίας;`,
+                    other: `Είστε σίγουροι ότι θέλετε να αντικαταστήσετε τα μέλη ${count} χώρων εργασίας με τα μέλη αυτού του χώρου εργασίας;`,
+                }),
+            },
             upgrade: {
                 title: 'Ορισμένες δυνατότητες απαιτούν πρόγραμμα Control',
                 description: ({workspaceName, features}: {workspaceName: string; features: string}) => `Το ${workspaceName} χρησιμοποιεί ${features}, που απαιτούν πρόγραμμα Control.
@@ -7928,7 +7920,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         accounting: {
             settings: 'ρυθμίσεις',
             title: 'Συνδέσεις',
-            subtitle: 'Συνδέστε το λογιστικό σας λογισμικό για αυτόματο συγχρονισμό.',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7940,10 +7931,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Συνομιλήστε με τον υπεύθυνο λογαριασμού σας.',
-            talkYourAccountManager: 'Συνομιλήστε με τον υπεύθυνο λογαριασμού σας.',
-            talkToConcierge: 'Συνομιλήστε με το Concierge.',
-            needAnotherAccounting: 'Χρειάζεστε άλλο λογιστικό λογισμικό;',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -7992,7 +7979,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             disconnect: 'Αποσύνδεση',
             reinstall: 'Επανεγκατάσταση συνδέτη',
             disconnectTitle: (connectionName = 'ενσωμάτωση') => `Αποσύνδεση ${connectionName}`,
-            connectTitle: (connectionName) => `Συνδέστε ${connectionName}`,
             syncError: (connectionName) => `Δεν είναι δυνατή η σύνδεση με το ${connectionName}`,
             accounts: 'Λογιστικό σχέδιο',
             taxes: 'Φόροι',
@@ -8009,12 +7995,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Προεπιλογή εργαζομένου NetSuite',
             },
             disconnectPrompt: (connectionName = 'αυτή η ενοποίηση') => `Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε το ${connectionName};`,
-            connectPrompt: (connectionName) => `Είστε βέβαιοι ότι θέλετε να συνδέσετε το ${connectionName}; Αυτό θα αφαιρέσει τυχόν υπάρχουσες λογιστικές συνδέσεις.`,
             reconnect: 'Επανασύνδεση',
             enterCredentials: 'Εισαγάγετε τα διαπιστευτήριά σας',
             updateCredentials: 'Ενημέρωση διαπιστευτηρίων',
             claimOffer: {
-                badgeText: 'Προσφορά διαθέσιμη!',
                 xero: {
                     headline: 'Αποκτήστε το Xero δωρεάν για 6 μήνες!',
                     description:
@@ -8283,10 +8267,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             netSuiteOAuthUpgradeNow: 'Αναβαθμίστε τώρα',
         },
         hr: {
-            title: 'HR',
             connectionsSubtitle:
                 'Συνδεθείτε με το σύστημα HR σας για να συγχρονίζετε τα στοιχεία των εργαζομένων, να αντιστοιχίζετε αυτόματα τις αποζημιώσεις στα σωστά άτομα και να διατηρείτε τα έξοδα της ομάδας σας ακριβή χωρίς χειροκίνητη εργασία.',
-            subtitle: 'Συνδέστε εργαλεία HR και διατηρήστε τις εγκρίσεις εργαζομένων συγχρονισμένες.',
             alreadyConnectedTitle: 'Δεν είναι δυνατή η σύνδεση σε πολλές πλατφόρμες HR',
             alreadyConnectedPrompt: 'Πρέπει να αποσυνδέσετε την τρέχουσα πλατφόρμα HR προτού συνδέσετε μια άλλη.',
             connectionDescription: (providerName: string) => `Συνδέστε το ${providerName} για να διατηρείτε τις εγκρίσεις εργαζομένων συγχρονισμένες με τον χώρο εργασίας σας.`,
@@ -8349,7 +8331,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
         },
         recruiting: {
-            title: 'Προσλήψεις',
             connectionsSubtitle:
                 'Συνδεθείτε με το σύστημα προσλήψεών σας για να συγχρονίζετε τα δεδομένα υποψηφίων, να αντιστοιχίζετε αυτόματα τις αποζημιώσεις στα σωστά άτομα και να διατηρείτε τις δαπάνες της ομάδας σας ακριβείς χωρίς χειροκίνητη εργασία.',
             alreadyConnectedTitle: 'Αδυναμία σύνδεσης σε πολλές πλατφόρμες ATS',
@@ -8357,7 +8338,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncing: 'Γίνεται συγχρονισμός υποψηφίων',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Συνδέθηκε. ${setupLink ? `<a href="${setupLink}">Ολοκληρώστε τη ρύθμιση</a>` : 'Ολοκληρώστε τη ρύθμιση'} για εισαγωγή υποψηφίων.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>Δεν βλέπετε εδώ το ATS σας; <a href="#">Ρωτήστε το Concierge</a> και μπορούμε να το προσθέσουμε.</muted-text-label>`,
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
             approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων', hiringManager: 'Υπεύθυνος προσλήψεων'},
@@ -8383,7 +8363,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
                 enableJobStagesOrTags: 'Επιλέξτε τουλάχιστον ένα στάδιο εργασίας ή ετικέτα για να συνεχίσετε',
             },
-            subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
             syncResults: {
                 importedCount: () => ({
                     one: '1 υποψήφιος',
@@ -8407,9 +8386,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
         },
         merge: {
-            connections: 'Συνδέσεις',
-            connect: 'Σύνδεση',
-            findIntegration: 'Βρείτε ενοποίηση',
             syncNow: 'Συγχρονισμός τώρα',
             disconnect: 'Αποσύνδεση',
             disconnectTitle: (providerName: string) => `Αποσύνδεση ${providerName}`,
@@ -9363,7 +9339,10 @@ ${reportName}`,
                     missingData: 'Η Expensify δεν διαθέτει αυτές τις πληροφορίες.',
                     retroactive: 'Οι κανόνες ισχύουν μόνο για νέα δραστηριότητα.',
                     historyLimit: 'Οι κανόνες δεν μπορούν να ανατρέξουν τόσο πίσω.',
-                    tryThisInstead: 'Δοκιμάστε αυτό αντί για εκείνο',
+                    useSuggestion: 'Χρήση πρότασης',
+                    explanationWithSuggestion: (explanation: string) => `${explanation} Δοκιμάστε αντ’ αυτού την παρακάτω πρόταση:`,
+                    quotedSuggestion: (suggestedPrompt: string) => `«${suggestedPrompt}»`,
+                    createAnyway: 'Δημιουργία ούτως ή άλλως',
                 },
             },
             expenseDefaultsTable: {
@@ -9820,6 +9799,11 @@ ${reportName}`,
             noOrganizationsFound: 'Δεν βρέθηκαν οργανισμοί',
             noOrganizationsFoundDescription: 'Προσθέστε έναν οργανισμό στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
             multiLocationNotSupported: 'Οι οργανισμοί με πολλές τοποθεσίες δεν υποστηρίζονται ακόμη',
+            importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θα εισαχθούν από το Zoho Books.',
+            accountTypesDescription: 'Οι λογαριασμοί σας στο Zoho Books θα εισαχθούν ως κατηγορίες.',
+            enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
+            enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Zoho Books θα είναι διαθέσιμοι ως κατηγορίες.',
+            reportingTagsImport: 'Όλες οι ετικέτες αναφορών Zoho Books εισάγονται ως ετικέτες',
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -10704,6 +10688,7 @@ ${reportName}`,
         },
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `ενημερώθηκε το «αποτροπή επισήμανσης μη αποζημιώσιμων αναφορών ως πληρωμένες» σε «${newValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}» (προηγουμένως «${oldValue === 'true' ? 'Ενεργοποιημένο' : 'Απενεργοποιημένο'}»)`,
+        addedExpensifyCardFeed: (feedName: string) => `προστέθηκε ροή Κάρτας Expensify «${feedName}»`,
     },
     roomMembersPage: {
         memberNotFound: 'Το μέλος δεν βρέθηκε.',
@@ -11016,6 +11001,7 @@ ${reportName}`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Εβδομάδα',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτος',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνο',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνων',
             },
             feed: 'Ροή',
             withdrawalType: {
@@ -11079,6 +11065,7 @@ ${reportName}`,
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Εβδομάδες',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Έτη',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Τρίμηνα',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Εγκρίνοντες',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Καμία δαπάνη ακόμη',
@@ -12327,6 +12314,8 @@ ${reportName}`,
                 info: 'Αν θέλετε να συνεχίσετε να χρησιμοποιείτε τον/τους χώρο(ους) εργασίας σας με χρέωση ανά χρήση, είστε έτοιμοι.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Αν θέλετε να αποτρέψετε μελλοντική δραστηριότητα και χρεώσεις, πρέπει να <a href="${workspacesListRoute}">διαγράψετε τον/τους χώρο(ους) εργασίας σας</a>. Σημειώστε ότι, όταν διαγράψετε τον/τους χώρο(ους) εργασίας σας, θα χρεωθείτε για οποιαδήποτε εκκρεμή δραστηριότητα πραγματοποιήθηκε κατά τη διάρκεια του τρέχοντος ημερολογιακού μήνα.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Για να αποτρέψετε μελλοντική δραστηριότητα και χρεώσεις, <a href="${workspacesListRoute}">αρχειοθετήστε όλους τους επί πληρωμή χώρους εργασίας σας</a>. Οι αρχειοθετημένοι χώροι εργασίας με χρεώσιμη δραστηριότητα κατά τη διάρκεια του τρέχοντος μήνα θα εξακολουθήσουν να περιλαμβάνονται στον λογαριασμό σας.`,
             },
             requestSubmitted: {
                 title: 'Το αίτημα υποβλήθηκε',
