@@ -86,6 +86,7 @@ const onBecomeLeader: OnBecomeLeader = (callback) => {
 
 const notifyIfBecameLeader = () => {
     const isLeader = isClientTheLeader();
+    setActiveTab({clientID, isLeader});
     const didBecomeLeader = isLeader && !wasLeader;
     wasLeader = isLeader;
     if (!didBecomeLeader) {
@@ -118,8 +119,8 @@ Onyx.connectWithoutView({
             setActiveClients(activeClients);
         }
 
-        logActiveClientsChange();
         notifyIfBecameLeader();
+        logActiveClientsChange();
     },
 });
 
@@ -163,8 +164,6 @@ const requestLeaderLock = (shouldSteal: boolean) => {
 };
 
 function logActiveClientsChange() {
-    setActiveTab({clientID, isLeader: isClientTheLeader()});
-
     Log.info('[ActiveClientManager] Active clients changed', false, {
         activeClientCount: activeClients.length,
         leaderClientID: activeClients.at(-1) ?? 'null',
