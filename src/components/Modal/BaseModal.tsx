@@ -225,8 +225,10 @@ function BaseModal({
     };
 
     // Checks if modal overlaps with topSafeArea. Used to offset tall bottom docked modals with keyboard.
+    // Only a modal that avoids the keyboard is lifted by it. One that doesn't stays put, so the margin would only grow
+    // its wrapper over the backdrop above it, where it swallows the taps meant to dismiss the modal.
     useEffect(() => {
-        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || !canUseTouchScreen || !isSmallScreenWidth) {
+        if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || !canUseTouchScreen || !isSmallScreenWidth || !avoidKeyboard) {
             return;
         }
         const {paddingTop} = StyleUtils.getPlatformSafeAreaPadding(insets);
@@ -244,6 +246,7 @@ function BaseModal({
         modalOverlapsWithTopSafeArea,
         canUseTouchScreen,
         isSmallScreenWidth,
+        avoidKeyboard,
     ]);
 
     const onViewLayout = (e: LayoutChangeEvent) => {
