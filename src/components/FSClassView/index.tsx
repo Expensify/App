@@ -38,4 +38,3 @@ function FSClassView({forwardedFSClass, children, ...props}: FSClassViewProps) {
 }
 
 export default FSClassView;
-export type {FSClassViewProps};
