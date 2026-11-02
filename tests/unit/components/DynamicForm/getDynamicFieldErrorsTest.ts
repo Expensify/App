@@ -454,3 +454,31 @@ describe('getDynamicFieldErrors', () => {
         expect(lostErrors).toEqual({directors: translateLocal('dynamicForm.error.itemError', {item: 'Jane', field: 'ssn', error: translateLocal('common.error.fieldRequired')})});
     });
 });
+
+describe('getDynamicFieldErrors with an answer the server holds', () => {
+    beforeAll(() => {
+        IntlStore.load(CONST.LOCALES.DEFAULT);
+    });
+
+    it('accepts a blank sensitive field the server already has an answer for', () => {
+        // Given a required SSN the server returned as provided instead of sending it back
+        const ssn: DynamicFormField = {key: 'ssn', type: 'text', required: true, sensitive: true};
+
+        // When the field is left blank
+        const errors = getDynamicFieldErrors([ssn], {ssnProvided: true}, translateLocal);
+
+        // Then it counts as answered, so the stored SSN is kept
+        expect(errors).toEqual({});
+    });
+
+    it('still requires a field that is not sensitive', () => {
+        // Given a required plain field with a stray provided flag
+        const firstName: DynamicFormField = {key: 'firstName', type: 'text', required: true};
+
+        // When the field is left blank
+        const errors = getDynamicFieldErrors([firstName], {firstNameProvided: true}, translateLocal);
+
+        // Then the flag is ignored, since only sensitive answers are held back by the server
+        expect(errors).toEqual({firstName: translateLocal('common.error.fieldRequired')});
+    });
+});

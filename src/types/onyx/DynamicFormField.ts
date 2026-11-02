@@ -272,6 +272,12 @@ type DynamicFormSchema = {pages: DynamicFormPage[]} | {fields: DynamicFormSchema
 /** Answers to sensitive fields, keyed by form ID, then by field key. Kept in memory only, never in a draft. */
 type DynamicFormSensitiveAnswers = Partial<Record<OnyxFormKey, Partial<Record<string, FormValue>>>>;
 
+/**
+ * A page's answers as the server saved them: the draft's values after a JSON round trip, under the same keys.
+ * A sensitive answer is never sent back. `<key>Provided: true` stands in for it, and counts as answered.
+ */
+type DynamicFormSavedValues = Partial<Record<string, string | string[] | boolean | null>>;
+
 /** Every type the renderer and validator handle */
 type DynamicFormFieldType = DynamicFormField['type'];
 
@@ -290,6 +296,7 @@ export type {
     DynamicFormNumberField,
     DynamicFormPage,
     DynamicFormSchema,
+    DynamicFormSavedValues,
     DynamicFormSchemaField,
     DynamicFormSensitiveAnswers,
     DynamicFormTextField,

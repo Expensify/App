@@ -191,7 +191,7 @@ function DynamicFormFlow({
         Navigation.navigate(buildRoute(unavailablePageTarget), {forceReplace: true});
     }, [isOnUnavailablePage, buildRoute, unavailablePageTarget]);
 
-    /** Typed answers are drafted as FormProvider cleaned them and inputs left untouched are drafted with their defaults, so the draft matches what the page validated. Sensitive answers go to memory only, and only the draft ones reach the screen. Lists are drafted as they change, so the screen gets their drafted entries, which hold no sensitive answers. */
+    /** Typed answers are drafted as FormProvider cleaned them and inputs left untouched are drafted with their defaults, so the draft matches what the page validated. Sensitive answers go to memory only and reach the screen apart from the draft ones. Lists are drafted as they change, so the screen gets their drafted entries, which hold no sensitive answers. */
     const handlePageSubmit = (page: DynamicFormPage, pageValues: DynamicFormValues) => {
         const currentValues = {...values, ...pageValues};
         const pageFields = getContentFields(page.content).filter(isSupportedField);
@@ -218,7 +218,7 @@ function DynamicFormFlow({
         if (removedSensitiveKeys.length > 0) {
             forgetSensitiveAnswers(formID, removedSensitiveKeys);
         }
-        onPageSubmit?.(page, {...draftAnswers, ...listAnswers});
+        onPageSubmit?.(page, {...draftAnswers, ...listAnswers}, sensitiveAnswers);
     };
 
     /** An entry opened from the confirmation page, or from a page edited from it, returns there */
