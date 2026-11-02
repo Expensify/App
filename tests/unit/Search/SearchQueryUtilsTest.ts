@@ -44,6 +44,7 @@ import {
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
     isFilterNegated,
+    normalizeDatePresetsInQuery,
     isDefaultExpenseReportsQuery,
     isDefaultExpensesQuery,
     isSearchBeforeViolationsSnapshotStarted,
@@ -717,6 +718,18 @@ describe('SearchQueryUtils', () => {
             expect(result).toContain('footerCurrency:eur');
         });
 
+        test('maps a typed year to date preset to this year', () => {
+            // Given a typed query on the deprecated year to date preset
+            const userQuery = 'type:expense date:year-to-date';
+
+            // When the typed query is rebuilt before it's submitted
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            // Then it uses this year, so the URL matches what the date picker shows and a saved search stores
+            expect(result).toContain(`date:${CONST.SEARCH.DATE_PRESETS.THIS_YEAR}`);
+            expect(result).not.toContain(CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE);
+        });
+
         test('rebuilds a single value containing a comma as one value', () => {
             expect(getQueryWithUpdatedValues(String.raw`merchant:Globex\,Ltd`)).toEqual(`${defaultQuery} merchant*:"Globex,Ltd"`);
             expect(getQueryWithUpdatedValues('merchant:"Globex,Ltd"')).toEqual(`${defaultQuery} merchant*:"Globex,Ltd"`);
@@ -1057,6 +1070,20 @@ describe('SearchQueryUtils', () => {
             const result = buildQueryStringFromFilterFormValues(filterValues);
 
             expect(result).toEqual('type:expense from:user1@gmail.com,user2@gmail.com to:user3@gmail.com');
+        });
+
+        test('array of approver', () => {
+            // Given form values holding the approver picked from the filter bar
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                approver: ['12345', '67890'],
+            };
+
+            // When the query string is rebuilt from the form
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            // Then the approver filter is written back to the query so the search keeps narrowing by it
+            expect(result).toEqual('type:expense approver:12345,67890');
         });
 
         test('complex filter values', () => {
@@ -1433,6 +1460,53 @@ describe('SearchQueryUtils', () => {
                 const result = buildQueryStringFromFilterFormValues(filterValues, {sortBy: 'date', sortOrder: 'desc'});
                 expect(result).not.toContain('limit');
             });
+        });
+
+        describe('Bank account filter (#99090)', () => {
+            test('keeps the bank account filter in the query for expense so the withdrawal section row reaches the backend', () => {
+                // Given an expense filter form (the type Bank Reconciliation uses) with a bank account picked
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    bankAccount: ['42'],
+                };
+
+                // When the query string is built
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then the bank account filter is not stripped as unsupported
+                expect(result).toEqual('type:expense bankAccount:42');
+            });
+
+            test('keeps a negated bank account filter in the query for expense', () => {
+                // Given an expense filter form excluding a bank account
+                const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    bankAccountNot: ['42'],
+                };
+
+                // When the query string is built
+                const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                // Then the negated filter survives too
+                expect(result).toEqual('type:expense -bankAccount:42');
+            });
+
+            test.each([CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, CONST.SEARCH.DATA_TYPES.INVOICE, CONST.SEARCH.DATA_TYPES.TRIP])(
+                'still drops the bank account filter for %s, which Search does not accept it for',
+                (type) => {
+                    // Given a filter form for another type carrying a bank account from a previous expense search
+                    const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                        type,
+                        bankAccount: ['42'],
+                    };
+
+                    // When the query string is built
+                    const result = buildQueryStringFromFilterFormValues(filterValues);
+
+                    // Then the unsupported filter is stripped as before
+                    expect(result).toEqual(`type:${type}`);
+                },
+            );
         });
 
         describe('Spend footer selections', () => {
@@ -1923,6 +1997,21 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({type: 'expense', merchant: 'Uber', merchantOperator});
         });
 
+        test('approver filter is kept when the approver has personal details', () => {
+            // Given a query from an approver chart drill-down, where only one of the approvers is a known user
+            const queryJSON = buildSearchQueryJSON('sortBy:date sortOrder:desc type:expense approver:12345,99999');
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+            const personalDetails = {12345: {accountID: 12345, login: 'approver@expensify.com'}};
+
+            // When the form values are built from the query
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, personalDetails, {}, {}, {});
+
+            // Then the known approver is kept like a from filter, so changing another filter does not drop it
+            expect(result).toEqual({type: 'expense', approver: ['12345']});
+        });
+
         test('category filter includes empty values', () => {
             const policyID = generatePolicyID();
             const queryString = 'sortBy:date sortOrder:desc type:expense category:none,Uncategorized,Maintenance';
@@ -2248,7 +2337,7 @@ describe('SearchQueryUtils', () => {
             });
 
             test('merges date preset with inclusive range into a single range', () => {
-                const queryString = 'type:expense date:year-to-date date>=2026-04-01 date<=2026-04-30';
+                const queryString = 'type:expense date:last-30-days date>=2026-04-01 date<=2026-04-30';
                 const queryJSON = buildSearchQueryJSON(queryString);
 
                 if (!queryJSON) {
@@ -2278,7 +2367,7 @@ describe('SearchQueryUtils', () => {
             });
 
             test('merges all date-based filters, not only "date"', () => {
-                const queryString = 'type:expense approved:year-to-date approved>=2026-04-01 approved<=2026-04-30';
+                const queryString = 'type:expense approved:last-30-days approved>=2026-04-01 approved<=2026-04-30';
                 const queryJSON = buildSearchQueryJSON(queryString);
 
                 if (!queryJSON) {
@@ -2293,7 +2382,7 @@ describe('SearchQueryUtils', () => {
             });
 
             test('merges date preset and strict inequalities into a single range', () => {
-                const queryString = 'type:expense date:year-to-date date>2026-04-01 date<2026-04-30';
+                const queryString = 'type:expense date:last-30-days date>2026-04-01 date<2026-04-30';
                 const queryJSON = buildSearchQueryJSON(queryString);
 
                 if (!queryJSON) {
@@ -2318,6 +2407,21 @@ describe('SearchQueryUtils', () => {
                 const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
                 expect(result.dateOn).toBe('last-12-months');
                 expect(result.dateRange).toBeUndefined();
+            });
+
+            test('reads the deprecated year-to-date preset as this-year', () => {
+                // Given a saved search from before Year to date was replaced by This year
+                const queryJSON = buildSearchQueryJSON('type:expense date:year-to-date approved!=year-to-date');
+                if (!queryJSON) {
+                    throw new Error('Failed to parse query string');
+                }
+
+                // When the form values are built from the query
+                const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {});
+
+                // Then both read as this-year, so the date picker checks the This year row it lists
+                expect(result.dateOn).toBe(CONST.SEARCH.DATE_PRESETS.THIS_YEAR);
+                expect(result.approvedNot).toBe(CONST.SEARCH.DATE_PRESETS.THIS_YEAR);
             });
 
             test('merges multiple ranges into one', () => {
@@ -3490,6 +3594,109 @@ describe('SearchQueryUtils', () => {
             // Then the group currency doesn't count as a change
             expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON, onlyGroupCurrencyIgnored)).toBe(false);
         });
+
+        it('returns false when a saved year to date search is applied again as this year', () => {
+            // Given a saved search on the deprecated year to date preset, which the date picker shows as this year
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense date:year-to-date');
+
+            // When the unchanged date filter is applied, which writes this year back into the query
+            const currentQueryJSON = buildSearchQueryJSON('type:expense date:this-year');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // Then the saved search isn't treated as edited, so Reset and Save stay hidden
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when a saved year to date search is changed to another date preset', () => {
+            // Given a saved search on the deprecated year to date preset
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense date:year-to-date');
+
+            // When a different preset is applied
+            const currentQueryJSON = buildSearchQueryJSON('type:expense date:last-year');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // Then the change still counts, so Reset and Save appear
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+
+        it('returns false when a saved year to date report field date search is applied again as this year', () => {
+            // Given a saved search on a report field date using the deprecated year to date preset, which the date picker shows as this year
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense report-field-trip-date:year-to-date');
+
+            // When the unchanged report field filter is applied, which writes this year back into the query
+            const currentQueryJSON = buildSearchQueryJSON('type:expense report-field-trip-date:this-year');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // Then the saved search isn't treated as edited, so Reset and Save stay hidden
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(false);
+        });
+
+        it('returns true when a saved negated report field search on year to date is changed to this year', () => {
+            // Given a saved search excluding the year to date text from a report field, which the filter form keeps as text
+            const defaultQueryJSON = buildSearchQueryJSON('type:expense -report-field-trip-date:year-to-date');
+
+            // When the excluded text is changed to this year
+            const currentQueryJSON = buildSearchQueryJSON('type:expense -report-field-trip-date:this-year');
+
+            if (!defaultQueryJSON || !currentQueryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            // Then the change still counts, so Reset and Save appear
+            expect(hasFiltersChangedFromDefault(currentQueryJSON, defaultQueryJSON)).toBe(true);
+        });
+    });
+
+    describe('normalizeDatePresetsInQuery', () => {
+        const getFilterValues = (query: string, filterKey: string) =>
+            buildSearchQueryJSON(query)
+                ?.flatFilters.find((filter) => filter.key === filterKey)
+                ?.filters.map((queryFilter) => ({operator: queryFilter.operator, value: queryFilter.value}));
+
+        it('maps year to date to this year on a date filter', () => {
+            // Given a search saved with the deprecated year to date preset
+            const query = 'type:expense date:year-to-date';
+
+            // When the query is normalized before it's opened or saved
+            const normalizedQuery = normalizeDatePresetsInQuery(query);
+
+            // Then it uses this year, the preset the date picker lists in its place
+            expect(getFilterValues(normalizedQuery, CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE)).toEqual([
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
+            ]);
+        });
+
+        it('maps year to date on a report field date but keeps a negated report field value', () => {
+            // Given a search with year to date on a report field date and as excluded text on another report field
+            const query = 'type:expense report-field-trip-date:year-to-date -report-field-notes:year-to-date';
+
+            // When the query is normalized
+            const normalizedQuery = normalizeDatePresetsInQuery(query);
+
+            // Then only the date value changes, because the filter form keeps negated report field values as text
+            expect(getFilterValues(normalizedQuery, 'reportField-trip-date')).toEqual([{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: CONST.SEARCH.DATE_PRESETS.THIS_YEAR}]);
+            expect(getFilterValues(normalizedQuery, 'reportField-notes')).toEqual([{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE}]);
+        });
+
+        it('returns the query unchanged when it has no year to date preset', () => {
+            // Given a search on a current date preset
+            const query = 'type:expense date:last-year';
+
+            // When the query is normalized
+            const normalizedQuery = normalizeDatePresetsInQuery(query);
+
+            // Then the same query string comes back, so searches without the deprecated preset open exactly as saved
+            expect(normalizedQuery).toBe(query);
+        });
     });
 
     describe('isSearchQuerySavable', () => {
@@ -4425,6 +4632,37 @@ describe('SearchQueryUtils', () => {
             queryJSON = buildSearchQueryJSON(result ?? '');
             expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK);
             expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.DESC);
+        });
+
+        test('switching to approver from the Display menu derives sort-by:group-approver and sort-order:asc', () => {
+            // Given a category grouping whose sort is the category default
+            // When the Display menu switches group by to approver
+            const result = buildFilterQueryWithSortDefaults(
+                {type: 'expense', groupBy: CONST.SEARCH.GROUP_BY.APPROVER, view: CONST.SEARCH.VIEW.TABLE},
+                {view: CONST.SEARCH.VIEW.TABLE, groupBy: CONST.SEARCH.GROUP_BY.CATEGORY},
+                {sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY, sortOrder: CONST.SEARCH.SORT_ORDER.ASC},
+            );
+            const queryJSON = buildSearchQueryJSON(result ?? '');
+
+            // Then the parser re-derives the approver defaults from GROUP_BY_DEFAULT_SORT and GROUP_BY_DEFAULT_SORT_ORDER
+            expect(queryJSON?.sortBy).toBe(CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER);
+            expect(queryJSON?.sortOrder).toBe(CONST.SEARCH.SORT_ORDER.ASC);
+        });
+    });
+
+    describe('group-by:approver parser round trip', () => {
+        test('round-trips group-by:approver and a customized group column list', () => {
+            // Given a query that groups by approver and customizes the group columns
+            const query = `type:expense group-by:${CONST.SEARCH.GROUP_BY.APPROVER} columns:group-approver,group-expenses,group-total`;
+
+            // When it is parsed and then rebuilt into a query string and parsed again
+            const parsed = buildSearchQueryJSON(query);
+            const rebuilt = buildSearchQueryString(parsed);
+            const roundTripped = buildSearchQueryJSON(rebuilt);
+
+            // Then the group by and customized columns survive the round trip
+            expect(roundTripped?.groupBy).toBe(CONST.SEARCH.GROUP_BY.APPROVER);
+            expect(roundTripped?.columns).toEqual([CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER, CONST.SEARCH.TABLE_COLUMNS.GROUP_EXPENSES, CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]);
         });
     });
 
