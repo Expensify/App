@@ -199,7 +199,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                 policyCategories,
                 transaction.category ?? '',
                 getAttendees(transaction),
-                currentUserDetails,
+                submitterLogin,
                 isAttendeeTrackingEnabled(policyForViolations),
                 policyForViolations.type === CONST.POLICY.TYPE.CORPORATE,
                 isInvoice,

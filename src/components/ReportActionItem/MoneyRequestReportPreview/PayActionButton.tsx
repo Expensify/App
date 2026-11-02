@@ -108,7 +108,7 @@ function PayActionButton() {
             const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
             const isSelfTourViewed = hasSeenTourSelector(onboarding);
             const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-            const currentChatReport = getReportOrDraftReport(chatReportID) ?? chatReport;
+            const currentChatReport = getReportOrDraftReport({reportID: chatReportID}) ?? chatReport;
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
                 payInvoice({
