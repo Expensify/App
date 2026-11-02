@@ -304,15 +304,17 @@ function putOnHold({
         );
     }
 
-    if (transactionReport) {
+    // Holding only changes the next step of an open report. For other statuses it would rebuild the step the report already has.
+    if (transactionReport && (transactionReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN) {
         const optimisticNextStep = buildOptimisticNextStep({
             report: transactionReport,
-            predictedNextStatus: transactionReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: true,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins: undefined,
         });
 
         optimisticData.push({
@@ -560,16 +562,18 @@ function unholdRequest({
         },
     ];
 
-    if (iouReport) {
+    // Unholding only changes the next step of an open report. For other statuses it would rebuild the step the report already has.
+    if (iouReport && (iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN) === CONST.REPORT.STATUS_NUM.OPEN) {
         const optimisticNextStep = buildOptimisticNextStep({
             report: iouReport,
             policy,
-            predictedNextStatus: iouReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN,
+            predictedNextStatus: CONST.REPORT.STATUS_NUM.OPEN,
             shouldFixViolations: updatedTransactionViolations.length > 0,
             currentUserAccountIDParam: currentUserAccountID,
             currentUserEmailParam: currentUserLogin,
             isTrackIntentUser,
             rules,
+            personalDetailsByLogins: undefined,
         });
 
         optimisticData.push({

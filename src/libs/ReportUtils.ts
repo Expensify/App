@@ -15492,7 +15492,8 @@ function shouldShowMarkAsDone({
     if (!isTrackIntentUser || !isSubmitAndClose(policy) || !isReportOwner(report)) {
         return false;
     }
-    return getNextApproverAccountID(report, rules) === report?.ownerAccountID;
+    // Submit & Close policies have no approval chain, so the next approver is never looked up by login and personalDetailsByLogins isn't needed.
+    return getNextApproverAccountID(report, rules, false, undefined, undefined) === report?.ownerAccountID;
 }
 
 /**
