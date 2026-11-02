@@ -3714,7 +3714,10 @@ function getIOUReportActionWithBadge({
         );
         if (!badge) {
             // A missing badge is not enough: an empty open draft also has none. Only a held-excluded child counts.
-            hasHeldReport ||= isReportExcludedForHeldExpenses(iouReport, getReportTransactions(iouReport.reportID), iouReportActions, currentUserAccountID);
+            // TODO: https://github.com/Expensify/App/issues/66512
+            // eslint-disable-next-line @typescript-eslint/no-deprecated
+            const heldReportTransactions = getReportTransactions(iouReport.reportID);
+            hasHeldReport ||= isReportExcludedForHeldExpenses(iouReport, heldReportTransactions, iouReportActions, currentUserAccountID);
             continue;
         }
 

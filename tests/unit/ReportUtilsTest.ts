@@ -4655,7 +4655,7 @@ describe('ReportUtils', () => {
                 // transactions, which is the shape after submit. The draft must not keep the approver's green dot.
                 const seedHeldSubmittedChild = async (
                     holderAccountID: number,
-                    {includeOpenDraftPreview = true, unloadedSiblingStatusNum}: {includeOpenDraftPreview?: boolean; unloadedSiblingStatusNum?: number} = {},
+                    {includeOpenDraftPreview = true, unloadedSiblingStatusNum}: {includeOpenDraftPreview?: boolean; unloadedSiblingStatusNum?: ReportAction['childStatusNum']} = {},
                 ) => {
                     const heldExpenseReport: Report = {
                         ...LHNTestUtils.getFakeReport(),
@@ -4689,7 +4689,12 @@ describe('ReportUtils', () => {
                         iouReportID: openDraftReportID,
                     };
 
-                    const buildReportPreview = (reportActionID: string, childReportID: string, created: string, childStatusNum: number): ReportAction => ({
+                    const buildReportPreview = (
+                        reportActionID: string,
+                        childReportID: string,
+                        created: string,
+                        childStatusNum: NonNullable<ReportAction['childStatusNum']>,
+                    ): ReportAction => ({
                         reportActionID,
                         actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
                         created,
