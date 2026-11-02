@@ -416,6 +416,8 @@ const translations = {
         // @context Acronym meaning “To Be Determined.” Should be translated or localized according to the target language's convention.
         tbd: 'TBD',
         selectCurrency: 'Select a currency',
+        any: 'Any',
+        anyCurrency: 'Any currency',
         selectSymbolOrCurrency: 'Select a symbol or currency',
         card: 'Card',
         mcc: 'MCC',
@@ -12054,6 +12056,7 @@ const translations = {
         keepThisOne: 'Keep this one',
         confirmDetails: `Confirm the details you're keeping`,
         confirmDuplicatesInfo: `The duplicates you don't keep will be held for the submitter to delete.`,
+        confirmDuplicatesRemovedInfo: `The duplicates you don't keep will be removed.`,
         cannotMergeDuplicates: 'You can only merge expenses on draft or outstanding reports. Retract it and try again.',
         hold: 'This expense was put on hold',
         resolvedDuplicates: 'resolved the duplicate',
