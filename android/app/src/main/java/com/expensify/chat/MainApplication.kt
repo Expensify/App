@@ -52,7 +52,8 @@ class MainApplication : MultiDexApplication(), ReactApplication {
 
         // Plaid's LinkActivity calls setRequestedOrientation(PORTRAIT) in its own onCreate(),
         // which forces the UI to portrait even when the device is in landscape. We override it
-        // here so Plaid can render in whichever orientation the device is actually in.
+        // on tablets only, because on phones the landscape keyboard leaves Plaid's WebView too short
+        // to show its inputs.
         registerActivityLifecycleCallbacks(object : Application.ActivityLifecycleCallbacks {
             override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -63,7 +64,9 @@ class MainApplication : MultiDexApplication(), ReactApplication {
                         PrivacyCover.applyTaskDescription(activity)
                     }
                 }
-                if (activity.javaClass.name == "com.plaid.internal.link.LinkActivity") {
+                if (activity.javaClass.name == "com.plaid.internal.link.LinkActivity" &&
+                    activity.resources.configuration.smallestScreenWidthDp >= 600
+                ) {
                     activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
                 }
             }
