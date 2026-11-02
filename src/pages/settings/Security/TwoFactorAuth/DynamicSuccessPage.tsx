@@ -27,6 +27,7 @@ import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {findFocusedRoute} from '@react-navigation/native';
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 
 import SuccessPageBase from './SuccessPageBase';
@@ -35,6 +36,7 @@ type DynamicSuccessPageProps = PlatformStackScreenProps<TwoFactorAuthNavigatorPa
 
 function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path);
     const dynamicForwardPath = useDynamicForwardPath(DYNAMIC_ROUTES.TWO_FACTOR_AUTH_SUCCESS.path);
 
@@ -123,7 +125,7 @@ function DynamicSuccessPage({route}: DynamicSuccessPageProps) {
                 // new browser tab (within this button's gesture), on native navigate to the in-app WebView setup
                 // screen. Calling openLink on native would open the external browser instead of the WebView.
                 if (getPlatform() === CONST.PLATFORM.WEB) {
-                    openLink(getXeroSetupLink(policyID), environmentURL);
+                    openLink(getXeroSetupLink(policyID), environmentURL, false, session);
                 } else {
                     Navigation.navigate(ROUTES.POLICY_ACCOUNTING_XERO_SETUP.getRoute(policyID));
                 }

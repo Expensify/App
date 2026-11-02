@@ -102,6 +102,6 @@ describe('ImportFromFileStep inline help links', () => {
         expect(helpGuideLink).toHaveProp('href', CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL);
 
         fireEvent.press(helpGuideLink);
-        expect(openLinkSpy).toHaveBeenCalledWith(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, expect.any(String));
+        expect(openLinkSpy).toHaveBeenCalledWith(CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL, expect.any(String), false, undefined);
     });
 });
