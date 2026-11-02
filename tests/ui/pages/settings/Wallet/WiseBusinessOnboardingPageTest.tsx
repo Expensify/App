@@ -35,6 +35,7 @@ const LOADER_TEST_ID = 'FullScreenLoadingIndicator';
 const NOT_FOUND_TEST_ID = 'NotFoundPage';
 const BANK_ACCOUNT_ID = 1;
 const SAVE_ID = '1';
+const OTHER_SAVE_ID = '2';
 
 const mockFlowMount = jest.fn();
 const mockFlowProps = jest.fn<void, [DynamicFormFlowProps]>();
@@ -257,6 +258,48 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
     });
 
+    it('blocks a visit that opens offline without the details of this bank account until the connection returns', async () => {
+        // Given an offline device that holds none of this bank account's details or the pages already saved to Wise
+        setHasRadio(false);
+
+        // When the visit opens
+        await renderPage({shouldLeaveReadRunning: true});
+
+        // Then the offline view shows instead of the flow, since the prefill runs once per visit and would leave the business rows blank
+        expect(screen.getByText('common.thisFeatureRequiresInternet')).toBeOnTheScreen();
+        expect(screen.queryByTestId(FLOW_TEST_ID)).not.toBeOnTheScreen();
+        expect(saveDraftAnswers).not.toHaveBeenCalled();
+
+        // When the connection returns
+        act(() => setHasRadio(true));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the page reads this bank account's details, as an online visit does
+        expect(openReimbursementAccountPage).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID});
+        expect(screen.queryByText('common.thisFeatureRequiresInternet')).not.toBeOnTheScreen();
+    });
+
+    it('keeps the flow when Next or Back mounts the page offline without the details on the device', async () => {
+        // Given an offline device that holds none of this bank account's details
+        setHasRadio(false);
+
+        // When the page mounts on one of its pages, as Next and Back do mid-visit
+        await renderPage({subPage: 'business'});
+
+        // Then the flow stays, so the user can keep filling in the page while offline
+        expect(screen.getByTestId(FLOW_TEST_ID)).toBeOnTheScreen();
+        expect(screen.queryByText('common.thisFeatureRequiresInternet')).not.toBeOnTheScreen();
+    });
+
+    it('asks the flow to disable Next offline', async () => {
+        // Given an eligible business account
+        // When the flow opens
+        await renderPage();
+
+        // Then every page's Next waits for a connection, since each page is saved to Wise as the user leaves it and a page with an SSN cannot be queued
+        expect(mockFlowProps).toHaveBeenLastCalledWith(expect.objectContaining({shouldDisableNextWhenOffline: true}));
+    });
+
     it('stops waiting for the read when the device goes offline, so the loader does not stay', async () => {
         // Given the details of this bank account already on the device, and a read that has started but not returned
         await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, shouldLeaveReadRunning: true});
@@ -379,6 +422,76 @@ describe('WiseBusinessOnboardingPage', () => {
 
         // Then the draft holds the saved file, so saving the page again lists its key instead of uploading the file again
         expect((await readDraft())?.idDocument).toEqual([toSavedFile('kyc/1/passport.jpg')]);
+    });
+
+    it('puts the saved file keys in the draft when they return while another page saves and the page mounts again before that save ends', async () => {
+        // Given the representative page saved with an ID document picked on this device, and the business page saving after it
+        await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: 'representative'});
+        act(() => saveDraftAnswersToOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {idDocument: [{name: 'passport.jpg', uri: 'file://passport.jpg'}]}));
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingPendingSaves: {[SAVE_ID]: true, [OTHER_SAVE_ID]: true}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // When the representative save returns its key while the business save still runs, Next mounts the page on the confirmation page, and the business save ends
+        await act(() =>
+            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
+                wiseOnboardingPendingSaves: {[SAVE_ID]: null},
+                achData: {wise: {documents: {representative: {idDocument: ['kyc/1/passport.jpg']}}}},
+            }),
+        );
+        await waitForBatchedUpdatesWithAct();
+        screen.unmount();
+        await renderPage({subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingPendingSaves: {[OTHER_SAVE_ID]: null}}));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the draft holds the saved file, since a draft that kept the picked file would tell the server to delete it once the user adds another
+        expect((await readDraft())?.idDocument).toEqual([toSavedFile('kyc/1/passport.jpg')]);
+    });
+
+    it('puts the saved file keys in the draft when they returned while the flow was closed', async () => {
+        // Given a draft that took no saved file yet and still holds the ID document picked on this device, as when the app reloads before the save returns
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            savedDocuments: JSON.stringify({}),
+            idDocument: [{name: 'passport.jpg', uri: 'blob:passport'}],
+        });
+        const savedAccount: BusinessReimbursementAccount = {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {documents: {representative: {idDocument: ['kyc/1/passport.jpg']}}}}};
+
+        // When the page mounts on the confirmation page with the file's key already on the device, as when the app reloads after the save returned
+        await renderPage({reimbursementAccount: savedAccount, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
+
+        // Then the draft holds the saved file instead of the picked one, which the device may no longer be able to read
+        expect((await readDraft())?.idDocument).toEqual([toSavedFile('kyc/1/passport.jpg')]);
+    });
+
+    it('keeps a file picked on this device when the flow opens with saved file keys the draft already took', async () => {
+        // Given a draft that took the saved ID document and holds a second one picked on this device but not saved yet
+        const savedDocuments = {representative: {idDocument: ['kyc/1/passport.jpg']}};
+        const pickedFile = {name: 'license.jpg', uri: 'file://license.jpg'};
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {
+            bankAccountID: String(BANK_ACCOUNT_ID),
+            savedDocuments: JSON.stringify(savedDocuments),
+            idDocument: [toSavedFile('kyc/1/passport.jpg'), pickedFile],
+        });
+
+        // When the user opens the flow again
+        await renderPage({readResponse: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {documents: savedDocuments}}}});
+
+        // Then both files stay, since the server's keys did not change and the picked file is not on the server yet
+        expect((await readDraft())?.idDocument).toEqual([toSavedFile('kyc/1/passport.jpg'), pickedFile]);
+    });
+
+    it('records the saved file keys without replacing a picked file when the draft predates the record', async () => {
+        // Given a draft from before the page recorded the saved file keys, holding an ID document picked on this device
+        const pickedFile = {name: 'passport.jpg', uri: 'file://passport.jpg'};
+        await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(BANK_ACCOUNT_ID), idDocument: [pickedFile]});
+        const savedDocuments = {representative: {idDocument: ['kyc/1/older.jpg']}};
+
+        // When the user opens the flow and the server holds an older file
+        await renderPage({readResponse: {achData: {...REIMBURSEMENT_ACCOUNT.achData, wise: {documents: savedDocuments}}}});
+
+        // Then the picked file stays and the server's keys are recorded, since the draft cannot tell whether the older file predates the picked one
+        expect(await readDraft()).toMatchObject({idDocument: [pickedFile], savedDocuments: JSON.stringify(savedDocuments)});
     });
 
     it('keeps the user on the confirmation page while a page that failed to save has not saved since', async () => {

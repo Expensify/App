@@ -50,7 +50,10 @@ function saveWiseOnboardingPageThroughQueue(params: UpdateWiseOnboardingAddition
     write(WRITE_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, params, getOnyxData(params.step, rand64()));
 }
 
-/** Saves an intake page carrying an SSN without the request queue, since queued requests are written to disk. It is not retried offline. */
+/**
+ * Saves an intake page carrying an SSN without the request queue, since queued requests are written to disk. The flow saves pages only online, so a
+ * failure here, including a connection that drops mid-request, is a failed save that is not retried.
+ */
 function saveWiseOnboardingPageWithSensitiveAnswers(params: UpdateWiseOnboardingAdditionalDataParams) {
     const saveID = rand64();
     makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA, params, getOnyxData(params.step, saveID)).catch((error: unknown) => {

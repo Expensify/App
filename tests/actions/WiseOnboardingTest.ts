@@ -126,7 +126,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
         expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
         expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(false);
-        expect(reimbursementAccount).toHaveProperty('errors');
+        expect(Object.values(reimbursementAccount?.errors ?? {})).toEqual(Object.values(getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')));
     });
 
     it('keeps a page with an SSN unsaved when its save never answers and the next visit ends the save', async () => {

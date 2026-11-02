@@ -63,6 +63,7 @@ function DynamicFormFlow({
     submitError,
     layout = 'auto',
     hasConfirmation = true,
+    shouldDisableNextWhenOffline,
 }: DynamicFormFlowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -331,6 +332,7 @@ function DynamicFormFlow({
             stepIndex={stepIndex}
             stepTitle={stepTitle || undefined}
             shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
+            shouldShowOfflineIndicatorInWideScreen={shouldDisableNextWhenOffline}
         >
             {isDraftLoading || isRedirecting || isClearingEarlierVisit || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
@@ -358,6 +360,7 @@ function DynamicFormFlow({
                     confirmationTitle={confirmationTitle}
                     isSubmitting={isSubmitting}
                     submitError={submitError}
+                    shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
                 />
             )}
         </DynamicFormShell>

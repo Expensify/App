@@ -1,6 +1,9 @@
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DynamicFormFlow from '@components/DynamicForm';
 import toDynamicFormValues from '@components/DynamicForm/utils/toDynamicFormValues';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import Header from '@components/Header';
+import ScreenWrapper from '@components/ScreenWrapper';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
@@ -46,6 +49,9 @@ const businessAccountSelector = (reimbursementAccount: OnyxEntry<ReimbursementAc
     isLoading: !!reimbursementAccount?.isLoading,
     data: reimbursementAccount?.achData ? pick(reimbursementAccount.achData, WISE_BUSINESS_ACCOUNT_KEYS) : undefined,
 });
+
+/** The draft key that holds the server's file keys, as JSON, that the draft's file answers last took */
+const SAVED_DOCUMENTS_DRAFT_KEY = 'savedDocuments';
 
 /** The business details we collect before Wise's own page: the representative, the business, and a confirmation of both */
 function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
@@ -107,8 +113,17 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
 
     // On a cold direct link the account list can be empty until the payment-method fetch finishes, so wait for it
     const isWaitingForBankAccount = !bankAccount && !!isLoadingPaymentMethods;
+
+    // The prefill runs once per visit, so a visit that opens offline without this bank account or its details would start from blank business rows and
+    // without the pages already saved to Wise, and keep them once the connection returns. It waits for the connection instead, as bank account setup does.
+    // Next and Back mount the page again mid-visit, after the prefill, so they are left to the flow.
+    const hasBusinessAccountOnDevice = !!bankAccount && businessAccount?.data?.bankAccountID === bankAccountID;
+    const isWaitingForConnection = isOffline && isNewVisit && !isPrefillDone && !hasBusinessAccountOnDevice;
     const isLoading =
-        isLoadingOnyxValue(bankAccountListMetadata, privatePersonalDetailsMetadata, draftMetadata, businessAccountMetadata) || isWaitingForBankAccount || isWaitingForBusinessAccount;
+        isLoadingOnyxValue(bankAccountListMetadata, privatePersonalDetailsMetadata, draftMetadata, businessAccountMetadata) ||
+        isWaitingForBankAccount ||
+        isWaitingForBusinessAccount ||
+        isWaitingForConnection;
 
     // The draft holds the answers for one bank account, so a visit for another account starts it over
     const draftBankAccountID = String(bankAccountID);
@@ -122,27 +137,32 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         clearWiseOnboardingUnsavedPages();
     }, [isDraftForOtherAccount]);
 
-    // After a save, the draft still holds the files picked on this device, so the next save of that page would upload them again. Once the server's file
-    // keys change and no save is running, the draft takes them instead. Only changes count, since the keys a page opens with may predate its newest files.
+    // After a save, the draft still holds the files picked on this device, so the next save of that page would upload them again, or drop them once they
+    // can no longer be read, which tells the server to delete them. Once the server's file keys change and no save is running, the draft takes them instead.
+    // Only changes count, since the keys a page opens with may predate its newest files. The draft records the keys it last took, so a change that lands
+    // while another page saves, before Next or Back mounts the page again, or while the flow is closed is still taken.
     const savedDocuments = businessAccount?.data?.bankAccountID === bankAccountID ? businessAccount.data.wise?.documents : undefined;
-    const [draftedSavedDocuments, setDraftedSavedDocuments] = useState(savedDocuments);
-    const [haveSavedDocumentsChanged, setHaveSavedDocumentsChanged] = useState(false);
-    if (!isSaving && !deepEqual(savedDocuments, draftedSavedDocuments)) {
-        setDraftedSavedDocuments(savedDocuments);
-        setHaveSavedDocumentsChanged(true);
-    }
+    const savedDocumentsRecord = JSON.stringify(savedDocuments ?? {});
+    const draftedSavedDocumentsRecord = draft?.[SAVED_DOCUMENTS_DRAFT_KEY];
+    const haveSavedDocumentsChanged =
+        isPrefillDone && !isSaving && typeof draftedSavedDocumentsRecord === 'string' && !deepEqual(JSON.parse(draftedSavedDocumentsRecord) as unknown, savedDocuments ?? {});
     useEffect(() => {
         if (!haveSavedDocumentsChanged) {
             return;
         }
-        saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, getSavedFileAnswers(draftedSavedDocuments));
-    }, [haveSavedDocumentsChanged, draftedSavedDocuments]);
+        saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {...getSavedFileAnswers(savedDocuments), [SAVED_DOCUMENTS_DRAFT_KEY]: savedDocumentsRecord});
+    }, [haveSavedDocumentsChanged, savedDocuments, savedDocumentsRecord]);
 
+    // The prefill already puts the server's files in the draft, so it records their keys too. A local file in a draft that predates the record is kept.
     const missingPrefill =
         isLoading || isPrefillDone || isDraftForOtherAccount
             ? {}
             : getMissingPrefill(
-                  {...getWiseBusinessOnboardingPrefill(bankAccountID, businessAccount?.data, privatePersonalDetails), bankAccountID: draftBankAccountID},
+                  {
+                      ...getWiseBusinessOnboardingPrefill(bankAccountID, businessAccount?.data, privatePersonalDetails),
+                      bankAccountID: draftBankAccountID,
+                      [SAVED_DOCUMENTS_DRAFT_KEY]: savedDocumentsRecord,
+                  },
                   toDynamicFormValues(draft),
               );
     const isPrefillPending = Object.keys(missingPrefill).length > 0;
@@ -156,6 +176,18 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
         }
         saveDraftAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, missingPrefill);
     }, [isPrefillPending, missingPrefill]);
+
+    if (isWaitingForConnection) {
+        return (
+            <ScreenWrapper testID="WiseBusinessOnboardingPage">
+                <Header>
+                    <Header.BackButton onPress={goBackToIntro} />
+                    <Header.Title title={translate('walletPage.wiseGlobalReimbursementsIntro.headerTitle')} />
+                </Header>
+                <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>
+            </ScreenWrapper>
+        );
+    }
 
     if (!isPrefillDone || !isWiseReimbursementsBetaEnabled) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
@@ -179,6 +211,8 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
             onBack={goBackToIntro}
             // Each page is saved to Wise as the user leaves it, so a later visit resumes from what the server holds
             onPageSubmit={(page, answers, sensitiveAnswers) => saveWiseOnboardingPage(bankAccountID, page, answers, sensitiveAnswers)}
+            // No page saves offline, so a typed SSN never waits for a connection and a later visit never resumes from a save the server has not seen
+            shouldDisableNextWhenOffline
             submitError={saveError}
             // The terms page comes after the confirmation page, so the SSN stays in memory until the terms page is done with it
             isSubmitting={false}

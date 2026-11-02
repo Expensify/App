@@ -7,6 +7,7 @@ import {getListItems, getListItemSensitiveKey} from '@components/DynamicForm/uti
 import type {FormValue} from '@components/Form/types';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
+import ScreenWrapper from '@components/ScreenWrapper';
 
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
@@ -36,7 +37,7 @@ const mockResetToPage = jest.fn();
 const mockMoveTo = jest.fn();
 let mockOnBackButtonPress: (() => void) | undefined;
 let mockOnAndroidBackPress: (() => boolean) | undefined;
-const mockStepWrapper = jest.fn<null, [{stepNames: string[]; startStepIndex: number}]>(() => null);
+const mockStepWrapper = jest.fn<null, [{stepNames: string[]; startStepIndex: number; shouldShowOfflineIndicatorInWideScreen?: boolean}]>(() => null);
 
 jest.mock('@hooks/useSubPage', () => jest.fn());
 jest.mock('@hooks/useAndroidBackButtonHandler', () =>
@@ -55,7 +56,9 @@ jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: je
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 jest.mock('@components/ActivityIndicator', () => jest.fn(() => null));
 jest.mock('@components/FullscreenLoadingIndicator', () => jest.fn(() => null));
-jest.mock('@components/InteractiveStepWrapper', () => jest.fn((props: {stepNames: string[]; startStepIndex: number}) => mockStepWrapper(props)));
+jest.mock('@components/InteractiveStepWrapper', () =>
+    jest.fn((props: {stepNames: string[]; startStepIndex: number; shouldShowOfflineIndicatorInWideScreen?: boolean}) => mockStepWrapper(props)),
+);
 jest.mock('@components/Header/composed/HeaderWithBackButtonAndTitle', () =>
     jest.fn(({onBackButtonPress}: {onBackButtonPress: () => void}) => {
         mockOnBackButtonPress = onBackButtonPress;
@@ -104,6 +107,7 @@ type RenderFlowOptions = {
     shouldReplaceRoute?: boolean;
     maxFileSize?: number;
     onRefreshRequirements?: (inputID: string, value: FormValue) => void;
+    shouldDisableNextWhenOffline?: boolean;
 };
 
 function mockSubPage(currentPageName: string, pageIndex: number, isRedirecting: boolean) {
@@ -134,6 +138,7 @@ async function renderFlow({
     shouldReplaceRoute,
     maxFileSize,
     onRefreshRequirements,
+    shouldDisableNextWhenOffline,
 }: RenderFlowOptions = {}) {
     await Onyx.set(`${FORM_ID}Draft`, draft);
     await Onyx.set(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[FORM_ID]: sensitiveAnswers});
@@ -158,6 +163,7 @@ async function renderFlow({
             maxFileSize={maxFileSize}
             onRefreshRequirements={onRefreshRequirements}
             isSubmitting={submitting}
+            shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
         />
     );
     const {rerender, unmount} = render(renderWith(isSubmitting));
@@ -388,6 +394,36 @@ describe('DynamicFormFlow', () => {
 
         // Then the first page takes its place in the stack
         expect(Navigation.navigate).toHaveBeenCalledWith(buildRoute('personal-details'), {forceReplace: true});
+    });
+
+    it('hands its pages whether Next waits for a connection, leaving it off unless the screen asks', async () => {
+        // Given one flow that leaves the option out and one whose screen saves each page as the user leaves it
+        // When each flow renders
+        const defaultFlow = await renderFlow();
+        const onlineOnlyFlow = await renderFlow({shouldDisableNextWhenOffline: true});
+
+        // Then only the second asks its pages to wait for a connection, so other flows still move between pages offline
+        expect(defaultFlow.pageProps?.shouldDisableNextWhenOffline).toBeUndefined();
+        expect(onlineOnlyFlow.pageProps?.shouldDisableNextWhenOffline).toBe(true);
+    });
+
+    it('shows the offline indicator on wide screens only when Next waits for a connection', async () => {
+        // Given one flow that leaves the option out and one whose Next waits for a connection, each with plain pages and with a step indicator
+        // When each flow renders
+        await renderFlow({layout: 'pages'});
+        const defaultPages = jest.mocked(ScreenWrapper).mock.lastCall?.[0];
+        await renderFlow({layout: 'pages', shouldDisableNextWhenOffline: true});
+        const onlineOnlyPages = jest.mocked(ScreenWrapper).mock.lastCall?.[0];
+        await renderFlow({layout: 'stepper'});
+        const defaultStepper = mockStepWrapper.mock.lastCall?.[0];
+        await renderFlow({layout: 'stepper', shouldDisableNextWhenOffline: true});
+        const onlineOnlyStepper = mockStepWrapper.mock.lastCall?.[0];
+
+        // Then only the second shows it, since a disabled Next alone does not tell a wide screen user they are offline, and other flows keep the default
+        expect(defaultPages?.shouldShowOfflineIndicatorInWideScreen).toBeFalsy();
+        expect(onlineOnlyPages?.shouldShowOfflineIndicatorInWideScreen).toBe(true);
+        expect(defaultStepper?.shouldShowOfflineIndicatorInWideScreen).toBeFalsy();
+        expect(onlineOnlyStepper?.shouldShowOfflineIndicatorInWideScreen).toBe(true);
     });
 
     it('drafts the page answers, keeps sensitive ones in memory, and hands the screen the sensitive ones apart', async () => {
