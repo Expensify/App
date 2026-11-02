@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -111,9 +112,6 @@ type PaymentMethodListProps = {
     /** Whether connection statuses and sync details should be shown */
     shouldShowConnectionStatus?: boolean;
 
-    /** Whether bank accounts set up for global reimbursements show a globe next to their name */
-    shouldShowGlobalReimbursementsEnabled?: boolean;
-
     /** Whether the right icon should be shown in PaymentMethodItem */
     shouldShowRightIcon?: boolean;
 
@@ -179,7 +177,6 @@ function PaymentMethodList({
     addBankAccountItemStyle,
     shouldShowAssignedCards = false,
     shouldShowConnectionStatus = false,
-    shouldShowGlobalReimbursementsEnabled = false,
     shouldSkipDefaultAccountValidation = false,
     onListContentSizeChange = () => {},
     style = {},
@@ -201,6 +198,8 @@ function PaymentMethodList({
     const {translate, datetimeToRelative} = useLocalize();
     const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
+    const isWiseGlobalReimbursementsEnabled = isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines']);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -653,7 +652,7 @@ function PaymentMethodList({
                 canDismissError: true,
                 isMissingPersonalInfo,
                 isGlobalReimbursementsEnabled:
-                    shouldShowGlobalReimbursementsEnabled &&
+                    isWiseGlobalReimbursementsEnabled &&
                     paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT &&
                     isGlobalReimbursementsEnabled(paymentMethod as BankAccount),
                 brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,

@@ -83,13 +83,12 @@ function createBankAccountList(...bankAccounts: BankAccount[]): BankAccountList 
 }
 
 // Renders the bank accounts list the same way the Wallet page does
-const renderBankAccountsList = (shouldShowGlobalReimbursementsEnabled: boolean) =>
+const renderBankAccountsList = () =>
     render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <PortalProvider>
                 <PaymentMethodList
                     shouldShowConnectionStatus
-                    shouldShowGlobalReimbursementsEnabled={shouldShowGlobalReimbursementsEnabled}
                     shouldShowAddBankAccount={false}
                     onPress={() => {}}
                 />
@@ -143,13 +142,14 @@ describe('PaymentMethodList', () => {
     });
 
     it('shows the globe on a bank account set up for global reimbursements', async () => {
-        // Given a business account the backend marks as set up for global reimbursements
+        // Given a business account the backend marks as set up for global reimbursements, for a user on the Wise beta
         await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.WISE_REIMBURSEMENTS]);
             await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, createBankAccountList(createBusinessBankAccount(1, 'Chase Checking', true)));
         });
 
-        // When the Wallet's bank accounts list renders with the globe turned on
-        renderBankAccountsList(true);
+        // When the bank accounts list renders
+        renderBankAccountsList();
         await waitForBatchedUpdatesWithAct();
 
         // Then the row shows the globe, so the admin can tell this account pays worldwide
@@ -162,18 +162,19 @@ describe('PaymentMethodList', () => {
 
     it.each([
         ['the account is not set up for global reimbursements', false, true],
-        ['the list does not ask for it, like the invoices or the connect-existing-account picker', true, false],
-    ])('hides the globe when %s', async (_label, isGlobalReimbursementEnabled, shouldShowGlobalReimbursementsEnabled) => {
+        ['the user is not on the Wise beta', true, false],
+    ])('hides the globe when %s', async (_label, isGlobalReimbursementEnabled, isOnWiseBeta) => {
         // Given a business account
         await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, isOnWiseBeta ? [CONST.BETAS.WISE_REIMBURSEMENTS] : []);
             await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, createBankAccountList(createBusinessBankAccount(1, 'Chase Checking', isGlobalReimbursementEnabled)));
         });
 
         // When the bank accounts list renders
-        renderBankAccountsList(shouldShowGlobalReimbursementsEnabled);
+        renderBankAccountsList();
         await waitForBatchedUpdatesWithAct();
 
-        // Then no globe shows, because the account can't pay worldwide or the surface is out of scope for now
+        // Then no globe shows, because the account can't pay worldwide or global reimbursements are not released to the user yet
         expect(screen.getByText('Chase Checking')).toBeOnTheScreen();
         expect(screen.queryByLabelText('Global reimbursements enabled')).not.toBeOnTheScreen();
     });
