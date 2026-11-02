@@ -1,6 +1,6 @@
 /**
  * During dismiss_modal_and_open_report, defers non-essential report UI (composer, receipt panel, invisible handlers)
- * until the navigation transition ends, so the first render of the report content is lighter.
+ * until the report gains focus and the navigation transition after it ends, so the first render is lighter.
  */
 import NavigationDeferredMount from '@components/NavigationDeferredMount';
 
@@ -36,7 +36,7 @@ function ReportNonEssentialsDeferredMount({reportID, placeholder, children}: Rep
 
     // Latched so a later blur does not unmount the deferred UI once it has started mounting.
     const [hasBeenFocused, setHasBeenFocused] = useState(isFocused);
-    if (isFocused && !hasBeenFocused) {
+    if (shouldDefer && isFocused && !hasBeenFocused) {
         setHasBeenFocused(true);
     }
 
