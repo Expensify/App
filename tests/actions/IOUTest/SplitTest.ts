@@ -12867,6 +12867,23 @@ describe('setDraftSplitTransaction', () => {
         expect(updatedTransaction?.taxAmount).toBe(5);
     });
 
+    it('falls back to the workspace default when the new category has no rule', async () => {
+        // Given a split draft carrying a rate an expense default put there, moved to a category no rule names
+        const policy = buildSplitPolicy();
+        const draftTransaction = {...buildSplitDraft(), taxCode: ruleTaxCode, taxAmount: 5};
+        const rules = createCategoryTaxRulesCollection(splitPolicyID, category, ruleTaxCode);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`, draftTransaction);
+
+        // When the other category is written to the split
+        setDraftSplitTransaction(splitTransactionID, draftTransaction, {category: 'Benefits'}, getCurrencyDecimalsLocal, getCurrencySymbolLocal, policy, undefined, undefined, rules);
+        await waitForBatchedUpdates();
+
+        // Then the workspace default replaces it, so the split does not keep the rate the previous category asked for
+        const updatedTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${splitTransactionID}`);
+        expect(updatedTransaction?.taxCode).toBe('id_TAX_EXEMPT');
+        expect(updatedTransaction?.taxAmount).toBe(0);
+    });
+
     it('leaves the tax alone when the policy has no expense default', async () => {
         // Given a split draft on a policy with no expense defaults at all
         const policy = buildSplitPolicy();

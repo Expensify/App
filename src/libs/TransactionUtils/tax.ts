@@ -7,7 +7,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getCategoryOnlyExpenseDefaultTaxID} from '@libs/ExpenseDefaultRuleUtils';
+import {getCategoryOnlyExpenseDefaultTaxID, hasExpenseDefaultTaxRule} from '@libs/ExpenseDefaultRuleUtils';
 import {translateLocal} from '@libs/Localize';
 import {getDistanceRateCustomUnit, getDistanceRateCustomUnitRate, isSelectableTaxCode, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 
@@ -296,7 +296,12 @@ function getCategoryTaxDetails(
         return {categoryTaxCode: distanceCategoryTaxCode, categoryTaxAmount: taxAmount, categoryTaxValue: taxValue};
     }
 
-    const categoryTaxCode = getCategoryTaxCode(category, transaction, policy, rules, currency);
+    // Falling back to the workspace default keeps a category with no rule from carrying the rate its predecessor
+    // set, which is what the confirmation page does for every other expense. A policy with no tax rule at all is
+    // left alone, so an expense whose tax was never rule driven keeps whatever it holds.
+    const categoryTaxCode =
+        getCategoryTaxCode(category, transaction, policy, rules, currency) ??
+        (hasExpenseDefaultTaxRule(rules, policy?.id) ? getDefaultTaxCode(policy, transaction, currency ?? getCurrency(transaction)) : undefined);
     if (!categoryTaxCode) {
         return unresolvedTaxDetails;
     }
