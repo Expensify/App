@@ -1,6 +1,5 @@
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {isCreatedAction, isCurrentUserPendingAddAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
-import {isConciergeChatReport} from '@libs/ReportUtils';
+import {isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -8,13 +7,8 @@ import type {ReportAction} from '@src/types/onyx';
 
 import {reportVisibleActionsSelector} from '@selectors/ReportAction';
 
-import useConciergeSidePanelReportActions from './useConciergeSidePanelReportActions';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useIsInSidePanel from './useIsInSidePanel';
-import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
-import useSidePanelState from './useSidePanelState';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 type UseReportActionsVisibilityParams = {
@@ -22,7 +16,6 @@ type UseReportActionsVisibilityParams = {
     reportActions: ReportAction[];
     allReportActions: ReportAction[];
     canPerformWriteAction: boolean;
-    hasOlderActions: boolean;
     loadOlderChats: (force?: boolean) => void;
     setConciergeShowFullHistory?: (show: boolean) => void;
 };
@@ -30,11 +23,6 @@ type UseReportActionsVisibilityParams = {
 type UseReportActionsVisibilityResult = {
     sortedReportActions: ReportAction[];
     sortedVisibleReportActions: ReportAction[];
-    isConciergeSidePanel: boolean;
-    isConciergeHiddenHistory: boolean;
-    showConciergeSidePanelWelcome: boolean;
-    showFullHistory: boolean;
-    hasPreviousMessages: boolean;
     handleShowPreviousMessages: () => void;
 };
 
@@ -43,36 +31,13 @@ function useReportActionsVisibility({
     reportActions,
     allReportActions,
     canPerformWriteAction,
-    hasOlderActions,
     loadOlderChats,
     setConciergeShowFullHistory,
 }: UseReportActionsVisibilityParams): UseReportActionsVisibilityResult {
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
         selector: reportVisibleActionsSelector(reportID),
     });
-
-    const isInSidePanel = useIsInSidePanel();
-    const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
-    const isConciergeMainDM = !isInSidePanel && isConciergeChatReport(report, conciergeReportID);
-    const isConciergeHiddenHistory = isConciergeSidePanel;
-
-    const {sessionStartTime} = useSidePanelState();
-
-    const hasUserSentMessage =
-        isConciergeHiddenHistory && sessionStartTime
-            ? allReportActions.some(
-                  (action) =>
-                      !isCreatedAction(action) &&
-                      action.actorAccountID === currentUserAccountID &&
-                      (isCurrentUserPendingAddAction(action, currentUserAccountID) || action.created >= sessionStartTime),
-              )
-            : false;
 
     const {transactions: reportTransactions, isLoaded: areTransactionsLoaded} = useTransactionsAndViolationsForReport(reportID);
     // When transactions haven't loaded yet, pass undefined to skip IOU filtering entirely
@@ -99,34 +64,15 @@ function useReportActionsVisibility({
         return true;
     });
 
-    const {filteredVisibleActions, filteredReportActions, showConciergeSidePanelWelcome, showFullHistory, hasPreviousMessages, handleShowPreviousMessages} =
-        useConciergeSidePanelReportActions({
-            report,
-            reportActions,
-            visibleReportActions,
-            isConciergeHiddenHistory,
-            hasUserSentMessage,
-            hasOlderActions,
-            sessionStartTime,
-            currentUserAccountID,
-            greetingText: translate('common.concierge.greeting'),
-            loadOlderChats,
-        });
-
     const showConciergeMainDMHistory = () => {
         setConciergeShowFullHistory?.(true);
         loadOlderChats(true);
     };
 
     return {
-        sortedReportActions: filteredReportActions,
-        sortedVisibleReportActions: filteredVisibleActions,
-        isConciergeSidePanel,
-        isConciergeHiddenHistory,
-        showConciergeSidePanelWelcome,
-        showFullHistory,
-        hasPreviousMessages,
-        handleShowPreviousMessages: isConciergeMainDM ? showConciergeMainDMHistory : handleShowPreviousMessages,
+        sortedReportActions: reportActions,
+        sortedVisibleReportActions: visibleReportActions,
+        handleShowPreviousMessages: showConciergeMainDMHistory,
     };
 }
 

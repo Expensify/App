@@ -505,8 +505,6 @@ const translations: TranslationDeepObject<typeof en> = {
         vacationDelegate: '休假代理',
         expensifyLogo: 'Expensify徽标',
         concierge: {
-            greeting: '你好，我能帮你做什么？',
-            showHistory: '显示历史',
             subtitle: '你的专属 AI 助手',
             welcomeDescription: 'Concierge 可以回答问题、更新支出等。',
             viewChatHistory: '查看聊天记录',

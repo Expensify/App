@@ -237,8 +237,6 @@ function ReportActionItem({
 
     const {editingMessage, editingReportAction} = useReportActionActiveEdit();
 
-    const isConciergeGreeting = action.reportActionID === CONST.CONCIERGE_GREETING_ACTION_ID;
-    const shouldDisplayContextMenuValue = shouldDisplayContextMenu && !isConciergeGreeting;
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
     const {translate, datetimeToCalendarTime, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -444,7 +442,7 @@ function ReportActionItem({
     // Receipt upload errors should still allow the context menu so the user can access "Delete expense"
     const hasOnlyReceiptErrors = hasActionErrors && Object.values(action.errors ?? {}).every((error) => error === null || isReceiptError(error));
 
-    const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenuValue;
+    const isContextMenuDisabled = hasDraft || (hasActionErrors && !hasOnlyReceiptErrors) || !shouldDisplayContextMenu;
 
     /**
      * Show the ReportActionContextMenu modal popover.
@@ -489,7 +487,7 @@ function ReportActionItem({
         action,
         transactionThreadReport,
         isDisabled: false,
-        shouldDisplayContextMenu: shouldDisplayContextMenuValue,
+        shouldDisplayContextMenu,
         originalReportID,
     };
 
@@ -615,7 +613,7 @@ function ReportActionItem({
                                         {shouldDisplayNewMarker && (!shouldUseThreadDividerLine || !isFirstVisibleReportAction) && (
                                             <UnreadActionIndicator reportActionID={action.reportActionID} />
                                         )}
-                                        {shouldDisplayContextMenuValue && (hovered || !!isEmojiPickerActive || isContextMenuActive) && !hasDraft && !hasActionErrors && (
+                                        {shouldDisplayContextMenu && (hovered || !!isEmojiPickerActive || isContextMenuActive) && !hasDraft && !hasActionErrors && (
                                             <MiniReportActionContextMenu
                                                 reportID={reportID}
                                                 reportActionID={action.reportActionID}

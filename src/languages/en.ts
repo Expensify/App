@@ -605,8 +605,6 @@ const translations = {
         restrictions: 'Restrictions',
         tagGLCode: 'Tag GL code',
         concierge: {
-            greeting: 'Hi there, how can I help?',
-            showHistory: 'Show history',
             subtitle: 'Your personal AI assistant',
             welcomeDescription: 'Concierge can answer questions, update expenses, and more.',
             viewChatHistory: 'View chat history',

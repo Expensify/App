@@ -3,8 +3,10 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import {SidePanelActionsContext} from '@components/SidePanel/SidePanelContextProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {IsInSidePanelContext} from '@hooks/useIsInSidePanel';
 
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import type Navigation from '@libs/Navigation/Navigation';
@@ -166,6 +168,52 @@ describe('HeaderView', () => {
 
         // Then the user is taken back to the Concierge chat to ask another question
         expect(navigateSpy).toHaveBeenCalledWith(expect.stringContaining(`r/${conciergeReportID}`));
+    });
+
+    it('should open the Concierge chat in the side panel when New chat is pressed in a side panel Concierge thread', async () => {
+        // Given the side panel header of a thread that Concierge opened for a question
+        const conciergeReportID = '10';
+        const questionAction: ReportAction = {
+            reportActionID: '100',
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            created: '2024-06-01 10:00:00.000',
+            actorAccountID: currentUserAccountID,
+            childReportID: '11',
+            message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html: 'How do I submit an expense?', text: 'How do I submit an expense?'}],
+        };
+        const threadReport: Report = {
+            ...createRandomReport(11, undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID: conciergeReportID,
+            parentReportActionID: questionAction.reportActionID,
+        };
+        await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, conciergeReportID);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {[questionAction.reportActionID]: questionAction});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, threadReport);
+        await waitForBatchedUpdates();
+        navigateSpy = jest.spyOn(NavigationActions, 'navigate').mockImplementation(() => {});
+        const openSidePanel = jest.fn();
+
+        render(
+            <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <IsInSidePanelContext.Provider value>
+                    <SidePanelActionsContext.Provider value={{openSidePanel, closeSidePanel: () => {}}}>
+                        <HeaderView
+                            onNavigationMenuButtonClicked={() => {}}
+                            reportID={threadReport.reportID}
+                        />
+                    </SidePanelActionsContext.Provider>
+                </IsInSidePanelContext.Provider>
+            </ComposeProviders>,
+        );
+        await waitForBatchedUpdatesWithAct();
+
+        // When the user presses New chat
+        fireEvent.press(screen.getByText(translateLocal('common.concierge.newChat')));
+
+        // Then the side panel switches to the Concierge chat and the main pane stays where it is
+        expect(openSidePanel).toHaveBeenCalledWith({reportID: conciergeReportID});
+        expect(navigateSpy).not.toHaveBeenCalled();
     });
 
     it('should display join button', async () => {

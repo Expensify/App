@@ -12,11 +12,10 @@ import {useEffect} from 'react';
 import type {UseReportActionsListDataParams} from './types';
 
 /** Prepares the rendered report rows, including streamed Concierge drafts, support surveys, and collapsed system messages. */
-function useReportActionsListData({sortedVisibleReportActions, reportNameValuePairs, sessionStartTime, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
-    const {report, sortedAllReportActions, parentReportAction, isConciergeHiddenHistory, showFullHistory} = useReportActionsListState();
+function useReportActionsListData({sortedVisibleReportActions, reportNameValuePairs, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
+    const {report, sortedAllReportActions, parentReportAction} = useReportActionsListState();
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
-    const showHiddenHistory = isConciergeHiddenHistory && !showFullHistory;
 
     const persistedDraftReportAction = draftReportAction
         ? (sortedAllReportActions ?? sortedVisibleReportActions).find(
@@ -32,10 +31,6 @@ function useReportActionsListData({sortedVisibleReportActions, reportNameValuePa
 
     const visibleReportActions = (() => {
         if (!draftReportAction) {
-            return sortedVisibleReportActions;
-        }
-
-        if (showHiddenHistory && sessionStartTime && draftReportAction.created < sessionStartTime) {
             return sortedVisibleReportActions;
         }
 

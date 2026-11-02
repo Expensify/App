@@ -7949,16 +7949,6 @@ describe('ReportActionsUtils', () => {
             ).toEqual(['newest', 0]);
         });
 
-        it('skips the concierge greeting action during a forward scan', () => {
-            const visibleReportActions = [makeAction({reportActionID: CONST.CONCIERGE_GREETING_ACTION_ID}), makeAction({reportActionID: 'real-unread'})];
-            expect(
-                getUnreadMarkerReportAction({
-                    ...baseScanParams,
-                    visibleReportActions,
-                }),
-            ).toEqual(['real-unread', 1]);
-        });
-
         it('starts the forward scan at earliestReceivedOfflineMessageIndex', () => {
             const visibleReportActions = [makeAction({reportActionID: 'before-offline'}), makeAction({reportActionID: 'offline-anchor'})];
             expect(
@@ -8531,23 +8521,6 @@ describe('ReportActionsUtils', () => {
             const older = conciergeComment('100', '2026-09-01 00:00:00.000');
             const newer = conciergeComment('200', '2026-09-02 00:00:00.000');
             expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([newer, older], persisted([newer, older]))).toBe('200');
-        });
-
-        it('shows nothing when the newest Concierge comment is the client-built greeting', () => {
-            const greeting = conciergeComment(String(CONST.CONCIERGE_GREETING_ACTION_ID), '2026-09-03 00:00:00.000');
-            const real = conciergeComment('200', '2026-09-02 00:00:00.000');
-            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([greeting, real], persisted([real]))).toBeUndefined();
-        });
-
-        it('uses the real comment when the greeting sits below it, as the session list orders them', () => {
-            const real = conciergeComment('200', '2026-09-04 00:00:00.000');
-            const greeting = conciergeComment(String(CONST.CONCIERGE_GREETING_ACTION_ID), '2026-09-03 00:00:00.000');
-            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([real, greeting], persisted([real]))).toBe('200');
-        });
-
-        it('returns undefined when the greeting is the only Concierge comment', () => {
-            const greeting = conciergeComment(String(CONST.CONCIERGE_GREETING_ACTION_ID), '2026-09-03 00:00:00.000');
-            expect(ReportActionsUtils.getLatestConciergeFeedbackActionID([greeting], persisted([]))).toBeUndefined();
         });
 
         it('shows nothing while a Concierge draft streams, then moves to it once it lands in Onyx', () => {
