@@ -1,3 +1,7 @@
+/**
+ * The save status of the Wise onboarding intake pages, read from the running saves kept in memory and from the unsaved pages and the shared error on the
+ * reimbursement account. The flow uses it to hold Confirm while pages save and to keep the user on the confirmation page while a page has not saved.
+ */
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
