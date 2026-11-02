@@ -1,5 +1,6 @@
 import Log from '@libs/Log';
 import {startSpan} from '@libs/telemetry/activeSpans';
+import {setNativeAppStartTime} from '@libs/telemetry/nativeAppStartTime';
 
 import CONST from '@src/CONST';
 
@@ -102,6 +103,7 @@ export default function (): void {
         Log.warn('[Telemetry] Failed to read native app start time from NitroModule', {error});
         nativeAppStartTimeMs = undefined;
     }
+    setNativeAppStartTime(nativeAppStartTimeMs);
 
     const startupSpan = startSpan(CONST.TELEMETRY.SPAN_APP_STARTUP, {
         name: CONST.TELEMETRY.SPAN_APP_STARTUP,

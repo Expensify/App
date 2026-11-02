@@ -15,6 +15,7 @@ import HapticFeedback from '@libs/HapticFeedback';
 import Log from '@libs/Log';
 import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {getMsSinceJsStartup, getMsSinceNativeAppStart} from '@libs/telemetry/nativeAppStartTime';
 
 import captureReceipt, {shouldTakePhoto} from '@pages/iou/request/step/IOURequestStepScan/captureReceipt';
 import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
@@ -126,11 +127,24 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
     };
 
     const capturePhoto = () => {
+        const isPhotoCapture = shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
+        const captureAttributes = {
+            [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: isPhotoCapture ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
+            [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: flash && hasFlash,
+        };
+
         if (!isMultiScanEnabled) {
+            const msSinceNativeAppStart = getMsSinceNativeAppStart();
+            const msSinceJsStartup = getMsSinceJsStartup();
             startSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION, {
                 name: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
                 op: CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE},
+                attributes: {
+                    [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
+                    ...captureAttributes,
+                    ...(msSinceNativeAppStart !== undefined && {[CONST.TELEMETRY.ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS]: msSinceNativeAppStart}),
+                    ...(msSinceJsStartup !== undefined && {[CONST.TELEMETRY.ATTRIBUTE_DURATION_SINCE_JS_STARTUP_MS]: msSinceJsStartup}),
+                },
             });
         }
 
@@ -155,16 +169,13 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
             return;
         }
 
-        const isPhotoCapture = shouldTakePhoto({flash, hasFlash, isInLandscapeMode});
-
         startSpan(CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE, {
             name: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             op: CONST.TELEMETRY.SPAN_RECEIPT_CAPTURE,
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_SHUTTER_TO_CONFIRMATION),
             attributes: {
                 [CONST.TELEMETRY.ATTRIBUTE_PLATFORM]: CONST.TELEMETRY.SPAN_PLATFORM.NATIVE,
-                [CONST.TELEMETRY.ATTRIBUTE_CAPTURE_METHOD]: isPhotoCapture ? CONST.TELEMETRY.CAPTURE_METHOD.PHOTO : CONST.TELEMETRY.CAPTURE_METHOD.SNAPSHOT,
-                [CONST.TELEMETRY.ATTRIBUTE_FLASH_USED]: flash && hasFlash,
+                ...captureAttributes,
             },
         });
 
