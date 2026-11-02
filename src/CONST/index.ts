@@ -2877,6 +2877,8 @@ const CONST = {
         // Leaving a tab is paid inside the navigate-to-inbox-tab span, so the same tap costs more from some tabs.
         ATTRIBUTE_SOURCE_TAB: 'source_tab',
         ATTRIBUTE_MS_SINCE_PRELOAD: 'ms_since_preload',
+        // `<Area>-<Action>` part of a `<Area>-<Action>-<Detail>` data-sentry-label, stamped on INP spans so the dashboard can group them.
+        ATTRIBUTE_INP_CATEGORY: 'inp.category',
         // The tap also kicked off an OpenReport request, so exclude these from render-only comparisons.
         ATTRIBUTE_WAITED_ON_OPEN_REPORT: 'waited_on_open_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
