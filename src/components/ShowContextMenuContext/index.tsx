@@ -36,6 +36,7 @@ function useShowContextMenuActions(): ShowContextMenuActionsContextType {
  * @param action - ReportAction for ContextMenu
  * @param checkIfContextMenuActive Callback to update context menu active state
  * @param originalReportID - ID of the original report from which the given reportAction is first created
+ * @param callbacks - Popup ownership callbacks from the report action row
  */
 function showContextMenuForReport(
     event: GestureResponderEvent | MouseEvent,
@@ -44,11 +45,14 @@ function showContextMenuForReport(
     action: OnyxEntry<ReportAction>,
     checkIfContextMenuActive: () => void,
     originalReportID?: string,
+    callbacks: Pick<ShowContextMenuActionsContextType, 'setIsEmojiPickerActive' | 'setIsContextMenuActive'> = {},
 ) {
     if (!canUseTouchScreen()) {
         return;
     }
 
+    // Keep ownership while the context menu measures its anchor asynchronously.
+    callbacks.setIsContextMenuActive?.(true);
     showContextMenu({
         type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
         event,
@@ -63,7 +67,11 @@ function showContextMenuForReport(
         },
         callbacks: {
             onShow: checkIfContextMenuActive,
-            onHide: checkIfContextMenuActive,
+            onHide: () => {
+                callbacks.setIsContextMenuActive?.(false);
+                checkIfContextMenuActive();
+            },
+            setIsEmojiPickerActive: callbacks.setIsEmojiPickerActive,
         },
     });
 }

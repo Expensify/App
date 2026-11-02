@@ -18,6 +18,8 @@ type ShowContextMenuStateContextType = {
 type ShowContextMenuActionsContextType = {
     checkIfContextMenuActive: () => void;
     onShowContextMenu: (callback: () => void) => void;
+    setIsEmojiPickerActive?: (state: boolean) => void;
+    setIsContextMenuActive?: (state: boolean) => void;
 };
 
 export type {ShowContextMenuStateContextType, ShowContextMenuActionsContextType};

@@ -1,30 +1,44 @@
-import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 
-import moveMiniToolbarFocusWithArrowKey from '@libs/moveContextMenuFocusWithArrowKey';
+import {useMiniReportActionContextMenuController} from '@pages/inbox/report/ContextMenu/MiniReportActionContextMenuContext';
 
-import BaseReportActionContextMenu from '@pages/inbox/report/ContextMenu/BaseReportActionContextMenu';
+import viewRef from '@src/types/utils/viewRef';
 
-import CONST from '@src/CONST';
-
-import React from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import type MiniReportActionContextMenuProps from './types';
 
-function MiniReportActionContextMenu({displayAsGroup = false, ...rest}: MiniReportActionContextMenuProps) {
-    const StyleUtils = useStyleUtils();
+function MiniReportActionContextMenu(props: MiniReportActionContextMenuProps) {
+    const controller = useMiniReportActionContextMenuController();
+    const styles = useThemeStyles();
+    const hostRef = useRef<View | HTMLDivElement | null>(null);
+    const token = props.anchor;
+
+    useLayoutEffect(() => {
+        const host = hostRef.current;
+        if (!controller || !token || !host || !('appendChild' in host)) {
+            return;
+        }
+        // The portal's DOM must follow this row before paint, including when its action props change.
+        controller.attach(token, host, props);
+    }, [controller, token, props]);
+
+    useLayoutEffect(
+        () => () => {
+            if (!token) {
+                return;
+            }
+            controller?.detach(token);
+        },
+        [controller, token],
+    );
 
     return (
         <View
-            style={StyleUtils.getMiniReportActionContextMenuWrapperStyle(displayAsGroup)}
-            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: rest.isVisible ?? false}}
-            onKeyDown={moveMiniToolbarFocusWithArrowKey}
-        >
-            <BaseReportActionContextMenu
-                isMini
-                {...rest}
-            />
-        </View>
+            ref={viewRef(hostRef)}
+            style={styles.dContents}
+        />
     );
 }
 

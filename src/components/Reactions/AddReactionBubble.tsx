@@ -93,7 +93,6 @@ function AddReactionBubble({onSelectEmoji, reportAction, onPressOpenPicker, onWi
                 openPicker();
             }
         } else {
-            setIsEmojiPickerActive?.(false);
             emojiPickerRef.current.hideEmojiPicker();
         }
     };

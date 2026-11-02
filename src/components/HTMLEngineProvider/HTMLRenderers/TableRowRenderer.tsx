@@ -51,7 +51,7 @@ function TableRowRenderer({tnode}: CustomRendererProps<TBlock>) {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const {hovered, bind} = useHover();
     const {anchor, report, action, originalReportID} = useShowContextMenuState();
-    const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
+    const {onShowContextMenu, checkIfContextMenuActive, setIsEmojiPickerActive, setIsContextMenuActive} = useShowContextMenuActions();
 
     // Header rows (inside <thead>) use header padding; body rows use the compact min-height.
     const isHeaderRow = tnode.parent?.tagName === 'thead';
@@ -91,7 +91,11 @@ function TableRowRenderer({tnode}: CustomRendererProps<TBlock>) {
             style={rowStyle}
             hoverStyle={styles.htmlTableRowHovered}
             onPress={() => openLink(rowLinkURL, environmentURL)}
-            onLongPress={(event) => onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID))}
+            onLongPress={(event) =>
+                onShowContextMenu(() =>
+                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID, {setIsEmojiPickerActive, setIsContextMenuActive}),
+                )
+            }
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={getRowCellsText(tnode) || translate('iou.viewDetails')}
             accessibilityHint={translate('iou.viewDetails')}

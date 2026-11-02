@@ -122,7 +122,7 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
     const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true, originalReportID} = useShowContextMenuState();
-    const {checkIfContextMenuActive} = useShowContextMenuActions();
+    const {checkIfContextMenuActive, setIsEmojiPickerActive, setIsContextMenuActive} = useShowContextMenuActions();
 
     const originalMessage = getOriginalMessage(action);
     const linkedReportID = originalMessage && 'linkedReportID' in originalMessage ? originalMessage.linkedReportID : undefined;
@@ -173,7 +173,10 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
                         if (!shouldDisplayContextMenu) {
                             return;
                         }
-                        showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
+                        showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID, {
+                            setIsEmojiPickerActive,
+                            setIsContextMenuActive,
+                        });
                     }}
                     shouldUseHapticsOnLongPress
                     sentryLabel={CONST.SENTRY_LABEL.TRIP_ROOM_PREVIEW.CARD}
