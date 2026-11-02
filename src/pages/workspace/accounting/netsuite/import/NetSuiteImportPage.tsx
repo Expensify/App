@@ -1,7 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
 import MenuItem from '@components/MenuItem';
 import MenuItemField from '@components/MenuItem/presets/MenuItemField';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
@@ -91,30 +90,26 @@ function NetSuiteImportPage({policy}: WithPolicyConnectionsProps) {
                     config?.pendingFields,
                 )}
             >
-                <MenuItemWithTopDescription
-                    description={translate(`workspace.netsuite.import.customersOrJobs.title`)}
-                    title={getCustomersOrJobsLabelNetSuite(policy, translate)}
-                    shouldShowRightIcon
-                    numberOfLinesTitle={2}
+                <MenuItemField
+                    name={translate(`workspace.netsuite.import.customersOrJobs.title`)}
                     onPress={() => {
                         if (!policyID) {
                             return;
                         }
                         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS.getRoute(policyID));
                     }}
-                    brickRoadIndicator={
-                        areSettingsInErrorFields(
-                            [
-                                CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS,
-                                CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS,
-                                CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
-                            ],
-                            config?.errorFields,
-                        )
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : undefined
-                    }
-                />
+                    value={getCustomersOrJobsLabelNetSuite(policy, translate)}
+                    numberOfLinesValue={2}
+                >
+                    {areSettingsInErrorFields(
+                        [
+                            CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.CUSTOMERS,
+                            CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CUSTOMER_MAPPINGS.JOBS,
+                            CONST.NETSUITE_CONFIG.SYNC_OPTIONS.CROSS_SUBSIDIARY_CUSTOMERS,
+                        ],
+                        config?.errorFields,
+                    ) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
             </OfflineWithFeedback>
             {canUseTaxNetSuite(isBetaEnabled(CONST.BETAS.NETSUITE_USA_TAX), selectedSubsidiary?.country) && (
                 <ToggleSettingOptionRow

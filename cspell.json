@@ -853,6 +853,7 @@
         "msword",
         "mtrl",
         "multidex",
+        "mweb",
         "mysubdomain",
         "navattic",
         "navigations",
@@ -1018,6 +1019,7 @@
         "sbaiahmed",
         "schedulable",
         "scriptname",
+        "scrollers",
         "sdkmanager",
         "seamless",
         "seguiemj",
@@ -1240,6 +1242,7 @@
     "ignorePaths": [
         ".github/actions/javascript/**/index.js",
         ".gitignore",
+        "tests/unit/__snapshots__/OptionsListUtilsSearchParityTest.ts.snap",
         "src/languages/de.ts",
         "src/languages/el.ts",
         "src/languages/es.ts",
