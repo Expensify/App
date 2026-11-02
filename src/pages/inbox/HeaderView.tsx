@@ -378,6 +378,7 @@ function HeaderView({onNavigationMenuButtonClicked, reportID}: HeaderViewProps) 
         !shouldMirrorSidePanelHeader;
     const shouldShowOnBoardingHelpDropdownButton = (shouldShowRegisterForWebinar || shouldShowGuideBooking) && !isReportArchived && !shouldMirrorSidePanelHeader;
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding && !shouldMirrorSidePanelHeader;
+    // On narrow layouts, the discount banner renders the help button, so grouping it here would show it twice.
     const shouldGroupConciergeActions = shouldShowTalkToHuman && shouldStackCallAction && shouldShowOnBoardingHelpDropdownButton && !shouldShowEarlyDiscountBanner;
     const hasActiveScheduledCall = !!latestScheduledCall && !isScheduledCallPast && latestScheduledCall.status !== CONST.SCHEDULE_CALL_STATUS.CANCELLED;
     // Not gated on !shouldUseNarrowLayout like the side-panel case: isInNarrowPaneModal makes

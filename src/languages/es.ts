@@ -9652,7 +9652,7 @@ ${reportName}`,
         scheduleACall: 'Programar llamada',
         questionMarkButtonTooltip: 'Obtén ayuda de nuestro equipo',
         exploreHelpDocs: 'Explorar la documentación de ayuda',
-        registerForWebinar: 'Registrarse para el seminario web',
+        registerForWebinar: 'Seminario web',
         onboardingHelp: 'Ayuda de incorporación',
     },
     emojiPicker: {
