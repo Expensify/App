@@ -431,7 +431,8 @@ function ActionContentRouter({
     if (
         action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN ||
         action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN ||
-        action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_DEACTIVATED
+        action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_DEACTIVATED ||
+        action.actionName === CONST.REPORT.ACTIONS.TYPE.CARD_LIMIT_AMOUNT_CHANGED
     ) {
         return (
             <ReportActionItemBasicMessage message="">
