@@ -1,9 +1,13 @@
 import {read} from '@libs/API';
+import type {SubmitWiseBusinessOnboardingParams} from '@libs/API/parameters';
 import {READ_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -41,4 +45,47 @@ function clearWiseKYCReviewEmbeddedLink() {
     Onyx.set(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, null);
 }
 
-export {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink};
+// TODO: Remove once Auth ships SubmitWiseBusinessOnboarding. It answers the way the command is documented, with the status Wise always returns at launch.
+function mockSubmitWiseBusinessOnboarding({bankAccountID}: SubmitWiseBusinessOnboardingParams, {optimisticData, successData}: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT>) {
+    const status = CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED;
+    const serverData: Array<OnyxUpdate<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.BANK_ACCOUNT_LIST>> = [
+        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.REIMBURSEMENT_ACCOUNT, value: {achData: {wise: {status}}}},
+        {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.BANK_ACCOUNT_LIST, value: {[bankAccountID]: {accountData: {additionalData: {wise: {status}}}}}},
+    ];
+    Onyx.update(optimisticData ?? []);
+    setTimeout(() => {
+        Onyx.update([...serverData, ...(successData ?? [])]);
+    }, 1500);
+}
+
+/** Submits the business to Wise once the admin accepts the terms. The status the server sends decides whether Wise needs more details. */
+function submitWiseBusinessOnboarding(bankAccountID: number) {
+    const onyxData: OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {isLoading: true, errors: null},
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {isLoading: false},
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {isLoading: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        ],
+    };
+
+    // TODO: Replace with write(WRITE_COMMANDS.SUBMIT_WISE_BUSINESS_ONBOARDING, params, onyxData) once Auth ships the command
+    mockSubmitWiseBusinessOnboarding({bankAccountID, termsAccepted: true, mandateAccepted: true}, onyxData);
+}
+
+export {clearWiseKYCReviewEmbeddedLink, getWiseKYCReviewEmbeddedLink, submitWiseBusinessOnboarding};

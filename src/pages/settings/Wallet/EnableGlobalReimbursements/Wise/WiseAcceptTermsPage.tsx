@@ -9,22 +9,31 @@ import Text from '@components/Text';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
+import type {SettingsNavigatorParamList} from '@navigation/types';
 
 import {clearSensitiveAnswers} from '@userActions/DynamicForm';
+import {submitWiseBusinessOnboarding} from '@userActions/Wise';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
+
+type WiseAcceptTermsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS>;
 
 type TermKey = 'certify' | 'expensifyTerms' | 'wiseTerms';
 
@@ -61,8 +70,9 @@ const TERM_LABELS: Record<TermKey, () => React.JSX.Element> = {
     wiseTerms: WiseTermsLabel,
 };
 
-/** The last page of our own onboarding, after the confirmation page. Every box is required to continue. */
-function WiseAcceptTermsPage() {
+/** The last page of our own onboarding, after the confirmation page. Every box is required before the business is submitted to Wise. */
+function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
+    const bankAccountID = Number(route.params.bankAccountID);
     const confirmationPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -70,6 +80,12 @@ function WiseAcceptTermsPage() {
     const [shouldShowError, setShouldShowError] = useState(false);
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isWiseReimbursementsBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.WISE_REIMBURSEMENTS);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [hasSubmitted, setHasSubmitted] = useState(false);
+    const isSubmitting = hasSubmitted && !!reimbursementAccount?.isLoading;
+    const wasSubmitting = usePrevious(isSubmitting);
+    const submitError = hasSubmitted ? getLatestErrorMessage(reimbursementAccount) : '';
+    const wiseStatus = reimbursementAccount?.achData?.wise?.status;
 
     const goBackToConfirmation = () => Navigation.goBack(confirmationPath);
 
@@ -80,13 +96,28 @@ function WiseAcceptTermsPage() {
         goBackToConfirmation();
     }, [isWiseReimbursementsBetaEnabled, goBackToConfirmation]);
 
+    // The status the submit returns decides the next page. There is no In review page yet, so that status closes the flow.
+    useEffect(() => {
+        if (!wasSubmitting || isSubmitting || submitError) {
+            return;
+        }
+        if (wiseStatus === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED) {
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path));
+            return;
+        }
+        if (wiseStatus === CONST.WISE.ONBOARDING_STATUS.IN_REVIEW) {
+            Navigation.dismissModal();
+        }
+    }, [wasSubmitting, isSubmitting, submitError, wiseStatus]);
+
     const confirm = () => {
         if (!TERM_KEYS.every((key) => accepted[key])) {
             setShouldShowError(true);
             return;
         }
         clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path));
+        setHasSubmitted(true);
+        submitWiseBusinessOnboarding(bankAccountID);
     };
 
     if (!isWiseReimbursementsBetaEnabled) {
@@ -122,8 +153,9 @@ function WiseAcceptTermsPage() {
                 <FormAlertWithSubmitButton
                     buttonText={translate('common.confirm')}
                     onSubmit={confirm}
-                    isAlertVisible={shouldShowError}
-                    message={translate('walletPage.wiseOnboarding.terms.error')}
+                    isAlertVisible={shouldShowError || !!submitError}
+                    message={shouldShowError ? translate('walletPage.wiseOnboarding.terms.error') : submitError}
+                    isLoading={isSubmitting}
                     containerStyles={[styles.mh0, styles.mt5]}
                     enabledWhenOffline={false}
                     shouldShowLoadingImmediatelyOnPress={false}
