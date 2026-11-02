@@ -11,7 +11,7 @@
 - Upstream PR/issue: 🛑, there's no upstream PR/issue found. There's a related comment from App PR https://github.com/Expensify/App/pull/45448#issuecomment-2263252274
 - E/App issue: https://github.com/Expensify/App/issues/44084
 - PR introducing patch: https://github.com/Expensify/App/pull/45448
-- SDK 58 port: the 4096px cap now runs on the result of the new opt-in `maxWidth`/`maxHeight` (`boundedSize`) step. The package `main` moved from `src/index.ts` to `build/index.js`, so the patch now edits `build/web/utils.web.js` as well as `src/web/utils.web.ts`; without that the fix would not run on web.
+- SDK 58 port: the 4096px cap now runs on the result of the new opt-in `maxWidth`/`maxHeight` (`boundedSize`) step. The package `main` moved from `src/index.ts` to `build/index.js`, and `src/` is only reachable through the `expo-source` export condition, which no bundler here enables, so the patch now edits the shipped `build/web/utils.web.js` instead of `src/web/utils.web.ts`.
 
 ### [expo-image-manipulator+58.0.14+002+fix-orientation-10bit-hdr.patch](expo-image-manipulator+58.0.14+002+fix-orientation-10bit-hdr.patch)
 
@@ -29,4 +29,4 @@
 - Upstream PR/issue: https://github.com/expo/expo/pull/50011 (open), fixes https://github.com/expo/expo/issues/49953. Alternative fix under review in https://github.com/expo/expo/pull/50009
 - E/App issue: https://github.com/Expensify/App/issues/100133
 - PR introducing patch: https://github.com/Expensify/App/pull/101102
-- SDK 58 port: the 10-bit HDR redraw is upstream (expo/expo#50011, shipped in 58.0.9), so that part was dropped. The only remaining change also redraws upright images with a PQ/HLG transfer function, as one extra condition on upstream's early return. Note: expo-image-manipulator ships a prebuilt iOS framework, so this Swift change only takes effect when the module is built from source.
+- SDK 58 port: the 10-bit HDR redraw is upstream (expo/expo#50011, shipped in 58.0.9), so that part was dropped. The only remaining change also redraws upright images with a PQ/HLG transfer function, as one extra condition on upstream's early return. This repo builds the module from source (there is no xcframework next to the podspec), so the Swift change applies. If precompiled Expo modules are ever enabled, keep this module building from source or the patch stops applying.
