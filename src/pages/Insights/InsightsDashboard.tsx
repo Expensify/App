@@ -1,6 +1,6 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TabRootScrollViewMarker from '@components/Navigation/TabBarBottomContent/TabRootScrollViewMarker';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
@@ -126,8 +126,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
 
     if (state === INSIGHTS_DASHBOARD_STATE.LOADING) {
         return (
-            <View style={styles.flex1}>
-                <FullScreenLoadingIndicator shouldUseGoBackButton={false} />
+            <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                <ActivityIndicator size="large" />
             </View>
         );
     }
