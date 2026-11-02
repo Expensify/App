@@ -89,20 +89,6 @@ describe('Wise business onboarding dynamic routes', () => {
         expect(stripDynamicRouteSuffixFromPath(route, DYNAMIC_ROUTES.WISE_KYC_REVIEW.path)).toBe(termsPath);
     });
 
-    it.each(ENTRY_POINTS)("opens Wise's embedded page on top of the KYC review from %s", (_label, basePath) => {
-        // Given the embedded page suffix appended to the KYC review, which the fetched link opens
-        const confirmationPath = createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY), getIntroPath(basePath));
-        const kycReviewPath = createDynamicRoute(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path, createDynamicRoute(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path, confirmationPath));
-        const route = createDynamicRoute(DYNAMIC_ROUTES.WISE_EMBEDDED_KYC_REVIEW.path, kycReviewPath);
-
-        // When the URL is parsed into navigation state
-        const focusedRoute = getFocusedRoute(getStateFromPath(route));
-
-        // Then the embedded page is focused, and going back strips one layer to land on the KYC review
-        expect(focusedRoute.name).toBe(SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_EMBEDDED_KYC_REVIEW);
-        expect(stripDynamicRouteSuffixFromPath(route, DYNAMIC_ROUTES.WISE_EMBEDDED_KYC_REVIEW.path)).toBe(kycReviewPath);
-    });
-
     it.each(ENTRY_POINTS)('goes back from the onboarding to the intro from %s', (_label, basePath) => {
         // Given a page of the onboarding opened on top of the intro
         const introPath = getIntroPath(basePath);

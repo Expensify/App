@@ -213,7 +213,6 @@ const SCREENS = {
             DYNAMIC_WISE_BUSINESS_ONBOARDING: 'Dynamic_Settings_Wallet_Wise_Business_Onboarding',
             DYNAMIC_WISE_ACCEPT_TERMS: 'Dynamic_Settings_Wallet_Wise_Accept_Terms',
             DYNAMIC_WISE_KYC_REVIEW: 'Dynamic_Settings_Wallet_Wise_KYC_Review',
-            DYNAMIC_WISE_EMBEDDED_KYC_REVIEW: 'Dynamic_Settings_Wallet_Wise_Embedded_KYC_Review',
             TRAVEL_CVV: 'Settings_Wallet_Travel_CVV',
             TRAVEL_CVV_VERIFY_ACCOUNT: 'Settings_Wallet_Travel_CVV_VerifyAccount',
             DYNAMIC_PERSONAL_CARD_DETAILS: 'Dynamic_Settings_Wallet_Personal_Card_Details',

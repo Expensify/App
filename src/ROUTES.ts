@@ -245,10 +245,6 @@ const DYNAMIC_ROUTES = {
         path: 'kyc-review',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS],
     },
-    WISE_EMBEDDED_KYC_REVIEW: {
-        path: 'embedded-kyc-review',
-        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_KYC_REVIEW],
-    },
     BANK_ACCOUNT_VERIFY_ACCOUNT: {
         path: 'verify-bank-account',
         entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
