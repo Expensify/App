@@ -3106,6 +3106,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 error: 'Accetta tutti i termini per continuare.',
             },
         },
+        wiseSetupInProgress: {message: 'Configurazione dei rimborsi globali in corso.', continue: 'Continua.'},
         wiseGlobalReimbursementsIntro: {
             title: 'Configurare i rimborsi globali?',
             subtitle: 'Paga i membri in tutto il mondo nella loro valuta locale.',

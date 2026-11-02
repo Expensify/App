@@ -3189,6 +3189,7 @@ const translations = {
                 error: 'Please accept all of the terms to continue.',
             },
         },
+        wiseSetupInProgress: {message: 'Global reimbursements setup in progress.', continue: 'Continue.'},
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
             title: 'Set up global reimbursements?',

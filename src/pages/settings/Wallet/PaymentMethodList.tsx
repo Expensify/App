@@ -14,7 +14,14 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBankAccountConnectionStatus, getBankAccountState, canLinkPlaid, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {
+    canContinueWiseOnboarding,
+    canLinkPlaid,
+    getBankAccountConnectionStatus,
+    getBankAccountState,
+    isPersonalBankAccountMissingInfo,
+    isWiseOnboardingAwaitingDecision,
+} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {getAssignedCardFeedAccess, getPolicyIDsNamedByCardFeeds} from '@libs/CardFeedUtils';
 import {
@@ -68,6 +75,7 @@ import type {ValueOf} from 'type-fest';
 import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
 import cardOnWaitlistPolicyIDsSelector from '@selectors/CardOnWaitlist';
 import {createPoliciesForAssignedCardsSelector} from '@selectors/Policy';
+import {wiseBusinessOnboardingDraftBankAccountIDSelector} from '@selectors/WiseBusinessOnboardingForm';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
@@ -110,6 +118,9 @@ type PaymentMethodListProps = {
 
     /** Whether connection statuses and sync details should be shown */
     shouldShowConnectionStatus?: boolean;
+
+    /** Whether bank accounts with a Wise onboarding in progress show the in-progress row */
+    shouldShowWiseSetupInProgress?: boolean;
 
     /** Whether the right icon should be shown in PaymentMethodItem */
     shouldShowRightIcon?: boolean;
@@ -160,6 +171,16 @@ function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMet
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 
+function getWiseSetupInProgress(paymentMethod: PaymentMethod, onboardingDraftBankAccountID: string | undefined): PaymentMethodItem['wiseSetupInProgress'] {
+    if (paymentMethod.accountType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+        return undefined;
+    }
+    const bankAccount = paymentMethod as BankAccount;
+    const bankAccountID = bankAccount.accountData?.bankAccountID;
+    const canContinue = canContinueWiseOnboarding(bankAccount, onboardingDraftBankAccountID);
+    return bankAccountID && (canContinue || isWiseOnboardingAwaitingDecision(bankAccount)) ? {bankAccountID, canContinue} : undefined;
+}
+
 function keyExtractor(item: PaymentMethod | string) {
     if (typeof item === 'string') {
         return item;
@@ -176,6 +197,7 @@ function PaymentMethodList({
     addBankAccountItemStyle,
     shouldShowAssignedCards = false,
     shouldShowConnectionStatus = false,
+    shouldShowWiseSetupInProgress = false,
     shouldSkipDefaultAccountValidation = false,
     onListContentSizeChange = () => {},
     style = {},
@@ -208,6 +230,7 @@ function PaymentMethodList({
     });
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [wiseOnboardingDraftBankAccountID] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {selector: wiseBusinessOnboardingDraftBankAccountIDSelector});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
@@ -648,6 +671,7 @@ function PaymentMethodList({
                 shouldShowRightIcon,
                 canDismissError: true,
                 isMissingPersonalInfo,
+                wiseSetupInProgress: shouldShowWiseSetupInProgress ? getWiseSetupInProgress(paymentMethod, wiseOnboardingDraftBankAccountID) : undefined,
                 brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
                 connectionStatus: bankConnectionStatus
                     ? mapBankStatusToRowStatus(
