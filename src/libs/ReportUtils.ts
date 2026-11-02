@@ -5498,16 +5498,20 @@ function getMoneyRequestSpendBreakdown(report: OnyxInputOrEntry<Report>, searchR
 }
 
 /**
+ * Whether the report's total is loaded and has no pending optimistic update, so its spend breakdown can be trusted.
+ */
+function isReportTotalLoadedAndSettled(report: OnyxInputOrEntry<Report>): boolean {
+    const isTotalLoaded = report?.total !== undefined || report?.reimbursableTotal !== undefined;
+    return isTotalLoaded && !isReportTotalPending(report);
+}
+
+/**
  * Whether an expense report has nothing to reimburse and every expense on it has a settled value, e.g. its reimbursable expenses cancel out.
  * Such a report can only be marked as paid. Fails closed while the report total is not loaded or is pending, or while any expense is still
  * scanning, failed to scan or is a pending card charge, because its real reimbursable spend is not known yet.
  */
 function hasSettledZeroReimbursableSpend(spendBreakdown: SpendBreakdown, report: OnyxInputOrEntry<Report>, transactionsParam?: Transaction[]): boolean {
-    if (!isExpenseReport(report) || spendBreakdown.reimbursableSpend !== 0) {
-        return false;
-    }
-    const isTotalLoaded = report?.total !== undefined || report?.reimbursableTotal !== undefined;
-    if (!isTotalLoaded || isReportTotalPending(report)) {
+    if (!isExpenseReport(report) || spendBreakdown.reimbursableSpend !== 0 || !isReportTotalLoadedAndSettled(report)) {
         return false;
     }
     const expenses = resolveReportTransactions(report?.reportID, transactionsParam).filter((transaction) => !isTransactionPendingDelete(transaction));
@@ -5519,11 +5523,7 @@ function hasSettledZeroReimbursableSpend(spendBreakdown: SpendBreakdown, report:
  * Used when the report's expenses haven't been fetched yet, so the totals are the only signal available.
  */
 function hasOnlyNonReimbursableTotal(report: OnyxInputOrEntry<Report>): boolean {
-    if (!isExpenseReport(report)) {
-        return false;
-    }
-    const isTotalLoaded = report?.total !== undefined || report?.reimbursableTotal !== undefined;
-    if (!isTotalLoaded || isReportTotalPending(report)) {
+    if (!isExpenseReport(report) || !isReportTotalLoadedAndSettled(report)) {
         return false;
     }
     const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
