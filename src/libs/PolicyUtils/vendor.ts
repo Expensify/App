@@ -523,6 +523,14 @@ function getCampfireVendors(policy: OnyxEntry<Policy>): Vendor[] {
         .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
 }
 
+/** Zoho Books export settings use only active vendor-type records, never customers or inactive vendors */
+function getZohoBooksVendors(policy: OnyxEntry<Policy>): Vendor[] {
+    const vendors = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]?.data?.vendors;
+    return (vendors ?? [])
+        .filter((vendor) => !!vendor.id && vendor.isActive === true && vendor.vendorType === CONST.ZOHO_BOOKS_VENDOR_TYPE.VENDOR)
+        .map((vendor) => ({id: vendor.id, name: vendor.name, currency: '', email: vendor.email ?? ''}));
+}
+
 /** DualEntry export settings and expense matching must use vendors available to the selected company */
 function getDualEntryVendors(policy: OnyxEntry<Policy>): Vendor[] {
     const connection = policy?.connections?.[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY];
@@ -569,6 +577,7 @@ export {
     getXeroSuppliers,
     getDualEntryVendors,
     getCampfireVendors,
+    getZohoBooksVendors,
     getCertiniaVendors,
     isRilletVendorMatchingActive,
     isBusinessCentralVendorMatchingActive,
