@@ -17,6 +17,27 @@
 - E/App issue: None. Reported during review of the PR below.
 - PR Introducing Patch: https://github.com/Expensify/App/pull/99407
 
+### [@callstack+repack+5.4.1+002+resume-stdin-for-ctrl-c.patch](@callstack+repack+5.4.1+002+resume-stdin-for-ctrl-c.patch)
+
+- Reason:
+
+    ```
+    `npm run ios` / `npm run android` show a prompt before the dev server starts (simulator picker,
+    "port in use, use another port?"). The prompt framework closes with `input.unpipe()`, and Node's
+    `Readable.unpipe()` calls `pause()` on its source, so `process.stdin` is paused when the dev server
+    takes over. `setupInteractions` then calls `setRawMode(true)`, which clears the TTY's ISIG flag: the
+    kernel stops turning Ctrl+C into SIGINT, and the 0x03 byte is deliverable only as stream data. A
+    paused stream delivers nothing, so the `keypress` listener never fires, the `process.on('SIGINT')`
+    handler next to it is unreachable, and the process keeps serving bundles until something external
+    kills it. The `r` / `d` / `j` / `a` shortcuts are dead in the same session for the same reason.
+    This patch adds the `process.stdin.resume()` Metro does after entering raw mode.
+    ```
+
+- Reproduced and verified in a pseudo-terminal with a real Ctrl+C byte injected, against the published 5.4.1 tarball: before the patch the process is still alive 4s after the keystroke with `stdin.isPaused() === true`; after the patch stdin is flowing and the process exits on the first Ctrl+C.
+- Upstream PR/issue: https://github.com/callstack/repack/issues/1515 - open, filed with the same one-line fix and reproduction. `setupInteractions.js` is byte-identical in 5.4.2 and the canary at time of writing, so no upgrade escapes it. Drop this patch once upstream ships the resume.
+- E/App issue: https://github.com/Expensify/App/issues/105422
+- PR Introducing Patch: https://github.com/Expensify/App/pull/TODO
+
 Removed on the bump to `@callstack/repack@5.4.1`:
 
 - `002+lazy-platform-compilation` — upstream released the feature (`dist/commands/rspack/Compiler.js` now parks each child compiler until `getAsset` requests that platform). Was https://github.com/callstack/repack/pull/1430.
