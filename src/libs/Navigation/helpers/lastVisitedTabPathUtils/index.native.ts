@@ -1,7 +1,5 @@
 function clearSessionStorage() {}
 
-function clearLastVisitedTabPaths() {}
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function saveWorkspacesTabPathToSessionStorage(url: string) {}
 
@@ -12,4 +10,4 @@ function getWorkspacesTabStateFromSessionStorage() {
     return undefined;
 }
 
-export {clearSessionStorage, clearLastVisitedTabPaths, saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage, getWorkspacesTabStateFromSessionStorage};
+export {clearSessionStorage, saveSettingsTabPathToSessionStorage, saveWorkspacesTabPathToSessionStorage, getWorkspacesTabStateFromSessionStorage};

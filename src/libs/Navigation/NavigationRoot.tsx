@@ -34,7 +34,7 @@ import * as Sentry from '@sentry/react-native';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 
 import AppNavigator from './AppNavigator';
-import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
+import {cleanPreservedNavigatorStates, clearPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getNavigationBaseTheme from './getNavigationBaseTheme';
 import createDynamicRoute from './helpers/dynamicRoutesUtils/createDynamicRoute';
 import getActiveTabName from './helpers/getActiveTabName';
@@ -246,9 +246,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
             return;
         }
 
-        // Drop the previous session's navigation caches. Otherwise restoreTabNavigatorRoutes reattaches
-        // the prior TAB_NAVIGATOR subtree to the public sign-in route (which shares that name).
-        Navigation.clearSessionNavigationState();
+        // Drop the previous session's preserved navigator states. Otherwise restoreTabNavigatorRoutes
+        // reattaches the prior TAB_NAVIGATOR subtree to the public sign-in route (which shares that name).
+        clearPreservedNavigatorStates();
 
         const stateToReset = getStateToResetAfterLogout(navigationRef.getRootState());
         if (!stateToReset) {
