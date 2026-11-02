@@ -112,6 +112,28 @@ describe('Bill Pay', () => {
         expect(message).toBe('started payment, but is waiting for Vendor to add a bank account.');
     });
 
+    it('names the vendor on their invoice when the bill payment waits for a bank account', () => {
+        // Given the vendor's invoice, which Auth tells about the waiting bill payment.
+        const vendorAccountID = 456;
+        const invoice: Report = {...bill, type: CONST.REPORT.TYPE.INVOICE, ownerAccountID: vendorAccountID};
+        const queuedAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED>>({
+            actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED,
+            originalMessage: {},
+        });
+
+        // When the invoice shows the queued payment.
+        const message = getReimbursementQueuedActionMessage({
+            reportAction: queuedAction,
+            report: invoice,
+            translate: <TPath extends TranslationPaths>(key: TPath, ...parameters: TranslationParameters<TPath>) => translate(CONST.LOCALES.EN, key, ...parameters),
+            formatPhoneNumber: (phone) => phone,
+            personalDetails: {[vendorAccountID]: {accountID: vendorAccountID, login: 'billing@vendor.com', displayName: 'Vendor'}},
+        });
+
+        // Then it asks the vendor for a bank account, because a vendor can't receive payment in a personal one.
+        expect(message).toBe('started payment, but is waiting for Vendor to add a bank account.');
+    });
+
     it('does not offer Reject to the approver of a submitted bill', () => {
         // Given a submitted bill and an expense report in the same state, both waiting for the current user to approve.
         const expenseReport: Report = {...bill, type: CONST.REPORT.TYPE.EXPENSE};

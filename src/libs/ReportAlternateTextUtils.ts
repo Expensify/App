@@ -445,6 +445,22 @@ function resolveLastActionContext(
     };
 }
 
+/**
+ * Returns the actor's personal details, with the name saved on the action when the details have no name. A user from
+ * another company, like a bill's payer on the vendor's invoice, can have personal details with no name or login.
+ */
+function getActorDetailsWithActionName(
+    actorDetails: Partial<PersonalDetails> | null,
+    reportAction: OnyxEntry<ReportAction>,
+    actorAccountID: number | undefined,
+): Partial<PersonalDetails> | null {
+    const actionActorName = reportAction?.person?.at(0)?.text;
+    if (!actionActorName || actorDetails?.displayName || actorDetails?.firstName || actorDetails?.login) {
+        return actorDetails;
+    }
+    return {...actorDetails, displayName: actionActorName, accountID: actorDetails?.accountID ?? actorAccountID};
+}
+
 function getLastActorDisplayNameFromLastVisibleActions(
     report: OnyxEntry<Report>,
     lastActorDetails: Partial<PersonalDetails> | null,
@@ -462,14 +478,7 @@ function getLastActorDisplayNameFromLastVisibleActions(
 
     if (lastReportAction) {
         const lastActorAccountID = getReportActionActorAccountID(lastReportAction, undefined, undefined) || report?.lastActorAccountID;
-        let actorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
-
-        if (!actorDetails && lastReportAction.person?.at(0)?.text) {
-            actorDetails = {
-                displayName: lastReportAction.person?.at(0)?.text,
-                accountID: lastActorAccountID,
-            };
-        }
+        const actorDetails = getActorDetailsWithActionName(lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null, lastReportAction, lastActorAccountID);
 
         if (actorDetails) {
             return getLastActorDisplayName(actorDetails, currentUserAccountIDParam, translate);
@@ -1310,19 +1319,7 @@ function getReportAlternateText({
     };
 
     const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
-    // If the last actor's details are not currently saved in Onyx Collection,
-    // then try to get that from the last report action if that action is valid
-    // to get data from.
-    let lastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
-    if (!lastActorDetails && lastAction) {
-        const lastActorDisplayName = lastAction?.person?.[0]?.text;
-        lastActorDetails = lastActorDisplayName
-            ? {
-                  displayName: lastActorDisplayName,
-                  accountID: report.lastActorAccountID,
-              }
-            : null;
-    }
+    const lastActorDetails = getActorDetailsWithActionName(lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null, lastAction, lastActorAccountID);
 
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, currentUserAccountID, translate);
     // An empty precomputed text means "not computed yet", so `||` (not `??`) keeps the recompute fallback meaningful.
