@@ -711,6 +711,7 @@ const CONST = {
         DUALENTRY: 'DualEntry',
         CAMPFIRE: 'Campfire',
         DIGITS: 'Digits',
+        ZOHO_BOOKS: 'Zoho Books',
         BUSINESS_CENTRAL: 'Dynamics 365 Business Central',
     },
 
