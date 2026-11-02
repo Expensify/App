@@ -10,7 +10,7 @@ import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
-import {clearDualEntryErrorField, updateDualEntryTravelInvoicingSettlementsAccount} from '@libs/actions/connections/DualEntry';
+import {clearDualEntryErrorField, updateDualEntryTravelBillingSettlementsAccount} from '@libs/actions/connections/DualEntry';
 import {getCardSettings} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -80,7 +80,7 @@ function DualEntryTravelInvoicingSettlementAccountPage({policy}: WithPolicyConne
 
     const setTravelInvoicingSettlementsAccount = (item: AccountListItem) => {
         if (item.value !== travelInvoicingSettlementsBankAccountID && policyID) {
-            updateDualEntryTravelInvoicingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
+            updateDualEntryTravelBillingSettlementsAccount(policyID, item.value, travelInvoicingSettlementsBankAccountID);
         }
         Navigation.goBack(backPath);
     };
