@@ -710,11 +710,6 @@ function Search({
                 if (shouldOpenTransactionThread && !shouldOpenTransactionThreadInNewTab) {
                     seedCarouselForOpenedExpense();
                 }
-                if (shouldOpenTransactionThreadInNewTab) {
-                    // The new tab can only open once the thread ID exists, after the reads below, so stop the click from navigating this tab now
-                    event?.preventDefault?.();
-                    event?.stopPropagation?.();
-                }
                 const conciergeChat = await readConciergeChat();
                 const targetReportID = createAndOpenSearchTransactionThread({
                     conciergeChat,
