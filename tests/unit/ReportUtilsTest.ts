@@ -14030,7 +14030,7 @@ describe('ReportUtils', () => {
             it('should keep DEW precedence over IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION for an approver without parent access', async () => {
                 // Given the hasParentAccess=false fixture that otherwise yields IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION with an
                 // APPROVE badge, plus a DEW approve failure. The bare DEW dot is intentional: it deep-links to the failure message,
-                // and useOptimisticNextStep keys the "fix the issues" next step off this reason.
+                // and useNextStep keys the "fix the issues" next step off this reason.
                 const policyID = 'testPolicyDEW123';
                 const fakePolicy: Policy = {
                     ...createRandomPolicy(1),

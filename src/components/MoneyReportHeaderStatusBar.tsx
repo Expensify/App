@@ -21,7 +21,7 @@ import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 
 type MoneyReportHeaderStatusBarProps = {
-    nextStep: ReportNextStep | undefined;
+    nextStep: ReportNextStep;
 };
 
 type IconName = ValueOf<typeof CONST.NEXT_STEP.ICONS>;
@@ -31,17 +31,17 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch', 'Box']);
+    const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch', 'Box', 'DotIndicator']);
     const iconMap: IconMap = {
         [CONST.NEXT_STEP.ICONS.HOURGLASS]: icons.Hourglass,
         [CONST.NEXT_STEP.ICONS.CHECKMARK]: icons.Checkmark,
         [CONST.NEXT_STEP.ICONS.STOPWATCH]: icons.Stopwatch,
         [CONST.NEXT_STEP.ICONS.BOX]: icons.Box,
+        [CONST.NEXT_STEP.ICONS.DOT_INDICATOR]: icons.DotIndicator,
     };
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
-
-    const messageContent = !nextStep ? '' : buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber);
+    const messageContent = buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>
@@ -50,7 +50,7 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
                     src={(nextStep?.icon && iconMap?.[nextStep.icon]) ?? icons.Hourglass}
                     height={variables.iconSizeSmall}
                     width={variables.iconSizeSmall}
-                    fill={nextStep?.iconFill ?? theme.icon}
+                    fill={nextStep.iconFill ?? theme.icon}
                 />
             </View>
             <View style={[styles.dFlex, styles.flexRow, styles.flexShrink1]}>
