@@ -2,6 +2,7 @@ import type {DynamicFormValues} from '@components/DynamicForm/types';
 
 import type {DynamicFormField} from '@src/types/onyx';
 
+import getVisibleFields from './getVisibleFields';
 import isSensitiveField from './isSensitiveField';
 
 /** The draft key the server sets in place of a sensitive answer it holds */
@@ -17,4 +18,14 @@ function hasProvidedAnswer(field: DynamicFormField, values: DynamicFormValues): 
     return isSensitiveField(field) && values[getProvidedKey(field.key)] === true;
 }
 
+/**
+ * The markers of sensitive answers the server holds for fields the answers now hide, such as an SSN after the user says they have none.
+ * Those answers no longer apply, so a field shown again asks for a new one instead of showing it as on file.
+ */
+function getHiddenProvidedKeys(fields: DynamicFormField[], values: DynamicFormValues, allFields = fields): string[] {
+    const visibleFields = new Set(getVisibleFields(fields, values, allFields));
+    return fields.filter((field) => !visibleFields.has(field) && hasProvidedAnswer(field, values)).map((field) => getProvidedKey(field.key));
+}
+
 export default hasProvidedAnswer;
+export {getHiddenProvidedKeys};

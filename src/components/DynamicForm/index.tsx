@@ -9,7 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex} from '@libs/SubPageUtils';
 
-import {clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
+import {clearSensitiveAnswers, forgetDraftAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +32,7 @@ import getContentFields from './utils/getContentFields';
 import getDynamicFieldErrors from './utils/getDynamicFieldErrors';
 import getPageTitle, {isPageShown} from './utils/getPageTitle';
 import getSubmittedAnswers from './utils/getSubmittedAnswers';
+import {getHiddenProvidedKeys} from './utils/hasProvidedAnswer';
 import hasSensitiveAnswer from './utils/hasSensitiveAnswer';
 import isSensitiveField from './utils/isSensitiveField';
 import isSupportedField from './utils/isSupportedField';
@@ -212,6 +213,11 @@ function DynamicFormFlow({
             }
         }
         saveDraftAnswers(formID, draftAnswers);
+        // The page was saved without the hidden answer, so the server's copy no longer applies and showing the field again asks for a new one
+        const hiddenProvidedKeys = getHiddenProvidedKeys(pageFields, currentValues, allFields);
+        if (hiddenProvidedKeys.length > 0) {
+            forgetDraftAnswers(formID, hiddenProvidedKeys);
+        }
         if (Object.keys(sensitiveAnswers).length > 0) {
             saveSensitiveAnswers(formID, sensitiveAnswers);
         }

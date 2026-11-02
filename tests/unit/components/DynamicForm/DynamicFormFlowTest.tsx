@@ -14,7 +14,7 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import {clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
+import {clearSensitiveAnswers, forgetDraftAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,6 +51,7 @@ jest.mock('@userActions/DynamicForm', () => ({
     saveSensitiveAnswers: jest.fn(),
     clearSensitiveAnswers: jest.fn(),
     forgetSensitiveAnswers: jest.fn(),
+    forgetDraftAnswers: jest.fn(),
 }));
 jest.mock('@libs/Navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
@@ -441,6 +442,43 @@ describe('DynamicFormFlow', () => {
         expect(saveDraftAnswers).toHaveBeenCalledWith(FORM_ID, {firstName: 'Jane'});
         expect(saveSensitiveAnswers).toHaveBeenCalledWith(FORM_ID, {ssn: '123456789'});
         expect(onPageSubmit).toHaveBeenCalledWith(page, {firstName: 'Jane'}, {ssn: '123456789'});
+    });
+
+    it('forgets that the server holds a sensitive answer once its page is saved with the field hidden', async () => {
+        // Given an SSN shown only to people who have one, which the server holds from an earlier visit
+        const ssnPage: DynamicFormPage = {
+            key: 'personal-details',
+            content: [
+                {key: 'hasNoSSN', type: 'boolean', required: false},
+                {key: 'ssn', type: 'text', required: true, sensitive: true, showWhen: {key: 'hasNoSSN', equals: ['false']}},
+            ],
+        };
+        const {pageProps} = await renderFlow({flowSchema: {pages: [ssnPage]}, draft: {hasNoSSN: false, ssnProvided: true}});
+        const page = pageProps?.pages.at(0);
+        if (!pageProps || !page) {
+            throw new Error('No first page');
+        }
+
+        // When the user says they have no SSN and leaves the page with Next
+        pageProps.onPageSubmit(page, {hasNoSSN: true});
+
+        // Then the draft forgets the server's SSN, since the page was saved without one, so saying they have one again asks for a new one instead of showing it as on file
+        expect(forgetDraftAnswers).toHaveBeenCalledWith(FORM_ID, ['ssnProvided']);
+    });
+
+    it('keeps the server holding a sensitive answer while its field is shown', async () => {
+        // Given an SSN the server holds, on a page saved without changing it
+        const {pageProps} = await renderFlow({draft: {firstName: 'Jane', ssnProvided: true}});
+        const page = pageProps?.pages.at(0);
+        if (!pageProps || !page) {
+            throw new Error('No first page');
+        }
+
+        // When the user leaves the page with Next
+        pageProps.onPageSubmit(page, {firstName: 'Jane'});
+
+        // Then the draft still says the server holds it, so the field keeps showing it as on file
+        expect(forgetDraftAnswers).not.toHaveBeenCalled();
     });
 
     it('submits the visible answers, sensitive ones included, from the confirmation page', async () => {
