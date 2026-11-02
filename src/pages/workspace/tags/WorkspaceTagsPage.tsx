@@ -105,6 +105,11 @@ function getPendingAction(policyTagList: PolicyTagList): PendingAction | undefin
         : undefined;
 }
 
+/** Tag list names can repeat, so add the unique orderWeight to make each multi-level row key unique. */
+function getTagListRowKey(policyTagList: PolicyTagList): string {
+    return `${policyTagList.name}-${policyTagList.orderWeight}`;
+}
+
 function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {shouldUseNarrowLayout, isInLandscapeMode} = useResponsiveLayout();
     const {pageGutter} = useLayoutSpacing();
@@ -168,7 +173,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const tagsList = isMultiLevelTags
         ? policyTagLists.reduce<Record<string, PolicyTagList>>((acc, policyTagList) => {
-              acc[policyTagList.name] = policyTagList;
+              acc[getTagListRowKey(policyTagList)] = policyTagList;
               return acc;
           }, {})
         : policyTagLists?.at(0)?.tags;
@@ -325,7 +330,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             const isSwitchEnabled = policyTagList.required && areTagsEnabled;
             const tagCount = Object.keys(policyTagList?.tags ?? {}).length;
             acc.push({
-                keyForList: policyTagList.name,
+                keyForList: getTagListRowKey(policyTagList),
                 value: policyTagList.name,
                 name: getCleanedTagName(policyTagList.name),
                 orderWeight: policyTagList.orderWeight,
@@ -734,7 +739,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const headerContent = <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout && styles.workspaceSectionMobile]}>{getHeaderSubtitle()}</View>;
 
     const emptyTagsSubtitle = hasAccountingConnections
-        ? translate('workspace.tags.emptyTags.subtitleWithAccounting', `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`, canWriteTags)
+        ? translate(
+              'workspace.tags.emptyTags.subtitleWithAccounting',
+              `${environmentURL}/${ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING)}`,
+              canWriteTags,
+          )
         : translate('workspace.tags.emptyTags.subtitleHTML');
     const subtitleText = (
         <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>

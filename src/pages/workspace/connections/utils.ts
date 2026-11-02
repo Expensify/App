@@ -4,7 +4,6 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 import type {ConnectionListing, ConnectionsTab} from './types';
 
@@ -44,27 +43,4 @@ function getListingsForTab(listings: ConnectionListing[], tab: ConnectionsTab): 
     return listings.filter((listing) => listing.category === tab);
 }
 
-/** The page listing the workspace's accounting integrations, which is Connections while the unified Connections beta is on */
-function getAccountingConnectionsRoute(isUnifiedConnectionsBetaEnabled: boolean, ...params: Parameters<typeof ROUTES.POLICY_ACCOUNTING.getRoute>) {
-    if (isUnifiedConnectionsBetaEnabled) {
-        return ROUTES.WORKSPACE_CONNECTIONS.getRoute(...params);
-    }
-    return ROUTES.POLICY_ACCOUNTING.getRoute(...params);
-}
-
-/** The page an accounting integration's settings open from, which is the Connections accounting panel while the unified Connections beta is on */
-function getAccountingSettingsRoute(isUnifiedConnectionsBetaEnabled: boolean, policyID: string | undefined) {
-    if (isUnifiedConnectionsBetaEnabled) {
-        return ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID);
-    }
-    return ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
-}
-
-function getHRSettingsRoute(isUnifiedConnectionsBetaEnabled: boolean, policyID: string) {
-    if (isUnifiedConnectionsBetaEnabled) {
-        return ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID);
-    }
-    return ROUTES.WORKSPACE_HR.getRoute(policyID);
-}
-
-export {MCP_CONNECTOR, getSyncStatusMessage, getListingsForTab, getAccountingConnectionsRoute, getAccountingSettingsRoute, getHRSettingsRoute};
+export {MCP_CONNECTOR, getSyncStatusMessage, getListingsForTab};
