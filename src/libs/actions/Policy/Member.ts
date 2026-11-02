@@ -25,16 +25,19 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import {canRoleCreateExpenses, getDefaultApprover, getOwnerChangePayerSuccessData, isControlPolicy, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import * as ReportUtils from '@libs/ReportUtils';
+import {buildApproverChainFromRules, getApprovalWorkflowRulesForPolicy} from '@libs/WorkflowUtils';
 
 import * as FormActions from '@userActions/FormActions';
 import type {DisplayNamePersonalDetails} from '@userActions/PersonalDetails';
 import {buildOptimisticDisplayNameDetails} from '@userActions/PersonalDetails';
 import {getOnboardingTaskCompletionOnSuccessData} from '@userActions/Task';
+import {importApprovalWorkflowRules} from '@userActions/Workflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions} from '@src/types/onyx';
+import type {ImportedSpreadsheetMemberData, InvitedEmailsToAccountIDs, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction, ReportActions, Rule} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
+import type {ImportedSpreadsheetApprover} from '@src/types/onyx/ImportedSpreadsheetMemberData';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
 import type {ApprovalRule} from '@src/types/onyx/Policy';
@@ -1042,13 +1045,47 @@ type PolicyMember = {
     customField2?: string;
     approvalLimit?: string;
     overLimitForwardsTo?: string;
+
+    /** The approvers of this member's workflow, in order, which replace the ones they have */
+    approvers?: ImportedSpreadsheetApprover[];
 };
 
-async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMember[], shouldShowMemberRolePermissionWarning = false): Promise<ImportFinalModal> {
+async function importPolicyMembers(
+    policy: OnyxEntry<Policy>,
+    members: PolicyMember[],
+    shouldShowMemberRolePermissionWarning = false,
+    rules?: OnyxCollection<Rule>,
+): Promise<ImportFinalModal> {
     if (!policy?.id) {
         Log.warn('importPolicyMembers called without a valid policy');
         return getImportFailedFinalModal();
     }
+    const approvalWorkflowRules = getApprovalWorkflowRulesForPolicy(rules, policy.id);
+    const hasApproversChange = (member: PolicyMember) => {
+        if (!member.approvers) {
+            return false;
+        }
+
+        // A repeated approver ends the chain, and a limit only counts with someone to receive the reports over it, the way imported approvers are read
+        const currentApprovers = buildApproverChainFromRules({
+            submitter: member.email,
+            rules: approvalWorkflowRules,
+            employees: policy.employeeList ?? {},
+            personalDetailsByEmail: {},
+        }).filter((approver) => !approver.isCircularReference);
+        return (
+            currentApprovers.length !== member.approvers.length ||
+            member.approvers.some((approver, index) => {
+                const currentApprover = currentApprovers.at(index);
+                const hasCurrentLimit = !!currentApprover?.approvalLimit && !!currentApprover.overLimitForwardsTo;
+                return (
+                    approver.email !== currentApprover?.email ||
+                    approver.approvalLimit !== (hasCurrentLimit ? currentApprover.approvalLimit : undefined) ||
+                    approver.overLimitForwardsTo !== (hasCurrentLimit ? currentApprover.overLimitForwardsTo : undefined)
+                );
+            })
+        );
+    };
     const {added, updated} = members.reduce(
         (acc, curr) => {
             const employee = policy?.employeeList?.[curr.email];
@@ -1057,12 +1094,13 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
                 const existingCustomField2 = employee.employeePayrollID;
                 if (
                     curr.role !== employee.role ||
-                    (curr.submitsTo ?? '') !== (employee.submitsTo ?? '') ||
-                    (curr.forwardsTo ?? '') !== (employee.forwardsTo ?? '') ||
+                    (curr.submitsTo !== undefined && curr.submitsTo !== (employee.submitsTo ?? '')) ||
+                    (curr.forwardsTo !== undefined && curr.forwardsTo !== (employee.forwardsTo ?? '')) ||
                     (curr.customField1 !== undefined && curr.customField1 !== (existingCustomField1 ?? '')) ||
                     (curr.customField2 !== undefined && curr.customField2 !== (existingCustomField2 ?? '')) ||
                     (curr.approvalLimit !== undefined && curr.approvalLimit !== String(employee.approvalLimit ?? '')) ||
-                    (curr.overLimitForwardsTo !== undefined && curr.overLimitForwardsTo !== (employee.overLimitForwardsTo ?? ''))
+                    (curr.overLimitForwardsTo !== undefined && curr.overLimitForwardsTo !== (employee.overLimitForwardsTo ?? '')) ||
+                    hasApproversChange(curr)
                 ) {
                     acc.updated++;
                 }
@@ -1109,7 +1147,20 @@ async function importPolicyMembers(policy: OnyxEntry<Policy>, members: PolicyMem
         // without storing transient modal state in Onyx.
         // eslint-disable-next-line rulesdir/no-api-side-effects-method
         const response = await API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.IMPORT_MEMBERS_SPREADSHEET, parameters, {successData});
-        return response?.jsonCode === CONST.JSON_CODE.SUCCESS ? importFinalModal : getImportFailedFinalModal();
+        if (response?.jsonCode !== CONST.JSON_CODE.SUCCESS) {
+            return getImportFailedFinalModal();
+        }
+
+        // The backend puts the members it adds in the default workflow, so they can only be moved to their own workflows once they're in.
+        // Members whose approvers are unchanged are left out: rewriting them would take them out of their workflow's rules first, which
+        // deletes those rules once every member is out, the default workflow's included.
+        importApprovalWorkflowRules({
+            policy,
+            rules,
+            members: members.flatMap((member) => (member.approvers && hasApproversChange(member) ? [{email: member.email, approvers: member.approvers}] : [])),
+            addedMemberEmails: members.filter((member) => !policy.employeeList?.[member.email]).map((member) => member.email),
+        });
+        return importFinalModal;
     } catch {
         return getImportFailedFinalModal();
     }
@@ -1494,9 +1545,14 @@ function declineJoinRequest(reportID: string | undefined, reportAction: OnyxEntr
     API.write(WRITE_COMMANDS.DECLINE_JOIN_REQUEST, parameters, {optimisticData, failureData, successData});
 }
 
-function downloadMembersCSV(policyID: string, onDownloadFailed: () => void, translate: LocalizedTranslate) {
+/**
+ * @param shouldIncludeApprovers - Whether each row lists the member's approvers in order, each with their approval limit, instead of the member's own
+ * submitsTo, approvesTo and approval limit
+ */
+function downloadMembersCSV(policyID: string, shouldIncludeApprovers: boolean, onDownloadFailed: () => void, translate: LocalizedTranslate) {
     const finalParameters = enhanceParameters(WRITE_COMMANDS.EXPORT_MEMBERS_CSV, {
         policyID,
+        shouldIncludeApprovers,
     });
 
     const fileName = 'Members.csv';

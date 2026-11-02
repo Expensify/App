@@ -1,9 +1,44 @@
 import type {ColumnRole} from '@components/ImportColumn';
 
 import CONST from '@src/CONST';
+import type {ImportedSpreadsheetApprover} from '@src/types/onyx/ImportedSpreadsheetMemberData';
 
+import type {TupleToUnion} from 'type-fest';
+
+import {convertToBackendAmount} from './CurrencyUtils';
 import {stripCommaFromAmount, stripSpacesFromAmount} from './MoneyRequestUtils';
 import StringUtils from './StringUtils';
+
+const APPROVER_COLUMN_FIELDS = ['approver', 'approvalLimit', 'overLimitApprover'] as const;
+
+type ApproverColumnField = TupleToUnion<typeof APPROVER_COLUMN_FIELDS>;
+
+const APPROVER_COLUMN_ROLE_PREFIXES: Record<ApproverColumnField, string> = {
+    approver: CONST.CSV_IMPORT_COLUMNS.APPROVER,
+    approvalLimit: CONST.CSV_IMPORT_COLUMNS.APPROVER_LIMIT,
+    overLimitApprover: CONST.CSV_IMPORT_COLUMNS.APPROVER_OVER_LIMIT_APPROVER,
+};
+
+/**
+ * The members import column role for one field of the approver at `position` in a member's workflow, counting from 1.
+ */
+function getApproverColumnRole(position: number, field: ApproverColumnField): string {
+    return `${APPROVER_COLUMN_ROLE_PREFIXES[field]}${position}`;
+}
+
+/**
+ * Which approver, and which of their fields, a members import column role is for. Undefined for every other role.
+ */
+function parseApproverColumnRole(role: string): {position: number; field: ApproverColumnField} | undefined {
+    for (const field of APPROVER_COLUMN_FIELDS) {
+        const prefix = APPROVER_COLUMN_ROLE_PREFIXES[field];
+        const position = role.startsWith(prefix) ? Number(role.slice(prefix.length)) : Number.NaN;
+        if (Number.isInteger(position) && position >= 1 && position <= CONST.IMPORT_SPREADSHEET.MAX_APPROVERS) {
+            return {position, field};
+        }
+    }
+    return undefined;
+}
 
 // cspell:disable
 /**
@@ -225,6 +260,20 @@ function findColumnName(header: string, columnRoles?: ColumnRole[]): string {
             break;
     }
 
+    // Every approver has their own columns, like "Approver 2 limit", so those headers are matched by their pattern
+    const approverHeaderMatch = /^approver(\d+)(limit|overlimitapprover)?$/.exec(formattedHeader.replaceAll(/[-_]/g, ''));
+    const approverPosition = Number(approverHeaderMatch?.at(1));
+    if (!attribute && approverPosition >= 1 && approverPosition <= CONST.IMPORT_SPREADSHEET.MAX_APPROVERS) {
+        const approverHeaderField = approverHeaderMatch?.at(2);
+        if (approverHeaderField === 'limit') {
+            attribute = getApproverColumnRole(approverPosition, 'approvalLimit');
+        } else if (approverHeaderField) {
+            attribute = getApproverColumnRole(approverPosition, 'overLimitApprover');
+        } else {
+            attribute = getApproverColumnRole(approverPosition, 'approver');
+        }
+    }
+
     // A bare "Description" header is ambiguous across import flows (e.g. bank CSVs use it for the
     // transaction descriptor), so it only auto-maps to the updated-description action in the merchant
     // rules import, which is the only flow offering the MERCHANT_IS column role.
@@ -373,4 +422,79 @@ function normalizeImportedAmount(value: string, currencySymbol?: string, currenc
     return stripCommaFromAmount(stripSpacesFromAmount(withoutCurrency.replaceAll(/\p{Sc}/gu, '')));
 }
 
-export {findColumnName, findDuplicate, generateColumnNames, getCompanyCardColumnMappings, normalizeImportedAmount};
+type ImportedApproversError = {
+    /** Explains what is wrong with the row's approvers */
+    translationKey: 'spreadsheet.approversOutOfOrder' | 'spreadsheet.approverRepeated' | 'spreadsheet.approvalLimitIncomplete';
+
+    /** The row's number in the spreadsheet, counting the header row */
+    rowNumber: number;
+};
+
+type GetImportedApproversParams = {
+    /** The spreadsheet cells, column by column */
+    spreadsheetData: string[][];
+
+    /** The role each column is mapped to, in column order */
+    mappedColumns: string[];
+
+    containsHeader: boolean;
+    currencySymbol?: string;
+    currency?: string;
+};
+
+/**
+ * Reads the approvers each member row of a members import lists, in order, and finds the first row listing them in a way a
+ * workflow can't hold. Approval limits are converted to cents, so their cells are expected to hold valid amounts.
+ */
+function getImportedApprovers({spreadsheetData, mappedColumns, containsHeader, currencySymbol, currency}: GetImportedApproversParams): {
+    approversByRow: ImportedSpreadsheetApprover[][];
+    error?: ImportedApproversError;
+} {
+    const getCell = (position: number, field: ApproverColumnField, rowIndex: number) => {
+        const columnIndex = mappedColumns.indexOf(getApproverColumnRole(position, field));
+        return columnIndex === -1 ? '' : String(spreadsheetData.at(columnIndex)?.at(rowIndex) ?? '').trim();
+    };
+    const firstRowIndex = containsHeader ? 1 : 0;
+    const rowCount = Math.max((spreadsheetData.at(0)?.length ?? 0) - firstRowIndex, 0);
+
+    let error: ImportedApproversError | undefined;
+    const approversByRow = Array.from({length: rowCount}, (_, index) => {
+        const rowIndex = index + firstRowIndex;
+        const rowNumber = rowIndex + 1;
+        const approvers: ImportedSpreadsheetApprover[] = [];
+        let hasSkippedApprover = false;
+        for (let position = 1; position <= CONST.IMPORT_SPREADSHEET.MAX_APPROVERS; position++) {
+            const email = getCell(position, 'approver', rowIndex).toLowerCase();
+            const approvalLimitAmount = normalizeImportedAmount(getCell(position, 'approvalLimit', rowIndex), currencySymbol, currency);
+            const overLimitForwardsTo = getCell(position, 'overLimitApprover', rowIndex).toLowerCase();
+            if (!email) {
+                hasSkippedApprover = true;
+                if (approvalLimitAmount || overLimitForwardsTo) {
+                    error ??= {translationKey: 'spreadsheet.approversOutOfOrder', rowNumber};
+                }
+                continue;
+            }
+
+            if (hasSkippedApprover) {
+                error ??= {translationKey: 'spreadsheet.approversOutOfOrder', rowNumber};
+            }
+            // Like in the workflow editor, an approver can't be their own over limit approver either: the reports over their limit
+            // would go back to them, which ends the workflow before the approvers after them
+            if (approvers.some((approver) => approver.email === email) || overLimitForwardsTo === email) {
+                error ??= {translationKey: 'spreadsheet.approverRepeated', rowNumber};
+            }
+
+            // Like in the workflow editor, a limit needs someone to receive the reports over it, and the other way around
+            const approvalLimit = approvalLimitAmount ? convertToBackendAmount(Number.parseFloat(approvalLimitAmount)) : 0;
+            if (approvalLimit > 0 !== !!overLimitForwardsTo) {
+                error ??= {translationKey: 'spreadsheet.approvalLimitIncomplete', rowNumber};
+            }
+            approvers.push(approvalLimit > 0 && overLimitForwardsTo ? {email, approvalLimit, overLimitForwardsTo} : {email});
+        }
+        return approvers;
+    });
+
+    return {approversByRow, error};
+}
+
+export {findColumnName, findDuplicate, generateColumnNames, getApproverColumnRole, getCompanyCardColumnMappings, getImportedApprovers, normalizeImportedAmount, parseApproverColumnRole};

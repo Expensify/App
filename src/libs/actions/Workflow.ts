@@ -11,7 +11,9 @@ import {
     buildApprovalWorkflowRulesForSave,
     calculateApprovers,
     convertApprovalWorkflowToPolicyEmployees,
+    extractSubmitterEmails,
     getApprovalWorkflowRulesForPolicy,
+    getApproverChainKey,
     getNonMemberApproverError,
     getOverLimitForwardsToDisplayName,
     getWorkflowMemberEmails,
@@ -31,6 +33,7 @@ import type {ApprovalWorkflowOnyx, PersonalDetailsList, Policy, Report} from '@s
 import type {Approver, Member} from '@src/types/onyx/ApprovalWorkflow';
 import type ApprovalWorkflow from '@src/types/onyx/ApprovalWorkflow';
 import type {ApprovalWorkflowRule} from '@src/types/onyx/ApprovalWorkflowRules';
+import type {ImportedSpreadsheetApprover} from '@src/types/onyx/ImportedSpreadsheetMemberData';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {PolicyEmployeeList} from '@src/types/onyx/PolicyEmployee';
 import type Rule from '@src/types/onyx/Rule';
@@ -636,6 +639,76 @@ function removeApprovalWorkflowRules(approvalWorkflow: ApprovalWorkflow, policy:
     return true;
 }
 
+type ImportApprovalWorkflowRulesParams = {
+    policy: OnyxEntry<Policy>;
+    rules: OnyxCollection<Rule>;
+
+    /** The imported members whose approvers the spreadsheet lists, with those approvers in order */
+    members: Array<{email: string; approvers: ImportedSpreadsheetApprover[]}>;
+
+    /** The members the import has just added to the policy */
+    addedMemberEmails: string[];
+};
+
+/** Move imported members into the workflows of the approvers the spreadsheet lists for them, using the rules-based backend structure. */
+function importApprovalWorkflowRules({policy, rules, members, addedMemberEmails}: ImportApprovalWorkflowRulesParams) {
+    if (!policy || members.length === 0) {
+        return;
+    }
+
+    const defaultApprover = getDefaultApprover(policy);
+    const existingRules = getApprovalWorkflowRulesForPolicy(rules, policy.id);
+
+    // The backend has given the added members the default approver as `submitsTo`, and listed them in the default workflow's
+    // rules unless a rule listed them already, so the workflows are worked out from there
+    const employees: PolicyEmployeeList = {...policy.employeeList};
+    for (const email of addedMemberEmails) {
+        employees[email] = {email, submitsTo: defaultApprover};
+    }
+    const listedSubmitterEmails = new Set(Object.values(existingRules).flatMap(extractSubmitterEmails));
+    const unlistedAddedMemberEmails = addedMemberEmails.filter((email) => !listedSubmitterEmails.has(email));
+    let rulesAfterImport = Object.fromEntries(
+        Object.entries(existingRules).map(([ruleID, rule]) => [ruleID, rule.isDefaultApprovalWorkflow ? addMembersToRule(rule, unlistedAddedMemberEmails) : rule]),
+    );
+
+    // Members listing the same approvers share a workflow
+    const workflowsByApprovers = new Map<string, ApprovalWorkflow>();
+    for (const member of members) {
+        const approvers = member.approvers.map((approver) => ({...approver, displayName: approver.email}));
+        const approversKey = getApproverChainKey(approvers);
+        const workflow: ApprovalWorkflow = workflowsByApprovers.get(approversKey) ?? {members: [], approvers, isDefault: false};
+        workflow.members.push({email: member.email, displayName: member.email});
+        workflowsByApprovers.set(approversKey, workflow);
+    }
+
+    let rulesDiff: ApprovalWorkflowRulesDiff = {};
+    let defaultWorkflow: ApprovalWorkflow | undefined;
+    for (const workflow of workflowsByApprovers.values()) {
+        const memberEmails = getWorkflowMemberEmails(workflow.members);
+
+        // A workflow with everyone in it leaves every other workflow empty, so it becomes the default one
+        const workflowToSave = {...workflow, isDefault: includesEveryWorkspaceMember(memberEmails, employees)};
+        if (workflowToSave.isDefault) {
+            defaultWorkflow = workflowToSave;
+        }
+
+        // A submitter can only belong to one workflow, so first drop these members from every workflow's rules
+        const removeDiff = reconcileApprovalWorkflowRulesForRemove(memberEmails, {existingRules: rulesAfterImport});
+        rulesAfterImport = applyApprovalWorkflowRulesDiff(rulesAfterImport, removeDiff);
+        const newRules = buildApprovalWorkflowRulesForSave(workflowToSave, {existingRules: rulesAfterImport, employees, defaultApprover});
+        const createDiff = reconcileApprovalWorkflowRulesForCreate(newRules, memberEmails, {existingRules: rulesAfterImport});
+        rulesAfterImport = applyApprovalWorkflowRulesDiff(rulesAfterImport, createDiff);
+        rulesDiff = {...rulesDiff, ...removeDiff, ...createDiff};
+    }
+
+    // A rule created for one workflow and emptied by a later one never reached the backend, so there is nothing to delete
+    const rulesDiffToSave = Object.fromEntries(Object.entries(rulesDiff).filter(([ruleID, rule]) => rule !== null || ruleID in existingRules));
+    setApprovalWorkflowRules({policyID: policy.id, rulesDiff: rulesDiffToSave, previousRules: rules});
+    if (defaultWorkflow) {
+        updatePolicyDefaultApprover(defaultWorkflow, policy);
+    }
+}
+
 /** Set the members of the approval workflow that is currently edited */
 function setApprovalWorkflowMembers(members: Member[]) {
     Onyx.merge(ONYXKEYS.APPROVAL_WORKFLOW, {members, errors: null});
@@ -864,6 +937,7 @@ export {
     buildDeleteApprovalWorkflowRulesOnyxData,
     createApprovalWorkflow,
     createApprovalWorkflowRules,
+    importApprovalWorkflowRules,
     removeApprovalWorkflowRules,
     updateApprovalWorkflow,
     updateApprovalWorkflowRules,

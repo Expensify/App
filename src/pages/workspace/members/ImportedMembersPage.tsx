@@ -9,18 +9,35 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 
 import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
 import Tab from '@libs/actions/Tab';
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
-import {findDuplicate, generateColumnNames, normalizeImportedAmount} from '@libs/importSpreadsheetUtils';
+import {
+    findColumnName,
+    findDuplicate,
+    generateColumnNames,
+    getApproverColumnRole,
+    getImportedApprovers,
+    normalizeImportedAmount,
+    parseApproverColumnRole,
+} from '@libs/importSpreadsheetUtils';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberAssignElevatedRole, canMemberAssignRole, canMemberManageMemberWithRole, isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {
+    canMemberAssignElevatedRole,
+    canMemberAssignRole,
+    canMemberManageMemberWithRole,
+    getApprovalWorkflow,
+    isControlPolicy as isControlPolicyUtil,
+    isPolicyMemberWithoutPendingDelete,
+} from '@libs/PolicyUtils';
 import {isControlPolicyOnlyRole} from '@libs/PolicyUtils/permissions';
+import {filterRulesForPolicy} from '@libs/WorkflowUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -28,6 +45,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+import type {ImportedSpreadsheetMemberData} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import React, {useState} from 'react';
@@ -43,6 +61,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE, {selector: (rulesCollection) => filterRulesForPolicy(rulesCollection, policyID)});
+    const {isBetaEnabled} = usePermissions();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
@@ -57,6 +77,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {containsHeader = true} = spreadsheet ?? {};
     const isControlPolicy = isControlPolicyUtil(policy);
 
+    // With multiple approvers, each row lists every approver of the member's workflow, each with their own limit, instead of
+    // the member's own submitsTo, forwardsTo and limit
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+
+    // Approval workflows don't route any report while approvals are off, so their approvers are only imported while approvals are on
+    const canImportApprovers = isMultipleApproversBetaEnabled && getApprovalWorkflow(policy) !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
+
     const columnRoles: ColumnRole[] = [
         {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
         {text: translate('common.email'), value: CONST.CSV_IMPORT_COLUMNS.EMAIL, isRequired: true},
@@ -64,46 +91,82 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     if (canAssignElevatedRoles) {
         columnRoles.push({text: translate('common.role'), value: CONST.CSV_IMPORT_COLUMNS.ROLE});
     }
-    columnRoles.push(
-        {text: translate('common.submitTo'), value: CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO},
-        {text: translate('common.forwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO},
-        {text: translate('workspace.common.customField1'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1},
-        {text: translate('workspace.common.customField2'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2},
-        {text: translate('common.approvalLimit'), value: CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD},
-        {text: translate('common.overLimitForwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE},
-    );
+    if (isMultipleApproversBetaEnabled) {
+        columnRoles.push(
+            {text: translate('workspace.common.customField1'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1},
+            {text: translate('workspace.common.customField2'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2},
+        );
+
+        if (canImportApprovers) {
+            // Offer the approvers that the headers or the mapping already use, plus the next one so its columns can be mapped too
+            const usedApproverPositions = [...(spreadsheet?.data ?? []).map((column) => findColumnName(column.at(0) ?? '')), ...Object.values(spreadsheet?.columns ?? {})].map(
+                (columnRole) => parseApproverColumnRole(columnRole)?.position ?? 0,
+            );
+            const approverCount = Math.min(Math.max(0, ...usedApproverPositions) + 1, CONST.IMPORT_SPREADSHEET.MAX_APPROVERS);
+            for (let position = 1; position <= approverCount; position++) {
+                columnRoles.push(
+                    {text: translate('spreadsheet.approverColumn', position), value: getApproverColumnRole(position, 'approver')},
+                    {text: translate('spreadsheet.approverLimitColumn', position), value: getApproverColumnRole(position, 'approvalLimit')},
+                    {text: translate('spreadsheet.approverOverLimitApproverColumn', position), value: getApproverColumnRole(position, 'overLimitApprover')},
+                );
+            }
+        }
+    } else {
+        columnRoles.push(
+            {text: translate('common.submitTo'), value: CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO},
+            {text: translate('common.forwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO},
+            {text: translate('workspace.common.customField1'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1},
+            {text: translate('workspace.common.customField2'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2},
+            {text: translate('common.approvalLimit'), value: CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD},
+            {text: translate('common.overLimitForwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE},
+        );
+    }
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
 
-    // checks if all required columns are mapped and no column is mapped more than once
-    // returns found errors or empty object if both conditions are met
-    const validate = () => {
+    const getApprovers = () =>
+        getImportedApprovers({
+            spreadsheetData: spreadsheet?.data ?? [],
+            mappedColumns: Object.values(spreadsheet?.columns ?? {}),
+            containsHeader,
+            currencySymbol,
+            currency,
+        });
+
+    // checks if all required columns are mapped, no column is mapped more than once, and the approval limits and approvers can be imported
+    // returns found errors or empty object if all conditions are met
+    const validate = (): Record<string, string | null> => {
         const columns = Object.values(spreadsheet?.columns ?? {});
-        let errors: Record<string, string | null> = {};
         const missingRequiredColumns = requiredColumns.find((requiredColumn) => !columns.includes(requiredColumn.value));
         if (missingRequiredColumns) {
-            errors.required = translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text);
-        } else {
-            const duplicate = findDuplicate(columns);
-            if (duplicate) {
-                errors.duplicates = translate('spreadsheet.singleFieldMultipleColumns', duplicate);
-            } else {
-                const approvalLimitColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD);
-                if (approvalLimitColumn !== -1) {
-                    const decimals = getCurrencyDecimals(currency);
-                    const hasInvalidApprovalLimit = spreadsheet?.data?.[approvalLimitColumn]?.some((value, index) => {
-                        if (containsHeader && index === 0) {
-                            return false;
-                        }
-                        const normalizedValue = normalizeImportedAmount(String(value), currencySymbol, currency);
-                        return !validateAmount(normalizedValue, decimals);
-                    });
-                    errors = hasInvalidApprovalLimit ? {approvalLimit: translate('spreadsheet.invalidApprovalLimit')} : {};
-                }
-            }
+            return {required: translate('spreadsheet.fieldNotMapped', missingRequiredColumns.text)};
         }
 
-        return errors;
+        const duplicate = findDuplicate(columns);
+        if (duplicate) {
+            // Approver columns have internal names like approverLimit2, so the error names them by their label instead
+            const duplicateName = isMultipleApproversBetaEnabled ? (columnRoles.find((role) => role.value === duplicate)?.text ?? duplicate) : duplicate;
+            return {duplicates: translate('spreadsheet.singleFieldMultipleColumns', duplicateName)};
+        }
+
+        const decimals = getCurrencyDecimals(currency);
+        const hasInvalidApprovalLimit = columns.some(
+            (column, columnIndex) =>
+                (column === CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD || parseApproverColumnRole(column)?.field === 'approvalLimit') &&
+                spreadsheet?.data?.at(columnIndex)?.some((value, index) => {
+                    if (containsHeader && index === 0) {
+                        return false;
+                    }
+                    const normalizedValue = normalizeImportedAmount(String(value), currencySymbol, currency);
+                    return !validateAmount(normalizedValue, decimals);
+                }),
+        );
+        if (hasInvalidApprovalLimit) {
+            return {approvalLimit: translate('spreadsheet.invalidApprovalLimit')};
+        }
+
+        const approversError = canImportApprovers ? getApprovers().error : undefined;
+        return approversError ? {approvers: translate(approversError.translationKey, approversError.rowNumber)} : {};
     };
 
     const closeImportPageAndModal = () => {
@@ -150,7 +213,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1,
             CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2,
         ];
-        const hasControlPolicyColumns = controlPolicyColumns.some((column) => columns.includes(column));
+        const hasControlPolicyColumns = controlPolicyColumns.some((column) => columns.includes(column)) || columns.some((column) => !!parseApproverColumnRole(column));
         const isRequiredControlPolicy = hasControlPolicyColumns || hasControlPolicyOnlyRole;
 
         if (isRequiredControlPolicy && !isControlPolicy) {
@@ -168,7 +231,10 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         }
 
         const membersEmailsColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.EMAIL);
-        const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => email);
+
+        // Approvers are matched against members by email, so both are read the way the backend stores logins
+        const membersEmails = spreadsheet?.data[membersEmailsColumn].map((email) => (isMultipleApproversBetaEnabled ? email.trim().toLowerCase() : email));
+        const {approversByRow} = canImportApprovers ? getApprovers() : {approversByRow: []};
         const membersRoles = membersRolesColumn !== -1 ? spreadsheet?.data[membersRolesColumn].map((role) => role) : [];
         const membersSubmitsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO);
         const membersForwardsToColumn = columns.findIndex((column) => column === CONST.CSV_IMPORT_COLUMNS.APPROVE_TO);
@@ -182,7 +248,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const membersCustomField2 = membersCustomField2Column !== -1 ? spreadsheet?.data[membersCustomField2Column].map((v) => v) : [];
         const membersApprovalLimit = membersApprovalLimitColumn !== -1 ? spreadsheet?.data[membersApprovalLimitColumn].map((v) => v) : [];
         const membersOverLimitForwardsTo = membersOverLimitForwardsToColumn !== -1 ? spreadsheet?.data[membersOverLimitForwardsToColumn].map((v) => v) : [];
-        const members = membersEmails?.slice(containsHeader ? 1 : 0).map((email, index) => {
+        const members = membersEmails?.slice(containsHeader ? 1 : 0).map((email, index): ImportedSpreadsheetMemberData => {
             const isPolicyMember = isPolicyMemberWithoutPendingDelete(email, policy);
             let role = isPolicyMember ? (policy?.employeeList?.[email]?.role ?? '') : '';
             const importedRole = membersRoles?.[containsHeader ? index + 1 : index];
@@ -202,6 +268,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             if (!canAssignElevatedRoles && !role) {
                 role = CONST.POLICY.ROLE.USER;
             }
+            const customField1 = membersCustomField1Column !== -1 ? (membersCustomField1?.[containsHeader ? index + 1 : index] ?? '') : undefined;
+            const customField2 = membersCustomField2Column !== -1 ? (membersCustomField2?.[containsHeader ? index + 1 : index] ?? '') : undefined;
+            if (isMultipleApproversBetaEnabled) {
+                const approvers = approversByRow.at(index) ?? [];
+                return {email, role, customField1, customField2, approvers: approvers.length > 0 ? approvers : undefined};
+            }
+
             let submitsTo = '';
             if (membersSubmitsToColumn !== -1 && membersSubmitsTo?.[containsHeader ? index + 1 : index]) {
                 submitsTo = membersSubmitsTo?.[containsHeader ? index + 1 : index];
@@ -210,8 +283,6 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             if (membersForwardsToColumn !== -1 && membersForwardsTo?.[containsHeader ? index + 1 : index]) {
                 forwardsTo = membersForwardsTo?.[containsHeader ? index + 1 : index];
             }
-            const customField1 = membersCustomField1Column !== -1 ? (membersCustomField1?.[containsHeader ? index + 1 : index] ?? '') : undefined;
-            const customField2 = membersCustomField2Column !== -1 ? (membersCustomField2?.[containsHeader ? index + 1 : index] ?? '') : undefined;
             let approvalLimit: string | undefined;
             if (membersApprovalLimitColumn !== -1) {
                 const approvalLimitValue = membersApprovalLimit?.[containsHeader ? index + 1 : index] ?? '';
@@ -236,6 +307,16 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         });
 
         const allMembers = [...(members ?? [])];
+
+        // Add approvers who are not in the workspace
+        const approverEmails = (members ?? []).flatMap((member) => (member.approvers ?? []).flatMap((approver) => [approver.email, approver.overLimitForwardsTo ?? '']));
+        for (const approverEmail of approverEmails) {
+            if (!approverEmail || allMembers.some((member) => member.email === approverEmail) || isPolicyMemberWithoutPendingDelete(approverEmail, policy)) {
+                continue;
+            }
+            isRoleMissing = true;
+            allMembers.push({email: approverEmail, role: ''});
+        }
 
         // Add submitsTo, forwardsTo, and overLimitForwardsTo members if they are not in the workspace
         if (members) {
@@ -293,7 +374,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             Navigation.navigate(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS_IMPORTED_CONFIRMATION.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
         } else {
             setIsImporting(true);
-            const importFinalModal = await importPolicyMembers(policy, allMembers, shouldShowMemberRolePermissionWarning);
+            const importFinalModal = await importPolicyMembers(policy, allMembers, shouldShowMemberRolePermissionWarning, rules);
             const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {onModalHide: navigateBackToMembers});
             if (!didShowImportFinalModal) {
                 setIsImporting(false);
