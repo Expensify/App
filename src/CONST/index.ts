@@ -5061,7 +5061,6 @@ const CONST = {
         DEFAULT_FIELD_LIST_TARGET: 'expense',
         DEFAULT_FIELD_LIST_NAME: 'title',
         ROLE: {
-            OWNER: 'owner',
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             GUEST: 'guest',

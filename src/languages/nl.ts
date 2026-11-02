@@ -5297,8 +5297,6 @@ ${amount} voor ${merchant} - ${date}`,
             guestAlternateText: 'Dien rapporten in met beperkte zichtbaarheid.',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Eigenaar';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Beheerder van werkruimte';
                     case CONST.POLICY.ROLE.AUDITOR:

@@ -5329,8 +5329,6 @@ ${amount} für ${merchant} – ${date}`,
             guestAlternateText: 'Berichte mit eingeschränkter Sichtbarkeit einreichen.',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Eigentümer';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Workspace-Admin';
                     case CONST.POLICY.ROLE.AUDITOR:
