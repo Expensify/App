@@ -15,8 +15,10 @@ import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
+import canSendAuthTokenToURL from './canSendAuthTokenToURL';
 import HttpsError from './Errors/HttpsError';
 import {setLoadTestParameters} from './Network/LoadTestState';
+import {getEncryptedAuthToken} from './Network/NetworkStore';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
@@ -264,6 +266,42 @@ function processHTTPRequest<TKey extends OnyxKey>(
         .finally(() => markAppStartupNetworkRequestEnd(command));
 }
 
+/** Attachment probes use the current encrypted credentials on every dispatch, including replay. */
+async function head(url: string, signal?: AbortSignal): Promise<number> {
+    const encryptedAuthToken = getEncryptedAuthToken();
+    if (signal?.aborted || !encryptedAuthToken || !canSendAuthTokenToURL(url)) {
+        return CONST.HTTP_STATUS.FORBIDDEN;
+    }
+
+    const controller = new AbortController();
+    const abort = () => controller.abort();
+    const timeout = setTimeout(abort, CONST.TIMING.IMAGE_LOAD_STALL_TIMEOUT);
+    signal?.addEventListener('abort', abort, {once: true});
+    try {
+        const response = await fetch(url, {
+            method: CONST.NETWORK.METHOD.HEAD,
+            body: null,
+            headers: {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: encryptedAuthToken},
+            credentials: 'omit',
+            signal: controller.signal,
+        });
+        if (shouldFailAllRequests || shouldForceOffline) {
+            throw new HttpsError({message: CONST.ERROR.FAILED_TO_FETCH});
+        }
+        return response.status;
+    } catch (error) {
+        if (controller.signal.aborted) {
+            const cancelledError = new Error(CONST.ERROR.REQUEST_CANCELLED);
+            cancelledError.name = CONST.ERROR.REQUEST_CANCELLED;
+            throw cancelledError;
+        }
+        throw error;
+    } finally {
+        clearTimeout(timeout);
+        signal?.removeEventListener('abort', abort);
+    }
+}
+
 /**
  * Makes XHR request
  * @param command the name of the API command
@@ -298,6 +336,7 @@ function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
 
 export default {
     xhr,
+    head,
     cancelPendingRequests,
     processHTTPRequest,
 };
