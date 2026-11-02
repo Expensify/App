@@ -7,8 +7,8 @@ import type {ComponentProps} from 'react';
 
 import React, {useState} from 'react';
 
-/** Stands in for a sensitive answer the server holds, which it never sends back */
-const ON_FILE_MASK = '•••• ••••';
+/** Stands in for a sensitive answer the server holds, which it never sends back. It is shaped like an SSN, the only such answer so far. */
+const ON_FILE_MASK = '•••-••-••••';
 
 type DynamicFormOnFileTextInputProps = Omit<ComponentProps<typeof InputWrapper<typeof TextInput, 'string'>>, 'InputComponent'>;
 
