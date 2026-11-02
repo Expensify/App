@@ -4,6 +4,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {ValueOf} from 'type-fest';
 
 import type {CardID} from './Card';
+import type {CompanyCardFeedWithNumber} from './CardFeeds';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
@@ -1499,6 +1500,12 @@ type OriginalMessageCompanyCardConnectionBroken = {
 
     /** The feed name for which the company card connection was broken */
     feedName: string;
+
+    /** The feed's bank, used as the feed name when the feed has no custom name */
+    bank?: CompanyCardFeedWithNumber;
+
+    /** The account ID of the domain or workspace that holds the feed */
+    fundID?: number;
 };
 
 /**
