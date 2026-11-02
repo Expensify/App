@@ -71,7 +71,7 @@ function FormHelpMessage({
 }: FormHelpMessageProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const icons = useMemoizedLazyExpensifyIcons(['Exclamation']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
     const {getErrorAnnouncementKey} = useContext(FormContext);
     const errorAnnouncementKey = getErrorAnnouncementKey();
 
@@ -137,8 +137,13 @@ function FormHelpMessage({
                     accessible
                     role={CONST.ROLE.IMG}
                     accessibilityLabel={errorIconLabel}
-                    style={[styles.messageDot, styles.messageDotDanger]}
-                />
+                >
+                    <Icon
+                        src={icons.DotIndicator}
+                        size={CONST.ICON_SIZE.EXTRA_SMALL}
+                        fill={theme.danger}
+                    />
+                </View>
             )}
             {isInfo && (
                 <Icon
