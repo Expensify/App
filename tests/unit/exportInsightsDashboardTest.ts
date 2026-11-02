@@ -16,6 +16,7 @@ import {captureRef, releaseCapture} from 'react-native-view-shot';
 import createMock from '../utils/createMock';
 
 const mockDrawImage = jest.fn();
+const mockDrawImageRect = jest.fn();
 const mockClear = jest.fn();
 const mockImageDispose = jest.fn();
 const mockSurfaceDispose = jest.fn();
@@ -31,7 +32,7 @@ jest.mock('@shopify/react-native-skia', () => ({
     Skia: {
         Surface: {
             MakeOffscreen: jest.fn(() => ({
-                getCanvas: () => ({clear: mockClear, drawImage: mockDrawImage}),
+                getCanvas: () => ({clear: mockClear, drawImage: mockDrawImage, drawImageRect: mockDrawImageRect}),
                 flush: jest.fn(),
                 makeImageSnapshot: () => ({encodeToBase64: mockEncode, dispose: mockImageDispose}),
                 dispose: mockSurfaceDispose,
@@ -41,6 +42,7 @@ jest.mock('@shopify/react-native-skia', () => ({
         Image: {MakeImageFromEncoded: jest.fn(() => ({dispose: mockImageDispose}))},
         Paint: () => ({dispose: mockPaintDispose}),
         Color: (color: string) => color,
+        XYWHRect: (x: number, y: number, width: number, height: number) => ({x, y, width, height}),
     },
 }));
 
@@ -101,9 +103,37 @@ describe('exportInsightsDashboard on web', () => {
         expect(domToCanvas).toHaveBeenNthCalledWith(3, content, expect.objectContaining({scale: 2, backgroundColor}));
         expect(fillRect).toHaveBeenCalledWith(0, 0, 1000, 2708);
         expect(drawImage).toHaveBeenCalledWith(headerImage, 0, 0);
-        expect(drawImage).toHaveBeenCalledWith(controlsImage, 200, 168);
+        expect(drawImage).toHaveBeenCalledWith(controlsImage, 200, 168, 400, 60);
         expect(drawImage).toHaveBeenCalledWith(contentImage, 40, 268);
         expect(createDownloadLink).toHaveBeenCalledWith('blob:insights', fileName);
+    });
+
+    it.each([20, -200])('fits the full narrow controls row within the page when its left edge is %s', async (controlsLeft) => {
+        // Given a filter row wider than the page, before or after horizontal scrolling
+        const header = document.createElement('div');
+        const controls = document.createElement('div');
+        const content = document.createElement('div');
+        jest.spyOn(header, 'getBoundingClientRect').mockReturnValue(createMock<DOMRect>({left: 0}));
+        jest.spyOn(controls, 'getBoundingClientRect').mockReturnValue(createMock<DOMRect>({left: controlsLeft}));
+        jest.spyOn(content, 'getBoundingClientRect').mockReturnValue(createMock<DOMRect>({left: 20}));
+        const headerImage = document.createElement('canvas');
+        headerImage.width = 800;
+        headerImage.height = 128;
+        const controlsImage = document.createElement('canvas');
+        controlsImage.width = 1440;
+        controlsImage.height = 72;
+        const contentImage = document.createElement('canvas');
+        contentImage.width = 720;
+        contentImage.height = 2400;
+        captureNode.mockResolvedValueOnce(headerImage).mockResolvedValueOnce(controlsImage).mockResolvedValueOnce(contentImage);
+
+        // When the dashboard is exported at the page's width
+        await exportInsightsDashboard({headerRef: {current: header}, controlsRef: {current: controls}, contentRef: {current: content}, fileName, backgroundColor});
+
+        // Then every filter fits between the page margins without stretching or overlapping the content
+        expect(fillRect).toHaveBeenCalledWith(0, 0, 800, 2684);
+        expect(drawImage).toHaveBeenCalledWith(controlsImage, 40, 168, 720, 36);
+        expect(drawImage).toHaveBeenCalledWith(contentImage, 40, 244);
     });
 
     it('propagates a PNG encoding failure instead of downloading an empty file', async () => {
@@ -196,13 +226,28 @@ describe('exportInsightsDashboard on native', () => {
         expect(captureRef).toHaveBeenNthCalledWith(3, contentRef, expect.objectContaining({width: 800, height: 2400, handleGLSurfaceViewOnAndroid: true}));
         expect(Skia.Surface.MakeOffscreen).toHaveBeenCalledWith(1000, 2708);
         expect(mockClear).toHaveBeenCalledWith(backgroundColor);
-        expect(mockDrawImage).toHaveBeenNthCalledWith(2, expect.anything(), 200, 168, expect.anything());
-        expect(mockDrawImage).toHaveBeenNthCalledWith(3, expect.anything(), 40, 268, expect.anything());
+        expect(mockDrawImageRect).toHaveBeenCalledWith(expect.anything(), {x: 0, y: 0, width: 560, height: 60}, {x: 200, y: 168, width: 560, height: 60}, expect.anything());
+        expect(mockDrawImage).toHaveBeenNthCalledWith(2, expect.anything(), 40, 268, expect.anything());
         expect(RNFS.writeFile).toHaveBeenCalledWith(`/cache/${fileName}`, 'png-base64', 'base64');
         expect(Share.open).toHaveBeenCalledWith({url: `file:///cache/${fileName}`, type: 'image/png', failOnCancel: false});
         expect(RNFS.unlink).toHaveBeenCalledWith(`/cache/${fileName}`);
         expect(releaseCapture).toHaveBeenCalledTimes(3);
         expect(mockSurfaceDispose).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([20, -200])('fits the full narrow controls row within the page when its left edge is %s', async (controlsLeft) => {
+        // Given a filter row wider than the page, before or after horizontal scrolling
+        const headerRef = makeRef(64, 0, 400);
+        const controlsRef = makeRef(36, controlsLeft, 720);
+        const contentRef = makeRef(1200, 20, 360);
+
+        // When the dashboard is exported at the page's width
+        await exportInsightsDashboardNative({headerRef, controlsRef, contentRef, fileName, backgroundColor});
+
+        // Then the full row is scaled into the margins and the content starts below its fitted height
+        expect(Skia.Surface.MakeOffscreen).toHaveBeenCalledWith(800, 2684);
+        expect(mockDrawImageRect).toHaveBeenCalledWith(expect.anything(), {x: 0, y: 0, width: 1440, height: 72}, {x: 40, y: 168, width: 720, height: 36}, expect.anything());
+        expect(mockDrawImage).toHaveBeenNthCalledWith(2, expect.anything(), 40, 244, expect.anything());
     });
 
     it('releases a partial capture when the next section fails', async () => {

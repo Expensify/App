@@ -5,6 +5,7 @@ import type {ISkiaViewApiWeb} from '@shopify/react-native-skia/lib/module/specs/
 
 import type ExportInsightsDashboard from './types';
 
+import getInsightsExportControlsLayout from './getInsightsExportControlsLayout';
 import {INSIGHTS_EXPORT_PADDING, INSIGHTS_EXPORT_SCALE} from './types';
 
 const exportInsightsDashboard: ExportInsightsDashboard = async ({headerRef, controlsRef, contentRef, backgroundColor, fileName}) => {
@@ -70,20 +71,24 @@ const exportInsightsDashboard: ExportInsightsDashboard = async ({headerRef, cont
     );
 
     const [headerImage, controlsImage, contentImage] = captures;
+    const [headerBounds, controlsBounds, contentBounds] = bounds;
+    const controlsLayout = getInsightsExportControlsLayout(
+        {x: (controlsBounds.left - headerBounds.left) * INSIGHTS_EXPORT_SCALE, width: controlsImage.width, height: controlsImage.height},
+        headerImage.width,
+    );
     const padding = INSIGHTS_EXPORT_PADDING * INSIGHTS_EXPORT_SCALE;
     const canvas = document.createElement('canvas');
     canvas.width = headerImage.width;
-    canvas.height = headerImage.height + controlsImage.height + contentImage.height + padding * 3;
+    canvas.height = headerImage.height + controlsLayout.height + contentImage.height + padding * 3;
     const context = canvas.getContext('2d');
     if (!context) {
         throw new Error('Could not create Insights image');
     }
     context.fillStyle = backgroundColor;
     context.fillRect(0, 0, canvas.width, canvas.height);
-    const [headerBounds, controlsBounds, contentBounds] = bounds;
     context.drawImage(headerImage, 0, 0);
-    context.drawImage(controlsImage, (controlsBounds.left - headerBounds.left) * INSIGHTS_EXPORT_SCALE, headerImage.height + padding);
-    context.drawImage(contentImage, (contentBounds.left - headerBounds.left) * INSIGHTS_EXPORT_SCALE, headerImage.height + controlsImage.height + padding * 2);
+    context.drawImage(controlsImage, controlsLayout.x, headerImage.height + padding, controlsLayout.width, controlsLayout.height);
+    context.drawImage(contentImage, (contentBounds.left - headerBounds.left) * INSIGHTS_EXPORT_SCALE, headerImage.height + controlsLayout.height + padding * 2);
     const blob = await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob((image) => (image ? resolve(image) : reject(new Error('Could not encode Insights image'))), 'image/png');
     });

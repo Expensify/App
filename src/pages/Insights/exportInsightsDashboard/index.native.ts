@@ -7,6 +7,7 @@ import {captureRef, releaseCapture} from 'react-native-view-shot';
 import type ExportInsightsDashboard from './types';
 import type {InsightsCaptureRef} from './types';
 
+import getInsightsExportControlsLayout from './getInsightsExportControlsLayout';
 import {INSIGHTS_EXPORT_PADDING, INSIGHTS_EXPORT_SCALE} from './types';
 
 function measure(ref: InsightsCaptureRef): Promise<{x: number; width: number; height: number}> {
@@ -31,13 +32,15 @@ const exportInsightsDashboard: ExportInsightsDashboard = async ({headerRef, cont
     const [headerBounds, controlsBounds, contentBounds] = bounds;
     const width = Math.ceil(headerBounds.width * INSIGHTS_EXPORT_SCALE);
     const headerHeight = Math.ceil(headerBounds.height * INSIGHTS_EXPORT_SCALE);
+    const controlsWidth = Math.ceil(controlsBounds.width * INSIGHTS_EXPORT_SCALE);
     const controlsHeight = Math.ceil(controlsBounds.height * INSIGHTS_EXPORT_SCALE);
+    const controlsLayout = getInsightsExportControlsLayout({x: (controlsBounds.x - headerBounds.x) * INSIGHTS_EXPORT_SCALE, width: controlsWidth, height: controlsHeight}, width);
     const contentHeight = Math.ceil(contentBounds.height * INSIGHTS_EXPORT_SCALE);
     const padding = INSIGHTS_EXPORT_PADDING * INSIGHTS_EXPORT_SCALE;
     const path = `${RNFS.CachesDirectoryPath}/${fileName}`;
     const uris: string[] = [];
     const images = [];
-    const surface = Skia.Surface.MakeOffscreen(width, headerHeight + controlsHeight + contentHeight + padding * 3);
+    const surface = Skia.Surface.MakeOffscreen(width, headerHeight + controlsLayout.height + contentHeight + padding * 3);
     if (!surface) {
         throw new Error('Could not create Insights image');
     }
@@ -71,8 +74,13 @@ const exportInsightsDashboard: ExportInsightsDashboard = async ({headerRef, cont
         const paint = Skia.Paint();
         const [headerImage, controlsImage, contentImage] = images;
         canvas.drawImage(headerImage, 0, 0, paint);
-        canvas.drawImage(controlsImage, (controlsBounds.x - headerBounds.x) * INSIGHTS_EXPORT_SCALE, headerHeight + padding, paint);
-        canvas.drawImage(contentImage, (contentBounds.x - headerBounds.x) * INSIGHTS_EXPORT_SCALE, headerHeight + controlsHeight + padding * 2, paint);
+        canvas.drawImageRect(
+            controlsImage,
+            Skia.XYWHRect(0, 0, controlsWidth, controlsHeight),
+            Skia.XYWHRect(controlsLayout.x, headerHeight + padding, controlsLayout.width, controlsLayout.height),
+            paint,
+        );
+        canvas.drawImage(contentImage, (contentBounds.x - headerBounds.x) * INSIGHTS_EXPORT_SCALE, headerHeight + controlsLayout.height + padding * 2, paint);
         surface.flush();
         const result = surface.makeImageSnapshot();
         const encoded = result.encodeToBase64();

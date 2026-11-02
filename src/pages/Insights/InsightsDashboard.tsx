@@ -76,6 +76,8 @@ type InsightsDashboardContentProps = {
 
     /** Changes how the headline chart aggregates: the time bucket, or Running total */
     onGroupByChange: (update: Partial<InsightsFilters>) => void;
+
+    /** Ref on the scrolling dashboard content so the export includes cards below the fold */
     captureRef: InsightsCaptureRef;
 
     /** Page header rendered at the top of the scroller, so it scrolls away with the charts */
