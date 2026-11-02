@@ -2420,7 +2420,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             exact: true,
                         },
                         [SCREENS.SETTINGS.SECURITY]: {
-                            path: ROUTES.SETTINGS_SECURITY,
+                            path: ROUTES.SETTINGS_SECURITY.route,
                             exact: true,
                         },
                         [SCREENS.SETTINGS.COPILOT]: {
