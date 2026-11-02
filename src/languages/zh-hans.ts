@@ -3011,6 +3011,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTermsAccessibilityLabel: '我同意 Wise 的条款和条件以及隐私政策。',
                 error: '请接受所有条款以继续。',
             },
+            moreInfoNeeded: {headerTitle: '需要更多信息', title: '验证其他信息', subtitle: '我们的支付合作伙伴需要直接向你获取更多信息。这只需要几分钟时间。'},
         },
         wiseGlobalReimbursementsIntro: {
             title: '设置全球报销？',
