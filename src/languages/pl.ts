@@ -6067,8 +6067,18 @@ ${amount} dla ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Konto karty kredytowej',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet ? 'Użyjemy tego konta dla kart, które nie mają własnego konta eksportu.' : 'Wybierz konto domyślne. Użyjemy go dla kart, które nie mają własnego konta eksportu.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? 'Użyjemy tego dostawcy dla wydatków bez dostawcy.' : 'Wybierz domyślnego dostawcę. Użyjemy go dla wydatków bez dostawcy.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Obciążenia kartą kredytową',
+                        nonReimbursableDescription: 'Wydatki z kart firmowych zostaną wyeksportowane do NetSuite jako pojedyncze obciążenia kartą kredytową, z datą każdego zakupu.',
+                        legacyTaxHelper: 'Obciążenia kartą kredytową nie obsługują NetSuite legacy tax. Jeśli używasz legacy tax, wybierz inny typ eksportu.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Raporty wydatków',
                         reimbursableDescription: 'Wydatki z własnej kieszeni zostaną wyeksportowane do NetSuite jako raporty wydatków.',
@@ -6798,6 +6808,18 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ostatni dzień miesiąca',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Ostatni dzień roboczy miesiąca',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Niestandardowy dzień miesiąca',
+            },
+            reimbursable: {
+                title: 'Podlegające zwrotowi',
+                description: 'Wybierz, jak mają być tworzone transakcje kartą. Nowe transakcje będą zgodne z tymi zasadami.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Zawsze podlega zwrotowi',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Zawsze zwracane pracownikom',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Zawsze nie podlega zwrotowi',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Nigdy nie jest zwracane pracownikom',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Podlega zwrotowi',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Najczęściej zwracane pracownikom',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Nie podlega zwrotowi',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Czasami zwracane pracownikom',
             },
             assign: 'Przypisz',
             assignCard: 'Przypisz kartę',
@@ -10305,6 +10327,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             `${enabled ? 'włączone' : 'wyłączone'} posiadaczy karty może usuwać transakcje z karty dla kanału kart „${feedName}”`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `zmienił dzień zakończenia okresu rozliczeniowego dla źródła karty „${feedName}”${newValue ? ` na „${newValue}”` : ''}${previousValue ? ` (wcześniej „${previousValue}”)` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `zmienił(a) ustawienie zwrotu dla kanału kart "${feedName}"${newValue ? ` na "${newValue}"` : ''}${previousValue ? ` (wcześniej "${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `dodano pole raportu typu ${fieldType} „${fieldName}”${defaultValue ? ` z domyślną wartością „${defaultValue}”` : ''}`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
@@ -10678,7 +10702,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nigdy',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'W zeszłym miesiącu',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ten miesiąc',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Od początku roku',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Ten rok',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Ostatnie 12 miesięcy',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Ten tydzień',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'W zeszłym tygodniu',

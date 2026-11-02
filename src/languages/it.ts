@@ -6037,8 +6037,21 @@ ${amount} per ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Conto carta di credito',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Useremo questo conto per le carte che non hanno un proprio conto di esportazione.'
+                    : 'Scegli un conto predefinito. Lo useremo per le carte che non hanno un proprio conto di esportazione.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? 'Useremo questo fornitore per le spese che non hanno un fornitore.' : 'Scegli un fornitore predefinito. Lo useremo per le spese che non hanno un fornitore.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Addebiti sulla carta di credito',
+                        nonReimbursableDescription:
+                            'Le spese con le carte aziendali verranno esportate in NetSuite come singoli addebiti sulla carta di credito, con la data di ogni acquisto.',
+                        legacyTaxHelper: 'Gli addebiti sulla carta di credito non supportano il NetSuite legacy tax. Se usi il legacy tax, scegli un altro tipo di esportazione.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Note spese',
                         reimbursableDescription: 'Le spese anticipate dal dipendente verranno esportate come note spese in NetSuite.',
@@ -6776,6 +6789,18 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Ultimo giorno del mese',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Ultimo giorno lavorativo del mese',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Giorno personalizzato del mese',
+            },
+            reimbursable: {
+                title: 'Rimborsabile',
+                description: 'Scegli come devono essere create le transazioni con carta. Le nuove transazioni seguiranno queste regole.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Sempre rimborsabile',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Sempre rimborsato ai dipendenti',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Sempre non rimborsabile',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Mai rimborsato ai dipendenti',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Rimborsabile',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Più spesso rimborsato ai dipendenti',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Non rimborsabile',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Occasionalmente rimborsato ai dipendenti',
             },
             assign: 'Assegna',
             assignCard: 'Assegna carta',
@@ -10316,6 +10341,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             `${enabled ? 'abilitato' : 'disabilitato'} titolari di carta per eliminare le transazioni della carta per il flusso di carte "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `ha modificato il giorno di fine periodo dell’estratto conto del flusso carta "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (in precedenza "${previousValue}")` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `ha modificato l'impostazione di rimborsabilità del feed carte "${feedName}"${newValue ? ` in "${newValue}"` : ''}${previousValue ? ` (in precedenza "${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `aggiunto campo di report ${fieldType} "${fieldName}"${defaultValue ? ` con valore predefinito "${defaultValue}"` : ''}`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
@@ -10687,7 +10714,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Mai',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Il mese scorso',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Questo mese',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Da inizio anno',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Quest’anno',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Ultimi 12 mesi',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Questa settimana',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'La settimana scorsa',

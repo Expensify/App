@@ -6285,8 +6285,20 @@ const translations = {
                     },
                 },
             },
+            creditCardAccount: 'Credit card account',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? "We'll use this account for cards that don't have their own export account."
+                    : "Choose a default account. We'll use it for cards that don't have their own export account.",
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? "We'll use this vendor for expenses that don't have a vendor." : "Choose a default vendor. We'll use it for expenses that don't have a vendor.",
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Credit card charges',
+                        nonReimbursableDescription: 'Company card expenses will export as individual credit card charges in NetSuite, dated with each purchase.',
+                        legacyTaxHelper: "Credit card charges don't support NetSuite legacy tax. If you use legacy tax, choose another export type.",
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Expense reports',
                         reimbursableDescription: 'Out-of-pocket expenses will export as expense reports to NetSuite.',
@@ -7316,6 +7328,18 @@ const translations = {
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Last day of the month',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Last business day of the month',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Custom day of month',
+            },
+            reimbursable: {
+                title: 'Reimbursable',
+                description: 'Choose how card transactions should be created. New transactions will follow these rules.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Always reimbursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Always paid back to employees',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Always non-reimbursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Never paid back to employees',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Reimbursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Most often paid back to employees',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Non-reimbursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Occasionally paid back to employees',
             },
             assign: 'Assign',
             assignCard: 'Assign card',
@@ -10277,6 +10301,8 @@ const translations = {
         updatedCardFeedLiability: (feedName: string, enabled: boolean) => `${enabled ? 'enabled' : 'disabled'} cardholders to delete card transactions for card feed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `changed card feed "${feedName}" statement period end day${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `changed card feed "${feedName}" reimbursable setting${newValue ? ` to "${newValue}"` : ''}${previousValue ? ` (previously "${previousValue}")` : ''}`,
         agentRule: {
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `added the agent rule "${title}": ${prompt}` : `added an agent rule: ${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `updated the agent rule "${title}" to: ${prompt}` : `updated an agent rule to: ${prompt}`),
@@ -11026,7 +11052,7 @@ const translations = {
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Never',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Last month',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'This month',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Year to date',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'This year',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Last 12 months',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'This week',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Last week',

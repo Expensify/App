@@ -5975,8 +5975,20 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     },
                 },
             },
+            creditCardAccount: 'クレジットカードアカウント',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? '独自のエクスポートアカウントを持たないカードには、このアカウントを使用します。'
+                    : 'デフォルトのアカウントを選択してください。独自のエクスポートアカウントを持たないカードに使用されます。',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? '仕入先のない経費には、この仕入先を使用します。' : 'デフォルトの仕入先を選択してください。仕入先のない経費に使用されます。',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'クレジットカード請求',
+                        nonReimbursableDescription: '法人カードの経費は、購入ごとの日付付きでNetSuiteに個別のクレジットカード請求としてエクスポートされます。',
+                        legacyTaxHelper: 'クレジットカード請求はNetSuiteのレガシー税に対応していません。レガシー税を使用する場合は、別のエクスポートタイプを選択してください。',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: '経費精算書',
                         reimbursableDescription: '自己負担経費は、経費レポートとして NetSuite にエクスポートされます。',
@@ -6694,6 +6706,18 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: '月末最終日',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: '月末最終営業日',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'カスタム日付（毎月）',
+            },
+            reimbursable: {
+                title: '精算対象',
+                description: 'カード取引の作成方法を選択してください。新しい取引にはこのルールが適用されます。',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: '常に精算対象',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: '常に従業員に払い戻されます',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: '常に精算対象外',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: '従業員に払い戻されることはありません',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: '精算対象',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: '多くの場合、従業員に払い戻されます',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: '精算対象外',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'まれに従業員に払い戻されます',
             },
             assign: '割り当て',
             assignCard: 'カードを割り当てる',
@@ -10157,6 +10181,8 @@ ${reportName}`,
         updatedCardFeedLiability: (feedName: string, enabled: boolean) => `カードフィード「${feedName}」のカード取引を削除できるカード保有者の数：${enabled ? '有効' : '無効'}`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `カード明細フィード「${feedName}」の利用明細期間の終了日を変更しました${newValue ? ` を「${newValue}」に` : ''}${previousValue ? ` （以前の値：「${previousValue}」）` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `カードフィードの精算設定を変更しました "${feedName}"${newValue ? ` 変更後 "${newValue}"` : ''}${previousValue ? ` (変更前 "${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `${fieldType}レポートフィールド「${fieldName}」を追加しました${defaultValue ? ` デフォルト値「${defaultValue}」付き` : ''}`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
@@ -10526,7 +10552,7 @@ ${reportName}`,
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: '決してない',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: '先月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: '今月',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '年初来（累計）',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: '今年',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '過去12か月',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: '今週',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: '先週',

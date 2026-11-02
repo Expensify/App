@@ -5987,8 +5987,21 @@ ${amount} para ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Cuenta de tarjeta de crédito',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Usaremos esta cuenta para tarjetas que no tienen su propia cuenta de exportación.'
+                    : 'Elige una cuenta predeterminada. La usaremos para tarjetas que no tienen su propia cuenta de exportación.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? 'Usaremos este proveedor para gastos que no tienen un proveedor.' : 'Elige un proveedor predeterminado. Lo usaremos para gastos que no tienen un proveedor.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Cargos de tarjeta de crédito',
+                        nonReimbursableDescription:
+                            'Los gastos de tarjetas corporativas se exportarán a NetSuite como cargos individuales de tarjeta de crédito, con la fecha de cada compra.',
+                        legacyTaxHelper: 'Los cargos de tarjeta de crédito no admiten el NetSuite legacy tax. Si usas legacy tax, elige otro tipo de exportación.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Informes de gastos',
                         reimbursableDescription: 'Los gastos reembolsables se exportarán como informes de gastos a NetSuite.',
@@ -6672,6 +6685,18 @@ ${amount} para ${merchant} - ${date}`,
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Último día del mes',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Último día hábil del mes',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Día personalizado del mes',
+            },
+            reimbursable: {
+                title: 'Reembolsable',
+                description: 'Elige cómo se deben crear las transacciones de tarjeta. Las nuevas transacciones seguirán estas reglas.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Siempre reembolsable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Siempre se reembolsa a los empleados',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Siempre no reembolsable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Nunca se reembolsa a los empleados',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Reembolsable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Se reembolsa a los empleados con más frecuencia',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'No reembolsable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Se reembolsa a los empleados de forma ocasional',
             },
             assign: 'Asignar',
             assignCard: 'Asignar tarjeta',
@@ -9853,6 +9878,8 @@ ${reportName}`,
             `${enabled ? 'habilitó' : 'deshabilitó'} que los titulares de tarjetas eliminen transacciones de la fuente de tarjetas "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `cambió el día de cierre del período de estado de cuenta de la fuente de tarjetas "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (previamente "${previousValue}")` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `cambió la configuración de reembolsable del feed de tarjetas "${feedName}"${newValue ? ` a "${newValue}"` : ''}${previousValue ? ` (antes "${previousValue}")` : ''}`,
         agentRule: {
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `añadió la regla de agente «${title}»: ${prompt}` : `añadió una regla de agente: ${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `actualizó la regla de agente «${title}» a: ${prompt}` : `actualizó una regla de agente a: ${prompt}`),
@@ -10588,7 +10615,7 @@ ${reportName}`,
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nunca',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'El mes pasado',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Este mes',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Año hasta la fecha',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Este año',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Últimos 12 meses',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Esta semana',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'La semana pasada',

@@ -6077,8 +6077,20 @@ ${amount} für ${merchant} – ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Kreditkartenkonto',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Wir verwenden dieses Konto für Karten, die kein eigenes Exportkonto haben.'
+                    : 'Wähle ein Standardkonto. Wir verwenden es für Karten, die kein eigenes Exportkonto haben.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? 'Wir verwenden diesen Lieferanten für Ausgaben ohne Lieferanten.' : 'Wähle einen Standardlieferanten. Wir verwenden ihn für Ausgaben ohne Lieferanten.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Kreditkartenbuchungen',
+                        nonReimbursableDescription: 'Ausgaben von Firmenkarten werden als einzelne Kreditkartenbuchungen in NetSuite exportiert, mit dem Datum des jeweiligen Kaufs.',
+                        legacyTaxHelper: 'Kreditkartenbuchungen unterstützen die NetSuite-Legacy-Steuer nicht. Wenn du Legacy-Steuer verwendest, wähle einen anderen Exporttyp.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Spesenabrechnungen',
                         reimbursableDescription: 'Auslagen aus eigener Tasche werden als Spesenberichte nach NetSuite exportiert.',
@@ -6824,6 +6836,18 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Letzter Tag des Monats',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Letzter Geschäftstag des Monats',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Benutzerdefinierter Tag des Monats',
+            },
+            reimbursable: {
+                title: 'Erstattungsfähig',
+                description: 'Lege fest, wie Kartentransaktionen erstellt werden sollen. Neue Transaktionen folgen diesen Regeln.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Immer erstattungsfähig',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Wird Mitarbeitenden immer erstattet',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Immer nicht erstattungsfähig',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Wird Mitarbeitenden nie erstattet',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Erstattungsfähig',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Wird Mitarbeitenden meistens erstattet',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Nicht erstattungsfähig',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Wird Mitarbeitenden gelegentlich erstattet',
             },
             assign: 'Zuweisen',
             assignCard: 'Karte zuweisen',
@@ -10365,6 +10389,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             `${enabled ? 'aktiviert' : 'deaktiviert'} Karteninhaber:innen können Kartentransaktionen für Kartenfeed „${feedName}“ löschen`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `Kartenfeed-Tag für das Abrechnungsperiodenende von „${feedName}“ geändert${newValue ? ` in „${newValue}“` : ''}${previousValue ? ` (zuvor „${previousValue}“)` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `hat die Einstellung „Erstattungsfähig“ des Kartenfeeds "${feedName}"${newValue ? ` zu "${newValue}"` : ''}${previousValue ? ` (zuvor "${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `${fieldType}-Berichtsfeld „${fieldName}“${defaultValue ? ` mit Standardwert „${defaultValue}“` : ''} hinzugefügt`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
@@ -10733,7 +10759,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nie',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Letzter Monat',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Diesen Monat',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Laufendes Jahr',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Dieses Jahr',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Letzte 12 Monate',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Diese Woche',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Letzte Woche',
