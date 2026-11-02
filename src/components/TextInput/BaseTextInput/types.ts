@@ -114,6 +114,9 @@ type CustomBaseTextInputProps = ForwardedFSClassProps &
         /** Force the floating label to render on a single line and ellipsize even when the input is multiline */
         shouldLabelStayOnSingleLine?: boolean;
 
+        /** Show the full label in a tooltip on hover when it is cut off. Web only, since there is no hover on native. */
+        shouldShowLabelTooltipWhenTruncated?: boolean;
+
         /** Set the default value to the input if there is a valid saved value */
         shouldUseDefaultValue?: boolean;
 
