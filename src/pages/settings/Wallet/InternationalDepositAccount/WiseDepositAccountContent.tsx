@@ -24,6 +24,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
 import React, {useEffect, useState} from 'react';
+import Onyx from 'react-native-onyx';
 
 type WiseDepositAccountContentProps = {
     backTo?: Route;
@@ -80,6 +81,17 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
         const currency = typeof answers.currency === 'string' ? answers.currency : wiseBankAccountFields?.currency;
         getWiseBankAccountFields(selectedCountry, currency, answers);
     };
+
+    // LOCAL TEST ONLY: close the flow once CreateWiseBankAccount succeeds
+    const isCreated = !!(formState as Record<string, unknown> | undefined)?.isSuccess;
+    useEffect(() => {
+        if (!isCreated) {
+            return;
+        }
+        Onyx.merge(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {isSuccess: null, verificationOfPayee: null});
+        leaveFlow();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isCreated]);
 
     // LOCAL TEST ONLY: a second submit after a verification-of-payee prompt confirms it
     const submitForm = () => {
