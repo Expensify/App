@@ -75,23 +75,23 @@ describe('FloatingActionButton hover', () => {
     });
 
     it('changes background color on hover', () => {
+        // Given a solid FAB that is not hovered, so it does not show the hover background yet
         renderFAB();
         const fab = screen.getByTestId('floating-action-button');
-
-        // Get the animated container by testID
         const animatedContainer = screen.getByTestId('fab-animated-container');
-
-        // Before hover, should not have successHover background
         expect(animatedContainer).not.toHaveStyle({backgroundColor: colors.productDark500});
-
         expect(mockUseAnimatedStyleUpdater()).not.toEqual(expect.objectContaining({backgroundColor: colors.productDark500}));
 
-        // Test hover in
+        // When the pointer enters the FAB
         fireEvent(fab, 'hoverIn');
+
+        // Then the background switches to the hover color to signal the button is interactive
         expect(mockUseAnimatedStyleUpdater()).toEqual(expect.objectContaining({backgroundColor: colors.productDark500}));
 
-        // Test hover out
+        // When the pointer leaves the FAB
         fireEvent(fab, 'hoverOut');
+
+        // Then the background returns to its resting color
         expect(mockUseAnimatedStyleUpdater()).not.toEqual(expect.objectContaining({backgroundColor: colors.productDark500}));
     });
 

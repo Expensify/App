@@ -2043,6 +2043,16 @@ const staticStyles = (theme: ThemeColors) =>
             boxShadow: 'none',
         },
 
+        // The liquid glass behind the icon draws the button's surface and its own depth.
+        floatingActionButtonGlass: {
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+        },
+
+        floatingButtonGlass: {
+            borderRadius: variables.componentBorderRadiusCircle,
+        },
+
         floatingCameraButton: {
             position: 'absolute',
             // floatingActionButton top property value (componentSizeLarge + 16) +
