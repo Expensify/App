@@ -17,6 +17,7 @@ import DateUtils from '@libs/DateUtils';
 import HttpUtils from '@libs/HttpUtils';
 import {clearPreservedNavigatorStates, getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import navigationRef from '@libs/Navigation/navigationRef';
+import * as NetworkStore from '@libs/Network/NetworkStore';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 
 import CONST from '@src/CONST';
@@ -448,6 +449,7 @@ describe('actions/Delegate', () => {
             });
             jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+            const setAuthTokenSpy = jest.spyOn(NetworkStore, 'setAuthToken');
             jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockResolvedValue(undefined);
             jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
 
@@ -463,6 +465,7 @@ describe('actions/Delegate', () => {
             await waitForBatchedUpdates();
 
             // Then the delegator's screens are dropped and the app starts again from the Settings tab, where accounts are switched
+            expect(setAuthTokenSpy).toHaveBeenCalledWith('copilotAuthToken', 'encrypted');
             expect(getPreservedNavigatorState(preservedReportsNavigatorKey)).toBeUndefined();
             expect(resetRootSpy).toHaveBeenCalledTimes(1);
             const resetState = resetRootSpy.mock.calls.at(0)?.at(0);
@@ -526,6 +529,7 @@ describe('actions/Delegate', () => {
         it('starts navigation over from the route the caller passes', async () => {
             // Given an owner copiloting from an agent page, which asks to land on Home because the agent can't use its own Agents pages
             const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
+            const setAuthTokenSpy = jest.spyOn(NetworkStore, 'setAuthToken');
 
             // When the owner copilots into the agent with Home as the landing route
             await connect({
@@ -539,6 +543,7 @@ describe('actions/Delegate', () => {
             await waitForBatchedUpdates();
 
             // Then the app starts again from Home rather than the Settings tab
+            expect(setAuthTokenSpy).toHaveBeenCalledWith('agentRestrictedToken', 'encrypted');
             expect(resetRootSpy).toHaveBeenCalledTimes(1);
             expect(getLandingTabName(resetRootSpy.mock.calls.at(0)?.at(0))).toBe(SCREENS.HOME);
         });

@@ -343,8 +343,8 @@ function updateAuthTokenIfNecessary<TKey extends OnyxKey>(onyxUpdatesFromServer:
             }
 
             Log.info('[OnyxUpdateManager] Found an authToken update while handling an Onyx update gap. Updating the authToken.');
-            updateSessionAuthTokens(newAuthToken);
-            setAuthToken(newAuthToken);
+            updateSessionAuthTokens(newAuthToken, session.encryptedAuthToken);
+            setAuthToken(newAuthToken, session.encryptedAuthToken);
         }
     }
 }

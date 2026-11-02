@@ -1,6 +1,7 @@
 import {isClientTheLeader} from '@libs/ActiveClientManager';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
+import {getAuthToken, getEncryptedAuthToken} from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 
 import type {AppActionsMock} from '@userActions/__mocks__/App';
@@ -66,6 +67,22 @@ const update7 = OnyxUpdateMockUtils.createUpdate(7);
 const update8 = OnyxUpdateMockUtils.createUpdate(8);
 
 describe('OnyxUpdateManager', () => {
+    it('updates both cached authentication tokens before deferred Onyx subscribers run', async () => {
+        // Given a response that replaces the session while an image HEAD can be dispatched immediately
+        await Onyx.set(ONYXKEYS.SESSION, {authToken: 'old-api-token', encryptedAuthToken: 'old-image-token'});
+        await waitForBatchedUpdates();
+        const update = OnyxUpdateMockUtils.createUpdate(2, [
+            {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.SESSION, value: {authToken: 'new-api-token', encryptedAuthToken: 'new-image-token'}},
+        ]);
+
+        // When gap handling accepts the replacement credentials
+        const pendingUpdate = OnyxUpdateManager.handleMissingOnyxUpdates(update);
+
+        // Then an immediate API replay cannot use the encrypted token from the previous session
+        expect(getAuthToken()).toBe('new-api-token');
+        expect(getEncryptedAuthToken()).toBe('new-image-token');
+        await pendingUpdate;
+    });
     let lastUpdateIDAppliedToClient = 1;
     beforeAll(() => {
         Onyx.init({
