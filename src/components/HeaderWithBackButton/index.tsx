@@ -98,7 +98,7 @@ function HeaderWithBackButton({
     // Avatar-header routes skip Header, so register the dialog label here.
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
 
-    const icons = useMemoizedLazyExpensifyIcons(['Download', 'Share', 'Rotate', 'BackArrow', 'Close']);
+    const icons = useMemoizedLazyExpensifyIcons(['Download', 'UploadAlt', 'Rotate', 'BackArrow', 'Close']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -270,7 +270,7 @@ function HeaderWithBackButton({
                                         sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
                                     >
                                         <Icon
-                                            src={shouldUseShareIconForDownloadButton ? icons.Share : icons.Download}
+                                            src={shouldUseShareIconForDownloadButton ? icons.UploadAlt : icons.Download}
                                             fill={iconFill ?? StyleUtils.getIconFillColor({buttonState: getButtonState({isComplete: !isDownloadButtonActive})})}
                                         />
                                     </PressableWithoutFeedback>
