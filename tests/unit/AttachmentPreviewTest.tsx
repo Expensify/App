@@ -28,7 +28,7 @@ beforeEach(() => {
     mockUseEvent.mockClear();
 });
 it('waits for sourceLoad before generating a video thumbnail', async () => {
-    // Given a video player without an initial source event
+    // Given a video whose source has not loaded, so the player has nothing to generate a thumbnail from yet
     const {rerender} = render(
         <AttachmentPreview
             source="clip.mp4"
@@ -39,7 +39,7 @@ it('waits for sourceLoad before generating a video thumbnail', async () => {
     expect(mockUseEvent).toHaveBeenLastCalledWith(mockPlayer, 'sourceLoad', null);
     expect(screen.getByText('play icon')).toBeTruthy();
     expect(mockGenerateThumbnails).not.toHaveBeenCalled();
-    // When sourceLoad supplies a video source
+    // When sourceLoad fires, the first point at which the player reports a loaded video source
     mockEvent = {videoSource: 'clip.mp4'};
     rerender(
         <AttachmentPreview
@@ -49,13 +49,13 @@ it('waits for sourceLoad before generating a video thumbnail', async () => {
         />,
     );
     await waitFor(() => expect(mockGenerateThumbnails).toHaveBeenCalledWith([1]));
-    // Then the production effect requests the thumbnail at one second and renders it
+    // Then a thumbnail is requested at one second and shown, so the preview displays a video frame behind the play icon
     expect(mockGenerateThumbnails).toHaveBeenCalledWith([1]);
     expect(screen.getByText('thumbnail')).toBeTruthy();
 });
 it('keeps the non-video branch without generating a thumbnail', () => {
-    // Given a document attachment
-    // When the production preview renders it
+    // Given a text file attachment, which has no video for the player to load
+    // When the preview chooses how to display it
     render(
         <AttachmentPreview
             source="notes.txt"
@@ -63,7 +63,7 @@ it('keeps the non-video branch without generating a thumbnail', () => {
             onPress={jest.fn()}
         />,
     );
-    // Then it takes the default branch without a video request
+    // Then it uses the default file view and skips the thumbnail request, because a text file has no frame to capture
     expect(screen.getByText('default attachment')).toBeTruthy();
     expect(mockGenerateThumbnails).not.toHaveBeenCalled();
 });

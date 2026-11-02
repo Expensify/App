@@ -59,30 +59,30 @@ beforeEach(() => {
     mockSelection = undefined;
 });
 it.each([CONST.POLICY.TYPE.SUBMIT, CONST.POLICY.TYPE.TEAM, CONST.POLICY.TYPE.CORPORATE])('shows the allowed rows for %s', (type) => {
-    // Given a workspace of the specified plan type
+    // Given each plan this page can open from, because the rows offered depend on the current plan
     mockPolicy = {...createRandomPolicy(1, type), canDowngrade: true};
-    // When the real plan picker renders
+    // When the plan picker builds its rows
     render(<DynamicWorkspaceOverviewPlanTypePage route={createMock<React.ComponentProps<typeof DynamicWorkspaceOverviewPlanTypePage>['route']>({})} />);
-    // Then Personal is absent and Submit is only available for an existing Submit workspace
+    // Then Personal is never offered, and Submit appears only for a Submit workspace because Collect and Control have no downgrade path to it
     expect(mockSelection?.data.map((item) => item.value)).toEqual(type === CONST.POLICY.TYPE.SUBMIT ? ['submit2026', 'team', 'corporate'] : ['team', 'corporate']);
 });
 it('routes a Submit-to-Team selection through upgrade', () => {
-    // Given a Submit workspace with Team available
+    // Given a Submit workspace, which moves to Team through the upgrade flow rather than a direct plan change
     mockPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT), canDowngrade: true};
     render(<DynamicWorkspaceOverviewPlanTypePage route={createMock<React.ComponentProps<typeof DynamicWorkspaceOverviewPlanTypePage>['route']>({})} />);
-    // When Team is selected and saved
+    // When the user picks Team and saves to confirm the move
     act(() => mockSelection?.onSelectRow({value: CONST.POLICY.TYPE.TEAM}));
     fireEvent.press(screen.getByText('common.save'));
-    // Then the picker navigates to the upgrade route
+    // Then the page opens the upgrade route, so the user sees the upgrade screen before the plan changes
     expect(mockNavigate).toHaveBeenCalledWith(expect.stringContaining('upgrade'));
 });
 it('locks annual Control without downgrade permission', () => {
-    // Given a locked annual Control workspace
+    // Given a Control workspace on an annual subscription that cannot downgrade, because the subscriber committed to a member count until the subscription ends
     mockPolicy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), canDowngrade: false};
     mockSubscription = {type: CONST.SUBSCRIPTION.TYPE.ANNUAL};
-    // When the real picker renders
+    // When the user opens the plan picker
     render(<DynamicWorkspaceOverviewPlanTypePage route={createMock<React.ComponentProps<typeof DynamicWorkspaceOverviewPlanTypePage>['route']>({})} />);
-    // Then selection is disabled and confirmation replaces Save
+    // Then the rows are disabled and Confirm replaces Save, because there is no plan change to save
     expect(mockSelection?.isDisabled).toBe(true);
     expect(screen.getByText('common.buttonConfirm')).toBeTruthy();
 });

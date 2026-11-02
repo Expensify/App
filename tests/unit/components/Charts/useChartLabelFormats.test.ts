@@ -33,15 +33,15 @@ beforeEach(() => {
 
 describe('useChartLabelFormats', () => {
     it('uses an object fallback but omits an unsupported plain-string unit', () => {
-        // Given a simulated glyph check that rejects the symbol, and equivalent object and string units
+        // Given a font that cannot draw the euro symbol, with that symbol passed once as an object unit and once as a plain string
         const typeface = createMock<SkTypeface>({getGlyphIDs: (text: string) => [...text].map((char) => (char === '€' ? 0 : 1))});
         const fontManager = createMock<SkTypefaceFontProvider>({matchFamilyStyle: () => typeface});
 
-        // When the production hook formats both unit categories
+        // When the hook formats both units, because charts accept either form
         const objectFormat = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '€', fallback: 'EUR'}, unitPosition: 'right', fontManager}));
         const stringFormat = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: '€', unitPosition: 'right', fontManager}));
 
-        // Then only the object can supply a fallback; position and compact formatting survive
+        // Then only the object has a fallback to show, so the plain string drops its unit instead of drawing a missing glyph; position and compact formatting still apply
         expect(objectFormat.result.current.formatValue(100)).toBe('100 EUR');
         expect(objectFormat.result.current.formatCompactValue(100000)).toBe('100k EUR');
         expect(stringFormat.result.current.formatValue(100)).toBe('100');

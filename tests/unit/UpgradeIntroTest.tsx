@@ -37,10 +37,10 @@ beforeEach(() => {
 });
 describe('UpgradeIntro', () => {
     it('prefers the icon registry when both registries contain a feature name', () => {
-        // Given the report-fields icon appears in both registries
+        // Given a feature icon name found in both registries, so the lookup order decides which asset is shown
         const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.reportFields;
         mockOverlapIcon = feature.icon;
-        // When the real upgrade intro selects the icon
+        // When the upgrade intro picks the feature's icon
         render(
             <UpgradeIntro
                 feature={feature}
@@ -48,16 +48,16 @@ describe('UpgradeIntro', () => {
                 onUpgrade={jest.fn()}
             />,
         );
-        // Then the icon registry wins while illustration membership is retained
+        // Then the icon registry wins and the illustration flag stays set, because that flag controls the icon size and styles on the card
         expect(screen.getByText('feature upgrade')).toBeTruthy();
         expect(mockIntroProps?.iconSrc).toBe(`icon:${feature.icon}`);
         expect(mockIntroProps?.isIllustration).toBe(true);
     });
     it('reports a missing registry icon', () => {
-        // Given a mapped feature whose icon is absent from both registries
+        // Given a mapped feature whose icon is in neither registry, as when a feature is added without loading its icon
         mockMissingIcon = CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.icon;
-        // When the real upgrade intro checks its registry
-        // Then it reports the missing icon instead of rendering a broken card
+        // When the upgrade intro checks its registries
+        // Then it throws and names the icon, so the omission fails loudly instead of rendering a card with no icon
         expect(() =>
             render(
                 <UpgradeIntro
@@ -69,15 +69,15 @@ describe('UpgradeIntro', () => {
         ).toThrow(`Missing icons: ${mockMissingIcon}`);
     });
     it('shows the generic view without a feature', () => {
-        // Given no feature was selected
-        // When the real upgrade intro renders
+        // Given no feature and no workspace, so there is no feature card to show
+        // When the upgrade intro decides what to show
         render(<UpgradeIntro onUpgrade={jest.fn()} />);
-        // Then the generic view is shown
+        // Then the generic view is shown, so the user still sees the price and can go to a workspace to upgrade
         expect(screen.getByText('generic upgrade')).toBeTruthy();
     });
     it('passes the approvals border style to the feature view', () => {
-        // Given an approvals feature tied to a workspace
-        // When the real upgrade intro renders
+        // Given the approvals feature on a workspace, the only feature UpgradeIntro gives its own icon style
+        // When the upgrade intro builds the feature card
         render(
             <UpgradeIntro
                 feature={CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals}
@@ -85,7 +85,7 @@ describe('UpgradeIntro', () => {
                 onUpgrade={jest.fn()}
             />,
         );
-        // Then the approvals illustration receives its square-border style
+        // Then the card receives a zero border radius; only this prop is covered, because UpgradeIntroView ignores the style for a non-illustration icon such as this one
         expect(mockIntroProps?.iconAdditionalStyles).toEqual({borderRadius: 0});
     });
 });
