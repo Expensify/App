@@ -1,32 +1,25 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-
-import type {SettingsNavigatorParamList} from '@navigation/types';
+import Navigation from '@navigation/Navigation';
 
 import WiseAcceptTermsPage from '@pages/settings/Wallet/EnableGlobalReimbursements/Wise/WiseAcceptTermsPage';
 
 import {clearSensitiveAnswers} from '@userActions/DynamicForm';
-import {submitWiseBusinessOnboarding} from '@userActions/Wise';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import SCREENS from '@src/SCREENS';
 
 import type ReactNative from 'react-native';
 
 import React from 'react';
 
-import createMock from '../../../../utils/createMock';
 import * as TestHelper from '../../../../utils/TestHelper';
 
 const mockTranslate = TestHelper.translateLocal;
 
 // The real useFocusEffect throws outside a navigator
 jest.mock('@react-navigation/native', () => ({...jest.requireActual<Record<string, unknown>>('@react-navigation/native'), useFocusEffect: jest.fn()}));
-jest.mock('@navigation/Navigation', () => ({goBack: jest.fn()}));
+jest.mock('@navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@userActions/DynamicForm', () => ({clearSensitiveAnswers: jest.fn()}));
-jest.mock('@userActions/Wise', () => ({submitWiseBusinessOnboarding: jest.fn()}));
-jest.mock('@hooks/useOnyx', () => () => [undefined]);
 jest.mock('@hooks/useDynamicBackPath', () => () => 'settings/wallet/global-reimbursements/1/business-onboarding/confirm');
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabledOrUnknown: () => true}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate, preferredLocale: 'en'}));
@@ -56,9 +49,6 @@ jest.mock('@components/CheckboxWithLabel', () => {
     };
 });
 
-type WiseAcceptTermsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS>;
-
-const BANK_ACCOUNT_ID = 1;
 const ERROR = mockTranslate('walletPage.wiseOnboarding.terms.error');
 const CONFIRM = mockTranslate('common.confirm');
 const TERM_LABELS = [
@@ -71,23 +61,14 @@ function pressConfirm() {
     fireEvent.press(screen.getByText(CONFIRM));
 }
 
-function WiseAcceptTermsPageScreen() {
-    return (
-        <WiseAcceptTermsPage
-            route={createMock<WiseAcceptTermsPageProps['route']>({name: SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS, params: {bankAccountID: String(BANK_ACCOUNT_ID)}})}
-            navigation={createMock<WiseAcceptTermsPageProps['navigation']>({})}
-        />
-    );
-}
-
 describe('WiseAcceptTermsPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    it('keeps the page open with an error until every box is ticked, then submits the business to Wise', () => {
+    it('keeps the page open with an error until every box is ticked, then opens the more info needed page', () => {
         // Given the terms page with only two of the three boxes ticked
-        render(<WiseAcceptTermsPageScreen />);
+        render(<WiseAcceptTermsPage />);
         fireEvent.press(screen.getByLabelText(TERM_LABELS.at(0) ?? ''));
         fireEvent.press(screen.getByLabelText(TERM_LABELS.at(1) ?? ''));
 
@@ -96,20 +77,20 @@ describe('WiseAcceptTermsPage', () => {
 
         // Then the page asks for every term and stays open, since the doc requires all of them
         expect(screen.getByText(ERROR)).toBeOnTheScreen();
-        expect(submitWiseBusinessOnboarding).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
 
         // When the last box is ticked and Confirm is pressed again
         fireEvent.press(screen.getByLabelText(TERM_LABELS.at(2) ?? ''));
         pressConfirm();
 
-        // Then the button still works after the error, the SSN kept in memory for this page is dropped, and the business is submitted for the bank account
+        // Then the button still works after the error, the SSN kept in memory for this page is dropped, and the more info needed page opens
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-        expect(submitWiseBusinessOnboarding).toHaveBeenCalledWith(BANK_ACCOUNT_ID);
+        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
     });
 
     it('hides the error once the user changes a box', () => {
         // Given the error shown after Confirm with nothing ticked
-        render(<WiseAcceptTermsPageScreen />);
+        render(<WiseAcceptTermsPage />);
         pressConfirm();
         expect(screen.getByText(ERROR)).toBeOnTheScreen();
 
