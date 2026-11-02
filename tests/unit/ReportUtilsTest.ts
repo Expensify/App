@@ -11649,6 +11649,12 @@ describe('ReportUtils', () => {
     });
 
     describe('isUnread', () => {
+        beforeAll(async () => {
+            // Earlier tests switch the session to other accounts, and isUnread compares the last actor with the session account
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+        });
+
         it('returns false when the newest visible action was sent by the current user in a one-transaction report', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -11704,6 +11710,75 @@ describe('ReportUtils', () => {
             // report has lastMessageText so generateIsEmptyReport returns false, isUnread proceeds
             expect(isUnread(report, undefined, false, undefined)).toBe(true);
             expect(isUnread(report, undefined, false, undefined)).toBe(true);
+        });
+
+        it('returns false when the current user sent the newest message and the report was not manually marked as unread', () => {
+            // Given a report whose newest message was sent by the current user, with lastReadTime behind it
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+            };
+
+            // When checking whether the report is unread
+            // Then it is read, because the user's own messages never make a report unread on their own
+            expect(isUnread(report, undefined, false, false)).toBe(false);
+        });
+
+        it('returns true when the current user manually marked their own message as unread', () => {
+            // Given a thread where only the current user has written, so markCommentAsUnread keeps them as the last actor,
+            // and the user marked their message as unread, which rolls lastReadTime back and sets the manual marker
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.999',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+                manuallyMarkedUnreadReportActionID: '100',
+            };
+
+            // When checking whether the report is unread
+            // Then it is unread, so the LHN row shows in bold
+            expect(isUnread(report, undefined, false, false)).toBe(true);
+        });
+
+        it('returns false after a manually marked report is read again, even if the marker is still set', () => {
+            // Given a report the user marked as unread and then read, which moves lastReadTime past the newest message
+            // while the manual marker stays until the user navigates back to the report
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:02.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+                manuallyMarkedUnreadReportActionID: '100',
+            };
+
+            // When checking whether the report is unread
+            // Then it is read, because the marker only matters while lastReadTime is behind the newest message
+            expect(isUnread(report, undefined, false, false)).toBe(false);
+        });
+
+        it('returns true when a message from another user is marked as unread', () => {
+            // Given a report where another user wrote the newest message and the user marked it as unread
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.999',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID + 1,
+                manuallyMarkedUnreadReportActionID: '100',
+            };
+
+            // When checking whether the report is unread
+            // Then it is unread, as it was before this change
+            expect(isUnread(report, undefined, false, false)).toBe(true);
         });
     });
 
@@ -11854,6 +11929,9 @@ describe('ReportUtils', () => {
             const reportNameValuePairs = {
                 private_isArchived: DateUtils.getDBTime(),
             };
+
+            // Sign in as a participant of the fake reports so they aren't hidden for the current user
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: 1});
 
             // Add reports to Onyx
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`, archivedReport);
