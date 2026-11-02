@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
 import useRedirectSubmitWorkspaceFeatureUpgrade from '@hooks/useRedirectSubmitWorkspaceFeatureUpgrade';
+import useRedirectToWorkspaceMembersWithoutSelection from '@hooks/useRedirectToWorkspaceMembersWithoutSelection';
 import useRuleBotGuardModal from '@hooks/useRuleBotGuardModal';
 
 import {clearMembersSelectedForRoleChange, discardMembersSelectedForRoleChange, updateWorkspaceMembersRole} from '@libs/actions/Policy/Member';
@@ -65,15 +66,12 @@ function WorkspaceMembersRolePage({policy, route}: WorkspaceMembersRolePageProps
         upgradeFeatureAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.roles.alias,
     });
 
-    // The selection only lives in memory, so a reload or a deep link landing here directly has nothing to act on.
-    const isSelectionLoading = isLoadingOnyxValue(selectedLoginsMetadata);
     const memberCount = memberLogins.length;
-    useEffect(() => {
-        if (isSelectionLoading || memberCount > 0) {
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
-    }, [isSelectionLoading, memberCount, policyID]);
+    useRedirectToWorkspaceMembersWithoutSelection({
+        policyID,
+        isSelectionLoading: isLoadingOnyxValue(selectedLoginsMetadata),
+        selectedMemberCount: memberCount,
+    });
 
     // Leaving without saving drops the selection, so coming back to this screen through history cannot apply a role to
     // members the table no longer has selected.

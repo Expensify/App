@@ -10,6 +10,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useRedirectToWorkspaceMembersWithoutSelection from '@hooks/useRedirectToWorkspaceMembersWithoutSelection';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {setEmployeeWorkArrangement} from '@libs/actions/Policy/DistanceRate';
@@ -33,7 +34,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceMembersChangeWorkArrangementPageProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
@@ -53,15 +54,11 @@ function WorkspaceMembersChangeWorkArrangementPage({policy, personalDetails, rou
     // Members picked on another workspace's member list are left out, even when they also belong to this one
     const selectedAccountIDs = selection?.policyID === policyID ? selection.accountIDs : undefined;
 
-    // The selection only lives in memory, so a page opened from a link or after a refresh has nothing to act on and returns to the members
-    const isSelectionLoading = isLoadingOnyxValue(selectionMetadata);
-    const selectedMemberCount = selectedAccountIDs?.length ?? 0;
-    useEffect(() => {
-        if (isSelectionLoading || selectedMemberCount > 0) {
-            return;
-        }
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
-    }, [isSelectionLoading, selectedMemberCount, policyID]);
+    useRedirectToWorkspaceMembersWithoutSelection({
+        policyID,
+        isSelectionLoading: isLoadingOnyxValue(selectionMetadata),
+        selectedMemberCount: selectedAccountIDs?.length ?? 0,
+    });
 
     const canChangeWorkArrangement =
         isBetaEnabled(CONST.BETAS.COMMUTER_EXCLUSIONS_ARRANGEMENTS) &&
