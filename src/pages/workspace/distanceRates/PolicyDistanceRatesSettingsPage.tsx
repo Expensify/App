@@ -1,7 +1,7 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import CustomUnitDefaultCategorySelector from '@components/CustomUnitDefaultCategorySelector';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -227,15 +227,14 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             errorRowStyles={styles.mh5}
                             onClose={() => clearErrorFields('attributes')}
                         >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canWriteDistanceRates}
-                                title={defaultUnit ? Str.recapitalize(translate(getUnitTranslationKey(defaultUnit))) : ''}
-                                description={translate('workspace.distanceRates.unit')}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.getRoute(policyID))}
-                                interactive={canWriteDistanceRates}
-                                wrapperStyle={[styles.ph5, styles.mt3]}
-                                sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
-                            />
+                            <View style={styles.mt3}>
+                                <MenuItemField
+                                    name={translate('workspace.distanceRates.unit')}
+                                    value={defaultUnit ? Str.recapitalize(translate(getUnitTranslationKey(defaultUnit))) : ''}
+                                    onPress={canWriteDistanceRates ? () => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_UNIT.getRoute(policyID)) : undefined}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.UNIT_SELECTOR}
+                                />
+                            </View>
                         </OfflineWithFeedback>
                     )}
                     {!!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {}) && !!customUnit?.customUnitID && (
@@ -298,13 +297,10 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             errorRowStyles={[styles.mh5, styles.gap3]}
                             onClose={() => clearWorkspaceDistanceAutoUpdateErrors(policyID)}
                         >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canWriteDistanceRates}
-                                title={autoUpdateCountry ? translate(`allCountries.${autoUpdateCountry}`) : ''}
-                                description={translate('common.country')}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID))}
-                                interactive={canWriteDistanceRates}
-                                wrapperStyle={[styles.ph5]}
+                            <MenuItemField
+                                name={translate('common.country')}
+                                value={autoUpdateCountry ? translate(`allCountries.${autoUpdateCountry}`) : ''}
+                                onPress={canWriteDistanceRates ? () => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_GOVERNMENT_RATE_COUNTRY.getRoute(policyID)) : undefined}
                                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.COUNTRY_SELECTOR}
                             />
                         </OfflineWithFeedback>
@@ -333,13 +329,13 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                             errorRowStyles={styles.mh5}
                             onClose={() => clearPolicyCommuterExclusionsErrors(policyID)}
                         >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={getCommuterExclusionsSummary(policy?.commuterExclusions, defaultUnit, translate)}
-                                description={translate('workspace.distanceRates.commuterExclusions.title')}
-                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
-                                wrapperStyle={[styles.ph5, styles.mt3]}
-                            />
+                            <View style={styles.mt3}>
+                                <MenuItemField
+                                    name={translate('workspace.distanceRates.commuterExclusions.title')}
+                                    value={getCommuterExclusionsSummary(policy?.commuterExclusions, defaultUnit, translate)}
+                                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_DISTANCE_RATES_COMMUTER_EXCLUSIONS.getRoute(policyID))}
+                                />
+                            </View>
                         </OfflineWithFeedback>
                     )}
                     <OfflineWithFeedback
