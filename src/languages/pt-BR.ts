@@ -5298,8 +5298,6 @@ ${amount} para ${merchant} - ${date}`,
             guestAlternateText: 'Enviar relatórios com visibilidade limitada.',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Proprietário';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Admin do workspace';
                     case CONST.POLICY.ROLE.AUDITOR:

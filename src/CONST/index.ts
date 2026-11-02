@@ -2919,6 +2919,7 @@ const CONST = {
         ATTRIBUTE_NEUTRAL_ZOOM: 'neutral_zoom',
         ATTRIBUTE_ODOMETER_IMAGE_TYPE: 'odometer_image_type',
         ATTRIBUTE_DURATION_SINCE_NATIVE_APP_STARTUP_MS: 'duration_since_native_app_startup_ms',
+        ATTRIBUTE_DURATION_SINCE_JS_STARTUP_MS: 'duration_since_js_startup_ms',
         CAPTURE_METHOD: {
             PHOTO: 'photo',
             SNAPSHOT: 'snapshot',
@@ -5061,7 +5062,6 @@ const CONST = {
         DEFAULT_FIELD_LIST_TARGET: 'expense',
         DEFAULT_FIELD_LIST_NAME: 'title',
         ROLE: {
-            OWNER: 'owner',
             ADMIN: 'admin',
             AUDITOR: 'auditor',
             GUEST: 'guest',
