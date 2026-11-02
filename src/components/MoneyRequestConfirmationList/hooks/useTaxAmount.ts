@@ -1,9 +1,11 @@
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useOnyx from '@hooks/useOnyx';
+import usePrevious from '@hooks/usePrevious';
+import useRulesPrefetch from '@hooks/useRulesPrefetch';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {calculateTaxAmount, getCategoryTaxCode, getDefaultTaxCode, getTaxValue, hasTaxRateWithMatchingValue} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -63,6 +65,10 @@ function useTaxAmount({
 }: UseTaxAmountParams) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
+    // A category's tax default lives in the `rules_` collection, which only `GetRules` populates. Onyx hydrates it
+    // as empty first, so without waiting the expense picks up the workspace default and the rule never applies.
+    const {areRulesLoading} = useRulesPrefetch(arePolicyRulesEnabled(policy, policyCategories));
 
     // Update the tax code when the default changes (for example, because the transaction currency changed)
     const workspaceDefaultTaxCode = getDefaultTaxCode(policy, transaction) ?? (isMovingTransactionFromTrackExpense ? (getDefaultTaxCode(policyForMovingExpenses, transaction) ?? '') : '');
@@ -71,12 +77,14 @@ function useTaxAmount({
     // The distance rate's default category is written by CategoryDefaultsSetter after this runs, so the rule is
     // resolved against the category the expense is about to carry rather than the empty one this render still sees.
     const category = transaction?.category || (isDistanceRequest ? (getDistanceRateCustomUnit(policy)?.defaultCategory ?? '') : '');
+    const previousCategory = usePrevious(category);
     // Only the workspace default follows the currency, so after a currency change the selection is compared against that
-    // default. The rest of the time it is compared against the category rule's rate, otherwise picking the workspace
-    // default while a rule is active reads as "no selection" and the rule's rate is written straight back over it.
+    // default. The rest of the time it is compared against the rate the category asked for before this render, so that
+    // changing category is not mistaken for a rate the user picked. Comparing against the new category's rule instead
+    // would make the rate the old category left behind look chosen, and the new rule would never be applied.
     const previousDefaultTaxCode = hasCurrencyChanged
         ? previousWorkspaceDefaultTaxCode
-        : (getCategoryTaxCode(category, transaction, policy, rules, previousTransactionCurrency) ?? previousWorkspaceDefaultTaxCode);
+        : (getCategoryTaxCode(previousCategory, transaction, policy, rules, previousTransactionCurrency) ?? previousWorkspaceDefaultTaxCode);
     // A tax that was the old currency's workspace default keeps following that default, so it moves to the new
     // currency's one instead of being taken over by the category rule.
     const isFollowingWorkspaceDefault = hasCurrencyChanged && !!transaction?.taxCode && transaction.taxCode === previousWorkspaceDefaultTaxCode;
@@ -104,7 +112,7 @@ function useTaxAmount({
 
     const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(taxAmount.toString()));
 
-    return {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits};
+    return {defaultTaxCode, defaultTaxValue, shouldKeepCurrentTaxSelection, taxAmountInSmallestCurrencyUnits, areRulesLoading};
 }
 
 export default useTaxAmount;
