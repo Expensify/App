@@ -204,6 +204,8 @@ import {
     isPayer,
     isPayOptional,
     isPolicyRelatedReport,
+    isReportFieldDisabled,
+    isReportFieldDisabledForUser,
     isReportManager,
     isReportOutstanding,
     isReportPendingDelete,
@@ -6288,7 +6290,7 @@ describe('ReportUtils', () => {
                 },
             ]);
 
-            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID, undefined)).toEqual({
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID, undefined, undefined)).toEqual({
                 canHoldRequest: true,
                 canUnholdRequest: false,
             });
@@ -6350,6 +6352,7 @@ describe('ReportUtils', () => {
                     undefined,
                     currentUserAccountID,
                     undefined,
+                    undefined,
                 ),
             ).toEqual({
                 canHoldRequest: false,
@@ -6389,7 +6392,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, adminPolicy, currentUserAccountID, undefined)).toEqual({
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, adminPolicy, currentUserAccountID, undefined, undefined)).toEqual({
                 canHoldRequest: false,
                 canUnholdRequest: false,
             });
@@ -6421,7 +6424,7 @@ describe('ReportUtils', () => {
                 iouReportID: expenseReport.reportID,
             });
 
-            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID, undefined)).toEqual({
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID, undefined, undefined)).toEqual({
                 canHoldRequest: false,
                 canUnholdRequest: false,
             });
@@ -6454,7 +6457,7 @@ describe('ReportUtils', () => {
             });
             expenseCreatedAction.actorAccountID = 99996;
 
-            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID, undefined)).toEqual({
+            expect(canHoldUnholdReportAction(expenseReport, expenseCreatedAction, undefined, expenseTransaction, undefined, currentUserAccountID, undefined, undefined)).toEqual({
                 canHoldRequest: true,
                 canUnholdRequest: false,
             });
@@ -6479,7 +6482,7 @@ describe('ReportUtils', () => {
             });
 
             // When checking whether it can be held, Then Hold is available, because HoldRequest creates the missing IOU action and thread
-            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, expenseTransaction, undefined, currentUserAccountID, undefined)).toEqual({
+            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, expenseTransaction, undefined, currentUserAccountID, undefined, undefined)).toEqual({
                 canHoldRequest: true,
                 canUnholdRequest: false,
             });
@@ -6504,7 +6507,7 @@ describe('ReportUtils', () => {
             });
 
             // When checking whether it can be held, Then Hold is unavailable, because only the requester can hold on an open report
-            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, expenseTransaction, undefined, currentUserAccountID, undefined)).toEqual({
+            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, expenseTransaction, undefined, currentUserAccountID, undefined, undefined)).toEqual({
                 canHoldRequest: false,
                 canUnholdRequest: false,
             });
@@ -6534,7 +6537,7 @@ describe('ReportUtils', () => {
             });
 
             // When checking whether it can be unheld, Then Unhold is unavailable, because removing the hold needs the IOU action's transaction thread
-            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, heldTransaction, adminPolicy, currentUserAccountID, undefined)).toEqual({
+            expect(canHoldUnholdReportAction(expenseReport, undefined, undefined, heldTransaction, adminPolicy, currentUserAccountID, undefined, undefined)).toEqual({
                 canHoldRequest: false,
                 canUnholdRequest: false,
             });
@@ -23481,7 +23484,7 @@ describe('ReportUtils', () => {
             };
 
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined)).toBe(true);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('returns false when title field is disabled', () => {
@@ -23497,7 +23500,7 @@ describe('ReportUtils', () => {
                 managerID: 999,
             };
 
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined)).toBe(false);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns false for non-expense reports', () => {
@@ -23510,7 +23513,7 @@ describe('ReportUtils', () => {
                 managerID: 999,
             };
 
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined)).toBe(false);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when policy is not a paid group policy', () => {
@@ -23524,7 +23527,7 @@ describe('ReportUtils', () => {
 
             expect(testPolicy.type).toBe(CONST.POLICY.TYPE.PERSONAL);
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(false);
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined)).toBe(false);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns false when user is not admin, owner, approver, or report owner', () => {
@@ -23536,7 +23539,7 @@ describe('ReportUtils', () => {
                 managerID: 999,
             };
 
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined)).toBe(false);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(false);
         });
 
         it('returns true when policy has custom fields but no title field (uses fallback)', () => {
@@ -23567,7 +23570,7 @@ describe('ReportUtils', () => {
             };
 
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined)).toBe(true);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(true);
         });
 
         it('returns true when policy has empty fieldList (uses fallback)', () => {
@@ -23583,7 +23586,121 @@ describe('ReportUtils', () => {
             };
 
             mockedPolicyUtils.isPaidGroupPolicy.mockReturnValueOnce(true);
-            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined)).toBe(true);
+            expect(canEditReportTitle(report, testPolicy, currentUserAccountID, undefined, undefined)).toBe(true);
+        });
+    });
+
+    describe('reportOwnerLogin threading', () => {
+        const THREADING_POLICY_ID = 'part6-policy';
+        const THREADING_SUBMITTER_TO_MANAGER = 'part6-submitter-a@test.com';
+        const THREADING_SUBMITTER_ELSEWHERE = 'part6-submitter-b@test.com';
+        const THREADING_MANAGER_ACCOUNT_ID = 101;
+        const THREADING_OTHER_APPROVER_ACCOUNT_ID = 102;
+
+        const threadingPolicy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE, 'Part 6 threading policy'),
+            id: THREADING_POLICY_ID,
+            role: CONST.POLICY.ROLE.USER,
+            // createRandomPolicy picks a random approvalMode, and only ADVANCED routes through employeeList submitsTo
+            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            owner: 'part6-owner@test.com',
+            // Neither submitter routes here, so a fallback to the default approver fails the test rather than passing it
+            approver: 'part6-default-approver@test.com',
+            employeeList: {
+                [THREADING_SUBMITTER_TO_MANAGER]: {
+                    email: THREADING_SUBMITTER_TO_MANAGER,
+                    role: CONST.POLICY.ROLE.USER,
+                    submitsTo: 'part6-approver-a@test.com',
+                },
+                [THREADING_SUBMITTER_ELSEWHERE]: {
+                    email: THREADING_SUBMITTER_ELSEWHERE,
+                    role: CONST.POLICY.ROLE.USER,
+                    submitsTo: 'part6-approver-b@test.com',
+                },
+            },
+        };
+
+        const buildSubmittedReport = (): Report => ({
+            ...createExpenseReport(606),
+            policyID: THREADING_POLICY_ID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+            managerID: THREADING_MANAGER_ACCOUNT_ID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        });
+
+        const textField: PolicyReportField = {
+            fieldID: 'part6-text-field',
+            name: 'Part 6 text field',
+            type: CONST.REPORT_FIELD_TYPES.TEXT,
+            defaultValue: '',
+            deletable: true,
+            target: CONST.POLICY.DEFAULT_FIELD_LIST_TARGET,
+            values: [],
+            keys: [],
+            externalIDs: [],
+            disabledOptions: [],
+            orderWeight: 1,
+            isTax: false,
+        };
+
+        beforeAll(async () => {
+            // Earlier describes leave the session on another account, and isReportOwner reads the session rather than a parameter
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [THREADING_MANAGER_ACCOUNT_ID]: {accountID: THREADING_MANAGER_ACCOUNT_ID, login: 'part6-approver-a@test.com'},
+                [THREADING_OTHER_APPROVER_ACCOUNT_ID]: {accountID: THREADING_OTHER_APPROVER_ACCOUNT_ID, login: 'part6-approver-b@test.com'},
+            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${THREADING_POLICY_ID}`, threadingPolicy);
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, participantsPersonalDetails);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${THREADING_POLICY_ID}`, null);
+            return waitForBatchedUpdates();
+        });
+
+        it('should decide from the reportOwnerLogin the caller passes rather than the personal details store', () => {
+            // Given a submitted expense report the current user owns, held by the approver that one submitter routes to
+            const report = buildSubmittedReport();
+
+            // When the login that submits to that same approver arrives, the report is still awaiting its first level,
+            // so the submitter is not locked out of the field
+            expect(isReportFieldDisabled(report, textField, threadingPolicy, undefined, THREADING_SUBMITTER_TO_MANAGER)).toBe(false);
+
+            // Then a login that submits somewhere else flips the answer, which proves the login is read
+            // rather than resolved from the personal details store inside the call
+            expect(isReportFieldDisabled(report, textField, threadingPolicy, undefined, THREADING_SUBMITTER_ELSEWHERE)).toBe(true);
+        });
+
+        it('should decide canModifyHoldStatus from the reportOwnerLogin the caller passes', () => {
+            // Given the same submitted report, and an IOU action the current user created so isActionOwner holds
+            const report = buildSubmittedReport();
+            const iouAction: ReportAction = {
+                ...createRandomReportAction(607),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+            };
+
+            // When the owner login routes to the approver holding the report, it is still awaiting its first level, so hold is allowed
+            expect(canModifyHoldStatus(report, iouAction, currentUserAccountID, false, undefined, THREADING_SUBMITTER_TO_MANAGER)).toBe(true);
+
+            // Then a login that submits elsewhere flips the answer, which proves canModifyHoldStatus reads the parameter
+            expect(canModifyHoldStatus(report, iouAction, currentUserAccountID, false, undefined, THREADING_SUBMITTER_ELSEWHERE)).toBe(false);
+        });
+
+        it('should carry the reportOwnerLogin through isReportFieldDisabledForUser', () => {
+            // Given the same report, reached through the forwarder the components actually call
+            const report = buildSubmittedReport();
+
+            // When the owner is the current user, the admin-owner-approver check passes and only the login decides
+            expect(isReportFieldDisabledForUser(report, textField, threadingPolicy, currentUserAccountID, undefined, THREADING_SUBMITTER_TO_MANAGER)).toBe(false);
+
+            // Then the same call with a login that submits elsewhere is disabled, so the forwarder is not dropping it
+            expect(isReportFieldDisabledForUser(report, textField, threadingPolicy, currentUserAccountID, undefined, THREADING_SUBMITTER_ELSEWHERE)).toBe(true);
         });
     });
 
@@ -26357,7 +26474,7 @@ describe('ReportUtils', () => {
         it('should return false when policy does not have areReportFieldsEnabled enabled', () => {
             const policyWithFieldsDisabled = {...basePolicy, areReportFieldsEnabled: false};
 
-            expect(hasVisibleReportFieldViolations(expenseReport, policyWithFieldsDisabled, currentUserAccountID, undefined, undefined)).toBe(false);
+            expect(hasVisibleReportFieldViolations(expenseReport, policyWithFieldsDisabled, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return false when the report is not an expense report or invoice report', () => {
@@ -26367,7 +26484,7 @@ describe('ReportUtils', () => {
                 policyID,
             };
 
-            expect(hasVisibleReportFieldViolations(chatReport, basePolicy, currentUserAccountID, undefined, undefined)).toBe(false);
+            expect(hasVisibleReportFieldViolations(chatReport, basePolicy, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return true when expense report has a required field with no value', async () => {
@@ -26385,7 +26502,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(expenseReport, policyWithEmptyField, currentUserAccountID, undefined, undefined)).toBe(true);
+            expect(hasVisibleReportFieldViolations(expenseReport, policyWithEmptyField, currentUserAccountID, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should return true when an unpaid invoice report has a required field with no value', async () => {
@@ -26415,7 +26532,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined)).toBe(true);
+            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, undefined)).toBe(true);
         });
 
         it('should return false when a paid invoice report has a required field with no value', async () => {
@@ -26445,7 +26562,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyInvoiceField);
             await waitForBatchedUpdates();
 
-            expect(hasVisibleReportFieldViolations(paidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined)).toBe(false);
+            expect(hasVisibleReportFieldViolations(paidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, undefined)).toBe(false);
         });
 
         it('should return false when an unpaid invoice report required field has value in reportNameValuePairs', () => {
@@ -26479,7 +26596,7 @@ describe('ReportUtils', () => {
                 },
             };
 
-            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, reportNameValuePairs)).toBe(false);
+            expect(hasVisibleReportFieldViolations(unpaidInvoiceReport, policyWithEmptyInvoiceField, currentUserAccountID, undefined, undefined, reportNameValuePairs)).toBe(false);
         });
     });
 
@@ -28989,25 +29106,25 @@ describe('ReportUtils', () => {
 
         it('returns false for non-money-request reports', () => {
             const chatReport = makeReport({type: CONST.REPORT.TYPE.CHAT});
-            expect(canModifyHoldStatus(chatReport, makeReportAction(), currentUserAccountID, true, undefined)).toBe(false);
+            expect(canModifyHoldStatus(chatReport, makeReportAction(), currentUserAccountID, true, undefined, undefined)).toBe(false);
         });
 
         it('returns true for IOU report when user is action owner', () => {
             const iouReport = makeReport({type: CONST.REPORT.TYPE.IOU});
             const reportAction = makeReportAction({actorAccountID: currentUserAccountID});
-            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false, undefined)).toBe(true);
+            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false, undefined, undefined)).toBe(true);
         });
 
         it('returns true for IOU report when user is manager', () => {
             const iouReport = makeReport({type: CONST.REPORT.TYPE.IOU, managerID: currentUserAccountID});
             const reportAction = makeReportAction({actorAccountID: 999});
-            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false, undefined)).toBe(true);
+            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false, undefined, undefined)).toBe(true);
         });
 
         it('returns false for IOU report when user is neither owner nor manager', () => {
             const iouReport = makeReport({type: CONST.REPORT.TYPE.IOU, managerID: 888});
             const reportAction = makeReportAction({actorAccountID: 999});
-            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false, undefined)).toBe(false);
+            expect(canModifyHoldStatus(iouReport, reportAction, currentUserAccountID, false, undefined, undefined)).toBe(false);
         });
 
         it('returns true for open expense report when user is action owner', () => {
@@ -29017,7 +29134,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             });
             const reportAction = makeReportAction({actorAccountID: currentUserAccountID});
-            expect(canModifyHoldStatus(openExpenseReport, reportAction, currentUserAccountID, false, undefined)).toBe(true);
+            expect(canModifyHoldStatus(openExpenseReport, reportAction, currentUserAccountID, false, undefined, undefined)).toBe(true);
         });
 
         it('returns false for open expense report when user is not action owner', () => {
@@ -29027,7 +29144,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             });
             const reportAction = makeReportAction({actorAccountID: 999});
-            expect(canModifyHoldStatus(openExpenseReport, reportAction, currentUserAccountID, false, undefined)).toBe(false);
+            expect(canModifyHoldStatus(openExpenseReport, reportAction, currentUserAccountID, false, undefined, undefined)).toBe(false);
         });
 
         it('returns true for admin on processing expense report', () => {
@@ -29037,7 +29154,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             });
             const reportAction = makeReportAction({actorAccountID: 999});
-            expect(canModifyHoldStatus(processingReport, reportAction, currentUserAccountID, true, undefined)).toBe(true);
+            expect(canModifyHoldStatus(processingReport, reportAction, currentUserAccountID, true, undefined, undefined)).toBe(true);
         });
 
         it('returns true for manager on processing expense report', () => {
@@ -29048,7 +29165,7 @@ describe('ReportUtils', () => {
                 managerID: currentUserAccountID,
             });
             const reportAction = makeReportAction({actorAccountID: 999});
-            expect(canModifyHoldStatus(processingReport, reportAction, currentUserAccountID, false, undefined)).toBe(true);
+            expect(canModifyHoldStatus(processingReport, reportAction, currentUserAccountID, false, undefined, undefined)).toBe(true);
         });
 
         it('returns false for admin on non-processing expense report', () => {
@@ -29058,7 +29175,7 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             });
             const reportAction = makeReportAction({actorAccountID: 999});
-            expect(canModifyHoldStatus(approvedReport, reportAction, currentUserAccountID, true, undefined)).toBe(false);
+            expect(canModifyHoldStatus(approvedReport, reportAction, currentUserAccountID, true, undefined, undefined)).toBe(false);
         });
     });
 

@@ -6,6 +6,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useSaveReportField from '@hooks/useSaveReportField';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,6 +29,7 @@ import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
@@ -120,6 +122,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const {getCurrencyDecimals} = useCurrencyListActions();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [reportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(report?.ownerAccountID));
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
 
@@ -147,7 +150,7 @@ function MoneyRequestViewReportFields({report, policy, pendingAction, style, sho
         .filter((reportField) => !shouldHideSingleReportField(reportField))
         .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
         .map((field): EnrichedPolicyReportField => {
-            const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules);
+            const isFieldDisabled = isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin);
             const isDeletedFormulaField = field.type === CONST.REPORT_FIELD_TYPES.FORMULA && field.deletable;
             const fieldKey = getReportFieldKey(field.fieldID);
             const isFieldOnPolicy = !!(policy?.fieldList?.[fieldKey] ?? policy?.fieldList?.[field.fieldID]);

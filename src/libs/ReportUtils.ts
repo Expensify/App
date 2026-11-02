@@ -5651,15 +5651,19 @@ function isReportExcludedForHeldExpenses(iouReport: OnyxEntry<Report>, transacti
  * 1. The user is not admin of the report
  * 2. Report is settled, closed, approved, or submitted and already forwarded for review
  */
-function isReportFieldDisabled(report: OnyxEntry<Report>, reportField: OnyxEntry<PolicyReportField>, policy: OnyxEntry<Policy>, rules: OnyxCollection<Rule>): boolean {
+function isReportFieldDisabled(
+    report: OnyxEntry<Report>,
+    reportField: OnyxEntry<PolicyReportField>,
+    policy: OnyxEntry<Policy>,
+    rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
+): boolean {
     const isReportSettled = isSettled(report?.reportID);
     const isReportClosed = isClosedReport(report);
     const isTitleField = isReportFieldOfTypeTitle(reportField);
     const isAdmin = isPolicyAdmin(policy);
     const isApproved = isReportApproved({report});
-    // TODO: Pass reportOwnerLogin in Part 6, once isReportFieldDisabled takes it first.
-    // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-    const isForwardedForSubmitter = isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, undefined);
+    const isForwardedForSubmitter = isReportOwner(report) && isExpenseReport(report) && isProcessingReport(report) && !isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin);
     if (!isAdmin && (isReportSettled || isReportClosed || isApproved || isForwardedForSubmitter)) {
         return true;
     }
@@ -5682,8 +5686,9 @@ function isReportFieldDisabledForUser(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
 ): boolean {
-    return isReportFieldDisabled(report, reportField, policy, rules) || !isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID);
+    return isReportFieldDisabled(report, reportField, policy, rules, reportOwnerLogin) || !isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID);
 }
 
 /**
@@ -5696,10 +5701,16 @@ function isReportFieldDisabledForUser(
  * - the report is an expense report,
  * - the report belongs to a paid group policy.
  */
-function canEditReportTitle(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>, currentUserAccountID: number | undefined, rules: OnyxCollection<Rule>): boolean {
+function canEditReportTitle(
+    report: OnyxEntry<Report>,
+    policy: OnyxEntry<Policy>,
+    currentUserAccountID: number | undefined,
+    rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
+): boolean {
     const titleField =
         getAvailableReportFields(report, Object.values(policy?.fieldList ?? {})).find((reportField) => isReportFieldOfTypeTitle(reportField)) ?? getTitleFieldWithFallback(policy);
-    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules);
+    const isFieldDisabled = isReportFieldDisabled(report, titleField, policy, rules, reportOwnerLogin);
 
     return !isFieldDisabled && isAdminOwnerApproverOrReportOwner(report, policy, currentUserAccountID) && isExpenseReport(report) && isGroupPolicyPolicyUtils(policy);
 }
@@ -6434,7 +6445,14 @@ function canEditReportAction(
     );
 }
 
-function canModifyHoldStatus(report: Report, reportAction: OnyxEntry<ReportAction>, currentUserAccountID: number | undefined, isAdmin: boolean, rules: OnyxCollection<Rule>): boolean {
+function canModifyHoldStatus(
+    report: Report,
+    reportAction: OnyxEntry<ReportAction>,
+    currentUserAccountID: number | undefined,
+    isAdmin: boolean,
+    rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
+): boolean {
     if (!isMoneyRequestReport(report) || isTrackExpenseReport(report)) {
         return false;
     }
@@ -6451,9 +6469,7 @@ function canModifyHoldStatus(report: Report, reportAction: OnyxEntry<ReportActio
     }
 
     if (isActionOwner && !isAdmin) {
-        // TODO: Pass reportOwnerLogin in Part 7, once canModifyHoldStatus takes it first.
-        // isAwaitingFirstLevelApproval falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
-        return isAwaitingFirstLevelApproval(report, rules, undefined);
+        return isAwaitingFirstLevelApproval(report, rules, reportOwnerLogin);
     }
 
     return (isAdmin || isManager) && isProcessingReport(report);
@@ -6467,6 +6483,7 @@ function canHoldUnholdReportAction(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
 ): {canHoldRequest: boolean; canUnholdRequest: boolean} {
     // Some reported expenses have no IOU action. HoldRequest creates the missing action and transaction thread, so they can still be held.
     // Unlike canEditFieldOfMoneyRequest, this check never looks up the expense's report and judges everything on the report passed in.
@@ -6489,7 +6506,7 @@ function canHoldUnholdReportAction(
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isClosed = isClosedReport(report);
 
-    const canModifyStatus = canModifyHoldStatus(report, reportAction, currentUserAccountID, isAdmin, rules);
+    const canModifyStatus = canModifyHoldStatus(report, reportAction, currentUserAccountID, isAdmin, rules, reportOwnerLogin);
     const canModifyUnholdStatus = !isTrackExpenseMoneyReport && (isAdmin || (isActionOwner && isHoldActionCreator) || isApprover);
 
     const canHoldOrUnholdRequest = !isRequestSettled && !isApproved && !isClosed && !isDeletedParentAction(reportAction);
@@ -11013,6 +11030,7 @@ function hasVisibleReportFieldViolations(
     policy: OnyxEntry<Policy>,
     currentUserAccountID: number | undefined,
     rules: OnyxCollection<Rule>,
+    reportOwnerLogin: string | undefined,
     reportNameValuePairs: OnyxEntry<ReportNameValuePairs>,
 ): boolean {
     const areFieldsEnabledForReport = isInvoiceReport(report) ? policy?.areInvoiceFieldsEnabled : policy?.areReportFieldsEnabled;
@@ -11044,7 +11062,7 @@ function hasVisibleReportFieldViolations(
         if (shouldHideSingleReportField(field)) {
             return false;
         }
-        if (isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules)) {
+        if (isReportFieldDisabledForUser(report, field, policy, currentUserAccountID, rules, reportOwnerLogin)) {
             return false;
         }
         return !!getFieldViolation(field);

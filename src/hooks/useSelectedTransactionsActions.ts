@@ -343,7 +343,16 @@ function useSelectedTransactionsActions({
             }
             const iouReportAction = getTransactionIOUAction(selectedTransaction, selectedTransaction.transactionID);
             const holdReportAction = getReportAction(iouReportAction?.childReportID, `${selectedTransaction?.comment?.hold ?? ''}`);
-            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(report, iouReportAction, holdReportAction, selectedTransaction, policy, currentUserAccountID, rules);
+            const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(
+                report,
+                iouReportAction,
+                holdReportAction,
+                selectedTransaction,
+                policy,
+                currentUserAccountID,
+                rules,
+                getLoginByAccountID(report?.ownerAccountID, personalDetails),
+            );
 
             canHoldTransactions = canHoldTransactions && canHoldRequest;
             canUnholdTransactions = canUnholdTransactions && canUnholdRequest;

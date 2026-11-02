@@ -29,6 +29,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {moveFullContextMenuFocusWithArrowKey} from '@libs/moveContextMenuFocusWithArrowKey';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {
     getLinkedTransactionID,
     getOneTransactionThreadReportAction,
@@ -305,6 +306,7 @@ function BaseReportActionContextMenu({
                 moneyRequestReport,
                 moneyRequestAction,
                 moneyRequestPolicy,
+                moneyRequestReportOwnerLogin: getLoginByAccountID(moneyRequestReport?.ownerAccountID, personalDetails),
                 areHoldRequirementsMet,
                 isDebugModeEnabled,
                 iouTransaction,
