@@ -487,8 +487,8 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
             connectionMessage = translate('workspace.accounting.lastSync', datetimeToRelative);
         }
 
-        // Zoho Books export and advanced screens are added in a later release, so hide their entry points until then.
-        const shouldShowExportAndAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+        // Zoho Books advanced screens are added in a later release, so hide their entry points until then.
+        const shouldShowAdvancedOptions = connectedIntegration !== CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
         const configurationOptions = canWriteAccounting
             ? [
                   {
@@ -502,26 +502,21 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                           : undefined,
                       pendingAction: settingsPendingAction(integrationData?.subscribedImportSettings, integrationData?.pendingFields),
                   },
-                  ...(shouldShowExportAndAdvancedOptions
-                      ? [
-                            {
-                                icon: icons.Send,
-                                iconRight: icons.ArrowRight,
-                                shouldShowRightIcon: true,
-                                title: translate('workspace.accounting.export'),
-                                onPress: integrationData?.onExportPagePress,
-                                brickRoadIndicator:
-                                    areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
-                                    shouldShowReimbursableExportDestinationAccountError(policy) ||
-                                    integrationData?.externalSubscribedExportSettingsHasErrorFields
-                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                        : undefined,
-                                pendingAction:
-                                    settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields) ??
-                                    integrationData?.externalSubscribedExportSettingsPendingAction,
-                            },
-                        ]
-                      : []),
+                  {
+                      icon: icons.Send,
+                      iconRight: icons.ArrowRight,
+                      shouldShowRightIcon: true,
+                      title: translate('workspace.accounting.export'),
+                      onPress: integrationData?.onExportPagePress,
+                      brickRoadIndicator:
+                          areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ||
+                          shouldShowReimbursableExportDestinationAccountError(policy) ||
+                          integrationData?.externalSubscribedExportSettingsHasErrorFields
+                              ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                              : undefined,
+                      pendingAction:
+                          settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields) ?? integrationData?.externalSubscribedExportSettingsPendingAction,
+                  },
                   ...(shouldShowCardReconciliationOption && integrationData?.onCardReconciliationPagePress
                       ? [
                             {
@@ -533,7 +528,7 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {onDisconn
                             },
                         ]
                       : []),
-                  ...(shouldShowExportAndAdvancedOptions
+                  ...(shouldShowAdvancedOptions
                       ? [
                             {
                                 icon: icons.Gear,

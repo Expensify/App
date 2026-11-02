@@ -711,6 +711,7 @@ const CONST = {
         DUALENTRY: 'DualEntry',
         CAMPFIRE: 'Campfire',
         DIGITS: 'Digits',
+        ZOHO_BOOKS: 'Zoho Books',
         BUSINESS_CENTRAL: 'Dynamics 365 Business Central',
     },
 
@@ -7342,6 +7343,8 @@ const CONST = {
         SCROLLBAR: 'scrollbar',
         /** Use for text fields that are used for searching. */
         SEARCHBOX: 'searchbox',
+        /** Use for dividers, including focusable ones that resize the areas on either side. */
+        SEPARATOR: 'separator',
         /** Use for adjustable elements like sliders. */
         SLIDER: 'slider',
         /** Use for a button that opens a list of choices. */
@@ -10142,6 +10145,9 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
+
+            /** How far, in px, one arrow key press on a focused column edge moves it. */
+            KEYBOARD_STEP: 8,
 
             /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
             GRIP_HEIGHT_RATIO: 0.4,
