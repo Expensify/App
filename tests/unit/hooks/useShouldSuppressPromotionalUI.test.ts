@@ -134,4 +134,16 @@ describe('useShouldSuppressPromotionalUI', () => {
         // Then promotional UI waits so it does not open next to the prompt
         expect(result.current).toBe(true);
     });
+
+    it('returns false once the link account is the signed-in session', () => {
+        // Given the same launch link, with the switch confirmed and the link account now signed in
+        mockUseOnyx([false, LOADED], [false, LOADED], INCOMING_EMAIL);
+        mockNavigation(OTHER_ACCOUNT_TRANSITION_URL, true);
+
+        // When the hook is read
+        const {result} = renderHook(() => useShouldSuppressPromotionalUI());
+
+        // Then the new account gets its promotional UI as usual
+        expect(result.current).toBe(false);
+    });
 });
