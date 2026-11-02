@@ -6631,6 +6631,12 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             remaining: '剩余',
             remainingLimit: '剩余额度',
             requestLimitIncrease: '请求提高限额',
+            bankAccountSuccessTitle: '恭喜！你现在可以分配 Expensify 卡了。',
+            bankAccountSuccessLimit: (limit) => `获批的总额度为 ${limit}，如有需要，你可以申请提高额度。`,
+            bankAccountSuccessReviewingPrefix: '总额度',
+            bankAccountSuccessReviewingSuffix: '，如有需要，你可以申请提高额度。',
+            bankAccountSuccessReviewingStatus: '审核中',
+            bankAccountSuccessReviewingExplanation: '我们的团队正在审核你的信息。卡片额度确定后，我们会通知你。',
             remainingLimitDescription:
                 '在计算您的剩余额度时，我们会考虑多个因素：您作为客户的合作年限、您在注册过程中提供的与业务相关的信息，以及您企业银行账户中的可用现金。您的剩余额度可能会每天发生变化。',
             earnedCashback: '返现',

@@ -6779,6 +6779,12 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             remaining: '残り',
             remainingLimit: '残りの上限',
             requestLimitIncrease: 'リクエスト上限の引き上げ',
+            bankAccountSuccessTitle: 'おめでとうございます！Expensifyカードを割り当てられるようになりました。',
+            bankAccountSuccessLimit: (limit) => `承認された合計利用限度額は${limit}です。必要に応じて増額を申請できます。`,
+            bankAccountSuccessReviewingPrefix: '合計利用限度額は',
+            bankAccountSuccessReviewingSuffix: 'です。必要に応じて増額を申請できます。',
+            bankAccountSuccessReviewingStatus: '審査中',
+            bankAccountSuccessReviewingExplanation: '担当チームがお客様の情報を確認しています。利用限度額が決まり次第お知らせします。',
             remainingLimitDescription:
                 '残りの限度額を算出する際には、お客様としてのご利用期間、登録時にご提供いただいた事業関連情報、およびビジネス用銀行口座の利用可能残高など、複数の要素を考慮します。残りの限度額は日々変動する可能性があります。',
             earnedCashback: 'キャッシュバック',

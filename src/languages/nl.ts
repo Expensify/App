@@ -6857,6 +6857,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             remaining: 'Resterend',
             remainingLimit: 'Resterende limiet',
             requestLimitIncrease: 'Verhoging van limiet aanvragen',
+            bankAccountSuccessTitle: 'Gefeliciteerd! Je kunt nu Expensify-kaarten toewijzen.',
+            bankAccountSuccessLimit: (limit) => `De toegekende totale limiet is ${limit}, maar je kunt indien nodig een verhoging aanvragen.`,
+            bankAccountSuccessReviewingPrefix: 'De totale limiet wordt ',
+            bankAccountSuccessReviewingSuffix: ', maar je kunt indien nodig een verhoging aanvragen.',
+            bankAccountSuccessReviewingStatus: 'beoordeeld',
+            bankAccountSuccessReviewingExplanation: 'Ons team beoordeelt je gegevens. We laten je weten wanneer je kaartlimiet bekend is.',
             remainingLimitDescription:
                 'We houden rekening met een aantal factoren bij het berekenen van je resterende limiet: hoe lang je al klant bent, de zakelijke informatie die je tijdens het aanmelden hebt verstrekt en het beschikbare saldo op je zakelijke bankrekening. Je resterende limiet kan dagelijks schommelen.',
             earnedCashback: 'Cashback',

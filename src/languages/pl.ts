@@ -6884,6 +6884,12 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             remaining: 'Pozostało',
             remainingLimit: 'Pozostały limit',
             requestLimitIncrease: 'Zwiększ limit żądań',
+            bankAccountSuccessTitle: 'Gratulacje! Możesz teraz przydzielać karty Expensify.',
+            bankAccountSuccessLimit: (limit) => `Przyznany łączny limit wynosi ${limit}, ale w razie potrzeby możesz poprosić o jego zwiększenie.`,
+            bankAccountSuccessReviewingPrefix: 'Łączny limit jest ',
+            bankAccountSuccessReviewingSuffix: ', ale w razie potrzeby możesz poprosić o jego zwiększenie.',
+            bankAccountSuccessReviewingStatus: 'w trakcie weryfikacji',
+            bankAccountSuccessReviewingExplanation: 'Nasz zespół sprawdza Twoje dane. Powiadomimy Cię, gdy limit karty będzie gotowy.',
             remainingLimitDescription:
                 'Bierzemy pod uwagę kilka czynników przy obliczaniu Twojego pozostałego limitu: staż jako klient, informacje biznesowe podane podczas rejestracji oraz dostępne środki na koncie firmowym. Twój pozostały limit może zmieniać się każdego dnia.',
             earnedCashback: 'Zwrot gotówki',

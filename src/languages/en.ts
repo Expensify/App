@@ -7360,6 +7360,12 @@ const translations = {
             remaining: 'Remaining',
             remainingLimit: 'Remaining limit',
             requestLimitIncrease: 'Request limit increase',
+            bankAccountSuccessTitle: "Congrats! You're now ready to assign Expensify cards.",
+            bankAccountSuccessLimit: (limit: string) => `The overall limit granted is ${limit}, but you can request a limit increase if needed.`,
+            bankAccountSuccessReviewingPrefix: 'The overall limit granted is ',
+            bankAccountSuccessReviewingSuffix: ', but you can request a limit increase if needed.',
+            bankAccountSuccessReviewingStatus: 'Reviewing',
+            bankAccountSuccessReviewingExplanation: 'Our team is reviewing your information. We’ll let you know when your card limit is ready.',
             remainingLimitDescription:
                 'We consider a number of factors when calculating your remaining limit: your tenure as a customer, the business-related information you provided during signup, and the available cash in your business bank account. Your remaining limit can fluctuate on a daily basis.',
             earnedCashback: 'Cash back',

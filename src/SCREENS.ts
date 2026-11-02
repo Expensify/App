@@ -862,6 +862,7 @@ const SCREENS = {
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW_SPEND_RULE_CURRENCY: 'Workspace_ExpensifyCard_Rule_Currency',
         EXPENSIFY_CARD_VERIFY_WORK_EMAIL: 'Workspace_ExpensifyCard_Verify_Work_Email',
         EXPENSIFY_CARD_BANK_ACCOUNT: 'Workspace_ExpensifyCard_BankAccount',
+        EXPENSIFY_CARD_BANK_ACCOUNT_SUCCESS: 'Workspace_ExpensifyCard_BankAccount_Success',
         EXPENSIFY_CARD_SETTINGS: 'Workspace_ExpensifyCard_Settings',
         DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: 'Dynamic_Workspace_ExpensifyCard_Settings_Account',
         EXPENSIFY_CARD_SETTINGS_FREQUENCY: 'Workspace_ExpensifyCard_Settings_Frequency',

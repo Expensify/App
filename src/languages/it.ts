@@ -6863,6 +6863,12 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             remaining: 'Rimanente',
             remainingLimit: 'Limite rimanente',
             requestLimitIncrease: 'Richiedi aumento limite',
+            bankAccountSuccessTitle: 'Congratulazioni! Ora puoi assegnare le carte Expensify.',
+            bankAccountSuccessLimit: (limit) => `Il limite complessivo concesso è ${limit}, ma puoi richiedere un aumento se necessario.`,
+            bankAccountSuccessReviewingPrefix: 'Il limite complessivo è ',
+            bankAccountSuccessReviewingSuffix: ', ma puoi richiedere un aumento se necessario.',
+            bankAccountSuccessReviewingStatus: 'in fase di revisione',
+            bankAccountSuccessReviewingExplanation: 'Il nostro team sta esaminando le tue informazioni. Ti avviseremo quando il limite sarà definito.',
             remainingLimitDescription:
                 'Consideriamo diversi fattori quando calcoliamo il tuo limite residuo: la tua anzianità come cliente, le informazioni aziendali fornite durante la registrazione e la liquidità disponibile sul conto bancario della tua azienda. Il tuo limite residuo può variare su base giornaliera.',
             earnedCashback: 'Cashback',

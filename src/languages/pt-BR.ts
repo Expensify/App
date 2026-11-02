@@ -6862,6 +6862,12 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             remaining: 'Restante',
             remainingLimit: 'Limite restante',
             requestLimitIncrease: 'Solicitar aumento de limite',
+            bankAccountSuccessTitle: 'Parabéns! Agora você pode atribuir cartões Expensify.',
+            bankAccountSuccessLimit: (limit) => `O limite total concedido é ${limit}, mas você pode solicitar um aumento se precisar.`,
+            bankAccountSuccessReviewingPrefix: 'O limite total está ',
+            bankAccountSuccessReviewingSuffix: ', mas você pode solicitar um aumento se precisar.',
+            bankAccountSuccessReviewingStatus: 'em análise',
+            bankAccountSuccessReviewingExplanation: 'Nossa equipe está analisando suas informações. Avisaremos quando o limite do seu cartão estiver pronto.',
             remainingLimitDescription:
                 'Levamos em conta vários fatores ao calcular seu limite restante: seu tempo como cliente, as informações comerciais fornecidas durante o cadastro e o dinheiro disponível na conta bancária da sua empresa. Seu limite restante pode variar diariamente.',
             earnedCashback: 'Cashback',
