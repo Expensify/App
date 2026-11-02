@@ -85,7 +85,6 @@ import type {ChannelAuthorizationCallback} from 'pusher-js/with-encryption';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import {isSupportalSessionSelector} from '@selectors/Session';
 import {openAuthSessionAsync} from 'expo-web-browser';
 import throttle from 'lodash/throttle';
 import Onyx from 'react-native-onyx';
@@ -148,10 +147,6 @@ Onyx.connectWithoutView({
 
 function isSupportAuthToken(session: OnyxEntry<Session> = deprecatedSession): boolean {
     return session?.authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
-}
-
-function isSupportalSession(): boolean {
-    return isSupportalSessionSelector(deprecatedSession);
 }
 
 /**
@@ -1981,5 +1976,4 @@ export {
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
     clearDisableTwoFactorAuthErrors,
-    isSupportalSession,
 };
