@@ -36,6 +36,8 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        moveUp: 'Omhoog verplaatsen',
+        moveDown: 'Omlaag verplaatsen',
         durationDays: ({count}: {count: number}) => ({
             one: `1 dag`,
             other: `${count} dagen`,
@@ -10613,6 +10615,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             staleResults: {title: 'Vernieuwen nodig', subtitle: 'Deze pagina is verouderd, vernieuw om de laatste versie te zien', buttonText: 'Verversen'},
         },
         columns: 'Kolommen',
+        customizeFields: 'Velden aanpassen',
+        columnMoved: ({columnName, position, total}: {columnName: string; position: string; total: string}) => `${columnName} verplaatst naar positie ${position} van ${total}`,
         editColumns: 'Kolommen bewerken',
         resetColumns: 'Kolommen opnieuw instellen',
         groupColumns: 'Kolommen groeperen',

@@ -36,6 +36,8 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        moveUp: 'Déplacer vers le haut',
+        moveDown: 'Déplacer vers le bas',
         durationDays: ({count}: {count: number}) => ({
             one: `${count} jour`,
             other: `${count} jours`,
@@ -10719,6 +10721,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             staleResults: {title: 'Actualisation requise', subtitle: 'Cette page n’est plus à jour, actualisez-la pour voir les dernières informations', buttonText: 'Actualiser'},
         },
         columns: 'Colonnes',
+        customizeFields: 'Personnaliser les champs',
+        columnMoved: ({columnName, position, total}: {columnName: string; position: string; total: string}) => `Le champ ${columnName} a été déplacé à la position ${position} sur ${total}`,
         editColumns: 'Modifier les colonnes',
         resetColumns: 'Réinitialiser les colonnes',
         groupColumns: 'Regrouper les colonnes',

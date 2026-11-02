@@ -33,6 +33,8 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        moveUp: 'Μετακίνηση προς τα πάνω',
+        moveDown: 'Μετακίνηση προς τα κάτω',
         durationDays: ({count}: {count: number}) => ({
             one: `1 ημέρα`,
             other: `${count} ημέρες`,
@@ -10902,6 +10904,8 @@ ${reportName}`,
             staleResults: {title: 'Απαιτείται ανανέωση', subtitle: 'Αυτή η σελίδα είναι παρωχημένη, κάντε ανανέωση για να δείτε τα πιο πρόσφατα', buttonText: 'Ανανέωση'},
         },
         columns: 'Στήλες',
+        customizeFields: 'Προσαρμογή πεδίων',
+        columnMoved: ({columnName, position, total}: {columnName: string; position: string; total: string}) => `Το πεδίο ${columnName} μετακινήθηκε στη θέση ${position} από ${total}`,
         editColumns: 'Επεξεργασία στηλών',
         resetColumns: 'Επαναφορά στηλών',
         groupColumns: 'Ομαδοποίηση στηλών',

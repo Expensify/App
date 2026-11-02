@@ -1,0 +1,35 @@
+diff --git a/node_modules/react-native-draggable-flatlist/src/components/NestableDraggableFlatList.tsx b/node_modules/react-native-draggable-flatlist/src/components/NestableDraggableFlatList.tsx
+index b84ee99..929c14f 100644
+--- a/node_modules/react-native-draggable-flatlist/src/components/NestableDraggableFlatList.tsx
++++ b/node_modules/react-native-draggable-flatlist/src/components/NestableDraggableFlatList.tsx
+@@ -1,5 +1,5 @@
+ import React, { useRef, useState } from "react";
+-import { findNodeHandle, LogBox } from "react-native";
++import { LogBox } from "react-native";
+ import Animated, {
+   useDerivedValue,
+   useSharedValue,
+@@ -48,7 +48,7 @@ function NestableDraggableFlatListInner<T>(
+   });
+ 
+   const onListContainerLayout = useStableCallback(async ({ containerRef }) => {
+-    const nodeHandle = findNodeHandle(scrollableRef.current);
++    const nativeScrollRef = scrollableRef.current?.getNativeScrollRef();
+ 
+     const onSuccess = (_x: number, y: number) => {
+       listVerticalOffset.value = y;
+@@ -57,12 +57,12 @@ function NestableDraggableFlatListInner<T>(
+       console.log("## nested draggable list measure fail");
+     };
+ 
+-    if (typeof nodeHandle === "number" ) {
++    if (!nativeScrollRef) {
+       return;
+     }
+ 
+     //@ts-ignore
+-    containerRef.current.measureLayout(nodeHandle, onSuccess, onFail);
++    containerRef.current?.measureLayout(nativeScrollRef, onSuccess, onFail);
+   });
+ 
+   const onDragBegin: DraggableFlatListProps<T>["onDragBegin"] = useStableCallback(
