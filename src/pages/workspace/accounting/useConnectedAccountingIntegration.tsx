@@ -478,7 +478,8 @@ function useConnectedAccountingIntegration(policy: OnyxEntry<Policy>, {menuItemW
         }
     };
     const integrationSpecificMenuItems = getIntegrationSpecificMenuItems();
-    const shouldKeepIntegrationSpecificMenuItemOnSyncError = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS;
+    // A failed sync can be caused by the selected entity, so keep its recovery control available unless credentials have failed.
+    const shouldKeepIntegrationSpecificMenuItemOnSyncError = connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS || !hasAuthError;
 
     const getConnectionDetails = () => {
         if (!connectedIntegration || !policyID) {
