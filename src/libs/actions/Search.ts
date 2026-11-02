@@ -2465,20 +2465,19 @@ function getPayOption(
 ) {
     const transactionKeys = Object.keys(selectedTransactions ?? {});
     const firstTransaction = selectedTransactions?.[transactionKeys.at(0) ?? ''];
-    const payableReports = selectedReports.filter((report) => report.canPay);
-    const firstPayableReport = payableReports.at(0);
+    const firstReport = selectedReports.at(0);
     const getSelectedReportType = (report: SelectedReports | undefined) => report?.type ?? getReportType(report);
     const hasLastPaymentMethod =
         selectedReports.length > 0
-            ? payableReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
+            ? selectedReports.every((report) => !!getLastPolicyPaymentMethod(report.policyID, personalPolicyID, lastPaymentMethods))
             : transactionKeys.every((transactionIDKey) => !!getLastPolicyPaymentMethod(selectedTransactions[transactionIDKey].policyID, personalPolicyID, lastPaymentMethods));
 
     const shouldShowBulkPayOption =
         selectedReports.length > 0
-            ? payableReports.length > 0 &&
-              payableReports.every(
+            ? selectedReports.every(
                   (report) =>
-                      getSelectedReportType(report) === getSelectedReportType(firstPayableReport) &&
+                      report.canPay &&
+                      getSelectedReportType(report) === getSelectedReportType(firstReport) &&
                       shouldShowBulkOptionForRemainingTransactions(selectedTransactions, selectedReportIDs, transactionKeys),
               )
             : transactionKeys.every(
