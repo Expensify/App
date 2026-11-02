@@ -1,3 +1,4 @@
+import type NetworkState = require('@libs/NetworkState');
 import type ReportNameUtils = require('@libs/ReportNameUtils');
 import type reportAttributesModuleDefault from '@userActions/OnyxDerived/configs/reportAttributes';
 import {getOldestPreviewActionID, hasPolicyRelevantFieldChanged} from '@userActions/OnyxDerived/configs/reportAttributes';
@@ -813,6 +814,31 @@ describe('reportAttributes compute — policy change code flow', () => {
             });
 
             expect(generateReportAttributes).toHaveBeenCalledWith(expect.objectContaining({reportMetadata}));
+        });
+    });
+
+    describe('isOffline', () => {
+        const singleReport: OnyxCollection<Report> = {[`${ONYXKEYS.COLLECTION.REPORT}r1`]: report1};
+
+        it.each([
+            ['online', true, false],
+            ['offline', false, true],
+        ])('forwards the current network state to generateReportAttributes when %s', (_, hasRadio, expectedIsOffline) => {
+            // Given the device network state. NetworkState is required here rather than imported because beforeEach resets the module
+            // registry, so only this instance is the one the freshly required reportAttributes config reads from.
+            jest.requireActual<typeof NetworkState>('@libs/NetworkState').setHasRadio(hasRadio);
+            const {generateReportAttributes} = jest.requireMock<{generateReportAttributes: jest.Mock}>('@libs/ReportUtils');
+            generateReportAttributes.mockClear();
+
+            // When the report attributes are recomputed
+            config.compute(buildArgs(policies, singleReport), {
+                currentValue: undefined,
+                sourceValues: {[ONYXKEYS.COLLECTION.POLICY]: policies},
+                triggeredKeys: new Set<OnyxKey>([ONYXKEYS.COLLECTION.POLICY]),
+            });
+
+            // Then generateReportAttributes receives isOffline explicitly, so it no longer falls back to the deprecated module-level network subscription
+            expect(generateReportAttributes).toHaveBeenCalledWith(expect.objectContaining({isOffline: expectedIsOffline}));
         });
     });
 
