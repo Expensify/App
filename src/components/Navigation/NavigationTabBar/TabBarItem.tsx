@@ -1,5 +1,4 @@
 import Icon from '@components/Icon';
-import Text from '@components/Text';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -13,6 +12,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import getTabIconFill from './getTabIconFill';
+import TabBarLabel from './TabBarLabel';
 
 type TabBarItemProps = {
     icon: IconAsset;
@@ -42,18 +42,12 @@ function TabBarItem({icon, label, isSelected, isHovered = false, statusIndicator
                     <View style={[styles.navigationTabBarStatusIndicator, styles.statusIndicatorColor(statusIndicatorColor), isHovered && {borderColor: theme.sidebarHover}]} />
                 )}
             </View>
-            <Text
+            <TabBarLabel
+                label={label}
+                isSelected={isSelected}
                 numberOfLines={numberOfLines}
-                style={[
-                    styles.textSmall,
-                    styles.textAlignCenter,
-                    shouldUseNarrowLayout ? styles.mt1 : styles.mt1Half,
-                    isSelected ? styles.textBold : styles.textSupporting,
-                    styles.navigationTabBarLabel,
-                ]}
-            >
-                {label}
-            </Text>
+                style={shouldUseNarrowLayout ? styles.mt1 : styles.mt1Half}
+            />
         </View>
     );
 }
