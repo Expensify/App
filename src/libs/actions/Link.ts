@@ -35,7 +35,7 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
-import type {IntroSelected, PersonalDetailsList, Report, ReportNameValuePairs} from '@src/types/onyx';
+import type {IntroSelected, PersonalDetailsList, Report, ReportNameValuePairs, Session} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
@@ -344,7 +344,7 @@ function getReportLinkRoute(
     }
 
     const backTo = Navigation.getActiveRoute();
-    const report = getReportOrDraftReport(reportRouteParams.reportID);
+    const report = getReportOrDraftReport({reportID: reportRouteParams.reportID});
     if (!reportRouteParams.reportActionID && isMoneyRequestReport(report)) {
         return ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: reportRouteParams.reportID, backTo});
     }
@@ -362,7 +362,7 @@ function getReportLinkRoute(
     return searchReportRoute;
 }
 
-function openLink(href: string, environmentURL: string, isAttachment = false) {
+function openLink(href: string, environmentURL: string, isAttachment: boolean, session: OnyxEntry<Session>) {
     const hasSameOrigin = Url.hasSameExpensifyOrigin(href, environmentURL);
     const hasExpensifyOrigin = Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.EXPENSIFY_URL) || Url.hasSameExpensifyOrigin(href, CONFIG.EXPENSIFY.STAGING_API_ROOT);
     const internalNewExpensifyPath = getInternalNewExpensifyPath(href);
@@ -371,7 +371,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     const isNarrowLayout = getIsNarrowLayout();
     const currentState = navigationRef.getRootState();
     const reportLinkRouteParams = getReportLinkRouteParams(href, internalNewExpensifyPath, hasSameOrigin, hasExpensifyOrigin);
-    const reportLinkRoute = getReportLinkRoute(reportLinkRouteParams, isNarrowLayout, currentState, isAnonymousUser());
+    const reportLinkRoute = getReportLinkRoute(reportLinkRouteParams, isNarrowLayout, currentState, isAnonymousUser(session));
     const focusedSearchReportActionRoute = getFocusedSearchReportActionRoute(reportLinkRouteParams, currentState);
     const routeToNavigate = reportLinkRoute ?? internalNewExpensifyPath;
     const isRHPOpen = currentState?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
@@ -390,7 +390,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     }
 
     if (reportLinkRoute) {
-        if (internalNewExpensifyPath && hasSameOrigin && isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
+        if (internalNewExpensifyPath && hasSameOrigin && isAnonymousUser(session) && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
             signOutAndRedirectToSignIn();
             return;
         }
@@ -408,7 +408,7 @@ function openLink(href: string, environmentURL: string, isAttachment = false) {
     // If we are handling a New Expensify link then we will assume this should be opened by the app internally. This ensures that the links are opened internally via react-navigation
     // instead of in a new tab or with a page refresh (which is the default behavior of an anchor tag)
     if (internalNewExpensifyPath && hasSameOrigin) {
-        if (isAnonymousUser() && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
+        if (isAnonymousUser(session) && !canAnonymousUserAccessRoute(internalNewExpensifyPath)) {
             signOutAndRedirectToSignIn();
             return;
         }
