@@ -20,9 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getChangedApproverActionMessage,
-    getCompanyCardConnectionBroken30DaysMessage,
     getCommuterExclusionMessage,
-    getCompanyCardConnectionBrokenMessage,
     getConciergeAutoSelectDistanceRateMessage,
     getDelegateSubmitMessage,
     getForwardedReportActionMessage,
@@ -74,6 +72,7 @@ import ApprovalFlowContent from './ApprovalFlowContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
+import CompanyCardConnectionBrokenContent from './CompanyCardConnectionBrokenContent';
 import ConciergeAutoMatchVendorContent from './ConciergeAutoMatchVendorContent';
 import ConfirmWhisperContent from './ConfirmWhisperContent';
 import FraudAlertContent from './FraudAlertContent';
@@ -523,19 +522,8 @@ function ActionContentRouter({
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE)) {
         return <IntegrationMessage action={action} />;
     }
-    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN)) {
-        return (
-            <ReportActionItemBasicMessage message="">
-                <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBrokenMessage(translate, action)}</muted-text></comment>`} />
-            </ReportActionItemBasicMessage>
-        );
-    }
-    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
-        return (
-            <ReportActionItemBasicMessage message="">
-                <RenderHTML html={`<comment><muted-text>${getCompanyCardConnectionBroken30DaysMessage(translate, action)}</muted-text></comment>`} />
-            </ReportActionItemBasicMessage>
-        );
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS)) {
+        return <CompanyCardConnectionBrokenContent action={action} />;
     }
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
         return (
