@@ -4265,6 +4265,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `末尾が ${ending} の${label}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
         questionsChanged: 'このページの質問が変更されました',
+        onFile: 'ファイル登録済み',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC は 8 文字または 11 文字で、最初の 6 文字はアルファベット、続く 2 文字または 5 文字はアルファベットまたは数字である必要があります。',

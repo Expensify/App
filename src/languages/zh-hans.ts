@@ -4172,6 +4172,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `尾号为 ${ending} 的${label}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item}${number}`,
         questionsChanged: '此页面上的问题已更改',
+        onFile: '已备案',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC 必须为 8 或 11 个字符长度，由 6 个字母后接 2 或 5 个字母或数字组成。',

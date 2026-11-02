@@ -4319,6 +4319,7 @@ ${amount} für ${merchant} – ${date}`,
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} mit der Endung ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Die Fragen auf dieser Seite haben sich geändert',
+        onFile: 'Vorhanden',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
