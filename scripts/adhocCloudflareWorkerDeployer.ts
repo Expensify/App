@@ -214,9 +214,6 @@ function parseCLI(): PreviewOptions {
 async function main(): Promise<void> {
     // Parse first so --help and invalid arguments work without CI credentials.
     const options = parseCLI();
-    if (!process.env.GITHUB_WORKFLOW_REF?.startsWith('Expensify/App/.github/workflows/') || !process.env.GITHUB_WORKFLOW_REF.endsWith('@refs/heads/main')) {
-        throw new Error('Preview control-plane workflows must run from Expensify/App main');
-    }
     const deployer = new AdhocCloudflareWorkerDeployer({github: GithubUtils.octokit});
     const prNumber = options.prNumber;
     const runID = requireString(process.env.GITHUB_RUN_ID, 'GITHUB_RUN_ID');

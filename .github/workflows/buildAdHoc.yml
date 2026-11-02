@@ -142,7 +142,7 @@ jobs:
   deployWebAdHoc:
     name: Deploy the branch Worker and web assets for this PR
     needs: [prepareWeb, buildWeb]
-    if: ${{ needs.prepareWeb.outputs.DEPLOYMENT_ID != '' && endsWith(github.workflow_ref, '@refs/heads/main') }}
+    if: ${{ needs.prepareWeb.outputs.DEPLOYMENT_ID != '' }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
     env:
       WRANGLER_SEND_METRICS: false

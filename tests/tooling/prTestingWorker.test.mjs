@@ -213,6 +213,19 @@ describe('PR-testing Worker deployment', () => {
             // Then invalid requests fail before publishing anything
             expect(result.status).not.toBe(0);
         }
+        // When a branch workflow invokes registration without a run ID
+        const branchWorkflow = spawnSync(process.execPath, [script, 'register', '--pr-number', '123', '--ref', SHA], {
+            encoding: 'utf8',
+            env: {
+                ...process.env,
+                GITHUB_TOKEN: 'test-token',
+                GITHUB_WORKFLOW_REF: 'Expensify/App/.github/workflows/testBuild.yml@refs/heads/preview-experiment',
+                GITHUB_RUN_ID: '',
+            },
+        });
+        // Then it accepts the workflow branch and fails on the missing run ID before making any API request
+        expect(branchWorkflow.status).not.toBe(0);
+        expect(branchWorkflow.stderr).toContain('GITHUB_RUN_ID is required');
     });
 
     describe('artifact security and compatibility', () => {
