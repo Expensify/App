@@ -3471,7 +3471,7 @@ function buildOptimisticDuplicatePolicy(
         areTagsEnabled: isTagsFeatureSelected,
         areDistanceRatesEnabled: isDistanceRatesFeatureSelected,
         areInvoicesEnabled: isInvoicesFeatureSelected,
-        areRulesEnabled: isRulesFeatureSelected,
+        areRulesEnabled: isRulesFeatureSelected ? sourcePolicy?.areRulesEnabled === true : false,
         areWorkflowsEnabled: isWorkflowsFeatureSelected,
         areReportFieldsEnabled: isReportsFeatureSelected ? sourcePolicy?.areReportFieldsEnabled : false,
         areInvoiceFieldsEnabled: isInvoiceFieldsFeatureSelected ? sourcePolicy?.areInvoiceFieldsEnabled : false,

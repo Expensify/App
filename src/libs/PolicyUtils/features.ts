@@ -34,6 +34,11 @@ function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: Pol
     if (policy?.areRulesEnabled === false) {
         return false;
     }
+    // For policies still being created (e.g. workspace duplication), areRulesEnabled is set explicitly in the optimistic data.
+    // If it's undefined here, a transient Onyx state caused it — don't fall through to the category heuristic.
+    if (policy?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        return false;
+    }
     // areRulesEnabled is undefined - this can happen in case of migrated old Control policies, in such case users might have set up category rules in Classic and we should show Rules as enabled
     if (!isControlPolicy(policy)) {
         return false;
