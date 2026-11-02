@@ -88,7 +88,6 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
         ? []
         : getCategoryContextualRules({
               policy,
-              policyCategories,
               policyRules: rules,
               category: policyCategory,
               categoryName: policyCategory.name,
