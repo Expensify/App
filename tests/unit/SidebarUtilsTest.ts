@@ -1321,8 +1321,8 @@ describe('SidebarUtils', () => {
         it('returns shouldDisplay as false when report is falsy', () => {
             const result = SidebarUtils.shouldDisplayReportInLHN({
                 // @ts-expect-error Intentionally exercise the runtime guard with invalid input.
-                policy: undefined,
                 report: undefined,
+                policy: undefined,
                 reports: {},
                 currentReportId: undefined,
                 isInFocusMode: false,
@@ -1342,8 +1342,8 @@ describe('SidebarUtils', () => {
 
         it('returns shouldDisplay as false for unsupported report type', () => {
             const result = SidebarUtils.shouldDisplayReportInLHN({
+                policy: undefined,
                 report: {
-                    policy: undefined,
                     ...createRandomReport(1, undefined),
                     type: CONST.REPORT.UNSUPPORTED_TYPE.PAYCHECK,
                 } as Report,
