@@ -175,6 +175,7 @@ describe('actions/IOU/TrackExpense', () => {
                 reportAttributes: undefined,
                 guideAccountIDs: [],
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${distanceTransaction.transactionID}`, distanceTransaction);
@@ -235,6 +236,7 @@ describe('actions/IOU/TrackExpense', () => {
                 reportAttributes: undefined,
                 guideAccountIDs: [],
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(hiddenReportsToDisplay).not.toHaveProperty(selfDMReportKey);

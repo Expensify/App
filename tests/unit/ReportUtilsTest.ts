@@ -6300,6 +6300,7 @@ describe('ReportUtils', () => {
                 initialReportID: transactionThreadReport.reportID,
                 initialReport: transactionThreadReport,
                 transactionReport: expenseReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,

@@ -1342,6 +1342,37 @@ describe('CategoryOptionListUtils', () => {
         ]);
     });
 
+    it('sortCategories skips categories without a name', () => {
+        // Given a categories map with a partial entry that has no name, as left behind by an Onyx merge keyed by a renamed or deleted category
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the malformed entry is the point of the test
+        const categories = {
+            Ghost: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            Taxi: {enabled: true, name: 'Taxi'},
+        } as unknown as Record<string, Category>;
+
+        // When the categories are sorted
+        const sorted = sortCategories(categories, localeCompare);
+
+        // Then the nameless entry is dropped instead of crashing, and valid categories are kept
+        expect(sorted).toEqual([{name: 'Taxi', enabled: true, pendingAction: undefined}]);
+    });
+
+    it('getCategoryListSections does not crash when a category has no name', () => {
+        // Given policy categories with a partial entry that has no name
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the malformed entry is the point of the test
+        const categories = {
+            Ghost: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            Taxi: {enabled: true, name: 'Taxi'},
+        } as unknown as PolicyCategories;
+
+        // When the category picker sections are built
+        const sections = getCategoryListSections({categories, localeCompare, translate: translateLocal});
+
+        // Then only the valid category is listed
+        const rows = sections.flatMap((section) => section.data);
+        expect(rows.map((row) => row.searchText)).toEqual(['Taxi']);
+    });
+
     it('shows the GL code only on the subcategory row when searching for a subcategory', () => {
         const categories: PolicyCategories = {
             Lunch: makeCategory('Lunch', '4100'),

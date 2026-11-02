@@ -5032,6 +5032,7 @@ ${amount} para ${merchant} - ${date}`,
             roomType: 'Tipo de quarto',
             cancellation: 'Política de cancelamento',
             cancellationUntil: 'Cancelamento grátis até',
+            hotelLocalTime: 'horário local do hotel',
             confirmation: 'Número de confirmação',
             cancellationPolicies: {
                 unknown: 'Desconhecido',
@@ -5298,8 +5299,6 @@ ${amount} para ${merchant} - ${date}`,
             guestAlternateText: 'Enviar relatórios com visibilidade limitada.',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Proprietário';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Admin do workspace';
                     case CONST.POLICY.ROLE.AUDITOR:
