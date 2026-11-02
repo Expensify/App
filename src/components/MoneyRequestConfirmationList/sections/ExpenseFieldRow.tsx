@@ -4,6 +4,7 @@ import MenuItem from '@components/MenuItem';
 import {MENU_ITEM_ACCESSIBILITY_ANNOUNCEMENT, useMenuItemAccessibilityAnnouncement} from '@components/MenuItem/MenuItemAccessibilityContext';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,12 +12,14 @@ import variables from '@styles/variables';
 
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ComponentRef, ReactNode, RefObject} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
@@ -126,6 +129,7 @@ function ExpenseFieldRow({
     sentryLabel,
     testID,
 }: ExpenseFieldRowProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const theme = useTheme();
 
@@ -196,7 +200,7 @@ function ExpenseFieldRow({
                 // reads that as a non-interactive row and drops the button role and the focus stop with it.
                 // Otherwise the press is guarded like every other `MenuItem` preset, so an anonymous user gets
                 // the sign-in prompt rather than the field's selector.
-                onPress={isInteractive ? callFunctionIfActionIsAllowed(onPress) : undefined}
+                onPress={isInteractive ? callFunctionIfActionIsAllowed(onPress, false, session) : undefined}
                 isDisabled={isDisabled}
                 accessibilityLabel={accessibilityLabel}
                 accessibilityState={isExpanded === undefined ? undefined : {expanded: isExpanded}}
