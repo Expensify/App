@@ -10,7 +10,7 @@ import {
     thirdPartyErrorFilterIntegration,
     tracingIntegration,
 } from '@libs/telemetry/integrations';
-import {processBeforeSendLogs, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
+import {processBeforeSendLogs, processBeforeSendSpan, processBeforeSendTransactions} from '@libs/telemetry/middlewares';
 import getAppVersion from '@libs/VersionUtils';
 
 import CONFIG from '@src/CONFIG';
@@ -89,6 +89,7 @@ function setupSentry(): void {
         ],
         denyUrls: EXTENSION_DENY_URLS,
         beforeSendTransaction: processBeforeSendTransactions,
+        beforeSendSpan: processBeforeSendSpan,
         enableLogs: true,
         beforeSendLog: processBeforeSendLogs,
         // Native SDK is initialized early in Application.onCreate (Android) and AppDelegate (iOS)
