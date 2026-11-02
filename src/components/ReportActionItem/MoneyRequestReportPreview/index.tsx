@@ -363,7 +363,6 @@ function MoneyRequestReportPreview({
                     return;
                 }
                 openReport({
-                    personalDetails: undefined,
                     reportID: iouReportID,
                     introSelected,
                     conciergeChat,
@@ -378,7 +377,7 @@ function MoneyRequestReportPreview({
 
         if (!isIOUActionLoaded && iouReportID && !isOffline) {
             pendingExpenseTransactionRef.current = {transaction, originRoute: routeAtPress};
-            openReport({personalDetails: undefined, reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
+            openReport({reportID: iouReportID, introSelected, conciergeChat, currentUserAccountID, hasReportActions: !!hasIOUReportActions, fullPolicySnapshot});
             return;
         }
 

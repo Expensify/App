@@ -6932,8 +6932,6 @@ describe('actions/Report', () => {
             await givenAManualUnreadMark(REPORT_ID);
 
             Report.openReport({
-                // Existing reports do not create participant personal details.
-                personalDetails: undefined,
                 conciergeChat: undefined,
                 reportID: REPORT_ID,
                 introSelected: undefined,
@@ -6952,8 +6950,6 @@ describe('actions/Report', () => {
             await givenAManualUnreadMark(REPORT_ID);
 
             Report.openReport({
-                // Existing reports do not create participant personal details.
-                personalDetails: undefined,
                 conciergeChat: undefined,
                 reportID: REPORT_ID,
                 introSelected: undefined,
@@ -6972,8 +6968,6 @@ describe('actions/Report', () => {
             await givenAManualUnreadMark(REPORT_ID);
 
             Report.openReport({
-                // Existing reports do not create participant personal details.
-                personalDetails: undefined,
                 conciergeChat: undefined,
                 reportID: REPORT_ID,
                 introSelected: undefined,
@@ -6999,8 +6993,6 @@ describe('actions/Report', () => {
 
         function openReportFor(reportID: string, shouldKeepManualUnreadMarker: boolean) {
             Report.openReport({
-                // Existing reports do not create participant personal details.
-                personalDetails: undefined,
                 conciergeChat: undefined,
                 reportID,
                 introSelected: undefined,
@@ -7202,8 +7194,6 @@ describe('actions/Report', () => {
             };
 
             Report.openReport({
-                // Existing reports do not create participant personal details.
-                personalDetails: undefined,
                 conciergeChat: undefined,
                 reportID: REPORT_ID,
                 introSelected: undefined,

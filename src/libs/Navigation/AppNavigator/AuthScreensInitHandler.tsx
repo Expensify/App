@@ -208,8 +208,6 @@ function AuthScreensInitHandler() {
             const reportID = getReportIDFromLink(initialURL ?? null);
             if (reportID && !isAuthenticatedAtStartup) {
                 Report.openReport({
-                    // Existing reports do not create participant personal details.
-                    personalDetails: undefined,
                     reportID,
                     introSelected,
                     conciergeChat,

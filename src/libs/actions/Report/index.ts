@@ -345,7 +345,7 @@ type ParticipantInfo = {
     accountIDForOptimisticData?: number;
 };
 
-type OpenReportActionParams = {
+type OpenReportActionBaseParams = {
     reportID: string | undefined;
     introSelected: OnyxEntry<IntroSelected>;
 
@@ -353,9 +353,6 @@ type OpenReportActionParams = {
     reportActionID?: string;
 
     participants?: ParticipantInfo[];
-
-    /** Personal details of the participants and report owner. May be undefined when opening an existing report. */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** The optimistic report object created when making a new chat, saved as optimistic data */
     newReportObject?: OptimisticChatReport;
@@ -416,6 +413,19 @@ type OpenReportActionParams = {
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
     delegateAccountID?: number;
 };
+
+type OpenReportActionParams = OpenReportActionBaseParams &
+    (
+        | {
+              /** Required when creating a report or opening a transaction that may need optimistic actions. */
+              personalDetails: OnyxEntry<PersonalDetailsList>;
+          }
+        | {
+              personalDetails?: OnyxEntry<PersonalDetailsList>;
+              newReportObject?: never;
+              transaction?: never;
+          }
+    );
 
 type PregeneratedResponseParams = {
     optimisticConciergeReportActionID: string;

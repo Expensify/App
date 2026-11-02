@@ -148,8 +148,6 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
         // ReportFetchHandler's deferred OpenReport run instead. Keep this guard as-is.
         if (isGuidedSetupPending && !isLoadingApp) {
             openReport({
-                // Existing reports do not create participant personal details.
-                personalDetails: undefined,
                 reportID: conciergeReportID,
                 introSelected,
                 conciergeChat,

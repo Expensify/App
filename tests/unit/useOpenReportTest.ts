@@ -10,6 +10,7 @@ import type {Report} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -54,14 +55,13 @@ describe('useOpenReport', () => {
 
         const {result} = await renderOpenReport();
         // When opening an existing report without participant data.
-        result.current({personalDetails: undefined, reportID: REPORT_ID, hasReportActions: true});
+        result.current({reportID: REPORT_ID, hasReportActions: true});
 
-        // Then the hook forwards the explicit absence of details together with user context.
+        // Then the hook forwards the user context without adding personal details.
         expect(openReport).toHaveBeenCalledTimes(1);
         expect(openReport).toHaveBeenCalledWith({
             reportID: REPORT_ID,
             hasReportActions: true,
-            personalDetails: undefined,
             introSelected,
             conciergeChat,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -70,17 +70,18 @@ describe('useOpenReport', () => {
         });
     });
 
-    it('passes the caller params through unchanged', async () => {
+    it.each([{newReportObject: {reportID: REPORT_ID}}, {transaction: createRandomTransaction(0)}])('passes the caller params through unchanged for %p', async (creationParams) => {
         // Given the caller has participant data for report creation.
         const participantAccountID = 2;
         const personalDetails = {[participantAccountID]: {accountID: participantAccountID, login: 'participant@example.com'}};
         const {result} = await renderOpenReport();
         // When opening the report, the hook must retain the caller's data.
-        result.current({personalDetails, reportID: REPORT_ID, hasReportActions: false, shouldMarkAsRead: false, reportActionID: '300'});
+        result.current({...creationParams, personalDetails, reportID: REPORT_ID, hasReportActions: false, shouldMarkAsRead: false, reportActionID: '300'});
 
         // Then supplied personal details are forwarded without being replaced.
         expect(openReport).toHaveBeenCalledWith(
             expect.objectContaining({
+                ...creationParams,
                 reportID: REPORT_ID,
                 personalDetails,
                 hasReportActions: false,
@@ -95,7 +96,7 @@ describe('useOpenReport', () => {
         // Given Onyx has no user context yet.
         const {result} = await renderOpenReport();
         // When the report is opened before context has loaded.
-        result.current({personalDetails: undefined, reportID: REPORT_ID, hasReportActions: undefined});
+        result.current({reportID: REPORT_ID, hasReportActions: undefined});
 
         // Then missing context stays undefined.
         expect(openReport).toHaveBeenCalledWith(

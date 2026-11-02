@@ -114,8 +114,6 @@ function useReportActionsNewActionLiveTail({
                     if (liveTailJumpRef.current.stage === 'idle') {
                         liveTailJumpRef.current = {stage: 'open_report'};
                         openReport({
-                            // Existing reports do not create participant personal details.
-                            personalDetails: undefined,
                             reportID,
                             introSelected,
                             conciergeChat,

@@ -421,8 +421,6 @@ function useReportActionsScroll({
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
             openReport({
-                // Existing reports do not create participant personal details.
-                personalDetails: undefined,
                 reportID,
                 introSelected,
                 conciergeChat,
