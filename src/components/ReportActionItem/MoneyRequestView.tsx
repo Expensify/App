@@ -1365,7 +1365,7 @@ function MoneyRequestView({
                 )}
                 {isCustomUnitOutOfPolicy && isPerDiemRequest && (
                     <View
-                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh4, styles.mb2, styles.userSelectNone]}
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.mh5, styles.mb2, styles.userSelectNone]}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         <Icon
@@ -1444,7 +1444,7 @@ function MoneyRequestView({
                                     errorText={getErrorForField('merchant')}
                                     isInteractive={false}
                                 />
-                                {shouldShowGoogleMerchantSearchLink && <View style={[styles.mh4, styles.mb2]}>{renderGoogleMerchantSearchLink()}</View>}
+                                {shouldShowGoogleMerchantSearchLink && <View style={[styles.mh5, styles.mb2]}>{renderGoogleMerchantSearchLink()}</View>}
                             </>
                         )}
                     </OfflineWithFeedback>
@@ -1687,7 +1687,7 @@ function MoneyRequestView({
                     <View dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}>
                         <DotIndicatorMessage
                             type="error"
-                            style={[styles.mv3, styles.mh4, styles.userSelectNone]}
+                            style={[styles.mv3, styles.mh5, styles.userSelectNone]}
                             messages={{error: translate('violations.companyCardRequired')}}
                             isSelectable={false}
                         />

@@ -227,7 +227,7 @@ function ExpenseFieldRow({
     );
 
     return (
-        <View style={[styles.mh4, styles.mv2]}>
+        <View style={[styles.mh5, styles.mv2]}>
             {anchorRef ? <View ref={anchorRef}>{borderedBox}</View> : borderedBox}
             {messages}
         </View>

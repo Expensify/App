@@ -113,7 +113,7 @@ function DescriptionInputField({transaction, transactionThreadReport, errorText 
     };
 
     return (
-        <View style={[styles.mh4, styles.mv2]}>
+        <View style={[styles.mh5, styles.mv2]}>
             <TextInput
                 value={inputValue}
                 onChangeText={setInputValue}

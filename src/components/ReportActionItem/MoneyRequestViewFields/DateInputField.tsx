@@ -117,7 +117,7 @@ function DateInputField({transaction, transactionThreadReport, isTrackExpense, l
 
     return (
         // `DatePicker` carries the 8px vertical margin every field row has, so this only adds the side margins
-        <View style={styles.mh4}>
+        <View style={styles.mh5}>
             <DatePicker
                 inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
                 value={currentCreated}

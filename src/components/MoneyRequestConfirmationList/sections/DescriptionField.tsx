@@ -145,7 +145,7 @@ function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}:
                         {!isReadOnly ? (
                             <View
                                 ref={fieldContainerRef}
-                                style={[styles.mh4, styles.mv2]}
+                                style={[styles.mh5, styles.mv2]}
                             >
                                 <TextInput
                                     value={iouComment ?? ''}
