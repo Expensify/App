@@ -1,7 +1,8 @@
 diff --git a/node_modules/pusher-js/dist/web/pusher-with-encryption.js b/node_modules/pusher-js/dist/web/pusher-with-encryption.js
+index bb366de..4335e73 100644
 --- a/node_modules/pusher-js/dist/web/pusher-with-encryption.js
 +++ b/node_modules/pusher-js/dist/web/pusher-with-encryption.js
-@@ -5838,24 +5838,36 @@ class http_socket_HTTPSocket {
+@@ -5765,24 +5765,36 @@ class HTTPSocket {
          var type = chunk.data.slice(0, 1);
          switch (type) {
              case 'o':
@@ -42,7 +43,7 @@ diff --git a/node_modules/pusher-js/dist/web/pusher-with-encryption.js b/node_mo
                  this.onClose(payload[0], payload[1], true);
                  break;
          }
-@@ -5918,6 +5930,16 @@ class http_socket_HTTPSocket {
+@@ -5845,6 +5857,17 @@ class HTTPSocket {
          }
      }
  }
@@ -56,6 +57,7 @@ diff --git a/node_modules/pusher-js/dist/web/pusher-with-encryption.js b/node_mo
 +        return undefined;
 +    }
 +}
++
  function getLocation(url) {
      var parts = /([^\?]*)\/*(\??.*)/.exec(url);
      return {

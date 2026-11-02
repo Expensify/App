@@ -1,6 +1,6 @@
 # `pusher-js` patches
 
-### [pusher-js+8.3.0+001+ignore-malformed-http-frames.patch](pusher-js+8.3.0+001+ignore-malformed-http-frames.patch)
+### [pusher-js+8.6.0+001+ignore-malformed-http-frames.patch](pusher-js+8.6.0+001+ignore-malformed-http-frames.patch)
 
 - Reason:
   

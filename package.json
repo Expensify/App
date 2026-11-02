@@ -171,7 +171,7 @@
     "onfido-sdk-ui": "14.53.1",
     "pako": "^2.1.0",
     "process": "^0.11.10",
-    "pusher-js": "8.3.0",
+    "pusher-js": "8.6.0",
     "react": "19.2.3",
     "react-collapse": "^5.1.0",
     "react-content-loader": "^7.0.0",
