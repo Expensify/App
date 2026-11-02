@@ -72,7 +72,7 @@ const ELIGIBLE_BANK_ACCOUNT: BankAccount = {
 };
 
 /** The part of the reimbursement account the page reads */
-type BusinessReimbursementAccount = {achData: WiseBusinessAccountData; wiseOnboardingPendingSaves?: Record<string, boolean>; wiseOnboardingUnsavedPages?: Record<string, boolean>};
+type BusinessReimbursementAccount = {achData: WiseBusinessAccountData; wiseOnboardingUnsavedPages?: Record<string, boolean>};
 
 const REIMBURSEMENT_ACCOUNT: BusinessReimbursementAccount = {
     achData: {
@@ -408,15 +408,15 @@ describe('WiseBusinessOnboardingPage', () => {
         // Given an open flow whose draft holds an ID document picked on this device and sent with a page save
         await renderPage();
         act(() => saveDraftAnswersToOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {idDocument: [{name: 'passport.jpg', uri: 'file://passport.jpg'}]}));
-        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingPendingSaves: {[SAVE_ID]: true}}));
+        await act(() => Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true}));
         await waitForBatchedUpdatesWithAct();
 
         // When the save returns the key the server stored the file under
         await act(() =>
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-                wiseOnboardingPendingSaves: {[SAVE_ID]: null},
-                achData: {wise: {documents: {representative: {idDocument: ['kyc/1/passport.jpg']}}}},
-            }),
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: null}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {wise: {documents: {representative: {idDocument: ['kyc/1/passport.jpg']}}}}}),
+            ]),
         );
         await waitForBatchedUpdatesWithAct();
 
@@ -428,20 +428,20 @@ describe('WiseBusinessOnboardingPage', () => {
         // Given the representative page saved with an ID document picked on this device, and the business page saving after it
         await renderPage({reimbursementAccount: REIMBURSEMENT_ACCOUNT, subPage: 'representative'});
         act(() => saveDraftAnswersToOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {idDocument: [{name: 'passport.jpg', uri: 'file://passport.jpg'}]}));
-        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingPendingSaves: {[SAVE_ID]: true, [OTHER_SAVE_ID]: true}}));
+        await act(() => Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: true, [OTHER_SAVE_ID]: true}));
         await waitForBatchedUpdatesWithAct();
 
         // When the representative save returns its key while the business save still runs, Next mounts the page on the confirmation page, and the business save ends
         await act(() =>
-            Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-                wiseOnboardingPendingSaves: {[SAVE_ID]: null},
-                achData: {wise: {documents: {representative: {idDocument: ['kyc/1/passport.jpg']}}}},
-            }),
+            Promise.all([
+                Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[SAVE_ID]: null}),
+                Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {wise: {documents: {representative: {idDocument: ['kyc/1/passport.jpg']}}}}}),
+            ]),
         );
         await waitForBatchedUpdatesWithAct();
         screen.unmount();
         await renderPage({subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
-        await act(() => Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingPendingSaves: {[OTHER_SAVE_ID]: null}}));
+        await act(() => Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[OTHER_SAVE_ID]: null}));
         await waitForBatchedUpdatesWithAct();
 
         // Then the draft holds the saved file, since a draft that kept the picked file would tell the server to delete it once the user adds another
@@ -508,28 +508,18 @@ describe('WiseBusinessOnboardingPage', () => {
         expect(flowProps?.submitError).toBe('common.genericErrorMessage');
     });
 
-    it('ends a save left running by an earlier visit but keeps the user on the confirmation page until that page saves', async () => {
-        // Given the app closed while the representative page was saving, so its save never answered and is not retried
+    it('does not wait for a save the app closed during when it reloads on a page of the flow, but keeps the user on the confirmation page', async () => {
+        // Given the app closed while the representative page was saving, so its save never answered, is not retried, and is gone with the app's memory
         const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
-        // When the user opens the flow again and taps Confirm
-        await renderPage({reimbursementAccount: {...REIMBURSEMENT_ACCOUNT, wiseOnboardingPendingSaves: {[SAVE_ID]: true}, wiseOnboardingUnsavedPages: {representative: true}}});
+        // When the app reloads on the confirmation page and the user taps Confirm
+        await renderPage({reimbursementAccount: {...REIMBURSEMENT_ACCOUNT, wiseOnboardingUnsavedPages: {representative: true}}, subPage: CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY});
         const flowProps = mockFlowProps.mock.lastCall?.[0];
         act(() => flowProps?.onSubmit({}));
 
-        // Then the save no longer runs, so the page does not wait for it forever, and the user stays with an error, since Wise may not have the page
+        // Then Confirm does not wait for the save forever, and the user stays with an error, since Wise may not have the page
+        expect(flowProps?.isSavingPages).toBe(false);
         expect(navigateSpy).not.toHaveBeenCalled();
         expect(flowProps?.submitError).toBe('common.genericErrorMessage');
-        const reimbursementAccount = await new Promise<OnyxEntry<Record<string, unknown>>>((resolve) => {
-            const connection = Onyx.connectWithoutView({
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                callback: (value) => {
-                    Onyx.disconnect(connection);
-                    resolve(value);
-                },
-            });
-        });
-        expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
-        expect(reimbursementAccount?.wiseOnboardingPendingSaves).toBeFalsy();
     });
 });

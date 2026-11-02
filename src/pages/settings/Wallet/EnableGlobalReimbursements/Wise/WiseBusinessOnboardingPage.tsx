@@ -25,7 +25,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {hideBankAccountErrors, openReimbursementAccountPage} from '@userActions/BankAccounts';
 import {clearSensitiveAnswers, saveDraftAnswers} from '@userActions/DynamicForm';
 import {clearDraftValues} from '@userActions/FormActions';
-import saveWiseOnboardingPage, {clearWiseOnboardingSaving, clearWiseOnboardingUnsavedPages} from '@userActions/WiseOnboarding';
+import saveWiseOnboardingPage, {clearWiseOnboardingUnsavedPages} from '@userActions/WiseOnboarding';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -91,14 +91,12 @@ function WiseBusinessOnboardingPage({route}: WiseBusinessOnboardingPageProps) {
     const shouldReadBusinessAccount = isNewVisit && !isOffline;
     const [hasBusinessAccountReadStarted, setHasBusinessAccountReadStarted] = useState(false);
 
-    // The reimbursement account's errors are shared with the other bank account flows, so a new visit drops any left from them or from an earlier visit.
-    // It also ends a page save the earlier visit left running, whose page stays unsaved.
+    // The reimbursement account's errors are shared with the other bank account flows, so a new visit drops any left from them or from an earlier visit
     useEffect(() => {
         if (!isNewVisit) {
             return;
         }
         hideBankAccountErrors();
-        clearWiseOnboardingSaving();
     }, [isNewVisit]);
     if (businessAccount?.isLoading && !hasBusinessAccountReadStarted) {
         setHasBusinessAccountReadStarted(true);

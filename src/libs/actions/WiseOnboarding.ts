@@ -16,16 +16,21 @@ import Onyx from 'react-native-onyx';
 
 /**
  * Marks the page as unsaved until its own save succeeds, since `errors` is shared by every page and the next page's save clears it. It also covers a save
- * whose answer never comes, as when the app closes during a request that is not queued. A failed save marks the page again, so when the same page is
+ * whose answer never comes, as when the app closes during a request that is not queued, since the running saves are kept only in memory. A failed save marks the page again, so when the same page is
  * saved twice, the success of the earlier save does not hide the failure of the later one.
  */
-function getOnyxData(step: string, saveID: string): OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT> {
+function getOnyxData(step: string, saveID: string): OnyxData<typeof ONYXKEYS.REIMBURSEMENT_ACCOUNT | typeof ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES> {
     return {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES,
+                value: {[saveID]: true},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {wiseOnboardingPendingSaves: {[saveID]: true}, errors: null, wiseOnboardingUnsavedPages: {[step]: true}},
+                value: {errors: null, wiseOnboardingUnsavedPages: {[step]: true}},
             },
         ],
         successData: [
@@ -46,8 +51,8 @@ function getOnyxData(step: string, saveID: string): OnyxData<typeof ONYXKEYS.REI
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {wiseOnboardingPendingSaves: {[saveID]: null}},
+                key: ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES,
+                value: {[saveID]: null},
             },
         ],
     };
@@ -69,8 +74,8 @@ function saveWiseOnboardingPageWithSensitiveAnswers(params: UpdateWiseOnboarding
             step: params.step,
             error,
         });
+        Onyx.merge(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {[saveID]: null});
         Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {
-            wiseOnboardingPendingSaves: {[saveID]: null},
             wiseOnboardingUnsavedPages: {[params.step]: true},
             errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
         });
@@ -100,13 +105,5 @@ function clearWiseOnboardingUnsavedPages() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingUnsavedPages: null});
 }
 
-/**
- * Ends the page saves left running by an earlier visit, as when the app closed before a save that is not queued answered. Their pages stay unsaved, so
- * Confirm stays blocked until those pages save.
- */
-function clearWiseOnboardingSaving() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {wiseOnboardingPendingSaves: null});
-}
-
 export default saveWiseOnboardingPage;
-export {clearWiseOnboardingSaving, clearWiseOnboardingUnsavedPages};
+export {clearWiseOnboardingUnsavedPages};

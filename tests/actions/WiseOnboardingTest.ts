@@ -1,5 +1,5 @@
 import * as PersistedRequests from '@libs/actions/PersistedRequests';
-import saveWiseOnboardingPage, {clearWiseOnboardingSaving} from '@libs/actions/WiseOnboarding';
+import saveWiseOnboardingPage from '@libs/actions/WiseOnboarding';
 import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -125,11 +125,11 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         expect(writeSpy).not.toHaveBeenCalled();
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
         expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
-        expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(false);
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
         expect(Object.values(reimbursementAccount?.errors ?? {})).toEqual(Object.values(getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')));
     });
 
-    it('keeps a page with an SSN unsaved when its save never answers and the next visit ends the save', async () => {
+    it('keeps a page with an SSN unsaved and its running save out of the stored account when its save never answers', async () => {
         // Given a page save carrying an SSN, whose answer never comes, as when the app closes during the request
         mockFetch.pause();
         const sideEffectSpy = jest.spyOn(API, 'makeRequestWithSideEffects');
@@ -141,14 +141,14 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
             expect.anything(),
         );
 
-        // When the next visit ends the save, since the request is not queued and never retried
-        clearWiseOnboardingSaving();
-        await waitForBatchedUpdates();
-
-        // Then the save no longer runs, but the page is still unsaved, since nothing says Wise has it, so Confirm stays blocked until it saves
+        // When the save is still running
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+
+        // Then the running save is kept only in memory, since the request is not queued and never retried, so a reload, even one that reopens a
+        // page of the flow, does not wait for it forever. The page is unsaved on disk, so Confirm stays blocked after a reload until the page saves.
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(true);
+        expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingPendingSaves');
         expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
-        expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(false);
     });
 
     it('keeps the flow saving while a page with an SSN is still saving after another page saves', async () => {
@@ -168,7 +168,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
 
         // Then a save is still running, so the confirmation page waits for the representative page instead of letting the user through
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-        expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(true);
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(true);
         expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
         expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
     });
@@ -185,7 +185,7 @@ describe('actions/WiseOnboarding saveWiseOnboardingPage', () => {
         const reimbursementAccount = await readOnyxValue(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
         expect(reimbursementAccount).toMatchObject({wiseOnboardingUnsavedPages: {representative: true}});
         expect(reimbursementAccount).not.toHaveProperty('wiseOnboardingUnsavedPages.business');
-        expect(isSavingWiseOnboardingPageSelector(reimbursementAccount)).toBe(false);
+        expect(isSavingWiseOnboardingPageSelector(await readOnyxValue(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES))).toBe(false);
     });
 
     it('keeps a page unsaved when the server rejects it and clears it once it saves', async () => {

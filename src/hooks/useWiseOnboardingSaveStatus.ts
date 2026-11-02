@@ -21,7 +21,7 @@ const saveErrorSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>
 function useWiseOnboardingSaveStatus() {
     const {translate} = useLocalize();
     const [serverError] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: saveErrorSelector});
-    const [isSaving = false] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: isSavingWiseOnboardingPageSelector});
+    const [isSaving = false] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_ONBOARDING_PENDING_SAVES, {selector: isSavingWiseOnboardingPageSelector});
     const [unsavedPageKeys = getEmptyArray<string>()] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: unsavedWiseOnboardingPageKeysSelector});
 
     const saveError = serverError || (unsavedPageKeys.length > 0 && !isSaving ? translate('common.genericErrorMessage') : undefined);
