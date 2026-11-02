@@ -16,6 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isBankAccountEligibleForGlobalReimbursements} from '@libs/BankAccountUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {isWiseGlobalReimbursementsIntroOverPayReportScreen} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -36,6 +37,7 @@ type WiseGlobalReimbursementsIntroPageProps = PlatformStackScreenProps<SettingsN
 function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntroPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
+    const isPayingReport = isWiseGlobalReimbursementsIntroOverPayReportScreen(backPath);
     const [bankAccountList, bankAccountListMetadata] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const bankAccount = bankAccountList?.[bankAccountID];
@@ -81,7 +83,9 @@ function WiseGlobalReimbursementsIntroPage({route}: WiseGlobalReimbursementsIntr
                             illustrationStyle={StyleUtils.getWidthAndHeightStyle(variables.wiseGlobalReimbursementsIntroIllustrationSize)}
                         />
                         <ConfirmationPage.Heading>{translate('walletPage.wiseGlobalReimbursementsIntro.title')}</ConfirmationPage.Heading>
-                        <ConfirmationPage.Description style={styles.textSupporting}>{translate('walletPage.wiseGlobalReimbursementsIntro.subtitle')}</ConfirmationPage.Description>
+                        <ConfirmationPage.Description style={styles.textSupporting}>
+                            {translate(isPayingReport ? 'walletPage.wiseGlobalReimbursementsIntro.payingReportSubtitle' : 'walletPage.wiseGlobalReimbursementsIntro.subtitle')}
+                        </ConfirmationPage.Description>
                     </ConfirmationPage.Content>
                     <FixedFooter>
                         <ConfirmationPage.SecondaryButton
