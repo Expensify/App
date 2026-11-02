@@ -32,6 +32,7 @@ import * as ApiUtils from '@libs/ApiUtils';
 import * as CategoryUtils from '@libs/CategoryUtils';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+import {getExpenseDefaultRulesAfterCategoryRename} from '@libs/ExpenseDefaultRuleUtils';
 import fileDownload from '@libs/fileDownload';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
@@ -45,13 +46,13 @@ import {getFinishOnboardingTaskOnyxData, withReviewWorkspaceSettingsTaskData} fr
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction} from '@src/types/onyx';
+import type {Policy, PolicyCategories, PolicyCategory, Report, ReportAction, Rule} from '@src/types/onyx';
 import type {ImportFinalModal} from '@src/types/onyx/ImportedSpreadsheet';
 import type {ApprovalRule, CustomUnit, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import type {PartialDeep} from 'type-fest';
 
 import lodashCloneDeep from 'lodash/cloneDeep';
@@ -897,6 +898,7 @@ function renamePolicyCategory(
     policyCategory: {oldName: string; newName: string},
     isVendorMatchingBetaEnabled: boolean | undefined,
     reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+    rules?: OnyxCollection<Rule>,
 ) {
     const policy = policyData.policy;
     const policyID = policy.id;
@@ -909,6 +911,9 @@ function renamePolicyCategory(
     const clonedMccGroup: Record<string, MccGroup> = lodashCloneDeep(mccGroup);
     const updatedMccGroup = CategoryUtils.updateCategoryInMccGroup(clonedMccGroup, policyCategory.oldName, policyCategory.newName);
     const updatedMccGroupWithClearedPendingAction = CategoryUtils.updateCategoryInMccGroup(clonedMccGroup, policyCategory.oldName, policyCategory.newName, true);
+
+    // An expense default matches on the category's name, so it has to follow the rename or it stops applying.
+    const renamedExpenseDefaultRules = getExpenseDefaultRulesAfterCategoryRename(rules, policyID, policyCategory.oldName, policyCategory.newName);
 
     // Its related by name, so the corresponding rule has to be updated to handle offline scenario
     if (policyCategoryApproverRule) {
@@ -946,7 +951,7 @@ function renamePolicyCategory(
         },
     };
 
-    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES | typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -961,6 +966,13 @@ function renamePolicyCategory(
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: policyOptimisticData,
             },
+            // SET rather than MERGE, because a filter tree is rewritten rather than added to, and a merge would
+            // leave the old category name behind in the parts of the tree the rewrite did not reach.
+            ...renamedExpenseDefaultRules.map(({ruleKey, rule}) => ({
+                onyxMethod: Onyx.METHOD.SET,
+                key: ruleKey,
+                value: rule,
+            })),
         ],
         successData: [
             {
@@ -1005,6 +1017,11 @@ function renamePolicyCategory(
                     mccGroup,
                 },
             },
+            ...renamedExpenseDefaultRules.map(({ruleKey}) => ({
+                onyxMethod: Onyx.METHOD.SET,
+                key: ruleKey,
+                value: rules?.[ruleKey] ?? null,
+            })),
         ],
     };
 
