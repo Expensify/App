@@ -327,7 +327,7 @@ function RulesRequireFieldsPage({
                     />
 
                     {hasPerLevelTagRequired ? (
-                        tagLists.map((tagList, tagListIndex) => {
+                        tagLists.map((tagList) => {
                             const label = getTagListLabel(tagList.name, genericTagLabel);
                             // Per the Tags table row: only this level's own tags gate its switch.
                             const areLevelTagsEnabled = hasEnabledOptions(Object.values(tagList.tags ?? {}));
@@ -346,7 +346,7 @@ function RulesRequireFieldsPage({
                                     disabledAction={shouldShowTagLock ? promptEnableTags : undefined}
                                     pendingAction={tagList.pendingFields?.required}
                                     errors={tagList.errorFields?.required ?? undefined}
-                                    onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex, errorField: 'required', policyTags})}
+                                    onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex: tagList.orderWeight, errorField: 'required', policyTags})}
                                     onToggle={(isOn) => handleTagListRequiredToggle(isOn, tagList)}
                                 />
                             );

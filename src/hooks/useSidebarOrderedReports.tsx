@@ -12,6 +12,7 @@ import arraysEqual from '@src/utils/arraysEqual';
 
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 import useCollectionDelta from './useCollectionDelta';
@@ -121,6 +122,7 @@ function SidebarOrderedReportsContextProvider({
     const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
     const prevGuideAccountIDs = usePrevious(guideAccountIDs);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const reportAttributes = useReportAttributes();
     const prevReportAttributes = usePrevious(reportAttributes);
     const reportAttributesUpdates = useMemo(() => getReportAttributesUpdates(reportAttributes, prevReportAttributes), [reportAttributes, prevReportAttributes]);
@@ -262,6 +264,7 @@ function SidebarOrderedReportsContextProvider({
                 currentUserAccountID: accountID,
                 conciergeReportID,
                 guideAccountIDs,
+                session,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
@@ -280,6 +283,7 @@ function SidebarOrderedReportsContextProvider({
                 reportAttributes,
                 conciergeReportID,
                 guideAccountIDs,
+                session,
             });
         }
 
@@ -303,6 +307,7 @@ function SidebarOrderedReportsContextProvider({
         conciergeReportID,
         guideAccountIDs,
         prevGuideAccountIDs,
+        session,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.

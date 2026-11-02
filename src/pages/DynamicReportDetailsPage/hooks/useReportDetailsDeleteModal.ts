@@ -53,6 +53,7 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
             isChatIOUReportArchived,
             isSingleTransactionView,
             requestParentReportActionChildReport,
+            chatIOUReportActions,
         }: Partial<ReportDetailsRequestData> = requestData ?? {};
 
         let urlToNavigateBack: Route | undefined;
@@ -117,6 +118,7 @@ function useReportDetailsDeleteModal(reportID: string, caseID: CaseID, parentRep
                     isChatIOUReportArchived,
                     getCurrencyDecimals,
                     isSingleTransactionView,
+                    chatIOUReportActions,
                 );
             }
         }
