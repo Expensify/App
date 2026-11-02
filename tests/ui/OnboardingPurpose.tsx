@@ -375,6 +375,9 @@ describe('OnboardingPurpose Page', () => {
             );
         });
 
+        // Then Employer onboarding still lands on Expenses, but doesn't open the side panel as a second onboarding place
+        expect((await getOnyxValue(ONYXKEYS.NVP_SIDE_PANEL))?.open).toBeFalsy();
+
         onyxSetSpy.mockRestore();
         unmount();
         await waitForBatchedUpdatesWithAct();

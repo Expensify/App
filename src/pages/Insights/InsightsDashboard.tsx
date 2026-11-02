@@ -10,12 +10,14 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
@@ -27,7 +29,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID} from '@src/types/onyx';
+import type {AIInsight, InsightsDashboardID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import viewRef from '@src/types/utils/viewRef';
 
@@ -40,6 +42,7 @@ import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
+import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
@@ -54,6 +57,8 @@ import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
     state: InsightsDashboardState;
+    aiInsights: AIInsight[] | undefined;
+    isLoadingAIInsights: boolean;
     headlineChart: InsightsDashboardChart;
 
     /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
@@ -68,18 +73,34 @@ type InsightsDashboardContentProps = {
     /** Changes how the headline chart aggregates: the time bucket, or Running total */
     onGroupByChange: (update: Partial<InsightsFilters>) => void;
     captureRef: InsightsCaptureRef;
+
+    /** Page header rendered at the top of the scroller, so it scrolls away with the charts */
+    children?: React.ReactNode;
 };
 
-function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange, captureRef}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({
+    state,
+    aiInsights,
+    isLoadingAIInsights,
+    headlineChart,
+    supportingCharts,
+    filters,
+    onRetry,
+    onGroupByChange,
+    captureRef,
+    children,
+}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
     const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
-    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, pageGutter, styles.pb5], {
+    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, !shouldScrollMainHeader && pageGutter, styles.pb5], {
         hasBottomSafeAreaPadding: true,
         hasOfflineIndicatorPadding: true,
         fillsVisibleArea: isEmptyState,
@@ -104,36 +125,42 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             },
         } as const;
         return (
-            <View
-                ref={viewRef(captureRef)}
-                collapsable={false}
-                style={styles.flex1}
-            >
-                <FullPageErrorView
-                    shouldShow
-                    onButtonPress={onRetry}
-                    {...failureViewByState[state]}
-                />
-            </View>
+            <>
+                {children}
+                <View
+                    ref={viewRef(captureRef)}
+                    collapsable={false}
+                    style={styles.flex1}
+                >
+                    <FullPageErrorView
+                        shouldShow
+                        onButtonPress={onRetry}
+                        {...failureViewByState[state]}
+                    />
+                </View>
+            </>
         );
     }
 
     if (state === INSIGHTS_DASHBOARD_STATE.OFFLINE) {
         return (
-            <View
-                ref={viewRef(captureRef)}
-                collapsable={false}
-                style={styles.flex1}
-            >
-                <BlockingView
-                    icon={icons.OfflineCloud}
-                    iconColor={theme.offline}
-                    title={translate('common.youAppearToBeOffline')}
-                    subtitle={translate('common.thisFeatureRequiresInternet')}
-                    addBottomSafeAreaPadding
-                    addOfflineIndicatorBottomSafeAreaPadding
-                />
-            </View>
+            <>
+                {children}
+                <View
+                    ref={viewRef(captureRef)}
+                    collapsable={false}
+                    style={styles.flex1}
+                >
+                    <BlockingView
+                        icon={icons.OfflineCloud}
+                        iconColor={theme.offline}
+                        title={translate('common.youAppearToBeOffline')}
+                        subtitle={translate('common.thisFeatureRequiresInternet')}
+                        addBottomSafeAreaPadding
+                        addOfflineIndicatorBottomSafeAreaPadding
+                    />
+                </View>
+            </>
         );
     }
 
@@ -144,6 +171,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                     {...scrollProps}
                     addBottomSafeAreaPadding
                 >
+                    {children}
                     <View
                         ref={viewRef(captureRef)}
                         collapsable={false}
@@ -169,11 +197,18 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                 addBottomSafeAreaPadding
                 removeClippedSubviews={false}
             >
+                {children}
                 <View
                     ref={viewRef(captureRef)}
                     collapsable={false}
-                    style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}
+                    style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}
                 >
+                    {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
+                        <InsightsAICardRow
+                            insights={aiInsights}
+                            isLoading={isLoadingAIInsights}
+                        />
+                    )}
                     <InsightsChartWidget
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
@@ -222,6 +257,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
@@ -302,6 +338,35 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             />
         ) : null;
 
+    const header = (
+        <>
+            <View
+                ref={viewRef(headerRef)}
+                collapsable={false}
+            >
+                <TopBar
+                    breadcrumbLabel={translate('common.insights')}
+                    shouldDisplayHelpButton
+                />
+            </View>
+            {shouldUseNarrowLayout ? (
+                <>
+                    {!!tabSelector && <View style={[pageGutter, styles.pb3]}>{tabSelector}</View>}
+                    {pageControls}
+                </>
+            ) : (
+                (!!tabSelector || !!pageControls) && (
+                    <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
+                        <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                            {tabSelector}
+                            {pageControls}
+                        </View>
+                    </View>
+                )
+            )}
+        </>
+    );
+
     return (
         <ChartCaptureContext.Provider value={captureContext}>
             <ScreenWrapper
@@ -310,39 +375,21 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 {...tabRootScreenWrapperProps}
                 testID="InsightsPage"
             >
-                <View
-                    ref={viewRef(headerRef)}
-                    collapsable={false}
-                >
-                    <TopBar
-                        breadcrumbLabel={translate('common.insights')}
-                        shouldDisplayHelpButton
-                    />
-                </View>
-                {shouldUseNarrowLayout ? (
-                    <>
-                        {!!tabSelector && <View style={[pageGutter, styles.pb3]}>{tabSelector}</View>}
-                        {pageControls}
-                    </>
-                ) : (
-                    (!!tabSelector || !!pageControls) && (
-                        <View style={[pageGutter, styles.pb5, styles.insightsPageControlsContainer]}>
-                            <View style={[styles.centeredContentWidthLimiter, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                {tabSelector}
-                                {pageControls}
-                            </View>
-                        </View>
-                    )
-                )}
+                {!shouldScrollMainHeader && header}
                 <InsightsDashboardContent
                     state={state}
+                    aiInsights={dashboard?.aiInsights}
+                    // Offline no response is coming, so the row hides instead of loading forever
+                    isLoadingAIInsights={!hasDashboardResponse(dashboard) && !isOffline}
                     headlineChart={headlineChart}
                     supportingCharts={supportingCharts}
                     filters={filters}
                     onRetry={requestDashboard}
                     onGroupByChange={updateFilters}
                     captureRef={contentRef}
-                />
+                >
+                    {shouldScrollMainHeader && header}
+                </InsightsDashboardContent>
             </ScreenWrapper>
         </ChartCaptureContext.Provider>
     );
