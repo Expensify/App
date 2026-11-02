@@ -13,7 +13,14 @@ import {isParticipantP2P} from '@libs/IOUUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 import {generateReportID, getReportOrDraftReport} from '@libs/ReportUtils';
 
-import {setCustomUnitRateID, setMoneyRequestCategory, setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport, setMoneyRequestTag} from '@userActions/IOU/MoneyRequest';
+import {
+    setCustomUnitRateID,
+    setMoneyRequestCategory,
+    setMoneyRequestCurrency,
+    setMoneyRequestParticipants,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestTag,
+} from '@userActions/IOU/MoneyRequest';
 
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -69,7 +76,7 @@ function useParticipantPickerState({
     const sourceReport = sourceReportID
         ? getReportOrDraftReport(sourceReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${sourceReportID}`] ?? {})
         : undefined;
-    const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
+    const {participants: resolvedDefaultParticipants, defaultPolicy, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
     const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
 
     // Don't override the participants the user has already selected, and bail when there is no source report. The shared
@@ -291,7 +298,24 @@ function useParticipantPickerState({
         } else if (firstDefault?.reportID) {
             setTransactionReport(transaction.transactionID, {reportID: firstDefault.reportID}, true);
         }
-    }, [transaction?.transactionID, transaction?.participants, defaultParticipants, navigation]);
+
+        // The draft was created before the default workspace was known, so it holds the member's Payment currency.
+        // Use the workspace currency instead, unless an amount was already entered. Only Manual requests take the
+        // workspace currency; distance, per diem, and time requests get theirs from the rate or destination.
+        const defaultCurrency = defaultPolicy?.outputCurrency;
+        if (defaultCurrency && !transaction.isAmountSet && isManualRequest && transaction.currency !== defaultCurrency) {
+            setMoneyRequestCurrency(transaction.transactionID, defaultCurrency);
+        }
+    }, [
+        transaction?.transactionID,
+        transaction?.participants,
+        transaction?.isAmountSet,
+        transaction?.currency,
+        defaultParticipants,
+        defaultPolicy?.outputCurrency,
+        isManualRequest,
+        navigation,
+    ]);
 
     return {
         defaultParticipants,

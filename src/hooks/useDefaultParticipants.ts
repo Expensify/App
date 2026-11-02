@@ -35,6 +35,9 @@ type UseDefaultParticipantsResult = {
     /** The participants the expense should be created with (empty until they can be resolved). */
     participants: Participant[];
 
+    /** The workspace of the default workspace chat, set only when the participants fall back to that chat from global create. */
+    defaultPolicy: OnyxEntry<Policy>;
+
     isLoading: boolean;
 };
 
@@ -71,6 +74,7 @@ function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefault
 
     const reportParticipants = getMoneyRequestParticipantsFromReport(sourceReport, accountID).filter((participant) => participant.selected);
     let participants = reportParticipants;
+    let defaultPolicy: OnyxEntry<Policy>;
     const isGlobalCreateFlow = transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton ?? iouType === CONST.IOU.TYPE.CREATE;
     if (participants.length === 0 && isGlobalCreateFlow && iouType) {
         if (iouType === CONST.IOU.TYPE.TRACK || (hasExplicitPersonalDestination && !isRestrictedToPreferredPolicy)) {
@@ -81,11 +85,12 @@ function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefault
                 const shouldAutoReport = !!defaultExpensePolicy?.autoReporting || !!personalPolicy?.autoReporting;
                 const defaultTargetReport = !shouldAutoReport ? selfDMReport : getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
                 participants = getMoneyRequestParticipantsFromReport(defaultTargetReport, accountID).filter((participant) => participant.selected);
+                defaultPolicy = participants.some((participant) => participant.isPolicyExpenseChat) ? defaultExpensePolicy : undefined;
             }
         }
     }
 
-    return {participants, isLoading};
+    return {participants, defaultPolicy, isLoading};
 }
 
 export default useDefaultParticipants;
