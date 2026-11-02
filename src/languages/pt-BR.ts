@@ -5032,6 +5032,7 @@ ${amount} para ${merchant} - ${date}`,
             roomType: 'Tipo de quarto',
             cancellation: 'Política de cancelamento',
             cancellationUntil: 'Cancelamento grátis até',
+            hotelLocalTime: 'horário local do hotel',
             confirmation: 'Número de confirmação',
             cancellationPolicies: {
                 unknown: 'Desconhecido',
