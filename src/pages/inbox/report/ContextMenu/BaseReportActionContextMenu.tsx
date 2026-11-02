@@ -116,6 +116,8 @@ type BaseReportActionContextMenuProps = {
     checkIfContextMenuActive?: () => void;
     disabledActions?: ContextMenuAction[];
     setIsEmojiPickerActive?: (state: boolean) => void;
+    /** Acquires ownership before overflow measures its anchor, and releases it after dismissal. */
+    setIsContextMenuActive?: (state: boolean) => void;
 
     /** Whether to add bottom safe area padding for edge-to-edge modal content */
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
@@ -135,6 +137,7 @@ function BaseReportActionContextMenu({
     checkIfContextMenuActive,
     disabledActions = [],
     setIsEmojiPickerActive,
+    setIsContextMenuActive,
     enableEdgeToEdgeBottomSafeAreaPadding = false,
 }: BaseReportActionContextMenuProps) {
     const {transitionActionSheetState} = ActionSheetAwareScrollView.useActionSheetAwareScrollViewActions();
@@ -356,6 +359,7 @@ function BaseReportActionContextMenu({
     };
 
     const openOverflowMenu = (event: GestureResponderEvent | MouseEvent, anchorRef: RefObject<ComponentRef<typeof View> | null>) => {
+        setIsContextMenuActive?.(true);
         showContextMenu({
             type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
             event,
@@ -372,9 +376,11 @@ function BaseReportActionContextMenu({
             callbacks: {
                 onShow: checkIfContextMenuActive,
                 onHide: () => {
-                    checkIfContextMenuActive?.();
                     setShouldKeepOpen(false);
+                    setIsContextMenuActive?.(false);
+                    checkIfContextMenuActive?.();
                 },
+                setIsEmojiPickerActive,
             },
             disabledOptions: filteredContextMenuActions,
             shouldCloseOnTarget: true,

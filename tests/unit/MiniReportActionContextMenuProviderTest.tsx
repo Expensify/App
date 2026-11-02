@@ -24,7 +24,7 @@ jest.mock('@pages/inbox/report/ContextMenu/MiniReportActionContextMenu/MiniRepor
         return ReactActual.createElement('button', {type: 'button', disabled: hasCopied, onClick: () => setHasCopied(true)}, hasCopied ? 'Copied' : reportActionID);
     }
 
-    return MockMiniMenu;
+    return {__esModule: true, default: MockMiniMenu};
 });
 
 describe('MiniReportActionContextMenuProvider', () => {
@@ -111,15 +111,119 @@ describe('MiniReportActionContextMenuProvider', () => {
         });
 
         // When the picker's row updates, it must not move the visible menu away from the hovered message.
-        let hasClaimedMenu: boolean | undefined;
         act(() => {
-            hasClaimedMenu = controller.attach(firstToken, firstHost, {...firstProps, disabledActions: []});
+            controller.attach(firstToken, firstHost, {...firstProps, disabledActions: []});
         });
 
-        // Then the picker row uses its local fallback and the hovered message keeps the retained toolbar.
-        expect(hasClaimedMenu).toBe(false);
+        // Then only the hovered message has the retained toolbar.
         expect(secondHost.querySelector('button')?.textContent).toBe('2');
         expect(firstHost.querySelector('button')).toBeNull();
+    });
+
+    it.each(['emojiPicker', 'contextMenu'] as const)('restores the hovered row after %s dismissal without another hover event', (popup) => {
+        // Given a popup, other rows must not acquire its toolbar or anchor.
+        const firstToken = {current: null};
+        const secondToken = {current: null};
+        const firstProps = {reportID: '1', originalReportID: '1', reportActionID: '1', anchor: firstToken, isVisible: true};
+        const secondProps = {...firstProps, reportActionID: '2', anchor: secondToken};
+        act(() => controller.attach(firstToken, firstHost, firstProps));
+        act(() => {
+            controller.setPopupActive(firstToken, popup, true);
+            controller.attach(firstToken, firstHost, {...firstProps, isVisible: false});
+            controller.prepare(secondProps);
+            controller.attach(secondToken, secondHost, secondProps);
+        });
+        expect(firstHost.querySelector('button')?.textContent).toBe('1');
+        expect(secondHost.querySelector('button')).toBeNull();
+
+        // When the popup closes, the pointer is still over the second row.
+        act(() => controller.setPopupActive(firstToken, popup, false));
+
+        // Then the registered hover is replayed immediately, without preparing or attaching the row again.
+        expect(firstHost.querySelector('button')).toBeNull();
+        expect(secondHost.querySelector('button')?.textContent).toBe('2');
+        expect(document.querySelectorAll('button')).toHaveLength(1);
+    });
+
+    it('does not restore a row the pointer has already left', () => {
+        // Given a blocked row hover, leaving that row must invalidate its registration.
+        const firstToken = {current: null};
+        const secondToken = {current: null};
+        const firstProps = {reportID: '1', originalReportID: '1', reportActionID: '1', isVisible: false};
+        act(() => {
+            controller.setPopupActive(firstToken, 'emojiPicker', true);
+            controller.attach(firstToken, firstHost, firstProps);
+            controller.attach(secondToken, secondHost, {...firstProps, reportActionID: '2', isVisible: true});
+            controller.detach(secondToken);
+        });
+
+        // When dismissal happens with neither message hovered, no toolbar should remain.
+        act(() => controller.setPopupActive(firstToken, 'emojiPicker', false));
+
+        // Then neither the former popup owner nor the departed hover becomes visible.
+        expect(firstHost.querySelector('button')).toBeNull();
+        expect(secondHost.querySelector('button')).toBeNull();
+    });
+
+    it('locks a reaction-bubble picker before its toolbar slot mounts', () => {
+        // Given a hovered row, another message can open its picker outside the toolbar.
+        const firstToken = {current: null};
+        const secondToken = {current: null};
+        const props = {reportID: '1', originalReportID: '1', reportActionID: '2', isVisible: true};
+        act(() => controller.attach(secondToken, secondHost, props));
+
+        // When the reaction bubble opens its picker, its row has no toolbar slot yet.
+        act(() => controller.setPopupActive(firstToken, 'emojiPicker', true));
+
+        // Then the other toolbar hides immediately, and returns only after dismissal.
+        expect(secondHost.querySelector('button')).toBeNull();
+        act(() => controller.setPopupActive(firstToken, 'emojiPicker', false));
+        expect(secondHost.querySelector('button')?.textContent).toBe('2');
+    });
+
+    it('keeps the lock during overflow-to-emoji handoff', () => {
+        // Given an overflow menu and a different hovered message, a picker can take over the same action.
+        const firstToken = {current: null};
+        const secondToken = {current: null};
+        const props = {reportID: '1', originalReportID: '1', reportActionID: '1', isVisible: true};
+        act(() => {
+            controller.attach(firstToken, firstHost, props);
+            controller.setPopupActive(firstToken, 'contextMenu', true);
+            controller.attach(firstToken, firstHost, {...props, isVisible: false});
+            controller.attach(secondToken, secondHost, {...props, reportActionID: '2'});
+        });
+
+        // When opening the picker closes overflow, the emoji interaction must still own the menu.
+        act(() => {
+            controller.setPopupActive(firstToken, 'emojiPicker', true);
+            controller.setPopupActive(firstToken, 'contextMenu', false);
+        });
+        expect(secondHost.querySelector('button')).toBeNull();
+
+        // Then only the final picker dismissal restores the current hover.
+        act(() => controller.setPopupActive(firstToken, 'emojiPicker', false));
+        expect(secondHost.querySelector('button')?.textContent).toBe('2');
+    });
+
+    it('does not release an open popup when action errors remove its toolbar slot', () => {
+        // Given a popup on one message, the pointer may already be over another registered row.
+        const firstToken = {current: null};
+        const secondToken = {current: null};
+        const props = {reportID: '1', originalReportID: '1', reportActionID: '1', isVisible: true};
+        act(() => {
+            controller.attach(firstToken, firstHost, props);
+            controller.setPopupActive(firstToken, 'emojiPicker', true);
+            controller.attach(firstToken, firstHost, {...props, isVisible: false});
+            controller.attach(secondToken, secondHost, {...props, reportActionID: '2'});
+        });
+
+        // When errors suppress the first row's toolbar, its global picker is still open.
+        act(() => controller.detach(firstToken));
+        expect(secondHost.querySelector('button')).toBeNull();
+
+        // Then only actual popup dismissal restores the second message's menu.
+        act(() => controller.setPopupActive(firstToken, 'emojiPicker', false));
+        expect(secondHost.querySelector('button')?.textContent).toBe('2');
     });
 
     it('does not show a prepared target before its own slot attaches', () => {

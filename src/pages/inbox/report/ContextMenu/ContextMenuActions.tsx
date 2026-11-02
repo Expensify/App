@@ -503,7 +503,6 @@ const ContextMenuActions: ContextMenuAction[] = [
             const toggleEmojiAndCloseMenu = (emoji: Emoji, existingReactions: OnyxEntry<ReportActionReactions>, preferredSkinTone: number) => {
                 toggleEmojiReaction(reportID, reportAction, emoji, existingReactions, preferredSkinTone, currentUserAccountID, reportActions, isOffline);
                 closeContextMenu();
-                setIsEmojiPickerActive?.(false);
             };
 
             if (isMini) {

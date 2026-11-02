@@ -9,9 +9,11 @@ type MiniReportActionContextMenuController = {
     /** Prepares the target in the hover event so the row and toolbar update in the same commit. */
     prepare: (props: MiniReportActionContextMenuProps) => void;
 
-    /** Returns false when another row owns an ongoing toolbar interaction. */
-    attach: (token: MiniReportActionContextMenuToken, host: HTMLElement, props: MiniReportActionContextMenuProps) => boolean;
+    attach: (token: MiniReportActionContextMenuToken, host: HTMLElement, props: MiniReportActionContextMenuProps) => void;
     detach: (token: MiniReportActionContextMenuToken) => void;
+
+    /** Popup ownership is independent of hover, including pickers opened from reaction bubbles. */
+    setPopupActive: (token: MiniReportActionContextMenuToken, popup: 'emojiPicker' | 'contextMenu', isActive: boolean) => void;
 };
 
 const MiniReportActionContextMenuContext = createContext<MiniReportActionContextMenuController | undefined>(undefined);

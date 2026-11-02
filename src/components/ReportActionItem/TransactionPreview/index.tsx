@@ -44,7 +44,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const {action, chatReport, reportID, transactionID: transactionIDFromProps, onPreviewPressed, shouldHighlight, reportPreviewAction, contextAction} = props;
     const chatReportID = chatReport?.reportID;
     const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
-    const {checkIfContextMenuActive} = useShowContextMenuActions();
+    const {checkIfContextMenuActive, setIsEmojiPickerActive, setIsContextMenuActive} = useShowContextMenuActions();
 
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_REVIEW>>();
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
@@ -77,7 +77,10 @@ function TransactionPreview(props: TransactionPreviewProps) {
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchorRef, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, originalReportID);
+        showContextMenuForReport(event, contextMenuAnchorRef, contextMenuReportID, contextMenuAction, checkIfContextMenuActive, originalReportID, {
+            setIsEmojiPickerActive,
+            setIsContextMenuActive,
+        });
     };
 
     const offlineWithFeedbackOnClose = () => {

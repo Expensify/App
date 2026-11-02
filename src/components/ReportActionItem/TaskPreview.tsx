@@ -71,7 +71,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const {translate} = useLocalize();
     const theme = useTheme();
     const {originalReportID, anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true} = useShowContextMenuState();
-    const {checkIfContextMenuActive, onShowContextMenu} = useShowContextMenuActions();
+    const {checkIfContextMenuActive, onShowContextMenu, setIsEmojiPickerActive, setIsContextMenuActive} = useShowContextMenuActions();
     const originalMessage = getOriginalMessage(action);
     const taskReportIDFromOriginalMessage = originalMessage && 'taskReportID' in originalMessage ? originalMessage.taskReportID : undefined;
     const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(taskReportIDFromOriginalMessage)}`);
@@ -163,7 +163,10 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                         if (!shouldDisplayContextMenu) {
                             return;
                         }
-                        return showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
+                        return showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID, {
+                            setIsEmojiPickerActive,
+                            setIsContextMenuActive,
+                        });
                     })
                 }
                 shouldUseHapticsOnLongPress
@@ -217,7 +220,10 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                                     if (!shouldDisplayContextMenu) {
                                         return;
                                     }
-                                    return showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
+                                    return showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID, {
+                                        setIsEmojiPickerActive,
+                                        setIsContextMenuActive,
+                                    });
                                 })
                             }
                             shouldUseHapticsOnLongPress

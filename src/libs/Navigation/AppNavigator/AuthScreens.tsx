@@ -42,6 +42,7 @@ import type {AuthScreensParamList} from '@libs/Navigation/types';
 
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import MiniReportActionContextMenuProvider from '@pages/inbox/report/ContextMenu/MiniReportActionContextMenuProvider';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
 import TravelCVVContextProvider from '@pages/settings/Wallet/TravelCVVPage/TravelCVVContextProvider';
@@ -202,6 +203,7 @@ function AuthScreens() {
                         LockedAccountModalProvider,
                         DelegateNoAccessModalProvider,
                         MultifactorAuthenticationContextProviders,
+                        MiniReportActionContextMenuProvider,
                     ]}
                 >
                     <KeyboardShortcutsHandler />

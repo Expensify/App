@@ -36,7 +36,6 @@ import useDeferNonEssentials from './hooks/useDeferNonEssentials';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import OneTransactionThreadRedirectHandler from './OneTransactionThreadRedirectHandler';
 import ReactionListWrapper from './ReactionListWrapper';
-import MiniReportActionContextMenuProvider from './report/ContextMenu/MiniReportActionContextMenuProvider';
 import ReportActionCompose from './report/ReportActionCompose/ReportActionCompose';
 import {ReportActionEditMessageContextProvider, ReportScreenEditMessageProviderWithTransactionThread} from './report/ReportActionEditMessageContext';
 import ReportFooter from './report/ReportFooter';
@@ -156,12 +155,10 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                                             ]}
                                                             testID="report-actions-view-wrapper"
                                                         >
-                                                            <MiniReportActionContextMenuProvider key={reportIDFromRoute}>
-                                                                <ReportActionsWithInboxTabDeferredMount
-                                                                    reportID={reportIDFromRoute}
-                                                                    shouldDefer={shouldDeferReportActions}
-                                                                />
-                                                            </MiniReportActionContextMenuProvider>
+                                                            <ReportActionsWithInboxTabDeferredMount
+                                                                reportID={reportIDFromRoute}
+                                                                shouldDefer={shouldDeferReportActions}
+                                                            />
                                                             {shouldDeferNonEssentials ? <ReportActionCompose.Placeholder /> : <ReportFooter />}
                                                         </View>
                                                     </ConciergeDraftProvider>

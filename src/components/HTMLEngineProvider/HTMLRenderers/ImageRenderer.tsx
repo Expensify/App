@@ -100,7 +100,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     );
 
     const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
-    const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
+    const {onShowContextMenu, checkIfContextMenuActive, setIsEmojiPickerActive, setIsContextMenuActive} = useShowContextMenuActions();
 
     return imagePreviewModalDisabled ? (
         thumbnailImageComponent
@@ -132,7 +132,9 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
                         if (isDisabled || !shouldDisplayContextMenu) {
                             return;
                         }
-                        return onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID));
+                        return onShowContextMenu(() =>
+                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID, {setIsEmojiPickerActive, setIsContextMenuActive}),
+                        );
                     }}
                     isNested
                     shouldUseHapticsOnLongPress

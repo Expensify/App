@@ -39,7 +39,7 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
-    const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
+    const {onShowContextMenu, checkIfContextMenuActive, setIsEmojiPickerActive, setIsContextMenuActive} = useShowContextMenuActions();
     const isLast = defaultRendererProps.renderIndex === defaultRendererProps.renderLength - 1;
 
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
@@ -73,7 +73,10 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
                                     if (isDisabled || !shouldDisplayContextMenu) {
                                         return;
                                     }
-                                    return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID);
+                                    return showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID, {
+                                        setIsEmojiPickerActive,
+                                        setIsContextMenuActive,
+                                    });
                                 });
                             }}
                             shouldUseHapticsOnLongPress

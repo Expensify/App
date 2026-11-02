@@ -250,14 +250,23 @@ function ReportActionItem({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [isContextMenuActive, setIsContextMenuActive] = useReportActionItemState(() => isActiveReportAction(action.reportActionID));
-    const [isEmojiPickerActive, setIsEmojiPickerActive] = useReportActionItemState<boolean | undefined>(undefined);
+    const [isContextMenuActive, setIsContextMenuActiveState] = useReportActionItemState(() => isActiveReportAction(action.reportActionID));
+    const [isEmojiPickerActive, setIsEmojiPickerActiveState] = useReportActionItemState<boolean | undefined>(undefined);
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useReportActionItemState<boolean | undefined>(undefined);
     const [isHidden, setIsHidden] = useReportActionItemState(false);
     const {isActiveReportAction: isActiveReactionListReportAction, hideReactionList} = useContext(ReactionListContext);
     const {updateHiddenAttachments} = useContext(AttachmentModalContext);
     const popoverAnchorRef = useRef<ComponentRef<typeof View>>(null);
     const miniContextMenuController = useMiniReportActionContextMenuController();
+
+    const setIsContextMenuActive = (isPopupActive: boolean) => {
+        miniContextMenuController?.setPopupActive(popoverAnchorRef, 'contextMenu', isPopupActive);
+        setIsContextMenuActiveState(isPopupActive);
+    };
+    const setIsEmojiPickerActive = (isPopupActive: boolean) => {
+        miniContextMenuController?.setPopupActive(popoverAnchorRef, 'emojiPicker', isPopupActive);
+        setIsEmojiPickerActiveState(isPopupActive);
+    };
 
     useExpandedSystemMessageFocus(action.reportActionID, popoverAnchorRef, onExpandedSystemMessageReady);
     const downloadedPreviews = useRef<{reportActionID: string; urls: string[]}>({reportActionID: action.reportActionID, urls: []});
@@ -498,6 +507,8 @@ function ReportActionItem({
     const contextMenuActionsValue: ShowContextMenuActionsContextType = {
         checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
         onShowContextMenu: handleShowContextMenu,
+        setIsEmojiPickerActive,
+        setIsContextMenuActive,
     };
 
     const miniContextMenuProps = {
@@ -510,6 +521,7 @@ function ReportActionItem({
         isThreadReportParentAction,
         checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
         setIsEmojiPickerActive,
+        setIsContextMenuActive,
     };
 
     const createdTransactionID = isMoneyRequestAction(parentReportActionForTransactionThread) ? getOriginalMessage(parentReportActionForTransactionThread)?.IOUTransactionID : undefined;

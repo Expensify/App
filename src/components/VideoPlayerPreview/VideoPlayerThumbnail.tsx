@@ -34,7 +34,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Play']);
     const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
-    const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
+    const {onShowContextMenu, checkIfContextMenuActive, setIsEmojiPickerActive, setIsContextMenuActive} = useShowContextMenuActions();
 
     return (
         <View style={styles.flex1}>
@@ -62,7 +62,7 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                             return;
                         }
                         onShowContextMenu(() => {
-                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID);
+                            showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID, {setIsEmojiPickerActive, setIsContextMenuActive});
                         });
                     }}
                     shouldUseHapticsOnLongPress

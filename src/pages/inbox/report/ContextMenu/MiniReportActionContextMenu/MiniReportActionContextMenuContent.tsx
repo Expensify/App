@@ -11,7 +11,7 @@ import {View} from 'react-native';
 
 import type MiniReportActionContextMenuProps from './types';
 
-/** Keeps the toolbar's styling and actions identical for retained and row-local menus. */
+/** Keeps the toolbar inside its row so positioning and keyboard navigation follow the message. */
 function MiniReportActionContextMenuContent({displayAsGroup = false, ...rest}: MiniReportActionContextMenuProps) {
     const StyleUtils = useStyleUtils();
 

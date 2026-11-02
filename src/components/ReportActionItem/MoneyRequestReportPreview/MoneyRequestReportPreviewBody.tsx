@@ -73,7 +73,7 @@ function MoneyRequestReportPreviewBody({
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true, originalReportID} = useShowContextMenuState();
-    const {checkIfContextMenuActive} = useShowContextMenuActions();
+    const {checkIfContextMenuActive, setIsEmojiPickerActive, setIsContextMenuActive} = useShowContextMenuActions();
 
     const {action, iouReport, chatReportID} = useReportPreviewData();
     const {isTransitionPending, isScanning, reportPreviewStyles} = useReportPreviewUIState();
@@ -107,7 +107,10 @@ function MoneyRequestReportPreviewBody({
                             if (!shouldDisplayContextMenu) {
                                 return;
                             }
-                            showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID);
+                            showContextMenuForReport(event, contextMenuAnchorRef, chatReportID, action, checkIfContextMenuActive, originalReportID, {
+                                setIsEmojiPickerActive,
+                                setIsContextMenuActive,
+                            });
                         }}
                         shouldUseHapticsOnLongPress
                         style={[

@@ -43,7 +43,7 @@ function MentionUserLink({style, tnode, accountID, mentionDisplayText, navigatio
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {anchor, report, action, isDisabled, shouldDisplayContextMenu, originalReportID} = useShowContextMenuState();
-    const {onShowContextMenu, checkIfContextMenuActive} = useShowContextMenuActions();
+    const {onShowContextMenu, checkIfContextMenuActive, setIsEmojiPickerActive, setIsContextMenuActive} = useShowContextMenuActions();
     const htmlAttribAccountID = tnode.attributes.accountid;
 
     const isOurMention = accountID === currentUserAccountID;
@@ -58,7 +58,9 @@ function MentionUserLink({style, tnode, accountID, mentionDisplayText, navigatio
                 if (isDisabled || !shouldDisplayContextMenu) {
                     return;
                 }
-                return onShowContextMenu(() => showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID));
+                return onShowContextMenu(() =>
+                    showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, originalReportID, {setIsEmojiPickerActive, setIsContextMenuActive}),
+                );
             }}
             onPress={(event) => {
                 event.preventDefault();
