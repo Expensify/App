@@ -1019,6 +1019,8 @@ type ReportsSplitNavigatorParamList = {
         isPendingCreation?: string;
         /** The report the user was viewing when they opened Concierge from the side-pane button (native), so Concierge can act on it. */
         sourceReportID?: string;
+        /** The workspace whose page the user was viewing when they opened Concierge from the side-pane button (native), so Concierge can act on it. */
+        sourcePolicyID?: string;
         /** When 'true', a money-request report opens scrolled to its latest message instead of the top (used by the "X Replies" link). */
         shouldScrollToLatest?: string;
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
