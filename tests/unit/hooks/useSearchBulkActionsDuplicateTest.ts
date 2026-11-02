@@ -1300,6 +1300,37 @@ describe('useBulkDuplicateAction - source report target', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(sourcePolicy.id));
         expect(bulkDuplicateExpenses).not.toHaveBeenCalled();
     });
+
+    it('should open the restricted action page for the default workspace when the copies fall back to it and its billing is restricted', async () => {
+        // Given the default workspace's owner is past their billing grace period, and a selection on the report view that spans two reports,
+        // so the copies can't stay on the source report and fall back to the default workspace chat
+        const restrictedOwnerAccountID = 4343;
+        mockDefaultExpensePolicy = {...defaultPolicy, ownerAccountID: restrictedOwnerAccountID};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END}${restrictedOwnerAccountID}`, {value: Math.floor(Date.now() / 1000) - 3 * 24 * 60 * 60});
+        const allTransactions = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}3300`]: {...createRandomTransaction(1), transactionID: '3300', reportID: sourceReport.reportID},
+            [`${ONYXKEYS.COLLECTION.TRANSACTION}3301`]: {...createRandomTransaction(2), transactionID: '3301', reportID: 'other_report'},
+        };
+
+        // When the selection is bulk duplicated
+        const {result} = renderHookWithProvider(() =>
+            useBulkDuplicateAction({
+                selectedTransactionsKeys: ['3300', '3301'],
+                allTransactions,
+                allReports: undefined,
+                searchData: undefined,
+                sourceReport,
+                sourceChatReport,
+                sourcePolicy,
+            }),
+        );
+        await waitFor(() => expect(result.current).toBeDefined());
+        result.current();
+
+        // Then the user is sent to the restricted action page for the default workspace the copies would go to, and no copy is written
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.RESTRICTED_ACTION.getRoute(defaultPolicy.id));
+        expect(bulkDuplicateExpenses).not.toHaveBeenCalled();
+    });
 });
 
 describe('useSearchBulkActions - duplicate report option', () => {

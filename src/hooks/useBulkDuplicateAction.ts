@@ -1,6 +1,7 @@
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {canDuplicateExpenseIntoSourceReport, getPolicyExpenseChat} from '@libs/ReportUtils';
@@ -102,8 +103,8 @@ function useBulkDuplicateAction({
     const duplicateTargetPolicy = canDuplicateIntoSourceReport ? sourcePolicy : defaultExpensePolicy;
     const duplicateTargetReport = canDuplicateIntoSourceReport ? sourceReport : activePolicyExpenseChat;
 
-    const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${duplicateTargetPolicy?.id}`);
-    const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${duplicateTargetPolicy?.id}`);
+    const [targetPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(duplicateTargetPolicy?.id)}`);
+    const [targetPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(duplicateTargetPolicy?.id)}`);
     const restrictedActionPolicyID = useRestrictedActionPolicyID(duplicateTargetPolicy);
 
     const sourcePolicyIDMap: Record<string, string | undefined> = {};

@@ -1373,8 +1373,8 @@ function bulkDuplicateExpenses({
     // iteration will create a new report, so we must never defer auto-submit
     // — otherwise the first expense's report stays in Draft because the
     // server was told to wait for more expenses that will never arrive.
-    // An expense report target never splits: the caller already checked it can
-    // take the copies, so they all land on it and auto-submit waits for the last one.
+    // An expense report target isn't split up front: the caller already checked it can
+    // take the copies, so they land on it and auto-submit waits for the last one.
     const allNonReimbursable = transactionsToDuplicate.every((t) => !getReimbursable(t));
     const policyWillSplitReport =
         !isTargetExpenseReport &&
@@ -1402,7 +1402,13 @@ function bulkDuplicateExpenses({
         // optimistic reports (callbacks are deferred).
         let reportWasSplit = false;
         if (optimisticIOUReport && (policyWillSplitReport || !canAddTransaction(optimisticIOUReport, rules))) {
-            optimisticIOUReport = undefined;
+            // An expense report target can stop accepting copies partway through, for example when a copy raises its
+            // total past an approval rule's limit. Keeping its latest optimistic state lets the builder open a new report
+            // in the same workspace chat. Without it, the builder rereads the report from Onyx, which doesn't count the
+            // earlier copies yet, and adds this copy to it with a stale total.
+            if (!isTargetExpenseReport) {
+                optimisticIOUReport = undefined;
+            }
             currentOptimisticIOUReportID = generateReportID();
             currentReportPreviewActionID = NumberUtils.rand64();
             reportWasSplit = true;
