@@ -43,6 +43,8 @@ jest.mock('@react-navigation/native', () => ({
         addListener: jest.fn(() => jest.fn()),
     })),
     useIsFocused: jest.fn(() => true),
+    // Inline field inputs subscribe to screen focus, and these tests render the view outside a navigator
+    useFocusEffect: jest.fn(),
     useRoute: jest.fn(() => ({key: 'central-report', name: '', params: {reportID: '1'}})),
 }));
 
@@ -140,7 +142,6 @@ const renderMoneyRequestView = () =>
                 transactionThreadReport={threadReport}
                 parentReportID={expenseReportID}
                 expensePolicy={expensePolicy}
-                shouldShowAnimatedBackground={false}
             />
         </ComposeProviders>,
     );

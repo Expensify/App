@@ -593,6 +593,11 @@ function MoneyRequestReceiptView({
         receiptStyle = shouldUseNarrowLayout ? styles.expenseViewImageSmall : styles.expenseViewImage;
     }
 
+    // In the wide RHP the expense details column sits right of the receipt and brings its own gutter
+    if (isDisplayedInWideRHP) {
+        receiptStyle = [receiptStyle, styles.mr0];
+    }
+
     const showBorderlessLoading = isLoading && fillSpace;
 
     // Map distance receipts show both hover actions just like regular receipts, so we don't exclude isMapDistanceRequest here.

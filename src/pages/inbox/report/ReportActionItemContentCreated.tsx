@@ -5,6 +5,7 @@ import SupportTicketView from '@components/ReportActionItem/SupportTicketView';
 import TaskView from '@components/ReportActionItem/TaskView';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import SpacerView from '@components/SpacerView';
+import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 
 import useLocalize from '@hooks/useLocalize';
@@ -60,6 +61,25 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
         />
     );
 
+    // Below an expense the comments get a heading like the expense's other sections
+    const expenseCommentsHeading = (
+        <>
+            <View style={[styles.reportHorizontalRule, styles.borderBottom, styles.mv3]} />
+            <View
+                style={[styles.mh5, styles.pt4, styles.pb2, styles.userSelectNone]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
+                <Text variant="labelStrong">{translate('common.comments')}</Text>
+            </View>
+            {shouldHideThreadDividerLine && (
+                <UnreadActionIndicator
+                    reportActionID={report?.reportID}
+                    shouldHideThreadDividerLine={shouldHideThreadDividerLine}
+                />
+            )}
+        </>
+    );
+
     const disabledStateValue = {...contextMenuStateValue, isDisabled: true};
 
     if (isTransactionThread(parentReportAction)) {
@@ -101,9 +121,8 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
                                 transactionThreadReport={report}
                                 parentReportID={report?.parentReportID}
                                 expensePolicy={policy}
-                                shouldShowAnimatedBackground
                             />
-                            {renderThreadDivider}
+                            {expenseCommentsHeading}
                         </View>
                     </ShowContextMenuActionsContext.Provider>
                 </ShowContextMenuStateContext.Provider>
@@ -168,7 +187,7 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
                 transactionThreadReport={transactionThreadReport}
                 action={action}
                 shouldHideThreadDividerLine={shouldHideThreadDividerLine}
-                threadDivider={renderThreadDivider}
+                threadDivider={expenseCommentsHeading}
             />
         );
     }

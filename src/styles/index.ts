@@ -3667,7 +3667,7 @@ const staticStyles = (theme: ThemeColors) =>
         // still waiting to be filled in.
         moneyRequestFieldRowDisabled: {
             backgroundColor: theme.highlightBG,
-            borderColor: theme.borderLighter,
+            borderColor: theme.highlightBG,
         },
 
         // Fill behind `moneyRequestFieldRow`. The row's own background would cover anything drawn under it, so the
@@ -6824,8 +6824,6 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
             width: animatedReceiptPaneRHPWidth,
             height: '100%',
-            borderRightWidth: 1,
-            borderColor: theme.border,
         },
 
         wideRHPDropZoneContainer: {
@@ -6834,7 +6832,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         wideRHPMoneyRequestReceiptViewScrollViewContainer: {
-            ...spacing.pt3,
+            ...spacing.pt4,
             ...spacing.pb2,
             minHeight: '100%',
         },

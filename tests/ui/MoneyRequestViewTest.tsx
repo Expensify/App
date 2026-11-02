@@ -86,6 +86,8 @@ jest.mock('@react-navigation/native', () => ({
         addListener: jest.fn(() => jest.fn()),
     })),
     useIsFocused: jest.fn(() => true),
+    // Inline field inputs subscribe to screen focus, and these tests render the view outside a navigator
+    useFocusEffect: jest.fn(),
     useRoute: jest.fn(() => ({key: '', name: '', params: {reportID: '1'}})),
 }));
 
@@ -170,7 +172,6 @@ const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.get
                         outputCurrency: CONST.CURRENCY.USD,
                         ...policy,
                     })}
-                    shouldShowAnimatedBackground={false}
                     readonly={readonly}
                 />
             </ScreenWrapperStatusContext.Provider>
@@ -446,7 +447,6 @@ describe('MoneyRequestView edit fields', () => {
                         transactionThreadReport={threadReport}
                         parentReportID={selfDMReportID}
                         expensePolicy={undefined}
-                        shouldShowAnimatedBackground={false}
                     />
                 </ScreenWrapperStatusContext.Provider>
             </ComposeProviders>,
@@ -1360,7 +1360,6 @@ describe('MoneyRequestView edit fields', () => {
                         transactionThreadReport={threadReport}
                         parentReportID={selfDMReportID}
                         expensePolicy={undefined}
-                        shouldShowAnimatedBackground={false}
                     />
                 </ComposeProviders>,
             );
