@@ -308,8 +308,35 @@ describe('ValidateLoginPage', () => {
             expect(screen.getByTestId('validate-login-loading')).toBeOnTheScreen();
             expect(screen.queryByText(translateLocal('common.youAppearToBeOffline'))).toBeNull();
         } finally {
+            // Network state is module-level, so restore it even if an assertion fails. The page may still be
+            // offline and mounted, so do it inside act.
+            act(() => {
+                setHasRadio(true);
+            });
+        }
+    });
+
+    it('Should keep the loader, not the offline message, for a signed-in user who opens the link offline', async () => {
+        // Given a signed-in user whose sign-in is still finishing, who is offline. They are sent on without
+        // waiting on a request, so the offline message would only flash before the redirect.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {authToken: 'abcd', autoAuthState: CONST.AUTO_AUTH_STATE.SIGNING_IN});
+        });
+        setHasRadio(false);
+
+        try {
+            // When they open the magic link
+            renderPage({accountID: '1', validateCode: '123456'});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then they see the loader and no offline message
+            expect(screen.getByTestId('validate-login-loading')).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('common.youAppearToBeOffline'))).toBeNull();
+        } finally {
             // Network state is module-level, so restore it even if an assertion fails
-            setHasRadio(true);
+            act(() => {
+                setHasRadio(true);
+            });
         }
     });
 

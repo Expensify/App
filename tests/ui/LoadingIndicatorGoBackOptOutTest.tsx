@@ -181,8 +181,11 @@ describe('FullScreenLoadingIndicator "Go Back" opt-outs', () => {
                 expect(screen.getByText('common.youAppearToBeOffline')).toBeOnTheScreen();
                 expect(screen.UNSAFE_queryByType(ActivityIndicator)).toBeNull();
             } finally {
-                // Network state is module-level, so restore it even if an assertion fails
-                setHasRadio(true);
+                // Network state is module-level, so restore it even if an assertion fails. The page is still
+                // mounted and re-renders on the change, so do it inside act.
+                act(() => {
+                    setHasRadio(true);
+                });
             }
         });
 

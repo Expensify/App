@@ -4,7 +4,9 @@ import ExpiredValidateCodeModal from '@components/ValidateCode/ExpiredValidateCo
 import JustSignedInModal from '@components/ValidateCode/JustSignedInModal';
 import ValidateCodeModal from '@components/ValidateCode/ValidateCodeModal';
 
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,6 +23,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 import type ValidateLoginPageProps from './types';
 
@@ -37,6 +40,8 @@ function ValidateLoginPage({
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const {isOffline} = useNetwork();
+    const styles = useThemeStyles();
 
     const login = credentials?.login;
     const isSignedIn = !!session?.authToken && session?.authTokenType !== CONST.AUTH_TOKEN_TYPES.ANONYMOUS;
@@ -163,6 +168,17 @@ function ValidateLoginPage({
         return () => clearTimeout(timeoutID);
     }, [isCompletingDirectSignIn, autoAuthStateWithDefault]);
 
+    const loadingIndicator = (
+        <FullScreenLoadingIndicator
+            // No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to.
+            shouldUseGoBackButton={false}
+            testID="validate-login-loading"
+        />
+    );
+    // Offline, a signed-out user's sign-in request waits in the queue until the network returns, so show why instead of a bare spinner.
+    // Signed-in users are sent on without waiting on a request, so they keep the loader.
+    const shouldShowOfflineView = isOffline && !isSignedIn;
+
     return (
         <>
             {autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.FAILED && !is2FARequired && <ExpiredValidateCodeModal />}
@@ -177,16 +193,15 @@ function ValidateLoginPage({
                     code={validateCode}
                 />
             )}
-            {((!effectiveAutoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) || isCompletingDirectSignIn) && (
-                // Offline, the sign-in request waits in the queue until the network returns, so show why instead of a bare spinner.
-                <FullPageOfflineBlockingView>
-                    <FullScreenLoadingIndicator
-                        // No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to.
-                        shouldUseGoBackButton={false}
-                        testID="validate-login-loading"
-                    />
-                </FullPageOfflineBlockingView>
-            )}
+            {((!effectiveAutoAuthState ? shouldStartSignInWithValidateCode : autoAuthStateWithDefault === CONST.AUTO_AUTH_STATE.SIGNING_IN) || isCompletingDirectSignIn) &&
+                (shouldShowOfflineView ? (
+                    // The offline view has no background of its own, so paint one to cover whatever is underneath.
+                    <View style={[StyleSheet.absoluteFill, styles.appBG]}>
+                        <FullPageOfflineBlockingView>{loadingIndicator}</FullPageOfflineBlockingView>
+                    </View>
+                ) : (
+                    loadingIndicator
+                ))}
         </>
     );
 }
