@@ -652,6 +652,9 @@ const translations = {
         allSet: 'All Set!',
         enterDigitLabel: ({digitIndex, totalDigits}: {digitIndex: number; totalDigits: number}) => `enter digit ${digitIndex} of ${totalDigits}`,
         apiKey: 'API key',
+        invoiceNumber: 'Invoice number',
+        dueDate: 'Due date',
+        poNumber: 'PO number',
     },
     socials: {
         podcast: 'Follow us on Podcast',

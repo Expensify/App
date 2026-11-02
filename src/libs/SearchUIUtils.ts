@@ -4603,8 +4603,9 @@ function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustom
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
         case CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT:
-        case CONST.SEARCH.DATA_TYPES.BILL:
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT);
+        case CONST.SEARCH.DATA_TYPES.BILL:
+            return [...Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT), ...Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.BILL)];
         case CONST.SEARCH.DATA_TYPES.INVOICE:
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.INVOICE);
         case CONST.SEARCH.DATA_TYPES.TASK:
@@ -4864,6 +4865,12 @@ function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTy
             return 'search.trip.tripName';
         case CONST.SEARCH.TABLE_COLUMNS.TRAVELER:
             return 'search.trip.traveler';
+        case CONST.SEARCH.TABLE_COLUMNS.INVOICE_NUMBER:
+            return 'common.invoiceNumber';
+        case CONST.SEARCH.TABLE_COLUMNS.DUE_DATE:
+            return 'common.dueDate';
+        case CONST.SEARCH.TABLE_COLUMNS.PO_NUMBER:
+            return 'common.poNumber';
         default:
             // This should never happen, but TypeScript requires a default case
             return 'common.expenses' as TranslationPaths;
@@ -6917,6 +6924,9 @@ function getColumnsToShow({
 
         // If there are no visible columns, everything should be visible
         const filteredVisibleColumns = visibleColumns.filter((column) => {
+            if (type === CONST.SEARCH.DATA_TYPES.BILL && Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.BILL).includes(column as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.BILL>)) {
+                return true;
+            }
             return Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT).includes(column as ValueOf<typeof CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE_REPORT>);
         });
 
@@ -7498,7 +7508,8 @@ function getTableMinWidth(
             column === CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN ||
             column === CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN ||
             column === CONST.SEARCH.TABLE_COLUMNS.START_DATE ||
-            column === CONST.SEARCH.TABLE_COLUMNS.END_DATE
+            column === CONST.SEARCH.TABLE_COLUMNS.END_DATE ||
+            column === CONST.SEARCH.TABLE_COLUMNS.DUE_DATE
         ) {
             minWidth += 72;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.TYPE) {

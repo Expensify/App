@@ -329,6 +329,21 @@ function ExpenseReportListItemRowWide({
                 <TextCell text={item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? '' : getBase62ReportID(Number(item.reportID))} />
             </View>
         ),
+        [CONST.SEARCH.TABLE_COLUMNS.INVOICE_NUMBER]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.INVOICE_NUMBER)]}>
+                <TextCell text="test" />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.DUE_DATE]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DUE_DATE)]}>
+                <TextCell text="test" />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.PO_NUMBER]: (
+            <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PO_NUMBER)]}>
+                <TextCell text="test" />
+            </View>
+        ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (
             <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO)]}>
                 <ExportedIconCell reportActions={reportActions} />

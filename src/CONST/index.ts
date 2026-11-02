@@ -8484,7 +8484,16 @@ const CONST = {
                     EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
-                INVOICE: {},
+                BILL: {
+                    INVOICE_NUMBER: this.TABLE_COLUMNS.INVOICE_NUMBER,
+                    DUE_DATE: this.TABLE_COLUMNS.DUE_DATE,
+                    PO_NUMBER: this.TABLE_COLUMNS.PO_NUMBER,
+                },
+                INVOICE: {
+                    INVOICE_NUMBER: this.TABLE_COLUMNS.INVOICE_NUMBER,
+                    DUE_DATE: this.TABLE_COLUMNS.DUE_DATE,
+                    PO_NUMBER: this.TABLE_COLUMNS.PO_NUMBER,
+                },
                 TASK: {},
                 TRIP: {
                     START_DATE: this.TABLE_COLUMNS.START_DATE,
@@ -8765,6 +8774,9 @@ const CONST = {
             END_DATE: 'endDate',
             TRIP_NAME: 'tripName',
             TRAVELER: 'traveler',
+            INVOICE_NUMBER: 'invoiceNumber',
+            DUE_DATE: 'dueDate',
+            PO_NUMBER: 'poNumber',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',

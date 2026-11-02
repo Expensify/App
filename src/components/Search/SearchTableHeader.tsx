@@ -417,6 +417,18 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
         translationKey: 'search.exportedTo',
     },
     {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.INVOICE_NUMBER,
+        translationKey: 'common.invoiceNumber',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DUE_DATE,
+        translationKey: 'common.dueDate',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.PO_NUMBER,
+        translationKey: 'common.poNumber',
+    },
+    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
         translationKey: 'common.action',
         isColumnSortable: false,
