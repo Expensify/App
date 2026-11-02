@@ -5070,6 +5070,7 @@ ${amount} dla ${merchant} - ${date}`,
             roomType: 'Rodzaj pokoju',
             cancellation: 'Zasady anulowania',
             cancellationUntil: 'Bezpłatne anulowanie do',
+            hotelLocalTime: 'czas lokalny hotelu',
             confirmation: 'Numer potwierdzenia',
             cancellationPolicies: {
                 unknown: 'Nieznane',
@@ -5196,8 +5197,9 @@ ${amount} dla ${merchant} - ${date}`,
                 'Wiesz, że możesz rezerwować i zarządzać takimi wyjazdami grupowymi bezpośrednio w Expensify? Oszczędź sobie zachodu następnym razem i wypróbuj nasze narzędzie <a href="https://help.expensify.com/travel/hubs/event-management/">Travel Events</a>.',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Podróże są wyłączone',
-            message: 'Aby dokonać rezerwacji, włącz podróże w swojej domyślnej przestrzeni roboczej lub ustaw jako domyślną inną przestrzeń roboczą, w której podróże są włączone.',
+            title: 'Nie możesz jeszcze rezerwować podróży',
+            message:
+                'Jesteś członkiem przestrzeni roboczej z włączonymi podróżami, ale nie jest to twoja domyślna przestrzeń robocza. Aby dokonać rezerwacji, włącz podróże w swojej domyślnej przestrzeni roboczej albo zmień domyślną przestrzeń roboczą na taką, która ma włączone podróże.',
         },
     },
     workspace: {
@@ -5329,8 +5331,6 @@ ${amount} dla ${merchant} - ${date}`,
             guestAlternateText: 'Przesyłaj raporty z ograniczoną widocznością.',
             roleName: (role?: string) => {
                 switch (role) {
-                    case CONST.POLICY.ROLE.OWNER:
-                        return 'Właściciel';
                     case CONST.POLICY.ROLE.ADMIN:
                         return 'Administrator przestrzeni roboczej';
                     case CONST.POLICY.ROLE.AUDITOR:
@@ -10775,6 +10775,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 [CONST.SEARCH.GROUP_BY.WEEK]: 'Tydzień',
                 [CONST.SEARCH.GROUP_BY.YEAR]: 'Rok',
                 [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartał',
+                [CONST.SEARCH.GROUP_BY.APPROVER]: 'Osoba zatwierdzająca',
             },
             feed: 'Kanał',
             withdrawalType: {
@@ -10834,6 +10835,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             [CONST.SEARCH.GROUP_BY.WEEK]: 'Tygodnie',
             [CONST.SEARCH.GROUP_BY.YEAR]: 'Lata',
             [CONST.SEARCH.GROUP_BY.QUARTER]: 'Kwartały',
+            [CONST.SEARCH.GROUP_BY.APPROVER]: 'Osoby zatwierdzające',
         },
         moneyRequestReport: {emptyStateTitle: 'Brak wydatków', accessPlaceHolder: 'Otwórz, aby zobaczyć szczegóły'},
         noCategory: 'Brak kategorii',
@@ -12088,6 +12090,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 info: 'Jeśli chcesz nadal korzystać ze swojego(-ich) workspace’u(-ów) w modelu płatności za użycie, wszystko jest gotowe.',
                 preventFutureActivity: (workspacesListRoute: string) =>
                     `Jeśli chcesz zapobiec przyszłej aktywności i obciążeniom, musisz <a href="${workspacesListRoute}">usunąć swoje przestrzenie robocze</a>. Pamiętaj, że po usunięciu przestrzeni roboczych zostaniesz obciążony za wszelką nierozliczoną aktywność z bieżącego miesiąca kalendarzowego.`,
+                preventFutureActivityWithArchive: (workspacesListRoute: string) =>
+                    `Aby zapobiec przyszłej aktywności i naliczeniom, <a href="${workspacesListRoute}">zarchiwizuj wszystkie swoje płatne przestrzenie robocze</a>. Zarchiwizowane przestrzenie robocze z rozliczaną aktywnością w bieżącym miesiącu nadal będą uwzględnione na twoim rachunku.`,
             },
             requestSubmitted: {
                 title: 'Wniosek wysłany',
