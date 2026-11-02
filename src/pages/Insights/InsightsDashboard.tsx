@@ -9,13 +9,13 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
@@ -44,7 +44,7 @@ import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
 import {getQueryGroupBy} from './insightsGroupByUtils';
 import buildInsightsJsonQuery from './insightsQueries';
 import InsightsTabSelector from './InsightsTabSelector';
-import {getDashboardState, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
+import {getDashboardState, hasDashboardResponse, INSIGHTS_DASHBOARD_STATE} from './resolveDashboardState';
 import InsightsEmptyState from './states/InsightsEmptyState';
 import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import useInsightsFilters from './useInsightsFilters';
@@ -64,18 +64,22 @@ type InsightsDashboardContentProps = {
 
     /** Changes how the headline chart aggregates: the time bucket, or Running total */
     onGroupByChange: (update: Partial<InsightsFilters>) => void;
+
+    /** Page header rendered at the top of the scroller, so it scrolls away with the charts */
+    children?: React.ReactNode;
 };
 
-function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange, children}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
     const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
-    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, pageGutter, styles.pb5], {
+    const scrollProps = useTabRootScrollProps(isEmptyState ? [styles.flexGrow1, styles.flexShrink0] : [styles.flexGrow1, !shouldScrollMainHeader && pageGutter, styles.pb5], {
         hasBottomSafeAreaPadding: true,
         hasOfflineIndicatorPadding: true,
         fillsVisibleArea: isEmptyState,
@@ -100,24 +104,30 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             },
         } as const;
         return (
-            <FullPageErrorView
-                shouldShow
-                onButtonPress={onRetry}
-                {...failureViewByState[state]}
-            />
+            <>
+                {children}
+                <FullPageErrorView
+                    shouldShow
+                    onButtonPress={onRetry}
+                    {...failureViewByState[state]}
+                />
+            </>
         );
     }
 
     if (state === INSIGHTS_DASHBOARD_STATE.OFFLINE) {
         return (
-            <BlockingView
-                icon={icons.OfflineCloud}
-                iconColor={theme.offline}
-                title={translate('common.youAppearToBeOffline')}
-                subtitle={translate('common.thisFeatureRequiresInternet')}
-                addBottomSafeAreaPadding
-                addOfflineIndicatorBottomSafeAreaPadding
-            />
+            <>
+                {children}
+                <BlockingView
+                    icon={icons.OfflineCloud}
+                    iconColor={theme.offline}
+                    title={translate('common.youAppearToBeOffline')}
+                    subtitle={translate('common.thisFeatureRequiresInternet')}
+                    addBottomSafeAreaPadding
+                    addOfflineIndicatorBottomSafeAreaPadding
+                />
+            </>
         );
     }
 
@@ -128,6 +138,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                     {...scrollProps}
                     addBottomSafeAreaPadding
                 >
+                    {children}
                     {state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? <InsightsNoExpensesState /> : <InsightsEmptyState />}
                 </ScrollView>
             </TabRootScrollViewMarker>
@@ -146,15 +157,16 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                 {...scrollProps}
                 addBottomSafeAreaPadding
             >
-                <View style={styles.insightsDashboardLayout(shouldUseNarrowLayout)}>
+                {children}
+                <View style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}>
                     <InsightsChartWidget
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
                         snapshot={headlineChart.snapshot}
                         previousPeriodQueryJSON={headlineChart.previousPeriodQueryJSON}
                         previousPeriodSnapshot={headlineChart.previousPeriodSnapshot}
-                        averageQueryJSON={headlineChart.averageQueryJSON}
-                        averageSnapshot={headlineChart.averageSnapshot}
+                        averageTotal={headlineChart.averageTotal}
+                        isDashboardLoaded={headlineChart.isDashboardLoaded}
                         filters={filters}
                         onRetry={onRetry}
                         onGroupByChange={onGroupByChange}
@@ -166,7 +178,7 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                                 key={columnIndex}
                                 style={[styles.flex1, styles.insightsChartColumn(shouldUseNarrowLayout)]}
                             >
-                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageQueryJSON, averageSnapshot}) => (
+                                {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}) => (
                                     <InsightsChartWidget
                                         key={chart.graphKey}
                                         chart={chart}
@@ -174,8 +186,8 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
                                         snapshot={snapshot}
                                         previousPeriodQueryJSON={previousPeriodQueryJSON}
                                         previousPeriodSnapshot={previousPeriodSnapshot}
-                                        averageQueryJSON={averageQueryJSON}
-                                        averageSnapshot={averageSnapshot}
+                                        averageTotal={averageTotal}
+                                        isDashboardLoaded={isDashboardLoaded}
                                         filters={filters}
                                         onRetry={onRetry}
                                     />
@@ -195,18 +207,16 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.INSIGHTS);
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const {isOffline} = useNetwork();
     const isFocused = useIsFocused();
     const {login} = useCurrentUserPersonalDetails();
     const [policies, policiesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {filters, defaultFilters, isResolved, setFilters} = useInsightsFilters(dashboardID);
-    const {isBetaEnabled} = usePermissions();
-
-    const isCompareEnabled = isBetaEnabled(CONST.BETAS.INSIGHTS_COMPARE);
     const {headlineChart: headlineSpec, supportingCharts: supportingSpecs} = INSIGHTS_DASHBOARD_SPECS[dashboardID];
     const eligibleCharts = getVisibleCharts(supportingSpecs, policies, filters.policyIDs, login);
     const eligibleGraphKeys = eligibleCharts.map(({graphKey}) => graphKey).join(',');
-    const query = isResolved && !isLoadingOnyxValue(policiesMetadata) ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts, isCompareEnabled) : undefined;
+    const query = isResolved && !isLoadingOnyxValue(policiesMetadata) ? buildInsightsJsonQuery(dashboardID, filters, eligibleCharts) : undefined;
     const hash = query?.hash;
     // The bucket actually queried, which Running total resolves to a real day/month bucket. Toggling Running total alone leaves this unchanged, so it stays a client-side transform with no refetch.
     const queryGroupBy = isResolved ? getQueryGroupBy(filters) : undefined;
@@ -228,7 +238,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         }
         onRequestConditionsChanged();
         // Leaves out jsonQuery so toggling Compare mode doesn't refetch, since every response covers it. The effective bucket and the eligible charts are listed because the hash leaves them out, so changing them triggers a refetch while a pure Running total toggle does not.
-    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isCompareEnabled, isFocused, isOffline]);
+    }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
@@ -236,15 +246,16 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         ? [query.headlineChart, ...query.supportingCharts]
         : [headlineSpec, ...eligibleCharts].map((chart): InsightsChartQuery => ({chart, queryJSON: undefined}));
     const snapshots = useMultipleSnapshots(
-        visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON, averageQueryJSON}) =>
-            [queryJSON, previousPeriodQueryJSON, averageQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
+        visibleChartQueries.flatMap(({queryJSON, previousPeriodQueryJSON}) =>
+            [queryJSON, previousPeriodQueryJSON].flatMap((chartQueryJSON) => (chartQueryJSON ? [String(chartQueryJSON.hash)] : [])),
         ),
     );
     const charts: InsightsDashboardChart[] = visibleChartQueries.map((chartQuery) => ({
         ...chartQuery,
         snapshot: chartQuery.queryJSON ? snapshots[chartQuery.queryJSON.hash] : undefined,
         previousPeriodSnapshot: chartQuery.previousPeriodQueryJSON ? snapshots[chartQuery.previousPeriodQueryJSON.hash] : undefined,
-        averageSnapshot: chartQuery.averageQueryJSON ? snapshots[chartQuery.averageQueryJSON.hash] : undefined,
+        averageTotal: dashboard?.graphs?.[chartQuery.chart.graphKey]?.average,
+        isDashboardLoaded: hasDashboardResponse(dashboard),
     }));
     const [headlineChart, ...supportingCharts] = charts;
     const state = getDashboardState(dashboard, isOffline, charts);
@@ -266,13 +277,8 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             />
         ) : null;
 
-    return (
-        <ScreenWrapper
-            shouldShowOfflineIndicatorInWideScreen
-            enableEdgeToEdgeBottomSafeAreaPadding={false}
-            {...tabRootScreenWrapperProps}
-            testID="InsightsPage"
-        >
+    const header = (
+        <>
             <TopBar
                 breadcrumbLabel={translate('common.insights')}
                 shouldDisplayHelpButton
@@ -292,6 +298,17 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                     </View>
                 )
             )}
+        </>
+    );
+
+    return (
+        <ScreenWrapper
+            shouldShowOfflineIndicatorInWideScreen
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
+            {...tabRootScreenWrapperProps}
+            testID="InsightsPage"
+        >
+            {!shouldScrollMainHeader && header}
             <InsightsDashboardContent
                 state={state}
                 headlineChart={headlineChart}
@@ -299,7 +316,9 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                 filters={filters}
                 onRetry={requestDashboard}
                 onGroupByChange={setFilters}
-            />
+            >
+                {shouldScrollMainHeader && header}
+            </InsightsDashboardContent>
         </ScreenWrapper>
     );
 }

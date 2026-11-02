@@ -278,7 +278,7 @@ function getAlternateText(
         rules,
     }: GetAlternateTextConfig,
 ) {
-    const report = getReportOrDraftReport(option.reportID);
+    const report = getReportOrDraftReport({reportID: option.reportID});
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
     const isGroupChat = reportUtilsIsGroupChat(report);
@@ -572,20 +572,19 @@ function createOption({
 
     // Set core display properties that are used in SearchOption context
     result.text = reportName;
-    result.icons = getIcons(
+    result.icons = getIcons({
         report,
-        formatPhoneNumberPhoneUtils,
-        translateFn,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+        translate: translateFn,
         personalDetails,
-        personalDetail?.avatar,
-        personalDetail?.login,
-        personalDetail?.accountID,
-        null,
-        undefined,
-        result?.private_isArchived,
+        defaultIcon: personalDetail?.avatar,
+        defaultName: personalDetail?.login,
+        defaultAccountID: personalDetail?.accountID,
+        policy: null,
+        isReportArchived: result?.private_isArchived,
         pendingDeleteMemberAccountIDs,
         conciergeReportID,
-    );
+    });
     result.subtitle = subtitle;
 
     // Set login and accountID only for single participant cases (used in SearchOption context)
@@ -636,7 +635,7 @@ function getReportOption({
     pendingDeleteMemberAccountIDs,
 }: GetReportOptionParams): OptionData {
     const {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber} = localize;
-    const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
+    const report = getReportOrDraftReport({reportID: participant.reportID, reportDraft});
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
@@ -1961,7 +1960,7 @@ function isValidReport(
         conciergeReportID,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
-    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations);
+    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations, policy);
 
     const shouldBeInOptionList = shouldReportBeInOptionList({
         report: option.item,

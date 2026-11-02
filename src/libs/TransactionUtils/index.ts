@@ -64,6 +64,7 @@ import {getClearedPendingFields, getDistanceMerchantForTransaction, getUpdatedTr
 import {
     calculateTaxAmount,
     getCalculatedTaxAmount,
+    getCategoryTaxCode,
     getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceRateTaxUpdates,
@@ -767,7 +768,7 @@ function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transac
     }
 
     // Get the creator of the transaction by looking at the owner of the report linked to the transaction
-    const report = getReportOrDraftReport(transaction?.reportID);
+    const report = getReportOrDraftReport({reportID: transaction?.reportID});
     // For unreported expenses, the creator ID should belong to the current user because the transaction isn’t part of any report yet
     const creatorAccountID = isExpenseUnreported(transaction) ? currentUserAccountID : report?.ownerAccountID;
     return creatorAccountID;
@@ -1458,7 +1459,7 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
     const isAddedToReport = !!transaction?.reportID && transaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
     if (isAddedToReport) {
-        const report = getReportOrDraftReport(transaction.reportID);
+        const report = getReportOrDraftReport({reportID: transaction.reportID});
         if (report && report.type !== CONST.REPORT.TYPE.EXPENSE) {
             return false;
         }
@@ -1967,6 +1968,7 @@ export {
     getAllSortedTransactions,
     getFormattedPostedDate,
     getPostedDate,
+    getCategoryTaxCode,
     getCategoryTaxDetails,
     isPerDiemRequest,
     isViolationDismissed,

@@ -14,6 +14,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useReleaseOptionListCaches from '@hooks/useReleaseOptionListCaches';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchOverlay from '@hooks/useSearchOverlay';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
 import useSeedMyExpensesSearch from '@hooks/useSeedMyExpensesSearch';
@@ -52,6 +53,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
     const hasFilterBars = useHasFilterBars();
+    const searchListContentContainerStyle = useSearchListContentContainerStyle(hasFilterBars);
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
@@ -176,7 +178,7 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(true);
     };
 
-    const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(hasFilterBars) : undefined;
+    const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? searchListContentContainerStyle : undefined;
     const overlayEndSubmitSpans = useEndSubmitNavigationSpans();
     const {searchOverlayContent, onSearchContentReady, isOverlayActive} = useSearchOverlay({
         searchResults,
