@@ -97,7 +97,7 @@ function SearchPage({route}: SearchPageProps) {
         searchResults = lastNonEmptySearchResults;
     }
 
-    // A preloaded tab mounts hidden, so it resets the shared video player only once opened, not over a video playing elsewhere.
+    // Resets the shared video player only once a preloaded tab is opened.
     const isInPreloadedTab = useIsInPreloadedTab();
     useEffect(() => {
         if (shouldUseNarrowLayout || isInPreloadedTab) {

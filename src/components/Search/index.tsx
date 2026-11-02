@@ -462,8 +462,7 @@ function Search({
     const isInPreloadedTab = useIsInPreloadedTab();
 
     useEffect(() => {
-        // A preloaded tab sends no request while hidden. useSearchPageSetup sends it on first open. This also covers the
-        // migrated-modal and reconnect branches below, which skip the focus check.
+        // A preloaded tab sends no request while hidden, including from the migrated-modal and reconnect branches below.
         if (isInPreloadedTab) {
             return;
         }
