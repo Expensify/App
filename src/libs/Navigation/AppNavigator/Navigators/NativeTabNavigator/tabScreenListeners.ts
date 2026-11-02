@@ -7,8 +7,10 @@ import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScr
 import {startNavigateToInboxTabSpan, startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
 
 import SCREENS from '@src/SCREENS';
+import type {Session} from '@src/types/onyx';
 
 import type {NavigationState, PartialState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 type NavigationTab = ValueOf<typeof NAVIGATION_TABS>;
@@ -30,11 +32,11 @@ function isInboxTabAtChatList(inboxRoute: TabRoute | undefined) {
  * What a tap on the native bar does on top of the tab switch, mirroring the JS tab buttons the native bar replaces.
  * Workspaces is handled by TabPressListeners, which needs Onyx data.
  */
-const NAVIGATION_TAB_PRESS_HANDLERS: Partial<Record<NavigationTab, (route: TabRoute) => void>> = {
+const NAVIGATION_TAB_PRESS_HANDLERS: Partial<Record<NavigationTab, (route: TabRoute, session: OnyxEntry<Session>) => void>> = {
     [NAVIGATION_TABS.INBOX]: (route) => (isInboxTabAtChatList(route) ? startNavigateToInboxTabSpan({isWideLayout: false}) : navigateToInboxTab()),
-    [NAVIGATION_TABS.SEARCH]: () => interceptAnonymousUser(startNavigateToReportsTabSpans),
-    [NAVIGATION_TABS.INSIGHTS]: () => interceptAnonymousUser(() => {}),
-    [NAVIGATION_TABS.SETTINGS]: () => interceptAnonymousUser(() => {}),
+    [NAVIGATION_TABS.SEARCH]: (route, session) => interceptAnonymousUser(startNavigateToReportsTabSpans, session),
+    [NAVIGATION_TABS.INSIGHTS]: (route, session) => interceptAnonymousUser(() => {}, session),
+    [NAVIGATION_TABS.SETTINGS]: (route, session) => interceptAnonymousUser(() => {}, session),
 };
 
 type NativeTabSelectionParams = {
@@ -66,19 +68,20 @@ function isNativeTabSelectionEnabled(routeName: string, {isAnonymousUser, isInbo
 type TabScreenListenerProps = {
     route: TabRoute;
     navigation: {isFocused: () => boolean};
+    session: OnyxEntry<Session>;
 };
 
 /**
  * Native tabs emit `tabPress` when a user tap reaches JS, both for a tab the bar switched to and for one whose
  * selection is disabled. A tap on the already focused tab does nothing, the same as a JS tab button pressed on its own tab.
  */
-function tabScreenListeners({route, navigation}: TabScreenListenerProps) {
+function tabScreenListeners({route, navigation, session}: TabScreenListenerProps) {
     return {
         tabPress: () => {
             if (navigation.isFocused()) {
                 return;
             }
-            NAVIGATION_TAB_PRESS_HANDLERS[ROUTE_TO_NAVIGATION_TAB[route.name]]?.(route);
+            NAVIGATION_TAB_PRESS_HANDLERS[ROUTE_TO_NAVIGATION_TAB[route.name]]?.(route, session);
         },
     };
 }

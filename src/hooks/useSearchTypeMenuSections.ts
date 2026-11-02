@@ -49,6 +49,7 @@ const policyMapper = (policy: OnyxEntry<Policy>): OnyxEntry<Policy> =>
 const currentUserLoginAndAccountIDSelector = (session: OnyxEntry<Session>) => ({
     email: session?.email,
     accountID: session?.accountID,
+    authTokenType: session?.authTokenType,
 });
 
 /**
@@ -118,6 +119,7 @@ const useSearchTypeMenuSections = (isScreenFocused = true) => {
         isTrackIntentUser: isTrackIntentUser ?? false,
         hasReportAwaitingApproval,
         policyCategories: allPolicyCategories,
+        session: currentUserLoginAndAccountID,
     });
 
     return typeMenuSections;
