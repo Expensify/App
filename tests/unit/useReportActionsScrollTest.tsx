@@ -860,10 +860,28 @@ describe('useReportActionsScroll', () => {
     });
 
     describe('pill tracking', () => {
+        it('waits for the current list to finish positioning before tracking pills', async () => {
+            // Given a read chat whose initial scroll offsets are still estimates.
+            const params = buildParams();
+            const {result, rerender} = await renderScroll(params);
+            expect(mockShouldDisablePillTracking).toBe(true);
+
+            // When the initial viewport settles, its pill state can reflect the visible messages.
+            act(() => result.current.onLoad());
+            expect(mockShouldDisablePillTracking).toBe(false);
+
+            // Then a replacement list must settle independently of the previous list.
+            rerender({...params, listID: `${REPORT_ID}:hydrated`});
+            expect(mockShouldDisablePillTracking).toBe(true);
+            act(() => result.current.onLoad());
+            expect(mockShouldDisablePillTracking).toBe(false);
+        });
+
         it('refreshes pill visibility after the expanded composer collapses', async () => {
             // Given pill tracking is suspended while the expanded composer covers the report.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${REPORT_ID}`, true);
-            await renderScroll();
+            const {result} = await renderScroll();
+            act(() => result.current.onLoad());
             mockUpdatePillVisibility.mockClear();
 
             // When the composer collapses and the report becomes visible again.
@@ -881,7 +899,8 @@ describe('useReportActionsScroll', () => {
             // Given the composer at its normal size and no linked message to position
 
             // When the hook renders
-            await renderScroll();
+            const {result} = await renderScroll();
+            act(() => result.current.onLoad());
 
             // Then scroll-based pill tracking stays enabled so the Latest messages pill follows scrolling
             expect(mockShouldDisablePillTracking).toBe(false);

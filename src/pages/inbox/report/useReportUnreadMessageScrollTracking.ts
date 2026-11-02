@@ -142,6 +142,11 @@ export default function useReportUnreadMessageScrollTracking({
         }
 
         ref.current.previousViewableItems = viewableItems;
+        // Initial positioning reports provisional rows behind the cover. Replay the latest viewport when tracking resumes.
+        if (shouldDisablePillTracking) {
+            return;
+        }
+
         const viewableIndexes = viewableItems.map((viewableItem) => viewableItem.index).filter((value) => typeof value === 'number');
 
         if (viewableIndexes.length === 0) {

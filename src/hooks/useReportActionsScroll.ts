@@ -199,7 +199,8 @@ function useReportActionsScroll({
     }
 
     const shouldFocusToTopOnMount = shouldBeAlignedToTop && !initialScrollKey && !shouldScrollToLatestOnOpen;
-    const [shouldDisablePillTracking, setShouldDisablePillTracking] = useState(!!initialScrollKey);
+    const [readyListID, setReadyListID] = useState<string>();
+    const shouldDisablePillTracking = readyListID !== listID;
 
     const {
         isFloatingMessageCounterVisible,
@@ -426,7 +427,7 @@ function useReportActionsScroll({
             return;
         }
         requestAnimationFrame(() => {
-            setShouldDisablePillTracking(false);
+            setReadyListID(listID);
             updatePillVisibility();
         });
     };
