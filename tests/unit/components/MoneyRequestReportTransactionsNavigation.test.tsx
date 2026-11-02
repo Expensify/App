@@ -48,7 +48,7 @@ const mockState: MockOnyxState = {
 
 type KeyboardShortcutRegistration = {
     callback: (event?: KeyboardEvent) => void;
-    config: {captureOnInputs?: boolean; isActive?: boolean};
+    config: {captureOnInputs?: boolean; isActive?: boolean; shouldPreventDefault?: boolean};
 };
 
 // The latest registration per key, so a test can check whether a shortcut is active and fire it like a key press would.
@@ -421,9 +421,11 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             mockState.transactionIDsList = [PREV_ID, CURRENT_ID];
             renderNavigation();
 
-            // Then only the left arrow is active
-            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)).toBe(false);
-            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(true);
+            // When the right arrow is pressed
+            pressKey(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
+
+            // Then it stays on the current expense
+            expect(Navigation.setParams).not.toHaveBeenCalled();
         });
 
         it('does nothing at the first expense, the same as the disabled previous arrow', () => {
@@ -431,9 +433,25 @@ describe('MoneyRequestReportTransactionsNavigation', () => {
             mockState.transactionIDsList = [CURRENT_ID, NEXT_ID];
             renderNavigation();
 
-            // Then only the right arrow is active
-            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(false);
+            // When the left arrow is pressed
+            pressKey(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey);
+
+            // Then it stays on the current expense
+            expect(Navigation.setParams).not.toHaveBeenCalled();
+        });
+
+        it('keeps both arrow keys active at the last expense so the browser does not scroll the page behind the RHP', () => {
+            // Given the current expense is the last one in the list, and nothing in the RHP has focus to take the key
+            mockState.transactionIDsList = [PREV_ID, CURRENT_ID];
+            renderNavigation();
+
+            // When the registered shortcuts are inspected before any key is pressed, since the bug is about what's registered at the edge
+
+            // Then both shortcuts stay active and keep preventing the default, so an arrow press with nowhere to go
+            // doesn't fall through to the browser and scroll the report table behind the expense
+            expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey)).toBe(true);
             expect(isShortcutActive(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)).toBe(true);
+            expect(mockKeyboardShortcuts.get(CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey)?.config.shouldPreventDefault).not.toBe(false);
         });
 
         it('gives the arrow keys up while a modal or popover opens on top of the expense', () => {

@@ -2167,6 +2167,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD:
             case CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM:
+            case CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER:
             case CONST.SEARCH.TABLE_COLUMNS.FEED:
             case CONST.SEARCH.TABLE_COLUMNS.BANK_ACCOUNT:
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWAL_ID:

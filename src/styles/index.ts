@@ -5,6 +5,7 @@ import {animatedReceiptPaneRHPWidth, animatedWideRHPWidth} from '@components/Wid
 
 import {getBrowser, isMobile, isMobileSafari, isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
+import RHP_FLOATING_CARD_INSET from '@libs/Navigation/helpers/rhpFloatingCardInset';
 import {getSingleRHPWidthStyleValue} from '@libs/Navigation/helpers/singleRHPWidth';
 
 import CONST from '@src/CONST';
@@ -2523,6 +2524,12 @@ const staticStyles = (theme: ThemeColors) =>
         chatFooterFullCompose: {
             height: '100%',
             paddingTop: 20,
+        },
+
+        conciergeAskColumn: {
+            width: '100%',
+            maxWidth: variables.conciergeAskColumnMaxWidth,
+            alignSelf: 'center',
         },
 
         chatItemDraft: {
@@ -7127,6 +7134,13 @@ const staticStyles = (theme: ThemeColors) =>
             width: 8,
             height: 8,
         },
+        chartTooltipAverageDash: {
+            width: 7,
+            height: 1,
+            borderRadius: 0.5,
+            backgroundColor: theme.text,
+            opacity: VictoryTheme.averageLine.opacity,
+        },
         chartContainer: {
             borderRadius: variables.componentBorderRadiusLarge,
         },
@@ -7238,7 +7252,7 @@ const dynamicStyles = (theme: ThemeColors) =>
                 top: variables.rhpFloatingCardMargin,
                 bottom: variables.rhpFloatingCardMargin,
                 width: CONST.RHP_RESIZE.HANDLE_HIT_WIDTH,
-                right: getSingleRHPWidthStyleValue(singleRHPWidth, variables.rhpFloatingCardMargin + 2 * variables.rhpFloatingCardBorderWidth - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
+                right: getSingleRHPWidthStyleValue(singleRHPWidth, RHP_FLOATING_CARD_INSET - CONST.RHP_RESIZE.HANDLE_HIT_WIDTH / 2),
             }) satisfies ViewStyle,
 
         // Floats the offline indicator above a footer laid over the bottom of a tab root screen, without shrinking the
