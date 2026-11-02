@@ -102,7 +102,6 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
                         <MoneyRequestReportTransactionItem
                             transactionID={transaction.transactionID}
                             reportOwnerLogin={undefined}
-                            reportID={report.reportID}
                             policyID={report.policyID}
                             report={report}
                             policy={undefined}

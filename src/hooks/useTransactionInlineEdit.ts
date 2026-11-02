@@ -243,6 +243,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
 
     const getEditParams = async (): Promise<TransactionInlineEditParams> => {
         const {getRenderedEditParams: getLatestRenderedEditParams, policyID: editPolicyID, reportPolicyID: editReportPolicyID, snapshotPolicyID} = renderedEditDataRef.current;
+        const renderedEditParams = getLatestRenderedEditParams();
         const [reportPolicyTags, policyRecentlyUsedCategories, policyRecentlyUsedTags, fullPolicySnapshot, onboarding, introSelected, session, rules, conciergeReportID] =
             await Onyx.multiGet([
                 `${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(editReportPolicyID)}`,
@@ -258,7 +259,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
         const {isSelfTourViewed, hasCompletedGuidedSetupFlow} = guidedSetupAndTourStatusSelector(onboarding);
         return {
-            ...getLatestRenderedEditParams(),
+            ...renderedEditParams,
             reportPolicyTags,
             policyRecentlyUsedCategories,
             policyRecentlyUsedTags,

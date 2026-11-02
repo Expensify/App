@@ -45,7 +45,6 @@ import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {createPolicyViolationVisibilitySelector} from '@selectors/Policy';
-import {reportViolationVisibilitySelector} from '@selectors/Report';
 import React, {useEffect, useRef, useState} from 'react';
 
 import type {TransactionWithOptionalHighlight} from './MoneyRequestReportTransactionList';
@@ -56,9 +55,6 @@ type MoneyRequestReportTransactionItemProps = {
 
     /** Login of the report owner, used to filter the violations the current user can see */
     reportOwnerLogin: string | undefined;
-
-    /** ID of the report to which the transaction belongs */
-    reportID: string;
 
     /** ID of the report's policy */
     policyID: string | undefined;
@@ -107,7 +103,7 @@ type MoneyRequestReportTransactionItemProps = {
 
 // `shouldBeHighlighted` is omitted: the highlight animation is computed by the outer component (so its timeline
 // survives the narrow↔wide swap) and reaches the body as `animatedHighlightStyle`.
-type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransactionItemProps, 'transactionID' | 'reportOwnerLogin' | 'reportID' | 'policyID' | 'shouldBeHighlighted'> & {
+type MoneyRequestReportTransactionItemBodyProps = Omit<MoneyRequestReportTransactionItemProps, 'transactionID' | 'reportOwnerLogin' | 'policyID' | 'shouldBeHighlighted'> & {
     transaction: TransactionWithOptionalHighlight;
 
     /** Violations of this transaction the current user can see */
@@ -385,7 +381,6 @@ function MoneyRequestReportTransactionItem({
     transactionID,
     reportOwnerLogin,
     shouldBeHighlighted,
-    reportID,
     policyID,
     report,
     policy,
@@ -417,7 +412,6 @@ function MoneyRequestReportTransactionItem({
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: (cardList) => (cardID ? cardList?.[cardID] : undefined)});
     const [cards = EMPTY_CARDS] = useOnyx(ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST, {selector: (cardList) => getReportRowCards(cardList, cardID)});
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {selector: (categories) => getReportRowPolicyCategories(categories, category)});
-    const [violationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {selector: reportViolationVisibilitySelector});
     const [violationPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: createPolicyViolationVisibilitySelector(email ?? '')});
 
     // Hoisted out of the body so the highlight animation timeline survives the narrow↔wide
@@ -438,7 +432,7 @@ function MoneyRequestReportTransactionItem({
     // The search API pre-resolves the card name, local Onyx transactions carry the raw one
     const resolvedCardName = card ? getCardDescription(card, translate) : undefined;
     const transaction = resolvedCardName && resolvedCardName !== rawTransaction.cardName ? {...rawTransaction, cardName: resolvedCardName} : rawTransaction;
-    const violations = getVisibleReportRowViolations(transaction, rawViolations, email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, violationReport, reportOwnerLogin, violationPolicy);
+    const violations = getVisibleReportRowViolations(transaction, rawViolations, email ?? '', accountID ?? CONST.DEFAULT_NUMBER_ID, report, reportOwnerLogin, violationPolicy);
 
     // Every prop is passed explicitly so React Compiler can reuse the body element, and skip the body, while nothing this row shows has changed
     const Body = isNarrowLayout ? MoneyRequestReportTransactionItemBody : MoneyRequestReportTransactionItemWithInlineEdit;

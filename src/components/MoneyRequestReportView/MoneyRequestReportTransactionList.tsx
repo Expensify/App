@@ -372,7 +372,6 @@ function MoneyRequestReportTransactionList({
                         reportOwnerLogin={ownerLogin}
                         shouldBeHighlighted={isReportVisible && highlightedTransactionIDs.has(transaction.transactionID)}
                         columns={columnsToShow}
-                        reportID={report.reportID}
                         policyID={report.policyID}
                         report={rowReport}
                         policy={rowPolicy}

@@ -9,7 +9,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {hasAnyCategoryGLCode} from './CategoryUtils';
+import {getStableReportSelector} from '@selectors/Report';
+
+import {getCategoryGLCode, hasAnyCategoryGLCode} from './CategoryUtils';
 import {getLatestErrorField} from './ErrorUtils';
 import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
@@ -284,7 +286,10 @@ function getReportRowPolicyCategories(policyCategories: OnyxEntry<PolicyCategori
     }
 
     // CategoryGLCodeCell stays editable only when the workspace has any GL code, so keep one GL-coded category even if the row's category has none.
-    const glCodeCategory = Object.entries(policyCategories ?? {}).find(([name, policyCategory]) => hasAnyCategoryGLCode({[name]: policyCategory}));
+    const glCodeCategory = Object.entries(policyCategories ?? {}).find(
+        ([name, policyCategory]) =>
+            !!policyCategory?.enabled && policyCategory.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!getCategoryGLCode(policyCategories, name).trim(),
+    );
     if (!glCodeCategory) {
         return rowCategories;
     }
@@ -293,22 +298,11 @@ function getReportRowPolicyCategories(policyCategories: OnyxEntry<PolicyCategori
 }
 
 function getReportRowReport(report: OnyxEntry<Report>): OnyxEntry<Report> {
-    if (!report) {
-        return report;
+    const stableReport = getStableReportSelector(report);
+    if (!stableReport) {
+        return stableReport;
     }
-    const {
-        unheldTotal,
-        unheldNonReimbursableTotal,
-        lastReadTime,
-        lastVisibleActionCreated,
-        lastVisibleActionLastModified,
-        lastMessageText,
-        lastMessageHtml,
-        lastActorAccountID,
-        lastActionType,
-        lastMentionedTime,
-        ...rowReport
-    } = report;
+    const {unheldTotal, unheldNonReimbursableTotal, ...rowReport} = stableReport;
     return rowReport;
 }
 
