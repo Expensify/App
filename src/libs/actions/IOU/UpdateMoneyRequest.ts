@@ -2761,7 +2761,7 @@ function getUpdateTrackExpenseParams(
     if (updatedReportAction && transactionThread?.reportID) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
             value: {
                 lastActorAccountID: updatedReportAction.actorAccountID,
             },
@@ -2803,7 +2803,7 @@ function getUpdateTrackExpenseParams(
         // Reset the transaction thread to its original state
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`,
             value: transactionThread,
         });
     }

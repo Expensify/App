@@ -2321,12 +2321,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     waypoints: {},
                 },
             };
-            const fakeThreadReport = createMock<Report>({reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.CHAT, parentReportID: selfDMReport.reportID});
+            const fakeThreadReport = createMock<Report>({reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.CHAT});
             const fakePolicy = createRandomPolicy(Number(1));
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, fakeThreadReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await waitForBatchedUpdates();
 
@@ -2379,7 +2377,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             const fakeThreadReport = createMock<Report>({
                 reportID: transactionThreadReportID,
                 type: CONST.REPORT.TYPE.CHAT,
-                parentReportID: 'self-dm-report',
             });
             const fakePolicy: Policy = {
                 ...createRandomPolicy(Number(1)),
@@ -2407,8 +2404,6 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReport.reportID}`, selfDMReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, fakeThreadReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`, []);
             await waitForBatchedUpdates();
@@ -2462,6 +2457,46 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     }),
                 }),
             );
+        });
+
+        it('does not target a report key when the transaction thread is missing', () => {
+            // Given a tracked expense edit with no transaction thread
+            const transactionID = 'track_missing_thread';
+            const policyID = 'policy_missing_thread';
+            const fakeTransaction: Transaction = {
+                transactionID,
+                amount: 5000,
+                currency: CONST.CURRENCY.USD,
+                created: format(new Date(), CONST.DATE.FNS_FORMAT_STRING),
+                merchant: 'Missing Thread',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 5,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                    waypoints: {},
+                },
+            };
+            const fakePolicy = {...createRandomPolicy(Number(1)), id: policyID};
+
+            // When building the params without a transaction thread
+            const {onyxData} = getUpdateTrackExpenseParams({
+                transactionID,
+                transaction: fakeTransaction,
+                transactionThread: undefined,
+                transactionThreadParentReport: undefined,
+                transactionChanges: {distance: 5.555},
+                policy: fakePolicy,
+                delegateAccountID: undefined,
+                currencyContext: {getCurrencyDecimals: getCurrencyDecimalsLocal, getCurrencySymbol: getCurrencySymbolLocal},
+            });
+
+            // Then no optimistic or failure update targets a report key built from an undefined report ID.
+            const updates = [...(onyxData.optimisticData ?? []), ...(onyxData.failureData ?? [])];
+            expect(updates.map((update) => update.key)).not.toContain(`${ONYXKEYS.COLLECTION.REPORT}undefined`);
         });
     });
 
