@@ -41,6 +41,9 @@ type AmountInputFieldProps = {
 
     /** Violation message for the amount, shown while the user has no input error of their own */
     errorText?: string;
+
+    /** Whether the field sits in the wide RHP, which the narrower currency picker has to dim */
+    isInWideRHP?: boolean;
 };
 
 /** Reads the typed amount as a signed amount in the smallest currency unit, or `null` when nothing is typed */
@@ -61,7 +64,7 @@ function getBackendAmountFromInput(value: string): number | null {
  * The amount of a saved expense, edited in place with the same input the Create expense form uses. The amount is
  * saved when the input loses focus, and the currency as soon as one is picked.
  */
-function AmountInputField({transactionID, parentReportAction, amount, currency, label, allowNegative, hintText = '', errorText = ''}: AmountInputFieldProps) {
+function AmountInputField({transactionID, parentReportAction, amount, currency, label, allowNegative, hintText = '', errorText = '', isInWideRHP = false}: AmountInputFieldProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -116,6 +119,7 @@ function AmountInputField({transactionID, parentReportAction, amount, currency, 
                 value={currency}
                 onInputChange={updateCurrency}
                 launcherRef={currencyButtonRef}
+                shouldKeepBackdropInNarrowPane={isInWideRHP}
             />
             <View style={[styles.mh5, styles.mv2]}>
                 <NumberWithSymbolForm

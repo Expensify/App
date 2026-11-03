@@ -1276,7 +1276,8 @@ describe('MoneyRequestView edit fields', () => {
 
             await waitFor(() => {
                 expect(screen.getByLabelText(fieldLabel('common.distance'))).toBeOnTheScreen();
-                expect(screen.getByLabelText(amountLabel)).toHaveTextContent(/USD-268/);
+                // A distance amount with a route is edited in place, so it shows in the amount input
+                expect(screen.getByDisplayValue('-2.68')).toBeOnTheScreen();
             });
             expect(screen.queryByLabelText(fieldLabel(commuterDistanceDescription))).not.toBeOnTheScreen();
         });

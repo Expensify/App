@@ -29,9 +29,21 @@ type CurrencyPickerProps = {
 
     /** The button that opens the picker. When passed, focus returns to it after the picker closes. */
     launcherRef?: FocusTrapForModalProps['launcherRef'];
+
+    /** Whether the picker dims what is behind it when it opens over a wider pane, such as the wide RHP */
+    shouldKeepBackdropInNarrowPane?: boolean;
 };
 
-function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerText, value, excludeCurrencies, launcherRef, onInputChange = () => {}}: CurrencyPickerProps) {
+function IOURequestStepCurrencyModal({
+    isPickerVisible,
+    hidePickerModal,
+    headerText,
+    value,
+    excludeCurrencies,
+    launcherRef,
+    shouldKeepBackdropInNarrowPane = false,
+    onInputChange = () => {},
+}: CurrencyPickerProps) {
     const {translate} = useLocalize();
     const [recentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const styles = useThemeStyles();
@@ -50,7 +62,9 @@ function IOURequestStepCurrencyModal({isPickerVisible, hidePickerModal, headerTe
             shouldEnableNewFocusManagement
             shouldReturnFocus={!!launcherRef}
             launcherRef={launcherRef}
-            onBackdropPress={Navigation.dismissModal}
+            // Over a wider pane the backdrop covers part of that pane, so pressing it only closes the picker
+            onBackdropPress={shouldKeepBackdropInNarrowPane ? hidePickerModal : Navigation.dismissModal}
+            shouldKeepRightDockedBackdropInNarrowPane={shouldKeepBackdropInNarrowPane}
             shouldUseModalPaddingStyle={false}
             shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding

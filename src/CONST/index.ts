@@ -10606,6 +10606,9 @@ const CONST = {
         TAX_PICKER_MODAL: {
             BACK_BUTTON: 'TaxPickerModal-BackButton',
         },
+        DISTANCE_RATE_PICKER_MODAL: {
+            BACK_BUTTON: 'DistanceRatePickerModal-BackButton',
+        },
         REPORT_PICKER_MODAL: {
             BACK_BUTTON: 'ReportPickerModal-BackButton',
         },

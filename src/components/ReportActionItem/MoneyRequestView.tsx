@@ -173,7 +173,9 @@ import CategoryFieldDropdown from './MoneyRequestViewFields/CategoryFieldDropdow
 import DateInputField from './MoneyRequestViewFields/DateInputField';
 import DescriptionInputField from './MoneyRequestViewFields/DescriptionInputField';
 import MerchantInputField from './MoneyRequestViewFields/MerchantInputField';
+import RateFieldDropdown from './MoneyRequestViewFields/RateFieldDropdown';
 import TagFieldRow from './MoneyRequestViewFields/TagFieldRow';
+import TaxAmountInputField from './MoneyRequestViewFields/TaxAmountInputField';
 import TaxFieldDropdown from './MoneyRequestViewFields/TaxFieldDropdown';
 
 type MoneyRequestViewProps = {
@@ -1107,7 +1109,7 @@ function MoneyRequestView({
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
-                <ExpenseFieldRow
+                <ExpenseFieldDropdown
                     name={translate('common.rate')}
                     value={rateToDisplay}
                     numberOfLinesValue={2}
@@ -1115,6 +1117,18 @@ function MoneyRequestView({
                     onPress={openDistanceRatePage}
                     copyValue={rateToDisplay || undefined}
                     isInteractive={canEditDistanceRate}
+                    // A track expense may first need a workspace or an upgrade, which only the full-page flow handles
+                    shouldOpenInDropdown={!isTrackExpense && !!policy}
+                    listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
+                    renderDropdown={(dropdownProps) => (
+                        <RateFieldDropdown
+                            {...dropdownProps}
+                            transaction={transaction}
+                            transactionThreadReport={transactionThreadReport}
+                            policy={policy}
+                            shouldUpdateTax={isTaxEnabled}
+                        />
+                    )}
                 />
             </OfflineWithFeedback>
         </>
@@ -1209,12 +1223,12 @@ function MoneyRequestView({
     const isInWideRHP = wideRHPRouteKeys.includes(route.key);
     const shouldShowReceipt = !isInWideRHP || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction;
 
-    // Distance, time and per diem amounts are computed from other fields, a scanning receipt's amount comes from
-    // SmartScan, and a split amount is edited across its splits, so those keep the row that opens their own page.
+    // Per diem amounts are computed from their rates, a distance amount waits for its route, a scanning receipt's
+    // amount comes from SmartScan, and a split amount is edited across its splits, so those keep the row that opens
+    // their own page.
     const canEditAmountInline =
         canEditAmount &&
-        !isDistanceRequest &&
-        !isTimeRequest &&
+        shouldDisplayTransactionAmount &&
         !isPerDiemRequest &&
         !isTransactionScanning &&
         !hasFailedScanAmountPlaceholder &&
@@ -1308,6 +1322,9 @@ function MoneyRequestView({
             createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, transactionThreadReport?.reportID)),
         );
     };
+
+    // The tax disabled alert and the review and merge flows each need the row's press, so they keep it
+    const canEditTaxAmountInline = canEditTaxFields && !shouldShowTaxDisabledAlert && !isFromMergeTransaction && !isFromReviewDuplicates && !!transaction?.transactionID;
 
     const openTaxAmountPage = () => {
         if (!transaction?.transactionID) {
@@ -1421,6 +1438,7 @@ function MoneyRequestView({
                             allowNegative={allowNegativeAmount}
                             hintText={amountHintText}
                             errorText={getErrorForField('amount')}
+                            isInWideRHP={isInWideRHP}
                         />
                     ) : (
                         <ExpenseFieldRow
@@ -1582,14 +1600,25 @@ function MoneyRequestView({
                 )}
                 {shouldShowTax && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('taxAmount')}>
-                        <ExpenseFieldRow
-                            name={taxAmountDescription}
-                            value={taxAmountTitle}
-                            numberOfLinesValue={2}
-                            onPress={openTaxAmountPage}
-                            copyValue={taxAmountTitle || undefined}
-                            isInteractive={canEditTaxFields}
-                        />
+                        {canEditTaxAmountInline ? (
+                            <TaxAmountInputField
+                                transaction={transaction}
+                                transactionThreadReport={transactionThreadReport}
+                                policy={policy}
+                                taxAmount={Math.abs(updatedTransaction?.taxAmount ?? transactionTaxAmount ?? 0)}
+                                currency={actualCurrency ?? CONST.CURRENCY.USD}
+                                label={taxAmountDescription}
+                            />
+                        ) : (
+                            <ExpenseFieldRow
+                                name={taxAmountDescription}
+                                value={taxAmountTitle}
+                                numberOfLinesValue={2}
+                                onPress={openTaxAmountPage}
+                                copyValue={taxAmountTitle || undefined}
+                                isInteractive={canEditTaxFields}
+                            />
+                        )}
                     </OfflineWithFeedback>
                 )}
                 {shouldShowAttendees && (

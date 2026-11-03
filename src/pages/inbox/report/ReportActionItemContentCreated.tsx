@@ -38,9 +38,12 @@ type ReportActionItemContentCreatedProps = {
     transactionID: string | undefined;
     draftMessage: string | undefined;
     shouldHideThreadDividerLine: boolean;
+
+    /** Whether the report shows anything below this action, such as a comment or a system message */
+    hasActionsAfterCreated: boolean;
 };
 
-function ReportActionItemContentCreated({parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine}: ReportActionItemContentCreatedProps) {
+function ReportActionItemContentCreated({parentReportAction, transactionID, draftMessage, shouldHideThreadDividerLine, hasActionsAfterCreated}: ReportActionItemContentCreatedProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const contextMenuStateValue = useShowContextMenuState();
@@ -62,8 +65,8 @@ function ReportActionItemContentCreated({parentReportAction, transactionID, draf
         />
     );
 
-    // Below an expense the comments get a heading like the expense's other sections
-    const expenseCommentsHeading = (
+    // Below an expense the comments get a heading like the expense's other sections, once there is anything to head
+    const expenseCommentsHeading = hasActionsAfterCreated && (
         <>
             <View style={[styles.reportHorizontalRule, styles.borderBottom, styles.mv3]} />
             <View
