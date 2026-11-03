@@ -1662,7 +1662,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
 
-            const selectedOptions = selectedReports.length ? payableSelectedReports : Object.values(selectedTransactions);
+            const selectedOptions = selectedReports.length ? selectedReports : Object.values(selectedTransactions);
             const expenseReportBankAccountID = additionalData?.bankAccountID;
 
             const restrictedPolicyID = getRestrictedPolicyID(selectedOptions, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, amountOwed, policies, accountID);
@@ -1769,7 +1769,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
             const itemsToPay =
                 selectedReports.length > 0
-                    ? payableSelectedReports.map((report) => ({
+                    ? selectedReports.map((report) => ({
                           reportID: report.reportID,
                           amount: report.total,
                           policyID: report.policyID,
@@ -1943,8 +1943,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isOffline,
             isBetaEnabled,
             isDelegateAccessRestricted,
-            selectedReports.length,
-            payableSelectedReports,
+            selectedReports,
             selectedTransactions,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
