@@ -84,11 +84,14 @@ function AddAgentRulePage({
     // and cannot save it.
     const [suggestionPickCount, setSuggestionPickCount] = useState(0);
     const isDraftFromFallback = !!generationID && !selectedSuggestion;
-    const fallbackExplanation = generatedRule?.generationID === generationID ? generatedRule?.explanation : undefined;
+    const fallbackAnswer = generatedRule?.generationID === generationID ? generatedRule : undefined;
+    const fallbackExplanation = fallbackAnswer?.explanation;
 
-    // A suggestion or a draft of the describe flow saves without a check while the admin leaves its text unchanged
-    const [fallbackDraftPrompt, setFallbackDraftPrompt] = useState<string>();
-    const checkedPrompt = selectedSuggestion?.prompt ?? fallbackDraftPrompt;
+    // A suggestion or an agent rule that Concierge wrote saves without a check while the admin leaves its text unchanged.
+    // The answer keeps the agent rule of Concierge after a reload. The draft can hold changes of the admin, and no other
+    // value keeps the description that the admin sent. Therefore only the agent rule of the answer counts as checked text.
+    const generatedAgentRulePrompt = fallbackAnswer?.state === CONST.GENERATED_RULE.STATE.AGENT_RULE ? fallbackAnswer.agentRulePrompt : undefined;
+    const checkedPrompt = selectedSuggestion?.prompt ?? generatedAgentRulePrompt;
 
     // The draft can load after the first render. Open Write one time only, because the admin must still be able to go
     // to Suggestions.
@@ -96,9 +99,6 @@ function AddAgentRulePage({
     if (!didOpenTabForDraft && hasDraftPrompt) {
         setDidOpenTabForDraft(true);
         setActiveTab(CONST.TAB.AGENT_RULE.WRITE);
-        if (generationID) {
-            setFallbackDraftPrompt(draftValues?.[INPUT_IDS.PROMPT]);
-        }
     }
 
     // Reset the active tab to Suggestions when the workspace changes.

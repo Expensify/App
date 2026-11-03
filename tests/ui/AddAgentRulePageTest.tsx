@@ -223,15 +223,44 @@ describe('AddAgentRulePage', () => {
     });
 
     it('lets the draft of the describe flow save without another check', async () => {
-        // Given a draft that Concierge wrote in the describe flow
+        // Given an agent rule that Concierge wrote in the describe flow
         await setAgentRuleDraft(PROMPT);
+        await setAgentRuleAnswer(GENERATION_ID);
 
-        // When the page renders with the generationID of that description
+        // When the page renders with the generationID of that answer
         renderAddAgentRulePage(GENERATION_ID);
         await waitForBatchedUpdatesWithAct();
 
-        // Then the Write tab treats the draft as checked, because Concierge already answered that RuleBot can do it
+        // Then the Write tab treats the agent rule as checked, because Concierge already answered that RuleBot can do it
         expect(screen.getByText(`CheckedPrompt: ${PROMPT}`)).toBeOnTheScreen();
+    });
+
+    it('checks a changed draft of the describe flow after a reload', async () => {
+        // Given the admin changed the agent rule that Concierge wrote, and a reload kept the changed draft
+        await setAgentRuleDraft('Text the approver whenever a report is submitted');
+        await setAgentRuleAnswer(GENERATION_ID);
+
+        // When the page renders again with the generationID of that answer
+        renderAddAgentRulePage(GENERATION_ID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then only the text of Concierge counts as checked, so that the changed text gets a check before it saves
+        expect(screen.getByText(`CheckedPrompt: ${PROMPT}`)).toBeOnTheScreen();
+    });
+
+    it('checks a draft that holds the description of the admin', async () => {
+        // Given Concierge refused the description, and the admin chose to create an agent rule from it anyway
+        await setAgentRuleDraft(PROMPT);
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.GENERATED_RULE, {generationID: GENERATION_ID, state: CONST.GENERATED_RULE.STATE.IMPOSSIBLE, suggestedPrompt: 'Hold gift card expenses after they post'});
+        });
+
+        // When the page renders with the generationID of that answer
+        renderAddAgentRulePage(GENERATION_ID);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the Write tab checks the draft, because no answer keeps the description to show that the admin left it unchanged
+        expect(screen.getByText('CheckedPrompt: none')).toBeOnTheScreen();
     });
 
     it('checks a draft that has no generationID', async () => {
