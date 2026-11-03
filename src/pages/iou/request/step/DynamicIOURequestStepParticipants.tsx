@@ -170,7 +170,7 @@ function DynamicIOURequestStepParticipants({route, navigation, transaction: init
         transaction: initialTransaction,
         iouType,
         reportID,
-        policyID: getSelectedWorkspacePolicyID(initialTransaction, action) ?? getReportOrDraftReport(reportID)?.policyID,
+        policyID: getSelectedWorkspacePolicyID(initialTransaction, action) ?? getReportOrDraftReport({reportID})?.policyID,
         isDistanceRequest: isDistanceRequest(initialTransaction),
         blockDistanceRequestIfNeeded,
         onIOUTypeChange: (nextIOUType) => {

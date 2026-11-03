@@ -78,7 +78,7 @@ function useConfirmationParticipantSelection({
         const selectedPolicyID =
             selectedParticipant?.policyID ??
             (selectedParticipant?.reportID
-                ? getReportOrDraftReport(selectedParticipant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${selectedParticipant.reportID}`] ?? {})
+                ? getReportOrDraftReport({reportID: selectedParticipant.reportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${selectedParticipant.reportID}`] ?? {}})
                       ?.policyID
                 : undefined);
         if (blockDistanceRequestIfNeeded(selectedPolicyID)) {

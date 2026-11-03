@@ -41,7 +41,7 @@ function useParticipantPickerState({transaction, iouType, action, reportID, repo
     const isFocused = useIsFocused();
     const sourceReportID = transaction?.reportID ?? reportID;
     const sourceReport = sourceReportID
-        ? getReportOrDraftReport(sourceReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${sourceReportID}`] ?? {})
+        ? getReportOrDraftReport({reportID: sourceReportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${sourceReportID}`] ?? {}})
         : undefined;
     const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
     const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
