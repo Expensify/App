@@ -197,6 +197,9 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** Whether the receiver must not see this invoice, because they pay it through its linked bill */
         isHiddenForBillReceiver?: boolean;
 
+        /** Whether the current user must act on this invoice, like a vendor who must add a bank account before the payment of its linked bill can finish */
+        isAwaitingActionFromCurrentUser?: boolean;
+
         /** Number of transactions in the report */
         transactionCount?: number;
 
