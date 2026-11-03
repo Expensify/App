@@ -7142,7 +7142,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
         pieChartLegendLabel: {
             fontSize: variables.iconSizeExtraSmall,
-            lineHeight: variables.lineHeightSmall,
+            lineHeight: variables.lineHeightChartLabel,
         },
         // `getPieChartLoadingHeight` sizes the loading chart from the responsive legend styles below, so update it with them.
         pieChartResponsiveRow: {
@@ -7172,7 +7172,7 @@ const staticStyles = (theme: ThemeColors) =>
             columnGap: 8,
         },
         pieChartLegendDotColumn: {
-            height: variables.lineHeightSmall,
+            height: variables.lineHeightChartLabel,
             justifyContent: 'center',
         },
         chartInlineTable: {

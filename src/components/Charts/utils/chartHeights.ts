@@ -41,11 +41,11 @@ function getPieChartLoadingHeight(chartWidth: number | null, shouldUseNarrowLayo
         // The slice count arrives with the data, so this reserves a full Home top-N list, which most cards fill.
         // A row is as tall as its label's first line, which the dot column matches.
         const rowCount = CONST.SEARCH.TOP_SEARCH_LIMIT;
-        const rowHeight = variables.lineHeightSmall;
+        const rowHeight = variables.lineHeightChartLabel;
         return CHART_CONTENT_MIN_HEIGHT + VictoryTheme.pie.legendStackGap + rowCount * rowHeight + (rowCount - 1) * VictoryTheme.pie.legendRowGap;
     }
 
-    const legendFirstRowHeight = shouldShowLegend ? variables.pieChartLegendMargin + variables.lineHeightSmall : 0;
+    const legendFirstRowHeight = shouldShowLegend ? variables.pieChartLegendMargin + variables.lineHeightChartLabel : 0;
     return CHART_CONTENT_MIN_HEIGHT + legendFirstRowHeight;
 }
 

@@ -828,7 +828,7 @@ describe('getPieChartLoadingHeight', () => {
 
         // Then it reserves one row per slice Home can show, under the donut and the stack gap, since most cards fill the cap
         const rowCount = CONST.SEARCH.TOP_SEARCH_LIMIT;
-        const legendHeight = rowCount * variables.lineHeightSmall + (rowCount - 1) * VictoryTheme.pie.legendRowGap;
+        const legendHeight = rowCount * variables.lineHeightChartLabel + (rowCount - 1) * VictoryTheme.pie.legendRowGap;
         expect(height).toBe(CHART_CONTENT_MIN_HEIGHT + VictoryTheme.pie.legendStackGap + legendHeight);
     });
 
