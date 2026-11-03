@@ -9,7 +9,9 @@ import createDynamicRoute from './dynamicRoutesUtils/createDynamicRoute';
  * The Wallet row and the Home task both go through here, so they always land on the same page.
  */
 function navigateToWiseMoreInfoNeeded(bankAccountID: number) {
-    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)));
+    // The page reads the bank account from the intro's path underneath it, and its back skips the intro to return here
+    const introPath = createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID));
+    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introPath));
 }
 
 export default navigateToWiseMoreInfoNeeded;
