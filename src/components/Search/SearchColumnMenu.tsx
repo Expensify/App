@@ -35,7 +35,7 @@ type SearchColumnMenuProps = {
     getHideColumnHandler: GetHideColumnHandler;
 };
 
-/** Pressing the heading opens the menu rather than sorting, since sorting moved into the menu. */
+/** The column's heading. Pressing it opens the column menu, which holds the sort options. */
 function SearchColumnMenuTrigger() {
     const {label, style, labelProps} = useSortableColumn();
     const styles = useThemeStyles();
@@ -51,7 +51,6 @@ function SearchColumnMenuTrigger() {
                 accessibilityLabel={translate('search.columnMenu.openMenu', {columnName: label})}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}
-                // — Was the cell style itself; the cell is now a parent View so the resize handle sits beside the trigger, not inside it —
                 wrapperStyle={[styles.flex1, styles.alignSelfStretch]}
                 // Fills the cell, so the whole heading opens the menu, and places the label where the cell would.
                 style={[styles.flex1, styles.alignSelfStretch, styles.justifyContentCenter, {alignItems: StyleSheet.flatten(style)?.alignItems}]}

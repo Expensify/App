@@ -4674,8 +4674,6 @@ function canEditSearchColumns(type: SearchDataTypes, shouldReturnTripRooms: bool
  * every expense table, so they always stay. A search filtering by violations also keeps the column showing them.
  */
 function getRequiredSearchColumns(shouldRequireViolationsColumn: boolean): Set<SearchCustomColumnIds> {
-    // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns
-    // since it makes sense for them to show up in an expense management App and it fixes the layout issues.
     const requiredColumns = new Set<SearchCustomColumnIds>([CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT, CONST.SEARCH.TABLE_COLUMNS.TOTAL, ...Object.values(groupByRequiredColumns).flat()]);
 
     if (shouldRequireViolationsColumn) {

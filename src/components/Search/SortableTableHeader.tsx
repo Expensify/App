@@ -92,7 +92,7 @@ function SortableTableHeader({
                         return null;
                     }
 
-                    // Columns without the flag sort, the same default SortableHeaderText applies, so the menu offers sorting for them too.
+                    // `SortableHeaderText` sorts by default, so a column sorts unless it sets `isColumnSortable: false`.
                     const isSortable = shouldShowSorting && isColumnSortable !== false;
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
