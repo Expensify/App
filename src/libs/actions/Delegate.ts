@@ -85,6 +85,7 @@ function resetNavigationForDelegateTransition(route: Route = ROUTES.SETTINGS) {
         return;
     }
     try {
+        // Rebuilt like a cold start restore of this path, so the router builds it for the new account's root screens
         navigationRef.resetRoot({...getAdaptedStateFromPath(route), stale: true});
     } catch (error) {
         Log.hmmm('[Delegate] Failed to reset navigation for delegate transition', {error: ErrorUtils.getErrorMessage(error)});
