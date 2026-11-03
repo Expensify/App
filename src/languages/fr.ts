@@ -3302,7 +3302,7 @@ ${amount} pour ${merchant} - ${date}`,
         collectEmployeeBankDetails: 'Collecter les coordonnées bancaires',
         collectEmployeeBankDetailsDescription: 'Recueillez les coordonnées bancaires des membres de l’espace de travail afin de pouvoir les rembourser en dehors d’Expensify.',
         disablePaymentsTitle: 'Désactiver les paiements ?',
-        disablePaymentsPrompt: 'Cela désactivera également la fonctionnalité de collecte des comptes bancaires.',
+        disablePaymentsPrompt: 'Cela supprimera tous vos paramètres de paiement.',
         businessBankAccountCountries: 'Pays des comptes bancaires professionnels',
         businessBankAccountCountriesDescription:
             'Les employés de ces pays fournissent des coordonnées de virement local. Tous les autres fournissent des coordonnées de virement international.',

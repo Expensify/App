@@ -3285,7 +3285,7 @@ ${amount} voor ${merchant} - ${date}`,
         collectEmployeeBankDetails: 'Bankrekeninggegevens verzamelen',
         collectEmployeeBankDetailsDescription: 'Verzamel de bankgegevens van werkruimteleden, zodat je ze buiten Expensify kunt terugbetalen.',
         disablePaymentsTitle: 'Betalingen uitschakelen?',
-        disablePaymentsPrompt: 'Hiermee wordt ook de functie voor het verzamelen van bankrekeningen uitgeschakeld.',
+        disablePaymentsPrompt: 'Hiermee worden al je betalingsinstellingen verwijderd.',
         businessBankAccountCountries: 'Landen met zakelijke bankrekeningen',
         businessBankAccountCountriesDescription: 'Werknemers in deze landen geven lokale overboekingsgegevens op. Iedereen daarbuiten geeft internationale overschrijvingsgegevens op.',
         customApprovalWorkflowEnabled:

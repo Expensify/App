@@ -3181,7 +3181,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         collectEmployeeBankDetails: '收集银行账户信息',
         collectEmployeeBankDetailsDescription: '收集工作区成员的银行账户信息，以便在 Expensify 之外向他们报销。',
         disablePaymentsTitle: '停用付款？',
-        disablePaymentsPrompt: '这也会关闭收集银行账户的功能。',
+        disablePaymentsPrompt: '这将删除您所有的付款设置。',
         businessBankAccountCountries: '企业银行账户国家',
         businessBankAccountCountriesDescription: '这些国家的员工需提供本地转账信息，其他员工需提供国际电汇信息。',
         customApprovalWorkflowEnabled:

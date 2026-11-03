@@ -3354,7 +3354,7 @@ ${amount} για ${merchant} - ${date}`,
         collectEmployeeBankDetails: 'Συλλογή στοιχείων τραπεζικού λογαριασμού',
         collectEmployeeBankDetailsDescription: 'Συλλέξτε τα τραπεζικά στοιχεία των μελών του χώρου εργασίας, ώστε να μπορείτε να τους αποζημιώνετε εκτός Expensify.',
         disablePaymentsTitle: 'Απενεργοποίηση πληρωμών;',
-        disablePaymentsPrompt: 'Αυτό θα απενεργοποιήσει επίσης τη λειτουργία συλλογής τραπεζικών λογαριασμών.',
+        disablePaymentsPrompt: 'Αυτό θα καταργήσει όλες τις ρυθμίσεις πληρωμών σας.',
         businessBankAccountCountries: 'Χώρες επαγγελματικών τραπεζικών λογαριασμών',
         businessBankAccountCountriesDescription: 'Οι υπάλληλοι σε αυτές τις χώρες δίνουν στοιχεία για τοπική μεταφορά. Όλοι οι υπόλοιποι δίνουν στοιχεία για διεθνές έμβασμα.',
         customApprovalWorkflowEnabled:

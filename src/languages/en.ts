@@ -3514,7 +3514,7 @@ const translations = {
         collectEmployeeBankDetails: 'Collect bank account details',
         collectEmployeeBankDetailsDescription: 'Gather bank details from workspace members, so you can reimburse them outside of Expensify.',
         disablePaymentsTitle: 'Disable payments?',
-        disablePaymentsPrompt: 'This will also turn off the feature to collect bank accounts.',
+        disablePaymentsPrompt: 'This will remove all of your payment settings.',
         businessBankAccountCountries: 'Business bank account countries',
         businessBankAccountCountriesDescription: 'Employees in these countries provide local transfer details. Everyone else provides international wire details.',
         customApprovalWorkflowEnabled:

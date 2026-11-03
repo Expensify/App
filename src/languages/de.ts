@@ -3297,7 +3297,7 @@ ${amount} für ${merchant} – ${date}`,
         collectEmployeeBankDetails: 'Bankkontodaten erfassen',
         collectEmployeeBankDetailsDescription: 'Erfassen Sie die Bankdaten von Workspace-Mitgliedern, damit Sie ihnen Auslagen außerhalb von Expensify erstatten können.',
         disablePaymentsTitle: 'Zahlungen deaktivieren?',
-        disablePaymentsPrompt: 'Dadurch wird auch die Funktion zum Erfassen von Bankkonten deaktiviert.',
+        disablePaymentsPrompt: 'Dadurch werden alle Ihre Zahlungseinstellungen entfernt.',
         businessBankAccountCountries: 'Länder für Geschäftskonten',
         businessBankAccountCountriesDescription: 'Mitarbeitende in diesen Ländern geben lokale Überweisungsdaten an. Alle anderen geben internationale Überweisungsdaten an.',
         customApprovalWorkflowEnabled:

@@ -3319,7 +3319,7 @@ ${amount} dla ${merchant} - ${date}`,
         collectEmployeeBankDetails: 'Zbieraj dane kont bankowych',
         collectEmployeeBankDetailsDescription: 'Zbieraj dane bankowe członków przestrzeni roboczej, aby móc zwracać im wydatki poza Expensify.',
         disablePaymentsTitle: 'Wyłączyć płatności?',
-        disablePaymentsPrompt: 'Spowoduje to również wyłączenie funkcji zbierania kont bankowych.',
+        disablePaymentsPrompt: 'Spowoduje to usunięcie wszystkich ustawień płatności.',
         businessBankAccountCountries: 'Kraje firmowych kont bankowych',
         businessBankAccountCountriesDescription: 'Pracownicy w tych krajach podają dane do lokalnego przelewu. Wszyscy pozostali podają dane do międzynarodowego przelewu bankowego.',
         customApprovalWorkflowEnabled:

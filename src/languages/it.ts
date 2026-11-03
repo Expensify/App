@@ -3282,7 +3282,7 @@ ${amount} per ${merchant} - ${date}`,
         collectEmployeeBankDetails: 'Raccogli i dati del conto bancario',
         collectEmployeeBankDetailsDescription: 'Raccogli i dati bancari dei membri dello spazio di lavoro per poterli rimborsare al di fuori di Expensify.',
         disablePaymentsTitle: 'Disattivare i pagamenti?',
-        disablePaymentsPrompt: 'Questo disattiverà anche la funzione per raccogliere i conti bancari.',
+        disablePaymentsPrompt: 'Questo rimuoverà tutte le tue impostazioni di pagamento.',
         businessBankAccountCountries: 'Paesi del conto bancario aziendale',
         businessBankAccountCountriesDescription: 'I dipendenti in questi paesi forniscono i dati per i bonifici locali. Tutti gli altri forniscono i dati per i bonifici internazionali.',
         customApprovalWorkflowEnabled:

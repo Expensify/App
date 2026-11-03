@@ -3283,7 +3283,7 @@ ${amount} para ${merchant} - ${date}`,
         collectEmployeeBankDetails: 'Coletar dados da conta bancária',
         collectEmployeeBankDetailsDescription: 'Colete os dados bancários dos membros do espaço de trabalho para poder reembolsá-los fora do Expensify.',
         disablePaymentsTitle: 'Desativar pagamentos?',
-        disablePaymentsPrompt: 'Isso também desativará o recurso de coletar contas bancárias.',
+        disablePaymentsPrompt: 'Isso removerá todas as suas configurações de pagamento.',
         businessBankAccountCountries: 'Países de contas bancárias empresariais',
         businessBankAccountCountriesDescription:
             'Funcionários nesses países fornecem dados para transferência local. Todos os demais fornecem dados para transferência internacional via wire.',

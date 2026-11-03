@@ -3257,7 +3257,7 @@ ${date} の ${merchant} への ${amount}`,
         collectEmployeeBankDetails: '銀行口座情報を収集',
         collectEmployeeBankDetailsDescription: 'ワークスペースメンバーの銀行口座情報を収集して、Expensify以外で精算できるようにします。',
         disablePaymentsTitle: '支払いを無効にしますか？',
-        disablePaymentsPrompt: 'これにより、銀行口座を収集する機能もオフになります。',
+        disablePaymentsPrompt: 'これにより、すべての支払い設定が削除されます。',
         businessBankAccountCountries: 'ビジネス銀行口座の国',
         businessBankAccountCountriesDescription: 'これらの国の従業員は現地送金の詳細を入力します。それ以外の方は国際電信送金の詳細を入力します。',
         customApprovalWorkflowEnabled:
