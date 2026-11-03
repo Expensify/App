@@ -1,5 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import type {DateInputWithPickerProps} from '@components/DatePicker/types';
 import ConfirmationFieldsProvider from '@components/MoneyRequestConfirmationFields/Provider';
 import DateField from '@components/MoneyRequestConfirmationList/sections/DateField';
 
@@ -18,10 +19,10 @@ let mockOnyxValues: Record<string, unknown> = {};
 jest.mock('@components/DatePicker', () => {
     const {Pressable, Text} =
         jest.requireActual<Record<'Pressable' | 'Text', React.ComponentType<{children?: React.ReactNode; onPress?: () => void; accessibilityRole?: string}>>>('react-native');
-    function MockDatePicker({onInputChange}: {onInputChange: (date: string) => void}) {
+    function MockDatePicker({onInputChange}: Pick<DateInputWithPickerProps, 'onInputChange'>) {
         return (
             <Pressable
-                onPress={() => onInputChange('2024-02-01')}
+                onPress={() => onInputChange?.('2024-02-01')}
                 accessibilityRole="button"
             >
                 <Text>Pick new date</Text>
@@ -65,7 +66,7 @@ describe('DateField create flow', () => {
         mockOnyxValues = {};
     });
 
-    it('recalculates the distance rate from the transaction draft when the date changes', () => {
+    it('passes the transaction draft to updateDistanceRateOnExpenseDateChange when the date changes', () => {
         // Given a distance expense being created, whose fields live in the transaction draft
         const draftTransaction = createRandomTransaction(1);
         mockActiveTransaction = {
@@ -90,10 +91,10 @@ describe('DateField create flow', () => {
             </ConfirmationFieldsProvider>,
         );
 
-        // When the user picks a date that belongs to a different distance rate's effective range
+        // When the user picks a new date
         fireEvent.press(screen.getByText('Pick new date'));
 
-        // Then the rate is recalculated from the draft transaction, not from the saved one that doesn't exist yet
+        // Then updateDistanceRateOnExpenseDateChange receives the transaction returned by useTransactionSelector, which is the draft rather than the missing saved transaction
         expect(updateDistanceRateOnExpenseDateChange).toHaveBeenCalledWith(expect.objectContaining({transaction: mockActiveTransaction}));
     });
 });
