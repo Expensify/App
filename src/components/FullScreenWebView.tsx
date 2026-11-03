@@ -10,16 +10,15 @@ import {WebView} from 'react-native-webview';
 import FullPageErrorView from './BlockingViews/FullPageErrorView';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
-/**
- * A WebView that fills the screen without our header, for pages that bring their own way out.
- * Until the page loads there is no such way out, so the loading and error views offer one.
- */
-
 type FullScreenWebViewProps = Omit<WebViewProps, 'startInLoadingState' | 'renderLoading' | 'renderError'> & {
     /** Leaves the screen from the loading and error views */
     onGoBack: () => void;
 };
 
+/**
+ * A WebView that fills the screen without our header, for pages that bring their own way out.
+ * Until the page loads there is no such way out, so the loading and error views offer one.
+ */
 function FullScreenWebView({onGoBack, ...webViewProps}: FullScreenWebViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

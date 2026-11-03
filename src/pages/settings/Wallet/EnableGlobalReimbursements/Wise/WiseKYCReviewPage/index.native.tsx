@@ -40,6 +40,7 @@ function WiseKYCReviewPage() {
         if (!status) {
             return true;
         }
+        // This log is temporary and only makes the outcome visible for testing, until the status page shows it
         Log.info('[Wise] The KYC review form ended', false, {status});
         goBack();
         return false;
