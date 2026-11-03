@@ -65,6 +65,16 @@ function AddMerchantTypeToMatchPage({route}: AddMerchantTypeToMatchPageProps) {
         isSelected: selectedMerchantTypes.includes(merchantType),
     }));
 
+    // A rule can match on a type the app does not know yet. Listing it is the only way to see what the rule
+    // matches on and the only way to take it off, so it is added back rather than left out of the picker.
+    const listedMerchantTypes = new Set<string>(merchantTypeItems.map((item) => item.value));
+    for (const merchantType of selectedMerchantTypes) {
+        if (listedMerchantTypes.has(merchantType)) {
+            continue;
+        }
+        merchantTypeItems.push({keyForList: merchantType, text: getMerchantTypeLabel(merchantType, translate), value: merchantType, isSelected: true});
+    }
+
     const filterMerchantType = (item: MerchantTypeListItem, searchInput: string) => tokenizedSearch([item], searchInput, (merchantType) => [merchantType.text ?? '']).length > 0;
 
     // Pin the initially selected types to the top of the FULL sorted list, then let the search filter run over the

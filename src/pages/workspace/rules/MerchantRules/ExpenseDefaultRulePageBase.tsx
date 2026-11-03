@@ -23,6 +23,7 @@ import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+import usePolicyCards from '@hooks/usePolicyCards';
 import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import usePressLoading from '@hooks/usePressLoading';
@@ -83,7 +84,6 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
-import usePolicyCards from './usePolicyCards';
 
 type ExpenseDefaultRulePageBaseProps = {
     policyID: string;
@@ -485,6 +485,8 @@ function ExpenseDefaultRulePageBase({
         const hasDuplicate = checkForDuplicateRule(form);
         if (hasDuplicate) {
             // A duplicate does not have to match on a merchant, so the prompt names the first condition the two share.
+            // Every condition is listed, or two rules sharing only one the list skips would name nothing at all.
+            // The booleans are named by their field, since "Yes" on its own says nothing about what was matched.
             const duplicateCondition =
                 [
                     form.merchantToMatch,
@@ -496,6 +498,10 @@ function ExpenseDefaultRulePageBase({
                     getAmountToMatchDisplayName(),
                     getHasToMatchDisplayName(),
                     cardsToMatchDisplayName,
+                    submittersToMatchDisplayName,
+                    merchantTypesToMatchDisplayName,
+                    form.reimbursableToMatch === undefined ? undefined : translate('common.reimbursable'),
+                    form.billableToMatch === undefined ? undefined : translate('common.billable'),
                 ].find(Boolean) ?? '';
             showConfirmModal({
                 title: translate('workspace.rules.merchantRules.duplicateRuleTitle'),
@@ -600,7 +606,7 @@ function ExpenseDefaultRulePageBase({
                         Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_REIMBURSABLE_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_REIMBURSABLE_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.Paycheck,
                 },
-                isBillableEnabled
+                isBillableEnabled || form?.billableToMatch !== undefined
                     ? {
                           key: 'billableToMatch',
                           description: translate('common.billable'),
@@ -631,7 +637,7 @@ function ExpenseDefaultRulePageBase({
                     onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_CARD_TO_MATCH_FROM_EXPENSE.path, ROUTES.RULES_CARD_TO_MATCH.getRoute(policyID, ruleID))),
                     icon: icons.CreditCard,
                 },
-                hasUsableTaxRates(policy)
+                hasUsableTaxRates(policy) || taxRatesToMatch.length > 0
                     ? {
                           key: 'taxRatesToMatch',
                           description: translate('workspace.taxes.taxRate'),

@@ -10,6 +10,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePolicyCards from '@hooks/usePolicyCards';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -32,7 +33,6 @@ import type SCREENS from '@src/SCREENS';
 import React from 'react';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
-import usePolicyCards from './usePolicyCards';
 import useRuleConditionSelection from './useRuleConditionSelection';
 
 type AddCardToMatchPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CARD_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_CARD_TO_MATCH>;
