@@ -44,13 +44,14 @@ function comment(id: number, login: string, body = 'review', acknowledged = fals
     return {id, user: {login}, created_at: pushedAt, html_url: 'u', body, acknowledged};
 }
 
-function review(login: string, state: string, body: string | null, submittedAt: string | null): NonNullable<Input['reviews']>[number] {
-    return {id: 3, user: {login}, state, body, html_url: 'u', submitted_at: submittedAt};
+function review(login: string, state: string, body: string | null, submittedAt: string | null, commitId = 'abc123'): NonNullable<Input['reviews']>[number] {
+    return {id: 3, user: {login}, state, body, html_url: 'u', commit_id: commitId, submitted_at: submittedAt};
 }
 
 describe('summarize', () => {
     test('green checks, no threads, and a mergeable PR are READY', () => {
         // Given a PR whose only thread is resolved and whose checks passed or were skipped
+        // When it is summarized
         const status = summarize({now: later, pr: pr(), threads: [thread(true)], comments: []});
 
         // Then nothing is left for an agent, so the PR can go to a human
@@ -63,14 +64,20 @@ describe('summarize', () => {
         const running = pr({statusCheckRollup: [{name: 'test (job 1)', status: 'IN_PROGRESS'}]});
         const legacy = pr({statusCheckRollup: [{context: 'codecov/patch', state: 'PENDING'}]});
 
+        // When each one is summarized
+        const runningStatus = summarize({now: later, pr: running, threads: [], comments: []});
+        const legacyStatus = summarize({now: later, pr: legacy, threads: [], comments: []});
+        const unknownStatus = summarize({now: later, pr: pr({mergeable: 'UNKNOWN'}), threads: [], comments: []});
+
         // Then each one waits, because a green verdict on unfinished data would hand the human a red PR
-        expect(summarize({now: later, pr: running, threads: [], comments: []}).verdict).toBe('WAITING');
-        expect(summarize({now: later, pr: legacy, threads: [], comments: []}).checks.pending).toEqual(['codecov/patch']);
-        expect(summarize({now: later, pr: pr({mergeable: 'UNKNOWN'}), threads: [], comments: []}).verdict).toBe('WAITING');
+        expect(runningStatus.verdict).toBe('WAITING');
+        expect(legacyStatus.checks.pending).toEqual(['codecov/patch']);
+        expect(unknownStatus.verdict).toBe('WAITING');
     });
 
     test('conflicts, failures, and unresolved threads are ACTION even while checks run', () => {
         // Given a conflicting PR with one failed check, one queued check, and one open thread
+        // When it is summarized while a check is still queued
         const status = summarize({
             now: later,
             pr: pr({
@@ -92,6 +99,7 @@ describe('summarize', () => {
 
     test('unread comments block whenever they were posted, except your own', () => {
         // Given an unread bot comment, one already marked read, and one you wrote
+        // When it is summarized for you
         const status = summarize({
             now: later,
             pr: pr(),
@@ -107,6 +115,7 @@ describe('summarize', () => {
 
     test('a merged PR is CLOSED', () => {
         // Given a merged PR
+        // When it is summarized with a thread still open
         const status = summarize({now: later, pr: pr({state: 'MERGED'}), threads: [thread(false)], comments: []});
 
         // Then the loop stops with no blockers listed, because nothing more can land on it
@@ -116,6 +125,7 @@ describe('summarize', () => {
 
     test('a thread you replied to last waits for the reviewer instead of blocking', () => {
         // Given an open thread where your reply is the newest comment
+        // When it is summarized for you
         const status = summarize({now: later, pr: pr(), threads: [thread(false, 'github-actions', 'owner')], comments: [], viewer: 'owner'});
 
         // Then it's listed for the handoff but doesn't block, because the next move is the reviewer's
@@ -126,6 +136,7 @@ describe('summarize', () => {
 
     test('a reply by someone else does not hand the thread back to the reviewer', () => {
         // Given an open thread where another reviewer replied last
+        // When it is summarized for you
         const status = summarize({now: later, pr: pr(), threads: [thread(false, 'github-actions', 'MelvinBot')], comments: [], viewer: 'owner'});
 
         // Then it still needs you
@@ -135,6 +146,7 @@ describe('summarize', () => {
 
     test('no checks yet, or a push under two minutes old, is WAITING', () => {
         // Given a PR with no checks reported, and a PR pushed 30 seconds ago
+        // When each one is summarized
         const noChecks = summarize({now: later, pr: pr({statusCheckRollup: []}), threads: [], comments: []});
         const justPushed = summarize({now: Date.parse(pushedAt) + 30_000, pr: pr(), threads: [], comments: []});
 
@@ -146,6 +158,7 @@ describe('summarize', () => {
     test('every failed conclusion blocks the PR', () => {
         // Given each way GitHub reports a failed check run, and a legacy status that errored
         for (const conclusion of ['FAILURE', 'TIMED_OUT', 'CANCELLED', 'ACTION_REQUIRED', 'STARTUP_FAILURE', 'STALE']) {
+            // When the check finishes with that conclusion
             const status = summarize({now: later, pr: pr({statusCheckRollup: [{name: 'ci', status: 'COMPLETED', conclusion}]}), threads: [], comments: []});
 
             // Then each one is a failure the agent has to read
@@ -157,6 +170,7 @@ describe('summarize', () => {
 
     test('a draft and checks only a human can fix are notes, not blockers', () => {
         // Given a draft whose author checklist and independent approval checks fail
+        // When it is summarized
         const status = summarize({
             now: later,
             pr: pr({
@@ -179,6 +193,8 @@ describe('summarize', () => {
     test('the head push time is the first check start, not the commit date', () => {
         // Given a check that started at 10:30, after a commit dated 10:00
         const started = {name: 'ci', status: 'COMPLETED', conclusion: 'SUCCESS', startedAt: '2026-09-28T10:30:00Z'};
+
+        // When it is summarized a minute after the check started
         const status = summarize({now: Date.parse('2026-09-28T10:31:00Z'), pr: pr({statusCheckRollup: [started]}), threads: [], comments: []});
 
         // Then the push is dated by the check, because a commit can be pushed long after it was made
@@ -190,6 +206,8 @@ describe('summarize', () => {
         // Given a queued check that gh reports as starting at 0001-01-01
         const queued = {name: 'test (job 1)', status: 'QUEUED', conclusion: '', startedAt: '0001-01-01T00:00:00Z'};
         const started = {name: 'ci', status: 'COMPLETED', conclusion: 'SUCCESS', startedAt: '2026-09-28T10:30:00Z'};
+
+        // When it is summarized next to a check that did start
         const status = summarize({now: later, pr: pr({statusCheckRollup: [queued, started]}), threads: [], comments: []});
 
         // Then the placeholder date is ignored
@@ -197,22 +215,24 @@ describe('summarize', () => {
         expect(status.checks.pending).toEqual(['test (job 1)']);
     });
 
-    test("review summaries since the push are listed, and a reviewer's standing change request blocks", () => {
+    test("review summaries on the head commit are listed, and a reviewer's standing change request blocks", () => {
         // Given reviewers whose latest verdicts differ, before and after the push
         const before = '2026-09-28T09:00:00Z';
         const after = '2026-09-28T10:20:00Z';
+
+        // When they are summarized
         const status = summarize({
             now: later,
             pr: pr(),
             threads: [],
             comments: [],
             reviews: [
-                review('alice', 'CHANGES_REQUESTED', 'please split this', before),
+                review('alice', 'CHANGES_REQUESTED', 'please split this', before, 'old456'),
                 review('bob', 'APPROVED', '', after),
-                review('bob', 'CHANGES_REQUESTED', 'rename it', before),
-                review('carol', 'CHANGES_REQUESTED', 'missing tests', before),
+                review('bob', 'CHANGES_REQUESTED', 'rename it', before, 'old456'),
+                review('carol', 'CHANGES_REQUESTED', 'missing tests', before, 'old456'),
                 review('carol', 'COMMENTED', 'found 2 issues', after),
-                review('dave', 'DISMISSED', 'wrong file', before),
+                review('dave', 'DISMISSED', 'wrong file', before, 'old456'),
                 review('erin', 'APPROVED', null, after),
                 review('owner', 'PENDING', 'draft', null),
             ],
@@ -224,16 +244,34 @@ describe('summarize', () => {
         expect(status.reviews.map((entry) => entry.author)).toEqual(['carol']);
     });
 
+    test('a review posted after the push but before any check starts is listed', () => {
+        // Given a review of the head commit at 10:10, while every check stayed queued until 10:30
+        const started = {name: 'ci', status: 'COMPLETED', conclusion: 'SUCCESS', startedAt: '2026-09-28T10:30:00Z'};
+
+        // When it is summarized
+        const status = summarize({
+            now: later,
+            pr: pr({statusCheckRollup: [started]}),
+            threads: [],
+            comments: [],
+            reviews: [review('alice', 'COMMENTED', 'found 1 issue', '2026-09-28T10:10:00Z')],
+        });
+
+        // Then it still reaches triage, because the check start time is only a proxy for the push
+        expect(status.reviews.map((entry) => entry.author)).toEqual(['alice']);
+    });
+
     test('a comment or review by a deleted account still counts', () => {
         // Given a comment and two change requests whose authors deleted their accounts
+        // When they are summarized
         const status = summarize({
             now: later,
             pr: pr(),
             threads: [],
             comments: [{id: 2, user: null, created_at: pushedAt, html_url: 'u', body: 'orphaned'}],
             reviews: [
-                {id: 4, user: null, state: 'CHANGES_REQUESTED', body: 'x', html_url: 'u', submitted_at: pushedAt},
-                {id: 5, user: null, state: 'CHANGES_REQUESTED', body: 'y', html_url: 'u', submitted_at: pushedAt},
+                {id: 4, user: null, state: 'CHANGES_REQUESTED', body: 'x', html_url: 'u', commit_id: 'abc123', submitted_at: pushedAt},
+                {id: 5, user: null, state: 'CHANGES_REQUESTED', body: 'y', html_url: 'u', commit_id: 'abc123', submitted_at: pushedAt},
             ],
             viewer: 'owner',
         });

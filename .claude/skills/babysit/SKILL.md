@@ -35,7 +35,7 @@ bun <skill-dir>/scripts/pr-status.ts [pr] --ack-all       # mark every unread co
 - `threads`: unresolved threads that still need you, with the ids to reply and resolve
 - `awaitingReviewer`: unresolved threads where your reply is the newest. They don't block.
 - `comments`: issue comments you haven't marked read, minus your own
-- `reviews`: review summaries posted since the push
+- `reviews`: review summaries posted on the current head commit
 - `changesRequested`: reviewers whose latest verdict is a change request
 
 Comments are marked read in `~/.local/state/pr-status/read-comments.json` instead of with a 👍, so reading a bot comment leaves nothing on the PR. The first run on a PR with history lists every old comment: skim them, then `--ack-all`. Right after a push the verdict stays `WAITING` until checks report. Go by the verdict, not by your own read of the check list.

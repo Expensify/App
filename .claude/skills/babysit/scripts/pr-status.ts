@@ -75,6 +75,8 @@ type Review = {
     state: string;
     body: string | null;
     html_url: string;
+    /** The head commit the reviewer was looking at. */
+    commit_id: string | null;
     /** Null for the viewer's own unsubmitted draft. */
     submitted_at: string | null;
 };
@@ -202,8 +204,9 @@ function summarize({pr, threads, comments, reviews = [], viewer, now = Date.now(
     if (changesRequested.length > 0) {
         blockers.push(`changes-requested:${changesRequested.length}`);
     }
+    // Matched by commit, not by time, because a review can land after the push but before any check starts.
     const newReviews = submitted
-        .filter((review) => headPushedAt === null || review.submitted_at > headPushedAt)
+        .filter((review) => review.commit_id === pr.headRefOid)
         .filter((review) => review.state === 'CHANGES_REQUESTED' || (review.body ?? '').trim() !== '')
         .map((review) => ({
             id: review.id,
@@ -281,14 +284,34 @@ function writeMarkers(markers: ReadMarkers) {
     writeFileSync(READ_MARKERS_FILE, `${JSON.stringify(markers, null, 2)}\n`);
 }
 
-// --author because forks often reuse branch names.
+// --author because forks often reuse branch names. `--head` can't name the fork, so two open PRs
+// from different forks with the same branch name are ambiguous. A merged PR that reused the name is not.
 function resolvePrNumber(selector: string | null, repo: string): number {
     if (selector !== null) {
         return Number(selector);
     }
     const branch = execFileSync('git', ['branch', '--show-current'], {encoding: 'utf8'}).trim();
-    const found = ghJson<Array<{number: number}>>(['pr', 'list', '--repo', repo, '--head', branch, '--author', '@me', '--state', 'all', '--json', 'number', '--limit', '1']);
-    const number = found.at(0)?.number;
+    const found = ghJson<Array<{number: number; state: string}>>([
+        'pr',
+        'list',
+        '--repo',
+        repo,
+        '--head',
+        branch,
+        '--author',
+        '@me',
+        '--state',
+        'all',
+        '--json',
+        'number,state',
+        '--limit',
+        '10',
+    ]);
+    const open = found.filter((match) => match.state === 'OPEN');
+    if (open.length > 1) {
+        throw new Error(`several open PRs of yours in ${repo} for branch "${branch}" (${open.map((match) => `#${match.number}`).join(', ')}), pass the PR number`);
+    }
+    const number = open.at(0)?.number ?? found.at(0)?.number;
     if (number === undefined) {
         throw new Error(`no PR of yours in ${repo} for branch "${branch}", pass the PR number`);
     }
