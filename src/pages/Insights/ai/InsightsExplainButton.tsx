@@ -22,7 +22,7 @@ type InsightsExplainButtonProps = {
     isAccented?: boolean;
 };
 
-/** Asks Concierge to explain an AI insight, sending along the dashboard filters it was written for. */
+/** Asks Concierge to explain an AI insight or chart, sending along the dashboard filters so the answer covers the data on screen. */
 function InsightsExplainButton({explainPrompt, insightsScope, isAccented = false}: InsightsExplainButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
