@@ -223,6 +223,7 @@ function CategoryPicker({
         onChangeText: setSearchValue,
         headerMessage: getHeaderMessageForNonUserList(translate, categoryData.length > 0, debouncedSearchValue),
         hint: offlineMessage,
+        style: {headerMessageStyle: shouldShowCreateCategoryRow ? styles.pb2 : undefined},
         // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
         disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
