@@ -15,6 +15,7 @@ function HighlightableMenuItemWithTopDescription({highlighted, outerWrapperStyle
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: highlighted ?? false,
+        highlightKey: undefined,
         highlightColor: theme.messageHighlightBG,
         itemEnterDelay: 0,
     });

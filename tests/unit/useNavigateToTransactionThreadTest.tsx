@@ -19,7 +19,7 @@ jest.mock('@components/OnyxListItemProvider', () => ({
 }));
 
 jest.mock('@components/WideRHPContextProvider', () => ({
-    useWideRHPActions: () => ({markReportRHPWidth: jest.fn(), unmarkReportRHPWidth: jest.fn()}),
+    useWideRHPActions: () => ({markReportRHPWidth: jest.fn()}),
 }));
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({

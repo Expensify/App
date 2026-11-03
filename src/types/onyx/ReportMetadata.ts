@@ -28,7 +28,7 @@ type ReportMetadata = {
     /** Pending expense action for DEW policies (e.g., SUBMIT or APPROVE in progress) */
     pendingExpenseAction?: ValueOf<typeof CONST.EXPENSE_PENDING_ACTION>;
 
-    /** Transaction IDs that were just submitted/moved to this report and should be highlighted on first load */
+    /** Highlight flags for transactions just added to this report, keyed `${transactionID}:${flaggedAt}`. */
     pendingNewTransactionIDs?: Record<string, true | null>;
 };
 

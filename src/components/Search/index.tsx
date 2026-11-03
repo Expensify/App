@@ -171,7 +171,7 @@ function Search({
     const navigation = useNavigation<PlatformStackNavigationProp<SearchFullscreenNavigatorParamList>>();
     const isFocused = useIsFocused();
 
-    const {markReportRHPWidth, unmarkReportRHPWidth} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const {currentSearchHash, currentSearchKey, shouldResetSearchQuery, suggestedSearches} = useSearchQueryContext();
     const {lastSearchType, shouldUseLiveData} = useSearchResultsContext();
 
@@ -814,12 +814,6 @@ function Search({
                     }
                 }
 
-                if (item.transactions.length > 1) {
-                    markReportRHPWidth(reportID, 'super-wide');
-                } else {
-                    unmarkReportRHPWidth(reportID, 'super-wide');
-                }
-
                 // Persist the current search context so prev/next navigation arrows
                 // in the report RHP can reference the correct result set.
                 saveLastSearchParams({
@@ -834,8 +828,12 @@ function Search({
                     reportID,
                     backTo,
                 });
+                // After the new-tab guard, since a new tab never mounts the screen this width is for.
                 if (openInternalRouteInNewTab(route, event)) {
                     return;
+                }
+                if (item.transactions.length > 1) {
+                    markReportRHPWidth(reportID, 'super-wide');
                 }
                 requestAnimationFrame(() => Navigation.navigate(route));
                 return;
@@ -869,8 +867,6 @@ function Search({
                 return;
             }
 
-            markReportRHPWidth(reportID, 'wide');
-
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, delegateAccountID, transactionItem?.reportAction?.childReportID);
             }
@@ -883,6 +879,7 @@ function Search({
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }
+            markReportRHPWidth(reportID, 'wide');
             if (isTransactionItem) {
                 seedCarouselForOpenedExpense();
             }
@@ -891,7 +888,6 @@ function Search({
         [
             markReportRHPWidth,
             handleSearch,
-            unmarkReportRHPWidth,
             introSelected,
             personalDetails,
             isSelfTourViewed,
