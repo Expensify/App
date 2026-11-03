@@ -2567,9 +2567,10 @@ function handleBulkPayItemSelected(params: {
 
     // While offline, send every payment method except Mark as paid to the offline modal via confirmPayment (onBulkPaySelected),
     // before any branch below can open a KYC / verification / bank setup flow. Mark as paid can be queued, so it runs the checks below.
+    // Pass no payment type: getActivePaymentType maps workspace and invoice keys to ELSEWHERE, which onBulkPaySelected would pay offline.
     if (isOffline && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         Log.info('[BulkPay] Blocking bulk pay: offline, deferring to the offline modal');
-        confirmPayment?.(paymentType as PaymentMethodType, item?.additionalData as BulkPaySelectionData | undefined);
+        confirmPayment?.(undefined);
         return;
     }
 

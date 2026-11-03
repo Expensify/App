@@ -736,8 +736,9 @@ describe('handleBulkPayItemSelected', () => {
         expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
         expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
-        // confirmPayment (onBulkPaySelected) is what surfaces the offline modal; the exact paymentType is not important here.
-        expect(baseParams.confirmPayment).toHaveBeenCalled();
+        // confirmPayment (onBulkPaySelected) is what surfaces the offline modal. It must get no payment type, because
+        // 'ACH' maps to ELSEWHERE, which onBulkPaySelected would pay offline.
+        expect(baseParams.confirmPayment).toHaveBeenCalledWith(undefined);
     });
 
     it('should hand Mark as paid to confirmPayment while offline so it can be paid optimistically', async () => {
@@ -790,5 +791,71 @@ describe('handleBulkPayItemSelected', () => {
         // offline, it must pass the same account checks as it does online
         expect(baseParams.showLockedAccountModal).toHaveBeenCalled();
         expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        {name: 'Pay via workspace', item: {key: policyID, text: 'Pay via workspace', icon: (): null => null}},
+        {
+            name: 'invoice Pay via Expensify bank account',
+            item: {
+                key: CONST.IOU.PAYMENT_TYPE.EXPENSIFY,
+                text: 'Personal account',
+                icon: (): null => null,
+                additionalData: {payAsBusiness: false, bankAccountID: 123, paymentMethod: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT},
+            },
+        },
+    ])('should not hand $name to confirmPayment as Mark as paid while offline', async ({item}) => {
+        // Given a user who is offline and is an admin of a workspace they could pay through
+        const policy: Policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        // When they pick a payment method other than Mark as paid from the bulk Pay submenu
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            activeAdminPolicies: [policy],
+            isOffline: true,
+            item,
+        });
+
+        // Then confirmPayment never receives the ELSEWHERE type, because onBulkPaySelected lets ELSEWHERE through
+        // offline and would mark the reports as paid instead of showing the offline modal
+        const paymentTypes = baseParams.confirmPayment.mock.calls.map((call: unknown[]) => call.at(0));
+        expect(paymentTypes).not.toContain(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+    });
+
+    it('should not hand Pay via workspace to confirmPayment as Mark as paid for a locked account while offline', async () => {
+        // Given a user with a locked account who is offline and is an admin of a workspace
+        const policy: Policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+            role: CONST.POLICY.ROLE.ADMIN,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        // When they pick "Pay via workspace" from the bulk Pay submenu
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            activeAdminPolicies: [policy],
+            isAccountLocked: true,
+            isOffline: true,
+            item: {key: policyID, text: 'Pay via workspace', icon: () => null},
+        });
+
+        // Then nothing is paid, because onBulkPaySelected doesn't check for a locked account and would
+        // mark the reports as paid if it received the ELSEWHERE type
+        const paymentTypes = baseParams.confirmPayment.mock.calls.map((call: unknown[]) => call.at(0));
+        expect(paymentTypes).not.toContain(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
     });
 });
