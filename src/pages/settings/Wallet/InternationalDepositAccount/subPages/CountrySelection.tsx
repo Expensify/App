@@ -23,7 +23,7 @@ function CountrySelection({isEditing, onNext, onMove, formValues, fieldsMap}: Cu
     const onCountrySelected = () => {
         if (COUNTRIES_US_BANK_FLOW.includes(selectedCountry)) {
             if (isUserValidated) {
-                Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT_ENTRY_POINT);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT_ENTRY_POINT.path, ROUTES.SETTINGS_WALLET));
             } else {
                 Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
             }

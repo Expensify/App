@@ -8,6 +8,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -46,6 +47,7 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
 
     const {translate, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {windowHeight} = useWindowDimensions();
     const searchDatePresetFilterBaseRef = useRef<SearchDatePresetFilterBaseHandle>(null);
     const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
@@ -116,8 +118,10 @@ function DateSelectPopup({label, value, presets, allowedCustomDateModifiers = CO
     const useRangeLayout = selectedDateModifier === CONST.SEARCH.DATE_MODIFIERS.RANGE;
 
     if (!isSmallScreenWidth) {
+        const popoverMaxHeightStyle = selectedDateModifier ? StyleUtils.getMaximumHeight(maxPopupHeight) : styles.getPopoverMaxHeight(windowHeight, isInLandscapeMode);
+
         return (
-            <View style={[styles.pv4, styles.gap2, {maxHeight: maxPopupHeight}, style]}>
+            <View style={[styles.pv4, styles.gap2, popoverMaxHeightStyle, style]}>
                 <ScrollView>
                     {!!selectedDateModifier && (
                         <SelectedDateModifierHeader

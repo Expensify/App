@@ -103,7 +103,7 @@ function MissingPersonalDetailsValidateCodePage({
                     setRevealedVirtualCardDetails(cardID, details);
                     clearDraftValues(ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM);
                     Navigation.closeRHPFlow();
-                    Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(cardID), ROUTES.SETTINGS_WALLET));
                 })
                 .catch((error: TranslationPaths) => {
                     setRevealCardError(getMicroSecondOnyxErrorWithTranslationKey(error));

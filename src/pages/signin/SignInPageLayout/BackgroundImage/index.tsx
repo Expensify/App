@@ -1,3 +1,5 @@
+import {useSession} from '@components/OnyxListItemProvider';
+
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isAnonymousUser} from '@libs/actions/Session';
@@ -24,7 +26,8 @@ const BackgroundDesktop = lazy(() =>
 function BackgroundImage({width, isSmallScreen = false}: BackgroundImageProps) {
     const styles = useThemeStyles();
     const [isInteractionComplete, setIsInteractionComplete] = useState(false);
-    const isAnonymous = isAnonymousUser();
+    const session = useSession();
+    const isAnonymous = isAnonymousUser(session);
 
     const BackgroundComponent = isSmallScreen ? BackgroundMobile : BackgroundDesktop;
 

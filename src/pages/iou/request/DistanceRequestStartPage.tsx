@@ -19,6 +19,7 @@ import {isMapOrGPSRequired} from '@libs/PolicyDistanceRatesUtils';
 import {getActivePolicies, isGroupPolicy} from '@libs/PolicyUtils';
 import {getPayeeName, isExpenseReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import {endSpan} from '@libs/telemetry/activeSpans';
+import {isDistanceRequest} from '@libs/TransactionUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -99,8 +100,12 @@ function DistanceRequestStartPage({
         [CONST.IOU.TYPE.CREATE]: translate('iou.trackDistance'),
     };
 
+    // A draft left by another flow (e.g. a Manual expense before a home-screen shortcut) keeps its non-distance type,
+    // and the reset skips a type that already matches. Ignore it so the reset retypes the draft as distance.
+    const draftRequestType = isDistanceRequest(transaction) ? transaction?.iouRequestType : undefined;
+
     let transactionRequestType;
-    if (!transaction?.iouRequestType) {
+    if (!draftRequestType) {
         // The tab navigator renders whichever tab was last selected, so the draft has to be typed from that
         // same value. Preferring the last-created distance type instead rebuilds the draft as Odometer under
         // a visible Map tab, leaving it without waypoints so tapping one opens the "Not here" page.
@@ -115,7 +120,7 @@ function DistanceRequestStartPage({
             transactionRequestType = rememberedRequestType;
         }
     } else {
-        transactionRequestType = transaction.iouRequestType;
+        transactionRequestType = draftRequestType;
     }
 
     const resetIOUTypeIfChanged = useResetIOUType({

@@ -127,7 +127,7 @@ function MoneyRequestHeaderPrimaryAction({reportID}: MoneyRequestHeaderPrimaryAc
                         if (!transaction?.transactionID) {
                             return;
                         }
-                        markRejectViolationAsResolved(transaction.transactionID, isOffline, rawTransactionViolations, reportID);
+                        markRejectViolationAsResolved(transaction.transactionID, isOffline, rawTransactionViolations, reportID, parentReportActions);
                     }}
                 >
                     <Button.Text>{translate('iou.reject.markAsResolved')}</Button.Text>

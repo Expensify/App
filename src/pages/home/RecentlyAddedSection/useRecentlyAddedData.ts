@@ -140,7 +140,7 @@ function useRecentlyAddedData(): RecentlyAddedData {
         });
     };
 
-    // The list below only patches in expenses made on this device. One made elsewhere arrives here.
+    // The list below only patches in expenses made on this device. One made elsewhere moves the signature once it arrives.
     useTabFocusedRefresh(SCREENS.HOME, [hash, isOffline, spendDataSignature?.expenses ?? 0].join('|'), fireSearch);
 
     const snapshotData = searchResults?.data;

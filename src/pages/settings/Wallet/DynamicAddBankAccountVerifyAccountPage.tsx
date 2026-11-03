@@ -1,6 +1,7 @@
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getCurrentUserEmail} from '@libs/Network/NetworkStore';
@@ -25,7 +26,7 @@ function DynamicAddBankAccountVerifyAccountPage({route}: DynamicAddBankAccountVe
     // This forward path must agree with the validated branch of openPersonalBankAccountSetupView.
     let navigateForwardTo;
     if (shouldSetUpUSBankAccount === 'true') {
-        navigateForwardTo = ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute();
+        navigateForwardTo = createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute(), backPath);
     } else if (isAdmin && shouldSkipPurposeSelection !== 'true') {
         navigateForwardTo = ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE;
     } else {

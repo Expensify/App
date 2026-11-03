@@ -1,15 +1,18 @@
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import RHPResizeHandle from '@components/RHPResizeHandle';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScrollView from '@components/ScrollView';
 
+import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -252,6 +255,9 @@ function BaseModal({
 
     // A right docked modal opened from inside the RHP sits on the RHP's own card, so it must not dim it or add a second shadow.
     const isStackedOnRHP = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
+    const isResizableSingleRHP = useIsResizableSingleRHP();
+    const {width: singleRHPWidth} = useSingleRHPWidth();
+    const stackedResizableRHPWidth = isStackedOnRHP && isResizableSingleRHP ? singleRHPWidth : undefined;
 
     const {
         modalStyle,
@@ -282,6 +288,7 @@ function BaseModal({
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldDisplayBelowModals,
         isStackedOnRHP,
+        stackedResizableRHPWidth,
     });
 
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
@@ -427,6 +434,16 @@ function BaseModal({
                             )}
                             <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
                         </Animated.View>
+                        {stackedResizableRHPWidth !== undefined &&
+                            isVisible && (
+                                // Shifts with the card when the Side Panel opens, since the handle straddles the card's edge.
+                                <Animated.View
+                                    pointerEvents="box-none"
+                                    style={[styles.fullScreen, sidePanelAnimatedStyle]}
+                                >
+                                    <RHPResizeHandle />
+                                </Animated.View>
+                            )}
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>
                 </View>
