@@ -5,11 +5,10 @@ import CONST from '@src/CONST';
 
 import type {ValueOf} from 'type-fest';
 
-type WiseOnboardingStatusVariant = 'moreInfoNeeded' | 'inReview' | 'approved';
+type WiseOnboardingStatusVariant = 'moreInfoNeeded' | 'inReview' | 'approved' | 'rejected';
 
 /**
- * A missing status means Wise has not answered yet, and a rejection reaches the admin as a Concierge message,
- * so both show the in review content, whose Chat with Concierge button leads to that message.
+ * A missing status means Wise has not answered yet, so it shows the in review content.
  */
 function getWiseOnboardingStatusVariant(status: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS> | undefined): WiseOnboardingStatusVariant {
     switch (status) {
@@ -17,6 +16,8 @@ function getWiseOnboardingStatusVariant(status: ValueOf<typeof CONST.WISE.ONBOAR
             return 'moreInfoNeeded';
         case CONST.WISE.ONBOARDING_STATUS.APPROVED:
             return 'approved';
+        case CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED:
+            return 'rejected';
         default:
             return 'inReview';
     }

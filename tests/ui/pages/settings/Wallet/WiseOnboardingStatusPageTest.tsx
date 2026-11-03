@@ -203,10 +203,9 @@ describe('WiseOnboardingStatusPage', () => {
 
     it.each([
         ['in review', CONST.WISE.ONBOARDING_STATUS.IN_REVIEW],
-        ['not approved', CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED],
         ['missing', undefined],
     ])('shows the in review content when the status is %s', async (_, status) => {
-        // Given an account whose status is not a decision the admin can act on here: a rejection is explained by Concierge, and a missing one is still pending
+        // Given an account Wise is still reviewing, where a missing status means Wise has not answered yet
         // When the page opens
         await renderPage(status);
 
@@ -229,15 +228,40 @@ describe('WiseOnboardingStatusPage', () => {
         navigateSpy.mockRestore();
     });
 
+    it('shows the rejected content when Wise did not approve the account', async () => {
+        // Given an account Wise rejected
+        // When the page opens
+        await renderPage(CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED);
+
+        // Then the rejected content shows, with a way to reach Concierge for the reason
+        expect(screen.getByText('walletPage.wiseOnboarding.rejected.title')).toBeOnTheScreen();
+        expect(screen.getByText('walletPage.wiseOnboarding.rejected.heading')).toBeOnTheScreen();
+        expect(screen.getByText('walletPage.wiseOnboarding.inReview.chatWithConcierge')).toBeOnTheScreen();
+    });
+
+    it('opens Concierge from the rejected content', async () => {
+        // Given an account Wise rejected
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        await renderPage(CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED);
+
+        // When the user presses Chat with Concierge
+        fireEvent.press(screen.getByText('walletPage.wiseOnboarding.inReview.chatWithConcierge'));
+
+        // Then the Concierge chat opens, since it explains the rejection
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.CONCIERGE);
+        navigateSpy.mockRestore();
+    });
+
     it.each([
         ['in review', CONST.WISE.ONBOARDING_STATUS.IN_REVIEW],
         ['approved', CONST.WISE.ONBOARDING_STATUS.APPROVED],
-    ])('closes the flow on Done when the status is %s', async (_, status) => {
+        ['not approved', CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED],
+    ])('closes the flow on the primary button when the status is %s', async (_, status) => {
         // Given the page opened over the intro, which Wallet opened
         const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
         await renderPage(status);
 
-        // When the user presses Done
+        // When the user presses Done, or Got it on the rejected content
         fireEvent.press(screen.getByTestId(PRIMARY_BUTTON_TEST_ID));
 
         // Then the user lands on Wallet, the screen that opened the flow, since nothing is left to do in it

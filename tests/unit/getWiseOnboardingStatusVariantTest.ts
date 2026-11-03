@@ -7,10 +7,10 @@ describe('getWiseOnboardingStatusVariant', () => {
         [CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, 'moreInfoNeeded'],
         [CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, 'inReview'],
         [CONST.WISE.ONBOARDING_STATUS.APPROVED, 'approved'],
-        [CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED, 'inReview'],
+        [CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED, 'rejected'],
         [undefined, 'inReview'],
     ] as const)('maps %s to the %s content', (status, expectedVariant) => {
-        // Given the status Wise holds for the bank account, where a rejection is explained by Concierge and a missing status is still pending
+        // Given the status Wise holds for the bank account, where a missing status is still pending
         // When the status page picks its content
         const variant = getWiseOnboardingStatusVariant(status);
 

@@ -3217,6 +3217,11 @@ const translations = {
                 heading: 'Approved to pay worldwide',
                 description: 'Pay members wherever they are.',
             },
+            rejected: {
+                title: 'Bank account rejected',
+                heading: 'Our partner rejected your bank account',
+                description: 'Chat with Concierge for more information.',
+            },
         },
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',

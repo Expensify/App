@@ -10256,6 +10256,10 @@ const CONST = {
             CHAT_WITH_CONCIERGE: 'WiseOnboardingInReview-ChatWithConcierge',
             DONE: 'WiseOnboardingInReview-Done',
         },
+        WISE_ONBOARDING_REJECTED: {
+            CHAT_WITH_CONCIERGE: 'WiseOnboardingRejected-ChatWithConcierge',
+            GOT_IT: 'WiseOnboardingRejected-GotIt',
+        },
         WISE_ONBOARDING_APPROVED: {
             DONE: 'WiseOnboardingApproved-Done',
         },

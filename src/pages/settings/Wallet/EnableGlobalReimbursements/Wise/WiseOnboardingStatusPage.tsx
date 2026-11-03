@@ -1,5 +1,5 @@
 /**
- * Shows where the business's Wise onboarding stands for one bank account: more info needed, in review, or approved.
+ * Shows where the business's Wise onboarding stands for one bank account: more info needed, in review, approved, or rejected.
  * It opens over the intro after Confirm on the terms page or from any link to the account, and the content updates live when the status changes.
  */
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
@@ -32,6 +32,7 @@ import React, {useEffect} from 'react';
 import ApprovedContent from './WiseOnboardingStatus/ApprovedContent';
 import InReviewContent from './WiseOnboardingStatus/InReviewContent';
 import MoreInfoNeededContent from './WiseOnboardingStatus/MoreInfoNeededContent';
+import RejectedContent from './WiseOnboardingStatus/RejectedContent';
 
 type WiseOnboardingStatusPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS>;
 
@@ -39,6 +40,7 @@ const HEADER_TITLES = {
     moreInfoNeeded: 'walletPage.wiseOnboarding.moreInfoNeeded.headerTitle',
     inReview: 'walletPage.wiseOnboarding.inReview.title',
     approved: 'walletPage.wiseOnboarding.approved.title',
+    rejected: 'walletPage.wiseOnboarding.rejected.title',
 } as const satisfies Record<WiseOnboardingStatusVariant, TranslationPaths>;
 
 function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
@@ -99,6 +101,7 @@ function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
                 {variant === 'moreInfoNeeded' && <MoreInfoNeededContent bankAccountID={bankAccountID} />}
                 {variant === 'inReview' && <InReviewContent onDone={goBackToEntryPoint} />}
                 {variant === 'approved' && <ApprovedContent onDone={goBackToEntryPoint} />}
+                {variant === 'rejected' && <RejectedContent onDone={goBackToEntryPoint} />}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );

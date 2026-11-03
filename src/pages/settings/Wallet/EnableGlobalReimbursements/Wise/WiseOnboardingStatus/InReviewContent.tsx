@@ -1,5 +1,5 @@
 /**
- * The status page content while Wise reviews the business, also shown when Wise turned it down, since Concierge explains why.
+ * The status page content while Wise reviews the business.
  */
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';

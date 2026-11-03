@@ -79,6 +79,7 @@ import CardReplacementSuccess from '@assets/images/product-illustrations/illustr
 import Copilots from '@assets/images/product-illustrations/illustration__copilots.svg';
 import AgentsIceCream from '@assets/images/product-illustrations/illustration_agents-ice-cream.svg';
 import IceCreamMenu from '@assets/images/product-illustrations/illustration_ice-cream-menu.svg';
+import MagnifyingGlassSpyNewspaper from '@assets/images/product-illustrations/magnifying-glass-spy-newspaper.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
 import NotebookGremlin from '@assets/images/product-illustrations/notebook-gremlin.svg';
@@ -314,6 +315,7 @@ const Illustrations = {
     CardReplacementSuccess,
     Copilots,
     ValidateCode,
+    MagnifyingGlassSpyNewspaper,
     ModalHoldOrReject,
     MushroomTopHat,
     NotebookGremlin,
