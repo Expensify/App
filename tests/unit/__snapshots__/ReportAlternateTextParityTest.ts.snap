@@ -4,8 +4,6 @@ exports[`getOptionData alternateText parity snapshots branches with bespoke payl
 
 exports[`getOptionData alternateText parity snapshots branches with bespoke payloads ADD_INTEGRATION with connection name 1`] = `"connected to QuickBooks Online"`;
 
-exports[`getOptionData alternateText parity snapshots branches with bespoke payloads AUTO_PAY_FEE_DISCLOSURE with the admin from personal details 1`] = `"Global Reimbursements was enabled by Bob Boron on the Chase account ending in 1234. Exact exchange rates and fees cannot be previewed prior to payment when cross-border reports are auto-paid. Review your auto-pay settings for more information on rates and fees."`;
-
 exports[`getOptionData alternateText parity snapshots branches with bespoke payloads CARD_ISSUED with card 1`] = `"issued @Hidden an Expensify Card! The card will arrive in 2-3 business days."`;
 
 exports[`getOptionData alternateText parity snapshots branches with bespoke payloads CARD_ISSUED without card 1`] = `"issued @Hidden an Expensify Card! The card will arrive in 2-3 business days."`;
@@ -63,6 +61,8 @@ exports[`getOptionData alternateText parity snapshots report-type and fallback v
 exports[`getOptionData alternateText parity snapshots report-type and fallback variants multiline last message collapses line breaks 1`] = `"Alice: line one line two line three"`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL 1`] = `"Alice: Fixture last message"`;
+
+exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) AUTOPAYFEEDISCLOSURE 1`] = `"Global Reimbursements was enabled by Hidden on the account ending in . Exact exchange rates and fees cannot be previewed prior to payment when cross-border reports are auto-paid. Review your auto-pay settings for more information on rates and fees."`;
 
 exports[`getOptionData alternateText parity snapshots special-action chain branches (policy room) COMPANYCARDCONNECTIONBROKEN 1`] = `"The  connection is broken. To restore card imports, log into your bank."`;
 

@@ -236,6 +236,7 @@ const SIMPLE_CHAIN_ACTIONS: Array<ReportAction['actionName']> = [
     CONST.REPORT.ACTIONS.TYPE.REROUTE,
     CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP,
     CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED,
+    CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE,
     CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_3DS_TRANSACTION_APPROVAL,
     CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
     CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION,
@@ -269,14 +270,6 @@ describe('getOptionData alternateText parity snapshots', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.RENAMED, {originalMessage: {oldName: 'Old room name', newName: 'New room name'}}),
-                }),
-            ).toMatchSnapshot();
-        });
-
-        it('AUTO_PAY_FEE_DISCLOSURE with the admin from personal details', () => {
-            expect(
-                getAlternateText({
-                    lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE, {originalMessage: {policyID: '6', accountID: 2, bankName: 'Chase', lastFour: '1234'}}),
                 }),
             ).toMatchSnapshot();
         });
