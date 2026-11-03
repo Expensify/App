@@ -1,3 +1,4 @@
+/** Inserts temporary streamed replies without treating them as saved report actions. */
 import {isNewerReportAction} from '@libs/ReportActionsUtils';
 
 import type {ReportAction} from '@src/types/onyx';
@@ -16,7 +17,6 @@ type ReportActionsWithStreamedReply = {
     isSyntheticDraftVisible: boolean;
 };
 
-/** Inserts temporary streamed replies without treating them as saved report actions. */
 function getReportActionsWithStreamedReply({
     sortedVisibleReportActions,
     draftReportAction,
@@ -24,6 +24,7 @@ function getReportActionsWithStreamedReply({
     hasPersistedDraft,
     shouldHideDraft,
 }: GetReportActionsWithStreamedReplyParams): ReportActionsWithStreamedReply {
+    // A completed reveal belongs to the saved action, even when pagination keeps that action off screen.
     if (!draftReportAction || shouldHideDraft || (hasPersistedDraft && !isDraftPendingCompletion)) {
         return {reportActionsWithStreamedReply: sortedVisibleReportActions, isSyntheticDraftVisible: false};
     }
