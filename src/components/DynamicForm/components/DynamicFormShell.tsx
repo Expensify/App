@@ -30,10 +30,23 @@ type DynamicFormShellProps = {
 
     /** Shows the step indicator under the header */
     shouldShowStepIndicator: boolean;
+
+    /** Shows the offline indicator on wide screens too, for flows whose Next waits for a connection, where a disabled button alone does not say why */
+    shouldShowOfflineIndicatorInWideScreen?: boolean;
 };
 
 /** Header, and a step indicator when asked for, around one dynamic form page */
-function DynamicFormShell({children, testID, headerTitle, onBackButtonPress, stepNames, stepIndex, stepTitle, shouldShowStepIndicator}: DynamicFormShellProps) {
+function DynamicFormShell({
+    children,
+    testID,
+    headerTitle,
+    onBackButtonPress,
+    stepNames,
+    stepIndex,
+    stepTitle,
+    shouldShowStepIndicator,
+    shouldShowOfflineIndicatorInWideScreen,
+}: DynamicFormShellProps) {
     if (shouldShowStepIndicator) {
         return (
             <InteractiveStepWrapper
@@ -46,6 +59,7 @@ function DynamicFormShell({children, testID, headerTitle, onBackButtonPress, ste
                 handleBackButtonPress={onBackButtonPress}
                 shouldRemountSubHeaderOnStepChange
                 shouldEnableMaxHeight
+                shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
             >
                 {children}
             </InteractiveStepWrapper>
@@ -55,6 +69,7 @@ function DynamicFormShell({children, testID, headerTitle, onBackButtonPress, ste
         <ScreenWrapper
             testID={testID}
             shouldEnableMaxHeight
+            shouldShowOfflineIndicatorInWideScreen={shouldShowOfflineIndicatorInWideScreen}
         >
             <HeaderWithBackButtonAndTitle
                 title={headerTitle}
