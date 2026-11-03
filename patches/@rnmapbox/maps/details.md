@@ -14,4 +14,3 @@
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/pull/90169#issuecomment-4476930634
 - PR introducing patch: https://github.com/Expensify/App/pull/91418
-- 10.3.10 port: upstream now calls `cameraWillMoveMap()` right before the follow transition, and the iOS camera reaches the viewport through `mapView` instead of `map`; the immediate-transition branch sits after that call and is otherwise unchanged.

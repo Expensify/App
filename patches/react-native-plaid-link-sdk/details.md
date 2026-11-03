@@ -36,4 +36,4 @@
 
 - Upstream PR/issue: Fixed upstream from 12.7.0 (12.6.0 is still broken). Drop this patch when bumping to >= 12.7.0. 13.x rewrote the Android module on Expo Modules (`expo.modules.plaidlinksdk`), which is a separate migration.
 - E/App issue: https://github.com/Expensify/App/issues/101427
-- PR introducing patch: TBD (RN 0.88 / Expo SDK 58 upgrade)
+- PR introducing patch: https://github.com/Expensify/App/pull/101739

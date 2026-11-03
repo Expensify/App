@@ -5,28 +5,32 @@
 - Reason:
   
     ```
-    This patch adjusts ios canvas size.
+    Safari on iOS cannot draw a canvas larger than 4096px on a side, so manipulating a bigger image on mobile web
+    produces a blank result. On mobile iOS browsers, the patch scales the canvas down to fit 4096px while keeping
+    the aspect ratio. The cap is applied to the size returned by the opt-in `maxWidth`/`maxHeight` step
+    (`boundedSize`). The patch edits the shipped `build/web/utils.web.js`, because `src/` is only reachable through
+    the `expo-source` export condition, which no bundler here enables.
     ```
   
 - Upstream PR/issue: 🛑, there's no upstream PR/issue found. There's a related comment from App PR https://github.com/Expensify/App/pull/45448#issuecomment-2263252274
 - E/App issue: https://github.com/Expensify/App/issues/44084
 - PR introducing patch: https://github.com/Expensify/App/pull/45448
-- SDK 58 port: the 4096px cap now runs on the result of the new opt-in `maxWidth`/`maxHeight` (`boundedSize`) step. The package `main` moved from `src/index.ts` to `build/index.js`, and `src/` is only reachable through the `expo-source` export condition, which no bundler here enables, so the patch now edits the shipped `build/web/utils.web.js` instead of `src/web/utils.web.ts`.
 
 ### [expo-image-manipulator+58.0.14+002+fix-orientation-10bit-hdr.patch](expo-image-manipulator+58.0.14+002+fix-orientation-10bit-hdr.patch)
 
 - Reason:
   
     ```
-    `ImageFixOrientationTransformer` built its `CGContext` with `bitsPerComponent` copied from the source image.
-    `CGBitmapContext` rejects 10 bits per component, so it returned nil and the transformer threw
-    `ImageContextLostException` for every 10-bit HDR HEIC, blocking HEIC to JPEG conversion. Following PR #50011,
-    skip the redraw when the image is already upright, otherwise redraw through `drawInNewContext`. Upright images
-    with a PQ or HLG profile are redrawn too, since that profile would otherwise survive into the saved JPEG and
-    render black.
+    `ImageFixOrientationTransformer` skips the redraw when an image is already upright. An upright HDR image with a
+    PQ or HLG transfer function then keeps that profile in the saved JPEG, and decoders without ITU-R BT.2100 support
+    render it black. The patch adds one condition to that early return, so upright PQ/HLG images are redrawn too,
+    which tone-maps them to standard range.
+
+    This repo builds the module from source (there is no xcframework next to the podspec), so the Swift change
+    applies. If precompiled Expo modules are ever enabled, keep this module building from source or the patch stops
+    applying.
     ```
   
-- Upstream PR/issue: https://github.com/expo/expo/pull/50011 (open), fixes https://github.com/expo/expo/issues/49953. Alternative fix under review in https://github.com/expo/expo/pull/50009
+- Upstream PR/issue: The 10-bit HDR crash this patch first fixed was fixed upstream in https://github.com/expo/expo/pull/50011 (merged, shipped in 58.0.9). The PQ/HLG redraw is not upstream yet. 🛑 no upstream PR.
 - E/App issue: https://github.com/Expensify/App/issues/100133
 - PR introducing patch: https://github.com/Expensify/App/pull/101102
-- SDK 58 port: the 10-bit HDR redraw is upstream (expo/expo#50011, shipped in 58.0.9), so that part was dropped. The only remaining change also redraws upright images with a PQ/HLG transfer function, as one extra condition on upstream's early return. This repo builds the module from source (there is no xcframework next to the podspec), so the Swift change applies. If precompiled Expo modules are ever enabled, keep this module building from source or the patch stops applying.
