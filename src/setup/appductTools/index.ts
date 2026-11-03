@@ -11,7 +11,9 @@ function registerAppductTools() {
     // /auto subscribes the default client to deep links. Required, not imported: an import would
     // ship in release bundles.
     require('@appduct/react-native/auto');
-    tools.forEach((tool) => registerTool(tool));
+    for (const tool of tools) {
+        registerTool(tool);
+    }
 }
 
 export default registerAppductTools;

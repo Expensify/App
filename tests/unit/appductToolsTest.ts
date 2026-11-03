@@ -28,7 +28,8 @@ jest.mock('@libs/navigateAfterOnboarding', () => ({
 }));
 
 const ANONYMOUS_SESSION = {authToken: 'anon', authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
-const SIGNED_IN_SESSION = {authToken: 'tok', email: 's@gmail.com', accountID: 7};
+const ACCOUNT_ID = 7;
+const SIGNED_IN_SESSION = {authToken: 'tok', email: 's@gmail.com', accountID: ACCOUNT_ID};
 const QUEUED_GUIDED_SETUP: AnyRequest[] = [{command: 'CompleteGuidedSetup'}];
 
 /** Runs a tool to completion, fast-forwarding the fake clock through its polling waits. */
@@ -47,7 +48,9 @@ function mockBeginSignInResponse(account: Account) {
 
 beforeEach(async () => {
     jest.useFakeTimers();
-    [registerTool, beginSignIn, signUpUser, completeOnboarding, waitForWrites, navigateAfterOnboardingWithMicrotaskQueue].forEach((mock) => jest.mocked(mock).mockReset());
+    for (const mock of [registerTool, beginSignIn, signUpUser, completeOnboarding, waitForWrites, navigateAfterOnboardingWithMicrotaskQueue]) {
+        jest.mocked(mock).mockReset();
+    }
     Onyx.init({keys: ONYXKEYS});
     await Onyx.clear();
 });
@@ -79,14 +82,14 @@ describe('get_state', () => {
     it('reports the signed-in identity, taking the login from personal details', async () => {
         await Onyx.multiSet({
             [ONYXKEYS.SESSION]: {...SIGNED_IN_SESSION, email: 'session@gmail.com'},
-            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {7: {accountID: 7, login: 's@gmail.com'}},
+            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 's@gmail.com'}},
             [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
             [ONYXKEYS.IS_LOADING_APP]: false,
         });
 
         expect(await call('get_state')).toMatchObject({
             ok: true,
-            state: {booted: true, signedIn: true, anonymous: false, login: 's@gmail.com', accountID: 7, onboardingCompleted: true, isLoadingApp: false},
+            state: {booted: true, signedIn: true, anonymous: false, login: 's@gmail.com', accountID: ACCOUNT_ID, onboardingCompleted: true, isLoadingApp: false},
         });
     });
 
