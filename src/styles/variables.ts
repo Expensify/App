@@ -190,6 +190,7 @@ export default {
     navigationTabBarSize: 72,
     flatNavigationBarWidth: 232,
     flatNavigationBarItemHeight: 40,
+    flatNavigationBarAccountItemHeight: 56,
     // Horizontal inset every row's background sits at, inside the bar's own width.
     flatNavigationBarRowInset: 8,
     flatNavigationBarHeaderHeight: 72,

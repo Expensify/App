@@ -1,4 +1,5 @@
 import type {OptionRowLHNProps} from '@components/LHNOptionsList/types';
+import useShouldUseFlatNavigationBar from '@components/Navigation/FlatNavigationBar/useShouldUseFlatNavigationBar';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -33,6 +34,7 @@ function useOptionRowChrome({isOptionFocused, viewMode}: UseOptionRowChromeParam
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
     const [hovered, setHovered] = useState(false);
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;
@@ -45,7 +47,8 @@ function useOptionRowChrome({isOptionFocused, viewMode}: UseOptionRowChromeParam
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
 
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
-    const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
+    const focusedBackgroundColor = shouldUseFlatNavigationBar ? theme.hoverComponentBG : styles.sidebarLinkActive.backgroundColor;
+    const focusedBackgroundStyle = shouldUseFlatNavigationBar ? StyleUtils.getBackgroundColorStyle(theme.hoverComponentBG) : undefined;
 
     let avatarBackgroundColor: ColorValue = theme.sidebar;
     if (isOptionFocused) {
@@ -59,6 +62,7 @@ function useOptionRowChrome({isOptionFocused, viewMode}: UseOptionRowChromeParam
         sidebarInnerRowStyle,
         contentContainerStyles,
         avatarBackgroundColor,
+        focusedBackgroundStyle,
     };
 }
 

@@ -31,7 +31,7 @@ function FlatNavCreateMenuButtons() {
     const fabRef = useRef<HTMLDivElement>(null);
 
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
             <CreateMenuPopover
                 isVisible={isCreateMenuVisible}
                 onClose={hideCreateMenu}

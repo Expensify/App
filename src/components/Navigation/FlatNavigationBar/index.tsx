@@ -135,8 +135,9 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                             <FlatNavDivider />
                             <FlatNavItem
                                 label={accountLabel}
-                                leftElement={<AccountNavigationAvatar />}
+                                leftElement={<AccountNavigationAvatar isSelected={isAccountSelected} />}
                                 isSelected={isAccountSelected}
+                                isTall
                                 accessibilityLabel={getAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus)}
                                 sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.ACCOUNT}
                                 onPress={navigateToAccount}

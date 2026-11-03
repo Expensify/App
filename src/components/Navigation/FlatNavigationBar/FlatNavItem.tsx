@@ -28,6 +28,9 @@ type FlatNavItemProps = {
 
     isSelected: boolean;
 
+    /** Draws the row taller than the destination rows, as the Account row is */
+    isTall?: boolean;
+
     /** Dot drawn on the icon when the destination needs the user's attention */
     statusIndicatorColor?: string;
 
@@ -39,7 +42,7 @@ type FlatNavItemProps = {
 };
 
 /** Full-width row of the flat navigation bar: an icon or avatar, then the destination's label. */
-function FlatNavItem({label, icon, leftElement, isSelected, statusIndicatorColor, accessibilityLabel, sentryLabel, onPress}: FlatNavItemProps) {
+function FlatNavItem({label, icon, leftElement, isSelected, isTall = false, statusIndicatorColor, accessibilityLabel, sentryLabel, onPress}: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
@@ -58,7 +61,12 @@ function FlatNavItem({label, icon, leftElement, isSelected, statusIndicatorColor
             accessibilityLabel={accessibilityLabel ?? label}
             accessibilityState={{selected: isSelected}}
             sentryLabel={sentryLabel}
-            style={({hovered}) => [styles.flatNavigationBarItem, isSelected && styles.flatNavigationBarItemSelected, hovered && !isSelected && styles.flatNavigationBarItemHovered]}
+            style={({hovered}) => [
+                styles.flatNavigationBarItem,
+                isTall && styles.flatNavigationBarAccountItem,
+                isSelected && styles.flatNavigationBarItemSelected,
+                hovered && !isSelected && styles.flatNavigationBarItemHovered,
+            ]}
         >
             {({hovered}) => (
                 <>

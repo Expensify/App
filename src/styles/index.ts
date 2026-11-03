@@ -904,6 +904,10 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
+        flatNavigationBarAccountItem: {
+            height: variables.flatNavigationBarAccountItemHeight,
+        },
+
         flatNavigationBarItemSelected: {
             backgroundColor: theme.hoverComponentBG,
         },

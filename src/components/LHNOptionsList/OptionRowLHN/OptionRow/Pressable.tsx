@@ -24,7 +24,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import type {ComponentRef, ReactNode} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent, View} from 'react-native';
+import type {GestureResponderEvent, LayoutChangeEvent, View, ViewStyle} from 'react-native';
 
 import React, {useRef, useState} from 'react';
 
@@ -34,6 +34,9 @@ type PressableProps = {
 
     /** Whether the row is the currently focused/active option. Drives the focused background and accessibility metadata. */
     isOptionFocused: boolean;
+
+    /** Background drawn on the focused row on top of the default focused one, when the row is styled by the flat navigation bar. */
+    focusedBackgroundStyle?: ViewStyle;
 
     onSelectRow: (optionItem: OptionData, popoverAnchor: React.RefObject<ComponentRef<typeof View> | null>) => void;
 
@@ -53,7 +56,7 @@ type PressableProps = {
     shouldShowMarkAsDoneCopy?: boolean;
 };
 
-function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverIn, onHoverOut, children, shouldShowMarkAsDoneCopy}: PressableProps) {
+function Pressable({optionItem, isOptionFocused, focusedBackgroundStyle, onSelectRow, onLayout, onHoverIn, onHoverOut, children, shouldShowMarkAsDoneCopy}: PressableProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -167,6 +170,7 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
                         styles.sidebarLinkInnerLHN,
                         StyleUtils.getBackgroundColorStyle(theme.sidebar),
                         isOptionFocused ? styles.sidebarLinkActive : null,
+                        isOptionFocused ? focusedBackgroundStyle : null,
                         (hovered || isContextMenuActive) && !isOptionFocused ? styles.sidebarLinkHover : null,
                     ]}
                     role={CONST.ROLE.BUTTON}
