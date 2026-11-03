@@ -26,7 +26,7 @@ import type SCREENS from '@src/SCREENS';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>;
@@ -54,19 +54,16 @@ function DynamicNetSuiteExportExpensesJournalPostingPreferenceSelectPage({policy
         isSelected: selectedValue === postingPreference,
     }));
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const selectPostingPreference = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.journalPostingPreference && policyID) {
-                updateNetSuiteJournalPostingPreference(policyID, row.value, config?.journalPostingPreference);
-            }
-            goBack();
-        },
-        [config?.journalPostingPreference, goBack, policyID],
-    );
+    const selectPostingPreference = (row: MenuListItem) => {
+        if (row.value !== config?.journalPostingPreference && policyID) {
+            updateNetSuiteJournalPostingPreference(policyID, row.value, config?.journalPostingPreference);
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen

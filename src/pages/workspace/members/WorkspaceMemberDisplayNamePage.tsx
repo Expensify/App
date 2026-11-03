@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
@@ -23,6 +24,7 @@ import {updatePolicyMemberDisplayName} from '@userActions/Policy/Member';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DisplayNameForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -43,6 +45,7 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
     const isLoadingMemberPersonalDetails = isLoadingOnyxValue(memberPersonalDetailsResult);
     const hasDisplayNameSet = !!memberPersonalDetails?.firstName || !!memberPersonalDetails?.lastName;
     const isPolicyMember = !!memberLogin && !!policy?.employeeList?.[memberLogin];
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE_DISPLAY_NAME.path);
 
     // Saving sets the name straight away, so without this the page would block itself while it closes.
     const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -56,6 +59,7 @@ function WorkspaceMemberDisplayNamePage({route}: WorkspaceMemberDisplayNamePageP
             policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             shouldBeBlocked={!isLoadingMemberPersonalDetails && !hasSubmitted && (hasDisplayNameSet || !isPolicyMember)}
+            fullPageNotFoundViewProps={{onBackButtonPress: () => Navigation.goBack(backPath)}}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom

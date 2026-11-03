@@ -8,6 +8,7 @@ import getSelectionListPopoverContentHeight from '@libs/getSelectionListPopoverC
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ReactNode} from 'react';
@@ -101,6 +102,19 @@ describe('ExpenseFieldDropdown', () => {
 
             // Then the container is taller by the header, so the header doesn't take the place of an option
             expect(renderedProps?.popoverHeight).toBe(getSelectionListPopoverContentHeight({optionCount: 4}) + HEADER_HEIGHT);
+        });
+
+        it('grows the bottom sheet by the header too, so a long list loses no row to it on a phone', () => {
+            // Given a phone, where the list opens as a bottom sheet, whose list shows a header above its options
+            mockIsSmallScreenWidth = true;
+            mockRowAt(ROW_TOP);
+            renderField(true, jest.fn(), HEADER_HEIGHT);
+
+            // When the row is pressed
+            act(() => pressRow());
+
+            // Then the sheet may be taller than the standard dropdown height by the header, just like the pop-over
+            expect(renderedProps?.popoverHeight).toBe(CONST.POPOVER_DROPDOWN_MAX_HEIGHT + HEADER_HEIGHT);
         });
 
         it('falls back to the full page when the room left fits one option but not the header too', () => {

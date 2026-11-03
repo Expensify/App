@@ -49,7 +49,6 @@ function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction
     }
 
     const waypoint = waypoints?.[`waypoint${index}`] ?? {};
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const title = waypoint.name || waypoint.address;
     const errorText = isWaypointNullIsland(waypoint) ? translate('violations.noRoute') : undefined;
 

@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import LottieAnimations from '@components/LottieAnimations';
 
 import useLocalize from '@hooks/useLocalize';
@@ -25,11 +25,10 @@ function SuccessPageBase({onButtonPress, onBackButtonPress}: SuccessPageBaseProp
             title={translate('twoFactorAuth.headerTitle')}
             onBackButtonPress={onBackButtonPress}
         >
-            <ConfirmationPage
+            <ConfirmationPageDefault
                 illustration={LottieAnimations.Fireworks}
                 heading={translate('twoFactorAuth.enabled')}
                 description={translate('twoFactorAuth.congrats')}
-                shouldShowButton
                 buttonText={translate('common.buttonConfirm')}
                 onButtonPress={onButtonPress}
                 containerStyle={styles.flex1}

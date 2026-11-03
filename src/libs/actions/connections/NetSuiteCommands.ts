@@ -708,6 +708,16 @@ function updateNetSuiteDefaultVendor(policyID: string, vendorID: string, oldVend
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_DEFAULT_VENDOR, parameters, onyxData);
 }
 
+function updateNetSuiteCreditCardAccount(policyID: string, bankAccountID: string, oldBankAccountID?: string) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.CREDIT_CARD_ACCOUNT, bankAccountID, oldBankAccountID);
+
+    const parameters = {
+        policyID,
+        bankAccountID,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_CREDIT_CARD_ACCOUNT, parameters, onyxData);
+}
+
 function updateNetSuiteReimbursablePayableAccount(policyID: string, bankAccountID: string, oldBankAccountID: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT, bankAccountID, oldBankAccountID);
 
@@ -1126,6 +1136,7 @@ export {
     updateNetSuiteReimbursableExpensesExportDestination,
     updateNetSuiteNonReimbursableExpensesExportDestination,
     updateNetSuiteDefaultVendor,
+    updateNetSuiteCreditCardAccount,
     updateNetSuiteReimbursablePayableAccount,
     updateNetSuitePayableAcct,
     updateNetSuiteJournalPostingPreference,

@@ -40,10 +40,13 @@ type RadioButtonsProps = ForwardedFSClassProps & {
     /** The question the buttons answer, read out by screen readers as the name of the group */
     accessibilityLabel?: string;
 
+    /** Style of the group, used instead of its default top margin */
+    containerStyle?: StyleProp<ViewStyle>;
+
     ref?: ForwardedRef<ComponentRef<typeof View>>;
 };
 
-function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onInputChange = () => {}, value, forwardedFSClass, accessibilityLabel, ref}: RadioButtonsProps) {
+function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onInputChange = () => {}, value, forwardedFSClass, accessibilityLabel, containerStyle, ref}: RadioButtonsProps) {
     const styles = useThemeStyles();
     const [localValue, setLocalValue] = useState(defaultCheckedValue);
     const checkedValue = value !== undefined ? value : localValue;
@@ -51,7 +54,7 @@ function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onI
     return (
         <>
             <View
-                style={styles.mt6}
+                style={containerStyle ?? styles.mt6}
                 ref={ref}
                 role={accessibilityLabel ? CONST.ROLE.RADIOGROUP : undefined}
                 accessibilityLabel={accessibilityLabel}
@@ -67,6 +70,7 @@ function RadioButtons({items, onSelect, defaultCheckedValue = '', errorText, onI
                             return onSelect?.(item.value);
                         }}
                         label={item.label}
+                        groupAccessibilityLabel={accessibilityLabel}
                         forwardedFSClass={forwardedFSClass}
                     />
                 ))}

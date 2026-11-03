@@ -1,6 +1,7 @@
-import type {EventHint, Log, TransactionEvent} from '@sentry/core';
+import type {EventHint, Log, SpanJSON, TransactionEvent} from '@sentry/core';
 
 import attachGlobalSpanAttributes from './attachGlobalSpanAttributes';
+import attachInpCategory from './attachInpCategory';
 import canceledTabNavigationFilter from './canceledTabNavigationFilter';
 import copyTagsToChildSpans from './copyTagsToChildSpans';
 import emailDomainFilter from './emailDomainFilter';
@@ -11,6 +12,7 @@ import onyxLogFilter from './onyxLogFilter';
 
 type TelemetryBeforeSend = (event: TransactionEvent, hint: EventHint) => TransactionEvent | null | Promise<TransactionEvent | null>;
 type TelemetryBeforeSendLog = (log: Log) => Log | null;
+type TelemetryBeforeSendSpan = (span: SpanJSON) => SpanJSON;
 
 const middlewares: TelemetryBeforeSend[] = [
     emailDomainFilter,
@@ -22,6 +24,7 @@ const middlewares: TelemetryBeforeSend[] = [
     attachGlobalSpanAttributes,
 ];
 const logMiddlewares: TelemetryBeforeSendLog[] = [onyxLogFilter];
+const spanMiddlewares: TelemetryBeforeSendSpan[] = [attachInpCategory];
 
 function processBeforeSendTransactions(event: TransactionEvent, hint: EventHint): Promise<TransactionEvent | null> {
     return middlewares.reduce(
@@ -45,5 +48,9 @@ function processBeforeSendLogs(log: Log): Log | null {
     }, log);
 }
 
-export type {TelemetryBeforeSend};
-export {processBeforeSendTransactions, processBeforeSendLogs};
+function processBeforeSendSpan(span: SpanJSON): SpanJSON {
+    return spanMiddlewares.reduce((acc, middleware) => middleware(acc), span);
+}
+
+export type {TelemetryBeforeSend, TelemetryBeforeSendSpan};
+export {processBeforeSendTransactions, processBeforeSendLogs, processBeforeSendSpan};

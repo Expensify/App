@@ -83,7 +83,14 @@ function useSearchOverlay({
         useCallback(() => {
             const hasPending = hasPendingSearchWrite();
             const hasPreInserted = Navigation.getIsFullscreenPreInsertedUnderRHP();
-            if (!hasPending && !hasPreInserted) {
+            const isRevealingPreMounted = Navigation.getIsRevealingPreMountedFullscreen();
+
+            // The reveal clears the pre-mount key before the destination focuses, so a focus while it is still set
+            // is the origin screen regaining focus (e.g. RHP closed without submitting).
+            const isOriginOfLivePreMount = !!Navigation.getPreMountedFullscreenRouteKey();
+
+            // Both a revealed pre-mount and the unchanged origin already show real content, so an overlay would only flash.
+            if ((!hasPending && !hasPreInserted) || isRevealingPreMounted || isOriginOfLivePreMount) {
                 return;
             }
             setIsSearchReady(false);

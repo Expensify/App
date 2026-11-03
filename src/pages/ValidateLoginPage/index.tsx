@@ -1,3 +1,4 @@
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 
 import useOnyx from '@hooks/useOnyx';
@@ -49,8 +50,13 @@ function ValidateLoginPage({
         });
     }, [session?.autoAuthState]);
 
-    // No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to.
-    return <FullScreenLoadingIndicator shouldUseGoBackButton={false} />;
+    // Offline, the sign-in request waits in the queue until the network returns, so show why instead of a bare spinner.
+    return (
+        <FullPageOfflineBlockingView>
+            {/* No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to. */}
+            <FullScreenLoadingIndicator shouldUseGoBackButton={false} />
+        </FullPageOfflineBlockingView>
+    );
 }
 
 export default ValidateLoginPage;

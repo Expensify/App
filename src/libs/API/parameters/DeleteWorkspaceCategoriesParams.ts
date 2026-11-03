@@ -5,6 +5,9 @@ type DeleteWorkspaceCategoriesParams = {
      * Each element in the array is a string that specifies the name of a category.
      */
     categories: string;
+
+    /** Optimistic action ID for the "Review your workspace settings" onboarding task the backend completes as a side effect */
+    completedTaskReportActionID?: string;
 };
 
 export default DeleteWorkspaceCategoriesParams;
