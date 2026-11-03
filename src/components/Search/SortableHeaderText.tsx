@@ -31,6 +31,9 @@ type SearchTableHeaderColumnProps = WithSentryLabel & {
     innerContainerStyle?: StyleProp<ViewStyle>;
     textStyle?: StyleProp<TextStyle>;
     onPress: (order: SortOrder) => void;
+
+    /** Rendered after the label and outside the sort button, so a resize handle doesn't trigger sorting. */
+    children?: React.ReactNode;
 };
 
 type SortableHeaderLabelProps = Pick<SearchTableHeaderColumnProps, 'text' | 'icon' | 'isActive' | 'sortOrder' | 'innerContainerStyle' | 'textStyle'>;
@@ -82,6 +85,7 @@ export default function SortableHeaderText({
     isSortable = true,
     onPress,
     sentryLabel,
+    children,
 }: SearchTableHeaderColumnProps) {
     if (!isSortable) {
         return (
@@ -94,6 +98,7 @@ export default function SortableHeaderText({
                     innerContainerStyle={innerContainerStyle}
                     textStyle={textStyle}
                 />
+                {children}
             </View>
         );
     }
@@ -118,6 +123,7 @@ export default function SortableHeaderText({
                     textStyle={textStyle}
                 />
             </PressableWithFeedback>
+            {children}
         </View>
     );
 }

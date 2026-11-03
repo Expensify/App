@@ -18,7 +18,7 @@ type SortableColumn = {
     columnName: SearchColumnType;
     label: string;
 
-    /** Lays out the heading cell. */
+    /** The heading cell's layout style, which the heading aligns its label by. */
     style: StyleProp<ViewStyle>;
 
     /** `undefined` when the column doesn't sort. */

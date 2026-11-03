@@ -1,3 +1,5 @@
+import ColumnResizeHandle from '@components/Table/columnResize/ColumnResizeHandle';
+
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -130,18 +132,30 @@ function SortableTableHeader({
                     const resolvedSortOrder = sortOrder ?? CONST.SEARCH.SORT_ORDER.ASC;
                     const innerContainerStyle = canEdit && styles.editableCellHeader;
 
+                    const resizeHandle = (
+                        <ColumnResizeHandle
+                            columnKey={columnName}
+                            columnLabel={label}
+                        />
+                    );
+
                     if (children && !!label) {
                         return (
-                            <SortableColumnProvider
+                            <View
                                 key={columnName}
-                                columnName={columnName}
-                                label={label}
                                 style={containerStyle}
-                                sorting={isSortable ? {activeSortOrder: isActive ? sortOrder : undefined, onSort: (order) => onSortPress(sortByColumnName, order)} : undefined}
-                                labelProps={{text: label, icon, isActive, sortOrder: resolvedSortOrder, innerContainerStyle, textStyle}}
                             >
-                                {children}
-                            </SortableColumnProvider>
+                                <SortableColumnProvider
+                                    columnName={columnName}
+                                    label={label}
+                                    style={containerStyle}
+                                    sorting={isSortable ? {activeSortOrder: isActive ? sortOrder : undefined, onSort: (order) => onSortPress(sortByColumnName, order)} : undefined}
+                                    labelProps={{text: label, icon, isActive, sortOrder: resolvedSortOrder, innerContainerStyle, textStyle}}
+                                >
+                                    {children}
+                                </SortableColumnProvider>
+                                {resizeHandle}
+                            </View>
                         );
                     }
 
@@ -158,7 +172,9 @@ function SortableTableHeader({
                             containerStyle={containerStyle}
                             isSortable={isSortable}
                             onPress={(order: SortOrder) => onSortPress(sortByColumnName, order)}
-                        />
+                        >
+                            {resizeHandle}
+                        </SortableHeaderText>
                     );
                 })}
             </View>

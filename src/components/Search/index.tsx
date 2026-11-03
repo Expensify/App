@@ -17,7 +17,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
-import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
+import useSearchAutoRefetch, {getPolicyIDsFromSearchResults} from '@hooks/useSearchAutoRefetch';
 import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
@@ -91,7 +91,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
-import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
+import {createMemberCustomFieldsSelector, fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type {SaveSearch} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -266,6 +266,10 @@ function Search({
     const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
 
     const previousReportActions = usePrevious(reportActions);
+    const searchResultPolicyIDs = useStableArrayReference(getPolicyIDsFromSearchResults(searchResults?.data));
+    const memberCustomFieldsSelector = useMemo(() => createMemberCustomFieldsSelector(searchResultPolicyIDs), [searchResultPolicyIDs]);
+    const [memberCustomFields] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: memberCustomFieldsSelector});
+    const previousMemberCustomFields = usePrevious(memberCustomFields);
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
@@ -307,6 +311,8 @@ function Search({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
+        memberCustomFields,
+        previousMemberCustomFields,
     });
 
     const {

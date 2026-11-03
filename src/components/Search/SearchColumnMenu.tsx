@@ -51,7 +51,8 @@ function SearchColumnMenuTrigger() {
                 accessibilityLabel={translate('search.columnMenu.openMenu', {columnName: label})}
                 role={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU}
-                wrapperStyle={style}
+                // — Was the cell style itself; the cell is now a parent View so the resize handle sits beside the trigger, not inside it —
+                wrapperStyle={[styles.flex1, styles.alignSelfStretch]}
                 // Fills the cell, so the whole heading opens the menu, and places the label where the cell would.
                 style={[styles.flex1, styles.alignSelfStretch, styles.justifyContentCenter, {alignItems: StyleSheet.flatten(style)?.alignItems}]}
             >
