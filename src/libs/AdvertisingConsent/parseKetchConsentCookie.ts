@@ -28,12 +28,16 @@ function parseKetchConsentCookie(cookieString: string): boolean | undefined {
             return undefined;
         }
 
-        const targetedAdvertising = parsed[TARGETED_ADVERTISING_PURPOSE];
-        if (!targetedAdvertising) {
-            return undefined;
+        const status = parsed[TARGETED_ADVERTISING_PURPOSE]?.status;
+        if (status === 'granted') {
+            return true;
         }
 
-        return targetedAdvertising.status === 'granted';
+        if (status === 'denied') {
+            return false;
+        }
+
+        return undefined;
     } catch {
         return undefined;
     }

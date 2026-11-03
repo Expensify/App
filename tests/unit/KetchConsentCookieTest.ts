@@ -62,6 +62,24 @@ describe('parseKetchConsentCookie', () => {
         expect(parseKetchConsentCookie(cookie)).toBeUndefined();
     });
 
+    test('returns undefined when the targeted advertising status is missing', () => {
+        // Given a Ketch cookie whose targeted advertising purpose has no status field
+        const cookie = `${COOKIE_NAME}=${encodeConsent({[TARGETED_ADVERTISING]: {}})}`;
+
+        // When the cookie is parsed
+        // Then the parser returns undefined so the signup request omits isAdvertisingConsentGranted instead of sending false
+        expect(parseKetchConsentCookie(cookie)).toBeUndefined();
+    });
+
+    test('returns undefined when the targeted advertising status is unrecognized', () => {
+        // Given a Ketch cookie whose targeted advertising status is a value the parser does not know
+        const cookie = `${COOKIE_NAME}=${encodeConsent({[TARGETED_ADVERTISING]: {status: 'pending'}})}`;
+
+        // When the cookie is parsed
+        // Then the parser returns undefined so an unknown value is never recorded as an explicit denial
+        expect(parseKetchConsentCookie(cookie)).toBeUndefined();
+    });
+
     test('returns undefined when the cookie value is not valid base64 JSON', () => {
         // Given cookie values that cannot be decoded as base64 JSON
         // When the cookie is parsed
