@@ -1,5 +1,6 @@
 import WorkspaceExpenseDefaultsTable from '@components/Tables/WorkspaceExpenseDefaultsTable';
 
+import useExpenseDefaultConditionNames from '@hooks/useExpenseDefaultConditionNames';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -27,6 +28,7 @@ function RulesExpenseDefaultsTab({policyID, canWriteRules, selectedKeys, onSelec
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const conditionNames = useExpenseDefaultConditionNames(policy);
 
     const expenseDefaultsTableData = getExpenseDefaultsTableData({
         policy,
@@ -36,6 +38,7 @@ function RulesExpenseDefaultsTab({policyID, canWriteRules, selectedKeys, onSelec
         translate,
         isOffline,
         onNavigate: Navigation.navigate,
+        conditionNames,
     });
 
     return (

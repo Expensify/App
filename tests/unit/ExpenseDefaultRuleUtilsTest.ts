@@ -418,6 +418,7 @@ describe('ExpenseDefaultRuleUtils', () => {
                 merchants: [{value: 'Starbucks', isExactMatch: false}],
                 categories: ['Coffee', 'Travel'],
                 tags: ['Team A'],
+                others: [],
             });
         });
 
@@ -438,6 +439,7 @@ describe('ExpenseDefaultRuleUtils', () => {
                 ],
                 categories: [],
                 tags: [],
+                others: [],
             });
         });
 
@@ -458,14 +460,26 @@ describe('ExpenseDefaultRuleUtils', () => {
 
             // When it is summarized
             // Then nothing is reported, rather than the code being labelled as a merchant
-            expect(getExpenseDefaultConditionSummary(filters)).toEqual({merchants: [], categories: [], tags: []});
+            expect(getExpenseDefaultConditionSummary(filters)).toEqual({merchants: [], categories: [], tags: [], others: []});
+        });
+
+        it('groups a condition the table has no column of its own for', () => {
+            // Given a rule matching on a currency and an amount, neither of which has a named group
+            const rule = buildExpenseDefaultRule({currenciesToMatch: ['GBP'], amountToMatch: '3000', amountMatchType: GREATER_THAN, category: 'Coffee'}, policy);
+
+            // When its conditions are summarized
+            // Then both come back with the operator they carry, so the table can word each one
+            expect(getExpenseDefaultConditionSummary(rule?.filters).others).toEqual([
+                {field: CURRENCY, operator: EQUAL_TO, values: ['GBP']},
+                {field: AMOUNT, operator: GREATER_THAN, values: ['3000']},
+            ]);
         });
 
         it('reports nothing for a rule with no filters', () => {
             // Given a rule whose filters never loaded
             // When it is summarized
             // Then every field is empty
-            expect(getExpenseDefaultConditionSummary(undefined)).toEqual({merchants: [], categories: [], tags: []});
+            expect(getExpenseDefaultConditionSummary(undefined)).toEqual({merchants: [], categories: [], tags: [], others: []});
         });
     });
 

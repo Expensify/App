@@ -15,6 +15,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
+import useExpenseDefaultConditionNames from '@hooks/useExpenseDefaultConditionNames';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -83,6 +84,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories).find((category) => category.previousCategoryName === categoryName);
     const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
     const categoryRulesEnabled = arePolicyRulesEnabled(policy, policyCategories);
+    const conditionNames = useExpenseDefaultConditionNames(policy);
 
     const contextualRules = !policyCategory
         ? []
@@ -94,6 +96,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
               translate,
               convertToDisplayString,
               isOffline,
+              conditionNames,
           });
 
     const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, policyData.categories, [policyCategory]);

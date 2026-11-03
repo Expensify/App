@@ -9766,6 +9766,18 @@ const translations = {
                 merchantExactlyMatches: (merchant: string) => `Merchant exactly matches "${merchant}"`,
                 tagIs: (tag: string) => `Tag is "${tag}"`,
                 merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
+                currencyIs: (currency: string) => `Currency is "${currency}"`,
+                cardIs: (card: string) => `Card is "${card}"`,
+                taxRateIs: (taxRate: string) => `Tax rate is "${taxRate}"`,
+                submitterIs: (submitter: string) => `Submitter is "${submitter}"`,
+                reimbursableIs: (reimbursable: string) => `Reimbursable is "${reimbursable}"`,
+                billableIs: (billable: string) => `Billable is "${billable}"`,
+                // @context The comparison already reads as a phrase, such as "on Jan 1, 2026" or "before Jan 1, 2026".
+                dateIs: (comparison: string) => `Date is ${comparison}`,
+                // @context The comparison already reads as a phrase, such as "greater than $30.00".
+                amountIs: (comparison: string) => `Amount is ${comparison}`,
+                hasValue: (value: string) => `Has "${value}"`,
+                doesNotHaveValue: (value: string) => `Doesn't have "${value}"`,
             },
             merchantTypeRule: {
                 merchantType: 'Merchant type',

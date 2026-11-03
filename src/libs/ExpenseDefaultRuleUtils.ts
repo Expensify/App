@@ -145,6 +145,14 @@ const CONDITION = {
     MERCHANT_TYPE: 'merchantType',
 } as const;
 
+/**
+ * The fields a rule can match on, which is what tells a condition the editor sets from one it has no control for.
+ *
+ * A field outside this set, such as a merchant category code, reaches the client only from somewhere other than
+ * the editor, so it is left out of a rule's summary rather than counted as a condition nothing can word or remove.
+ */
+const CONDITION_FIELDS = new Set<string>(Object.values(CONDITION));
+
 /** Search stores a boolean filter as one of these words rather than as a JSON boolean, and the rule tree follows it. */
 const BOOLEAN_CONDITION_VALUES: Record<string, boolean> = {[YES]: true, [NO]: false};
 
@@ -785,6 +793,18 @@ type MerchantCondition = {
     isExactMatch: boolean;
 };
 
+/** A condition on any field other than merchant, category and tag, which the table words from the field itself. */
+type OtherCondition = {
+    /** The field the rule matches on, which is one of the `CONDITION` keys */
+    field: string;
+
+    /** How the field is compared, which tells `greater than` from `equal to` and `has` from `doesn't have` */
+    operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
+
+    /** The values the field is compared against, matched as an OR */
+    values: string[];
+};
+
 /** The values a rule matches on, grouped by field. */
 type ExpenseDefaultConditionSummary = {
     /** The merchants the rule matches on */
@@ -795,6 +815,14 @@ type ExpenseDefaultConditionSummary = {
 
     /** The tags the rule matches on, as they are stored on the policy */
     tags: string[];
+
+    /**
+     * Every other field the rule matches on, in the order the filter tree holds them.
+     *
+     * Kept as raw field and values rather than a named property each, so a field added to the editor later reaches
+     * the table without this type and its callers having to grow alongside it.
+     */
+    others: OtherCondition[];
 };
 
 /**
@@ -804,7 +832,7 @@ type ExpenseDefaultConditionSummary = {
  * represent still shows what it matches and can still be found by it while staying read-only.
  */
 function getExpenseDefaultConditionSummary(filters: RuleFilterNode | undefined): ExpenseDefaultConditionSummary {
-    const summary: ExpenseDefaultConditionSummary = {merchants: [], categories: [], tags: []};
+    const summary: ExpenseDefaultConditionSummary = {merchants: [], categories: [], tags: [], others: []};
 
     for (const leaf of getRuleFilterLeaves(filters)) {
         const values = [leaf.right].flat().filter((value): value is string => typeof value === 'string');
@@ -815,6 +843,8 @@ function getExpenseDefaultConditionSummary(filters: RuleFilterNode | undefined):
             summary.categories.push(...values);
         } else if (leaf.left === CONDITION.TAG) {
             summary.tags.push(...values);
+        } else if (values.length > 0 && CONDITION_FIELDS.has(leaf.left)) {
+            summary.others.push({field: leaf.left, operator: leaf.operator, values});
         }
     }
 
@@ -987,8 +1017,9 @@ function canEditExpenseDefaultRule(rule: Rule | undefined, policyID: string | un
     return isPolicyScopedRule(rule, policyID) && isEditableExpenseDefaultRule(rule);
 }
 
-export type {ExpenseDefaultFormValues, ExpenseDefaultRuleSummaryField};
+export type {ExpenseDefaultFormValues, ExpenseDefaultRuleSummaryField, OtherCondition};
 export {
+    CONDITION,
     buildCopiedExpenseDefaultRules,
     buildExpenseDefaultFilters,
     buildExpenseDefaultRule,
