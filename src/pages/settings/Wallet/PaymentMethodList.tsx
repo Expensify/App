@@ -652,9 +652,7 @@ function PaymentMethodList({
                 canDismissError: true,
                 isMissingPersonalInfo,
                 isGlobalReimbursementsEnabled:
-                    isWiseGlobalReimbursementsEnabled &&
-                    paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT &&
-                    isGlobalReimbursementsEnabled(paymentMethod as BankAccount),
+                    isWiseGlobalReimbursementsEnabled && paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && isGlobalReimbursementsEnabled(paymentMethod),
                 brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
                 connectionStatus: bankConnectionStatus
                     ? mapBankStatusToRowStatus(
