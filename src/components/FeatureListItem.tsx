@@ -42,4 +42,3 @@ function FeatureListItem({icon, children}: FeatureListItemProps) {
 }
 
 export default FeatureListItem;
-export type {FeatureListItemProps};
