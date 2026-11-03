@@ -229,6 +229,7 @@ function ToggleSettingOptionRow({
             accessibilityLabel={
                 typeof subtitle === 'string' && subtitle && !areSubtitleAndSwitchAccessibilityLabelEqual ? `${switchAccessibilityLabel}, ${subtitle}` : switchAccessibilityLabel
             }
+            sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TOGGLE_SETTINGS_ROW_SWITCH}
             onToggle={(isOn) => {
                 shouldAnimateAccordionSection.set(true);
                 onToggle(isOn);

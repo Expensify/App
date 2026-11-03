@@ -10218,6 +10218,13 @@ const CONST = {
     SENTRY_LABEL: {
         TEST_TOOL_MENU: {
             SERVER: 'TestToolMenu-Server',
+            DEBUG_MODE_SWITCH: 'TestToolMenu-DebugModeSwitch',
+            SHOW_BRANCH_NAME_SWITCH: 'TestToolMenu-ShowBranchNameSwitch',
+            FORCE_OFFLINE_SWITCH: 'TestToolMenu-ForceOfflineSwitch',
+            SIMULATE_POOR_CONNECTION_SWITCH: 'TestToolMenu-SimulatePoorConnectionSwitch',
+            SIMULATE_FAILING_REQUESTS_SWITCH: 'TestToolMenu-SimulateFailingRequestsSwitch',
+            SENTRY_SEND_SWITCH: 'TestToolMenu-SentrySendSwitch',
+            SENTRY_DEBUG_SWITCH: 'TestToolMenu-SentryDebugSwitch',
         },
         BILLING_BANNER: {
             RIGHT_ICON: 'BillingBanner-RightIcon',
@@ -10707,6 +10714,8 @@ const CONST = {
             CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
             CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
             GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
+            REIMBURSABLE_SWITCH: 'MoneyRequest-ReimbursableSwitch',
+            BILLABLE_SWITCH: 'MoneyRequest-BillableSwitch',
         },
         SPLIT_EXPENSE: {
             ADD_SPLIT_BUTTON: 'SplitExpense-AddSplitButton',
@@ -10714,6 +10723,8 @@ const CONST = {
             SAVE_BUTTON: 'SplitExpense-SaveButton',
             REMOVE_SPLIT_BUTTON: 'SplitExpense-RemoveSplitButton',
             EDIT_SAVE_BUTTON: 'SplitExpense-EditSaveButton',
+            REIMBURSABLE_SWITCH: 'SplitExpense-ReimbursableSwitch',
+            BILLABLE_SWITCH: 'SplitExpense-BillableSwitch',
         },
         MERGE_EXPENSE: {
             MERGE_TRANSACTION_ITEM: 'MergeExpense-MergeTransactionItem',
@@ -10787,6 +10798,9 @@ const CONST = {
         WORKSPACE: {
             APPROVAL_WORKFLOW_SECTION: 'Workspace-ApprovalWorkflowSection',
             TOGGLE_SETTINGS_ROW: 'Workspace-ToggleSettingsRow',
+            TOGGLE_SETTINGS_ROW_SWITCH: 'Workspace-ToggleSettingsRowSwitch',
+            CONFIRMATION_FORM_KEEP_ME_AS_ADMIN_SWITCH: 'WorkspaceConfirmationForm-KeepMeAsAdminSwitch',
+            IMPORT_SPREADSHEET_FILE_CONTAINS_HEADER_SWITCH: 'WorkspaceImportSpreadsheet-FileContainsHeaderSwitch',
             DUPLICATE_SELECT_FEATURES_SELECT_ALL: 'WorkspaceDuplicate-SelectFeaturesSelectAll',
             COPY_SETTINGS_SELECT_FEATURES_SELECT_ALL: 'WorkspaceCopySettings-SelectFeaturesSelectAll',
             INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
@@ -10862,21 +10876,40 @@ const CONST = {
                 ADD_BUTTON: 'WorkspaceCategories-AddButton',
                 MORE_DROPDOWN: 'WorkspaceCategories-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceCategories-BulkActionsDropdown',
+                ROW_ENABLE_SWITCH: 'WorkspaceCategories-RowEnableSwitch',
+                SETTINGS_ENABLE_SWITCH: 'WorkspaceCategories-SettingsEnableSwitch',
+                REQUIRE_DESCRIPTION_SWITCH: 'WorkspaceCategories-RequireDescriptionSwitch',
+                REQUIRE_ATTENDEES_SWITCH: 'WorkspaceCategories-RequireAttendeesSwitch',
+                AUTO_CATEGORIZE_SWITCH: 'WorkspaceCategories-AutoCategorizeSwitch',
+                SHOW_GL_CODES_SWITCH: 'WorkspaceCategories-ShowGLCodesSwitch',
             },
             TAGS: {
                 ROW: 'WorkspaceTags-Row',
                 ADD_BUTTON: 'WorkspaceTags-AddButton',
                 MORE_DROPDOWN: 'WorkspaceTags-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTags-BulkActionsDropdown',
+                ROW_ENABLE_SWITCH: 'WorkspaceTags-RowEnableSwitch',
+                SETTINGS_ENABLE_SWITCH: 'WorkspaceTags-SettingsEnableSwitch',
+                SHOW_GL_CODES_SWITCH: 'WorkspaceTags-ShowGLCodesSwitch',
+                IMPORT_FIRST_ROW_TITLE_SWITCH: 'WorkspaceTags-ImportFirstRowTitleSwitch',
+                IMPORT_INDEPENDENT_TAGS_SWITCH: 'WorkspaceTags-ImportIndependentTagsSwitch',
+                IMPORT_GL_ADJACENT_COLUMN_SWITCH: 'WorkspaceTags-ImportGLAdjacentColumnSwitch',
             },
             REPORT_FIELDS: {
                 LIST_VALUE_ROW: 'WorkspaceReportFields-ListValueRow',
+                LIST_VALUE_ENABLE_SWITCH: 'WorkspaceReportFields-ListValueEnableSwitch',
+                VALUE_SETTINGS_ENABLE_SWITCH: 'WorkspaceReportFields-ValueSettingsEnableSwitch',
             },
             TAXES: {
                 ROW: 'WorkspaceTaxes-Row',
                 ADD_BUTTON: 'WorkspaceTaxes-AddButton',
                 MORE_DROPDOWN: 'WorkspaceTaxes-MoreDropdown',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceTaxes-BulkActionsDropdown',
+                ROW_ENABLE_SWITCH: 'WorkspaceTaxes-RowEnableSwitch',
+                EDIT_ENABLE_SWITCH: 'WorkspaceTaxes-EditEnableSwitch',
+            },
+            VENDORS: {
+                ROW_ENABLE_SWITCH: 'WorkspaceVendors-RowEnableSwitch',
             },
             DISTANCE_RATES: {
                 ROW: 'WorkspaceDistanceRates-Row',
@@ -10885,6 +10918,10 @@ const CONST = {
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceDistanceRates-BulkActionsDropdown',
                 UNIT_SELECTOR: 'WorkspaceDistanceRates-UnitSelector',
                 COUNTRY_SELECTOR: 'WorkspaceDistanceRates-CountrySelector',
+                ROW_ENABLE_SWITCH: 'WorkspaceDistanceRates-RowEnableSwitch',
+                RATE_DETAILS_ENABLE_SWITCH: 'WorkspaceDistanceRates-RateDetailsEnableSwitch',
+                AUTO_UPDATE_GOVERNMENT_RATE_SWITCH: 'WorkspaceDistanceRates-AutoUpdateGovernmentRateSwitch',
+                TRACK_TAX_SWITCH: 'WorkspaceDistanceRates-TrackTaxSwitch',
             },
             WORKFLOWS: {
                 AUTO_REPORTING_FREQUENCY: 'WorkspaceWorkflows-AutoReportingFrequency',
@@ -10910,6 +10947,7 @@ const CONST = {
                 EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
                 THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
+                XERO_CHART_OF_ACCOUNTS_SWITCH: 'WorkspaceAccounting-XeroChartOfAccountsSwitch',
             },
             CONNECTIONS: {
                 CARD: 'WorkspaceConnections-Card',
@@ -10921,6 +10959,8 @@ const CONST = {
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
+                MERCHANT_RULE_APPLY_TO_EXISTING_SWITCH: 'WorkspaceRules-MerchantRuleApplyToExistingSwitch',
+                PROHIBITED_EXPENSE_SWITCH: 'WorkspaceRules-ProhibitedExpenseSwitch',
                 REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
                 REQUIRE_FIELDS_RULE_DESCRIBE: 'WorkspaceRules-RequireFieldsRuleDescribe',
@@ -11118,12 +11158,16 @@ const CONST = {
             DATE_OF_BIRTH: 'SettingsProfile-DateOfBirth',
             PHONE_NUMBER: 'SettingsProfile-PhoneNumber',
             ADDRESS: 'SettingsProfile-Address',
+            TIMEZONE_AUTOMATIC_SWITCH: 'SettingsProfile-TimezoneAutomaticSwitch',
         },
         SETTINGS_PREFERENCES: {
             PRIORITY_MODE: 'SettingsPreferences-PriorityMode',
             LANGUAGE: 'SettingsPreferences-Language',
             PAYMENT_CURRENCY: 'SettingsPreferences-PaymentCurrency',
             THEME: 'SettingsPreferences-Theme',
+            FEATURE_UPDATES_SWITCH: 'SettingsPreferences-FeatureUpdatesSwitch',
+            MUTE_ALL_SOUNDS_SWITCH: 'SettingsPreferences-MuteAllSoundsSwitch',
+            HIGH_CONTRAST_MODE_SWITCH: 'SettingsPreferences-HighContrastModeSwitch',
         },
         SETTINGS_SECURITY: {
             TWO_FACTOR_AUTH: 'SettingsSecurity-TwoFactorAuth',
@@ -11184,6 +11228,8 @@ const CONST = {
             CLEAR_CACHE: 'SettingsTroubleshoot-ClearCache',
             EXPORT_ONYX: 'SettingsTroubleshoot-ExportOnyx',
             GO_TO_CLASSIC: 'SettingsTroubleshoot-GoToExpensifyClassic',
+            MASK_EXPORT_ONYX_DATA_SWITCH: 'SettingsTroubleshoot-MaskExportOnyxDataSwitch',
+            BETA_OVERRIDE_SWITCH: 'SettingsTroubleshoot-BetaOverrideSwitch',
         },
         SETTINGS_EXIT_SURVEY: {
             GO_TO_CLASSIC: 'SettingsExitSurvey-GoToExpensifyClassic',
@@ -11222,6 +11268,10 @@ const CONST = {
             },
             MEMBERS: {
                 ROW: 'DomainMembers-Row',
+            },
+            SAML: {
+                ENABLE_SWITCH: 'DomainSaml-EnableSwitch',
+                REQUIRE_SWITCH: 'DomainSaml-RequireSwitch',
             },
         },
         FEATURE_TRAINING: {

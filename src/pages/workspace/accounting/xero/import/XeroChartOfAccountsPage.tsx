@@ -48,6 +48,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
                 <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                     <Switch
                         accessibilityLabel={translate('workspace.accounting.accounts')}
+                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.XERO_CHART_OF_ACCOUNTS_SWITCH}
                         isOn
                         disabled
                         onToggle={() => {}}

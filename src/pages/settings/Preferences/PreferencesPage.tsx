@@ -95,6 +95,7 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.FEATURE_UPDATES_SWITCH}
                                         isOn={account?.isSubscribedToNewsletter ?? true}
                                         onToggle={updateNewsletterSubscription}
                                     />
@@ -112,6 +113,7 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.muteAllSounds')}
+                                        sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.MUTE_ALL_SOUNDS_SWITCH}
                                         isOn={isPlatformMuted ?? false}
                                         onToggle={() => togglePlatformMute(platform, mutedPlatforms)}
                                     />

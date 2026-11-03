@@ -276,6 +276,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                     <Switch
                                         isOn={!!policy?.shouldAutoUpdateGovernmentDistanceRates}
                                         accessibilityLabel={translate('workspace.distanceRates.autoUpdateGovernmentRate')}
+                                        sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.AUTO_UPDATE_GOVERNMENT_RATE_SWITCH}
                                         onToggle={toggleAutoUpdateGovernmentRate}
                                         disabled={!canWriteDistanceRates}
                                         disabledAction={withReadOnlyFallback()}
@@ -355,6 +356,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                 <Switch
                                     isOn={isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled}
                                     accessibilityLabel={translate('workspace.distanceRates.trackTax')}
+                                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.TRACK_TAX_SWITCH}
                                     onToggle={onToggleTrackTax}
                                     disabled={!canWriteDistanceRates || !isPolicyTrackTaxEnabled}
                                     disabledAction={withReadOnlyFallback()}

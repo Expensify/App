@@ -360,6 +360,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             switchProps: {
                 isOn: policy?.autoCategorizeNewExpenses ?? true,
                 accessibilityLabel: translate('workspace.categories.autoCategorizeNewExpenses'),
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.AUTO_CATEGORIZE_SWITCH,
                 onToggle: (value: boolean) => setPolicyAutoCategorizeNewExpenses(policyId, value),
                 disabled: !policy?.areCategoriesEnabled || !hasEnabledCategories,
             },
@@ -381,6 +382,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             switchProps: {
                 isOn: policy?.showCategoryGLCodes ?? false,
                 accessibilityLabel: translate('workspace.categories.showCategoryGLCodes'),
+                sentryLabel: CONST.SENTRY_LABEL.WORKSPACE.CATEGORIES.SHOW_GL_CODES_SWITCH,
                 onToggle: (value: boolean) => setPolicyShowCategoryGLCodes(policyId, value),
                 disabled: !policy?.areCategoriesEnabled,
             },
