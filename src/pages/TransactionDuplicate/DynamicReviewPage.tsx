@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
@@ -120,6 +121,9 @@ function DynamicReviewPage() {
     // A duplicate that isn't loaded yet, or whose report isn't, may be approved or paid, and merging it fails server-side.
     const hasUnloadedTransaction = transactions.length < transactionIDs.length;
     const canKeepSelected = !hasSettledOrApprovedTransaction && !hasUnloadedReport && !hasUnloadedTransaction;
+    const [isLoadingDuplicateDetails] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS}${transactionID}`);
+    // Undefined means the fetch hasn't started yet, so a partial list isn't rendered for the first frame.
+    const isLoadingDuplicates = !isOffline && (hasUnloadedTransaction || hasUnloadedReport) && isLoadingDuplicateDetails !== false;
     const hasLoadedThreadReportActions = hasLoadedReportActions(reportLoadingState, isOffline);
     const isThreadReportDeletedForReview = isThreadReportDeleted(report, reportLoadingState, isOffline);
     const {hasLoadedParentReportActions, wasParentActionDeleted} = getParentReportActionDeletionStatus({
@@ -284,6 +288,20 @@ function DynamicReviewPage() {
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
                 />
+            </ScreenWrapper>
+        );
+    }
+
+    if (!shouldShowNotFound && isLoadingDuplicates) {
+        return (
+            <ScreenWrapper testID="DynamicReviewPage">
+                <HeaderWithBackButton
+                    title={translate('iou.reviewDuplicates')}
+                    onBackButtonPress={() => Navigation.goBack(backPath, {compareParams: false})}
+                />
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator size="large" />
+                </View>
             </ScreenWrapper>
         );
     }

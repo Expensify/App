@@ -18,6 +18,7 @@ import getTransactionFromTransactionListItem from '@libs/getTransactionFromTrans
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
+import {getIsOffline} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -2302,6 +2303,8 @@ function mergeExpenseAddedGrowlTransactionIDs(data: Record<string, SearchDataTyp
     return Onyx.merge(ONYXKEYS.RAM_ONLY_EXPENSE_ADDED_GROWL_TRANSACTION_IDS, data);
 }
 
+const DUPLICATE_TRANSACTION_DETAILS_TIMEOUT_MS = 10 * 1000;
+
 function getDuplicateTransactionDetails(transactionID?: string) {
     if (!transactionID) {
         return;
@@ -2311,7 +2314,22 @@ function getDuplicateTransactionDetails(transactionID?: string) {
         transactionID,
     };
 
-    API.read(READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS, parameters);
+    // An offline read applies none of its Onyx data, so the flag would stay set until the timeout below.
+    if (getIsOffline()) {
+        API.read(READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS, parameters);
+        return;
+    }
+
+    const loadingKey = `${ONYXKEYS.COLLECTION.RAM_ONLY_IS_LOADING_DUPLICATE_TRANSACTION_DETAILS}${transactionID}` as const;
+    API.read(READ_COMMANDS.GET_DUPLICATE_TRANSACTION_DETAILS, parameters, {
+        optimisticData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: true}],
+        finallyData: [{onyxMethod: Onyx.METHOD.SET, key: loadingKey, value: false}],
+    });
+
+    // A read that throws (5xx, 429, socket error) applies neither its success nor its finally data.
+    setTimeout(() => {
+        Onyx.set(loadingKey, false);
+    }, DUPLICATE_TRANSACTION_DETAILS_TIMEOUT_MS);
 }
 
 export {
