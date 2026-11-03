@@ -18,6 +18,6 @@
     because `src/` is only reachable through the `expo-source` export condition, which no bundler here enables.
     ```
 
-- Upstream PR/issue: https://github.com/expo/expo/pull/43864 (same change, closed as a stale draft on 2026-05-12; https://github.com/expo/expo/issues/43627 is closed but still reported). The assert is still present in `expo@58.0.0-canary-20260909`, so a fresh upstream PR is needed. See also https://github.com/Expensify/App/issues/101427
+- Upstream PR/issue: https://github.com/expo/expo/pull/43864 (same change, closed without merging). Still unfixed in 58.0.14.
 - E/App issue: https://github.com/Expensify/App/issues/75120
 - PR introducing patch: https://github.com/Expensify/App/pull/79962
