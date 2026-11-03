@@ -2071,6 +2071,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             }
             case CONST.SEARCH.TABLE_COLUMNS.START_DATE:
             case CONST.SEARCH.TABLE_COLUMNS.END_DATE:
+            case CONST.SEARCH.TABLE_COLUMNS.DUE_DATE:
                 columnWidth = {...getWidthStyle(variables.w102)};
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.WITHDRAWN:
