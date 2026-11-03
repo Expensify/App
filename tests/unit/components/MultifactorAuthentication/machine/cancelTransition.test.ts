@@ -529,7 +529,7 @@ describe('MFA cancel', () => {
         }
 
         /** Confirms the cancel while the approve is in flight, so the deny races it. */
-        async function startDenying() {
+        async function startCancellingInFlight() {
             const flow = await startScenarioActionWithDialog({withOnCancel: true});
             flow.actor.send({type: 'CONFIRM_CANCEL'});
             return flow;
@@ -555,7 +555,7 @@ describe('MFA cancel', () => {
             it('sends the deny on confirm, hides the dialog and keeps the request running', async () => {
                 // Given an authorize-transaction approve is in flight with the dialog up
                 // When the user confirms the cancel
-                const {actor, cancelInputs} = await startDenying();
+                const {actor, cancelInputs} = await startCancellingInFlight();
 
                 // Then the deny is sent while the approve keeps running, because a sent request can't be taken back and both results decide the outcome
                 const result = actor.getSnapshot();
@@ -571,7 +571,7 @@ describe('MFA cancel', () => {
 
             it('ignores REQUEST_CANCEL while the deny is in flight, so the dialog stays hidden', async () => {
                 // Given the deny is racing the approve
-                const {actor} = await startDenying();
+                const {actor} = await startCancellingInFlight();
 
                 // When the user presses back again
                 actor.send({type: 'REQUEST_CANCEL'});
@@ -584,7 +584,7 @@ describe('MFA cancel', () => {
 
             it('sends the deny once on a double confirm', async () => {
                 // Given the deny is racing the approve
-                const {actor, cancelInputs} = await startDenying();
+                const {actor, cancelInputs} = await startCancellingInFlight();
 
                 // When the confirm arrives again, e.g. from a double tap
                 actor.send({type: 'CONFIRM_CANCEL'});
@@ -598,7 +598,7 @@ describe('MFA cancel', () => {
 
             it('ends with the approve as soon as it succeeds, without waiting for the deny', async () => {
                 // Given the deny is racing the approve
-                const {actor, scenarioAction} = await startDenying();
+                const {actor, scenarioAction} = await startCancellingInFlight();
 
                 // When the approve succeeds first
                 await settle(scenarioAction, APPROVED);
@@ -646,7 +646,7 @@ describe('MFA cancel', () => {
                     ['a network error when neither request gets a response', {success: false, error: NETWORK_ERROR} as const, NETWORK_ERROR, NETWORK_ERROR],
                 ])('ends with %s', async (_, approveResult, denyResult, expectedError) => {
                     // Given the deny is racing the approve
-                    const {actor, scenarioAction, cancel, getFinalizeRuns} = await startDenying();
+                    const {actor, scenarioAction, cancel, getFinalizeRuns} = await startCancellingInFlight();
 
                     // When both results come back, in the given order
                     if (first === 'scenarioAction') {
@@ -670,7 +670,7 @@ describe('MFA cancel', () => {
 
             it('treats a rejected approve actor as a failed approve, so the deny decides', async () => {
                 // Given the deny is racing the approve
-                const {actor, scenarioAction, cancel} = await startDenying();
+                const {actor, scenarioAction, cancel} = await startCancellingInFlight();
 
                 // When the approve actor rejects unexpectedly and the deny comes back
                 scenarioAction.reject(new Error('Approve exploded'));
@@ -686,7 +686,7 @@ describe('MFA cancel', () => {
 
             it('shows the approve exception when the deny returns an error that leaves the transaction status unknown and the approve actor then rejects', async () => {
                 // Given the deny is racing the approve
-                const {actor, scenarioAction, cancel} = await startDenying();
+                const {actor, scenarioAction, cancel} = await startCancellingInFlight();
 
                 // When the deny returns a network error and the approve actor then rejects unexpectedly
                 await settle(cancel, NETWORK_ERROR);
@@ -702,7 +702,7 @@ describe('MFA cancel', () => {
 
             it('shows the approve error when the approve returns an error that leaves the transaction status unknown and the deny actor then rejects', async () => {
                 // Given the deny is racing the approve
-                const {actor, scenarioAction, cancel} = await startDenying();
+                const {actor, scenarioAction, cancel} = await startCancellingInFlight();
 
                 // When the approve returns an unrecognized error and the deny actor then rejects unexpectedly
                 await settle(scenarioAction, failedApprove(REASON.CLIENT_ERRORS.UNRECOGNIZED));
@@ -718,7 +718,7 @@ describe('MFA cancel', () => {
 
             it('treats a rejected deny actor as a failed deny, so a failed approve decides', async () => {
                 // Given the deny is racing the approve
-                const {actor, scenarioAction, cancel} = await startDenying();
+                const {actor, scenarioAction, cancel} = await startCancellingInFlight();
 
                 // When the deny actor rejects unexpectedly and the approve fails
                 cancel.reject(new Error('Deny exploded'));
@@ -735,7 +735,7 @@ describe('MFA cancel', () => {
             describe('when a request never returns', () => {
                 it('keeps waiting until the timeout', async () => {
                     // Given the deny is racing the approve and the approve failed
-                    const {actor, scenarioAction, clock} = await startDenying();
+                    const {actor, scenarioAction, clock} = await startCancellingInFlight();
                     await settle(scenarioAction, {success: false, error: NETWORK_ERROR});
 
                     // When the wait gets close to the timeout without the deny
@@ -752,7 +752,7 @@ describe('MFA cancel', () => {
                     ['the deny', 'cancel', DENIED, DENIED],
                 ] as const)('ends with %s when only that result is back at the timeout', async (_, settled, value, expectedError) => {
                     // Given the deny is racing the approve
-                    const {actor, scenarioAction, cancel, clock, getFinalizeRuns} = await startDenying();
+                    const {actor, scenarioAction, cancel, clock, getFinalizeRuns} = await startCancellingInFlight();
 
                     // When only one result comes back before the timeout
                     if (settled === 'cancel') {
@@ -773,7 +773,7 @@ describe('MFA cancel', () => {
 
                 it('ends as a request without a response when neither result is back at the timeout', async () => {
                     // Given the deny is racing the approve
-                    const {actor, clock} = await startDenying();
+                    const {actor, clock} = await startCancellingInFlight();
 
                     // When neither result comes back before the timeout
                     clock.increment(CANCEL_TIMEOUT_MS);
@@ -787,7 +787,7 @@ describe('MFA cancel', () => {
 
                 it('keeps the outcome when the missing result comes back afterwards', async () => {
                     // Given the wait timed out with only the deny back
-                    const {actor, scenarioAction, cancel, clock, getFinalizeRuns} = await startDenying();
+                    const {actor, scenarioAction, cancel, clock, getFinalizeRuns} = await startCancellingInFlight();
                     await settle(cancel, DENIED);
                     clock.increment(CANCEL_TIMEOUT_MS);
 

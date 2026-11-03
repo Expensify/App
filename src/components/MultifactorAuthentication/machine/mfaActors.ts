@@ -153,7 +153,6 @@ const executeScenarioActionActor = fromPromise<ExecuteScenarioActionOutput, Exec
 const finalizeOutcomeActor = fromPromise<FinalizeOutcomeOutput, FinalizeOutcomeInput>(async ({input}) => {
     const isSuccessful = input.error === undefined;
     // Odd but deliberate parity with legacy: `httpStatusCode` does not fall back to the error's.
-    // The reveal and set-PIN callbacks only read `body`; AuthorizeTransaction's reads `reason`.
     const callbackInput: MultifactorAuthenticationCallbackInput = {
         httpStatusCode: input.scenarioResponse?.httpStatusCode,
         reason: input.scenarioResponse?.reason ?? input.error?.reason,
