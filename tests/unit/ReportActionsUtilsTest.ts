@@ -8879,7 +8879,7 @@ describe('ReportActionsUtils', () => {
                 originalMessage: {linkedReportID: '90002'},
                 shouldShow: true,
                 errors,
-            } as ReportAction;
+            };
         }
 
         describe('isDeletedReportPreviewWithError', () => {
