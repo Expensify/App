@@ -466,7 +466,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                     pendingAction={hasPendingReimbursementCountries ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
                                     errors={reimbursementCountriesErrors}
                                     onClose={() => clearPolicyErrorField(policyID, CONST.POLICY.COLLECTION_KEYS.REIMBURSEMENT_COUNTRIES)}
-                                    errorRowStyles={[styles.mt3]}
                                 >
                                     <MenuItemSectionRoot
                                         onPress={
