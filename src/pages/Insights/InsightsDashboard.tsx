@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -16,6 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMultipleSnapshots from '@hooks/useMultipleSnapshots';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useTheme from '@hooks/useTheme';
@@ -27,17 +29,21 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {InsightsDashboardID} from '@src/types/onyx';
+import type {AIInsight, InsightsDashboard as InsightsDashboardRecord, InsightsDashboardID} from '@src/types/onyx';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useEffectEvent} from 'react';
-import {View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
+import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 
 import type {InsightsFilters} from './insightsFilters';
 import type {InsightsChartQuery} from './insightsQueries';
 import type {InsightsDashboardChart, InsightsDashboardState} from './resolveDashboardState';
 
+import InsightsAICardRow from './ai/InsightsAICardRow';
 import InsightsChartWidget from './charts/InsightsChartWidget';
 import InsightsPageControls from './controls/InsightsPageControls';
 import INSIGHTS_DASHBOARD_SPECS, {getVisibleCharts} from './dashboardSpecs';
@@ -51,6 +57,8 @@ import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
     state: InsightsDashboardState;
+    aiInsights: AIInsight[] | undefined;
+    isLoadingAIInsights: boolean;
     headlineChart: InsightsDashboardChart;
 
     /** Charts in the grid below the headline, left out when no workspace in scope is eligible for them */
@@ -69,13 +77,14 @@ type InsightsDashboardContentProps = {
     children?: React.ReactNode;
 };
 
-function InsightsDashboardContent({state, headlineChart, supportingCharts, filters, onRetry, onGroupByChange, children}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({state, aiInsights, isLoadingAIInsights, headlineChart, supportingCharts, filters, onRetry, onGroupByChange, children}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const shouldScrollMainHeader = useIsMobileWebLandscape();
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['OfflineCloud']);
     const triggerScrollEvent = useScrollEventEmitter();
     const isEmptyState = state === INSIGHTS_DASHBOARD_STATE.NO_EXPENSES || state === INSIGHTS_DASHBOARD_STATE.EMPTY;
@@ -131,6 +140,17 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
         );
     }
 
+    if (state === INSIGHTS_DASHBOARD_STATE.LOADING) {
+        return (
+            <>
+                {children}
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ActivityIndicator size="large" />
+                </View>
+            </>
+        );
+    }
+
     if (isEmptyState) {
         return (
             <TabRootScrollViewMarker>
@@ -159,6 +179,12 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
             >
                 {children}
                 <View style={[styles.insightsDashboardLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}>
+                    {isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && (
+                        <InsightsAICardRow
+                            insights={aiInsights}
+                            isLoading={isLoadingAIInsights}
+                        />
+                    )}
                     <InsightsChartWidget
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
@@ -201,6 +227,11 @@ function InsightsDashboardContent({state, headlineChart, supportingCharts, filte
     );
 }
 
+/** Checks whether GetInsights has responded for any dashboard or filters. */
+function hasStoredDashboardResponse(dashboards: OnyxCollection<InsightsDashboardRecord>): boolean {
+    return Object.values(dashboards ?? {}).some(hasDashboardResponse);
+}
+
 function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: InsightsDashboardID; accessibleDashboards: InsightsDashboardID[]}) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
@@ -241,6 +272,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
     }, [dashboardID, hash, queryGroupBy, eligibleGraphKeys, isFocused, isOffline]);
 
     const [dashboard] = useOnyx(`${ONYXKEYS.COLLECTION.INSIGHTS}${dashboardID}_${hash}`);
+    const [hasLoadedBefore = false] = useOnyx(ONYXKEYS.COLLECTION.INSIGHTS, {selector: hasStoredDashboardResponse});
     // Until the filters and workspaces load, the charts have no query to read data for, so they show their loading state
     const visibleChartQueries = query
         ? [query.headlineChart, ...query.supportingCharts]
@@ -258,7 +290,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         isDashboardLoaded: hasDashboardResponse(dashboard),
     }));
     const [headlineChart, ...supportingCharts] = charts;
-    const state = getDashboardState(dashboard, isOffline, charts);
+    const state = getDashboardState(dashboard, isOffline, charts, hasLoadedBefore);
 
     const tabSelector =
         accessibleDashboards.length > 1 ? (
@@ -269,7 +301,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
         ) : null;
 
     const pageControls =
-        state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES ? (
+        state !== INSIGHTS_DASHBOARD_STATE.NO_EXPENSES && state !== INSIGHTS_DASHBOARD_STATE.LOADING ? (
             <InsightsPageControls
                 filters={filters}
                 defaultFilters={defaultFilters}
@@ -309,16 +341,28 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
             testID="InsightsPage"
         >
             {!shouldScrollMainHeader && header}
-            <InsightsDashboardContent
-                state={state}
-                headlineChart={headlineChart}
-                supportingCharts={supportingCharts}
-                filters={filters}
-                onRetry={requestDashboard}
-                onGroupByChange={setFilters}
-            >
-                {shouldScrollMainHeader && header}
-            </InsightsDashboardContent>
+            <View style={styles.flex1}>
+                <Animated.View
+                    key={state}
+                    entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                    exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                    style={StyleSheet.absoluteFill}
+                >
+                    <InsightsDashboardContent
+                        state={state}
+                        aiInsights={dashboard?.aiInsights}
+                        // Offline no response is coming, so the row hides instead of loading forever
+                        isLoadingAIInsights={!hasDashboardResponse(dashboard) && !isOffline}
+                        headlineChart={headlineChart}
+                        supportingCharts={supportingCharts}
+                        filters={filters}
+                        onRetry={requestDashboard}
+                        onGroupByChange={setFilters}
+                    >
+                        {shouldScrollMainHeader && header}
+                    </InsightsDashboardContent>
+                </Animated.View>
+            </View>
         </ScreenWrapper>
     );
 }
