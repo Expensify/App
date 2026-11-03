@@ -7526,10 +7526,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: '与您的客户经理聊天。',
-            talkYourAccountManager: '与您的客户经理聊天。',
-            talkToConcierge: '与 Concierge 聊天。',
-            needAnotherAccounting: '需要其他会计软件吗？',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:

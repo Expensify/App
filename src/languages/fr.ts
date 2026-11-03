@@ -7887,10 +7887,6 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Discutez avec votre chargé de compte.',
-            talkYourAccountManager: 'Discuter avec votre gestionnaire de compte.',
-            talkToConcierge: 'Discuter avec Concierge.',
-            needAnotherAccounting: 'Besoin d’un autre logiciel comptable ?',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:

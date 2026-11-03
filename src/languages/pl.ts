@@ -7829,10 +7829,6 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Porozmawiaj ze swoim opiekunem klienta.',
-            talkYourAccountManager: 'Porozmawiaj ze swoim opiekunem konta.',
-            talkToConcierge: 'Czat z Concierge.',
-            needAnotherAccounting: 'Potrzebujesz innego programu księgowego?',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:

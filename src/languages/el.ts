@@ -7973,10 +7973,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Συνομιλήστε με τον υπεύθυνο λογαριασμού σας.',
-            talkYourAccountManager: 'Συνομιλήστε με τον υπεύθυνο λογαριασμού σας.',
-            talkToConcierge: 'Συνομιλήστε με το Concierge.',
-            needAnotherAccounting: 'Χρειάζεστε άλλο λογιστικό λογισμικό;',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
