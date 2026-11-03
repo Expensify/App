@@ -7,25 +7,29 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type Middleware from './types';
 
-/** Hashes of the in-flight searches whose snapshot is dropped if a write was queued while they were in flight. */
-const guardedSearchHashes = new Set<number>();
+/**
+ * Queries (the `jsonQuery` sent to the backend) of the in-flight searches whose snapshot is dropped if a write was queued
+ * while they were in flight. The query is keyed rather than the hash because it holds the offset: several pages of one
+ * hash can be in flight at once, and only the search that asked for the guard may have its snapshot dropped.
+ */
+const guardedSearchQueries = new Set<string>();
 
-/** Hashes of the guarded searches whose snapshot was dropped, so the search knows to run again once the writes land. */
-const discardedSearchHashes = new Set<number>();
+/** Queries of the guarded searches whose snapshot was dropped, so the search knows to run again once the writes land. */
+const discardedSearchQueries = new Set<string>();
 
 /**
  * Guards a search that has just waited for the write queue to go idle. Any write still pending when its response
  * arrives was queued while it was in flight, so the response predates that write and is stale.
  */
-function guardSearchAgainstStaleSnapshot(hash: number) {
-    guardedSearchHashes.add(hash);
-    discardedSearchHashes.delete(hash);
+function guardSearchAgainstStaleSnapshot(jsonQuery: string) {
+    guardedSearchQueries.add(jsonQuery);
+    discardedSearchQueries.delete(jsonQuery);
 }
 
 /** Stops guarding the search and returns whether its snapshot was dropped. */
-function releaseStaleSnapshotGuard(hash: number): boolean {
-    guardedSearchHashes.delete(hash);
-    return discardedSearchHashes.delete(hash);
+function releaseStaleSnapshotGuard(jsonQuery: string): boolean {
+    guardedSearchQueries.delete(jsonQuery);
+    return discardedSearchQueries.delete(jsonQuery);
 }
 
 /**
@@ -37,12 +41,20 @@ function releaseStaleSnapshotGuard(hash: number): boolean {
 const discardStaleSearchSnapshot: Middleware = (requestResponse, request) =>
     requestResponse.then((response) => {
         const hash = request?.data?.hash;
-        if (request?.command !== READ_COMMANDS.SEARCH || typeof hash !== 'number' || !guardedSearchHashes.has(hash) || !response?.onyxData || getPersistedRequestsLength() === 0) {
+        const jsonQuery = request?.data?.jsonQuery;
+        if (
+            request?.command !== READ_COMMANDS.SEARCH ||
+            typeof hash !== 'number' ||
+            typeof jsonQuery !== 'string' ||
+            !guardedSearchQueries.has(jsonQuery) ||
+            !response?.onyxData ||
+            getPersistedRequestsLength() === 0
+        ) {
             return response;
         }
 
         const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`;
-        discardedSearchHashes.add(hash);
+        discardedSearchQueries.add(jsonQuery);
         Log.info('[DiscardStaleSearchSnapshot] Dropping the snapshot of a search that writes were queued behind', false, {hash, pendingWrites: getPersistedRequestsLength()});
         return {...response, onyxData: response.onyxData.filter((update) => update.key !== snapshotKey)};
     });

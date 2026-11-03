@@ -1,5 +1,6 @@
 import {search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
+import {READ_COMMANDS} from '@libs/API/types';
 import {guardSearchAgainstStaleSnapshot, releaseStaleSnapshotGuard} from '@libs/Middleware/DiscardStaleSearchSnapshot';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -48,8 +49,12 @@ describe('search stale snapshot re-fire', () => {
         // When it is sent
         await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false, shouldDiscardStaleSnapshot: true});
 
-        // Then it guarded itself after waiting for writes, and ran again so the snapshot gets the server's values after that write
-        expect(mockedGuard).toHaveBeenCalledWith(queryJSON.hash);
+        // Then it guarded the exact query it sent after waiting for writes, so other pages of the same hash stay unguarded,
+        // and ran again so the snapshot gets the server's values after that write
+        const guardedJsonQuery = mockedGuard.mock.calls.at(0)?.[0];
+        expect(guardedJsonQuery).toEqual(expect.any(String));
+        expect(mockedMakeRequestWithSideEffects).toHaveBeenNthCalledWith(1, READ_COMMANDS.SEARCH, expect.objectContaining({jsonQuery: guardedJsonQuery}), expect.anything());
+        expect(mockedRelease).toHaveBeenCalledWith(guardedJsonQuery);
         expect(mockedWaitForWrites).toHaveBeenCalledTimes(2);
         expect(mockedMakeRequestWithSideEffects).toHaveBeenCalledTimes(2);
         const refireOptimisticData = mockedMakeRequestWithSideEffects.mock.calls.at(1)?.[2]?.optimisticData ?? [];

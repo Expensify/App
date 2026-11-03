@@ -1473,7 +1473,7 @@ function search({
                 inFlightRequestState.didSucceed = result?.jsonCode === CONST.JSON_CODE.SUCCESS;
 
                 // The snapshot was dropped because writes were queued behind this search, so run it again once they land.
-                if (shouldDiscardStaleSnapshot && releaseStaleSnapshotGuard(queryJSON.hash)) {
+                if (shouldDiscardStaleSnapshot && releaseStaleSnapshotGuard(jsonQuery)) {
                     inFlightRequestState.pendingUpgradeRequest ??= () =>
                         search({
                             queryJSON,
@@ -1564,7 +1564,7 @@ function search({
             })
             .finally(() => {
                 if (shouldDiscardStaleSnapshot) {
-                    releaseStaleSnapshotGuard(queryJSON.hash);
+                    releaseStaleSnapshotGuard(jsonQuery);
                 }
                 inFlightSearchRequests.delete(dedupeKey);
                 return inFlightRequestState.pendingUpgradeRequest?.();
@@ -1603,7 +1603,7 @@ function search({
         .then(() => {
             endSpan(queueSpanId);
             if (shouldDiscardStaleSnapshot) {
-                guardSearchAgainstStaleSnapshot(queryJSON.hash);
+                guardSearchAgainstStaleSnapshot(jsonQuery);
             }
             return startRequest();
         })
