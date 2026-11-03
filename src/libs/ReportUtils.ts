@@ -7382,6 +7382,10 @@ function getParentNavigationSubtitle(
     parentReportName: string | undefined,
     isParentReportArchived = false,
 ): ParentNavigationSummaryParams {
+    if (isBillReport(report)) {
+        return {workspaceName: getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')})};
+    }
+
     const parentReport = getParentReport(report);
 
     if (isEmptyObject(parentReport)) {

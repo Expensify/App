@@ -1,8 +1,11 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import type * as Localize from '@libs/Localize';
 import Navigation from '@libs/Navigation/Navigation';
 import {isReportActionVisible} from '@libs/ReportActionsUtils';
-import {getPolicyExpenseChat} from '@libs/ReportUtils';
+
+import IntlStore from '@src/languages/IntlStore';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 
 import type {RouteProp} from '@react-navigation/native';
 
@@ -15,10 +18,14 @@ import ParentNavigationSubtitle from '../../src/components/ParentNavigationSubti
 import CONST from '../../src/CONST';
 import NAVIGATORS from '../../src/NAVIGATORS';
 import ONYXKEYS from '../../src/ONYXKEYS';
-import ROUTES from '../../src/ROUTES';
 import SCREENS from '../../src/SCREENS';
 import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const mockTranslate = <TPath extends TranslationPaths>(key: TPath, ...parameters: TranslationParameters<TPath>) =>
+    jest.requireActual<typeof Localize>('@libs/Localize').translate(CONST.LOCALES.EN, key, ...parameters);
+
+jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate}));
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -40,14 +47,6 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     getReportAction: jest.fn(() => undefined),
     isReportActionVisible: jest.fn(() => false),
 }));
-
-jest.mock('@libs/ReportUtils', () => {
-    const actualReportUtils = jest.requireActual<Record<string, unknown>>('@libs/ReportUtils');
-    return {
-        ...actualReportUtils,
-        getPolicyExpenseChat: jest.fn(),
-    };
-});
 
 const mockUseRootNavigationState = jest.fn();
 jest.mock('@hooks/useRootNavigationState', () => ({
@@ -103,6 +102,10 @@ function getMockRootStateWithReportsSplitStack(parentReportID: string, expenseRe
 }
 
 describe('ParentNavigationSubtitle', () => {
+    beforeAll(async () => {
+        await IntlStore.load(CONST.LOCALES.EN);
+    });
+
     beforeEach(() => {
         jest.clearAllMocks();
         jest.mocked(isReportActionVisible).mockReturnValue(false);
@@ -320,7 +323,7 @@ describe('ParentNavigationSubtitle', () => {
 
     describe('subtitle of a bill without a parent report', () => {
         const billReportID = 'bill-report';
-        const subtitleData = {reportName: "bob's expenses", workspaceName: "Receiver's Workspace"};
+        const subtitleData = {workspaceName: 'Receiver Policy'};
 
         beforeAll(() => {
             Onyx.init({keys: ONYXKEYS});
@@ -329,52 +332,50 @@ describe('ParentNavigationSubtitle', () => {
         beforeEach(async () => {
             await Onyx.clear();
             mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: SCREENS.REPORT}));
+            mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => selector?.({routes: []}));
         });
 
-        it('opens the policy expense chat from the subtitle of a bill without a parent report', async () => {
-            // Given a bill with no parent report, and its owner's policy expense chat
-            const policyExpenseChatID = 'policy-expense-chat';
-            const ownerAccountID = 123;
-            const policyID = 'policy-id';
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${billReportID}`, createMock<Report>({reportID: billReportID, type: CONST.REPORT.TYPE.BILL, ownerAccountID, policyID}));
-            jest.mocked(getPolicyExpenseChat).mockReturnValue(createMock<Report>({reportID: policyExpenseChatID}));
-            render(
-                <ParentNavigationSubtitle
-                    parentNavigationSubtitleData={subtitleData}
-                    reportID={billReportID}
-                />,
-            );
-            await waitForBatchedUpdates();
-
-            // When the subtitle link is pressed
-            fireEvent(screen.getByTestId('parent-navigation-subtitle-link'), 'press', {
-                preventDefault: jest.fn(),
-                stopPropagation: jest.fn(),
-                nativeEvent: {},
-            });
-
-            // Then it opens the policy expense chat of the bill's owner
-            expect(getPolicyExpenseChat).toHaveBeenCalledWith(ownerAccountID, policyID);
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(policyExpenseChatID));
-        });
-
-        it('renders the subtitle of a bill without a parent report as text when its policy expense chat is unavailable', async () => {
-            // Given a bill with no parent report, and no policy expense chat for its owner
+        it('shows the status and policy name without a parent link or connecting words', async () => {
+            // Given a bill has no parent chat to open.
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${billReportID}`, createMock<Report>({reportID: billReportID, type: CONST.REPORT.TYPE.BILL}));
-            jest.mocked(getPolicyExpenseChat).mockReturnValue(undefined);
 
-            // When the subtitle renders
+            // When the subtitle renders with only the policy name.
             render(
                 <ParentNavigationSubtitle
                     parentNavigationSubtitleData={subtitleData}
                     reportID={billReportID}
+                    statusText="Approved"
                 />,
             );
             await waitForBatchedUpdates();
 
-            // Then the report name shows as plain text
+            // Then the subtitle keeps the status without suggesting that the bill belongs to a chat.
+            expect(screen.getByText('Approved')).toBeTruthy();
+            expect(screen.getByText(subtitleData.workspaceName, {exact: true})).toBeTruthy();
+            expect(screen.queryByText(/From|\bin\b/)).toBeNull();
             expect(screen.queryByTestId('parent-navigation-subtitle-link')).toBeNull();
-            expect(screen.getByText(subtitleData.reportName)).toBeTruthy();
+        });
+
+        it('keeps the parent link and connecting words for an expense report', async () => {
+            // Given an expense report belongs to a policy expense chat.
+            const expenseReportID = 'expense-report';
+            const parentReportID = 'policy-expense-chat';
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, {reportID: expenseReportID, hasParentAccess: true});
+
+            // When its subtitle renders with a chat and a policy name.
+            render(
+                <ParentNavigationSubtitle
+                    parentNavigationSubtitleData={{reportName: "bob's expenses", ...subtitleData}}
+                    reportID={expenseReportID}
+                    parentReportID={parentReportID}
+                />,
+            );
+            await waitForBatchedUpdates();
+
+            // Then expense reports still show where the request came from.
+            expect(screen.getByTestId('parent-navigation-subtitle-link')).toBeTruthy();
+            expect(screen.getByText('From ')).toBeTruthy();
+            expect(screen.getByText(` in ${subtitleData.workspaceName}`)).toBeTruthy();
         });
     });
 
