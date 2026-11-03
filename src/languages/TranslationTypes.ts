@@ -59,8 +59,10 @@ type PolicyRulesModifiedFields = {
     merchant?: string;
     category?: string;
     tag?: string;
+    amount?: string;
     comment?: string;
     description?: string;
+    vendor?: string;
     billable?: boolean;
     reimbursable?: boolean;
     tax?: {

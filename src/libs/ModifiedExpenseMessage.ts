@@ -199,6 +199,23 @@ function getMovedFromOrToReportMessage(
     }
 }
 
+/**
+ * The label each field a rule can set reads as, which is not always the name the backend sends it under.
+ *
+ * A field missing from here has no label to look up, and looking one up that does not exist throws and stops the
+ * expense from opening at all, so an unknown field is dropped from the sentence instead.
+ */
+const RULES_MODIFIED_FIELD_LABELS = {
+    merchant: 'merchant',
+    category: 'category',
+    tag: 'tag',
+    amount: 'amount',
+    comment: 'description',
+    description: 'description',
+    vendorID: 'vendor',
+    vendor: 'vendor',
+} as const;
+
 function getRulesModifiedMessage(
     translate: LocalizedTranslate,
     fields: PolicyRulesModifiedFields | PersonalRulesModifiedFields,
@@ -223,7 +240,11 @@ function getRulesModifiedMessage(
         }
     }
 
-    const listFragment = listKeys.map((key, i) => {
+    // Dropped before the fragments are built rather than inside the map, so the clause that ends up first still
+    // carries the verb when an earlier field was left out.
+    const labelledKeys = listKeys.filter((key) => key === 'tax' || key in RULES_MODIFIED_FIELD_LABELS);
+
+    const listFragment = labelledKeys.map((key, i) => {
         const isFirst = i === 0;
 
         if (key === 'tax') {
@@ -233,18 +254,15 @@ function getRulesModifiedMessage(
         }
 
         const value = modifiedFields[key];
+        const label = RULES_MODIFIED_FIELD_LABELS[key];
         if (key === 'category') {
-            return translate('iou.rulesModifiedFields.common', key, getDecodedCategoryName(value ?? ''), isFirst);
+            return translate('iou.rulesModifiedFields.common', label, getDecodedCategoryName(value ?? ''), isFirst);
         }
         if (key === 'tag') {
-            return translate('iou.rulesModifiedFields.common', key, getCommaSeparatedTagNameWithSanitizedColons(value ?? ''), isFirst);
-        }
-        // The backend saves description as comment, so display it with the description label.
-        if (key === 'comment') {
-            return translate('iou.rulesModifiedFields.common', 'description', String(value), isFirst);
+            return translate('iou.rulesModifiedFields.common', label, getCommaSeparatedTagNameWithSanitizedColons(value ?? ''), isFirst);
         }
 
-        return translate('iou.rulesModifiedFields.common', key, String(value), isFirst);
+        return translate('iou.rulesModifiedFields.common', label, String(value), isFirst);
     });
 
     const fragments = [...standaloneFragments, ...listFragment];

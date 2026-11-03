@@ -9,7 +9,7 @@ import IntlStore from '@src/languages/IntlStore';
 import {translate} from '@src/libs/Localize';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
-import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessage';
+import type {OriginalMessageModifiedExpense, PolicyRulesModifiedFields} from '@src/types/onyx/OriginalMessage';
 
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
@@ -189,6 +189,62 @@ describe('ModifiedExpenseMessage', () => {
             // Then the tax is first only within the list and route selection follows access
             const route = isAdminAccessAllowed ? `${environmentURL}/workspaces/1234/rules` : CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL;
             expect(result).toBe(`marked the expense as "non-billable", set the tax rate to "VAT", and merchant to "Cafe" via <a href="${route}">workspace rules</a>`);
+        });
+
+        /**
+         * The backend can send a field this version of the app has no type or label for, which is the case the
+         * filter guards. Built by assignment rather than a cast, because the type deliberately does not describe it.
+         */
+        function withUnknownRuleField(known: PolicyRulesModifiedFields = {}): PolicyRulesModifiedFields {
+            const fields: PolicyRulesModifiedFields = {};
+            Object.assign(fields, {aFieldAddedLater: 'something'}, known);
+            return fields;
+        }
+
+        it.each([
+            ['amount', {amount: '$10.00'}, 'set the amount to "$10.00"'],
+            ['vendorID', {vendorID: 'Acme Supplies'}, 'set the vendor to "Acme Supplies"'],
+        ])('describes a rule that set the %s, which has no label of its own name', (_field, modifiedFields, expectedFragment) => {
+            // Given a rule that set a field the backend sends under a name `common` holds no label for
+            jest.mocked(isPolicyAdmin).mockReturnValue(true);
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({policyID: '1234', policyRulesModifiedFields: modifiedFields});
+
+            // When the formatter builds the action message
+            const result = formatRulesAction(originalMessage);
+
+            // Then the field reads with the label it belongs to, where an absent label used to throw and leave
+            // the expense impossible to open
+            expect(result).toBe(`${expectedFragment} via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`);
+        });
+
+        it('leaves out a field it has no label for rather than failing to build the message', () => {
+            // Given a rule that set a field this version of the app does not know about
+            jest.mocked(isPolicyAdmin).mockReturnValue(true);
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({
+                policyID: '1234',
+                policyRulesModifiedFields: withUnknownRuleField(),
+            });
+
+            // When that field is the only one the rule set
+            const result = formatRulesAction(originalMessage);
+
+            // Then the message is empty rather than throwing, so the expense still opens
+            expect(result).toBe('');
+        });
+
+        it('keeps the verb on the clause that ends up first once an unknown field is dropped', () => {
+            // Given an unknown field stored ahead of a known one
+            jest.mocked(isPolicyAdmin).mockReturnValue(true);
+            const originalMessage = createMock<OriginalMessageModifiedExpense>({
+                policyID: '1234',
+                policyRulesModifiedFields: withUnknownRuleField({merchant: 'Cafe'}),
+            });
+
+            // When the unknown field is dropped from the sentence
+            const result = formatRulesAction(originalMessage);
+
+            // Then the merchant reads as the opening clause, with the verb, rather than as a continuation
+            expect(result).toBe(`set the merchant to "Cafe" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`);
         });
     });
 

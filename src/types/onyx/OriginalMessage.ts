@@ -1097,11 +1097,20 @@ type PolicyRulesModifiedFields = {
     category?: string;
     tag?: string;
 
+    /** The amount the rule set, already formatted by the backend */
+    amount?: string;
+
     /** The value that the description was changed to (backend uses "comment" key) */
     comment?: string;
 
     /** The value that the description was changed to (display key, mapped from "comment") */
     description?: string;
+
+    /** The vendor the rule set (backend uses "vendorID" key) */
+    vendorID?: string;
+
+    /** The vendor the rule set (display key, mapped from "vendorID") */
+    vendor?: string;
 
     billable?: boolean;
     reimbursable?: boolean;
@@ -1118,11 +1127,20 @@ type PersonalRulesModifiedFields = {
     category?: string;
     tag?: string;
 
+    /** The amount the rule set, already formatted by the backend */
+    amount?: string;
+
     /** The value that the description was changed to (backend uses "comment" key) */
     comment?: string;
 
     /** The value that the description was changed to (display key, mapped from "comment") */
     description?: string;
+
+    /** The vendor the rule set (backend uses "vendorID" key) */
+    vendorID?: string;
+
+    /** The vendor the rule set (display key, mapped from "vendorID") */
+    vendor?: string;
 
     billable?: boolean;
     reimbursable?: boolean;

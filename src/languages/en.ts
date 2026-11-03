@@ -382,6 +382,7 @@ const translations = {
         copied: 'Copied!',
         someone: 'Someone',
         total: 'Total',
+        amount: 'Amount',
         edit: 'Edit',
         letsDoThis: `Let's do this!`,
         letsStart: `Let's start`,
