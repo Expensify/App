@@ -1949,7 +1949,6 @@ describe('ReportActionItem', () => {
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS, {
                 feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
                 bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-                fundID: 123,
                 policyID: 'pol123',
             });
 
@@ -1960,28 +1959,6 @@ describe('ReportActionItem', () => {
             // Then it names the feed the way the company cards page does, not by the bank
             expect(screen.getByText(/The Chase connection has been broken for 30 days/)).toBeOnTheScreen();
             expect(screen.queryByText(/oauth\.chase\.com/)).not.toBeOnTheScreen();
-        });
-
-        it('COMPANY_CARD_CONNECTION_BROKEN action shows the custom name of the feed', async () => {
-            // Given a feed the admin renamed after the message was sent
-            await act(async () => {
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}123`, {
-                    settings: {companyCardNicknames: {[CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE]: 'Team Chase'}},
-                });
-            });
-            const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN, {
-                feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-                bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
-                fundID: 123,
-                policyID: 'pol123',
-            });
-
-            // When the message is shown
-            renderItemWithAction(action);
-            await waitForBatchedUpdatesWithAct();
-
-            // Then it uses the current custom name, matching the company cards page
-            expect(screen.getByText(/The Team Chase connection is broken/)).toBeOnTheScreen();
         });
 
         it('PLAID_BALANCE_FAILURE action', async () => {

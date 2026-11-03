@@ -5977,17 +5977,17 @@ function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: 
 /**
  * Returns the feed name the company cards page shows, so admins recognize the feed in the message.
  */
-function getCompanyCardConnectionBrokenFeedName(translate: LocalizedTranslate, feedName: string, bank: CompanyCardFeedWithNumber | undefined, customFeedName?: string): string {
+function getCompanyCardConnectionBrokenFeedName(translate: LocalizedTranslate, feedName: string, bank: CompanyCardFeedWithNumber | undefined): string {
     if (!bank) {
         return feedName;
     }
 
     // A feed with no custom name is saved with its bank as the feedName.
     const savedCustomFeedName = feedName === bank ? undefined : feedName;
-    return getCustomOrFormattedFeedName(translate, bank, customFeedName ?? savedCustomFeedName, false) ?? feedName;
+    return getCustomOrFormattedFeedName(translate, bank, savedCustomFeedName, false) ?? feedName;
 }
 
-function getCompanyCardConnectionBrokenMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>, customFeedName?: string): string {
+function getCompanyCardConnectionBrokenMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
     const {feedName, bank, policyID} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN>) ?? {
         feedName: '',
         bank: undefined,
@@ -5995,18 +5995,18 @@ function getCompanyCardConnectionBrokenMessage(translate: LocalizedTranslate, ac
     };
     const workspaceCompanyCardRoute = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}`;
     return translate('report.actions.type.companyCardConnectionBroken', {
-        feedName: getCompanyCardConnectionBrokenFeedName(translate, feedName, bank, customFeedName),
+        feedName: getCompanyCardConnectionBrokenFeedName(translate, feedName, bank),
         workspaceCompanyCardRoute,
     });
 }
 
-function getCompanyCardConnectionBroken30DaysMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>, customFeedName?: string): string {
+function getCompanyCardConnectionBroken30DaysMessage(translate: LocalizedTranslate, action: OnyxEntry<ReportAction>): string {
     const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN_30_DAYS) ? getOriginalMessage(action) : undefined;
     const {feedName, bank, policyID} = originalMessage ?? {feedName: '', bank: undefined, policyID: ''};
     const workspaceCompanyCardRoute = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)}`;
     const workspaceCompanyCardSettingsRoute = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID)}`;
     return translate('report.actions.type.companyCardConnectionBroken30Days', {
-        feedName: getCompanyCardConnectionBrokenFeedName(translate, feedName, bank, customFeedName),
+        feedName: getCompanyCardConnectionBrokenFeedName(translate, feedName, bank),
         workspaceCompanyCardRoute,
         workspaceCompanyCardSettingsRoute,
     });
