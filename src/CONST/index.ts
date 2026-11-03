@@ -10651,6 +10651,7 @@ const CONST = {
             CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
             CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
             GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
+            ADD_CATEGORY_BUTTON: 'MoneyRequest-AddCategoryButton',
         },
         SPLIT_EXPENSE: {
             ADD_SPLIT_BUTTON: 'SplitExpense-AddSplitButton',

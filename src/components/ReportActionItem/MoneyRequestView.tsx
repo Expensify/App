@@ -78,6 +78,7 @@ import {
     isAttendeeTrackingEnabled,
     isGroupPolicyByType,
     isPerDiemEnabled,
+    canCreateCategoryInSitu,
     isPolicyAccessible,
     isTaxTrackingEnabled,
     resolveCurrentTaxCode,
@@ -1521,6 +1522,8 @@ function MoneyRequestView({
                                     transactionThreadReport={transactionThreadReport}
                                     policy={policy}
                                     selectedCategory={categoryValue ?? ''}
+                                    iouType={iouType}
+                                    canAddCategory={canCreateCategoryInSitu(policy, currentUserEmailParam)}
                                 />
                             )}
                         />
