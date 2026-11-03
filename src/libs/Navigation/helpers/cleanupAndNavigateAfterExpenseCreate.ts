@@ -73,7 +73,7 @@ function cleanupAndNavigateAfterExpenseCreate({
     });
 
     const finalActiveReportID = navigationReportID ?? backToReport ?? report?.reportID ?? optimisticChatReportID;
-    const hasMultipleTransactions = isInvoice ? false : isMoneyRequestReport(finalActiveReportID === report?.reportID ? report : getReportOrDraftReport(finalActiveReportID));
+    const hasMultipleTransactions = isInvoice ? false : isMoneyRequestReport(finalActiveReportID === report?.reportID ? report : getReportOrDraftReport({reportID: finalActiveReportID}));
     // `hasMultipleTransactions` is `isMoneyRequestReport(destination)`, so its negation means the destination is the chat.
     const shouldFlagNewTransactionForChatPreview =
         action === CONST.IOU.ACTION.CATEGORIZE || action === CONST.IOU.ACTION.SHARE ? true : !isInvoice && !!finalActiveReportID && !hasMultipleTransactions;

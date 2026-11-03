@@ -62,7 +62,7 @@ type PendingNewTransactions = {
     expiredFlagKeys: string[];
 };
 
-/** Freshness is checked when the selector runs, not on a timer, so a flag can expire while its consumer waits to show it. */
+/** Runs on mount and when this report's metadata changes, not on a timer. So a reopened report drops a stale flag, while a consumer already waiting to show one keeps it until then. */
 const pendingNewTransactionsSelector = (reportMetadata: OnyxEntry<ReportMetadata>): PendingNewTransactions | undefined => {
     const storedFlags = reportMetadata?.pendingNewTransactionIDs;
     if (!storedFlags) {

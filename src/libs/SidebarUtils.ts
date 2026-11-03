@@ -142,6 +142,7 @@ type MiniReport = {
 
 type ShouldDisplayReportInLHNParams = {
     report: Report;
+    policy: OnyxEntry<Policy>;
     reports: OnyxCollection<Report>;
     currentReportId: string | undefined;
     isInFocusMode: boolean;
@@ -161,6 +162,7 @@ type ShouldDisplayReportInLHNParams = {
 
 function shouldDisplayReportInLHN({
     report,
+    policy,
     reports,
     currentReportId,
     isInFocusMode,
@@ -187,7 +189,7 @@ function shouldDisplayReportInLHN({
 
     // Get report metadata and status
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations);
+    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(report, transactionViolations, policy);
     const isHidden = isHiddenForCurrentUser(report);
     const isFocused = report.reportID === currentReportId;
     const chatReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${report?.chatReportID}`];
@@ -291,6 +293,7 @@ function getLHNUnreadState(reportID: string): LHNUnreadState {
 function getReportsToDisplayInLHN({
     currentReportId,
     reports,
+    policies,
     isDefaultRoomsBetaEnabled,
     priorityMode,
     draftComments,
@@ -307,6 +310,7 @@ function getReportsToDisplayInLHN({
 }: {
     currentReportId: string | undefined;
     reports: OnyxCollection<Report>;
+    policies: OnyxCollection<Policy>;
     isDefaultRoomsBetaEnabled: boolean;
     priorityMode: OnyxEntry<PriorityMode>;
     draftComments: OnyxCollection<string>;
@@ -337,6 +341,7 @@ function getReportsToDisplayInLHN({
 
         const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN({
             report,
+            policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
             reports,
             currentReportId,
             isInFocusMode,
@@ -369,6 +374,7 @@ function getReportsToDisplayInLHN({
 type UpdateReportsToDisplayInLHNProps = {
     displayedReports: ReportsToDisplayInLHN;
     reports: OnyxCollection<Report>;
+    policies: OnyxCollection<Policy>;
     updatedReportsKeys: string[];
     currentReportId: string | undefined;
     isInFocusMode: boolean;
@@ -389,6 +395,7 @@ type UpdateReportsToDisplayInLHNProps = {
 function updateReportsToDisplayInLHN({
     displayedReports,
     reports,
+    policies,
     updatedReportsKeys,
     currentReportId,
     isInFocusMode,
@@ -432,6 +439,7 @@ function updateReportsToDisplayInLHN({
 
         const {shouldDisplay, hasErrorsOtherThanFailedReceipt} = shouldDisplayReportInLHN({
             report,
+            policy: policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`],
             reports,
             currentReportId,
             isInFocusMode,
@@ -682,6 +690,7 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
 
 type GetReasonAndReportActionThatHasRedBrickRoadParams = {
     report: Report;
+    policy: OnyxEntry<Policy>;
     chatReport: OnyxEntry<Report>;
     reportActions: OnyxEntry<ReportActions>;
     hasViolations: boolean;
@@ -696,6 +705,7 @@ type GetReasonAndReportActionThatHasRedBrickRoadParams = {
 
 function getReasonAndReportActionThatHasRedBrickRoad({
     report,
+    policy,
     chatReport,
     reportActions,
     hasViolations,
@@ -711,7 +721,7 @@ function getReasonAndReportActionThatHasRedBrickRoad({
         return null;
     }
 
-    const violatingReportID = getViolatingReportIDForRBRInLHN(report, transactionViolations);
+    const violatingReportID = getViolatingReportIDForRBRInLHN(report, transactionViolations, policy);
     if (violatingReportID) {
         const reportPreviewAction = Object.values(reportActions ?? {}).find((action) => getIOUReportIDFromReportActionPreview(action) === violatingReportID);
         return {

@@ -6,6 +6,7 @@ import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getNetSuiteCreditCardAccounts} from '@libs/NetSuiteUtils';
 import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
@@ -204,7 +205,7 @@ function getPolicyCardExportSettings(
     policy?: Policy,
     backTo?: string | undefined,
 ): CardExportSettings | undefined {
-    const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
+    const basePath = ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
@@ -342,6 +343,22 @@ function getPolicyCardExportSettings(
                             workspaceDefaultAccountID: config?.payableAcct,
                         },
                     };
+                case CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE: {
+                    return {
+                        description,
+                        exportPageLink,
+                        shouldShowMenuItem: true,
+                        // Journal entries and credit card charges keep separate card-level mappings, so selecting an account under one export type never overwrites the other
+                        exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT,
+                        accountSelection: {
+                            type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
+                            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT,
+                            accounts: normalizeAccounts(getNetSuiteCreditCardAccounts(policy)),
+                            defaultLabel: defaultAccount,
+                            workspaceDefaultAccountID: config?.creditCardAccount,
+                        },
+                    };
+                }
                 default:
                     return {description, exportPageLink, shouldShowMenuItem: false};
             }
