@@ -78,6 +78,9 @@ type ExpenseFieldRowProps = {
     /** Whether the field can be changed at all. A non-interactive row drops its caret and press handler, and its border takes the fill color */
     isInteractive?: boolean;
 
+    /** Whether an interactive row shows the caret. Off for a row that stands in for a text input rather than a list */
+    shouldShowDownCaret?: boolean;
+
     /** Text a non-interactive row copies from the button it shows on hover. Also makes the value selectable. */
     copyValue?: string;
 
@@ -130,6 +133,7 @@ function ExpenseFieldRow({
     isExpanded,
     isDisabled = false,
     isInteractive = true,
+    shouldShowDownCaret = true,
     copyValue,
     backgroundStyle,
     sentryLabel,
@@ -145,7 +149,8 @@ function ExpenseFieldRow({
     // itself has to stay, or a field the app filled in reads as one the user chose.
     const shouldShowRightLabel = !!rightLabel && (shouldKeepRightLabelWhenFilled || !hasValue);
     const shouldShowCopy = !isInteractive && !!copyValue;
-    const hasTrailing = shouldShowRightLabel || isInteractive || shouldShowCopy;
+    const shouldShowCaret = isInteractive && shouldShowDownCaret;
+    const hasTrailing = shouldShowRightLabel || shouldShowCaret || shouldShowCopy;
 
     const row = (
         <MenuItem.Row>
@@ -181,7 +186,7 @@ function ExpenseFieldRow({
                             <MenuItem.RightLabel>{rightLabel}</MenuItem.RightLabel>
                         </>
                     )}
-                    {isInteractive && <MenuItem.DownCaret />}
+                    {shouldShowCaret && <MenuItem.DownCaret />}
                     {shouldShowCopy && (
                         <MenuItem.Copy
                             value={copyValue}

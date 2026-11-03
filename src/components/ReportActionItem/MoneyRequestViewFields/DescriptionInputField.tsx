@@ -1,3 +1,5 @@
+import MenuItem from '@components/MenuItem';
+import ExpenseFieldRow from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldRow';
 import TextInput from '@components/TextInput';
 
 import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
@@ -41,8 +43,14 @@ type DescriptionInputFieldProps = {
     errorText?: string;
 };
 
+/** Whether the markdown renders as more than plain text and line breaks, e.g. bold text, a link or a list */
+function hasRenderedMarkdown(html: string): boolean {
+    return /<(?!br\s*\/?>)[a-z]/i.test(html);
+}
+
 /**
- * The description of a saved expense, edited in place as markdown. The value is saved when the input loses focus,
+ * The description of a saved expense, edited in place as markdown. While the input is not focused, a description that
+ * uses markdown shows it rendered, and pressing it brings the input back. The value is saved when the input loses focus,
  * through the same action the description page uses.
  */
 function DescriptionInputField({transaction, transactionThreadReport, errorText = ''}: DescriptionInputFieldProps) {
@@ -69,6 +77,8 @@ function DescriptionInputField({transaction, transactionThreadReport, errorText 
     // Mirror the saved description locally so typing isn't overwritten by Onyx, and pick up outside changes only
     // while the input is not being edited.
     const [isFocused, setIsFocused] = useState(false);
+    // Set by pressing the rendered description, until the input it mounts takes focus
+    const [isOpeningInput, setIsOpeningInput] = useState(false);
     const [inputValue, setInputValue] = useState(savedDescription);
     const [prevSavedDescription, setPrevSavedDescription] = useState(savedDescription);
     if (savedDescription !== prevSavedDescription) {
@@ -112,12 +122,33 @@ function DescriptionInputField({transaction, transactionThreadReport, errorText 
         });
     };
 
+    const renderedDescription = Parser.replace(inputValue);
+    if (!isFocused && !isOpeningInput && hasRenderedMarkdown(renderedDescription)) {
+        const descriptionText = Parser.htmlToText(renderedDescription);
+        return (
+            <ExpenseFieldRow
+                name={translate('common.description')}
+                valueComponent={<MenuItem.FieldValueHTML>{renderedDescription}</MenuItem.FieldValueHTML>}
+                hasValueComponent
+                accessibilityLabel={`${translate('common.description')}, ${descriptionText}`}
+                errorText={errorText}
+                onPress={() => setIsOpeningInput(true)}
+                shouldShowDownCaret={false}
+            />
+        );
+    }
+
     return (
         <View style={[styles.mh5, styles.mv2]}>
             <TextInput
                 value={inputValue}
                 onChangeText={setInputValue}
-                onFocus={() => setIsFocused(true)}
+                // Mounted by pressing the rendered description, which the user pressed to type in
+                autoFocus={isOpeningInput}
+                onFocus={() => {
+                    setIsFocused(true);
+                    setIsOpeningInput(false);
+                }}
                 onBlur={saveDescription}
                 label={translate('common.description')}
                 accessibilityLabel={translate('common.description')}
