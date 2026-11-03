@@ -5,7 +5,6 @@ import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import Text from '@components/Text';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,11 +18,10 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ComponentRef, ForwardedRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {EmitterSubscription, ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
+import type {ScrollView as RNScrollView, StyleProp, ViewStyle} from 'react-native';
 
-import React, {useContext, useEffect, useImperativeHandle, useRef} from 'react';
+import React, {useContext, useImperativeHandle, useRef} from 'react';
 import {Keyboard, View} from 'react-native';
-import {KeyboardEvents} from 'react-native-keyboard-controller';
 
 import type {FormInputErrors, FormProps, FormWrapperRef, InputRefs} from './types';
 
@@ -105,6 +103,7 @@ function FormWrapper({
     serverErrorFields,
     serverErrorMessage,
     shouldScrollToEnd = false,
+    shouldScrollChildToFocus = true,
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
@@ -119,8 +118,6 @@ function FormWrapper({
     const styles = useThemeStyles();
     const formRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const formContentRef = useRef<ComponentRef<typeof View>>(null);
-    const pendingScrollRef = useRef<{keyboardListener: EmitterSubscription; timeout: ReturnType<typeof setTimeout>} | null>(null);
-    const {isKeyboardShown} = useKeyboardState();
     const {getErrorAnnouncementKey, getFallbackAnnouncementMessage} = useContext(FormContext);
     const errorAnnouncementKey = getErrorAnnouncementKey();
     const fallbackAnnouncementMessage = getFallbackAnnouncementMessage();
@@ -166,34 +163,11 @@ function FormWrapper({
         }, CONST.ANIMATED_TRANSITION);
     };
 
-    const cancelPendingScroll = () => {
-        pendingScrollRef.current?.keyboardListener.remove();
-        if (pendingScrollRef.current) {
-            clearTimeout(pendingScrollRef.current.timeout);
-        }
-        pendingScrollRef.current = null;
-    };
-
-    useEffect(() => cancelPendingScroll, [cancelPendingScroll]);
-
     const scrollTo = (y: number) => {
-        cancelPendingScroll();
-        const scroll = () => {
-            cancelPendingScroll();
+        // Wait for the keyboard animation to complete
+        setTimeout(() => {
             formRef.current?.scrollTo({y: Math.max(y, 0), animated: true});
-        };
-
-        // The keyboard changes the height of the form. Therefore the form scrolls when the keyboard is open. Android moves the
-        // focused input partly into view while the keyboard opens, and a scroll that starts later moves the page a second time.
-        if (isKeyboardShown) {
-            scroll();
-            return;
-        }
-        // The timeout scrolls when no keyboard opens, as on web, or when the keyboard is slow to open
-        pendingScrollRef.current = {
-            keyboardListener: KeyboardEvents.addListener('keyboardDidShow', scroll),
-            timeout: setTimeout(scroll, CONST.ANIMATED_TRANSITION),
-        };
+        }, CONST.ANIMATED_TRANSITION);
     };
 
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
@@ -306,6 +280,7 @@ function FormWrapper({
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
+                    scrollsChildToFocus={shouldScrollChildToFocus}
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}
@@ -317,6 +292,7 @@ function FormWrapper({
                     style={[styles.w100, styles.flex1]}
                     contentContainerStyle={styles.flexGrow1}
                     keyboardShouldPersistTaps="handled"
+                    scrollsChildToFocus={shouldScrollChildToFocus}
                     addBottomSafeAreaPadding={shouldApplyBottomSafeAreaPadding}
                     addOfflineIndicatorBottomSafeAreaPadding={addOfflineIndicatorBottomSafeAreaPadding}
                     ref={formRef}

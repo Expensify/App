@@ -1,20 +1,16 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import FormContext from '@components/Form/FormContext';
 import FormWrapper from '@components/Form/FormWrapper';
-import type {FormWrapperRef} from '@components/Form/types';
-
-import useKeyboardState from '@hooks/useKeyboardState';
+import ScrollView from '@components/ScrollView';
 
 import Accessibility from '@libs/Accessibility';
 
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ErrorFields} from '@src/types/onyx/OnyxCommon';
 
-import React, {createRef} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import {KeyboardEvents} from 'react-native-keyboard-controller';
 
 import type {InputComponentBaseProps, InputRefs} from '../../../../src/components/Form/types';
 
@@ -37,19 +33,6 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
-const mockScrollTo = jest.fn();
-
-jest.mock('@components/ScrollView', () => {
-    const ReactModule = jest.requireActual<typeof React>('react');
-    const {View: MockView} = jest.requireActual<{View: React.ComponentType<{children?: React.ReactNode}>}>('react-native');
-    return ({children, ref}: {children: React.ReactNode; ref: React.Ref<{scrollTo: typeof mockScrollTo}>}) => {
-        ReactModule.useImperativeHandle(ref, () => ({scrollTo: mockScrollTo}));
-        return ReactModule.createElement(MockView, null, children);
-    };
-});
-
-jest.mock('@hooks/useKeyboardState', () => jest.fn());
-
 jest.mock('@hooks/usePressLoading', () =>
     jest.fn(({isLoading = false}: {isLoading?: boolean} = {}) => ({
         isLoading,
@@ -60,30 +43,17 @@ jest.mock('@hooks/usePressLoading', () =>
 );
 
 const moveAccessibilityFocusSpy = jest.spyOn(Accessibility, 'moveAccessibilityFocus').mockImplementation(jest.fn());
-const mockedUseKeyboardState = jest.mocked(useKeyboardState);
-const mockedAddListener = jest.mocked(KeyboardEvents.addListener);
-
-/** Returns the keyboard state of a keyboard that is open or closed */
-function getKeyboardState(isKeyboardShown: boolean): ReturnType<typeof useKeyboardState> {
-    return {
-        isKeyboardShown,
-        isKeyboardActive: isKeyboardShown,
-        keyboardHeight: isKeyboardShown ? 300 : 0,
-        keyboardActiveHeight: isKeyboardShown ? 300 : 0,
-        isKeyboardAnimatingRef: {current: false},
-    };
-}
 
 function renderFormWrapper({
     errors = {},
     serverErrorFields,
     inputRefs,
-    ref,
+    shouldScrollChildToFocus,
 }: {
     errors?: Record<string, string>;
     serverErrorFields?: ErrorFields | null;
     inputRefs: React.RefObject<InputRefs>;
-    ref?: React.Ref<FormWrapperRef>;
+    shouldScrollChildToFocus?: boolean;
 }) {
     return render(
         <FormContext.Provider
@@ -94,7 +64,6 @@ function renderFormWrapper({
             }}
         >
             <FormWrapper
-                ref={ref}
                 formID={ONYXKEYS.FORMS.WORKSPACE_REPORT_FIELDS_FORM}
                 submitButtonText="Submit"
                 onSubmit={jest.fn()}
@@ -102,6 +71,7 @@ function renderFormWrapper({
                 errors={errors}
                 isAlertVisible
                 serverErrorFields={serverErrorFields}
+                shouldScrollChildToFocus={shouldScrollChildToFocus}
             >
                 {null}
             </FormWrapper>
@@ -121,7 +91,6 @@ function createFocusableInput(inputID: string): InputComponentBaseProps {
 describe('FormWrapper', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockedUseKeyboardState.mockReturnValue(getKeyboardState(false));
     });
 
     it('focuses the first local validation error before server field errors', () => {
@@ -166,71 +135,22 @@ describe('FormWrapper', () => {
         expect(serverInput.focus).toHaveBeenCalledTimes(1);
         expect(moveAccessibilityFocusSpy).toHaveBeenCalled();
     });
-    describe('scrollTo', () => {
-        /** Renders the form and returns its ref */
-        function renderScrollableForm() {
-            const formRef = createRef<FormWrapperRef>();
-            renderFormWrapper({inputRefs: {current: {}}, ref: formRef});
-            return formRef;
-        }
 
-        /** Calls the keyboardDidShow listener that the form added */
-        function showKeyboard() {
-            const keyboardDidShow = mockedAddListener.mock.calls.find(([eventName]) => eventName === 'keyboardDidShow')?.at(1);
-            if (typeof keyboardDidShow !== 'function') {
-                throw new Error('The form did not listen for keyboardDidShow');
-            }
-            act(() => {
-                keyboardDidShow({height: 300, duration: 250, timestamp: 0, target: 0, type: 'default', appearance: 'light'});
-            });
-        }
+    it('keeps the Android scroll to a focused input by default', () => {
+        // Given a form that does not scroll to its inputs itself
+        // When the form renders
+        renderFormWrapper({inputRefs: {current: {}}});
 
-        beforeEach(() => {
-            jest.useFakeTimers();
-        });
+        // Then the scroll view moves a focused input into view
+        expect(screen.UNSAFE_getByType(ScrollView).props.scrollsChildToFocus).toBe(true);
+    });
 
-        afterEach(() => {
-            jest.useRealTimers();
-        });
+    it('turns off the Android scroll to a focused input when the form scrolls to the input itself', () => {
+        // Given a form that scrolls to its input when the input gets focus
+        // When the form renders
+        renderFormWrapper({inputRefs: {current: {}}, shouldScrollChildToFocus: false});
 
-        it('scrolls as soon as the keyboard opens', () => {
-            // Given a form whose input asks for a scroll as it gets focus, before the keyboard opens
-            const formRef = renderScrollableForm();
-            act(() => formRef.current?.scrollTo(120));
-            expect(mockScrollTo).not.toHaveBeenCalled();
-
-            // When the keyboard finishes opening, sooner than the fixed delay
-            showKeyboard();
-
-            // Then the form scrolls right away and only once, because a later second scroll is what makes the page jump
-            expect(mockScrollTo).toHaveBeenCalledWith({y: 120, animated: true});
-            act(() => jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION));
-            expect(mockScrollTo).toHaveBeenCalledTimes(1);
-        });
-
-        it('scrolls right away when the keyboard is already open', () => {
-            // Given a form with the keyboard already open, for example when focus moves from another input
-            mockedUseKeyboardState.mockReturnValue(getKeyboardState(true));
-            const formRef = renderScrollableForm();
-
-            // When an input asks for a scroll
-            act(() => formRef.current?.scrollTo(120));
-
-            // Then the form scrolls without waiting, because the height of the form does not change
-            expect(mockScrollTo).toHaveBeenCalledWith({y: 120, animated: true});
-        });
-
-        it('scrolls after the fixed delay when no keyboard opens', () => {
-            // Given a form where the focused input opens no keyboard, as on web
-            const formRef = renderScrollableForm();
-            act(() => formRef.current?.scrollTo(120));
-
-            // When the fixed delay ends with no keyboard event
-            act(() => jest.advanceTimersByTime(CONST.ANIMATED_TRANSITION));
-
-            // Then the form still scrolls, so that platforms without a keyboard event keep the same behavior
-            expect(mockScrollTo).toHaveBeenCalledTimes(1);
-            expect(mockScrollTo).toHaveBeenCalledWith({y: 120, animated: true});
-        });
+        // Then the scroll view does not also move the focused input, which would move the page two times
+        expect(screen.UNSAFE_getByType(ScrollView).props.scrollsChildToFocus).toBe(false);
     });
 });
