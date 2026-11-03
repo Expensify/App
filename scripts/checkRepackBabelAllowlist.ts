@@ -52,8 +52,9 @@ const SCANNED_EXTENSIONS = new Set(['.js', '.cjs', '.mjs', '.jsx', '.ts', '.tsx'
  * Build-time tooling that ships to node_modules as a prod dependency but is never resolved into
  * the native app bundle. Some implement codegen detection themselves (regexes/strings); others are
  * genuinely Flow-typed but only ever run on the build machine. Verified against a real bundle:
- * neither @expo/metro-file-map nor jsc-safe-url appears in it. @expo/metro-config is the Metro config only
- * `metro.config.js` loads; since SDK 58 it ships its own copy of the RN codegen babel plugin.
+ * neither @expo/metro-file-map nor jsc-safe-url appears in it. @expo/metro-config is Expo's Metro config and
+ * transformer; App bundles with Re.Pack and has no `metro.config.js`, so nothing loads it. Since SDK 58 it
+ * ships its own copy of the RN codegen babel plugin, which is why it contains the codegen markers.
  */
 const TOOLING_PACKAGE_PREFIXES = [
     '@expo/cli',
