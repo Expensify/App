@@ -1,11 +1,6 @@
-import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ReactNode} from 'react';
@@ -17,14 +12,8 @@ import {View} from 'react-native';
 import type DotLottieAnimation from './LottieAnimations/types';
 
 import Button from './Button';
-import Icon from './Icon';
-import MenuItem from './MenuItem';
+import FeatureListItem from './FeatureListItem';
 import Section from './Section';
-
-type FeatureListItem = {
-    icon: IconAsset;
-    translationKey: TranslationPaths;
-};
 
 type FeatureListProps = {
     /** The text to display in the title of the section */
@@ -44,7 +33,7 @@ type FeatureListProps = {
     /** Action to call on cta button press */
     onCtaPress?: () => void;
 
-    menuItems: FeatureListItem[];
+    children?: ReactNode;
 
     /** The illustration to display in the header. Can be an image or a JSON object representing a Lottie animation. */
     illustration: DotLottieAnimation | IconAsset | undefined;
@@ -73,7 +62,7 @@ function FeatureList({
     ctaText,
     ctaAccessibilityLabel,
     onCtaPress,
-    menuItems,
+    children,
     illustration,
     illustrationStyle,
     illustrationBackgroundColor,
@@ -87,9 +76,6 @@ function FeatureList({
     renderSubtitle,
 }: FeatureListProps) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
-    const iconContainerStyle = [styles.popoverMenuIcon, StyleUtils.getAvatarWidthStyle(CONST.AVATAR_SIZE.DEFAULT)];
 
     return (
         <Section
@@ -106,31 +92,7 @@ function FeatureList({
             renderSubtitle={renderSubtitle}
         >
             <View style={styles.flex1}>
-                <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
-                    {menuItems.map(({translationKey, icon}) => (
-                        <View
-                            key={translationKey}
-                            style={styles.w100}
-                        >
-                            <MenuItem.Root style={[styles.p0, styles.cursorAuto]}>
-                                <MenuItem.Row>
-                                    <MenuItem.Leading>
-                                        <View style={iconContainerStyle}>
-                                            <Icon
-                                                src={icon}
-                                                width={variables.menuIconSize}
-                                                height={variables.menuIconSize}
-                                            />
-                                        </View>
-                                    </MenuItem.Leading>
-                                    <MenuItem.Content>
-                                        <MenuItem.Title numberOfLines={0}>{translate(translationKey)}</MenuItem.Title>
-                                    </MenuItem.Content>
-                                </MenuItem.Row>
-                            </MenuItem.Root>
-                        </View>
-                    ))}
-                </View>
+                <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>{children}</View>
                 {!!ctaText && (
                     <Button
                         onPress={onCtaPress}
@@ -152,5 +114,5 @@ function FeatureList({
     );
 }
 
-export default FeatureList;
-export type {FeatureListItem};
+export default Object.assign(FeatureList, {Item: FeatureListItem});
+export type {FeatureListProps};
