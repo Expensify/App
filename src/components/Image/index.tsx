@@ -57,6 +57,8 @@ function Image({
     const activeRequest = useRef<number>(undefined);
     const recoveryController = useRef<AbortController>(undefined);
     const imageErrorCallback = useRef<(failedRequestID: number) => void>(undefined);
+    // Compare bare {uri} sources by URI so a parent recreating the object does not restart loading.
+    // Keep object identity for sources with extra options so a new source can apply those options.
     const sourceKey =
         typeof propsSource === 'object' && propsSource !== null && 'uri' in propsSource && typeof propsSource.uri === 'string' && Object.keys(propsSource).every((key) => key === 'uri')
             ? propsSource.uri

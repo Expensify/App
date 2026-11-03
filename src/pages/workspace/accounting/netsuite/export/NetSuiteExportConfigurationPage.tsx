@@ -26,6 +26,7 @@ import {
     shouldHideJournalPostingPreference,
     shouldHideNonReimbursableJournalPostingAccount,
     shouldHideProvincialTaxPostingAccountSelect,
+    shouldHideNonReimbursableCreditCardAccount,
     shouldHideReimbursableDefaultVendor,
     shouldHideReimbursableJournalPostingAccount,
     shouldHideTaxPostingAccountSelect,
@@ -137,6 +138,7 @@ function NetSuiteExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             subscribedSettings: [
                 CONST.NETSUITE_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                 ...(!shouldHideReimbursableDefaultVendor(false, config) ? [CONST.NETSUITE_CONFIG.DEFAULT_VENDOR] : []),
+                ...(!shouldHideNonReimbursableCreditCardAccount(false, config) ? [CONST.NETSUITE_CONFIG.CREDIT_CARD_ACCOUNT] : []),
                 ...(!shouldHideNonReimbursableJournalPostingAccount(false, config) ? [CONST.NETSUITE_CONFIG.PAYABLE_ACCT] : []),
                 ...(!shouldHideReimbursableJournalPostingAccount(false, config) ? [CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT] : []),
                 ...(!shouldHideJournalPostingPreference(false, config) ? [CONST.NETSUITE_CONFIG.JOURNAL_POSTING_PREFERENCE] : []),
