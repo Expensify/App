@@ -20,10 +20,8 @@ const mockTranslate = TestHelper.translateLocal;
 // The real useFocusEffect throws outside a navigator
 jest.mock('@react-navigation/native', () => ({...jest.requireActual<Record<string, unknown>>('@react-navigation/native'), useFocusEffect: jest.fn()}));
 jest.mock('@navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
-// The real createDynamicRoute reads the active route from the navigator
-jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute', () => (suffix: string) => `settings/wallet/accept-terms/${suffix}`);
 jest.mock('@userActions/DynamicForm', () => ({clearSensitiveAnswers: jest.fn()}));
-jest.mock('@hooks/useDynamicBackPath', () => () => 'settings/wallet/global-reimbursements/1/business-onboarding/confirm');
+jest.mock('@hooks/useDynamicBackPath', () => () => 'settings/wallet/global-reimbursements/1');
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabledOrUnknown: () => true}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate, preferredLocale: 'en'}));
 jest.mock('@hooks/useThemeStyles', () => () => new Proxy({}, {get: () => ({})}));
@@ -69,7 +67,7 @@ describe('WiseAcceptTermsPage', () => {
         jest.clearAllMocks();
     });
 
-    it('keeps the page open with an error until every box is ticked, then closes the flow', () => {
+    it('keeps the page open with an error until every box is ticked, then opens the more info needed page', () => {
         // Given the terms page with only two of the three boxes ticked
         render(<WiseAcceptTermsPage />);
         fireEvent.press(screen.getByLabelText(TERM_LABELS.at(0) ?? ''));
@@ -86,10 +84,10 @@ describe('WiseAcceptTermsPage', () => {
         fireEvent.press(screen.getByLabelText(TERM_LABELS.at(2) ?? ''));
         pressConfirm();
 
-        // Then the button still works after the error, the SSN kept in memory for this page is dropped, and the flow moves on to the in-review page since Wise has not approved the account yet
+        // Then the button still works after the error, the SSN kept in memory for this page is dropped, and the in-review page replaces the terms since Wise has not approved the account yet
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/accept-terms/${DYNAMIC_ROUTES.WISE_ONBOARDING_IN_REVIEW.path}`);
+        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/1/${DYNAMIC_ROUTES.WISE_ONBOARDING_IN_REVIEW.path}`, {forceReplace: true});
     });
 
     it('hides the error once the user changes a box', () => {

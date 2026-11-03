@@ -7,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -69,7 +70,7 @@ const onboardingStatusSelector = (reimbursementAccount: OnyxEntry<ReimbursementA
 
 /** The last page of our own onboarding, after the confirmation page. Every box is required to continue. */
 function WiseAcceptTermsPage() {
-    const confirmationPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path);
+    const introPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [accepted, setAccepted] = useState<Record<TermKey, boolean>>({certify: false, expensifyTerms: false, wiseTerms: false});
@@ -78,14 +79,22 @@ function WiseAcceptTermsPage() {
     const isWiseReimbursementsBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.WISE_REIMBURSEMENTS);
     const [onboardingStatus] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: onboardingStatusSelector});
 
-    const goBackToConfirmation = () => Navigation.goBack(confirmationPath);
+    // The terms replaced the confirmation page, so back puts it in their place
+    const goBackToConfirmation = () =>
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY), introPath), {forceReplace: true});
+
+    // The intro is the screen underneath, so Android's back takes the header's step instead of popping to it
+    useAndroidBackButtonHandler(() => {
+        goBackToConfirmation();
+        return true;
+    });
 
     useEffect(() => {
         if (isWiseReimbursementsBetaEnabled !== false) {
             return;
         }
-        goBackToConfirmation();
-    }, [isWiseReimbursementsBetaEnabled, goBackToConfirmation]);
+        Navigation.goBack(introPath);
+    }, [isWiseReimbursementsBetaEnabled, introPath]);
 
     const confirm = () => {
         if (!TERM_KEYS.every((key) => accepted[key])) {
@@ -95,7 +104,7 @@ function WiseAcceptTermsPage() {
         clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         // Wise either approves the account right away or puts it in review. Anything short of approval waits on a review, so it lands on the in-review page
         const statusPagePath = onboardingStatus === CONST.WISE.ONBOARDING_STATUS.APPROVED ? DYNAMIC_ROUTES.WISE_ONBOARDING_APPROVED.path : DYNAMIC_ROUTES.WISE_ONBOARDING_IN_REVIEW.path;
-        Navigation.navigate(createDynamicRoute(statusPagePath));
+        Navigation.navigate(createDynamicRoute(statusPagePath, introPath), {forceReplace: true});
     };
 
     if (!isWiseReimbursementsBetaEnabled) {
@@ -136,6 +145,7 @@ function WiseAcceptTermsPage() {
                     containerStyles={[styles.mh0, styles.mt5]}
                     enabledWhenOffline={false}
                     shouldShowLoadingImmediatelyOnPress={false}
+                    sentryLabel={CONST.SENTRY_LABEL.WISE_ACCEPT_TERMS.CONFIRM}
                 />
             </ScrollView>
         </ScreenWrapper>

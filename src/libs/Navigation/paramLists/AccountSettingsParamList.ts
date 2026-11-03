@@ -192,6 +192,9 @@ type AccountSettingsParamList = {
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: {
         bankAccountID: string;
     };
+    [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_MORE_INFO_NEEDED]: {
+        bankAccountID: string;
+    };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_IN_REVIEW]: {
         bankAccountID: string;
     };
