@@ -7377,11 +7377,11 @@ let pendingDeleteTransactionNavigateBackUrlClear: {cancel: () => void} | undefin
 function setDeleteTransactionNavigateBackUrl(url: string) {
     pendingDeleteTransactionNavigateBackUrlClear?.cancel();
     pendingDeleteTransactionNavigateBackUrlClear = undefined;
-    Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, url);
+    Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, url);
 }
 
 function clearDeleteTransactionNavigateBackUrl() {
-    Onyx.merge(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, null);
+    Onyx.merge(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, null);
 }
 
 function clearDeleteTransactionNavigateBackUrlAfterTransitions(onTransitionsEnd: () => void) {

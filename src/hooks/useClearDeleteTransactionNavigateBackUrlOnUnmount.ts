@@ -16,7 +16,7 @@ function useClearDeleteTransactionNavigateBackUrlOnUnmount(shouldClear: boolean)
         return () =>
             clearDeleteTransactionNavigateBackUrlAfterTransitions(() => {
                 // Read when the clear fires, the unmounted screen may never have received the URL.
-                Onyx.get(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL).then((url) => {
+                Onyx.get(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL).then((url) => {
                     if (!url || doesDeleteNavigateBackUrlIncludeDuplicatesReview(url)) {
                         return;
                     }

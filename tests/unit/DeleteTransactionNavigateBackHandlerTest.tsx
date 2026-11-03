@@ -49,7 +49,7 @@ async function flushClear() {
 async function getNavigateBackUrl() {
     return new Promise<string | undefined>((resolve) => {
         const connection = Onyx.connectWithoutView({
-            key: ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL,
+            key: ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL,
             callback: (value) => {
                 Onyx.disconnect(connection);
                 resolve(value);
@@ -73,7 +73,7 @@ describe('DeleteTransactionNavigateBackHandler', () => {
     it('clears the navigate back URL when the focused screen unmounts', async () => {
         // Given a focused expense screen that was just deleted, so the URL is set while it is still focused
         const {unmount} = render(<DeleteTransactionNavigateBackHandler reportID={THREAD_REPORT_ID} />);
-        await Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, REPORT_URL);
+        await Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, REPORT_URL);
         await waitForBatchedUpdates();
 
         // When the native stack pops it, it unmounts without ever rendering unfocused
@@ -87,7 +87,7 @@ describe('DeleteTransactionNavigateBackHandler', () => {
     it('keeps the navigate back URL while the screen stays focused', async () => {
         // Given a focused expense screen with the URL set
         render(<DeleteTransactionNavigateBackHandler reportID={THREAD_REPORT_ID} />);
-        await Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, REPORT_URL);
+        await Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, REPORT_URL);
 
         // When nothing navigates away
         await flushClear();
@@ -99,7 +99,7 @@ describe('DeleteTransactionNavigateBackHandler', () => {
     it('keeps the duplicates review URL when the screen unmounts', async () => {
         // Given a focused screen whose URL points to duplicates review, which clears the URL by itself
         const {unmount} = render(<DeleteTransactionNavigateBackHandler reportID={THREAD_REPORT_ID} />);
-        await Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, DUPLICATES_REVIEW_URL);
+        await Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, DUPLICATES_REVIEW_URL);
         await waitForBatchedUpdates();
 
         // When the screen unmounts
@@ -144,7 +144,7 @@ describe('DeleteTransactionNavigateBackHandler', () => {
     it('keeps the navigate back URL when a non transaction thread report unmounts', async () => {
         // Given a chat report screen while a deletion URL is set
         const {unmount} = render(<DeleteTransactionNavigateBackHandler reportID={CHAT_REPORT_ID} />);
-        await Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, REPORT_URL);
+        await Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, REPORT_URL);
         await waitForBatchedUpdates();
 
         // When that chat unmounts

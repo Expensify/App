@@ -205,7 +205,7 @@ describe('withReportOrNotFound and ReportOrNotFoundGuard', () => {
             await waitForBatchedUpdatesWithAct();
             expect(screen.getByTestId('content')).toBeTruthy();
             await act(async () => {
-                await Onyx.set(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, 'r/1');
+                await Onyx.set(ONYXKEYS.RAM_ONLY_PENDING_TRANSACTION_DELETE_URL, 'r/1');
             });
 
             // When the report is removed
