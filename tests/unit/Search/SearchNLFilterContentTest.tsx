@@ -14,6 +14,7 @@ type ParseResult = {success: true; searchURL: string; humanReadableSummary: stri
 // jest.mock factories can't reference imported bindings, but `mock`-prefixed locals are allowed.
 const mockParseExpenseFilters = jest.fn<Promise<ParseResult>, [string, string | undefined]>();
 const mockIsEnterWhileComposition = jest.fn<boolean, []>();
+const mockIsOffline = jest.fn<boolean, []>();
 
 jest.mock('@libs/actions/Search', () => ({
     parseExpenseFilters: (nlQuery: string, policyID?: string) => mockParseExpenseFilters(nlQuery, policyID),
@@ -31,6 +32,11 @@ jest.mock('@components/Search/SearchContext', () => ({
 jest.mock('@hooks/useOnyx', () => ({
     __esModule: true,
     default: () => [undefined, {status: 'loaded'}],
+}));
+
+jest.mock('@hooks/useNetwork', () => ({
+    __esModule: true,
+    default: () => ({isOffline: mockIsOffline()}),
 }));
 
 // The default locale context translates every label to an empty string, and the tests find the input and button by their labels.
@@ -85,6 +91,8 @@ describe('SearchNLFilterContent', () => {
         mockParseExpenseFilters.mockReturnValue(new Promise(() => {}));
         mockIsEnterWhileComposition.mockReset();
         mockIsEnterWhileComposition.mockReturnValue(false);
+        mockIsOffline.mockReset();
+        mockIsOffline.mockReturnValue(false);
     });
 
     afterEach(() => {
@@ -107,6 +115,30 @@ describe('SearchNLFilterContent', () => {
             typeQuery(NL_QUERY);
 
             // Then Apply becomes enabled because there is now a query worth submitting
+            expect(getApplyButton()).toBeEnabled();
+        });
+
+        it('is disabled while offline and enabled again once the connection returns', () => {
+            // Given the user is offline with a query typed, because parsing the query needs the server
+            mockIsOffline.mockReturnValue(true);
+            const onSuccess = jest.fn();
+            const {rerender} = render(<SearchNLFilterContent onSuccess={onSuccess} />);
+            typeQuery(NL_QUERY);
+
+            // Then Apply is disabled, since a press could only fail without telling the user why
+            expect(getApplyButton()).toBeDisabled();
+
+            // When the user presses the disabled button anyway
+            fireEvent.press(getApplyButton());
+
+            // Then no request is sent
+            expect(mockParseExpenseFilters).not.toHaveBeenCalled();
+
+            // When the connection returns
+            mockIsOffline.mockReturnValue(false);
+            rerender(<SearchNLFilterContent onSuccess={onSuccess} />);
+
+            // Then Apply becomes enabled, because the typed query can now be parsed
             expect(getApplyButton()).toBeEnabled();
         });
 
@@ -155,6 +187,19 @@ describe('SearchNLFilterContent', () => {
 
             // Then no duplicate request is sent, because the loading guard ignores it
             expect(mockParseExpenseFilters).toHaveBeenCalledTimes(1);
+        });
+
+        it('does not submit while offline', () => {
+            // Given a typed query while the user is offline, because parsing needs the server
+            mockIsOffline.mockReturnValue(true);
+            renderContent();
+            typeQuery(NL_QUERY);
+
+            // When the user presses Enter, which submits without going through the disabled Apply button
+            pressKey('Enter');
+
+            // Then no request is sent, because the offline guard applies to every way of submitting
+            expect(mockParseExpenseFilters).not.toHaveBeenCalled();
         });
 
         it('does nothing for Enter on an empty input', () => {
