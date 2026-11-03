@@ -221,6 +221,10 @@ function isGroupSelection(key: string, transaction: SelectedTransactions[string]
     return key.startsWith(CONST.SEARCH.GROUP_PREFIX) || (!!transaction.isSelectedViaGroup && !!transaction.groupKey);
 }
 
+function hasAnyGroupSelection(selectedTransactions: SelectedTransactions): boolean {
+    return Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
+}
+
 /**
  * How a selection on a grouped search has to be exported.
  *
@@ -232,7 +236,7 @@ function isGroupSelection(key: string, transaction: SelectedTransactions[string]
  */
 function getGroupExportScope(queryJSON: SearchQueryJSON | undefined, selectedTransactions: SelectedTransactions): {isGroupExport: boolean; transactionIDList: string[]} {
     const selectedTransactionsKeys = Object.keys(selectedTransactions);
-    const isGroupExport = !!queryJSON?.groupBy && Object.entries(selectedTransactions).some(([key, transaction]) => isGroupSelection(key, transaction));
+    const isGroupExport = !!queryJSON?.groupBy && hasAnyGroupSelection(selectedTransactions);
     return {
         isGroupExport,
         transactionIDList: isGroupExport ? selectedTransactionsKeys.filter((key) => !isGroupSelection(key, selectedTransactions[key])) : selectedTransactionsKeys,
@@ -2228,7 +2232,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const exportOptions: ExportMenuItem[] = [];
 
             const isReportsTab = isExpenseReportType;
-            const includesGroupExport = isGroupedSearch && Object.entries(selectedTransactions).some(([key, selectedTransaction]) => isGroupSelection(key, selectedTransaction));
+            const includesGroupExport = isGroupedSearch && hasAnyGroupSelection(selectedTransactions);
             // A template export sends a group selection as a filter on the ungrouped query (see `getTemplateGroupExportQuery`), alongside any individually picked expenses.
             // Groupings with no such filter (the time-based ones) would fail that export, so they keep only "Current view".
             const canExportGroupWithTemplates = !includesGroupExport || (!!groupBy && TEMPLATE_EXPORTABLE_GROUP_BYS.has(groupBy));
@@ -2788,7 +2792,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         const selectedTransactionsList = Object.values(selectedTransactions)
             .map((transaction) => transaction.transaction)
             .filter((transaction): transaction is Transaction => !!transaction);
+        // A group selection covers expenses that may not be loaded, so editing only the loaded ones would leave the rest of the group behind.
         const canEditMultiple =
+            !hasAnyGroupSelection(selectedTransactions) &&
             canEditMultipleTransactions(selectedTransactionsList, allReportActions, allReports, policies, rules, isExpenseReportSearch, searchResults?.data) &&
             isBetaEnabled(CONST.BETAS.BULK_EDIT);
 
