@@ -542,7 +542,9 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                     {translate('workspace.people.workspaceMembersCount', memberCount)}
                     {shouldShowHRSyncLink && '. '}
                     {shouldShowHRSyncLink && (
-                        <TextLink onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID))}>
+                        <TextLink
+                            onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE))}
+                        >
                             {translate('workspace.people.configureHRSync', connectedHRProvider?.displayName ?? '')}
                         </TextLink>
                     )}
