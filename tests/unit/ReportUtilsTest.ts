@@ -30370,13 +30370,18 @@ describe('getReportForHeader', () => {
     });
 
     it('returns the parent invoice report when parentReport is invoice and report is a chat thread, even if a different report exists in Onyx for the same ID', async () => {
+        // Given cached parent data conflicts with the invoice parent passed explicitly
         const onyxParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE} as Report;
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, onyxParentReport);
 
-        const passedParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE} as Report;
+        const passedParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE};
         const report = {reportID: '1', parentReportID: '2', parentReportActionID: 'action1', type: CONST.REPORT.TYPE.CHAT} as Report;
 
-        expect(getReportForHeader(report, passedParentReport)).toBe(passedParentReport);
+        // When resolving the header report for the invoice thread
+        const result = getReportForHeader(report, passedParentReport);
+
+        // Then the explicitly passed parent wins over cached data
+        expect(result).toBe(passedParentReport);
     });
 
     it('returns the report when parent is an invoice but report is not a thread', () => {
