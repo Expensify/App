@@ -121,7 +121,13 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const {canWrite: canWriteAccounting} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
     const [lastSelectedTab, setLastSelectedTab] = useState<ConnectionsTab | undefined>();
     const [mergeSetupFlow, setMergeSetupFlow] = useState<MergeSetupFlow | undefined>();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [accountHelpContacts] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (account) => ({
+            guideEmail: account?.guideDetails?.email,
+            accountManagerAccountID: account?.accountManagerAccountID,
+            accountManagerReportID: account?.accountManagerReportID,
+        }),
+    });
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const route = useRoute();
     const navigation = useNavigation<PlatformStackNavigationProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CONNECTIONS>>();
@@ -174,15 +180,15 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
 
     // Admins with a guide can ask them for help picking an accounting integration while they don't have one yet
     const shouldShowAccountingHelpLink =
-        !!account?.guideDetails?.email &&
+        !!accountHelpContacts?.guideEmail &&
         !hasAccountingConnections(policy) &&
         canWriteAccounting &&
         (selectedTab === CONST.TAB.CONNECTIONS.ALL || selectedTab === CONST.TAB.CONNECTIONS.ACCOUNTING);
     let accountingHelpLink = {text: translate('workspace.accounting.talkToConcierge'), reportID: conciergeReportID};
     if (policy?.chatReportIDAdmins) {
         accountingHelpLink = {text: translate('workspace.accounting.talkYourOnboardingSpecialist'), reportID: policy.chatReportIDAdmins.toString()};
-    } else if (account?.accountManagerAccountID) {
-        accountingHelpLink = {text: translate('workspace.accounting.talkYourAccountManager'), reportID: account.accountManagerReportID};
+    } else if (accountHelpContacts?.accountManagerAccountID) {
+        accountingHelpLink = {text: translate('workspace.accounting.talkYourAccountManager'), reportID: accountHelpContacts.accountManagerReportID};
     }
 
     // The panels go back to Connections without a tab, so a tab left in the params would stop Back from finding this page.
@@ -404,8 +410,8 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
                         <Icon
                             src={icons.QuestionMark}
-                            width={20}
-                            height={20}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
                             fill={theme.icon}
                             additionalStyles={styles.mr3}
                         />
