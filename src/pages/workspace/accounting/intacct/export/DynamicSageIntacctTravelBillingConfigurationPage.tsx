@@ -33,7 +33,7 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
 
     return (
         <ConnectionLayout
-            displayName="SageIntacctTravelInvoicingConfigurationPage"
+            displayName="SageIntacctTravelBillingConfigurationPage"
             headerTitle="workspace.common.travelBilling"
             title="workspace.sageIntacct.travelBillingDescription"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
