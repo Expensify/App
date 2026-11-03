@@ -6,6 +6,7 @@ import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getNetSuiteCreditCardAccounts} from '@libs/NetSuiteUtils';
 import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
@@ -204,7 +205,7 @@ function getPolicyCardExportSettings(
     policy?: Policy,
     backTo?: string | undefined,
 ): CardExportSettings | undefined {
-    const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
+    const basePath = ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
@@ -342,6 +343,22 @@ function getPolicyCardExportSettings(
                             workspaceDefaultAccountID: config?.payableAcct,
                         },
                     };
+                case CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE: {
+                    return {
+                        description,
+                        exportPageLink,
+                        shouldShowMenuItem: true,
+                        // Journal entries and credit card charges keep separate card-level mappings, so selecting an account under one export type never overwrites the other
+                        exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT,
+                        accountSelection: {
+                            type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
+                            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT,
+                            accounts: normalizeAccounts(getNetSuiteCreditCardAccounts(policy)),
+                            defaultLabel: defaultAccount,
+                            workspaceDefaultAccountID: config?.creditCardAccount,
+                        },
+                    };
+                }
                 default:
                     return {description, exportPageLink, shouldShowMenuItem: false};
             }
@@ -437,8 +454,6 @@ function getPolicyCardExportSettings(
         case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
             const rilletConfig = policy?.connections?.rillet?.config;
             const rilletData = policy?.connections?.rillet?.data;
-            const exportReimbursable = rilletConfig?.export?.reimbursable ?? CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL;
-            const exportNonReimbursable = rilletConfig?.export?.nonReimbursable ?? CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE;
 
             return {
                 description: currentConnectionName
@@ -447,10 +462,7 @@ function getPolicyCardExportSettings(
                 exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
                 shouldHideMenuItemDescription: true,
                 shouldShowMenuItemIcon: true,
-                shouldShowMenuItem:
-                    rilletConfig?.export?.exportToMultipleAccounts &&
-                    exportReimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL &&
-                    exportNonReimbursable === CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE,
+                shouldShowMenuItem: rilletConfig?.export?.exportToMultipleAccounts,
                 accountSelection: {
                     type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT,
                     nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT,
