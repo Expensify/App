@@ -1,7 +1,7 @@
 /**
- * Finds `eslint-disable` directives and `eslint` config comments that silence one of the Onyx lint bans in `BANNED_RULES`:
+ * Finds `eslint-disable` and `oxlint-disable` directives and `eslint` config comments that silence one of the Onyx lint bans in `BANNED_RULES`:
  * `rulesdir/no-onyx-connect`, `rulesdir/no-unsafe-onyx-read`, and the
- * `@typescript-eslint/no-restricted-imports` entry for `react-native-onyx/dist/OnyxUtils`.
+ * `no-restricted-imports` entry for `react-native-onyx/dist/OnyxUtils`.
  * None of these may be disabled inline. Directives beyond each ban's grandfathered count fail the lint run.
  *
  * A directive counts when it names the ban's rule, or when it is a blanket disable over a banned
@@ -74,7 +74,7 @@ type BannedRule = {
     message: string;
 };
 
-/** True for a file ESLint lints. A directive quoted in a markdown doc or a patch file silences nothing, so those files are skipped. */
+/** True for a file oxlint lints. A directive quoted in a markdown doc or a patch file silences nothing, so those files are skipped. */
 function isLintedFile(file: string): boolean {
     return /\.[cm]?[jt]sx?$/.test(file);
 }
@@ -83,6 +83,10 @@ function isLintedFile(file: string): boolean {
 function isCheckedSourceFile(file: string): boolean {
     return isLintedFile(file) && !file.startsWith('tests/');
 }
+
+// An extended regex for git grep -E: oxlint honors `eslint-` and `oxlint-` directives alike, and `eslint` rather than
+// `eslint-disable` so that a file whose only directive is an `eslint` config comment is a candidate too
+const DIRECTIVE_SEARCH_TERM = 'eslint|oxlint';
 
 // Directories where no-unsafe-onyx-read skips value uses of the Onyx object, such as the `...Onyx` in __mocks__/react-native-onyx.ts.
 // Its path check still reports reads in `__mocks__/` and `jest/`, so calls in those files stay checked
@@ -100,10 +104,9 @@ const ONYX_CONNECT_BAN: BannedRule = {
     reportsOnMember: true,
     grandfathered: GRANDFATHERED_BYPASSES,
     appliesTo: isLintedFile,
-    // `eslint` rather than `eslint-disable`, so a file whose only directive is a config comment is a candidate
-    searchTerms: ['Onyx', 'connect', 'eslint'],
+    searchTerms: ['Onyx', 'connect', DIRECTIVE_SEARCH_TERM],
     message:
-        'An eslint-disable or eslint config comment silences rulesdir/no-onyx-connect. Onyx.connect() is deprecated, and its ban allows no new inline exceptions. Remove the comment and read the data with useOnyx().',
+        'An eslint-disable, oxlint-disable or eslint config comment silences rulesdir/no-onyx-connect. Onyx.connect() is deprecated, and its ban allows no new inline exceptions. Remove the comment and read the data with useOnyx().',
 };
 
 const ONYX_READ_BAN: BannedRule = {
@@ -119,22 +122,23 @@ const ONYX_READ_BAN: BannedRule = {
     grandfathered: new Map<string, number>(),
     appliesTo: isCheckedSourceFile,
     // The module name rather than `Onyx`, because a file with an aliased import such as `import O from 'react-native-onyx'` can read too
-    searchTerms: [ONYX_MODULE, 'eslint'],
+    searchTerms: [ONYX_MODULE, DIRECTIVE_SEARCH_TERM],
     message:
-        'An eslint-disable or eslint config comment silences rulesdir/no-unsafe-onyx-read. Onyx.get() and Onyx.multiGet() never subscribe, so a read the rule rejects can leave the UI on stale data. Remove the comment and fix the read: use useOnyx() for data a component renders or reacts to, call Onyx.get() or Onyx.multiGet() only from event handlers in components, pages and hooks that render never calls, and use the Onyx object only through its members, never as a value.',
+        'An eslint-disable, oxlint-disable or eslint config comment silences rulesdir/no-unsafe-onyx-read. Onyx.get() and Onyx.multiGet() never subscribe, so a read the rule rejects can leave the UI on stale data. Remove the comment and fix the read: use useOnyx() for data a component renders or reacts to, call Onyx.get() or Onyx.multiGet() only from event handlers in components, pages and hooks that render never calls, and use the Onyx object only through its members, never as a value.',
 };
 
 const ONYX_UTILS_IMPORT_BAN: BannedRule = {
-    id: '@typescript-eslint/no-restricted-imports',
-    name: '@typescript-eslint/no-restricted-imports',
+    // oxlint reports the core rule id; a directive naming the old `@typescript-eslint/` id still counts.
+    id: 'no-restricted-imports',
+    name: 'no-restricted-imports',
     objects: new Set(),
     methods: new Set(),
     importSources: new Set(['react-native-onyx/dist/OnyxUtils']),
     grandfathered: new Map<string, number>(),
     appliesTo: isCheckedSourceFile,
-    searchTerms: ['OnyxUtils', 'eslint'],
+    searchTerms: ['OnyxUtils', DIRECTIVE_SEARCH_TERM],
     message:
-        'An eslint-disable or eslint config comment silences the @typescript-eslint/no-restricted-imports ban on react-native-onyx/dist/OnyxUtils. Reads through OnyxUtils skip no-unsafe-onyx-read and no-onyx-get-snapshot-key. Remove the comment and read with useOnyx(), Onyx.get() or Onyx.multiGet(). Type-only imports of OnyxUtils are still allowed.',
+        'An eslint-disable, oxlint-disable or eslint config comment silences the no-restricted-imports ban on react-native-onyx/dist/OnyxUtils. Reads through OnyxUtils skip no-unsafe-onyx-read and no-onyx-get-snapshot-key. Remove the comment and read with useOnyx(), Onyx.get() or Onyx.multiGet(). Type-only imports of OnyxUtils are still allowed.',
 };
 
 const BANNED_RULES: BannedRule[] = [ONYX_CONNECT_BAN, ONYX_READ_BAN, ONYX_UTILS_IMPORT_BAN];
@@ -203,12 +207,14 @@ function parseSource(source: string, file: string): ParsedSource | null {
     }
 }
 
-// ESLint has -line and -next-line forms only for disable. It ignores `eslint-enable-line` and `eslint-enable-next-line`,
-// so reading them as enables would reopen a blanket disable that ESLint still applies. ESLint also needs whitespace or
-// the end of the comment after the keyword, so `eslint-enable**` is a plain comment too.
+// oxlint reads `eslint-` and `oxlint-` directives alike, and an enable of either prefix reopens a disable of the other.
+// It has -line and -next-line forms only for disable: `eslint-enable-line` and `eslint-enable-next-line` are plain
+// comments, so reading them as enables would reopen a blanket disable that oxlint still applies. It also needs
+// whitespace or the end of the comment after the keyword, so `eslint-enable**` is a plain comment too. oxlint has no
+// `eslint` config comments; one is still reported, since it is an attempt to turn the ban off.
 const DIRECTIVE_PATTERNS = {
-    disable: /^\s*eslint-disable(?<kind>-next-line|-line)?(?=\s|$)(?<args>[\s\S]*)$/,
-    enable: /^\s*eslint-enable(?=\s|$)(?<args>[\s\S]*)$/,
+    disable: /^\s*(?:eslint|oxlint)-disable(?<kind>-next-line|-line)?(?=\s|$)(?<args>[\s\S]*)$/,
+    enable: /^\s*(?:eslint|oxlint)-enable(?=\s|$)(?<args>[\s\S]*)$/,
     config: /^\s*eslint(?=\s|$)(?<args>[\s\S]*)$/,
 };
 
@@ -222,9 +228,9 @@ function collectDirectiveMatches(comments: readonly BabelComment[], source: stri
         if (!directiveMatch) {
             continue;
         }
-        // ESLint reads only `-line` and `-next-line` directives from a line comment; `// eslint-enable` and a block-form
-        // `// eslint-disable` are plain comments to it
-        if (comment.type === 'CommentLine' && !directiveMatch.groups?.kind) {
+        // Unlike ESLint, oxlint reads block-form directives from line comments too: `// eslint-disable` silences the rest
+        // of the file and `// eslint-enable` reopens it, so both count. A config comment is only ever the block form
+        if (directive === 'config' && comment.type === 'CommentLine') {
             continue;
         }
         matches.push({index: comment.start, text: source.slice(comment.start, comment.end), kind: directiveMatch.groups?.kind, args: directiveMatch.groups?.args ?? ''});
@@ -587,8 +593,11 @@ function collectBannedImportRanges(root: ASTNode, sources: Set<string>): BannedR
     return ranges;
 }
 
-/** ESLint splits a directive from its description only on `--` surrounded by whitespace. */
-const DESCRIPTION_SEPARATOR = /\s-{2,}\s/u;
+/**
+ * The description starts at the first `--`, bare or spaced, as oxlint reads it: `rulesdir/no-onyx-connect--x` names the ban
+ * and `eslint-disable --x` is a blanket disable. ESLint split only on a `--` surrounded by whitespace.
+ */
+const DESCRIPTION_SEPARATOR = /--/u;
 
 function directiveRuleList(args: string): string {
     return args.split(DESCRIPTION_SEPARATOR).at(0) ?? '';
@@ -613,7 +622,7 @@ function directiveTargetsBan(args: string, ban: Pick<BannedRule, 'id' | 'name'>)
         return false;
     }
     return trimmed.split(',').some((part) => {
-        // ESLint strips one pair of surrounding quotes from each rule name, so `"rulesdir/x"` means `rulesdir/x`
+        // oxlint does not strip quotes, so `"rulesdir/x"` silences nothing; it still counts, as an attempt to name the ban
         const rule = part.trim().replace(/^(['"])(.*)\1$/, '$2');
         return rule === ban.id || rule === ban.name || rule.endsWith(`/${ban.name}`);
     });
@@ -621,8 +630,8 @@ function directiveTargetsBan(args: string, ban: Pick<BannedRule, 'id' | 'name'>)
 
 /**
  * True when an `eslint` config comment's rule list mentions `ban.name`, whatever value it sets: `["error", {...}]` can drop
- * the OnyxUtils path from the import restriction, so any value is a bypass. A backslash counts too, because ESLint runs
- * rule names through JSON.parse, which decodes `\u` escapes.
+ * the OnyxUtils path from the import restriction, so any value is a bypass. A backslash counts too, because ESLint ran
+ * rule names through JSON.parse, which decodes `\u` escapes. oxlint ignores config comments, so this only ever over-reports.
  */
 function configDirectiveNamesBan(args: string, ban: Pick<BannedRule, 'name'>): boolean {
     const ruleList = directiveRuleList(args);
@@ -712,7 +721,7 @@ function collectDisableDirectivesFromSource(source: string, file: string, ban: B
         }
         bans.push({file, line: lineNumberAtOffset(source, match.index)});
     }
-    // ESLint applies a config comment to the whole file, so it covers every use without a range check
+    // A config comment names the ban for the whole file, so it covers every use without a range check
     for (const match of collectDirectiveMatches(parsed.comments, source, 'config')) {
         if (configDirectiveNamesBan(match.args, ban) && (!ban.importSources || bannedRanges.length > 0)) {
             bans.push({file, line: lineNumberAtOffset(source, match.index)});
@@ -786,6 +795,7 @@ function findForbiddenSeatbeltRows(tsvText: string, forbiddenRules: readonly str
 export {
     BANNED_RULE_ID,
     BANNED_RULES,
+    DIRECTIVE_SEARCH_TERM,
     ONYX_READ_BAN,
     ONYX_UTILS_IMPORT_BAN,
     SEATBELT_FORBIDDEN_RULES,

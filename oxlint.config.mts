@@ -1,8 +1,7 @@
 /**
- * oxlint runs next to ESLint for now (`npm run lint -- --linter=oxlint` and the non-blocking
- * oxlint.yml workflow), so this file copies config/eslint/eslint.config.mjs rule by rule.
- * If you change a rule there, change it here too. ESLint rules oxlint can't run natively come from
- * the JS plugins in config/oxlint/plugins.
+ * oxlint config for `npm run lint` (see contributingGuides/LINTING.md). Rules oxlint can't run
+ * natively come from the JS plugins in config/oxlint/plugins, which load the ESLint plugins' own
+ * rule code.
  */
 /* eslint-disable @typescript-eslint/naming-convention -- the rule names in this file are quoted object keys */
 /* eslint-disable import/no-extraneous-dependencies -- oxlint is a devDependency; this file only runs while linting */
@@ -115,12 +114,12 @@ export default defineConfig({
     // oxlint reserves `react`, `import` and `jsdoc` for its native ports, so jsPlugins use these aliases.
     jsPlugins: [
         {name: 'rulesdir', specifier: './config/oxlint/plugins/expensify-rules.mjs'},
-        {name: 'report-name-utils', specifier: './config/eslint/plugins/eslint-plugin-report-name-utils.mjs'},
+        {name: 'report-name-utils', specifier: './config/oxlint/plugins/report-name-utils.mjs'},
         {name: 'core', specifier: './config/oxlint/plugins/core-rules.mjs'},
         {name: 'hosted', specifier: './config/oxlint/plugins/hosted-rules.mjs'},
         {name: 'rc', specifier: './config/oxlint/plugins/rc-rules.mjs'},
     ],
-    // Every rule is listed explicitly to mirror eslint.config.mjs.
+    // Every rule is listed explicitly; no category turns rules on by default.
     categories: {correctness: 'off'},
     options: {typeAware: true},
     env: {builtin: true, es2026: true, node: true, browser: true, audioworklet: true, jest: true},
@@ -143,7 +142,7 @@ export default defineConfig({
         '**/dist/**/*',
         'server/**/dist/**',
         'server/victory-chart-renderer/.dev/**',
-        '.eslint-reports/**/*',
+        '.lint-reports/**/*',
         'android/**/build/**/*',
         'docs/vendor/**/*',
         'docs/assets/**/*',

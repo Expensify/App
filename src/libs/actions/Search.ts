@@ -69,7 +69,7 @@ import {
 } from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
 import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getFooterSelectionFromQuery, normalizeDatePresetsInQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
 import {getExpenseReportIDs, TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -149,7 +149,7 @@ function getChatReportForSearchPay(chatReport: OnyxEntry<Report>, snapshotReport
     const chatReportID = snapshotReport.chatReportID ?? snapshotReport.parentReportID;
     const snapshotChatReport = chatReportID ? searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
 
-    return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport(chatReportID) : undefined);
+    return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport({reportID: chatReportID}) : undefined);
 }
 
 /**
@@ -184,12 +184,19 @@ function getReportActionsFromSearchSnapshot(
     reportID: string | undefined,
     searchData: SearchResultDataType | undefined,
     allReportActions: OnyxCollection<ReportActions>,
+    shouldFillFromLiveCollection = false,
 ): OnyxEntry<ReportActions> {
     if (!reportID) {
         return undefined;
     }
 
     const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+
+    if (shouldFillFromLiveCollection) {
+        // The snapshot can hold only part of a report's actions, and none at all on grouped searches, so the live collection fills the gaps
+        // for checks that need the whole history, while the snapshot still wins for the actions it has.
+        return {...allReportActions?.[key], ...searchData?.[key]};
+    }
 
     // Prefer the search snapshot so the actions match what the user selected on the search page, fall back to live report actions.
     return searchData?.[key] ?? allReportActions?.[key];
@@ -422,6 +429,7 @@ function handleActionButtonPress({
                 allViolations,
                 rules,
                 getCurrencyDecimals,
+                personalDetailsByLogins,
             });
             return;
         case CONST.SEARCH.ACTION_TYPES.SUBMIT: {
@@ -753,6 +761,7 @@ type GetApproveActionCallbackParams = {
     allViolations: OnyxCollection<TransactionViolations>;
     rules: OnyxCollection<Rule>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 function getApproveActionCallback({
@@ -775,6 +784,7 @@ function getApproveActionCallback({
     allViolations,
     rules,
     getCurrencyDecimals,
+    personalDetailsByLogins,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
         return;
@@ -801,6 +811,7 @@ function getApproveActionCallback({
         additionalOnyxData: getSearchApproveOnyxData(hash, item.reportID, currentSearchKey),
         isTrackIntentUser,
         getCurrencyDecimals,
+        personalDetailsByLogins,
     });
 }
 
@@ -889,8 +900,10 @@ function getOnyxLoadingData(
 }
 
 function saveSearch({id, queryJSON, newName}: {id: string; queryJSON: Readonly<SearchQueryJSON>; newName?: string}) {
-    const saveSearchName = newName ?? queryJSON?.inputQuery ?? '';
-    const jsonQuery = JSON.stringify(queryJSON);
+    const normalizedQuery = normalizeDatePresetsInQuery(queryJSON.inputQuery);
+    const savedQueryJSON = normalizedQuery === queryJSON.inputQuery ? queryJSON : (buildSearchQueryJSON(normalizedQuery) ?? queryJSON);
+    const saveSearchName = newName ?? savedQueryJSON?.inputQuery ?? '';
+    const jsonQuery = JSON.stringify(savedQueryJSON);
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.SAVED_SEARCHES>> = [
         {
@@ -900,7 +913,7 @@ function saveSearch({id, queryJSON, newName}: {id: string; queryJSON: Readonly<S
                 [id]: {
                     pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     name: saveSearchName,
-                    query: queryJSON.inputQuery,
+                    query: savedQueryJSON.inputQuery,
                 },
             },
         },
@@ -1707,6 +1720,12 @@ function submitMoneyRequestOnSearch({
                 : {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
         });
     }
+    // Clear errors from a previous failed submit
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+        key: ONYXKEYS.COLLECTION.REPORT,
+        value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`, {errors: null}])),
+    });
 
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
