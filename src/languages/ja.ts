@@ -10944,6 +10944,10 @@ ${reportName}`,
                 leftTheChat: 'チャットを退出しました',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `ビジネス銀行口座 ${maskedBankAccountNumber} は、払い戻しまたは Expensify カードの精算に問題が発生したため自動的にロックされました。問題を解決するには、<a href="${linkURL}">ワークスペース設定</a>で修正してください。`,
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    bankName
+                        ? `${adminName} が、末尾 ${lastFour} の ${bankName} 口座で Global Reimbursements を有効にしました。国際レポートが自動支払いされる場合、正確な為替レートと手数料を支払い前に確認することはできません。為替レートと手数料の詳細については、<a href="${autoPaySettingsURL}">自動支払い設定</a>をご確認ください。`
+                        : `${adminName} が、末尾 ${lastFour} の口座で Global Reimbursements を有効にしました。国際レポートが自動支払いされる場合、正確な為替レートと手数料を支払い前に確認することはできません。為替レートと手数料の詳細については、<a href="${autoPaySettingsURL}">自動支払い設定</a>をご確認ください。`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}がチャットから退出しました`,
                 actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');

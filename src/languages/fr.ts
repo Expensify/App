@@ -11205,6 +11205,10 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 leftTheChat: 'a quitté la discussion',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `le compte bancaire professionnel ${maskedBankAccountNumber} a été automatiquement verrouillé en raison d’un problème lié soit au remboursement, soit au règlement de la Carte Expensify. Veuillez corriger le problème dans vos <a href="${linkURL}">paramètres d’espace de travail</a>.`,
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    bankName
+                        ? `Global Reimbursements a été activé par ${adminName} sur le compte ${bankName} se terminant par ${lastFour}. Les taux de change et les frais exacts ne peuvent pas être prévisualisés avant le paiement lorsque des notes de frais transfrontalières sont payées automatiquement. Consultez vos <a href="${autoPaySettingsURL}">paramètres de paiement automatique</a> pour en savoir plus sur les taux et les frais.`
+                        : `Global Reimbursements a été activé par ${adminName} sur le compte se terminant par ${lastFour}. Les taux de change et les frais exacts ne peuvent pas être prévisualisés avant le paiement lorsque des notes de frais transfrontalières sont payées automatiquement. Consultez vos <a href="${autoPaySettingsURL}">paramètres de paiement automatique</a> pour en savoir plus sur les taux et les frais.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} a quitté la discussion`,
                 actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');
