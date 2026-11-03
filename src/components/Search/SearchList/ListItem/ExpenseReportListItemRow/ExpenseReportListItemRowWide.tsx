@@ -331,17 +331,21 @@ function ExpenseReportListItemRowWide({
         ),
         [CONST.SEARCH.TABLE_COLUMNS.INVOICE_NUMBER]: (
             <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.INVOICE_NUMBER)]}>
-                <TextCell text="test" />
+                <TextCell text={item.fieldList?.[CONST.REPORT_FIELD_INVOICE_NUMBER]?.value ?? ''} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.DUE_DATE]: (
             <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DUE_DATE)]}>
-                <TextCell text="test" />
+                <DateCell
+                    date={item.fieldList?.[CONST.REPORT_FIELD_DUE_DATE]?.value ?? ''}
+                    showTooltip
+                    isLargeScreenWidth
+                />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.PO_NUMBER]: (
             <View style={[getSearchColumnStyles(CONST.SEARCH.TABLE_COLUMNS.PO_NUMBER)]}>
-                <TextCell text="test" />
+                <TextCell text={item.fieldList?.[CONST.REPORT_FIELD_PO_NUMBER]?.value ?? ''} />
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.EXPORTED_TO]: (

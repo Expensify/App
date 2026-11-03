@@ -7924,6 +7924,11 @@ const CONST = {
 
     REPORT_FIELD_TITLE_FIELD_ID: 'text_title',
 
+    /** Report fields for bills and invoices */
+    REPORT_FIELD_INVOICE_NUMBER: 'expensify_field_id_INVOICE_NUMBER',
+    REPORT_FIELD_DUE_DATE: 'expensify_field_id_DUE_DATE',
+    REPORT_FIELD_PO_NUMBER: 'expensify_field_id_PO_NUMBER',
+
     /** How many report fields are shown side by side in the report view on a wide layout */
     REPORT_FIELDS_PER_ROW: 3,
 
