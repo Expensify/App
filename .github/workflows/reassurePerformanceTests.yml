@@ -28,8 +28,8 @@ on:
       - '!config/certificatePinning/**'
       # Lint, format and repo tooling config.
       - '!eslint-plugin-local-rules/**'
-      - '!config/eslint/**'
-      - '!eslint.config.mjs'
+      - '!config/oxlint/**'
+      - '!oxlint.config.mts'
       - '!.oxfmtrc.json'
       - '!cspell.json'
       - '!codecov.yml'
