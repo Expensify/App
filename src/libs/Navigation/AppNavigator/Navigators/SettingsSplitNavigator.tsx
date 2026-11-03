@@ -50,7 +50,8 @@ function SettingsSplitNavigator() {
                     <Split.Screen
                         name={SCREENS.SETTINGS.ROOT}
                         getComponent={loadInitialSettingsPage}
-                        options={splitNavigatorScreenOptions.sidebarScreen}
+                        // The Account screen shows the user's status, which is edited from screens stacked on top of it, so it must not freeze while covered
+                        options={{...splitNavigatorScreenOptions.sidebarScreen, nonTopScreenBehavior: 'none'}}
                     />
                     {Object.entries(CENTRAL_PANE_SETTINGS_SCREENS).map(([screenName, componentGetter]) => {
                         return (

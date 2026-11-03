@@ -75,7 +75,7 @@ function ImportedFromAccountingSoftware({policyID, currentConnectionName, transl
             />
             <TextLinkBlock
                 style={[styles.textNormal, styles.link]}
-                href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                href={`${environmentURL}/${ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING)}`}
                 text={`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
                 prefixIcon={
                     icon ? (
