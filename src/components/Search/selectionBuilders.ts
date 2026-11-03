@@ -75,7 +75,7 @@ function areLoadedRowsSelected(selectedTransactions: SelectedTransactions, loade
 function getCoveredGroupCount(selectedTransactions: SelectedTransactions, rowKeys: string[]): number | undefined {
     for (const key of rowKeys) {
         const entry = selectedTransactions[key];
-        if (entry?.isEntireGroupSelected && entry.coveredGroupCount !== undefined) {
+        if (entry?.coveredGroupCount !== undefined) {
             return entry.coveredGroupCount;
         }
     }
@@ -255,14 +255,17 @@ function mapEmptyReportToSelectedEntry(item: TransactionReportGroupListItemType 
     const total = item.total ?? 0;
     return [
         item.keyForList ?? '',
-        buildGroupSelectedEntry({
-            amount: total,
-            displayAmount: total,
-            currency: item.currency ?? '',
-            action: CONST.SEARCH.ACTION_TYPES.VIEW,
-            reportID: item.reportID,
-            policyID: item.policyID,
-        }),
+        {
+            ...buildGroupSelectedEntry({
+                amount: total,
+                displayAmount: total,
+                currency: item.currency ?? '',
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                reportID: item.reportID,
+                policyID: item.policyID,
+            }),
+            claimedGroupCount: getSearchGroupCount(item),
+        },
     ];
 }
 
@@ -280,7 +283,7 @@ type BuildGroupSelectedEntryParams = {
     /** Set only for a report row, since a group of expenses is not a report */
     reportID: string | undefined;
 
-    /** Set only for a report row, and a placeholder policy stands in otherwise */
+    /** The workspace the entry belongs to, and a placeholder policy stands in when there is none */
     policyID: string | undefined;
 };
 
@@ -325,17 +328,35 @@ function getRowsCheckedInExcludedGroups(selectedTransactions: SelectedTransactio
     return rows;
 }
 
-/** For each group checked through its header, how many selected rows stand for it and whether any of them records the group as wholly selected. */
-function getGroupClaims(selectedTransactions: SelectedTransactions): Map<SearchGroupKey, {rowCount: number; isEntireGroupSelected: boolean}> {
-    const claimByGroupKey = new Map<SearchGroupKey, {rowCount: number; isEntireGroupSelected: boolean}>();
+/** The lower of two counts, either of which can be missing. */
+function getLowerCount(firstCount: number | undefined, secondCount: number | undefined): number | undefined {
+    if (firstCount === undefined || secondCount === undefined) {
+        return firstCount ?? secondCount;
+    }
+    return Math.min(firstCount, secondCount);
+}
+
+/** A group's count as a field of a selected row. The key is left out when there is no count, because the selection's equality checks read an undefined key as a change. */
+function getClaimedGroupCountField(claimedGroupCount: number | undefined): {claimedGroupCount?: number} {
+    return claimedGroupCount === undefined ? {} : {claimedGroupCount};
+}
+
+type GroupClaim = {
+    isEntireGroupSelected: boolean;
+    claimedGroupCount: number | undefined;
+};
+
+/** For each group checked through its header, whether any of its rows records the group as wholly selected, and the lowest count they were checked at. */
+function getGroupClaims(selectedTransactions: SelectedTransactions): Map<SearchGroupKey, GroupClaim> {
+    const claimByGroupKey = new Map<SearchGroupKey, GroupClaim>();
     for (const transaction of Object.values(selectedTransactions)) {
         const groupKey = getClaimedGroupKey(transaction);
         if (!groupKey) {
             continue;
         }
-        const claim = claimByGroupKey.get(groupKey) ?? {rowCount: 0, isEntireGroupSelected: false};
-        claim.rowCount += 1;
+        const claim = claimByGroupKey.get(groupKey) ?? {isEntireGroupSelected: false, claimedGroupCount: undefined};
         claim.isEntireGroupSelected = claim.isEntireGroupSelected || !!transaction.isEntireGroupSelected;
+        claim.claimedGroupCount = getLowerCount(claim.claimedGroupCount, transaction.claimedGroupCount);
         claimByGroupKey.set(groupKey, claim);
     }
     return claimByGroupKey;
@@ -370,7 +391,7 @@ function mergeRowsIntoPartlyLoadedGroups(
     if (areAllMatchingItemsSelected) {
         return selectedTransactions;
     }
-    const partlyLoadedGroups = new Map<SearchGroupKey, SearchGroupBase>();
+    const partlyLoadedGroups = new Map<SearchGroupKey, {group: SearchGroupBase; rowKeys: string[]}>();
     for (const [groupKey, rowKeys] of getSelectedRowKeysByGroupKey(selectedTransactions)) {
         if (!isGroupEntry(groupKey)) {
             continue;
@@ -380,14 +401,11 @@ function mergeRowsIntoPartlyLoadedGroups(
         if (!group || groupCount === undefined) {
             continue;
         }
-        const claimedRowCount = rowKeys.filter((key) => getClaimedGroupKey(selectedTransactions[key]) === groupKey).length;
         const isWhollySelected = rowKeys.some((key) => !!selectedTransactions[key].isEntireGroupSelected);
-        const isStamped = rowKeys.some((key) => selectedTransactions[key].isEntireGroupSelected !== undefined);
-        const isClaimStillLoading = claimedRowCount > 0 && !isWhollySelected && (isStamped || claimedRowCount < groupCount);
-        const hasKeptRow = rowKeys.some((key) => !!selectedTransactions[key].isKeptOffPage);
-        const hasRowsThatLeft = (claimedRowCount > 0 || isWhollySelected) && hasKeptRow && rowKeys.length > groupCount;
+        const isClaimStillLoading = !isWhollySelected && rowKeys.some((key) => getClaimedGroupKey(selectedTransactions[key]) === groupKey);
+        const hasRowsThatLeft = isWhollySelected && rowKeys.length > groupCount && rowKeys.some((key) => !!selectedTransactions[key].isKeptOffPage);
         if (isClaimStillLoading || hasRowsThatLeft) {
-            partlyLoadedGroups.set(groupKey, group);
+            partlyLoadedGroups.set(groupKey, {group, rowKeys});
         }
     }
     if (partlyLoadedGroups.size === 0) {
@@ -402,15 +420,21 @@ function mergeRowsIntoPartlyLoadedGroups(
             merged[key] = transaction;
         }
     }
-    for (const [groupKey, group] of partlyLoadedGroups) {
-        merged[groupKey] = buildGroupSelectedEntry({
-            amount: group.total,
-            displayAmount: group.total,
-            currency: group.currency,
-            action: CONST.SEARCH.ACTION_TYPES.VIEW,
-            reportID: undefined,
-            policyID: undefined,
-        });
+    for (const [groupKey, {group, rowKeys}] of partlyLoadedGroups) {
+        const rows = rowKeys.map((key) => selectedTransactions[key]);
+        const firstRowPolicyID = rows.at(0)?.policyID;
+        // The Export menu reads the workspace, and whether every expense is from a one-expense report, to decide which options apply.
+        merged[groupKey] = {
+            ...buildGroupSelectedEntry({
+                amount: group.total,
+                displayAmount: group.total,
+                currency: group.currency,
+                action: CONST.SEARCH.ACTION_TYPES.VIEW,
+                reportID: undefined,
+                policyID: rows.every((row) => row.policyID === firstRowPolicyID) ? firstRowPolicyID : undefined,
+            }),
+            isFromOneTransactionReport: rows.every((row) => row.isFromOneTransactionReport),
+        };
     }
     return merged;
 }
@@ -809,7 +833,14 @@ function applyShiftRangeBatchToSelection(
             }
             touchGroup(parentGroupKey, lookups.childrenByGroupKey.get(parentGroupKey) ?? []);
         }
-        const entry = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey || isAlreadySelectedViaGroup} : info;
+        const entry = parentGroupKey
+            ? {
+                  ...info,
+                  groupKey: parentGroupKey,
+                  isSelectedViaGroup: !!blockGroupKey || isAlreadySelectedViaGroup,
+                  ...getClaimedGroupCountField(isAlreadySelectedViaGroup ? updated[key]?.claimedGroupCount : undefined),
+              }
+            : info;
         // Re-covering a row is not a write, and coverage is recounted after the batch, so it is left out of the comparison.
         if (deepEqual({...updated[key], isEntireGroupSelected: undefined, coveredGroupCount: undefined}, {...entry, isEntireGroupSelected: undefined, coveredGroupCount: undefined})) {
             return;
@@ -818,7 +849,6 @@ function applyShiftRangeBatchToSelection(
         hasWritten = true;
     };
 
-    let selectedRowKeysByGroupKey: Map<string, string[]> | undefined;
     const removeRow = (row: SearchListItem) => {
         if (isTransactionListItemType(row) || (isTransactionReportGroupListItemType(row) && row.transactions.length === 0)) {
             if (row.keyForList) {
@@ -833,16 +863,9 @@ function applyShiftRangeBatchToSelection(
             return;
         }
         if (isTransactionGroupListItemType(row)) {
-            // A group can hold an entry under its own key as well as under its children's, and a group-by group also holds children a refresh left off its loaded page.
-            // A report carries all of its expenses, so an expense that still names one has moved to another report and keeps its selection there.
+            // A group can hold an entry under its own key as well as under its children's.
             if (row.keyForList) {
                 dropKey(row.keyForList);
-                if (isGroupEntry(row.keyForList)) {
-                    selectedRowKeysByGroupKey ??= getSelectedRowKeysByGroupKey(selection);
-                    for (const key of selectedRowKeysByGroupKey.get(row.keyForList) ?? []) {
-                        dropKey(key);
-                    }
-                }
             }
             for (const child of row.transactions ?? []) {
                 if (child.keyForList) {
@@ -900,6 +923,7 @@ function applyShiftRangeBatchToSelection(
 
     // Delete takes a whole group on this flag, so each group the range wrote under is recounted, keeping the coverage it had while its rows only left it.
     const coverageByGroupKey = new Map<string, number | undefined>();
+    let selectedRowKeysByGroupKey: Map<string, string[]> | undefined;
     for (const [groupKey, loadedRows] of touchedGroups) {
         selectedRowKeysByGroupKey ??= getSelectedRowKeysByGroupKey(selection);
         const priorCoveredGroupCount = getCoveredGroupCount(selection, selectedRowKeysByGroupKey.get(groupKey) ?? []);
@@ -942,6 +966,8 @@ export {
     resolveGroupCount,
     getClaimedGroupKey,
     getGroupClaims,
+    getLowerCount,
+    getClaimedGroupCountField,
     getSelectedRowKeysByGroupKey,
     getRemainingSearchGroupCount,
     getRowsCheckedInExcludedGroups,

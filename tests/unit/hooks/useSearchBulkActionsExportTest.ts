@@ -1330,7 +1330,7 @@ describe('useSearchBulkActions - export options', () => {
             ?.find((item) => item.text === 'workspace.common.markAsExported')
             ?.onSelected?.();
 
-        // Then the query sent leaves that report out, as Pay and Download PDF do, rather than marking it with the rest
+        // Then the query sent leaves that report out, rather than marking it with the rest
         await waitFor(() => {
             expect(queueBulkMarkAsExported).toHaveBeenCalledWith(expect.stringContaining('-reportID:report-with-unchecked-expense'), CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
         });

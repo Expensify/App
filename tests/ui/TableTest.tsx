@@ -3319,16 +3319,15 @@ describe('Table', () => {
         it('should range over the rows in their new order when the table is re-sorted mid-range', () => {
             render(<ControlledSelectableTable />);
 
-            // Given Apple clicked and a range shift+clicked down to Carrot, in the order the rows arrive: Apple, Banana, Carrot, Date, Eggplant
+            // Given Apple clicked and a range shift+clicked to Carrot, in the order Apple, Banana, Carrot, Date, Eggplant
             pressRow(0);
             pressRow(2, true);
 
-            // When the table is sorted by value, high to low (Banana, Date, Apple, Eggplant, Carrot), and the range is shift+clicked to Eggplant
+            // When the table is sorted by value (Banana, Date, Apple, Eggplant, Carrot) and the range is shift+clicked to Eggplant
             fireEvent.press(screen.getByLabelText('Value'));
             pressRow(3, true);
 
-            // Then the range runs from Apple to Eggplant as they now sit, so Date, between them only in the old order, stays unchecked;
-            // Carrot, now past Eggplant, is given back, and Banana, across the anchor, stays checked
+            // Then the range runs from Apple to Eggplant as they now sit, so Date stays unchecked, Carrot is given back and Banana stays checked
             expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,5$/);
         });
 

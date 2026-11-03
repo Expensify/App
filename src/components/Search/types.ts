@@ -112,6 +112,9 @@ type SelectedTransactionInfo = {
     /** Whether every transaction in the group is selected. Only a fully loaded group earns it, and a partly loaded one can only keep it. */
     isEntireGroupSelected?: boolean;
 
+    /** The group-by count at the header check, lowered if that count falls. A rise past it means a new expense joined. */
+    claimedGroupCount?: number;
+
     /** The group's count when the selection last covered all of it, so a rise past it means a new expense joined */
     coveredGroupCount?: number;
 

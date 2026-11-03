@@ -217,7 +217,7 @@ describe('SearchBulkActionsButton all-matching count', () => {
     });
 
     it('counts the rows of a group checked through its header as the whole group, including the rows not loaded', () => {
-        // Given a group of 692 expenses checked through its header with only two of its rows loaded, next to an expense of another group checked on its own
+        // Given a 692-expense group checked through its header with two rows loaded, next to an expense of another group
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}2026_10_07`;
         mockAreAllMatchingItemsSelected = false;
         mockSearchData = {[groupKey]: {count: 692, total: 12990, currency: CONST.CURRENCY.USD}};
@@ -230,12 +230,12 @@ describe('SearchBulkActionsButton all-matching count', () => {
         // When the bar shows that selection
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        // Then it counts what an export of the selection covers, which is the whole group plus the other expense
+        // Then it counts the whole group plus the other expense, as an export covers them
         expect(getBarProps()).toEqual({selectedCount: 693, isSelectedCountLoading: false});
     });
 
     it('subtracts one expense for a row excluded from Select all after its group was checked through the header', () => {
-        // Given Select all with one row unchecked, where the row still carries the claim of the group header that checked it
+        // Given Select all with one row unchecked, which still carries the claim of the header that checked it
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}2026_10_07`;
         mockSearchCount = 694;
         mockSearchData = {[groupKey]: {count: 692, total: 12990, currency: CONST.CURRENCY.USD}};
@@ -249,7 +249,7 @@ describe('SearchBulkActionsButton all-matching count', () => {
     });
 
     it('counts a row checked again inside a group excluded whole from Select all', () => {
-        // Given Select all over ten expenses, a five-expense group excluded whole, and one of its rows checked again on its own
+        // Given Select all over ten expenses, a five-expense group excluded whole, and one of its rows checked again
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}2026_10_07`;
         mockSearchCount = 10;
         mockSearchData = {[groupKey]: {count: 5, total: 500, currency: CONST.CURRENCY.USD}};

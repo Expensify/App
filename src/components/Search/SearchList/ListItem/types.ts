@@ -230,6 +230,9 @@ type TransactionGroupListItemType = ListItem & {
     /** Whether the group's own search has expenses it has not returned yet, which its Show more link loads */
     hasMoreTransactions?: boolean;
 
+    /** Where the group's own search last started reading, which only its Show more link moves past the first page */
+    transactionsOffset?: number;
+
     /** Whether the report has visible violations for user */
     hasVisibleViolations?: boolean;
 

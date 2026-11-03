@@ -153,13 +153,13 @@ describe('isGroupSelected', () => {
     });
 
     it('reads a partly loaded group excluded whole as partly checked once its loaded row is checked again, since the rows it has not loaded stay excluded', () => {
-        // Given a 692-expense group excluded whole under an all-matching selection, whose one loaded row was then checked on its own
+        // Given a 692-expense group excluded whole under Select all, whose one loaded row was then checked
         const params = groupOf(selectionOf('c1'), {areAllMatchingItemsSelected: true, excludedTransactions: selectionOf('groupA'), groupCount: 692});
 
         // When the checkbox is drawn
         const {isSelectAllChecked, isIndeterminate} = getGroupCheckboxState(params);
 
-        // Then it reads partly checked rather than checked, so it does not claim the rows its exclusion still leaves out
+        // Then it reads partly checked, so it does not claim the rows its exclusion leaves out
         expect(isSelectAllChecked).toBe(false);
         expect(isIndeterminate).toBe(true);
     });
@@ -171,7 +171,7 @@ describe('isGroupSelected', () => {
     ])(
         'reads a partly loaded group as checked when its loaded rows are checked through $through, which stands for the rows it has not loaded',
         ({groupKey, isClaimed, isKeySelected, areAllMatchingItemsSelected}) => {
-            // Given a five-expense group whose one loaded row is checked through something that also covers the rows not loaded
+            // Given a five-expense group whose loaded row is checked through something that covers the rows not loaded
             const [, entry] = mapEmptyReportToSelectedEntry(makeGroup('anyGroup'));
             const selectedTransactions: SelectedTransactions = {
                 c1: isClaimed ? {...entry, groupKey, isSelectedViaGroup: true} : entry,
@@ -188,7 +188,7 @@ describe('isGroupSelected', () => {
     );
 
     it('reads a partly loaded group under Select all as partly checked when a row unchecked on a later page was left off by a refresh', () => {
-        // Given every matching item selected, a five-expense group whose loaded row is checked, and a row on a later page unchecked that a refresh left out
+        // Given Select all, a five-expense group with its loaded row checked, and a later row unchecked that a refresh left out
         const groupKey = `${CONST.SEARCH.GROUP_PREFIX}a`;
         const [, entry] = mapEmptyReportToSelectedEntry(makeGroup('anyGroup'));
         const params = groupOf({}, {groupKey, groupCount: 5, areAllMatchingItemsSelected: true, excludedTransactions: {c7: {...entry, groupKey}}});

@@ -381,7 +381,7 @@ describe('useSearchBulkActions - Download receipts', () => {
         });
 
         it('hides the option next to a group checked while collapsed, since the download would leave out its expenses', async () => {
-            // Given an expense with a receipt checked next to a group checked while collapsed, whose expenses are not loaded
+            // Given an expense with a receipt checked next to a group checked while collapsed
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
             mockSelectedTransactions = {
                 [groupKey]: makeSelectedTransaction({reportID: undefined}),
@@ -394,12 +394,12 @@ describe('useSearchBulkActions - Download receipts', () => {
                 expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
             });
 
-            // Then Download receipts is not offered, since the zip can only take loaded expenses and would leave the group out
+            // Then Download receipts is not offered, since the zip would leave the group out
             expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)).toBeUndefined();
         });
 
         it('drops a cash back row from the IDs it sends, since that row holds no expenses', async () => {
-            // Given an expense with a receipt checked next to a cash back row, which selecting the page checks under its own key
+            // Given an expense with a receipt checked next to a cash back row, which selecting the page checks
             const cashBackKey = `${CONST.SEARCH.GROUP_PREFIX}cashBack` as const;
             mockSelectedTransactions = {
                 [cashBackKey]: makeSelectedTransaction({reportID: undefined}),
@@ -428,7 +428,7 @@ describe('useSearchBulkActions - Download receipts', () => {
                 await getDownloadReceiptsOption(result.current.headerButtonsOptions)?.onSelected?.();
             });
 
-            // Then only the expense is sent, since the cash back row leaves out no expense and is not one itself
+            // Then only the expense is sent, since the cash back row holds no expenses
             expect(exportReceiptsToZip).toHaveBeenCalledTimes(1);
             expect(exportReceiptsToZip).toHaveBeenCalledWith({transactionIDs: ['tx1']});
         });

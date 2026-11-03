@@ -282,14 +282,15 @@ function createSelectionActions(setSelectionState: React.Dispatch<React.SetState
 
             const newState = {...prevState};
             if (hasSelectedTransactions) {
-                // An expense that stays in its group makes the group a partial selection, as unchecking its row does, whether the group was checked through its header or one row at a time. A deleted one leaves the group, which stays whole.
+                // An expense that stays in its group makes the group partial, while a deleted one leaves the group whole.
                 const removedGroupKey = prevState.selectedTransactions[transactionID]?.groupKey;
                 const partialGroupKey = !isDeleted && removedGroupKey && isGroupEntry(removedGroupKey) ? removedGroupKey : undefined;
                 const newSelectedTransactions = Object.entries(prevState.selectedTransactions).reduce((acc, [key, value]) => {
                     if (key === transactionID) {
                         return acc;
                     }
-                    acc[key] = partialGroupKey && value.groupKey === partialGroupKey ? {...value, isSelectedViaGroup: false, isEntireGroupSelected: false} : value;
+                    acc[key] =
+                        partialGroupKey && value.groupKey === partialGroupKey ? {...value, isSelectedViaGroup: false, isEntireGroupSelected: false, coveredGroupCount: undefined} : value;
                     return acc;
                 }, {} as SelectedTransactions);
                 newState.selectedTransactions = newSelectedTransactions;

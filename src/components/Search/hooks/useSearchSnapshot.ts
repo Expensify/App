@@ -306,6 +306,7 @@ function useSearchSnapshot({queryJSON, searchResults, transactions, reportAction
                       transactions: getSortedTransactionData(typedGroupTransactions, localeCompare, translate, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC),
                       hiddenTransactionIDs,
                       hasMoreTransactions: subSnapshot.search?.hasMoreResults,
+                      transactionsOffset: subSnapshot.search?.offset,
                   };
               });
 

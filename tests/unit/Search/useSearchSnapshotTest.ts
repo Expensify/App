@@ -544,7 +544,7 @@ describe('useSearchSnapshot', () => {
         expect(result.current.filteredData).toEqual(groups.slice(0, 2).map((group) => expect.objectContaining({keyForList: group.keyForList, transactions: group.transactions})));
     });
 
-    it('lists, for each group, the expenses its own search returned that the list no longer shows', () => {
+    it('records on each group what its own search returned that the list no longer shows, whether it has more to load, and where it last read from', () => {
         const searchResults = makeSearchResults();
         mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
         const draftsGroupHash = 11;
@@ -559,10 +559,11 @@ describe('useSearchSnapshot', () => {
         const groups = [
             {keyForList: 'group0', transactions: [], transactionsQueryJSON: {hash: draftsGroupHash}},
             {keyForList: 'group1', transactions: [], transactionsQueryJSON: {hash: unchangedGroupHash}},
+            {keyForList: 'group2', transactions: [], transactionsQueryJSON: {hash: 33}},
         ];
         mockGroupSnapshots = {
-            [String(draftsGroupHash)]: {data: draftsGroupData, search: {hasMoreResults: true}},
-            [String(unchangedGroupHash)]: {data: unchangedGroupData, search: {hasMoreResults: false}},
+            [String(draftsGroupHash)]: {data: draftsGroupData, search: {hasMoreResults: true, offset: 50}},
+            [String(unchangedGroupHash)]: {data: unchangedGroupData, search: {hasMoreResults: false, offset: 0}},
         };
         mockGetSections.mockImplementation(({data}: {data: unknown}) => {
             if (data === draftsGroupData) {
@@ -574,7 +575,7 @@ describe('useSearchSnapshot', () => {
             return [groups, groups.length, false];
         });
 
-        // Given two open groups, one holding an expense whose report was submitted, which the drafts list stops showing, and one whose rows all still match
+        // Given a group after a Show more holding a submitted expense the list hides, one with every row loaded, and one never opened
         // When the grouped search is projected
         const {result} = renderHook(() =>
             useSearchSnapshot({
@@ -585,55 +586,22 @@ describe('useSearchSnapshot', () => {
             }),
         );
 
-        // Then each group names the expenses that left it, so the selection can let go of them while it keeps rows that have only not loaded yet
-        expect(result.current.filteredData).toEqual([
-            expect.objectContaining({keyForList: 'group0', transactions: [{transactionID: 'a'}, {transactionID: 'b'}], hiddenTransactionIDs: ['submitted']}),
-            expect.objectContaining({keyForList: 'group1', transactions: [{transactionID: 'c'}], hiddenTransactionIDs: []}),
-        ]);
-    });
-
-    it('records, for each group, whether its own search has more expenses to load', () => {
-        const searchResults = makeSearchResults();
-        mockUseOptimisticSearchTracking.mockReturnValue(trackingReturn(searchResults.data));
-        const pagingGroupHash = 11;
-        const completeGroupHash = 22;
-        const pagingGroupData = {[`${ONYXKEYS.COLLECTION.TRANSACTION}a`]: {transactionID: 'a'}};
-        const completeGroupData = {[`${ONYXKEYS.COLLECTION.TRANSACTION}b`]: {transactionID: 'b'}};
-        const groups = [
-            {keyForList: 'group0', transactions: [], transactionsQueryJSON: {hash: pagingGroupHash}},
-            {keyForList: 'group1', transactions: [], transactionsQueryJSON: {hash: completeGroupHash}},
-            {keyForList: 'group2', transactions: [], transactionsQueryJSON: {hash: 33}},
-        ];
-        mockGroupSnapshots = {
-            [String(pagingGroupHash)]: {data: pagingGroupData, search: {hasMoreResults: true}},
-            [String(completeGroupHash)]: {data: completeGroupData, search: {hasMoreResults: false}},
-        };
-        mockGetSections.mockImplementation(({data}: {data: unknown}) => {
-            if (data === pagingGroupData) {
-                return [[{transactionID: 'a'}], 1, false];
-            }
-            if (data === completeGroupData) {
-                return [[{transactionID: 'b'}], 1, false];
-            }
-            return [groups, groups.length, false];
-        });
-
-        // Given a group whose own search has more to load, one whose own search has returned every expense, and one never opened
-        // When the grouped search is projected
-        const {result} = renderHook(() =>
-            useSearchSnapshot({
-                queryJSON: makeQueryJSON({groupBy: CONST.SEARCH.GROUP_BY.FROM}),
-                searchResults,
-                transactions: undefined,
-                reportActions: undefined,
+        // Then each opened group carries what its own search said, and the unopened group carries none
+        const [draftsGroup, unchangedGroup, unopenedGroup] = result.current.filteredData;
+        expect(draftsGroup).toEqual(
+            expect.objectContaining({
+                keyForList: 'group0',
+                transactions: [{transactionID: 'a'}, {transactionID: 'b'}],
+                hiddenTransactionIDs: ['submitted'],
+                hasMoreTransactions: true,
+                transactionsOffset: 50,
             }),
         );
-
-        // Then each loaded group carries its own search's answer, so the selection can tell a group whose rows are all in from one with more to load, and the unopened group carries none
-        const [pagingGroup, completeGroup, unopenedGroup] = result.current.filteredData;
-        expect(pagingGroup).toEqual(expect.objectContaining({keyForList: 'group0', hasMoreTransactions: true}));
-        expect(completeGroup).toEqual(expect.objectContaining({keyForList: 'group1', hasMoreTransactions: false}));
+        expect(unchangedGroup).toEqual(
+            expect.objectContaining({keyForList: 'group1', transactions: [{transactionID: 'c'}], hiddenTransactionIDs: [], hasMoreTransactions: false, transactionsOffset: 0}),
+        );
         expect(unopenedGroup).not.toHaveProperty('hasMoreTransactions');
+        expect(unopenedGroup).not.toHaveProperty('transactionsOffset');
     });
 
     it('does not spend visibleRowLimit on rows being deleted online', () => {

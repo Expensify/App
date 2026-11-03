@@ -800,12 +800,16 @@ describe('useSearchBulkActions - a group checked through its header while its ro
     }
 
     function checkOnItsOwn(transactionID: string) {
-        mockSelectedTransactions[transactionID] = makeSelectedTransaction({transaction: buildUnreportedExpense(transactionID), reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+        mockSelectedTransactions[transactionID] = makeSelectedTransaction({canHold: true, transaction: buildUnreportedExpense(transactionID), reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
     }
 
-    function checkOnItsOwnWithReceipt(transactionID: string) {
-        const transaction = {...buildUnreportedExpense(transactionID), receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE}};
-        mockSelectedTransactions[transactionID] = makeSelectedTransaction({transaction, reportID: CONST.REPORT.UNREPORTED_REPORT_ID});
+    // Every write of a group's rows stamps them, and here the two rows checked through the header are the whole group.
+    function markGroupWhole() {
+        mockSelectedTransactions = {
+            ...mockSelectedTransactions,
+            tx1: {...mockSelectedTransactions.tx1, isEntireGroupSelected: true, coveredGroupCount: 2},
+            tx2: {...mockSelectedTransactions.tx2, isEntireGroupSelected: true, coveredGroupCount: 2},
+        };
     }
 
     beforeAll(() => {
@@ -853,18 +857,35 @@ describe('useSearchBulkActions - a group checked through its header while its ro
     }
 
     it('offers only the actions that cover the whole group, as for a group checked while collapsed', async () => {
-        // Given two loaded rows of a 692-expense group, both of which could be held, checked through the group's header
+        // Given two loaded rows of a 692-expense group, both holdable, checked through its header
 
         // When the bulk actions are built
         const values = await getOfferedActions(692);
 
-        // Then Hold is not offered, since it would hold two expenses under a selection that reads 692, while Export, which covers the group, still is
+        // Then Hold is not offered, since it would hold two expenses under a selection that reads 692, while Export still is
         expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
         expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
     });
 
+    it('offers the Export options of the workspace its rows belong to', async () => {
+        // Given two loaded rows of a 692-expense group on one workspace, each from a one-expense report, checked through its header
+        mockSelectedTransactions = {
+            tx1: {...mockSelectedTransactions.tx1, isFromOneTransactionReport: true},
+            tx2: {...mockSelectedTransactions.tx2, isFromOneTransactionReport: true},
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1', exportLayouts: {}});
+
+        // When the bulk actions are built
+        await getOfferedActions(692);
+
+        // Then the templates are read for that workspace with report level export included, as they are for its rows
+        const [, , , , policy, includeReportLevelExport] = mockGetExportTemplates.mock.lastCall ?? [];
+        expect(policy?.id).toBe('policy1');
+        expect(includeReportLevelExport).toBe(true);
+    });
+
     it('offers the row actions for a wholly selected group whose rows a refresh kept off the page', async () => {
-        // Given the group's two rows checked through its header and wholly selected, one of them kept off the page by a refresh that brought back only the first
+        // Given the group's two rows checked through its header and wholly selected, one of them kept off the page
         mockSelectedTransactions = {
             tx1: {...mockSelectedTransactions.tx1, isEntireGroupSelected: true},
             tx2: {...mockSelectedTransactions.tx2, isEntireGroupSelected: true, isKeptOffPage: true},
@@ -873,22 +894,12 @@ describe('useSearchBulkActions - a group checked through its header while its ro
         // When the bulk actions are built
         const values = await getOfferedActions(2);
 
-        // Then Hold is still offered, since the kept row still names its expense; only the count and the total are taken from the server
-        expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
-    });
-
-    it('offers the row actions once every row of the group is loaded', async () => {
-        // Given the same two rows checked through the header, which are now the whole group
-
-        // When the bulk actions are built
-        const values = await getOfferedActions(2);
-
-        // Then Hold is offered, since holding the loaded rows holds the whole group
+        // Then Hold is still offered, since the kept row still names its expense
         expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
     });
 
     it('does not offer Edit multiple for expenses checked next to a group that is still loading', async () => {
-        // Given two expenses checked on their own, which could be edited together, next to a 692-expense group checked through its header
+        // Given two expenses checked on their own next to a 692-expense group checked through its header
         checkOnItsOwn('tx3');
         checkOnItsOwn('tx4');
 
@@ -899,15 +910,17 @@ describe('useSearchBulkActions - a group checked through its header while its ro
         expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.EDIT);
     });
 
-    it('offers Edit multiple for the same selection once every row of the group is loaded', async () => {
+    it('offers the row actions and Edit multiple for the same selection once every row of the group is loaded', async () => {
         // Given the same two expenses next to the group, whose two checked rows are now the whole group
         checkOnItsOwn('tx3');
         checkOnItsOwn('tx4');
+        markGroupWhole();
 
         // When the bulk actions are built
         const values = await getOfferedActions(2);
 
-        // Then Edit multiple is offered, since it edits every checked expense, the group's included
+        // Then Hold and Edit multiple are offered, since both act on every checked expense
+        expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.HOLD);
         expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.EDIT);
     });
 
@@ -922,30 +935,8 @@ describe('useSearchBulkActions - a group checked through its header while its ro
         expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.MERGE);
     });
 
-    it('does not offer Download receipts for an expense checked next to a group that is still loading', async () => {
-        // Given one expense with a receipt checked on its own next to a 692-expense group checked through its header
-        checkOnItsOwnWithReceipt('tx3');
-
-        // When the bulk actions are built
-        const values = await getOfferedActions(692);
-
-        // Then Download receipts is not offered, since it would download the one receipt and none of the group's
-        expect(values).not.toContain(CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS);
-    });
-
-    it('offers Download receipts for the same selection once every row of the group is loaded', async () => {
-        // Given the same expense next to the group, whose two checked rows are now the whole group
-        checkOnItsOwnWithReceipt('tx3');
-
-        // When the bulk actions are built
-        const values = await getOfferedActions(2);
-
-        // Then Download receipts is offered, since it reads every checked expense, the group's included
-        expect(values).toContain(CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS);
-    });
-
     it('offers Move under Select all next to a group that is still loading, since the move is sent as the query', async () => {
-        // Given every matching expense selected, with two movable rows of one submitter loaded from a 692-expense group checked through its header
+        // Given Select all, with two movable rows of one submitter loaded from a 692-expense group
         mockAreAllMatchingItemsSelected = true;
         mockSelectedTransactions = Object.fromEntries(
             Object.entries(mockSelectedTransactions).map(([key, entry]) => [key, {...entry, canChangeReport: true, ownerAccountID: CURRENT_USER_ACCOUNT_ID}]),

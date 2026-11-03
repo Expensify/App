@@ -63,7 +63,7 @@ describe('selectionBuilders', () => {
 
     describe('stampGroupCoverageFlags', () => {
         it('covers the remaining children when snapshot count still includes pending-delete rows', () => {
-            // Given a group whose snapshot count of three still includes a loaded row being deleted, with its other two rows selected
+            // Given a group whose count of three includes a loaded row being deleted, with its other two rows selected
             // When its coverage is stamped
             const selected = stampGroupCoverageFlags({
                 selectedTransactions: buildSelection({
@@ -75,7 +75,7 @@ describe('selectionBuilders', () => {
                 loadedRows: [buildTransactionRow(1, 'txn1'), buildTransactionRow(2, 'txn2'), buildTransactionRow(3, 'txn3', {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})],
             });
 
-            // Then the group is wholly selected, since the row being deleted is no longer one the selection has to hold
+            // Then the group is wholly selected, since the selection need not hold a row being deleted
             expect(selected.txn1.isEntireGroupSelected).toBe(true);
             expect(selected.txn2.isEntireGroupSelected).toBe(true);
         });
@@ -93,28 +93,13 @@ describe('selectionBuilders', () => {
                 loadedRows: [buildTransactionRow(1, 'txn1'), buildTransactionRow(2, 'txn2')],
             });
 
-            // Then the group is not wholly selected, so delete cannot take three rows it never loaded, while the header claim stays for export
+            // Then the group is not wholly selected, so delete cannot take three rows it never loaded
             expect(selected.txn1.isEntireGroupSelected).toBe(false);
             expect(selected.txn1.isSelectedViaGroup).toBe(true);
         });
 
-        it('does not cover the group while a loaded row is unchecked, even when rows kept off the page make up the count', () => {
-            // Given a group of two whose one loaded row was just unchecked, with two rows a refresh kept off the page, one of them deleted elsewhere
-            const selection = buildSelection({
-                txn2: {groupKey},
-                txn3: {groupKey},
-            });
-
-            // When its coverage is stamped
-            const selected = stampGroupCoverageFlags({selectedTransactions: selection, groupKey, groupCount: 2, loadedRows: [buildTransactionRow(1, 'txn1')]});
-
-            // Then the group is not wholly selected, so a bulk delete takes only the checked rows and leaves the unchecked one on screen
-            expect(selected.txn2.isEntireGroupSelected).toBe(false);
-            expect(selected.txn3.isEntireGroupSelected).toBe(false);
-        });
-
         it('does not let rows kept off the page prove a partly loaded group whole, since any of them can be stale', () => {
-            // Given a three-expense group whose one loaded row is checked, next to two rows a refresh kept off the page, with no earlier coverage to keep
+            // Given a three-expense group with its one loaded row checked, next to two rows kept off the page
             const selection = buildSelection({
                 txn1: {groupKey},
                 txn2: {groupKey},
@@ -124,7 +109,7 @@ describe('selectionBuilders', () => {
             // When its coverage is stamped
             const selected = stampGroupCoverageFlags({selectedTransactions: selection, groupKey, groupCount: 3, loadedRows: [buildTransactionRow(1, 'txn1')]});
 
-            // Then the group is not wholly selected, even though the three rows match the count, since only rows on the page can prove it
+            // Then the group is not wholly selected, since only rows on the page can prove it
             expect(selected.txn1.isEntireGroupSelected).toBe(false);
         });
     });
@@ -137,7 +122,7 @@ describe('selectionBuilders', () => {
         it('takes the rows a group shows once its own search has returned every expense', () => {
             // Given a group whose own search has nothing more to load
             // When its count is resolved
-            // Then it is the two rows it shows, since nothing lowers the group-by count until the group-by search runs again
+            // Then it is the two rows it shows, since nothing lowers the group-by count until that search runs again
             expect(resolveGroupCount(buildGroup(false))).toBe(2);
         });
 
@@ -154,7 +139,7 @@ describe('selectionBuilders', () => {
         const otherGroupKey: SearchGroupKey = `${CONST.SEARCH.GROUP_PREFIX}43`;
 
         it('puts one entry for the whole group in place of its loaded rows when they were checked through the header', () => {
-            // Given two loaded rows of a 692-expense group checked through its header, next to a row of another group checked on its own
+            // Given two loaded rows of a 692-expense group checked through its header, next to a row of another group
             const searchData = buildDayGroupData([
                 [groupKey, {count: 692, total: 12990}],
                 [otherGroupKey, {count: 2, total: 30}],
@@ -168,14 +153,44 @@ describe('selectionBuilders', () => {
             // When the rows are merged into the groups they stand for
             const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
 
-            // Then the group appears once with its full total, as an export covers it, and the row checked on its own is kept as it was
+            // Then the group appears once with its full total, and the other row is kept as it was
             expect(Object.keys(merged)).toEqual(['txn3', groupKey]);
             expect(merged[groupKey]).toEqual(expect.objectContaining({displayAmount: 12990, currency: CONST.CURRENCY.USD}));
             expect(merged.txn3).toBe(selection.txn3);
         });
 
+        it('keeps the workspace of the rows it replaces, and whether they all come from one-expense reports', () => {
+            // Given two loaded rows of a 692-expense group on one workspace, each from a one-expense report
+            const searchData = buildDayGroupData([[groupKey, {count: 692, total: 12990}]]);
+            const selection = buildSelection({
+                txn1: {isSelectedViaGroup: true, groupKey, policyID: 'policy1', isFromOneTransactionReport: true},
+                txn2: {isSelectedViaGroup: true, groupKey, policyID: 'policy1', isFromOneTransactionReport: true},
+            });
+
+            // When the rows are merged into the groups they stand for
+            const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
+
+            // Then the group's entry keeps both, since the Export menu picks its options from them
+            expect(merged[groupKey]).toEqual(expect.objectContaining({policyID: 'policy1', isFromOneTransactionReport: true}));
+        });
+
+        it('keeps neither when the rows it replaces disagree', () => {
+            // Given two loaded rows of a 692-expense group on different workspaces, only one from a one-expense report
+            const searchData = buildDayGroupData([[groupKey, {count: 692, total: 12990}]]);
+            const selection = buildSelection({
+                txn1: {isSelectedViaGroup: true, groupKey, policyID: 'policy1', isFromOneTransactionReport: true},
+                txn2: {isSelectedViaGroup: true, groupKey, policyID: 'policy2', isFromOneTransactionReport: false},
+            });
+
+            // When the rows are merged into the groups they stand for
+            const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
+
+            // Then the group's entry claims neither, since no single workspace or report type describes its rows
+            expect(merged[groupKey]).toEqual(expect.objectContaining({policyID: CONST.POLICY.ID_FAKE, isFromOneTransactionReport: false}));
+        });
+
         it('folds a row of the group checked one by one into the group entry, rather than counting it a second time', () => {
-            // Given a loaded row of a ten-expense group checked through its header, and a row of the same group checked on its own on a page a refresh left out
+            // Given a loaded row of a ten-expense group checked through its header, and another row of it checked on its own
             const searchData = buildDayGroupData([[groupKey, {count: 10, total: 100}]]);
             const selection = buildSelection({
                 txn1: {isSelectedViaGroup: true, groupKey, displayAmount: 10},
@@ -189,55 +204,25 @@ describe('selectionBuilders', () => {
             expect(Object.keys(merged)).toEqual([groupKey]);
         });
 
-        it('leaves the selection alone once every row of the group is loaded', () => {
-            // Given both rows of a two-expense group checked through its header
-            const searchData = buildDayGroupData([[groupKey, {count: 2, total: 20}]]);
-            const selection = buildSelection({
-                txn1: {isSelectedViaGroup: true, groupKey},
-                txn2: {isSelectedViaGroup: true, groupKey},
-            });
-
-            // When the rows are merged into the groups they stand for
-            const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
-
-            // Then nothing changes, because the loaded rows already count as the whole group
-            expect(merged).toBe(selection);
-        });
-
-        it('leaves the selection alone when the group count still includes rows being deleted', () => {
-            // Given the two rows left of a group whose snapshot count of 3 still includes a row being deleted, stamped as covering the group
-            const searchData = buildDayGroupData([[groupKey, {count: 3, total: 30}]]);
-            const selection = buildSelection({
-                txn1: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true},
-                txn2: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true},
-            });
-
-            // When the rows are merged into the groups they stand for
-            const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
-
-            // Then nothing changes, because the rows already cover what is left of the group
-            expect(merged).toBe(selection);
-        });
-
         it('puts one entry for the whole group in place of rows that outnumber it, since some of them left the group unseen', () => {
-            // Given three rows of a group checked whole through its header, kept after one of them was deleted elsewhere and the group's count fell to two
+            // Given three rows that covered a group, kept after one was deleted elsewhere and the count fell to two
             const searchData = buildDayGroupData([[groupKey, {count: 2, total: 20}]]);
             const selection = buildSelection({
-                txn1: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, displayAmount: 10},
-                txn2: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, displayAmount: 10},
-                txn3: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: true, displayAmount: 10, isKeptOffPage: true},
+                txn1: {groupKey, isEntireGroupSelected: true, displayAmount: 10},
+                txn2: {groupKey, isEntireGroupSelected: true, displayAmount: 10},
+                txn3: {groupKey, isEntireGroupSelected: true, displayAmount: 10, isKeptOffPage: true},
             });
 
             // When the rows are merged into the groups they stand for
             const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
 
-            // Then the group appears once with the server's count and total, so the deleted expense is neither counted nor sent to an action
+            // Then the group appears once with the server's figures, so the deleted expense is neither counted nor acted on
             expect(Object.keys(merged)).toEqual([groupKey]);
             expect(merged[groupKey]).toEqual(expect.objectContaining({displayAmount: 20}));
         });
 
         it('puts one entry for the whole group in place of rows checked through its header that match its count without covering it', () => {
-            // Given three rows standing for a four-expense group checked through its header, one of them deleted elsewhere, after a refresh brought the count to three with one row loaded
+            // Given three rows standing for a four-expense group, one deleted elsewhere, after a refresh brought the count to three
             const searchData = buildDayGroupData([[groupKey, {count: 3, total: 30}]]);
             const selection = buildSelection({
                 txn1: {isSelectedViaGroup: true, groupKey, isEntireGroupSelected: false, displayAmount: 10},
@@ -248,12 +233,12 @@ describe('selectionBuilders', () => {
             // When the rows are merged into the groups they stand for
             const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
 
-            // Then the group appears once, as the stamp found it not wholly selected, so no row action takes the deleted expense or misses the one still to load
+            // Then the group appears once, so no row action takes the deleted expense or misses the one still to load
             expect(Object.keys(merged)).toEqual([groupKey]);
         });
 
         it('keeps the rows of a wholly selected group holding one kept off the page, since the server figures can still include an expense deleted since', () => {
-            // Given a wholly selected group whose rows a refresh left partly off the page, after one of its expenses was deleted while the server's figures still read three expenses and 300
+            // Given a wholly selected group with a row off the page, after an expense was deleted while the server still reads three and 300
             const searchData = buildDayGroupData([[groupKey, {count: 3, total: 300}]]);
             const selection = buildSelection({
                 txn2: {groupKey, isEntireGroupSelected: true, displayAmount: 100},
@@ -263,12 +248,12 @@ describe('selectionBuilders', () => {
             // When the rows are merged for the count, the total and the bulk actions
             const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
 
-            // Then the two selected rows stay, so the count and total are two expenses and 200 rather than the server's three and 300, and Delete or Hold stay on offer
+            // Then the two selected rows stay, so the count and total are two and 200, and Delete or Hold stay on offer
             expect(merged).toBe(selection);
         });
 
         it('leaves loaded rows that outnumber the count alone, since the count is only behind an expense that moved in', () => {
-            // Given four loaded rows of a group each checked on its own, which covered it, one of them just moved in while the group's count still reads three
+            // Given four loaded rows that covered a group, one just moved in while the count still reads three
             const searchData = buildDayGroupData([[groupKey, {count: 3, total: 30}]]);
             const selection = buildSelection({
                 txn1: {groupKey, isEntireGroupSelected: true},
@@ -280,29 +265,12 @@ describe('selectionBuilders', () => {
             // When the rows are merged into the groups they stand for
             const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
 
-            // Then nothing changes, since only a row kept off the page can have left unseen, so the row actions stay on offer
+            // Then nothing changes, since only a row kept off the page can have left unseen
             expect(merged).toBe(selection);
         });
 
-        it('puts one entry for the whole group in place of rows checked one by one that outnumber it, once they covered the group', () => {
-            // Given three rows of a group each checked on its own, which covered it, kept after one of them was deleted elsewhere and the group's count fell to two
-            const searchData = buildDayGroupData([[groupKey, {count: 2, total: 20}]]);
-            const selection = buildSelection({
-                txn1: {groupKey, isEntireGroupSelected: true, displayAmount: 10},
-                txn2: {groupKey, isEntireGroupSelected: true, displayAmount: 10},
-                txn3: {groupKey, isEntireGroupSelected: true, displayAmount: 10, isKeptOffPage: true},
-            });
-
-            // When the rows are merged into the groups they stand for
-            const merged = mergeRowsIntoPartlyLoadedGroups(selection, searchData, false);
-
-            // Then the group appears once with the server's count and total, as it does for a group checked through its header
-            expect(Object.keys(merged)).toEqual([groupKey]);
-            expect(merged[groupKey]).toEqual(expect.objectContaining({displayAmount: 20}));
-        });
-
         it('leaves the selection alone under Select all, where the query already covers the rows not loaded', () => {
-            // Given two loaded rows of a 692-expense group checked through its header, with every matching expense selected
+            // Given two loaded rows of a 692-expense group checked through its header, under Select all
             const searchData = buildDayGroupData([[groupKey, {count: 692, total: 12990}]]);
             const selection = buildSelection({
                 txn1: {isSelectedViaGroup: true, groupKey},

@@ -243,13 +243,12 @@ function getGroupExportScope(queryJSON: SearchQueryJSON | undefined, selectedTra
  * The group rows a selection covers in full.
  *
  * A group is fully selected when its rows carry `isEntireGroupSelected` at a covered count that reaches the group's count,
- * since the stamp counts pending-delete children, which snapshot `count` is not decremented for. Rows never stamped fall back to
- * the number of selected children matching the group's count. Clicking the group checkbox is not enough on its
- * own: a `limit:` smaller than that count leaves children unloaded, so delete cannot remove the whole group.
+ * since the stamp counts pending-delete children, which snapshot `count` is not decremented for.
+ * Clicking the group checkbox is not enough on its own: a `limit:` smaller than that count leaves children unloaded, so delete cannot remove the whole group.
  * An empty group row is still selected under its own group key.
  */
 function getSelectedGroupKeys(selectedTransactions: SelectedTransactions, searchData?: SearchResultDataType): SearchGroupKey[] {
-    const selectedCountByGroupKey = new Map<SearchGroupKey, {selectedCount: number; isEntireGroupSelected: boolean; isStamped: boolean; coveredGroupCount: number}>();
+    const coverageByGroupKey = new Map<SearchGroupKey, {isEntireGroupSelected: boolean; coveredGroupCount: number}>();
     const groupKeys = new Set<SearchGroupKey>();
 
     for (const [key, transaction] of Object.entries(selectedTransactions)) {
@@ -260,23 +259,17 @@ function getSelectedGroupKeys(selectedTransactions: SelectedTransactions, search
         if (!transaction.groupKey || !isGroupEntry(transaction.groupKey)) {
             continue;
         }
-        const current = selectedCountByGroupKey.get(transaction.groupKey) ?? {selectedCount: 0, isEntireGroupSelected: false, isStamped: false, coveredGroupCount: 0};
-        current.selectedCount += 1;
+        const current = coverageByGroupKey.get(transaction.groupKey) ?? {isEntireGroupSelected: false, coveredGroupCount: 0};
         current.isEntireGroupSelected = current.isEntireGroupSelected || !!transaction.isEntireGroupSelected;
-        current.isStamped = current.isStamped || transaction.isEntireGroupSelected !== undefined;
-        // A row whose flag was cleared keeps the count it was covered at, so only rows still marked whole say what the group is covered at now.
-        if (transaction.isEntireGroupSelected) {
-            current.coveredGroupCount = Math.max(current.coveredGroupCount, transaction.coveredGroupCount ?? 0);
-        }
-        selectedCountByGroupKey.set(transaction.groupKey, current);
+        current.coveredGroupCount = Math.max(current.coveredGroupCount, transaction.coveredGroupCount ?? 0);
+        coverageByGroupKey.set(transaction.groupKey, current);
     }
 
-    for (const [groupKey, {selectedCount, isEntireGroupSelected, isStamped, coveredGroupCount}] of selectedCountByGroupKey) {
+    for (const [groupKey, {isEntireGroupSelected, coveredGroupCount}] of coverageByGroupKey) {
         const groupCount = getSearchGroupCountByKey(searchData, groupKey);
         if (groupCount !== undefined) {
-            // A stamp has already weighed the loaded rows against rows a refresh kept that may since have left the group, so the count decides only for rows never stamped.
             // A group whose own search returned every expense is stamped whole on its rows, which can be newer or older than its count, so it is taken whole only once it covers that count.
-            if ((isEntireGroupSelected && coveredGroupCount >= groupCount) || (!isStamped && selectedCount === groupCount)) {
+            if (isEntireGroupSelected && coveredGroupCount >= groupCount) {
                 groupKeys.add(groupKey);
             }
             continue;

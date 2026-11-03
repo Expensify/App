@@ -190,23 +190,17 @@ describe('GroupHeader', () => {
         expect(checkboxState()).toEqual({isSelectAllChecked: false, isIndeterminate: false});
     });
 
-    it('reads checked while open once every row it shows is checked, though its count still holds an expense that left it', () => {
-        // Given an open group whose own search has returned all of its rows, each one checked, while the group-by count still reads one more
-        renderGroupHeader(children, select('1', '2', '3'), jest.fn(), {isExpanded: true, count: 4, hasMoreTransactions: false});
+    it.each([{isExpanded: true}, {isExpanded: false}])(
+        'reads checked once every row it shows is checked, though its count still holds an expense that left it, with isExpanded $isExpanded',
+        ({isExpanded}) => {
+            // Given a group whose own search returned all its rows, each one checked, while the group-by count reads one more
+            renderGroupHeader(children, select('1', '2', '3'), jest.fn(), {isExpanded, count: 4, hasMoreTransactions: false});
 
-        // When its checkbox is drawn
-        // Then it reads checked, since the rows a group's own search returned are the whole group
-        expect(checkboxState()).toEqual({isSelectAllChecked: true, isIndeterminate: false});
-    });
-
-    it('reads checked while closed with the same rows checked, since its rows are the whole group whether it is open or not', () => {
-        // Given the same group closed
-        renderGroupHeader(children, select('1', '2', '3'), jest.fn(), {isExpanded: false, count: 4, hasMoreTransactions: false});
-
-        // When its checkbox is drawn
-        // Then it reads checked, as it does open, so closing a group never changes what its checkbox shows
-        expect(checkboxState()).toEqual({isSelectAllChecked: true, isIndeterminate: false});
-    });
+            // When its checkbox is drawn
+            // Then it reads checked, since those rows are the whole group, so closing a group never changes its checkbox
+            expect(checkboxState()).toEqual({isSelectAllChecked: true, isIndeterminate: false});
+        },
+    );
 
     it('reads partly checked while its own search has more to load, since its count is then the whole group', () => {
         // Given a group with the same rows checked whose own search has more expenses to load

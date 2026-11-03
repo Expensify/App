@@ -43,9 +43,11 @@ import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {
     applyShiftRangeBatchToSelection,
     buildShiftRangeSource,
+    getClaimedGroupCountField,
     getCoveredGroupCount,
     getGroupByCount,
     getGroupClaims,
+    getLowerCount,
     getRemainingSearchGroupCount,
     getSelectableRows,
     getSelectedRowKeysByGroupKey,
@@ -260,6 +262,11 @@ function useReconcileSelectionWithData({
                         newTransactionList[reportKey] = {
                             ...emptyReportSelection,
                             isSelected: areAllMatchingItemsSelected || selectedTransactions[reportKey]?.isSelected,
+                            ...(isExpenseReportType
+                                ? {}
+                                : {
+                                      claimedGroupCount: getLowerCount(selectedTransactions[reportKey]?.claimedGroupCount, getGroupByCount(transactionGroup, searchResultsData, reportKey)),
+                                  }),
                         };
                     }
                     continue;
@@ -283,16 +290,21 @@ function useReconcileSelectionWithData({
                 const loadedSelectableCount = transactionGroup.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).length;
                 const remainingGroupCount = getRemainingSearchGroupCount(groupCount, transactionGroup.transactions.length, loadedSelectableCount) ?? 0;
                 const hasUnloadedRows = remainingGroupCount > loadedSelectableCount;
-                // Once a claim covers every row, a later row or count is a new expense, which stays unchecked and ends the claim.
+                // Once a claim covers every row, a later row is one it does not hold, which stays unchecked and ends the claim.
                 const hasClaimCoveredGroup = !!groupClaim?.isEntireGroupSelected;
-                // Kept rows can be stale, so growth is measured from the count the group was covered at, not from its claimed rows.
+                // Kept rows can be stale, so a partly loaded group keeps its coverage from the count it was covered at, not from its rows.
                 const priorCoveredGroupCount = reportKey ? getCoveredGroupCount(selectedTransactions, selectedRowKeysByGroupKey.get(reportKey) ?? []) : undefined;
-                const hasGroupOutgrownClaim =
-                    (priorCoveredGroupCount === undefined ? remainingGroupCount > (groupClaim?.rowCount ?? 0) : (groupCount ?? 0) > priorCoveredGroupCount) ||
-                    transactionGroup.transactions.some((transaction) => !isTransactionPendingDelete(transaction) && !getRowSelection(transaction));
-                const isClaimEnding = hasClaimCoveredGroup && hasGroupOutgrownClaim;
+                const hasUnselectedRow = () => transactionGroup.transactions.some((transaction) => !isTransactionPendingDelete(transaction) && !getRowSelection(transaction));
+                const groupByCount = reportKey ? getGroupByCount(transactionGroup, searchResultsData, reportKey) : undefined;
+                const claimedGroupCount = groupClaim?.claimedGroupCount ?? (reportKey ? selectedTransactions[reportKey]?.claimedGroupCount : undefined);
+                // A group-by count above the one the header was checked at means an expense joined, which the group's rows can't show once creating one marks its own search complete.
+                const hasGroupGrownSinceClaim = claimedGroupCount !== undefined && (groupByCount ?? 0) > claimedGroupCount;
+                // Rows still loading only arrive through Show more, which reads past the first page, so an unselected row from a read of the first page joined the group.
+                const hasRowJoinedOnFirstPage = !!groupClaim && !transactionGroup.transactionsOffset && hasUnselectedRow();
+                const hasExpenseJoinedSinceClaim = hasGroupGrownSinceClaim || hasRowJoinedOnFirstPage;
+                const isClaimEnding = hasExpenseJoinedSinceClaim || (hasClaimCoveredGroup && hasUnselectedRow());
                 // A group checked through its header stands for every row in it, loaded or not, so the rows it is written out into and the rows that load later keep that claim.
-                const isWritingOutGroupSelection = !isExpenseReportType && (wasReportSelected || (!!groupClaim && !hasClaimCoveredGroup));
+                const isWritingOutGroupSelection = !isExpenseReportType && (wasReportSelected || (!!groupClaim && !hasClaimCoveredGroup && !hasExpenseJoinedSinceClaim));
                 const propagateSelectionToAllRows = isExpenseReportType && (wasReportSelected || hasIndividualSelectedInGroup);
                 const isParentGroupExcluded =
                     !!reportKey &&
@@ -339,6 +351,7 @@ function useReconcileSelectionWithData({
                         rules,
                     });
 
+                    const isSelectedViaGroup = isClaimEnding || hasMovedGroup ? false : (previousSelection?.isSelectedViaGroup ?? (isWritingOutGroupSelection ? true : undefined));
                     const liveSelectionEntry: SelectedTransactionInfo = {
                         ...baseEntry,
                         isSelected: !isExcluded && (areAllMatchingItemsSelected || !!previousSelection?.isSelected || isReachedByGroupSelection),
@@ -347,7 +360,8 @@ function useReconcileSelectionWithData({
                         groupKey: hasMovedGroup
                             ? reportKey
                             : (previousSelection?.groupKey ?? (isWritingOutGroupSelection || (isExpenseReportType && isParentGroupExcluded) ? reportKey : undefined)),
-                        isSelectedViaGroup: isClaimEnding || hasMovedGroup ? false : (previousSelection?.isSelectedViaGroup ?? (isWritingOutGroupSelection ? true : undefined)),
+                        isSelectedViaGroup,
+                        ...getClaimedGroupCountField(isSelectedViaGroup ? getLowerCount(claimedGroupCount, groupByCount) : undefined),
                     };
                     liveSelectionEntries.set(listKey, liveSelectionEntry);
                     liveSelectionEntries.set(transactionItem.transactionID, liveSelectionEntry);
@@ -642,6 +656,15 @@ function SearchWriteActionsProvider({
         });
     };
 
+    const buildHeaderCheckedEntry = (
+        item: TransactionListItemType,
+        groupKey: string | undefined,
+        claimedGroupCountField: {claimedGroupCount?: number},
+    ): [string, SelectedTransactionInfo] => {
+        const [key, entry] = buildSelectedEntry(item);
+        return [key, {...entry, groupKey, isSelectedViaGroup: !!groupKey, ...claimedGroupCountField}];
+    };
+
     const commitOptions = {
         totalSelectableItemsCount,
         shouldPreserveAllMatchingSelection,
@@ -838,15 +861,14 @@ function SearchWriteActionsProvider({
             return;
         }
 
-        // Under select-all-matching, unchecking a group that has not loaded every row excludes the group itself, since excluding only its loaded rows would leave the rest selected.
-        // The group-by count decides even for a group whose rows are all in, since excluding the group also takes out any expense those rows have not caught up with.
-        const groupCount = getGroupByCount(item, searchResultsData, item.keyForList);
+        // Under select-all-matching, a group with fewer rows than its group-by count is excluded whole, because excluding only the loaded rows would leave the rest selected.
+        const groupByCount = getGroupByCount(item, searchResultsData, item.keyForList);
         const isUncheckingPartlyLoadedGroup =
             type === CONST.SEARCH.DATA_TYPES.EXPENSE &&
             getAreAllMatchingItemsSelected() &&
-            groupCount !== undefined &&
+            groupByCount !== undefined &&
             groupTransactions.length > 0 &&
-            groupTransactions.length < groupCount &&
+            groupTransactions.length < groupByCount &&
             isGroupSelected(groupSelectionParams(item.keyForList, groupTransactions));
         const deselectedWithoutEntry: SelectedTransactions = {};
         if (isUncheckingPartlyLoadedGroup) {
@@ -877,8 +899,7 @@ function SearchWriteActionsProvider({
                 // A group selected before its children were fetched is stored under the group key. Once the children load,
                 // deselecting has to clear that entry too, otherwise the group stays selected with no way to deselect it.
                 const groupKey = item.keyForList;
-                // A refresh can leave some of a group-by group's selected rows unloaded, and they stay selected while the group has rows to load, so whatever clears the group clears every row it holds.
-                // A report carries all of its expenses, so an expense that still names one has moved to another report and keeps its selection there.
+                // Clearing a group-by group also clears selected rows a refresh left unloaded. A report carries all its expenses, so one missing from its rows has moved and stays selected.
                 const getSelectedGroupRowKeys = () => (groupKey && isGroupEntry(groupKey) ? (getSelectedRowKeysByGroupKey(selectedTransactions).get(groupKey) ?? []) : []);
 
                 if (isGroupSelected(groupSelectionParams(groupKey, groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, lookups))) {
@@ -911,15 +932,11 @@ function SearchWriteActionsProvider({
                     }
                     return withoutStaleKeys;
                 }
+                const claimedGroupCountField = getClaimedGroupCountField(groupByCount);
                 return stampGroupCoverageFlags({
                     selectedTransactions: {
                         ...selectedTransactions,
-                        ...Object.fromEntries(
-                            selectableTransactions.map((transactionItem) => {
-                                const [key, entry] = buildSelectedEntry(transactionItem);
-                                return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
-                            }),
-                        ),
+                        ...Object.fromEntries(selectableTransactions.map((transactionItem) => buildHeaderCheckedEntry(transactionItem, item.keyForList, claimedGroupCountField))),
                     },
                     groupKey,
                     groupCount: groupKey ? lookups.getGroupCount(groupKey, item) : undefined,
@@ -956,9 +973,9 @@ function SearchWriteActionsProvider({
                         }
                         const entries: Array<[string, SelectedTransactionInfo]> = [];
                         const selectableTransactions = item.transactions.filter((transactionItem) => !isTransactionPendingDelete(transactionItem));
+                        const claimedGroupCountField = getClaimedGroupCountField(getGroupByCount(item, searchResultsData, item.keyForList));
                         for (const transactionItem of selectableTransactions) {
-                            const [key, entry] = buildSelectedEntry(transactionItem);
-                            entries.push([key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}]);
+                            entries.push(buildHeaderCheckedEntry(transactionItem, item.keyForList, claimedGroupCountField));
                         }
                         return Object.entries(
                             stampGroupCoverageFlags({

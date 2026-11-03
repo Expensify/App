@@ -432,7 +432,7 @@ describe('useSearchBulkActions - Pay option', () => {
             expect(result.current.headerButtonsOptions.length).toBeGreaterThan(0);
         });
 
-        // Then Pay is not offered, since it pays whole reports from the search and a report cannot leave out one of its expenses
+        // Then Pay is not offered, since a report cannot leave out one of its expenses
         expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
     });
 
