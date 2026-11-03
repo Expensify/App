@@ -10230,6 +10230,38 @@ const CONST = {
         HIGH_CONTRAST_MODE_SWITCHER: {
             TOGGLE: 'HighContrastModeSwitcher-Toggle',
         },
+        TEST_TOOLS_MODAL_NAVIGATOR: {
+            DISMISS: 'TestToolsModalNavigator-Dismiss',
+        },
+        TEST_TOOLS_MODAL_PAGE: {
+            RELEASE_OPTIONS: 'TestToolsModalPage-ReleaseOptions',
+        },
+        BANNER: {
+            CLOSE: 'Banner-Close',
+        },
+        RADIO_BUTTON_WITH_LABEL: {
+            LABEL: 'RadioButtonWithLabel-Label',
+        },
+        FEED_SELECTOR: {
+            BUTTON: 'FeedSelector-Button',
+        },
+        GROWL_NOTIFICATION: {
+            DISMISS: 'GrowlNotification-Dismiss',
+            ACTION: 'GrowlNotification-Action',
+        },
+        CENTERED_MODAL_LAYOUT: {
+            BACKDROP: 'CenteredModalLayout-Backdrop',
+        },
+        POPOVER_MENU: {
+            DISMISS_BUTTON: 'PopoverMenu-DismissButton',
+        },
+        DISTANCE_REQUEST_FOOTER: {
+            ADD_STOP: 'DistanceRequestFooter-AddStop',
+            REUSE_ROUTE: 'DistanceRequestFooter-ReuseRoute',
+        },
+        CONCIERGE_THINKING_MESSAGE: {
+            TOGGLE_REASONING: 'ConciergeThinkingMessage-ToggleReasoning',
+        },
         AGENTS_RULES_BANNER: {
             CTA: 'AgentsRulesBanner-CTA',
             DISMISS: 'AgentsRulesBanner-Dismiss',
@@ -10418,8 +10450,13 @@ const CONST = {
             GROUP_EXPAND_TOGGLE: 'Search-GroupExpandToggle',
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
-            UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
+            UNREPORTED_EXPENSE_LIST_ITEM: 'Search-UnreportedExpenseListItem',
             WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
+            STATIC_LIST_ITEM: 'Search-StaticListItem',
+            STATIC_LIST_WIDE_ITEM: 'Search-StaticListWideItem',
+            ADVANCED_FILTERS_POPUP_DESCRIBE_SEARCH: 'SearchAdvancedFiltersPopup-DescribeSearch',
+            ADVANCED_FILTERS_BASE_DESCRIBE_SEARCH: 'SearchAdvancedFiltersBase-DescribeSearch',
+            DATE_SELECT_POPUP_BACK: 'DateSelectPopup-Back',
         },
         INSIGHTS: {
             CONTROL_DATE: 'Insights-ControlDate',
@@ -10428,6 +10465,7 @@ const CONST = {
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
             DASHBOARD_TAB: 'Insights-DashboardTab',
+            CHART_MENU: 'Insights-ChartMenu',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
@@ -10464,7 +10502,7 @@ const CONST = {
             COLLAPSED_SYSTEM_MESSAGES: 'Report-CollapsedSystemMessages',
             MODERATION_BUTTON: 'Report-ModerationButton',
             MONEY_REQUEST_REPORT_ACTIONS_LIST_SELECT_ALL: 'MoneyRequestReportActionsList-SelectAll',
-            MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'MoneyRequestReportTransactionItem',
+            MONEY_REQUEST_REPORT_TRANSACTION_ITEM: 'Report-MoneyRequestReportTransactionItem',
             REPORT_FIELD_DELETE_BUTTON: 'Report-ReportFieldDeleteButton',
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
@@ -10647,6 +10685,11 @@ const CONST = {
             SUBSCRIPTION: 'Account-Subscription',
         },
         HOME_PAGE: {
+            SECTION_EXPAND_TOGGLE: 'HomePage-SectionExpandToggle',
+            INSIGHTS_OVERFLOW_MENU: 'HomePage-InsightsOverflowMenu',
+            INSIGHT_TITLE_DROPDOWN: 'HomePage-InsightTitleDropdown',
+            RECENTLY_ADDED_ROW: 'HomePage-RecentlyAddedRow',
+            RECENTLY_ADDED_OVERFLOW_MENU: 'HomePage-RecentlyAddedOverflowMenu',
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
             GETTING_STARTED_FOOTER_HELP: 'HomePage-GettingStartedFooterHelp',
@@ -10686,7 +10729,8 @@ const CONST = {
             DISMISS_KEYBOARD_BUTTON: 'ShareDetail-DismissKeyboardButton',
         },
         MAP_VIEW: {
-            COMPASS: 'compass',
+            COMPASS: 'MapView-Compass',
+            TOGGLE_DISTANCE_UNIT: 'MapView-ToggleDistanceUnit',
         },
         NEW_CHAT: {
             IMPORT_CONTACTS_ITEM: 'NewChat-ImportContacts',
@@ -10780,7 +10824,6 @@ const CONST = {
         },
         WORKSPACE_EXPENSIFY_CARD: {
             BULK_ACTIONS_DROPDOWN: 'WorkspaceExpensifyCard-BulkActionsDropdown',
-            CARD_LIST_ROW: 'WorkspaceExpensifyCard-CardListRow',
         },
         WORKSPACE: {
             APPROVAL_WORKFLOW_SECTION: 'Workspace-ApprovalWorkflowSection',
@@ -10790,13 +10833,15 @@ const CONST = {
             INVITE_MESSAGE_PRIVACY_LINK: 'WorkspaceInviteMessage-PrivacyLink',
             IMPORTED_MEMBERS_CONFIRMATION_PRIVACY_LINK: 'ImportedMembersConfirmation-PrivacyLink',
             COMPANY_CARDS: {
-                TABLE_ITEM: 'Workspace-CompanyCards-TableItem',
+                TABLE_ITEM: 'WorkspaceCompanyCards-TableItem',
                 SETTINGS_BUTTON: 'WorkspaceCompanyCards-SettingsButton',
                 BULK_ACTIONS_DROPDOWN: 'WorkspaceCompanyCards-BulkActionsDropdown',
                 CARD_NAME: 'WorkspaceCompanyCards-CardName',
                 CARD_EXPORT: 'WorkspaceCompanyCards-CardExport',
                 UNASSIGN_CARD: 'WorkspaceCompanyCards-UnassignCard',
                 TRANSACTION_START_DATE: 'WorkspaceCompanyCards-TransactionStartDate',
+                IMPORT_FROM_FILE_TEMPLATE_LINK: 'ImportFromFileStep-TemplateLink',
+                IMPORT_FROM_FILE_HELP_GUIDE_LINK: 'ImportFromFileStep-HelpGuideLink',
             },
             LIST: {
                 NEW_WORKSPACE_BUTTON: 'WorkspaceList-NewWorkspaceButton',
@@ -10810,10 +10855,6 @@ const CONST = {
                 AGENTS: 'WorkspaceInitial-Agents',
                 ROOMS: 'WorkspaceInitial-Rooms',
                 REPORTS: 'WorkspaceInitial-Reports',
-                ACCOUNTING: 'WorkspaceInitial-Accounting',
-                HR: 'WorkspaceInitial-HR',
-                RECRUITING: 'WorkspaceInitial-Recruiting',
-                RECEIPT_PARTNERS: 'WorkspaceInitial-ReceiptPartners',
                 CONNECTIONS: 'WorkspaceInitial-Connections',
                 CATEGORIES: 'WorkspaceInitial-Categories',
                 TAGS: 'WorkspaceInitial-Tags',
@@ -10829,7 +10870,6 @@ const CONST = {
                 INVOICES: 'WorkspaceInitial-Invoices',
                 MORE_FEATURES: 'WorkspaceInitial-MoreFeatures',
                 VENDORS: 'WorkspaceInitial-Vendors',
-                MCP: 'WorkspaceInitial-MCP',
             },
             OVERVIEW: {
                 AVATAR: 'WorkspaceOverview-Avatar',
@@ -10904,10 +10944,8 @@ const CONST = {
                 APPROVAL_SECTION_SHOW_ALL_MEMBERS: 'WorkspaceWorkflows-ApprovalSectionShowAllMembers',
             },
             ACCOUNTING: {
-                SETUP_BUTTON: 'WorkspaceAccounting-SetupButton',
                 EXACT_ONLINE_WAITLIST_BUTTON: 'WorkspaceAccounting-ExactOnlineWaitlistButton',
                 CARD_SECTION_ADD_BUTTON: 'WorkspaceAccounting-CardSectionAddButton',
-                THREE_DOT_MENU: 'WorkspaceAccounting-ThreeDotMenu',
             },
             CONNECTIONS: {
                 CARD: 'WorkspaceConnections-Card',
@@ -10915,7 +10953,6 @@ const CONST = {
                 SUGGEST_INTEGRATION: 'WorkspaceConnections-SuggestIntegration',
             },
             RULES: {
-                ADD_SPEND_RULE: 'WorkspaceRules-AddSpendRule',
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
@@ -10933,13 +10970,12 @@ const CONST = {
                 FLAG_FOR_REVIEW_RULE_DELETE: 'WorkspaceRules-FlagForReviewRuleDelete',
                 FLAG_FOR_REVIEW_RULE_CATEGORY: 'WorkspaceRules-FlagForReviewRuleCategory',
                 FLAG_FOR_REVIEW_RULE_AMOUNT: 'WorkspaceRules-FlagForReviewRuleAmount',
-                FLAG_FOR_REVIEW_RULE_EXPENSE_LIMIT_TYPE: 'WorkspaceRules-FlagForReviewRuleExpenseLimitType',
                 CATEGORY_TAX_RULE_ITEM: 'WorkspaceRules-CategoryTaxRuleItem',
                 MERCHANT_TYPE_RULE_ITEM: 'WorkspaceRules-MerchantTypeRuleItem',
                 MERCHANT_TYPE_RULE_SAVE: 'WorkspaceRules-MerchantTypeRuleSave',
                 MERCHANT_TYPE_RULE_CATEGORY: 'WorkspaceRules-MerchantTypeRuleCategory',
-                ADD_MERCHANT_RULE: 'WorkspaceRules-AddMerchantRule',
                 IMPORT_MERCHANT_RULES: 'WorkspaceRules-ImportMerchantRules',
+                NEW_RULE_BUTTON: 'WorkspaceRules-NewRuleButton',
                 MERCHANT_RULE_SECTION_ITEM: 'WorkspaceRules-MerchantRuleSectionItem',
                 MERCHANT_RULE_SAVE: 'WorkspaceRules-MerchantRuleSave',
                 MERCHANT_RULE_DESCRIBE: 'WorkspaceRules-MerchantRuleDescribe',
@@ -10958,7 +10994,6 @@ const CONST = {
                 SUGGESTED_AGENT_RULE: 'WorkspaceRules-SuggestedAgentRule',
                 SUGGESTED_AGENT_RULE_CATEGORY: 'WorkspaceRules-SuggestedAgentRuleCategory',
                 AGENT_RULE_DELETE: 'WorkspaceRules-AgentRuleDelete',
-                NEW_RULE_MENU_ITEM: 'WorkspaceRules-NewRuleMenuItem',
                 NEW_RULE_MENU_ITEM_RESTRICT_CARD_SPEND: 'WorkspaceRules-NewRuleMenuItem-RestrictCardSpend',
                 NEW_RULE_MENU_ITEM_FLAG_FOR_REVIEW: 'WorkspaceRules-NewRuleMenuItem-FlagForReview',
                 NEW_RULE_MENU_ITEM_REQUIRE_FIELDS: 'WorkspaceRules-NewRuleMenuItem-RequireFields',
@@ -11010,6 +11045,7 @@ const CONST = {
             CONTINUE: 'Onboarding-Continue',
             SKIP: 'Onboarding-Skip',
             JOIN_WORKSPACE: 'Onboarding-JoinWorkspace',
+            HEADER_BACK: 'OnboardingHeader-Back',
         },
         BASE_ANCHOR_FOR_ATTACHMENTS_ONLY: {
             DOWNLOAD_BUTTON: 'BaseAnchorForAttachmentsOnly-DownloadButton',
@@ -11022,6 +11058,7 @@ const CONST = {
             SWITCH_BETWEEN_METHODS: 'TwoFactorAuth-SwitchBetweenMethods',
             COPY: 'TwoFactorAuth-Copy',
             COPY_CODES: 'TwoFactorAuth-CopyCodes',
+            SECRET_COPY: 'TwoFactorAuthSecret-Copy',
         },
         VALIDATE_CODE: {
             RESEND_CODE: 'ValidateCode-ResendCode',
@@ -11032,7 +11069,11 @@ const CONST = {
             STEP_BUTTON: 'InteractiveStepSubHeader-StepButton',
         },
         SOCIALS: {
-            LINK: 'Socials',
+            PODCAST: 'Socials-Podcast',
+            TWITTER: 'Socials-Twitter',
+            INSTAGRAM: 'Socials-Instagram',
+            FACEBOOK: 'Socials-Facebook',
+            LINKEDIN: 'Socials-Linkedin',
         },
         CONFIRM_CONTENT: {
             DISMISS_BUTTON: 'ConfirmContent-DismissButton',
@@ -11103,6 +11144,7 @@ const CONST = {
         },
         EDIT_AGENT_PAGE: {
             AVATAR: 'EditAgentPage-Avatar',
+            BOT_AVATAR_SELECTOR: 'EditAgentAvatar-BotAvatarSelector',
         },
         SETTINGS_PROFILE: {
             AVATAR: 'SettingsProfile-Avatar',

@@ -27,7 +27,7 @@ function oneOf(values: string[]): string {
  * Prefixes and suffixes of labels we build at runtime. The rest of the label isn't checked, so only add one here when
  * the rest can't carry user data. Accessibility labels and test IDs in these formats get through too.
  */
-const DYNAMIC_LABEL_PREFIXES = ['Search-Filter-', 'Search-Advanced-Filter-', 'Search-FilterPopupApply-', `${CONST.SENTRY_LABEL.SOCIALS.LINK}-`];
+const DYNAMIC_LABEL_PREFIXES = ['Search-Filter-', 'Search-Advanced-Filter-', 'Search-FilterPopupApply-'];
 const DYNAMIC_LABEL_SUFFIXES = ['-ClearButton', '-SkippedEmployees'];
 
 /** Matches any string that is not a label from `CONST.SENTRY_LABEL` or a label built in one of the formats above. */
