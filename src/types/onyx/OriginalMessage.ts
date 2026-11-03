@@ -4,6 +4,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {ValueOf} from 'type-fest';
 
 import type {CardID} from './Card';
+import type {FeedReimbursable} from './CardFeeds';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
@@ -564,8 +565,8 @@ type OriginalMessagePolicyChangeLog = {
     /** Array of field changes for consolidated employee updates */
     fields?: Array<{
         field: string;
-        oldValue: string;
-        newValue: string;
+        oldValue: string | number;
+        newValue: string | number;
     }>;
 
     /** Report field name */
@@ -746,6 +747,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Name of company card feed */
     feedName?: string;
 
+    /** Type of the card feed added to the workspace */
+    feedType?: ValueOf<typeof CONST.COMPANY_CARD.LINK_FEED_TYPE>;
+
     /** Last four digits of a company card */
     cardLastFour?: string;
 
@@ -760,6 +764,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Previous statement period end day for a company card feed */
     previousStatementPeriodEndDay?: string;
+
+    /** Reimbursable setting of a company card feed */
+    forceReimbursable?: FeedReimbursable;
+
+    /** Previous reimbursable setting of a company card feed */
+    previousForceReimbursable?: FeedReimbursable;
 
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;

@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
@@ -8,11 +9,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {findLastPageIndex} from '@libs/SubPageUtils';
 
-import {clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
+import {clearSensitiveAnswers, forgetDraftAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers} from '@userActions/DynamicForm';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {DynamicFormListField, DynamicFormListItem, DynamicFormPage} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
@@ -30,6 +32,7 @@ import getContentFields from './utils/getContentFields';
 import getDynamicFieldErrors from './utils/getDynamicFieldErrors';
 import getPageTitle, {isPageShown} from './utils/getPageTitle';
 import getSubmittedAnswers from './utils/getSubmittedAnswers';
+import {getHiddenProvidedKeys} from './utils/hasProvidedAnswer';
 import hasSensitiveAnswer from './utils/hasSensitiveAnswer';
 import isSensitiveField from './utils/isSensitiveField';
 import isSupportedField from './utils/isSupportedField';
@@ -59,8 +62,11 @@ function DynamicFormFlow({
     onRefreshRequirements,
     isSubmitting,
     submitError,
+    isSavingPages,
+    unsavedPageKeys,
     layout = 'auto',
     hasConfirmation = true,
+    shouldDisableNextWhenOffline,
 }: DynamicFormFlowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -98,9 +104,13 @@ function DynamicFormFlow({
         pages.findIndex((page) => isPageShown(page, answers, allFields) && Object.keys(getDynamicFieldErrors(getContentFields(page.content), answers, translate, allFields)).length > 0);
 
     // A visit opened without a page in the URL drops the sensitive answers of earlier visits, so it starts from what the draft holds
+    // A page whose save did not go through comes first, so the user sees which page to save again
+    const firstUnsavedPageIndex = subPages.findIndex((page) => !!unsavedPageKeys?.includes(page.pageName) && !skipPages.includes(page.pageName));
     let startFrom = firstShownPageIndex;
     if (isDraftLoading) {
         startFrom = -1;
+    } else if (firstUnsavedPageIndex !== -1) {
+        startFrom = firstUnsavedPageIndex;
     } else if (allFields.some((field) => hasDraftAnswer(draftValues[field.key]))) {
         const firstIncompleteIndex = getFirstIncompletePageIndex(draftValues);
         startFrom = firstIncompleteIndex === -1 ? lastShownPageIndex : firstIncompleteIndex;
@@ -154,6 +164,14 @@ function DynamicFormFlow({
         clearSensitiveAnswers(formID);
     }, [isRedirecting, formID]);
 
+    // A visit that opens without a page waits for the earlier visit's sensitive answers to be gone, so no input starts from them. The flow can be left without
+    // its own Back, such as by a swipe back, which leaves them in memory.
+    const hasSensitiveAnswers = !isEmptyObject(sensitiveAnswersByForm?.[formID]);
+    const [isClearingEarlierVisit, setIsClearingEarlierVisit] = useState(isRedirecting);
+    if (isClearingEarlierVisit && !hasSensitiveAnswers) {
+        setIsClearingEarlierVisit(false);
+    }
+
     // A submission that finishes without an error drops the sensitive answers
     const wasSubmittingRef = useRef(false);
     useEffect(() => {
@@ -181,7 +199,7 @@ function DynamicFormFlow({
         Navigation.navigate(buildRoute(unavailablePageTarget), {forceReplace: true});
     }, [isOnUnavailablePage, buildRoute, unavailablePageTarget]);
 
-    /** Typed answers are drafted as FormProvider cleaned them and inputs left untouched are drafted with their defaults, so the draft matches what the page validated. Sensitive answers go to memory only, and only the draft ones reach the screen. Lists are drafted as they change, so the screen gets their drafted entries, which hold no sensitive answers. */
+    /** Typed answers are drafted as FormProvider cleaned them and inputs left untouched are drafted with their defaults, so the draft matches what the page validated. Sensitive answers go to memory only and reach the screen apart from the draft ones. Lists are drafted as they change, so the screen gets their drafted entries, which hold no sensitive answers. */
     const handlePageSubmit = (page: DynamicFormPage, pageValues: DynamicFormValues) => {
         const currentValues = {...values, ...pageValues};
         const pageFields = getContentFields(page.content).filter(isSupportedField);
@@ -201,6 +219,11 @@ function DynamicFormFlow({
             }
         }
         saveDraftAnswers(formID, draftAnswers);
+        // The page was saved without the hidden answer, so the server's copy no longer applies and showing the field again asks for a new one
+        const hiddenProvidedKeys = getHiddenProvidedKeys(pageFields, currentValues, allFields);
+        if (hiddenProvidedKeys.length > 0) {
+            forgetDraftAnswers(formID, hiddenProvidedKeys);
+        }
         if (Object.keys(sensitiveAnswers).length > 0) {
             saveSensitiveAnswers(formID, sensitiveAnswers);
         }
@@ -208,7 +231,7 @@ function DynamicFormFlow({
         if (removedSensitiveKeys.length > 0) {
             forgetSensitiveAnswers(formID, removedSensitiveKeys);
         }
-        onPageSubmit?.(page, {...draftAnswers, ...listAnswers});
+        onPageSubmit?.(page, {...draftAnswers, ...listAnswers}, sensitiveAnswers);
     };
 
     /** An entry opened from the confirmation page, or from a page edited from it, returns there */
@@ -292,6 +315,12 @@ function DynamicFormFlow({
         prevPage();
     };
 
+    // A flow on replaced routes has no page stack for Android's back to pop, so it takes the header's steps
+    useAndroidBackButtonHandler(() => {
+        goBack();
+        return true;
+    });
+
     // An entry editor highlights its list's step, and the confirmation page the last one
     const stepPage = shownPages.find((page) => page.key === currentPageName) ?? (listItemPage && findListPage(listItemPage.listKey));
     // The indicator draws no names and keys its steps by them, so the unique page keys stand in for titles an untitled page does not have
@@ -315,8 +344,9 @@ function DynamicFormFlow({
             stepIndex={stepIndex}
             stepTitle={stepTitle || undefined}
             shouldShowStepIndicator={isStepIndicatorAsked && stepNames.length > 1}
+            shouldShowOfflineIndicatorInWideScreen={shouldDisableNextWhenOffline}
         >
-            {isDraftLoading || isRedirecting || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
+            {isDraftLoading || isRedirecting || isClearingEarlierVisit || isOnUnavailablePage || (!hasPageToShow && pages.length > 0) ? (
                 <View style={[styles.flex1, styles.fullScreenLoading]}>
                     <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
@@ -342,6 +372,8 @@ function DynamicFormFlow({
                     confirmationTitle={confirmationTitle}
                     isSubmitting={isSubmitting}
                     submitError={submitError}
+                    isSavingPages={isSavingPages}
+                    shouldDisableNextWhenOffline={shouldDisableNextWhenOffline}
                 />
             )}
         </DynamicFormShell>

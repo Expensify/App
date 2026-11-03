@@ -42,7 +42,7 @@ import type {GestureResponderEvent, ImageURISource, StyleProp, ViewStyle} from '
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {SafeString, Str} from 'expensify-common';
-import React, {memo, useEffect, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import AttachmentViewImage from './AttachmentViewImage';
@@ -433,7 +433,7 @@ function AttachmentView({
     );
 }
 
-export default memo(AttachmentView);
+export default AttachmentView;
 
 export {checkIsFileImage};
 export type {AttachmentViewProps};

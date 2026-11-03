@@ -29,7 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 type PlaidConnectionStepProps = {
@@ -112,9 +112,9 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
         }
         setAddNewCompanyCardStepAndData({step: isUSCountry ? CONST.COMPANY_CARDS.STEP.SELECT_BANK : CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
-    const handlePlaidLinkError = useCallback((error: ErrorEvent | null) => {
+    const handlePlaidLinkError = (error: ErrorEvent | null) => {
         Log.hmmm('[PlaidLink] Error: ', error?.message);
-    }, []);
+    };
 
     const renderPlaidLink = () => {
         if (plaidLinkToken) {

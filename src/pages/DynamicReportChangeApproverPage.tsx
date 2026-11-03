@@ -29,7 +29,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ValueOf} from 'type-fest';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithReportOrNotFoundProps} from './inbox/report/withReportOrNotFound';
@@ -66,7 +66,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         Navigation.goBack(backPath);
     };
 
-    const changeApprover = useCallback(() => {
+    const changeApprover = () => {
         if (selectedApproverType === APPROVER_TYPE.ADD_APPROVER) {
             if (policy && !isControlPolicy(policy)) {
                 Navigation.navigate(
@@ -88,38 +88,33 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
 
         assignReportToMe(report, currentUserDetails.accountID, currentUserDetails.email ?? '', policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber, rules);
         Navigation.dismissToPreviousRHP();
-    }, [selectedApproverType, report, currentUserDetails.accountID, currentUserDetails.email, policy, hasViolations, isASAPSubmitBetaEnabled, isTrackIntentUser, formatPhoneNumber, rules]);
+    };
 
-    const approverTypes = useMemo(() => {
-        const data: Array<ListItem<ApproverType>> = [
-            {
-                text: translate('iou.changeApprover.actions.addApprover'),
-                keyForList: APPROVER_TYPE.ADD_APPROVER,
-                alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
-                isSelected: selectedApproverType === APPROVER_TYPE.ADD_APPROVER,
-            },
-        ];
-
-        if (isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
-            data.push({
-                text: translate('iou.changeApprover.actions.bypassApprovers'),
-                keyForList: APPROVER_TYPE.BYPASS_APPROVER,
-                alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
-                isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
-            });
-        }
-
-        if (isPolicyAdmin(policy) && !isPendingDeletePolicy(policy)) {
-            data.push({
-                text: translate('iou.changeApprover.actions.reassignApprover'),
-                keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
-                alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
-                isSelected: selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER,
-            });
-        }
-
-        return data;
-    }, [translate, selectedApproverType, policy, report, currentUserDetails.accountID]);
+    const data: Array<ListItem<ApproverType>> = [
+        {
+            text: translate('iou.changeApprover.actions.addApprover'),
+            keyForList: APPROVER_TYPE.ADD_APPROVER,
+            alternateText: translate('iou.changeApprover.actions.addApproverSubtitle'),
+            isSelected: selectedApproverType === APPROVER_TYPE.ADD_APPROVER,
+        },
+    ];
+    if (isAllowedToApproveExpenseReport(report, currentUserDetails.accountID, policy)) {
+        data.push({
+            text: translate('iou.changeApprover.actions.bypassApprovers'),
+            keyForList: APPROVER_TYPE.BYPASS_APPROVER,
+            alternateText: translate('iou.changeApprover.actions.bypassApproversSubtitle'),
+            isSelected: selectedApproverType === APPROVER_TYPE.BYPASS_APPROVER,
+        });
+    }
+    if (isPolicyAdmin(policy) && !isPendingDeletePolicy(policy)) {
+        data.push({
+            text: translate('iou.changeApprover.actions.reassignApprover'),
+            keyForList: APPROVER_TYPE.REASSIGN_APPROVER,
+            alternateText: translate('iou.changeApprover.actions.reassignApproverSubtitle'),
+            isSelected: selectedApproverType === APPROVER_TYPE.REASSIGN_APPROVER,
+        });
+    }
+    const approverTypes = data;
 
     const shouldShowNotFoundView =
         (isEmptyObject(policy) && !isLoadingReportData) ||
@@ -128,22 +123,16 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
         !isMoneyRequestReport(report) ||
         isMoneyRequestReportPendingDeletion(report);
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('iou.changeApprover.title'),
-            onConfirm: changeApprover,
-        }),
-        [changeApprover, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('iou.changeApprover.title'),
+        onConfirm: changeApprover,
+    };
 
-    const listHeader = useMemo(
-        () => (
-            <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                <RenderHTML html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id, CONST.TAB.WORKFLOWS.APPROVALS)}`)} />
-            </View>
-        ),
-        [environmentURL, policy?.id, styles.flexRow, styles.mb5, styles.ph5, styles.renderHTML, translate],
+    const listHeader = (
+        <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
+            <RenderHTML html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id, CONST.TAB.WORKFLOWS.APPROVALS)}`)} />
+        </View>
     );
 
     if (shouldShowNotFoundView) {
