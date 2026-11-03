@@ -151,17 +151,18 @@ describe('StatusClearAfterPage', () => {
         expect(await getOnyxValue(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE)).toBe(FUTURE_CLEAR_AFTER);
     });
 
-    it('leaves Date and Time row telemetry unspecified', async () => {
-        // Given the existing page does not assign telemetry labels to its two footer fields
+    it('assigns the reserved telemetry label to each picker interaction', async () => {
+        // Given Date and Time open different pickers and need distinct static interaction labels
         // When both real row press targets render
         await renderPage();
 
-        // Then neither target invents metadata that is absent from the caller
+        // Then each press target keeps its field name and receives the matching reserved label
         const rows = screen.UNSAFE_getAllByType(PressableWithSecondaryInteraction);
         expect(rows).toHaveLength(2);
-        for (const row of rows) {
-            expect(row.props.sentryLabel).toBeUndefined();
-        }
+        expect(rows.at(0)?.props.accessibilityLabel).toBe('Date, 2026-11-10');
+        expect(rows.at(0)?.props.sentryLabel).toBe(CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_DATE);
+        expect(rows.at(1)?.props.accessibilityLabel).toBe('Time, 3:30 PM');
+        expect(rows.at(1)?.props.sentryLabel).toBe(CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_TIME);
     });
 
     it.each([

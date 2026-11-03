@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -15,6 +16,7 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {validateDateTimeIsAtLeastOneMinuteInFuture} from '@libs/ValidationUtils';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {updateDraftCustomStatus, updateStatusDraftCustomClearAfterDate} from '@userActions/User';
 
 import CONST from '@src/CONST';
@@ -23,6 +25,7 @@ import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useState} from 'react';
 
 type CustomStatusTypes = ValueOf<typeof CONST.CUSTOM_STATUS_TYPES>;
@@ -84,6 +87,7 @@ function StatusClearAfterPage() {
     const clearAfter = currentUserPersonalDetails.status?.clearAfter ?? '';
     const [customStatus] = useOnyx(ONYXKEYS.CUSTOM_STATUS_DRAFT);
     const [statusDraftCustomClearAfterDate] = useOnyx(ONYXKEYS.STATUS_DRAFT_CUSTOM_CLEAR_AFTER_DATE);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const draftClearAfter = customStatus?.clearAfter ?? '';
     const [draftPeriod, setDraftPeriod] = useState(() => getSelectedStatusType(draftClearAfter || clearAfter));
@@ -128,24 +132,44 @@ function StatusClearAfterPage() {
     const listFooterContent =
         draftPeriod !== CONST.CUSTOM_STATUS_TYPES.CUSTOM ? undefined : (
             <>
-                <MenuItemWithTopDescription
-                    title={customStatusDate}
-                    description={translate('statusPage.date')}
-                    shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE)}
-                    errorText={customDateError}
-                    titleStyle={styles.flex1}
-                    brickRoadIndicator={redBrickDateIndicator}
-                />
-                <MenuItemWithTopDescription
-                    title={customStatusTime}
-                    description={translate('statusPage.time')}
-                    shouldShowRightIcon
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME)}
-                    errorText={customTimeError}
-                    titleStyle={styles.flex1}
-                    brickRoadIndicator={redBrickTimeIndicator}
-                />
+                <MenuItem.Root
+                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_DATE), false, session)}
+                    sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_DATE}
+                    accessibilityLabel={[translate('statusPage.date'), customStatusDate].filter(Boolean).join(', ')}
+                >
+                    <MenuItemField.Row
+                        name={translate('statusPage.date')}
+                        value={customStatusDate}
+                    >
+                        {!!redBrickDateIndicator && <MenuItem.BrickRoadIndicator status={redBrickDateIndicator} />}
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                    {!!customDateError && (
+                        <MenuItem.HelpText
+                            isError
+                            message={customDateError}
+                        />
+                    )}
+                </MenuItem.Root>
+                <MenuItem.Root
+                    onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME), false, session)}
+                    sentryLabel={CONST.SENTRY_LABEL.CUSTOM_STATUS.CLEAR_AFTER_TIME}
+                    accessibilityLabel={[translate('statusPage.time'), customStatusTime].filter(Boolean).join(', ')}
+                >
+                    <MenuItemField.Row
+                        name={translate('statusPage.time')}
+                        value={customStatusTime}
+                    >
+                        {!!redBrickTimeIndicator && <MenuItem.BrickRoadIndicator status={redBrickTimeIndicator} />}
+                        <MenuItem.Chevron />
+                    </MenuItemField.Row>
+                    {!!customTimeError && (
+                        <MenuItem.HelpText
+                            isError
+                            message={customTimeError}
+                        />
+                    )}
+                </MenuItem.Root>
             </>
         );
 
