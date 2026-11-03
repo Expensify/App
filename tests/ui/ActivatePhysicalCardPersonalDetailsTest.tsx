@@ -21,7 +21,6 @@ import type {Card} from '@src/types/onyx';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
-import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -119,7 +118,7 @@ describe('ActivatePhysicalCardPersonalDetails', () => {
 
         // Then they are asked for a magic code first, because saving details needs one, and nothing is sent yet
         const magicCodeProps = jest.mocked(ValidateCodeActionContent).mock.lastCall?.[0];
-        expect(magicCodeProps?.validateCodeReasonCode).toBe(COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS);
+        expect(magicCodeProps?.validateCodeReasonCode).toBe(CONST.EXPENSIFY_CARD.ACTIVATE_CARD_VALIDATE_CODE_REASON);
         expect(TestHelper.getFetchMockCalls(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_ACTIVATE_EXPENSIFY_CARD)).toHaveLength(0);
 
         // When they enter the magic code

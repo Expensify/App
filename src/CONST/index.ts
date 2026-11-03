@@ -5883,6 +5883,7 @@ const CONST = {
             ANDROID_PAY: 'ANDROID_PAY',
         },
         APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON: 'approve_digital_wallet',
+        ACTIVATE_CARD_VALIDATE_CODE_REASON: 'activate_card',
         VERIFICATION_STATE: {
             LOADING: 'loading',
             VERIFIED: 'verified',

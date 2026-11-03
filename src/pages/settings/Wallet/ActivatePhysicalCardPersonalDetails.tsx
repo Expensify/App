@@ -32,7 +32,6 @@ import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Card} from '@src/types/onyx';
 
 import {subYears} from 'date-fns';
-import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useState} from 'react';
 import {View} from 'react-native';
 
@@ -99,8 +98,8 @@ function ActivatePhysicalCardPersonalDetails({card, lastFourDigits, onBackButton
             <ValidateCodeActionContent
                 title={translate('cardPage.validateCardTitle')}
                 descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
-                sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS})}
-                validateCodeReasonCode={COMMON_CONST.VALIDATE_CODE_REASONS.UPDATE_PERSONAL_DETAILS}
+                sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.EXPENSIFY_CARD.ACTIVATE_CARD_VALIDATE_CODE_REASON})}
+                validateCodeReasonCode={CONST.EXPENSIFY_CARD.ACTIVATE_CARD_VALIDATE_CODE_REASON}
                 validateCodeActionErrorField={CONST.MISSING_PERSONAL_DETAILS_VALIDATE_CODE_FIELD}
                 handleSubmitForm={(validateCode) => setPersonalDetailsAndActivateExpensifyCard(lastFourDigits, card.cardID, personalDetailsToSave, validateCode)}
                 validateError={card.errors ?? undefined}
