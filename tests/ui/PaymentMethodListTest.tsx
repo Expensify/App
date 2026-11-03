@@ -45,7 +45,7 @@ function createExpensifyCard(cardID: number, domainName: string, nameValuePairs:
     });
 }
 
-function createWiseBankAccountList(status: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>): BankAccountList {
+function createWiseBankAccountList(status: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>, state: ValueOf<typeof CONST.BANK_ACCOUNT.STATE> = CONST.BANK_ACCOUNT.STATE.OPEN): BankAccountList {
     return {
         [WISE_BANK_ACCOUNT_ID]: createMock<BankAccount>({
             methodID: WISE_BANK_ACCOUNT_ID,
@@ -54,7 +54,7 @@ function createWiseBankAccountList(status: ValueOf<typeof CONST.WISE.ONBOARDING_
                 bankAccountID: WISE_BANK_ACCOUNT_ID,
                 accountNumber: 'XXXXXX1234',
                 type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
-                state: CONST.BANK_ACCOUNT.STATE.OPEN,
+                state,
                 additionalData: {currency: CONST.CURRENCY.USD, wise: {status}},
             },
         }),
@@ -177,6 +177,42 @@ describe('PaymentMethodList', () => {
         // Then the row asks for the info with a Review button, so the admin can send it and finish enabling global reimbursements
         expect(screen.getByText(WISE_MORE_INFO_NEEDED_MESSAGE)).toBeOnTheScreen();
         expect(screen.getByText('Review')).toBeOnTheScreen();
+    });
+
+    it('marks a bank account Wise needs more info on with the green dot', async () => {
+        // Given a business bank account Wise asked for more info on, with global reimbursements in beta
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.BETAS]: [CONST.BETAS.WISE_REIMBURSEMENTS],
+                [ONYXKEYS.BANK_ACCOUNT_LIST]: createWiseBankAccountList(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED),
+            });
+        });
+
+        // When the Wallet's bank account list renders
+        renderBankAccountsList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row carries the brick road indicator, matching the green dot on Account > Wallet that led the admin here
+        expect(screen.getByLabelText(/Your review is required/)).toBeOnTheScreen();
+    });
+
+    it('shows the message without the Review button when the user cannot open the business onboarding', async () => {
+        // Given a business bank account Wise asked for more info on that is not open, so the business onboarding cannot be opened for it
+        await act(async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.BETAS]: [CONST.BETAS.WISE_REIMBURSEMENTS],
+                [ONYXKEYS.BANK_ACCOUNT_LIST]: createWiseBankAccountList(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, CONST.BANK_ACCOUNT.STATE.VERIFYING),
+            });
+        });
+
+        // When the Wallet's bank account list renders
+        renderBankAccountsList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row still says Wise needs more info, but offers no Review button or green dot, since the user could not send it
+        expect(screen.getByText(WISE_MORE_INFO_NEEDED_MESSAGE)).toBeOnTheScreen();
+        expect(screen.queryByText('Review')).not.toBeOnTheScreen();
+        expect(screen.queryByLabelText(/Your review is required/)).not.toBeOnTheScreen();
     });
 
     it('does not ask for more info once the admin sent it', async () => {

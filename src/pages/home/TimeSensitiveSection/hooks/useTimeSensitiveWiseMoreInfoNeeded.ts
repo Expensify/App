@@ -1,7 +1,7 @@
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
-import {getLastFourDigits, isWiseMoreInfoNeeded} from '@libs/BankAccountUtils';
+import {getLastFourDigits, isBankAccountEligibleForGlobalReimbursements, isWiseMoreInfoNeeded} from '@libs/BankAccountUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +24,8 @@ const wiseMoreInfoNeededBankAccountsSelector = (bankAccountList: OnyxEntry<BankA
     const bankAccounts: WiseMoreInfoNeededBankAccount[] = [];
     for (const bankAccount of Object.values(bankAccountList ?? {})) {
         const bankAccountID = bankAccount?.accountData?.bankAccountID;
-        if (!bankAccountID || !isWiseMoreInfoNeeded(bankAccount)) {
+        // Sending the info takes the same access as opening the business onboarding, so only those who can do it get the task
+        if (!bankAccountID || !isWiseMoreInfoNeeded(bankAccount) || !isBankAccountEligibleForGlobalReimbursements(bankAccount.accountData, bankAccount.bankCurrency)) {
             continue;
         }
         bankAccounts.push({

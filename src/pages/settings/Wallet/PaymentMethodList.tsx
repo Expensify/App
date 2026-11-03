@@ -19,6 +19,7 @@ import {
     getBankAccountConnectionStatus,
     getBankAccountState,
     canLinkPlaid,
+    isBankAccountEligibleForGlobalReimbursements,
     isGlobalReimbursementsEnabled,
     isPersonalBankAccountMissingInfo,
     isWiseMoreInfoNeeded,
@@ -648,11 +649,15 @@ function PaymentMethodList({
                     : undefined;
 
             // Like the connection status, the Wise prompt belongs to the Wallet page and not to the pickers that reuse this list
-            const shouldShowWiseMoreInfoNeeded = shouldShowConnectionStatus && isWiseGlobalReimbursementsEnabled && isWiseMoreInfoNeeded(paymentMethod);
+            const shouldShowWiseMoreInfoNeeded = shouldShowConnectionStatus && isWiseGlobalReimbursementsEnabled && isWiseMoreInfoNeeded(paymentMethod) && methodID !== undefined;
+            // Sending the info takes the same access as opening the business onboarding, so other holders only see the message
+            const canReviewWiseMoreInfoNeeded = shouldShowWiseMoreInfoNeeded && isBankAccountEligibleForGlobalReimbursements(paymentMethod.accountData, bankAccountCurrency);
+            // An error or a connection problem on the row is more urgent, so the Wise prompt only adds the green dot when the row has none
+            const wiseMoreInfoNeededBrickRoadIndicator = canReviewWiseMoreInfoNeeded ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 
             return {
                 ...paymentMethod,
-                wiseMoreInfoNeededBankAccountID: shouldShowWiseMoreInfoNeeded ? methodID : undefined,
+                wiseMoreInfoNeeded: shouldShowWiseMoreInfoNeeded ? {bankAccountID: methodID, canReview: canReviewWiseMoreInfoNeeded} : undefined,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
                 onPress: paymentMethodPress,
                 onThreeDotsMenuPress: paymentMethodThreeDotsPress,
@@ -664,7 +669,9 @@ function PaymentMethodList({
                 isMissingPersonalInfo,
                 isGlobalReimbursementsEnabled:
                     isWiseGlobalReimbursementsEnabled && paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && isGlobalReimbursementsEnabled(paymentMethod),
-                brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
+                brickRoadIndicator: shouldShowConnectionStatus
+                    ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator ?? wiseMoreInfoNeededBrickRoadIndicator)
+                    : existingBrickRoadIndicator,
                 connectionStatus: bankConnectionStatus
                     ? mapBankStatusToRowStatus(
                           bankConnectionStatus,

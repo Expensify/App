@@ -22,6 +22,9 @@ import {View} from 'react-native';
 type WiseMoreInfoNeededRowProps = {
     bankAccountID: number;
 
+    /** Whether the user can open the business onboarding for the account, so the Review button can take them to send the info */
+    canReview: boolean;
+
     /** Spacing for the row, which follows the list it sits in */
     style?: StyleProp<ViewStyle>;
 };
@@ -30,7 +33,7 @@ type WiseMoreInfoNeededRowProps = {
  * Prompts the admin under the Wallet bank account row to send Wise the info it asked for, so global reimbursements can be enabled.
  * Laid out like the other call-to-action rows in the Wallet list so they read as the same kind of prompt.
  */
-function WiseMoreInfoNeededRow({bankAccountID, style}: WiseMoreInfoNeededRowProps) {
+function WiseMoreInfoNeededRow({bankAccountID, canReview, style}: WiseMoreInfoNeededRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -46,14 +49,16 @@ function WiseMoreInfoNeededRow({bankAccountID, style}: WiseMoreInfoNeededRowProp
                 />
                 <Text style={[styles.mutedNormalTextLabel, styles.label, styles.textSuccess, styles.flexShrink1]}>{translate('walletPage.wiseMoreInfoNeeded')}</Text>
             </View>
-            <Button
-                size={CONST.BUTTON_SIZE.SMALL}
-                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                onPress={() => navigateToWiseMoreInfoNeeded(bankAccountID)}
-                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.WISE_MORE_INFO_NEEDED_REVIEW}
-            >
-                <Button.Text>{translate('common.review')}</Button.Text>
-            </Button>
+            {canReview && (
+                <Button
+                    size={CONST.BUTTON_SIZE.SMALL}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={() => navigateToWiseMoreInfoNeeded(bankAccountID)}
+                    sentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.WISE_MORE_INFO_NEEDED_REVIEW}
+                >
+                    <Button.Text>{translate('common.review')}</Button.Text>
+                </Button>
+            )}
         </View>
     );
 }

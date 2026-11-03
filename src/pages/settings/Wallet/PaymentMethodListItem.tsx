@@ -93,8 +93,13 @@ type PaymentMethodItem = PaymentMethod & {
     /** Wallet the addition was requested from, used to name it in the "Review" CTA row */
     digitalWalletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>;
 
-    /** ID of the bank account Wise asked for more info on, which shows the "Review" CTA row */
-    wiseMoreInfoNeededBankAccountID?: number;
+    /** The bank account Wise asked for more info on, which shows the "More information needed" row */
+    wiseMoreInfoNeeded?: {
+        bankAccountID: number;
+
+        /** Whether the user can open the business onboarding for the account, which shows the Review button */
+        canReview: boolean;
+    };
 
     /** Whether the bank account is set up for global reimbursements, which shows a globe next to its name */
     isGlobalReimbursementsEnabled?: boolean;
@@ -359,9 +364,10 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     style={[styles.pv3, cardPaddingHorizontal]}
                 />
             )}
-            {!!item.wiseMoreInfoNeededBankAccountID && (
+            {!!item.wiseMoreInfoNeeded && (
                 <WiseMoreInfoNeededRow
-                    bankAccountID={item.wiseMoreInfoNeededBankAccountID}
+                    bankAccountID={item.wiseMoreInfoNeeded.bankAccountID}
+                    canReview={item.wiseMoreInfoNeeded.canReview}
                     style={[styles.mb2, cardPaddingHorizontal]}
                 />
             )}
