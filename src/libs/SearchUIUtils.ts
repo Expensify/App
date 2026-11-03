@@ -248,7 +248,6 @@ import {
     hasDisplayableMCC,
     isDeletedTransaction,
     isOnHold,
-    isPending,
     isScanning,
     isViolationDismissed,
     shouldShowAttendees as shouldShowAttendeesUtils,
@@ -2338,13 +2337,11 @@ function getActions(
         return allActions.length > 0 ? allActions : [CONST.SEARCH.ACTION_TYPES.DONE];
     }
 
-    const hasOnlyPendingCardOrScanningTransactions = allReportTransactions.length > 0 && allReportTransactions.every((t) => isScanning(t) || isPending(t));
-
     const ownerLogin = getLoginByAccountID(report.ownerAccountID, data.personalDetailsList);
     const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
     const isAllowedToApproveExpenseReport = isAllowedToApproveExpenseReportUtils(report, submitToAccountID, policy);
 
-    if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport && !hasOnlyPendingCardOrScanningTransactions) {
+    if (canApproveIOU(report, policy, reportMetadata, currentUserAccountID, allReportTransactions) && isAllowedToApproveExpenseReport) {
         allActions.push(CONST.SEARCH.ACTION_TYPES.APPROVE);
     }
 

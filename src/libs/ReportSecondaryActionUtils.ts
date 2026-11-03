@@ -97,6 +97,7 @@ import {
     allHavePendingRTERViolation,
     getOriginalTransactionWithSplitInfo,
     hasOnlyPendingCardTransactions,
+    hasOnlyUnsettledExpenses,
     hasReceipt as hasReceiptTransactionUtils,
     hasSmartScanFailedWithMissingFields,
     hasSubmissionBlockingViolations,
@@ -365,7 +366,7 @@ function isApproveAction(
         return true;
     }
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+    if (hasOnlyUnsettledExpenses(reportTransactions, report)) {
         return false;
     }
 

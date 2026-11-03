@@ -292,6 +292,7 @@ import {
     hasMissingSmartscanFieldsForRBR,
     hasNonReimbursableTransactions,
     hasNoticeTypeViolation,
+    hasOnlyUnsettledExpenses,
     hasReceipt as hasReceiptTransactionUtils,
     hasViolation,
     hasWarningTypeViolation,
@@ -3429,13 +3430,15 @@ function canApproveIOU(
     const isReportOpen = isOpenExpenseReport(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
-    const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isScanning(transaction) || isPending(transaction));
-    if (hasOnlyPendingCardOrScanningTransactions) {
+    if (reportTransactions.length === 0 || !isCurrentUserManager || isReportOpen || isApproved || iouSettled) {
+        return false;
+    }
+    if (hasOnlyUnsettledExpenses(reportTransactions, iouReport ?? undefined)) {
         return false;
     }
     const isReportPayAtEnd = isPayAtEndExpenseReport(iouReport ?? undefined, reportTransactions);
     const isReportClosed = isClosedReport(iouReport);
-    return reportTransactions.length > 0 && isCurrentUserManager && !isReportOpen && !isApproved && !iouSettled && !isReportPayAtEnd && !isReportClosed;
+    return !isReportPayAtEnd && !isReportClosed;
 }
 
 function canIOUBePaid(
