@@ -728,7 +728,7 @@ describe('SettlementButton', () => {
                         additionalData: {isForABA: true},
                     },
                 },
-            } as BankAccountList;
+            };
 
             await setupOnyxState({
                 report: invoiceReport,
