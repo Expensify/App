@@ -27,7 +27,10 @@ function RejectedContent({onDone}: RejectedContentProps) {
     return (
         <ConfirmationPage>
             <ConfirmationPage.Content style={styles.ph5}>
-                <ConfirmationPage.Illustration illustration={illustrations.MagnifyingGlassSpyNewspaper} />
+                <ConfirmationPage.Illustration
+                    illustration={illustrations.MagnifyingGlassSpyNewspaper}
+                    illustrationStyle={styles.wiseOnboardingRejectedIllustration}
+                />
                 <ConfirmationPage.Heading>{translate('walletPage.wiseOnboarding.rejected.heading')}</ConfirmationPage.Heading>
                 <ConfirmationPage.Description style={styles.textSupporting}>{translate('walletPage.wiseOnboarding.rejected.description')}</ConfirmationPage.Description>
             </ConfirmationPage.Content>
@@ -39,6 +42,7 @@ function RejectedContent({onDone}: RejectedContentProps) {
                 />
                 <ConfirmationPage.PrimaryButton
                     text={translate('common.buttonConfirm')}
+                    style={styles.mt2}
                     sentryLabel={CONST.SENTRY_LABEL.WISE_ONBOARDING_REJECTED.GOT_IT}
                     onPress={onDone}
                 />
