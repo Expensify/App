@@ -65,7 +65,7 @@ function useMerchantRuleSuggestion(reportID: string | undefined, policyID: strin
     // Built here rather than only on press, so an offer that would apply nothing never appears. Clearing a field is
     // still an edit worth recording, but the rule it would make sets that field to empty, which changes nothing.
     const draft = suggestion && transaction ? getMerchantRuleDraftFromTransaction(transaction, fields, policy, editedTagLevels) : undefined;
-    const hasUpdatesToApply = !!draft && Object.keys(draft).some((key) => key !== INPUT_IDS.MERCHANT_TO_MATCH && key !== INPUT_IDS.RULE_TYPE);
+    const hasUpdatesToApply = !!draft && Object.keys(draft).some((key) => key !== INPUT_IDS.MERCHANT_TO_MATCH);
 
     // A rule matches on merchant, so an expense without one (a receipt still scanning) can't seed one. Nor can an
     // offer with nothing recorded, which is how an expense reads once its fields are cleared.
