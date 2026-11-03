@@ -3,7 +3,7 @@
 ### [react-native+0.88.0+002+fixMVCPAndroid.patch](react-native+0.88.0+002+fixMVCPAndroid.patch)
 
 - Reason: Fixes content jumping issues with `MaintainVisibleContentPosition` on Android, particularly in bidirectional pagination scenarios. The patch makes two key improvements:
-  1. Changes when the first visible view is calculated - now happens on scroll events instead of during Fabric's willMountItems lifecycle, which was causing incorrect updates. The `onScroll()` call is added to `onScrollChanged` in the Kotlin `ReactScrollView` and `ReactHorizontalScrollView`, and also in `ReactNestedScrollView` (used only with the `useNestedScrollViewAndroid` flag), so the anchor does not go stale if that flag is turned on.
+  1. Changes when the first visible view is calculated - now happens on scroll events instead of during Fabric's willMountItems lifecycle, which was causing incorrect updates
   2. Improves first visible view selection logic to handle Fabric's z-index-based view reordering by finding the view with the smallest position that's still greater than the scroll position
 - Upstream PR/issue: https://github.com/react/react-native/pull/57959 merged on 2026-10-28 as [9bc1a28a9623419d62eb350acd0c172644e2c022](https://github.com/react/react-native/commit/9bc1a28a9623419d62eb350acd0c172644e2c022). It ports the original Android MVCP proposal and includes z-index anchor selection and support for LegendList's positioned, zero-sized anchor.
 - Expected release: React Native 0.89.0, [currently scheduled for 2026-12-07](https://reactnative.dev/releases/overview), unless cherry-picked into an earlier release. The fix landed after the 0.88 branch cut and before the scheduled 0.89 branch cut on 2026-11-03.
@@ -49,7 +49,7 @@
 
 ### [react-native+0.88.0+009+textinput-clear-command.patch](react-native+0.88.0+009+textinput-clear-command.patch)
 
-- Reason: Adds clear command functionality to TextInput. The TypeScript types are added to `types_DEPRECATED/`, which the App resolves through the `react-native-legacy-deep-imports` condition in `tsconfig.base.json`; add them to `types_generated/` too when the App moves to the Strict TypeScript API.
+- Reason: Adds clear command functionality to TextInput
 - Upstream PR/issue: 🛑
 - E/App issue: 🛑
 - PR Introducing Patch: 🛑
@@ -61,7 +61,6 @@
     - Fixes an issue where pasted image displays as binary text on some Android devices where rich clipboard data is stored in binary form
     - Fixes an issue where pasting from WPS Office app crashes the app on Android where its content URI is not recognized by Android `ContentResolver`
     - Fixes an issue where mentions copied from mWeb and pasted on Android are not displayed.
-- Types: `onPaste`, `PasteEvent` and `TextInputPasteEventData` are typed in `types_DEPRECATED/` (see 009 about the Strict TypeScript API).
 - Upstream PR/issue: https://github.com/facebook/react-native/pull/45425
 - Upstream RFC: https://github.com/s77rt/discussions-and-proposals/blob/TextInput-onPaste/proposals/0000-textinput-onpaste.md
 - E/App issue:
@@ -128,7 +127,6 @@
 - Reason: On iOS, a text input automatically becomes the "first responder" in UIKit's "UIResponder" chain. Once a text input becomes the first responder, it will be automatically focused. (This also causes the keyboard to open)
     - This is not handled by React or React Native, but is rather a native iOS/UIKit behaviour. This patch adds an additional `TextInput` prop (`preventFocusOnFirstResponder`) and a ref method (`preventFocusOnFirstResponderOnce`) to bypass the focus on first responder.
     - In E/App this causes issues with e.g. the keyboard briefly opening after a modal has been dismissed before another modal is opened (`ReportActionContextMenu` -> `EmojiPicker`)
-    - The TypeScript props are added to `types_DEPRECATED/` (see 009 about the Strict TypeScript API).
 - Upstream PR/issue: None, because this is not a real bug fix but a hotfix specific to Expensify
 - E/App issue: [#54813](https://github.com/Expensify/App/issues/54813)
 - PR Introducing Patch: [#61492](https://github.com/Expensify/App/pull/61492)
@@ -170,8 +168,8 @@
 
 ### [react-native+0.88.0+025+fix-display-contents-dirty-flag.patch](react-native+0.88.0+025+fix-display-contents-dirty-flag.patch)
 
-- Reason: When a child node has `display: contents`, Yoga may reuse cached layout results from a previous pass even though the subtree has changed. This patch marks the parent yoga node as dirty when it encounters a child with `display: contents`, ensuring Yoga re-visits and recalculates the layout for that subtree instead of skipping it. The check runs at the end of the `YogaLayoutableShadowNode` clone constructor, right before `ensureConsistency()`.
-- Upstream PR/issue: 🛑 for this patch. A related upstream Yoga fix (#58721, `19a6722f91`) is not in 0.88.0.
+- Reason: When a child node has `display: contents`, Yoga may reuse cached layout results from a previous pass even though the subtree has changed. This patch marks the parent yoga node as dirty when it encounters a child with `display: contents`, ensuring Yoga re-visits and recalculates the layout for that subtree instead of skipping it.
+- Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/85877
 - PR introducing patch: 🛑
 
@@ -211,10 +209,9 @@
     On the C++ side, borderRadius + borderTopLeftRadius / borderTopRightRadius /
     borderBottomLeftRadius / borderBottomRightRadius fields are added to TextAttributes and wired
     through BaseTextProps and conversions. borderRadius acts as a fallback for unset individual
-    corners; unset corners default to 0 when any radius prop is present. On Android,
-    ReactBackgroundDrawSpan (a CanvasEffectSpan that is also a ReactSpan and UpdateAppearance) draws
-    rounded-rect backgrounds using the four effective corner radii. The new props use MapBuffer keys
-    32-35, after the keys upstream already takes. On iOS, a custom NSLayoutManager subclass
+    corners; unset corners default to 0 when any radius prop is present. On Android, a custom
+    CanvasEffectSpan with ReactBackgroundDrawSpan draws rounded-rect backgrounds using the four
+    effective corner radii. On iOS, a custom NSLayoutManager subclass
     (RCTTextLayoutManagerWithBorderRadius) overrides fillBackgroundRectArray to draw per-corner
     rounded rectangles using CGPath, with per-line outer-corner rounding for multiline spans.
     ```
@@ -225,15 +222,15 @@
 
 ### [react-native+0.88.0+032+fix-recycled-view-stale-frame.patch](react-native+0.88.0+032+fix-recycled-view-stale-frame.patch)
 
-- Reason: Fixes an iOS Fabric bug where a recycled `RCTViewComponentView` keeps the geometry of its previous occupant, leaving an invisible view that swallows all touches (e.g. the app appears frozen after the `SplashScreenHider` fade/scale animation finishes). `prepareForRecycle` cleared `_layoutMetrics` to `{}` but never updated the physical `center`/`bounds`, nor did it reset the layer transform/opacity that libraries like Reanimated mutate directly on the UI thread (bypassing `_propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN`). When such a view was later dequeued for a zero-sized wrapper component, `updateLayoutMetrics` saw the incoming zero frame match the (already zero) stored `_layoutMetrics.frame`, skipped updating `center`/`bounds`, and the view retained the splash overlay's full-screen frame. Upstream #57590 (`711a9a5e07`, in 0.88.0) now resets `_layoutMetrics` to `EmptyLayoutMetrics` in `prepareForRecycle`, which fixes the stale geometry, but it still only resets the layer transform/opacity when Animated registered those keys. The patch unconditionally realigns `layer.transform`/`layer.opacity` with the shadow-tree props before the view returns to the recycle pool.
+- Reason: Fixes an iOS Fabric bug where a recycled `RCTViewComponentView` keeps the geometry of its previous occupant, leaving an invisible view that swallows all touches (e.g. the app appears frozen after the `SplashScreenHider` fade/scale animation finishes). `prepareForRecycle` cleared `_layoutMetrics` to `{}` but never updated the physical `center`/`bounds`, nor did it reset the layer transform/opacity that libraries like Reanimated mutate directly on the UI thread (bypassing `_propKeysManagedByAnimated_DO_NOT_USE_THIS_IS_BROKEN`). When such a view was later dequeued for a zero-sized wrapper component, `updateLayoutMetrics` saw the incoming zero frame match the (already zero) stored `_layoutMetrics.frame`, skipped updating `center`/`bounds`, and the view retained the splash overlay's full-screen frame. The patch unconditionally realigns `layer.transform`/`layer.opacity` with the shadow-tree props before the view returns to the recycle pool. Resetting `center`/`bounds` is upstream since 0.88.0 (#57590).
 - Upstream PR/issue: 🛑
 - E/App issue: https://github.com/Expensify/App/issues/91629
 - PR introducing patch: https://github.com/Expensify/App/pull/92484
 
 ### [react-native+0.88.0+033+fix-runtime-scheduler-delegate-uaf-APP-25V.patch](react-native+0.88.0+033+fix-runtime-scheduler-delegate-uaf-APP-25V.patch)
 
-- Reason: Fixes a fatal iOS HybridApp crash (APP-25V) where `RuntimeScheduler_Modern::runEventLoopTick` can drain deferred Fabric rendering updates after the captured `SchedulerDelegate` has been torn down. React Native queues `Scheduler::uiManagerDidFinishTransaction` and `Scheduler::uiManagerDidDispatchCommand` callbacks with lambdas that capture the raw `delegate_` pointer by value. During OldDot↔NewDot lifecycle churn, the delegate can be replaced or destroyed before the scheduled rendering update runs, causing `EXC_BAD_ACCESS` when the lambda dereferences stale native memory. This patch adds a per-delegate `shared_ptr<atomic<bool>>` token (`delegateInvalidated_`), invalidates the old token on delegate changes and Scheduler destruction, and makes already-queued lambdas no-op before touching a stale delegate. Upstream added the same guard behind the `enableSchedulerDelegateInvalidation` flag (#56680) and then removed the flag and the guard in `9682967a09` (#58138, in 0.88.0), relying on `RuntimeScheduler_Modern::handleTaskError` instead. That only covers teardown after an uncaught JS error; a delegate destroyed without an error, which is the HybridApp switch behind APP-25V, is still a use-after-free, as the upstream commit message itself notes.
-- Upstream PR/issue: https://github.com/facebook/react-native/pull/56680 / https://github.com/facebook/react-native/commit/aadbe965792bd900ca70412d6704b76e339d1aca
+- Reason: Fixes a fatal iOS HybridApp crash (APP-25V) where `RuntimeScheduler_Modern::runEventLoopTick` can drain deferred Fabric rendering updates after the captured `SchedulerDelegate` has been torn down. React Native queues `Scheduler::uiManagerDidFinishTransaction` and `Scheduler::uiManagerDidDispatchCommand` callbacks with lambdas that capture the raw `delegate_` pointer by value. During OldDot↔NewDot lifecycle churn, the delegate can be replaced or destroyed before the scheduled rendering update runs, causing `EXC_BAD_ACCESS` when the lambda dereferences stale native memory. This patch backports the upstream RN scheduler-delegate invalidation guard by adding a per-delegate `shared_ptr<atomic<bool>>` token, invalidating the old token on delegate changes and Scheduler destruction, and making already-queued lambdas no-op before touching a stale delegate.
+- Upstream PR/issue: https://github.com/facebook/react-native/pull/56680 / https://github.com/facebook/react-native/commit/aadbe965792bd900ca70412d6704b76e339d1aca. Upstream removed the guard again in 0.88.0 (#58138), which still crashes when the delegate is destroyed without a JS error.
 - E/App issue: https://github.com/Expensify/App/issues/92412
 - PR introducing patch: https://github.com/Expensify/App/pull/93878
 
@@ -246,7 +243,7 @@
     backgrounds on iOS and Android. On the C++ side, borderColor, borderTopColor, borderRightColor,
     borderBottomColor, borderLeftColor, borderWidth, borderTopWidth, borderRightWidth,
     borderBottomWidth, and borderLeftWidth fields are added to TextAttributes and wired through
-    BaseTextProps and conversions (MapBuffer keys 36-43). borderWidth acts as a fallback for unset individual widths;
+    BaseTextProps and conversions. borderWidth acts as a fallback for unset individual widths;
     borderColor acts as a fallback for unset individual colors. On Android,
     ReactBackgroundDrawSpan is extended to draw per-side stroked borders (with corner arcs matching
     the border radius) using separate Paint strokes for each side. On iOS,
@@ -266,16 +263,13 @@
     Adds horizontal padding (paddingLeft / paddingRight / paddingHorizontal) support for nested
     <Text> spans that have a border, so the border does not touch the text. On the C++ side,
     paddingLeft and paddingRight fields are added to TextAttributes, resolved from paddingLeft /
-    paddingRight / paddingHorizontal props in BaseTextProps (MapBuffer keys 44-45); TextInput explicitly clears them to
+    paddingRight / paddingHorizontal props in BaseTextProps; TextInput explicitly clears them to
     avoid leaking view-level padding into text fragments. On Android, zero-width spacer spans
     (ReactInlinePaddingSpan) are inserted before/after bordered fragments to reserve horizontal
     advance, and ReactBackgroundDrawSpan extends its fill/border box by the padding amount. On
     iOS, NSKern attributes and firstLineHeadIndent reserve advance around bordered spans, an
     NSLayoutManager delegate indents soft-wrapped lines that begin with a bordered span, and
-    RCTTextLayoutManager inflates the measured size to account for the reserved space. On Android the
-    trailing spacer sits before the text-effects coalescing step, so a text-effect range can span the
-    spacer characters between fragments; this only matters when bordered spans and custom text
-    effects are combined.
+    RCTTextLayoutManager inflates the measured size to account for the reserved space.
     ```
 
 - Upstream PR/issue: 🛑
@@ -303,7 +297,7 @@
 
 ### [react-native+0.88.0+045+soft-fail-addViewAt-non-ViewGroup-parent-APP-K0G.patch](react-native+0.88.0+045+soft-fail-addViewAt-non-ViewGroup-parent-APP-K0G.patch)
 
-- Reason: Fixes the fatal `IllegalStateException: Unable to add a view into a view that is not a ViewGroup` behind `APP-K0G`. `SurfaceMountingManager.addViewAt` throws when the parent tag has a `ViewState` whose view is null or not a `ViewGroup`. The usual source is a placeholder `ViewState` with no view, which `updateEventEmitter` creates for a tag Java no longer has; the next batch's `Insert` into that tag then throws, and `IntBufferBatchMountItem` is not retryable, so the app crashes. The crash kept firing after `+015` shipped in `9.4.93-3` (last seen on `9.4.94-0`), so the remaining sources (delayed deletes during touches, differ flatten/unflatten bugs, Reanimated-rewritten transactions) still reach it. The patch removes the `checkNotNull(parentView)` that precedes the check and turns the throw into a soft log of a `ReactNoCrashSoftException` with the parent view class, then skips the insert, so a null parent is covered too. This matches upstream's handling of the same condition in `removeViewAt` and the missing-`ViewState` case already handled a few lines above in `addViewAt`. The child may be missing until the next render that rebuilds that parent, instead of the app crashing.
+- Reason: Fixes the fatal `IllegalStateException: Unable to add a view into a view that is not a ViewGroup` behind `APP-K0G`. `SurfaceMountingManager.addViewAt` throws when the parent tag has a `ViewState` whose view is null or not a `ViewGroup`. The usual source is a placeholder `ViewState` with no view, which `updateEventEmitter` creates for a tag Java no longer has; the next batch's `Insert` into that tag then throws, and `IntBufferBatchMountItem` is not retryable, so the app crashes. The crash kept firing after `+015` shipped in `9.4.93-3` (last seen on `9.4.94-0`), so the remaining sources (delayed deletes during touches, differ flatten/unflatten bugs, Reanimated-rewritten transactions) still reach it. The patch soft-logs a `ReactNoCrashSoftException` with the parent view class and skips the insert, which matches upstream's handling of the same condition in `removeViewAt` and the missing-`ViewState` case already handled a few lines above in `addViewAt`. The child may be missing until the next render that rebuilds that parent, instead of the app crashing.
 - Upstream PR/issue: [react-native@3f553d7](https://github.com/react/react-native/commit/3f553d76bc3f4f57e62653d11bab415a21cd02a8) (same change for `removeViewAt`), [react-native#58526](https://github.com/react/react-native/issues/58526) (placeholder `ViewState` from `updateEventEmitter`), [react-native#58527](https://github.com/react/react-native/pull/58527) (open, guards only the child)
 - E/App issue: https://github.com/Expensify/App/issues/102741
 - PR introducing patch: https://github.com/Expensify/App/pull/102901
