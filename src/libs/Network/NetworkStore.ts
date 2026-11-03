@@ -106,17 +106,13 @@ function isSupportAuthToken(): boolean {
     return authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 }
 
-function setAuthToken(newAuthToken: string | null, newEncryptedAuthToken?: string) {
+function setAuthToken(newAuthToken: string | null, newEncryptedAuthToken: string | null) {
     if (authToken && !newAuthToken) {
         const stack = new Error().stack?.split('\n').slice(0, AUTH_TOKEN_DROP_STACK_FRAMES).join('\n');
         lastAuthTokenDrop = {source: 'setAuthToken', droppedAt: Date.now(), stack};
         Log.info('[NetworkStore] authToken dropped', false, {source: 'setAuthToken', stack});
     }
-    // Preserve the encrypted token when the same plain token is set without a replacement.
-    // A changed plain token must not retain the previous token's encrypted counterpart.
-    if (authToken !== newAuthToken || newEncryptedAuthToken !== undefined) {
-        encryptedAuthToken = newEncryptedAuthToken ?? null;
-    }
+    encryptedAuthToken = newEncryptedAuthToken;
     authToken = newAuthToken;
 }
 

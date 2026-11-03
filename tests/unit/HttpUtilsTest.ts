@@ -164,7 +164,7 @@ describe('HttpUtils', () => {
         it.each(['untrusted host', 'missing token'])('prevents credential leakage with an %s', async (reason) => {
             // Given either an untrusted host or a session transition missing its matching encrypted token
             if (reason === 'missing token') {
-                setAuthToken('different-api-token');
+                setAuthToken('different-api-token', null);
             }
             const fetchMock = jest.fn();
             globalThis.fetch = fetchMock;
