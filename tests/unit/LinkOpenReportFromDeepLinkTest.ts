@@ -181,6 +181,179 @@ describe('openReportFromDeepLink before onboarding', () => {
         expect(mockedSetDeepLinkToOpenAfterOnboarding).not.toHaveBeenCalled();
     });
 
+    it.each([{reportID: '123'}, {reportID: '123', errorFields: {notFound: {'1': 'Report not found'}}}])(
+        'cancels a report waiter when the session ends before the report resolves as %j',
+        async (report) => {
+            // Given a workspace member has signed in but the linked report has not arrived.
+            focusOn(NAVIGATORS.TAB_NAVIGATOR);
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
+            openReportFromDeepLink(`${APP_URL}/r/123/456`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+            await waitForBatchedUpdates();
+            expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+
+            // When the session ends before a later account loads the report or its not-found response.
+            runSessionCleanupCallbacks();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, report);
+            await waitForBatchedUpdates();
+
+            // Then neither the old target nor its missing-report fallback can navigate the new session.
+            expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+            expect(mockedNavigateToConciergeChat).not.toHaveBeenCalled();
+        },
+    );
+
+    it('ignores an already queued report callback after session cleanup', async () => {
+        // Given the report waiter exists and its callback may already have been queued for delivery.
+        focusOn(NAVIGATORS.TAB_NAVIGATOR);
+        const connectSpy = jest.spyOn(Onyx, 'connectWithoutView');
+        try {
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            openReportFromDeepLink(`${APP_URL}/r/123/456`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+            await waitForBatchedUpdates();
+            const reportCallback = connectSpy.mock.calls.find(([options]) => options.key === `${ONYXKEYS.COLLECTION.REPORT}123`)?.[0].callback;
+            expect(reportCallback).toBeDefined();
+
+            // When cancellation happens before that captured callback is delivered.
+            runSessionCleanupCallbacks();
+            reportCallback?.({reportID: '123'}, `${ONYXKEYS.COLLECTION.REPORT}123`);
+
+            // Then disconnecting is backed by a cancellation check, not just the absence of future notifications.
+            expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+            expect(mockedNavigateToConciergeChat).not.toHaveBeenCalled();
+        } finally {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123'});
+            await waitForBatchedUpdates();
+            connectSpy.mockRestore();
+        }
+    });
+
+    it('opens a member report once when the report arrives without a sign-out', async () => {
+        // Given cancellation must not prevent a still-active session from finishing its report load.
+        focusOn(NAVIGATORS.TAB_NAVIGATOR);
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
+        openReportFromDeepLink(`${APP_URL}/r/123/456`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+        await waitForBatchedUpdates();
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+
+        // When the report arrives and then receives another update in the same session.
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123'});
+        await waitForBatchedUpdates();
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportName: 'Updated report'});
+        await waitForBatchedUpdates();
+
+        // Then loading completes once, without leaving a subscription that reopens the report.
+        expect(mockedNavigation.navigate).toHaveBeenCalledTimes(1);
+        expect(mockedNavigation.navigate).toHaveBeenCalledWith('r/123/456', expect.objectContaining({waitForTransition: true}));
+    });
+
+    it.each([ROUTES.SETTINGS_PROFILE.route, ROUTES.CONCIERGE])('cancels the post-onboarding loading waiter for %s on sign-out', async (route) => {
+        // Given onboarding has handed a parked link to a waiter for OpenApp's report data.
+        focusOn(SCREENS.ONBOARDING.PURPOSE);
+        await handleLinkCapturedBeforeOnboarding(route);
+        expect(replayParkedLink()).toBe(true);
+        await waitForBatchedUpdates();
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+        expect(mockedNavigateToConciergeChat).not.toHaveBeenCalled();
+
+        // When that session ends before the next account finishes loading.
+        runSessionCleanupCallbacks();
+        await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+        await waitForBatchedUpdates();
+
+        // Then neither the normal route nor Concierge's special redirect can consume the old link.
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+        expect(mockedNavigateToConciergeChat).not.toHaveBeenCalled();
+    });
+
+    it('ignores an already queued loading callback after session cleanup', async () => {
+        // Given Concierge has a separate redirect that must also respect cancellation of a queued callback.
+        focusOn(SCREENS.ONBOARDING.PURPOSE);
+        const connectSpy = jest.spyOn(Onyx, 'connectWithoutView');
+        try {
+            await handleLinkCapturedBeforeOnboarding(ROUTES.CONCIERGE);
+            expect(replayParkedLink()).toBe(true);
+            await waitForBatchedUpdates();
+            const loadingCallback = connectSpy.mock.calls.find(([options]) => options.key === ONYXKEYS.IS_LOADING_REPORT_DATA)?.[0].callback;
+            expect(loadingCallback).toBeDefined();
+
+            // When a callback already queued before disconnection is delivered after sign-out.
+            runSessionCleanupCallbacks();
+            loadingCallback?.(false, ONYXKEYS.IS_LOADING_REPORT_DATA);
+
+            // Then the special Concierge redirect cannot bypass session cancellation.
+            expect(mockedNavigateToConciergeChat).not.toHaveBeenCalled();
+            expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+        } finally {
+            await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+            await waitForBatchedUpdates();
+            connectSpy.mockRestore();
+        }
+    });
+
+    it('ignores queued onboarding work when protected routes become ready after sign-out', async () => {
+        // Given all protected-route callbacks are held by an explicitly controlled promise.
+        focusOn(NAVIGATORS.TAB_NAVIGATOR);
+        const readiness = Promise.withResolvers<void>();
+        mockedNavigation.waitForProtectedRoutes.mockReturnValue(readiness.promise);
+        try {
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+            await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
+            openReportFromDeepLink(`${APP_URL}/search/view/123/456`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+            await waitForBatchedUpdates();
+            expect(mockedNavigation.waitForProtectedRoutes).toHaveBeenCalled();
+
+            // When sign-out cancels the operation before readiness releases the queued callbacks.
+            runSessionCleanupCallbacks();
+            readiness.resolve();
+            await waitForBatchedUpdates();
+
+            // Then neither subscription can start a replay in the next session.
+            expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+            expect(mockedSetDeepLinkToOpenAfterOnboarding).not.toHaveBeenCalled();
+        } finally {
+            runSessionCleanupCallbacks();
+            readiness.resolve();
+            await waitForBatchedUpdates();
+            mockedNavigation.waitForProtectedRoutes.mockResolvedValue();
+        }
+    });
+
+    it('does not start a parked replay after its session has ended', async () => {
+        // Given a parked callback can outlive its owner if a caller already captured it.
+        focusOn(SCREENS.ONBOARDING.PURPOSE);
+        await handleLinkCapturedBeforeOnboarding(ROUTES.SETTINGS_PROFILE.route);
+        await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+
+        // When session cleanup happens before the captured callback is invoked.
+        runSessionCleanupCallbacks();
+        const handled = replayParkedLink();
+        await waitForBatchedUpdates();
+
+        // Then the cancelled callback declines the replay instead of starting another subscription.
+        expect(handled).toBe(false);
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('cancels the report waiter created after a parked replay finishes loading', async () => {
+        // Given onboarding finishes before either OpenApp or the target report has loaded.
+        focusOn(SCREENS.ONBOARDING.PURPOSE);
+        await handleLinkCapturedBeforeOnboarding('r/123/456');
+        expect(replayParkedLink()).toBe(true);
+        await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, false);
+        await waitForBatchedUpdates();
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+
+        // When sign-out happens between the app-loading and report-loading stages.
+        runSessionCleanupCallbacks();
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}123`, {reportID: '123'});
+        await waitForBatchedUpdates();
+
+        // Then cancellation remains effective across that handoff between waiters.
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+    });
+
     it('opens a parked link only once report data has loaded', async () => {
         // Given a link parked while onboarding was on screen
         focusOn(SCREENS.ONBOARDING.PURPOSE);
