@@ -5,9 +5,6 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {generateHexadecimalValue} from '@libs/NumberUtils';
-import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-
-import type {OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -15,7 +12,6 @@ import type {IntroSelected} from '@src/types/onyx';
 import type {CreatableWorkspaceType, CustomUnit} from '@src/types/onyx/Policy';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 
 import {PUBLIC_DOMAINS_SET, Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
@@ -119,53 +115,6 @@ function buildOptimisticDistanceRateCustomUnits(currencyParam: string | undefine
     };
 }
 
-type NewWorkspaceWorkflowsOptions = {
-    /** If the workspace type is submit */
-    isSubmitWorkspace: boolean;
-
-    /** The workspace type being created */
-    workspaceType?: ValueOf<typeof CONST.POLICY.TYPE>;
-
-    /** Explicit pick from the workspace creation feature map, when the flow offers one */
-    workflowsFeatureEnabled?: boolean;
-
-    /** The account level onboarding choice */
-    introSelectedChoice?: OnboardingPurpose;
-
-    /** The choice passed for this creation */
-    engagementChoice?: OnboardingPurpose;
-};
-
-/**
- * Determines whether workflows feature is enabled by default on a workspace
- */
-function shouldEnableWorkflowsByDefaultForNewWorkspace({
-    isSubmitWorkspace,
-    workspaceType,
-    workflowsFeatureEnabled,
-    introSelectedChoice,
-    engagementChoice,
-}: NewWorkspaceWorkflowsOptions): boolean {
-    if (workflowsFeatureEnabled !== undefined) {
-        return workflowsFeatureEnabled;
-    }
-    if (isSubmitWorkspace) {
-        return true;
-    }
-    if (workspaceType === CONST.POLICY.TYPE.CORPORATE && engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && introSelectedChoice === CONST.ONBOARDING_CHOICES.ADMIN) {
-        return false;
-    }
-    if (engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
-        return false;
-    }
-    return (
-        !engagementChoice ||
-        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
-        engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
-        isTrackOnboardingChoice(engagementChoice)
-    );
-}
-
 type CreateDraftInitialWorkspaceParams = {
     introSelected: OnyxEntry<IntroSelected>;
     workspaceName: string;
@@ -251,12 +200,4 @@ function createDraftInitialWorkspace({
 }
 
 export type {PolicyOwner};
-export {
-    buildOptimisticDistanceRateCustomUnits,
-    createDraftInitialWorkspace,
-    generateCustomUnitID,
-    generateDefaultWorkspaceName,
-    generatePolicyID,
-    getDisplayNameForWorkspace,
-    shouldEnableWorkflowsByDefaultForNewWorkspace,
-};
+export {buildOptimisticDistanceRateCustomUnits, createDraftInitialWorkspace, generateCustomUnitID, generateDefaultWorkspaceName, generatePolicyID, getDisplayNameForWorkspace};
