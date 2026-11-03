@@ -40,6 +40,7 @@ const reimbursedAction = {
     actorAccountID: 2,
     actionName: CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
     created: '2026-10-20 00:00:00.000',
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- hasReasoning() reads the deprecated field for actions stored before the original-message migration.
     originalMessage: {reasoning: 'Routed through Corpay because the withdrawal account is outside the United States.'},
 } as ReportAction;
 
