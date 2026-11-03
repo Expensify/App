@@ -971,7 +971,7 @@ type NetSuiteMappingValues = 'NETSUITE_DEFAULT' | 'REPORT_FIELD' | 'TAG';
 type NetSuiteInvoiceItemPreferenceValues = 'create' | 'select';
 
 /** NetSuite export destination values */
-type NetSuiteExportDestinationValues = 'EXPENSE_REPORT' | 'VENDOR_BILL' | 'JOURNAL_ENTRY';
+type NetSuiteExportDestinationValues = 'CREDIT_CARD_CHARGE' | 'EXPENSE_REPORT' | 'VENDOR_BILL' | 'JOURNAL_ENTRY';
 
 /** NetSuite expense report approval level values */
 type NetSuiteExpenseReportApprovalLevels = 'REPORTS_APPROVED_NONE' | 'REPORTS_SUPERVISOR_APPROVED' | 'REPORTS_ACCOUNTING_APPROVED' | 'REPORTS_APPROVED_BOTH';
@@ -996,6 +996,7 @@ type NetSuiteCustomFormIDOptions = {
     expenseReport?: string;
     vendorBill?: string;
     journalEntry?: string;
+    creditCardCharge?: string;
 };
 
 /** NetSuite custom list */
@@ -1172,6 +1173,12 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The default vendor to use for Transactions in NetSuite */
         defaultVendor?: string;
+
+        /** Credit card account used when exporting company card expenses as credit card charges */
+        creditCardAccount?: string;
+
+        /** Authentication method used for this connection */
+        authType?: 'tba' | 'oauth2';
 
         /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
         travelInvoicingPayableAccountID?: string;
@@ -1811,6 +1818,9 @@ type RilletExport = {
 
     /** Export behavior for non-reimbursable expenses. */
     nonReimbursable: RilletExportNonReimbursable;
+
+    /** Account code where reimbursements land (applicable if `reimbursable` type is REIMBURSEMENT). */
+    reimbursementAccountCode: string;
 
     /** Default vendor to associate with exported transactions. */
     defaultVendorID: string;
@@ -4518,6 +4528,7 @@ export type {
     RilletCoding,
     RilletConnectionsConfig,
     RilletExport,
+    RilletExportReimbursable,
     RilletBankAccount,
     RilletAutoSync,
     RilletSync,
