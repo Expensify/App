@@ -481,18 +481,18 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(
-                    REPORT,
-                    CONCIERGE_REPORT_ID,
-                    {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
-                    TEST_USER_ACCOUNT_ID,
-                    false,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                );
+                Report.clearCreateChatError({
+                    report: REPORT,
+                    conciergeReportID: CONCIERGE_REPORT_ID,
+                    introSelected: {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM},
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    reportOwnerPersonalDetail: undefined,
+                    currentUserPersonalDetail: undefined,
+                    conciergePersonalDetail: undefined,
+                    optimisticPersonalDetails: undefined,
+                });
                 return waitForBatchedUpdates();
             })
             .then(
@@ -525,7 +525,18 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, false, undefined, undefined, undefined, undefined, undefined);
+                Report.clearCreateChatError({
+                    report: REPORT,
+                    conciergeReportID: CONCIERGE_REPORT_ID,
+                    introSelected: INTRO_SELECTED,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    reportOwnerPersonalDetail: undefined,
+                    currentUserPersonalDetail: undefined,
+                    conciergePersonalDetail: undefined,
+                    optimisticPersonalDetails: undefined,
+                });
                 return waitForBatchedUpdates();
             })
             .then(
@@ -576,7 +587,18 @@ describe('actions/Report', () => {
         return waitForBatchedUpdates()
             .then(() => {
                 // When the create chat error is cleared with the personal details passed in
-                Report.clearCreateChatError(REPORT, undefined, undefined, TEST_USER_ACCOUNT_ID, false, undefined, undefined, undefined, undefined, PERSONAL_DETAILS);
+                Report.clearCreateChatError({
+                    report: REPORT,
+                    conciergeReportID: undefined,
+                    introSelected: undefined,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    reportOwnerPersonalDetail: undefined,
+                    currentUserPersonalDetail: undefined,
+                    conciergePersonalDetail: undefined,
+                    optimisticPersonalDetails: PERSONAL_DETAILS,
+                });
                 return waitForBatchedUpdates();
             })
             .then(async () => {
@@ -599,7 +621,18 @@ describe('actions/Report', () => {
 
         return waitForBatchedUpdates()
             .then(() => {
-                Report.clearCreateChatError(REPORT, CONCIERGE_REPORT_ID, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, false, undefined, undefined, undefined, undefined, undefined);
+                Report.clearCreateChatError({
+                    report: REPORT,
+                    conciergeReportID: CONCIERGE_REPORT_ID,
+                    introSelected: INTRO_SELECTED,
+                    currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                    isSelfTourViewed: false,
+                    hasCompletedGuidedSetupFlow: undefined,
+                    reportOwnerPersonalDetail: undefined,
+                    currentUserPersonalDetail: undefined,
+                    conciergePersonalDetail: undefined,
+                    optimisticPersonalDetails: undefined,
+                });
                 return waitForBatchedUpdates();
             })
             .then(
@@ -639,7 +672,18 @@ describe('actions/Report', () => {
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${REPORT.reportID}`, {isOptimisticReport: true});
         await waitForBatchedUpdates();
 
-        Report.clearCreateChatError(REPORT, undefined, INTRO_SELECTED, TEST_USER_ACCOUNT_ID, false, undefined, undefined, undefined, undefined, undefined);
+        Report.clearCreateChatError({
+            report: REPORT,
+            conciergeReportID: undefined,
+            introSelected: INTRO_SELECTED,
+            currentUserAccountID: TEST_USER_ACCOUNT_ID,
+            isSelfTourViewed: false,
+            hasCompletedGuidedSetupFlow: undefined,
+            reportOwnerPersonalDetail: undefined,
+            currentUserPersonalDetail: undefined,
+            conciergePersonalDetail: undefined,
+            optimisticPersonalDetails: undefined,
+        });
         await waitForBatchedUpdates();
 
         TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -7889,11 +7933,10 @@ describe('actions/Report', () => {
         });
 
         /**
-         * This wrapper used to hardcode `hasCompletedGuidedSetupFlow: undefined` when forwarding to
-         * `navigateToConciergeChat`, so the caller's value was discarded and the deprecated NVP_ONBOARDING
-         * `Onyx.connect` fallback decided the outcome instead. The two tests below pin the forwarding: the
-         * caller's value now reaches the branch where `conciergeReportID` is undefined, which is where the flag
-         * gates whether an onboarding `OpenReport` is enqueued. Same inputs, only the flag differs.
+         * This wrapper used to hardcode `hasCompletedGuidedSetupFlow: undefined`. On the existing-Concierge-DM path
+         * `navigateToAndOpenReport` treats `undefined` as "onboarding pending" (`?? false`), so an onboarding OpenReport was
+         * enqueued even for users who had completed onboarding. The `false` test is a control showing this setup reaches the
+         * OpenReport branch; the `true` test pins that the caller's flag is now forwarded.
          */
         const setUpExistingConciergeChat = async () => {
             const TEST_USER_LOGIN = 'test@user.com';

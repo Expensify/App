@@ -71,7 +71,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
             errorRowStyles={[styles.ml10, styles.mb2]}
             onClose={() =>
-                clearCreateChatError(
+                clearCreateChatError({
                     report,
                     conciergeReportID,
                     introSelected,
@@ -82,7 +82,7 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
                     optimisticPersonalDetails,
-                )
+                })
             }
         >
             <View style={[styles.pRelative]}>

@@ -5376,22 +5376,55 @@ function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>
     Onyx.update([PersonalDetailsUtils.buildPersonalDetailsUpdate(personalDetailsToRemove)]);
 }
 
-// TODO: Refactor to use options object parameter to reduce parameter count. Refactor issue: https://github.com/Expensify/App/issues/66425
-// eslint-disable-next-line @typescript-eslint/max-params
-function clearCreateChatError(
-    report: OnyxEntry<Report>,
-    conciergeReportID: string | undefined,
-    introSelected: OnyxEntry<IntroSelected>,
-    currentUserAccountID: number,
-    isSelfTourViewed: boolean | undefined,
-    hasCompletedGuidedSetupFlow: boolean | undefined,
-    reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
-    currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
-    conciergePersonalDetail: OnyxEntry<PersonalDetails>,
-    optimisticPersonalDetails: OnyxEntry<PersonalDetailsList>,
+type ClearCreateChatErrorParams = {
+    /** The report whose failed chat creation is being dismissed */
+    report: OnyxEntry<Report>;
+
+    /** The stored Concierge report ID, when the client already knows it */
+    conciergeReportID: string | undefined;
+
+    /** The onboarding choice the user made, used when the Concierge chat has to be created */
+    introSelected: OnyxEntry<IntroSelected>;
+
+    /** The account ID of the current user */
+    currentUserAccountID: number;
+
+    /** Whether the user has already viewed the self tour */
+    isSelfTourViewed: boolean | undefined;
+
+    /** Whether the user has completed the guided setup (onboarding) flow */
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+
+    /** Personal details of the report owner, used to build the Concierge chat participants */
+    reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>;
+
+    /** Personal details of the current user, used to build the Concierge chat participants */
+    currentUserPersonalDetail: OnyxEntry<PersonalDetails>;
+
+    /** Personal details of Concierge, used to build the Concierge chat participants */
+    conciergePersonalDetail: OnyxEntry<PersonalDetails>;
+
+    /** The optimistic personal details to clean up when the optimistic chat failed to be created */
+    optimisticPersonalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** The accountID of the copilot acting on behalf of the current user, if any */
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
-    delegateAccountID?: number,
-) {
+    delegateAccountID?: number;
+};
+
+function clearCreateChatError({
+    report,
+    conciergeReportID,
+    introSelected,
+    currentUserAccountID,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
+    reportOwnerPersonalDetail,
+    currentUserPersonalDetail,
+    conciergePersonalDetail,
+    optimisticPersonalDetails,
+    delegateAccountID,
+}: ClearCreateChatErrorParams) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
     if (report?.errorFields?.createChat && !isOptimisticReport) {
