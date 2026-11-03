@@ -59,7 +59,6 @@ function useSwitchToDelegator() {
     };
 
     const switchToDelegator = async (email: string) => {
-        // The offline check needs no Onyx data, so it stays in front of the read and keeps the offline modal instant.
         if (isOffline) {
             modalClose(() => showOfflineModal());
             return;
@@ -74,7 +73,6 @@ function useSwitchToDelegator() {
             ONYXKEYS.NVP_ACTIVE_POLICY_ID,
             ONYXKEYS.GPS_DRAFT_DETAILS,
         ]);
-        // Onyx.multiGet returns the stored values, so the projections the useOnyx selectors used to apply are reapplied here.
         const delegatedAccess = account?.delegatedAccess;
         const isReturningToOriginalUser = isActingAsDelegate && email === stashedSession?.email;
         // Chained delegation isn't supported by the backend: if we're already acting as a delegate,

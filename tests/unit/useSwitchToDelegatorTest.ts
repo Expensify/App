@@ -41,7 +41,6 @@ jest.mock('@hooks/useConfirmModal', () => ({
     default: () => ({showConfirmModal: mockShowConfirmModal}),
 }));
 
-// The provider reads its own Onyx keys, so the hook's two context reads are stubbed with the switch's own state.
 jest.mock('@components/DelegateNoAccessModalProvider', () => ({
     useDelegateNoAccessState: () => ({isActingAsDelegate: mockIsActingAsDelegate}),
     useDelegateNoAccessActions: () => ({showDelegateNoAccessModal: mockShowDelegateNoAccessModal}),
@@ -52,7 +51,6 @@ jest.mock('@libs/actions/Delegate', () => ({
     disconnect: jest.fn(),
 }));
 
-// The hook closes the modal it was opened from before showing its own. Run that callback inline so tests see the result.
 jest.mock('@libs/actions/Modal', () => ({
     close: (onModalCloseCallback?: () => void) => onModalCloseCallback?.(),
 }));
@@ -75,7 +73,6 @@ const mockGpsDraftDetails: GpsDraftDetails = {
     unit: 'mi',
 };
 
-/** Writes the Onyx state a copilot has before switching: an account with delegators, a session, and a GPS draft. */
 async function seedSwitchState({isTrackingGPS = false} = {}) {
     await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: DELEGATED_ACCESS});
     await Onyx.merge(ONYXKEYS.CREDENTIALS, {login: COPILOT_EMAIL});
@@ -87,7 +84,6 @@ async function seedSwitchState({isTrackingGPS = false} = {}) {
     await waitForBatchedUpdates();
 }
 
-/** Simulates the user already acting as a delegate, which the DelegateNoAccessModalProvider exposes through context. */
 function setActingAsDelegate() {
     mockIsActingAsDelegate = true;
 }
