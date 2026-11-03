@@ -703,7 +703,19 @@ function getAccountingIntegrationData(
                     CONST.ZOHO_BOOKS_CONFIG.NON_REIMBURSABLE,
                     CONST.ZOHO_BOOKS_CONFIG.DEFAULT_VENDORID,
                     CONST.ZOHO_BOOKS_CONFIG.CREDIT_CARD_ACCOUNT_ID,
+                    CONST.ZOHO_BOOKS_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
+                    ...Object.values(cardFeeds ?? {}).map((program) => `${CONST.ZOHO_BOOKS_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`),
                 ],
+                externalSubscribedExportSettingsPendingAction: getCardsCustomExportPendingAction(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT,
+                ),
+                externalSubscribedExportSettingsHasErrorFields: areCardsCustomExportInErrorFields(
+                    cardFeeds ?? {},
+                    cardList ?? {},
+                    CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_ZOHO_BOOKS_EXPORT_ACCOUNT,
+                ),
                 // Advanced screens are added in later releases.
                 onAdvancedPagePress: () => null,
                 subscribedAdvancedSettings: [],
