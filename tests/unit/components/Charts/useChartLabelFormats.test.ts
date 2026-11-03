@@ -190,6 +190,17 @@ describe('formatTotalValue', () => {
         expect(formatted).toBe('¥3,527');
     });
 
+    it('uses the chart value formatter when one is given', () => {
+        // Given a chart plotting expense counts, with its own value formatter
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: DOLLAR, formatValue: (value) => `${value} expenses`}));
+
+        // When formatting a total of every size
+        const formatted = [42, 1234567, 12100000].map((total) => result.current.formatTotalValue(total, 2));
+
+        // Then the formatter wins, so a count is never written as money
+        expect(formatted).toEqual(['42 expenses', '1234567 expenses', '12100000 expenses']);
+    });
+
     it('shortens negative totals at the same thresholds', () => {
         // Given a currency with two decimals
         const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: DOLLAR}));
