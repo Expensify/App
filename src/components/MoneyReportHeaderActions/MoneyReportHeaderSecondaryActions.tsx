@@ -160,6 +160,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isPayViaABABetaEnabled = isBetaEnabled(CONST.BETAS.PAY_VIA_ABA);
 
     const {transactions: reportTransactions, violations} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     // While offline, keep pending-delete transactions so a queued-for-delete expense still counts as a real transaction until the delete syncs.
@@ -471,7 +472,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
 
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, allTransactionViolations, accountID, email ?? '');
 
-    const shouldLoadABAData = secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY) && shouldLoadPayViaABAData(policy);
+    const shouldLoadABAData = secondaryActions.includes(CONST.REPORT.SECONDARY_ACTIONS.PAY) && shouldLoadPayViaABAData(policy, isPayViaABABetaEnabled);
 
     // Loads the Pay via ABA data as soon as Pay is in the menu, so the option is there when the menu first opens
     useEffect(() => {

@@ -101,6 +101,7 @@ function usePaymentOptions({
     const [fundList = getEmptyObject<FundList>()] = useOnyx(ONYXKEYS.FUND_LIST);
     const {isBetaEnabled} = usePermissions();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
+    const isPayViaABABetaEnabled = isBetaEnabled(CONST.BETAS.PAY_VIA_ABA);
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
 
     useEffect(() => {
@@ -156,7 +157,7 @@ function usePaymentOptions({
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
-        const shouldShowPayViaABAOption = isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy);
+        const shouldShowPayViaABAOption = isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy, isPayViaABABetaEnabled);
 
         // An ABA account is also a business account, so only need to show the pay via business account option if there
         // is another business account to pay with, e.g. one set up through Corpay
@@ -287,6 +288,7 @@ function usePaymentOptions({
         hasActivatedWallet,
         hasPersonalBankAccount,
         policy,
+        isPayViaABABetaEnabled,
         isOffline,
         bankAccountList,
         fundList,

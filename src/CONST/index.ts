@@ -1457,6 +1457,7 @@ const CONST = {
         IS_TRAVEL_VERIFIED: 'isTravelVerified',
         EUR_BILLING: 'eurBilling',
         PAY_INVOICE_VIA_EXPENSIFY: 'payInvoiceViaExpensify',
+        PAY_VIA_ABA: 'payViaABA',
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',

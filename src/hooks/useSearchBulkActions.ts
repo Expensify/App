@@ -951,8 +951,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     // Since ABA files pay from one workspace's withdrawal account, we only show it if all the reports are from one workspace.
     // Selecting all items is not supported for now, it will be added in the second release.
     const bulkPayPolicy = payScopedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${payScopedPolicyIDs.at(0)}`] : undefined;
-    const shouldShowPayViaABAOption = !areAllMatchingItemsSelected && canPayViaABA(bulkPayPolicy);
-    const shouldLoadBulkPayViaABAData = shouldLoadPayViaABAData(bulkPayPolicy);
+    const shouldShowPayViaABAOption = !areAllMatchingItemsSelected && canPayViaABA(bulkPayPolicy, isBetaEnabled(CONST.BETAS.PAY_VIA_ABA));
+    const shouldLoadBulkPayViaABAData = shouldLoadPayViaABAData(bulkPayPolicy, isBetaEnabled(CONST.BETAS.PAY_VIA_ABA));
     const {payReportsViaABA} = usePayViaABA();
 
     // The bulk pay menus have no hook for when they open, so the Pay via ABA data is loaded when the selection is made instead

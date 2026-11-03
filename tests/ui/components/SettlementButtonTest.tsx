@@ -413,6 +413,7 @@ describe('SettlementButton', () => {
                 report: expenseReport,
                 chatReport: createChatReport(),
                 policy: createTestPolicy({outputCurrency: CONST.CURRENCY.AUD}),
+                betas: [CONST.BETAS.PAY_VIA_ABA],
             });
 
             render(
@@ -444,6 +445,7 @@ describe('SettlementButton', () => {
                 report: expenseReport,
                 chatReport: createChatReport(),
                 policy: createTestPolicy({outputCurrency: CONST.CURRENCY.AUD, reimbursement: {enabled: true, countries: {}}}),
+                betas: [CONST.BETAS.PAY_VIA_ABA],
             });
 
             render(
@@ -473,6 +475,7 @@ describe('SettlementButton', () => {
                 report: expenseReport,
                 chatReport: createChatReport(),
                 policy: createTestPolicy({outputCurrency: CONST.CURRENCY.AUD}),
+                betas: [CONST.BETAS.PAY_VIA_ABA],
             });
 
             // When the Pay button shows
@@ -784,6 +787,7 @@ describe('SettlementButton', () => {
                     reimbursement: {countries: {[CONST.COUNTRY.AU]: {bankAccountID: BANK_ACCOUNT_ID, state: CONST.BANK_ACCOUNT.STATE.OPEN}}},
                     ...policyOverrides,
                 }),
+                betas: [CONST.BETAS.PAY_VIA_ABA],
             });
 
             render(

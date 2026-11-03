@@ -4467,7 +4467,7 @@ describe('PolicyUtils', () => {
                 const policy = createMock<Policy>({id: '1', role, outputCurrency});
 
                 // When checking whether that account has to be loaded
-                const result = shouldLoadPayViaABAData(policy);
+                const result = shouldLoadPayViaABAData(policy, true);
 
                 // Then it's only loaded where Pay via ABA could show, since only admins of AUD workspaces can pay via ABA
                 expect(result).toBe(expected);
@@ -4487,7 +4487,7 @@ describe('PolicyUtils', () => {
                 });
 
                 // When checking whether its reports can be paid via ABA
-                const result = canPayViaABA(policy);
+                const result = canPayViaABA(policy, true);
 
                 // Then they can, since the ABA file debits that withdrawal account
                 expect(result).toBe(true);
@@ -4513,7 +4513,7 @@ describe('PolicyUtils', () => {
                 });
 
                 // When checking whether its reports can be paid via ABA
-                const result = canPayViaABA(policy);
+                const result = canPayViaABA(policy, true);
 
                 // Then they can't, since only admins can pay via ABA, and the file needs an open AU withdrawal account
                 expect(result).toBe(false);

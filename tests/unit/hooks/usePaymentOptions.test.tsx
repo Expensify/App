@@ -55,6 +55,7 @@ describe('usePaymentOptions', () => {
         await act(async () => {
             await Onyx.clear();
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.PAY_VIA_ABA]);
         });
     });
 

@@ -107,7 +107,7 @@ function useSelectionModePayment({
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const {payReportsViaABA} = usePayViaABA();
-    const shouldLoadABAData = shouldLoadPayViaABAData(policy);
+    const shouldLoadABAData = shouldLoadPayViaABAData(policy, isBetaEnabled(CONST.BETAS.PAY_VIA_ABA));
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);

@@ -170,6 +170,7 @@ function SettlementButton({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
     const isPayInvoiceViaExpensifyBetaEnabled = isBetaEnabled(CONST.BETAS.PAY_INVOICE_VIA_EXPENSIFY);
+    const isPayViaABABetaEnabled = isBetaEnabled(CONST.BETAS.PAY_VIA_ABA);
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
 
@@ -304,7 +305,7 @@ function SettlementButton({
         }
 
         const shouldShowBusinessBankAccountOptions = isExpenseReport && shouldShowPayWithExpensifyOption && !isPersonalOnlyOption;
-        const shouldShowPayViaABAOption = isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy);
+        const shouldShowPayViaABAOption = isExpenseReport && !shouldHidePaymentOptions && canPayViaABA(policy, isPayViaABABetaEnabled);
 
         if (shouldShowBusinessBankAccountOptions) {
             if (businessBankAccountOptionList.length === 0) {
@@ -561,7 +562,7 @@ function SettlementButton({
         customText = translate('iou.settlePayment', formattedAmount);
     }
 
-    const shouldLoadABAData = shouldLoadPayViaABAData(policy);
+    const shouldLoadABAData = shouldLoadPayViaABAData(policy, isPayViaABABetaEnabled);
 
     // Loads the Pay via ABA data as soon as the button shows, so the option is there when the menu first opens
     useEffect(() => {

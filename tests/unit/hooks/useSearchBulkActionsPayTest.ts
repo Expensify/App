@@ -22,6 +22,7 @@ import Onyx from 'react-native-onyx';
 // Both are driven from these module-level flags so each test can toggle them independently.
 let mockShouldEnableBulkPayOption = true;
 let mockBulkPayButtonOptions: Array<Record<string, unknown>> = [{text: 'Pay with bank account', key: CONST.IOU.PAYMENT_TYPE.VBBA}];
+let mockEnabledBetas: string[] = [];
 
 jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
     payMoneyRequest: jest.fn(),
@@ -150,7 +151,7 @@ jest.mock('@hooks/useConfirmModal', () => ({
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
-    default: () => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false}),
+    default: () => ({isBetaEnabled: (beta: string) => mockEnabledBetas.includes(beta), isBetaEnabledOrUnknown: () => false}),
 }));
 
 jest.mock('@hooks/useSelfDMReport', () => ({
@@ -690,6 +691,7 @@ describe('useSearchBulkActions - pay via ABA', () => {
         mockShouldEnableBulkPayOption = true;
         mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
         mockAreAllMatchingItemsSelected = false;
+        mockEnabledBetas = [CONST.BETAS.PAY_VIA_ABA];
         mockSelectedTransactions = {tx1: makeSelectedTransaction()};
         mockSelectedReports = [makeSelectedReport({reportID: '1', chatReportID: 'chat1'}), makeSelectedReport({reportID: '3', chatReportID: 'chat3'})];
         jest.mocked(getLastPolicyPaymentMethod).mockReturnValue(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
@@ -701,6 +703,7 @@ describe('useSearchBulkActions - pay via ABA', () => {
     });
 
     afterEach(async () => {
+        mockEnabledBetas = [];
         await Onyx.clear();
     });
 
