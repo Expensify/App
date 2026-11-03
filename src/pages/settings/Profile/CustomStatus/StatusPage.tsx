@@ -203,7 +203,6 @@ function StatusPage() {
                             inputID={INPUT_IDS.STATUS_TEXT}
                             role={CONST.ROLE.PRESENTATION}
                             label={translate('statusPage.message')}
-                            accessibilityLabel={INPUT_IDS.STATUS_TEXT}
                             defaultValue={defaultText}
                         />
                     </View>

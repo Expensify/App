@@ -1,5 +1,4 @@
 import Badge from '@components/Badge';
-import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import MenuItem from '@components/MenuItem';
@@ -178,16 +177,14 @@ function PaymentDetailsPage({route}: PaymentDetailsPageProps) {
             shouldShowOfflineIndicatorInWideScreen
             shouldEnableMaxHeight
         >
-            <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
-                <HeaderWithBackButtonAndTitle title={translate('subscription.paymentHistory.details')} />
-                <View style={[styles.w100, styles.flex1]}>
-                    <PaymentActivityTable
-                        activeUsers={activeUsers}
-                        countsMembers={!!row?.countsMembers}
-                        headerComponent={detailsContent}
-                    />
-                </View>
-            </DelegateNoAccessWrapper>
+            <HeaderWithBackButtonAndTitle title={translate('subscription.paymentHistory.details')} />
+            <View style={[styles.w100, styles.flex1]}>
+                <PaymentActivityTable
+                    activeUsers={activeUsers}
+                    countsMembers={!!row?.countsMembers}
+                    headerComponent={detailsContent}
+                />
+            </View>
         </ScreenWrapper>
     );
 }
