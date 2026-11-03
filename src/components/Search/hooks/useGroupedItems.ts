@@ -31,8 +31,8 @@ function useGroupedItems(searchResults: OnyxEntry<SearchResults>, queryJSON: Rea
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const groupBy = queryJSON?.groupBy;
-    const isMemberGroupBy = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.APPROVER;
-    const [onyxPersonalDetailsList] = usePersonalDetailsByIDs(isMemberGroupBy ? getGroupedAccountIDs(searchResults?.data) : undefined);
+    const shouldLoadGroupPersonalDetails = groupBy === CONST.SEARCH.GROUP_BY.FROM || groupBy === CONST.SEARCH.GROUP_BY.APPROVER;
+    const [onyxPersonalDetailsList] = usePersonalDetailsByIDs(shouldLoadGroupPersonalDetails ? getGroupedAccountIDs(searchResults?.data) : undefined);
 
     const sortedSections =
         searchResults?.data && queryJSON && groupBy && login

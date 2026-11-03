@@ -345,13 +345,11 @@ function parseOxlintStdout(stdout: string, stderr: string, exitCode: number, pro
 }
 
 /**
- * Runs oxlint for `npm run lint -- --linter=oxlint` and turns its JSON report into the same
- * LinterResult ESLintLinter returns, so seatbelt and the formatters work for both. It can split the
- * files into JS-plugin shards plus one type-aware process.
+ * Runs oxlint for `npm run lint` and turns its JSON report into a LinterResult for seatbelt and the
+ * formatters. It can split the files into JS-plugin shards plus one type-aware process.
  *
  * `--no-error-on-unmatched-pattern` is left off because it turns a mistyped path into a silent clean
- * pass; the empty-file-list case is detected explicitly instead. Oxlint has no `--cache`, so
- * `--no-cache` has no effect here.
+ * pass; the empty-file-list case is detected explicitly instead.
  */
 class OxlintLinter extends Linter {
     readonly name = 'oxlint';

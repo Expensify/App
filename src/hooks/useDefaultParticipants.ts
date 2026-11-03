@@ -2,7 +2,7 @@ import {isGroupPolicy} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 
-import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {getMoneyRequestDraftParticipantsFromReport, getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -69,7 +69,8 @@ function useDefaultParticipants({sourceReport, transaction, iouType}: UseDefault
         isLoadingSelfDMReport ||
         isLoadingOnyxValue(activePolicyIDResult, policyCollectionResult, amountOwedResult, userBillingGracePeriodEndsResult, ownerBillingGracePeriodEndResult);
 
-    const reportParticipants = getMoneyRequestParticipantsFromReport(sourceReport, accountID).filter((participant) => participant.selected);
+    // These participants get stored in the draft (for example by the FAB quick action), so use the draft version
+    const reportParticipants = getMoneyRequestDraftParticipantsFromReport(sourceReport, accountID).filter((participant) => participant.selected);
     let participants = reportParticipants;
     const isGlobalCreateFlow = transaction?.isFromGlobalCreate ?? transaction?.isFromFloatingActionButton ?? iouType === CONST.IOU.TYPE.CREATE;
     if (participants.length === 0 && isGlobalCreateFlow && iouType) {
