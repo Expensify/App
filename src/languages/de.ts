@@ -3660,9 +3660,7 @@ ${amount} für ${merchant} – ${date}`,
         appSection: {
             title: 'App-Einstellungen',
         },
-        distanceSection: {
-            title: 'Entfernungseinstellungen',
-        },
+        distanceSection: {title: 'Entfernungseinstellungen'},
         testSection: {
             title: 'Testeinstellungen',
             subtitle: 'Einstellungen zum Debuggen und Testen der App in der Staging-Umgebung.',
