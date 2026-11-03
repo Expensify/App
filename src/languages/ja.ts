@@ -3096,6 +3096,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 error: '続行するにはすべての規約に同意してください。',
                 alreadySubmitted: 'このビジネスはすでに審査のためにWiseに送信されています。',
             },
+            moreInfoNeeded: {headerTitle: '詳細情報が必要です', title: '追加情報を確認', subtitle: '決済パートナーが直接、追加情報を必要としています。数分で完了します。'},
         },
         wiseGlobalReimbursementsIntro: {
             title: 'グローバル払い戻しを設定しますか？',

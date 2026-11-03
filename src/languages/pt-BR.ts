@@ -3120,6 +3120,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 error: 'Aceite todos os termos para continuar.',
                 alreadySubmitted: 'Esta empresa já foi enviada à Wise para análise.',
             },
+            moreInfoNeeded: {
+                headerTitle: 'Mais informações necessárias',
+                title: 'Verificar informações adicionais',
+                subtitle: 'Nosso parceiro de pagamentos precisa de mais informações diretamente. Isso deve levar apenas alguns minutos.',
+            },
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Configurar reembolsos globais?',

@@ -3157,6 +3157,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 error: 'Zaakceptuj wszystkie warunki, aby kontynuować.',
                 alreadySubmitted: 'Ta firma została już wysłana do Wise do weryfikacji.',
             },
+            moreInfoNeeded: {
+                headerTitle: 'Potrzebne są dodatkowe informacje',
+                title: 'Zweryfikuj dodatkowe informacje',
+                subtitle: 'Nasz partner płatniczy potrzebuje bezpośrednio więcej informacji. To zajmie tylko kilka minut.',
+            },
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Skonfigurować globalne zwroty kosztów?',

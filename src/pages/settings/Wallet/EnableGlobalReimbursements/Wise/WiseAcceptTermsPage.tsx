@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useAndroidBackButtonHandler from '@hooks/useAndroidBackButtonHandler';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -16,7 +17,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import Navigation from '@navigation/Navigation';
@@ -90,8 +90,7 @@ const serverErrorFieldsSelector = (form: OnyxEntry<WiseBusinessOnboardingForm>) 
 /** The last page of our own onboarding, after the confirmation page. Confirm submits the business to Wise once every box is ticked. */
 function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
-    const confirmationPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path);
-    const introPath = stripDynamicRouteSuffixFromPath(confirmationPath, DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.path);
+    const introPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_ACCEPT_TERMS.path);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [accepted, setAccepted] = useState<Record<TermKey, boolean>>({certify: false, expensifyTerms: false, wiseTerms: false});
@@ -105,14 +104,22 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
     // Wise has a status for the business only once it was submitted, so there is nothing left to submit
     const isAlreadySubmitted = !!wiseStatus;
 
-    const goBackToConfirmation = () => Navigation.goBack(confirmationPath);
+    // The terms replaced the onboarding pages, so going back to one of them puts it in their place
+    const openOnboardingPage = (pageKey: string) => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageKey), introPath), {forceReplace: true});
+    const goBackToConfirmation = () => openOnboardingPage(CONST.DYNAMIC_FORM.CONFIRMATION_PAGE_KEY);
+
+    // The intro is the screen underneath, so Android's back takes the header's step instead of popping to it
+    useAndroidBackButtonHandler(() => {
+        goBackToConfirmation();
+        return true;
+    });
 
     useEffect(() => {
         if (isWiseReimbursementsBetaEnabled !== false) {
             return;
         }
-        goBackToConfirmation();
-    }, [isWiseReimbursementsBetaEnabled, goBackToConfirmation]);
+        Navigation.goBack(introPath);
+    }, [isWiseReimbursementsBetaEnabled, introPath]);
 
     // The reimbursement account's errors and success flag are shared with the other bank account flows
     useEffect(() => {
@@ -141,15 +148,16 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
             clearDraftValues(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
             clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
             clearWiseOnboardingUnsavedPages();
-            Navigation.dismissModal();
+            // Wise's hosted form still has to collect the owners and directors, so a submitted business always needs more info at launch
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introPath), {forceReplace: true});
             return;
         }
         if (!pageToFix) {
             return;
         }
         // The error shows under the field, on the page that asked for it
-        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.WISE_BUSINESS_ONBOARDING.getRoute(pageToFix.key), introPath), {compareParams: false});
-    }, [isSubmitSuccessful, pageToFix, introPath]);
+        openOnboardingPage(pageToFix.key);
+    }, [isSubmitSuccessful, pageToFix, introPath, openOnboardingPage]);
 
     const confirm = () => {
         if (isAlreadySubmitted) {
@@ -219,6 +227,7 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
                     containerStyles={[styles.mh0, styles.mt5]}
                     enabledWhenOffline={false}
                     shouldShowLoadingImmediatelyOnPress={false}
+                    sentryLabel={CONST.SENTRY_LABEL.WISE_ACCEPT_TERMS.CONFIRM}
                 />
             </ScrollView>
         </ScreenWrapper>

@@ -27,7 +27,7 @@ const mockOnyxValues: Record<string, unknown> = {};
 
 // The real useFocusEffect throws outside a navigator
 jest.mock('@react-navigation/native', () => ({...jest.requireActual<Record<string, unknown>>('@react-navigation/native'), useFocusEffect: jest.fn()}));
-jest.mock('@navigation/Navigation', () => ({dismissModal: jest.fn(), goBack: jest.fn()}));
+jest.mock('@navigation/Navigation', () => ({dismissModal: jest.fn(), navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@userActions/DynamicForm', () => ({clearSensitiveAnswers: jest.fn()}));
 jest.mock('@userActions/FormActions', () => ({clearDraftValues: jest.fn(), clearErrorFields: jest.fn()}));
 jest.mock('@userActions/BankAccounts', () => ({hideBankAccountErrors: jest.fn()}));
@@ -40,7 +40,7 @@ jest.mock('@hooks/useOnyx', () => (key: string, options?: {selector?: (value: un
     const value = mockOnyxValues[key];
     return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
 });
-jest.mock('@hooks/useDynamicBackPath', () => () => 'settings/wallet/global-reimbursements/1/business-onboarding/confirm');
+jest.mock('@hooks/useDynamicBackPath', () => () => 'settings/wallet/global-reimbursements/1');
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabledOrUnknown: () => true}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate, preferredLocale: 'en'}));
 jest.mock('@hooks/useThemeStyles', () => () => new Proxy({}, {get: () => ({})}));
@@ -148,7 +148,7 @@ describe('WiseAcceptTermsPage', () => {
         // Then the business is submitted with both acceptances and the workspace, after the field errors of an earlier attempt are dropped
         expect(clearErrorFields).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(submitWiseBusinessOnboarding).toHaveBeenCalledWith({bankAccountID: BANK_ACCOUNT_ID, policyID: 'ABC123', termsAccepted: true, mandateAccepted: true});
-        expect(Navigation.dismissModal).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     it('hides the error once the user changes a box', () => {
@@ -164,7 +164,7 @@ describe('WiseAcceptTermsPage', () => {
         expect(screen.queryByText(ERROR)).not.toBeOnTheScreen();
     });
 
-    it('drops the onboarding answers and closes the flow once Wise has the business', () => {
+    it('drops the onboarding answers and opens the more info needed page once Wise has the business', () => {
         // Given a submission sent from the terms page
         const {rerender} = renderPage();
         tickEveryBox();
@@ -173,11 +173,11 @@ describe('WiseAcceptTermsPage', () => {
         // When the request succeeds
         answerSubmission(rerender, {isSuccess: true});
 
-        // Then the draft, the SSN in memory and the unsaved pages go, since the server holds the business now, and the flow closes
+        // Then the draft, the SSN in memory and the unsaved pages go, since the server holds the business now, and the more info needed page replaces the terms
         expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(clearWiseOnboardingUnsavedPages).toHaveBeenCalled();
-        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/more-info-needed', {forceReplace: true});
     });
 
     it('keeps the user on the terms page with the error when the submission fails', () => {
@@ -191,8 +191,7 @@ describe('WiseAcceptTermsPage', () => {
 
         // Then the error shows above Confirm and the user can try again from here
         expect(screen.getByText('Something went wrong')).toBeOnTheScreen();
-        expect(Navigation.dismissModal).not.toHaveBeenCalled();
-        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     it('sends the user to the page that collected an answer Wise rejected', () => {
@@ -206,7 +205,7 @@ describe('WiseAcceptTermsPage', () => {
         answerSubmission(rerender, {isSuccess: false, errors: {[ERROR_TIMESTAMP]: 'Validation failed'}});
 
         // Then the flow goes back to the business page, where the error shows under the field
-        expect(Navigation.goBack).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/business-onboarding/business', {compareParams: false});
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/business-onboarding/business', {forceReplace: true});
     });
 
     it('keeps an error on a read-only answer on the terms page, since no page can change it', () => {
@@ -220,7 +219,7 @@ describe('WiseAcceptTermsPage', () => {
         answerSubmission(rerender, {isSuccess: false, errors: {[ERROR_TIMESTAMP]: 'Validation failed'}});
 
         // Then the user stays here with the error above Confirm
-        expect(Navigation.goBack).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(screen.getByText('Validation failed')).toBeOnTheScreen();
     });
 

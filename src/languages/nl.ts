@@ -3120,6 +3120,11 @@ const translations: TranslationDeepObject<typeof en> = {
                 error: 'Accepteer alle voorwaarden om door te gaan.',
                 alreadySubmitted: 'Dit bedrijf is al ter beoordeling naar Wise verstuurd.',
             },
+            moreInfoNeeded: {
+                headerTitle: 'Meer info nodig',
+                title: 'Extra info verifiëren',
+                subtitle: 'Onze betalingspartner heeft rechtstreeks meer info nodig. Dit kost maar een paar minuten.',
+            },
         },
         wiseGlobalReimbursementsIntro: {
             title: 'Wereldwijde terugbetalingen instellen?',

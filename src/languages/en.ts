@@ -3202,6 +3202,11 @@ const translations = {
                 error: 'Please accept all of the terms to continue.',
                 alreadySubmitted: 'This business is already submitted to Wise for review.',
             },
+            moreInfoNeeded: {
+                headerTitle: 'More info needed',
+                title: 'Verify additional info',
+                subtitle: 'Our payments partner needs more info directly. This should only take a couple of minutes.',
+            },
         },
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
