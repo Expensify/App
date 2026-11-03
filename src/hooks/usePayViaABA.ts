@@ -50,7 +50,7 @@ function usePayViaABA() {
         }
 
         // We can say who's missing a bank account for single reports only
-        const report = reportIDs.length === 1 ? getReportOrDraftReport(reportIDs.at(0)) : undefined;
+        const report = reportIDs.length === 1 ? getReportOrDraftReport({reportID: reportIDs.at(0)}) : undefined;
         const name = getDisplayNameForParticipant({accountID: report?.ownerAccountID, shouldFallbackToHidden: false, formatPhoneNumber});
         return name ? translate('iou.missingABADepositAccount', {name}) : translate('iou.submittersMissingABADepositAccount');
     };
