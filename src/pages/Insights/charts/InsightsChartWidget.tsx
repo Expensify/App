@@ -179,6 +179,7 @@ function InsightsChartWidget({
                             view={view}
                             groupBy={groupBy}
                             data={data}
+                            metric={chart.metric}
                             isLoading={isLoading}
                             comparison={comparison}
                             shouldShowRunningTotal={shouldShowRunningTotal}
@@ -187,9 +188,10 @@ function InsightsChartWidget({
                             shouldShowGroupLabels={false}
                             renderDetails={
                                 shouldShowTable
-                                    ? ({rows}) => (
+                                    ? ({rows, formatValue}) => (
                                           <InsightsDataTable
                                               rows={rows}
+                                              formatValue={formatValue}
                                               isLoading={isLoading}
                                           />
                                       )
