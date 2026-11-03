@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/naming-convention */
+/* eslint-disable @typescript-eslint/naming-convention -- BankAccountList is keyed by numeric bank account IDs */
 import {wiseMoreInfoNeededBankAccountsSelector} from '@pages/home/TimeSensitiveSection/hooks/useTimeSensitiveWiseMoreInfoNeeded';
 
 import CONST from '@src/CONST';

@@ -687,7 +687,7 @@ describe('useAccountIndicatorChecks', () => {
                     createMock<OnyxMultiSetInput>({
                         [ONYXKEYS.BETAS]: [CONST.BETAS.WISE_REIMBURSEMENTS],
                         [ONYXKEYS.BANK_ACCOUNT_LIST]: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- bank account list keys are numeric bank account IDs
                             12345: {
                                 methodID: 12345,
                                 bankCurrency: CONST.CURRENCY.USD,
@@ -719,7 +719,7 @@ describe('useAccountIndicatorChecks', () => {
                 await Onyx.multiSet(
                     createMock<OnyxMultiSetInput>({
                         [ONYXKEYS.BANK_ACCOUNT_LIST]: {
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            // eslint-disable-next-line @typescript-eslint/naming-convention -- bank account list keys are numeric bank account IDs
                             12345: {
                                 methodID: 12345,
                                 bankCurrency: CONST.CURRENCY.USD,

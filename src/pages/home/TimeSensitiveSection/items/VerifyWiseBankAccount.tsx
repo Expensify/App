@@ -16,6 +16,7 @@ type VerifyWiseBankAccountProps = {
     /** The bank account Wise asked for more info on */
     bankAccountID: number;
 
+    /** Empty when the account number is not loaded, which leaves the subtitle out instead of naming no digits */
     bankAccountLastFour: string;
 };
 
@@ -28,7 +29,7 @@ function VerifyWiseBankAccount({bankAccountID, bankAccountLastFour}: VerifyWiseB
         <BaseWidgetItem
             icon={icons.GlobeWithCard}
             title={translate('homePage.timeSensitiveSection.verifyWiseBankAccount.title')}
-            subtitle={translate('homePage.timeSensitiveSection.verifyWiseBankAccount.subtitle', {bankAccountLastFour})}
+            subtitle={bankAccountLastFour ? translate('homePage.timeSensitiveSection.verifyWiseBankAccount.subtitle', {bankAccountLastFour}) : undefined}
             ctaText={translate('homePage.forYouSection.begin')}
             onCtaPress={() => navigateToWiseMoreInfoNeeded(bankAccountID)}
             buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
