@@ -96,7 +96,7 @@ export default function WorkspaceMembersTableRow({
             {(hovered) => (
                 <>
                     <View
-                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                        style={[styles.flex1, styles.mnw0, styles.overflowHidden, styles.flexRow, styles.alignItemsCenter]}
                         {...getCellAccessibilityProps(isTableSemanticsEnabled)}
                     >
                         <View
@@ -110,12 +110,12 @@ export default function WorkspaceMembersTableRow({
                                 fallbackDisplayName={item.name ?? item.email}
                             />
                         </View>
-                        <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
-                            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter]}>
+                        <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1, styles.mnw0]}>
+                            <View style={[styles.flexRow, styles.gap2, styles.alignItemsCenter, styles.mnw0]}>
                                 <TextWithTooltip
                                     shouldShowTooltip
                                     text={item.name}
-                                    style={[styles.optionDisplayName, styles.pre, styles.flexShrink1]}
+                                    style={[styles.optionDisplayName, styles.pre, styles.flexShrink1, styles.mnw0]}
                                     numberOfLines={1}
                                     isSelectable
                                 />
@@ -124,7 +124,7 @@ export default function WorkspaceMembersTableRow({
                                         text={translate('common.owner')}
                                         textStyles={styles.textStrong}
                                         isCondensed={shouldUseNarrowTableLayout}
-                                        badgeStyles={[styles.alignSelfCenter, styles.ml0]}
+                                        badgeStyles={[styles.alignSelfCenter, styles.ml0, styles.flexShrink0]}
                                     />
                                 )}
                             </View>
