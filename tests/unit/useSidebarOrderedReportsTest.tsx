@@ -587,6 +587,37 @@ describe('useSidebarOrderedReports', () => {
         expect(updatedReportsKeys).not.toContain(`${ONYXKEYS.COLLECTION.REPORT}1`);
     });
 
+    it('should drop the report opened from the Unread tab once the user navigates away from it', async () => {
+        // Given the Unread tab, where report 1 was already read and only report 2 is still unread
+        const reports = createMockReports({report1: {reportName: 'Read chat'}, report2: {reportName: 'Unread chat'}});
+        mockSidebarUtils.getReportsToDisplayInLHN.mockReturnValue(reports);
+        mockSidebarUtils.sortReportsToDisplayInLHN.mockReturnValue(['1', '2']);
+        mockSidebarUtils.filterReportsForInboxTab.mockImplementation((reportIDs: string[], _reports, tab) =>
+            tab === CONST.INBOX_TAB.UNREAD ? reportIDs.filter((id) => id !== '1') : reportIDs,
+        );
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_INBOX_TAB, CONST.INBOX_TAB.UNREAD);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, reports['1']);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, reports['2']);
+        });
+        currentReportIDForTestsValue = '';
+        const {result, rerender} = renderHook(() => useSidebarOrderedReports(), {wrapper: TestWrapper});
+        await waitForBatchedUpdatesWithAct();
+
+        // When report 1 is opened from the tab, it stays listed while it's open even though it's read
+        act(() => result.current.setStickyReportID('1'));
+        currentReportIDForTestsValue = '1';
+        rerender({});
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.filteredReportIDs).toEqual(['1', '2']);
+
+        // Then going back to the list removes it, since it's no longer open
+        currentReportIDForTestsValue = '';
+        rerender({});
+        await waitForBatchedUpdatesWithAct();
+        expect(result.current.filteredReportIDs).toEqual(['2']);
+    });
+
     it('should only recheck reports whose derived attributes actually changed', async () => {
         // Given two reports whose derived attributes are stored in Onyx, with report 1 remaining unchanged
         const displayedReports = createMockReports({
