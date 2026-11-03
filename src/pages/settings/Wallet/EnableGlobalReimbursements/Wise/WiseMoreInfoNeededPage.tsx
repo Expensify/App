@@ -1,6 +1,5 @@
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
-import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -14,7 +13,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import openExternalLink from '@libs/openExternalLink';
@@ -94,18 +92,12 @@ function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
                 <Header.Title title={translate('walletPage.wiseOnboarding.moreInfoNeeded.headerTitle')} />
             </Header>
             <ConfirmationPage>
-                <ConfirmationPage.Content>
+                <ConfirmationPage.Content requestErrors={embeddedLink?.errors}>
                     <ConfirmationPage.Illustration illustration={illustrations.UserShield} />
                     <ConfirmationPage.Heading>{translate('walletPage.wiseOnboarding.moreInfoNeeded.title')}</ConfirmationPage.Heading>
                     <ConfirmationPage.Description style={styles.textSupporting}>{translate('walletPage.wiseOnboarding.moreInfoNeeded.subtitle')}</ConfirmationPage.Description>
                 </ConfirmationPage.Content>
                 <FixedFooter>
-                    {!!embeddedLink?.errors && (
-                        <FormHelpMessage
-                            message={getLatestErrorMessage(embeddedLink)}
-                            style={styles.mb3}
-                        />
-                    )}
                     {/* A read is not queued offline, so the link can only be fetched online */}
                     <ConfirmationPage.PrimaryButton
                         text={translate('common.continue')}
