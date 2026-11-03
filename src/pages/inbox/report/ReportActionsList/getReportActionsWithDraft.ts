@@ -1,4 +1,3 @@
-/** Inserts temporary streamed replies without treating them as saved report actions. */
 import {isNewerReportAction} from '@libs/ReportActionsUtils';
 
 import type {ReportAction} from '@src/types/onyx';
@@ -17,6 +16,7 @@ type ReportActionsWithDraft = {
     isSyntheticDraftVisible: boolean;
 };
 
+/** Inserts temporary streamed replies without treating them as saved report actions. */
 function getReportActionsWithDraft({
     sortedVisibleReportActions,
     draftReportAction,
