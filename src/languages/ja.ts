@@ -3106,6 +3106,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: '会社と従業員の銀行口座は異なる通貨を使用しています。',
         },
         wiseGlobalReimbursementsBanner: {title: '世界中の人に支払いましょう', subtitle: 'USD アカウントでグローバル払い戻しを有効にします。'},
+        globalReimbursementsEnabled: 'グローバル精算が有効になりました',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `${walletName} にカードを追加`,

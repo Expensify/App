@@ -10,7 +10,7 @@ import PaymentMethodList from '@pages/settings/Wallet/PaymentMethodList';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccount, Card, CardList} from '@src/types/onyx';
+import type {BankAccount, BankAccountList, Card, CardList} from '@src/types/onyx';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 
 import {PortalProvider} from '@gorhom/portal';
@@ -76,25 +76,33 @@ const renderAssignedCardsList = () =>
         </ComposeProviders>,
     );
 
-const BANK_ACCOUNT_ID = 9053192;
-
-function createBusinessBankAccount(wise: BankAccountAdditionalData['wise']): BankAccount {
-    return {
-        methodID: BANK_ACCOUNT_ID,
+function createBusinessBankAccount(bankAccountID: number, addressName: string, isGlobalReimbursementEnabled?: boolean): BankAccount {
+    return createMock<BankAccount>({
+        methodID: bankAccountID,
+        title: addressName,
         bankCurrency: CONST.CURRENCY.USD,
         bankCountry: CONST.COUNTRY.US,
-        title: 'Chase Checking',
-        description: 'Account ending in 1234',
         accountType: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
         accountData: {
-            bankAccountID: BANK_ACCOUNT_ID,
-            accountNumber: 'XXXXXX1234',
-            addressName: 'Chase Checking',
+            bankAccountID,
+            addressName,
+            accountNumber: '1234',
             type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
             state: CONST.BANK_ACCOUNT.STATE.OPEN,
-            additionalData: {currency: CONST.CURRENCY.USD, wise},
+            additionalData: {currency: CONST.CURRENCY.USD, isGlobalReimbursementEnabled},
         },
-    };
+    });
+}
+
+function createBankAccountList(...bankAccounts: BankAccount[]): BankAccountList {
+    return Object.fromEntries(bankAccounts.map((bankAccount) => [String(bankAccount.methodID), bankAccount]));
+}
+
+const WISE_BANK_ACCOUNT_ID = 9053192;
+
+function createWiseBusinessBankAccount(wise: BankAccountAdditionalData['wise']): BankAccount {
+    const bankAccount = createBusinessBankAccount(WISE_BANK_ACCOUNT_ID, 'Chase Checking');
+    return {...bankAccount, accountData: {...bankAccount.accountData, additionalData: {...bankAccount.accountData?.additionalData, wise}}};
 }
 
 // Renders the bank accounts list the same way the Wallet page does with the Wise beta on
@@ -105,6 +113,7 @@ const renderBankAccountsList = (shouldShowWiseSetupInProgress = true) =>
                 <PaymentMethodList
                     shouldShowConnectionStatus
                     shouldShowBankAccountSections
+                    shouldShowAddBankAccount={false}
                     shouldShowWiseSetupInProgress={shouldShowWiseSetupInProgress}
                     onPress={() => {}}
                 />
@@ -157,11 +166,49 @@ describe('PaymentMethodList', () => {
         expect(screen.getByText('Admin virtual card')).toBeOnTheScreen();
     });
 
+    it('shows the globe on a bank account set up for global reimbursements', async () => {
+        // Given a business account the backend marks as set up for global reimbursements, for a user on the Wise beta
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.WISE_REIMBURSEMENTS]);
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, createBankAccountList(createBusinessBankAccount(1, 'Chase Checking', true)));
+        });
+
+        // When the bank accounts list renders
+        renderBankAccountsList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row shows the globe, so the admin can tell this account pays worldwide
+        expect(screen.getByText('Chase Checking')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Global reimbursements enabled')).toBeOnTheScreen();
+
+        // And the row's label says so too, because a screen reader can't reach the globe inside the row's button
+        expect(screen.getByLabelText(/^Chase Checking, .*Global reimbursements enabled$/)).toBeOnTheScreen();
+    });
+
+    it.each([
+        ['the account is not set up for global reimbursements', false, true],
+        ['the user is not on the Wise beta', true, false],
+    ])('hides the globe when %s', async (_label, isGlobalReimbursementEnabled, isOnWiseBeta) => {
+        // Given a business account
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BETAS, isOnWiseBeta ? [CONST.BETAS.WISE_REIMBURSEMENTS] : []);
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, createBankAccountList(createBusinessBankAccount(1, 'Chase Checking', isGlobalReimbursementEnabled)));
+        });
+
+        // When the bank accounts list renders
+        renderBankAccountsList();
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no globe shows, because the account can't pay worldwide or global reimbursements are not released to the user yet
+        expect(screen.getByText('Chase Checking')).toBeOnTheScreen();
+        expect(screen.queryByLabelText('Global reimbursements enabled')).not.toBeOnTheScreen();
+    });
+
     it('continues a Wise onboarding the admin left before Submit', async () => {
         // Given a business bank account whose Wise onboarding the admin opened on this device and did not submit
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: createBusinessBankAccount(undefined)});
-            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(BANK_ACCOUNT_ID)});
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount(undefined)});
+            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(WISE_BANK_ACCOUNT_ID)});
         });
 
         // When the Wallet's bank accounts list renders and the admin presses Continue
@@ -171,15 +218,15 @@ describe('PaymentMethodList', () => {
 
         // Then the row shows the setup is in progress, and Continue opens the intro and the onboarding on top of it, which takes the bank account from the intro
         expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, `settings/wallet/global-reimbursements/${BANK_ACCOUNT_ID}`, expect.anything());
-        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, `settings/wallet/global-reimbursements/${BANK_ACCOUNT_ID}/business-onboarding`);
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`, expect.anything());
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/business-onboarding`);
     });
 
     it('shows a submitted Wise onboarding as in progress without Continue', async () => {
         // Given a business bank account whose Wise onboarding is in review, with its draft still on this device
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: createBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW})});
-            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(BANK_ACCOUNT_ID)});
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW})});
+            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(WISE_BANK_ACCOUNT_ID)});
         });
 
         // When the Wallet's bank accounts list renders
@@ -194,8 +241,8 @@ describe('PaymentMethodList', () => {
     it('hides the Wise onboarding row without the Wise beta', async () => {
         // Given a business bank account whose Wise onboarding the admin opened and did not submit
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[BANK_ACCOUNT_ID]: createBusinessBankAccount(undefined)});
-            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(BANK_ACCOUNT_ID)});
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount(undefined)});
+            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(WISE_BANK_ACCOUNT_ID)});
         });
 
         // When the list renders the way it does for a user without the Wise beta

@@ -3045,6 +3045,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'Las cuentas bancarias de la empresa y del empleado usan monedas diferentes.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Paga a personas de todo el mundo', subtitle: 'Habilita los reembolsos globales en tu cuenta en USD.'},
+        globalReimbursementsEnabled: 'Reembolsos globales habilitados',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `Añadir tarjeta a ${walletName}`,

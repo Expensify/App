@@ -3030,6 +3030,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: '公司账户和员工账户使用的货币不同。',
         },
         wiseGlobalReimbursementsBanner: {title: '向全球付款', subtitle: '在您的美元账户中启用全球报销。'},
+        globalReimbursementsEnabled: '已启用全球报销',
     },
     addCardToDigitalWallet: {
         title: ({walletName}: {walletName: string}) => `将卡添加到 ${walletName}`,

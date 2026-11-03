@@ -11,6 +11,7 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,6 +20,7 @@ import {
     canLinkPlaid,
     getBankAccountConnectionStatus,
     getBankAccountState,
+    isGlobalReimbursementsEnabled,
     isPersonalBankAccountMissingInfo,
     isWiseOnboardingAwaitingDecision,
 } from '@libs/BankAccountUtils';
@@ -219,6 +221,8 @@ function PaymentMethodList({
     const {translate, datetimeToRelative} = useLocalize();
     const {environmentURL} = useEnvironment();
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
+    const isWiseGlobalReimbursementsEnabled = isBetaEnabled(CONST.BETAS.WISE_REIMBURSEMENTS);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'ThreeDots', 'LuggageWithLines']);
     const illustrations = useThemeIllustrations();
     const companyCardFeedIcons = useCompanyCardFeedIcons();
@@ -672,6 +676,8 @@ function PaymentMethodList({
                 canDismissError: true,
                 isMissingPersonalInfo,
                 wiseSetupInProgress: shouldShowWiseSetupInProgress ? getWiseSetupInProgress(paymentMethod, wiseOnboardingDraftBankAccountID) : undefined,
+                isGlobalReimbursementsEnabled:
+                    isWiseGlobalReimbursementsEnabled && paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && isGlobalReimbursementsEnabled(paymentMethod),
                 brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
                 connectionStatus: bankConnectionStatus
                     ? mapBankStatusToRowStatus(
