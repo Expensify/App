@@ -305,6 +305,14 @@ function isWiseMoreInfoNeeded(bankAccount: OnyxEntry<Pick<OnyxTypes.BankAccount,
     );
 }
 
+/**
+ * Whether the user can send the info Wise asked for. Sending it takes the same access as opening the business onboarding,
+ * so the Wallet row and the Home task share this rule and other holders of the account only see the message.
+ */
+function canSendWiseMoreInfo(bankAccount: OnyxEntry<Pick<OnyxTypes.BankAccount, 'accountData' | 'pendingAction'> & {bankCurrency?: string}>): boolean {
+    return isWiseMoreInfoNeeded(bankAccount) && isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency);
+}
+
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
     if (!bankAccountList) {
         return false;
@@ -479,6 +487,7 @@ export {
     getWiseGlobalReimbursementsBannerBankAccountID,
     getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
     isWiseMoreInfoNeeded,
+    canSendWiseMoreInfo,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,

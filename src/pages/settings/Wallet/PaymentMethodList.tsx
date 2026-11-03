@@ -19,7 +19,7 @@ import {
     getBankAccountConnectionStatus,
     getBankAccountState,
     canLinkPlaid,
-    isBankAccountEligibleForGlobalReimbursements,
+    canSendWiseMoreInfo,
     isGlobalReimbursementsEnabled,
     isPersonalBankAccountMissingInfo,
     isWiseMoreInfoNeeded,
@@ -649,15 +649,16 @@ function PaymentMethodList({
                     : undefined;
 
             // Like the connection status, the Wise prompt belongs to the Wallet page and not to the pickers that reuse this list
-            const shouldShowWiseMoreInfoNeeded = shouldShowConnectionStatus && isWiseGlobalReimbursementsEnabled && isWiseMoreInfoNeeded(paymentMethod) && methodID !== undefined;
-            // Sending the info takes the same access as opening the business onboarding, so other holders only see the message
-            const canReviewWiseMoreInfoNeeded = shouldShowWiseMoreInfoNeeded && isBankAccountEligibleForGlobalReimbursements(paymentMethod.accountData, bankAccountCurrency);
+            // Cards share this list, and only a bank account's data carries the bankAccountID the Home task reads too
+            const wiseBankAccountID = paymentMethod.accountData && 'bankAccountID' in paymentMethod.accountData ? paymentMethod.accountData.bankAccountID : undefined;
+            const shouldShowWiseMoreInfoNeeded = shouldShowConnectionStatus && isWiseGlobalReimbursementsEnabled && isWiseMoreInfoNeeded(paymentMethod) && !!wiseBankAccountID;
+            const canReviewWiseMoreInfoNeeded = shouldShowWiseMoreInfoNeeded && canSendWiseMoreInfo(paymentMethod);
             // An error or a connection problem on the row is more urgent, so the Wise prompt only adds the green dot when the row has none
             const wiseMoreInfoNeededBrickRoadIndicator = canReviewWiseMoreInfoNeeded ? CONST.BRICK_ROAD_INDICATOR_STATUS.INFO : undefined;
 
             return {
                 ...paymentMethod,
-                wiseMoreInfoNeeded: shouldShowWiseMoreInfoNeeded ? {bankAccountID: methodID, canReview: canReviewWiseMoreInfoNeeded} : undefined,
+                wiseMoreInfoNeeded: shouldShowWiseMoreInfoNeeded && wiseBankAccountID ? {bankAccountID: wiseBankAccountID, canReview: canReviewWiseMoreInfoNeeded} : undefined,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
                 onPress: paymentMethodPress,
                 onThreeDotsMenuPress: paymentMethodThreeDotsPress,
