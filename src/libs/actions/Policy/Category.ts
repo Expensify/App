@@ -100,6 +100,7 @@ type SetWorkspaceCategoryEnabledParams = {
 
 function appendSetupCategoriesOnboardingData(
     onyxData: OnyxData<
+        | typeof ONYXKEYS.COLLECTION.POLICY
         | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES
         | typeof ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT
         | typeof ONYXKEYS.COLLECTION.REPORT
