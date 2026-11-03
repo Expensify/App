@@ -1438,7 +1438,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_AMOUNT_TO_MATCH]: DYNAMIC_ROUTES.RULES_AMOUNT_TO_MATCH_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_AMOUNT_MATCH_TYPE]: DYNAMIC_ROUTES.RULES_AMOUNT_MATCH_TYPE_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_HAS_TO_MATCH]: DYNAMIC_ROUTES.RULES_HAS_TO_MATCH_FROM_EXPENSE.path,
-                        [SCREENS.WORKSPACE.DYNAMIC_RULES_HAS_MATCH_TYPE]: DYNAMIC_ROUTES.RULES_HAS_MATCH_TYPE_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_CARD_TO_MATCH]: DYNAMIC_ROUTES.RULES_CARD_TO_MATCH_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_TYPE_TO_MATCH]: DYNAMIC_ROUTES.RULES_MERCHANT_TYPE_TO_MATCH_FROM_EXPENSE.path,
                         [SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_PREVIEW_MATCHES]: DYNAMIC_ROUTES.RULES_MERCHANT_PREVIEW_MATCHES_FROM_EXPENSE.path,
@@ -1585,9 +1584,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.RULES_HAS_TO_MATCH]: {
                             path: ROUTES.RULES_HAS_TO_MATCH.route,
-                        },
-                        [SCREENS.WORKSPACE.RULES_HAS_MATCH_TYPE]: {
-                            path: ROUTES.RULES_HAS_MATCH_TYPE.route,
                         },
                         [SCREENS.WORKSPACE.RULES_CARD_TO_MATCH]: {
                             path: ROUTES.RULES_CARD_TO_MATCH.route,

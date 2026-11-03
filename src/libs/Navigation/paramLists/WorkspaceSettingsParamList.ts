@@ -1693,10 +1693,6 @@ type WorkspaceSettingsParamList = {
         policyID: string;
         ruleID?: undefined;
     };
-    [SCREENS.WORKSPACE.DYNAMIC_RULES_HAS_MATCH_TYPE]: {
-        policyID: string;
-        ruleID?: undefined;
-    };
     [SCREENS.WORKSPACE.DYNAMIC_RULES_CARD_TO_MATCH]: {
         policyID: string;
         ruleID?: undefined;
@@ -1916,10 +1912,6 @@ type WorkspaceSettingsParamList = {
         ruleID: string;
     };
     [SCREENS.WORKSPACE.RULES_HAS_TO_MATCH]: {
-        policyID: string;
-        ruleID: string;
-    };
-    [SCREENS.WORKSPACE.RULES_HAS_MATCH_TYPE]: {
         policyID: string;
         ruleID: string;
     };

@@ -27,7 +27,6 @@ describe('expense default rule dynamic routes', () => {
     it.each([
         ['rule-date-to-match', 'rule-date-match-type', SCREENS.WORKSPACE.DYNAMIC_RULES_DATE_MATCH_TYPE],
         ['rule-amount-to-match', 'rule-amount-match-type', SCREENS.WORKSPACE.DYNAMIC_RULES_AMOUNT_MATCH_TYPE],
-        ['rule-has-to-match', 'rule-has-match-type', SCREENS.WORKSPACE.DYNAMIC_RULES_HAS_MATCH_TYPE],
         ['rule-merchant-to-match', 'rule-match-type', SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MATCH_TYPE],
     ])('opens the match type step pushed on top of %s', (conditionSuffix, matchTypeSuffix, expectedScreen) => {
         // Given a match type step appended to the condition step that opens it

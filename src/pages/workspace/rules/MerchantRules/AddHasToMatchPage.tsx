@@ -1,7 +1,7 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
-import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ScreenWrapper from '@components/ScreenWrapper';
+import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -20,7 +20,7 @@ import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST, {HAS_VALUE_TRANSLATION_KEYS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
@@ -36,7 +36,7 @@ type HasListItem = ListItem & {
 
 function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
     const {policyID, ruleID} = route.params;
-    const {isEditing, backToRoute, getRuleRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_HAS_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
+    const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_HAS_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(policyID);
@@ -45,9 +45,11 @@ function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
 
     const {selectedValues: selectedHasValues, toggleValue: toggleHasValue, toggleAll} = useRuleConditionSelection(form?.hasToMatch ?? []);
 
-    const hasMatchType = form?.hasMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
-    const matchTypeLabel =
-        hasMatchType === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO ? translate('search.filters.filterType.has.negative') : translate('search.filters.filterType.has.positive');
+    const isNegated = (form?.hasMatchType ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO) === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO;
+
+    const onNegationChange = (shouldNegate: boolean) => {
+        updateDraftMerchantRule({hasMatchType: shouldNegate ? CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO});
+    };
 
     // A rule can only check for a part the workspace actually uses, except where the rule already checks for it,
     // since hiding that row would leave no way to see or remove it.
@@ -93,31 +95,27 @@ function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
                 title={translate('workspace.rules.merchantRules.hasOrDoesNotHave')}
                 onBackButtonPress={goBackToRule}
             />
-            <SelectionList
-                canSelectMultiple
-                shouldUpdateFocusedIndex
-                ListItem={MultiSelectListItem}
-                data={hasItems}
-                selectedItems={selectedHasValues}
-                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                onSelectRow={toggleHasItem}
-                onSelectionButtonPress={toggleHasItem}
-                onSelectAll={hasItems.length > 0 ? toggleSelectAll : undefined}
-                style={{
-                    listHeaderWrapperStyle: [styles.pt5, styles.pb2],
-                    listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
-                }}
-                footerContent={
-                    <>
-                        <MenuItemField
-                            name={translate('search.filters.filterType.label')}
-                            onPress={() =>
-                                Navigation.navigate(
-                                    getRuleRoute(DYNAMIC_ROUTES.RULES_HAS_MATCH_TYPE_FROM_EXPENSE.path, ROUTES.RULES_HAS_MATCH_TYPE.getRoute(policyID, isEditing ? ruleID : undefined)),
-                                )
-                            }
-                            value={matchTypeLabel}
-                        />
+            <NegatableFilter
+                style={[styles.flex1, styles.pt3]}
+                baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS}
+                isNegated={isNegated}
+                onNegationChange={onNegationChange}
+            >
+                <SelectionList
+                    canSelectMultiple
+                    shouldUpdateFocusedIndex
+                    ListItem={MultiSelectListItem}
+                    data={hasItems}
+                    selectedItems={selectedHasValues}
+                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                    onSelectRow={toggleHasItem}
+                    onSelectionButtonPress={toggleHasItem}
+                    onSelectAll={hasItems.length > 0 ? toggleSelectAll : undefined}
+                    style={{
+                        listHeaderWrapperStyle: [styles.pt2, styles.pb2],
+                        listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
+                    }}
+                    footerContent={
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.save')}
                             isAlertVisible={false}
@@ -125,9 +123,9 @@ function AddHasToMatchPage({route}: AddHasToMatchPageProps) {
                             enabledWhenOffline
                             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                         />
-                    </>
-                }
-            />
+                    }
+                />
+            </NegatableFilter>
         </ScreenWrapper>
     );
 }
