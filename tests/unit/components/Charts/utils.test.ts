@@ -11,6 +11,7 @@ import {
     getAdditionalOffset,
     getDomainPaddingForEdgeSpace,
     getNiceYAxisTicks,
+    getWholeNumberTickCount,
     getCartesianPlotBounds,
     isAngleInSlice,
     isCursorInSkewedLabel,
@@ -697,6 +698,43 @@ describe('getNiceYAxisTicks', () => {
 
     it('rounds intermediate ticks to eliminate floating-point noise', () => {
         expect(getNiceYAxisTicks(0, -1.11, 5)).toEqual([-1.2, -1, -0.8, -0.6, -0.4, -0.2, 0]);
+    });
+});
+
+describe('getWholeNumberTickCount', () => {
+    it('asks for as many ticks as the domain has units, so a small count domain is not split into fractions', () => {
+        // Given a domain of 0 to 2 expenses, which the default 5 ticks would split in halves
+        // When the tick count is capped to the whole units the domain spans
+        // Then d3 is asked for 2 ticks, which lands them on 0, 1 and 2
+        expect(getWholeNumberTickCount([0, 2], 5)).toBe(2);
+    });
+
+    it('asks for a single tick on a domain of one unit, which d3 answers with both ends', () => {
+        // Given a domain of 0 to 1, where even 2 ticks would land on 0.5
+        // When the tick count is capped
+        // Then one tick is requested, and d3 returns 0 and 1
+        expect(getWholeNumberTickCount([0, 1], 5)).toBe(1);
+    });
+
+    it('never asks for fewer than one tick, also on a flat domain', () => {
+        // Given every value being zero, so the domain spans nothing
+        // When the tick count is capped
+        // Then it stays at 1 rather than dropping to 0, which would hide the axis
+        expect(getWholeNumberTickCount([0, 0], 5)).toBe(1);
+    });
+
+    it('keeps the default tick count once the domain spans at least that many units', () => {
+        // Given a domain wide enough that d3's own step is already a whole number
+        // When the tick count is capped
+        // Then the default is left alone
+        expect(getWholeNumberTickCount([0, 40], 5)).toBe(5);
+    });
+
+    it('measures the span rather than the max, so negative domains are capped too', () => {
+        // Given a domain running from -1 to 1, a span of 2 units
+        // When the tick count is capped
+        // Then it follows the span and ticks land on -1, 0 and 1
+        expect(getWholeNumberTickCount([-1, 1], 5)).toBe(2);
     });
 });
 

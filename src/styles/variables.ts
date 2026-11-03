@@ -612,7 +612,6 @@ export default {
     searchTableColumnGap: 12,
     // The margin and padding each row sits inside on both sides, from `mh5` on its wrapper and `ph3` on the row.
     searchTableRowChromeWidth: (20 + 12) * 2,
-    searchTableRowCheckboxWidth: 24,
     // What the status badge spends around its label, from `condensedBadge`'s horizontal padding and `defaultBadge`'s border.
     statusBadgeChromeWidth: 6 * 2 + 1 * 2,
     // Padding on every side of an editable cell. The edit button sits at this same inset.

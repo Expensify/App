@@ -56,6 +56,7 @@ function PieChartCanvas({
     valueUnit,
     valueUnitPosition,
     valueDecimals,
+    formatValue: formatValueOverride,
     onSlicePress,
     shouldShowLegend = true,
     shouldUseResponsiveLegend = false,
@@ -93,7 +94,7 @@ function PieChartCanvas({
     const [{key: primarySeriesKey}] = series;
     const processedSlices = processDataIntoSlices(data, primarySeriesKey, pieGeometry);
 
-    const {formatValue, formatExactValue, formatTotalValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
+    const {formatValue, formatExactValue, formatTotalValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition, formatValue: formatValueOverride});
     const total = data.reduce((sum, point) => sum + getPrimaryValue(point, primarySeriesKey), 0);
 
     /** Data index of the slice at the given point, or -1 when the point is outside the slices */
