@@ -1261,7 +1261,7 @@ const DYNAMIC_ROUTES = {
     },
     RULES_DATE_MATCH_TYPE_FROM_EXPENSE: {
         path: 'rule-date-match-type',
-        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_DATE_TO_MATCH],
     },
     RULES_AMOUNT_TO_MATCH_FROM_EXPENSE: {
         path: 'rule-amount-to-match',
@@ -1269,7 +1269,7 @@ const DYNAMIC_ROUTES = {
     },
     RULES_AMOUNT_MATCH_TYPE_FROM_EXPENSE: {
         path: 'rule-amount-match-type',
-        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_AMOUNT_TO_MATCH],
     },
     RULES_HAS_TO_MATCH_FROM_EXPENSE: {
         path: 'rule-has-to-match',
@@ -1277,7 +1277,7 @@ const DYNAMIC_ROUTES = {
     },
     RULES_HAS_MATCH_TYPE_FROM_EXPENSE: {
         path: 'rule-has-match-type',
-        entryScreens: EXPENSE_DEFAULT_RULE_STEP_ENTRY_SCREENS,
+        entryScreens: [SCREENS.WORKSPACE.DYNAMIC_RULES_HAS_TO_MATCH],
     },
     RULES_CARD_TO_MATCH_FROM_EXPENSE: {
         path: 'rule-card-to-match',
