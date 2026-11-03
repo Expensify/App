@@ -30,7 +30,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {loginSelector} from '@selectors/PersonalDetails';
-import React from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type DateInputFieldProps = {
@@ -52,7 +52,8 @@ type DateInputFieldProps = {
 
 /**
  * The date of a saved expense, picked in place from the calendar. A pick is saved right away, through the same
- * action the date page uses.
+ * action the date page uses. Clearing the date only empties the field until the next pick, since an expense always
+ * needs a date.
  */
 function DateInputField({transaction, transactionThreadReport, isTrackExpense, label, errorText = ''}: DateInputFieldProps) {
     const styles = useThemeStyles();
@@ -80,8 +81,10 @@ function DateInputField({transaction, transactionThreadReport, isTrackExpense, l
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const currentCreated = getFormattedCreated(transaction);
+    const [isCleared, setIsCleared] = useState(false);
 
     const saveDate = (newCreated: string) => {
+        setIsCleared(!newCreated);
         // An expense always needs a date, so an emptied picker keeps the saved one
         if (!newCreated || newCreated === currentCreated || !transaction?.transactionID) {
             return;
@@ -120,14 +123,20 @@ function DateInputField({transaction, transactionThreadReport, isTrackExpense, l
         <View style={styles.mh5}>
             <DatePicker
                 inputID={INPUT_IDS.MONEY_REQUEST_CREATED}
-                value={currentCreated}
+                value={isCleared ? '' : currentCreated}
                 label={label || translate('common.date')}
                 maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                 onInputChange={saveDate}
                 errorText={errorText}
                 shouldDeferShowUntilPositioned
-                shouldHideClearButton
                 iconContainerStyle={styles.moneyRequestFieldInputIcon}
+                onPickerVisibilityChange={(isVisible) => {
+                    // Closing the calendar without a pick brings back the saved date
+                    if (isVisible || !isCleared) {
+                        return;
+                    }
+                    setIsCleared(false);
+                }}
             />
         </View>
     );

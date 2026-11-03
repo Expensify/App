@@ -257,7 +257,7 @@ function DatePicker({
                     textInputContainerStyles={[textInputContainerStyles, isModalVisible && styles.borderColorFocus]}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
-                    clearButtonStyle={[styles.mh0, {paddingHorizontal: iconPaddingHorizontal}]}
+                    clearButtonStyle={[styles.mh0, {paddingHorizontal: iconPaddingHorizontal}, iconContainerStyle]}
                     forwardedFSClass={forwardedFSClass}
                     autoComplete={autoComplete}
                     disableKeyboard

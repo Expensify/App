@@ -24,8 +24,6 @@ import React from 'react';
 import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 
-import useReadOnlyFieldBorderToggle from './useReadOnlyFieldBorderToggle';
-
 type ExpenseFieldRowProps = {
     /** Name of the field. Renders small above the value, or as the placeholder when there is no value */
     name: string;
@@ -141,7 +139,6 @@ function ExpenseFieldRow({
 }: ExpenseFieldRowProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
-    const shouldShowReadOnlyBorder = useReadOnlyFieldBorderToggle();
     const theme = useTheme();
 
     const hasValue = valueComponent ? hasValueComponent : !!value;
@@ -214,12 +211,7 @@ function ExpenseFieldRow({
     const borderedBox = (
         <Animated.View style={[styles.moneyRequestFieldRowFill, backgroundStyle]}>
             <MenuItem.Root
-                style={[
-                    styles.moneyRequestFieldRow,
-                    !isInteractive && styles.moneyRequestFieldRowDisabled,
-                    !isInteractive && shouldShowReadOnlyBorder && styles.moneyRequestFieldRowDisabledBordered,
-                    !!errorText && styles.borderColorDanger,
-                ]}
+                style={[styles.moneyRequestFieldRow, !isInteractive && styles.moneyRequestFieldRowDisabled, !!errorText && styles.borderColorDanger]}
                 hoveredStyle={styles.highlightBG}
                 // A locked field has nothing to open, so it is handed no press handler at all: `MenuItem.Root`
                 // reads that as a non-interactive row and drops the button role and the focus stop with it.

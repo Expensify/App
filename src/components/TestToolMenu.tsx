@@ -30,7 +30,6 @@ import {Platform, View} from 'react-native';
 import BiometricsTestToolRow from './BiometricsTestToolRow';
 import Button from './Button';
 import Icon from './Icon';
-import useReadOnlyFieldBorderToggle, {toggleReadOnlyFieldBorder} from './MoneyRequestConfirmationList/sections/useReadOnlyFieldBorderToggle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import QAAuthTestToolRows from './QAAuthTestToolRows';
 import SoftKillTestToolRow from './SoftKillTestToolRow';
@@ -55,7 +54,6 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
     const {translate} = useLocalize();
     const {clearLHNCache} = useSidebarOrderedReportsActions();
     const {isProduction} = useEnvironment();
-    const isReadOnlyFieldBorderShown = useReadOnlyFieldBorderToggle();
 
     // Check if the user is authenticated to show options that require authentication
     const isAuthenticated = useIsAuthenticated();
@@ -93,15 +91,6 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
             </Text>
             {isAuthenticated && (
                 <>
-                    {/* Temporary review aid for the inline expense fields: shows read-only fields with a border. */}
-                    <TestToolRow title="Read-only field borders">
-                        <Switch
-                            accessibilityLabel="Read-only field borders"
-                            isOn={isReadOnlyFieldBorderShown}
-                            onToggle={toggleReadOnlyFieldBorder}
-                        />
-                    </TestToolRow>
-
                     {/* When toggled the app will be put into debug mode. */}
                     <TestToolRow
                         title={translate('initialSettingsPage.troubleshoot.debugMode')}
