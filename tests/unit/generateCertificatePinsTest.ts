@@ -30,6 +30,7 @@ const pinsJsonPath = path.join(repoRoot, 'config/certificatePinning/pins.json');
  * Keep the HybridApp pin lists used in store builds in sync with pins.json.
  * Include each Mobile-Expensify file that exists when this suite runs.
  * Missing files are skipped so the suite can run without the submodule.
+ * CI does not check out the submodule, so these files are only checked locally.
  */
 const hybridAppPinFiles = [
     'Mobile-Expensify/Android/res/xml/network_security_config_enforce.xml',

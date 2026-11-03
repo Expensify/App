@@ -112,6 +112,10 @@ enum CertificatePinning {
 
             TrustKit.initSharedInstance(withConfiguration: trustKitConfig)
 
+            // Start the interface monitor at launch so reports include the interface type. Its updates
+            // arrive on reportingQueue, so a monitor started during a report could not update that report.
+            _ = pathMonitor
+
             // Reporting rebuilds the validated chain from TrustKit's PEM array and re-runs a trust
             // evaluation to classify the anchor, so it runs on its own serial queue rather than
             // TrustKit's default (main).
@@ -142,10 +146,11 @@ enum CertificatePinning {
 
     private static var occurrenceCounts: [String: Int] = [:]
 
-    /// Tags are capped at 200 characters; these ride along as extras instead.
+    /// Sentry truncates tag values longer than 200 characters, so values that can be longer are sent as extras.
     private static let extraKeys: Set<String> = [
         "certificate_pinning_chain_subjects",
         "certificate_pinning_chain_fingerprints",
+        "certificate_pinning_trust_errors",
     ]
     private static var currentInterfaceType = "unknown"
     private static let pathMonitor: NWPathMonitor = {
@@ -333,9 +338,12 @@ enum CertificatePinning {
         var trustResult = SecTrustResultType.invalid
         SecTrustGetTrustResult(trust, &trustResult)
 
+        // On iOS each property is a dictionary such as ["type": "error", "value": <reason>]. The
+        // kSecPropertyKeyType and kSecPropertyKeyValue constants are unavailable on iOS, so the
+        // literal keys are used.
         if let properties = SecTrustCopyProperties(trust) as? [[String: Any]] {
-            for property in properties {
-                if let message = property[kSecPropertyTypeError as String] as? String, !message.isEmpty, !errors.contains(message) {
+            for property in properties where (property["type"] as? String) == (kSecPropertyTypeError as String) {
+                if let message = property["value"] as? String, !message.isEmpty, !errors.contains(message) {
                     errors.append(message)
                 }
             }
@@ -345,15 +353,19 @@ enum CertificatePinning {
 
     // MARK: Network context
 
-    /// Reports whether HTTP proxy and PAC settings are enabled, and whether `__SCOPED__`
-    /// contains an interface whose name starts with utun, tun, tap, ppp, or ipsec.
-    /// These names suggest a tunnel but do not prove this connection uses a VPN.
-    /// The proxy host and PAC URL are omitted to protect network details.
+    /// Reports whether an HTTP or HTTPS proxy or PAC setting is enabled, in the top-level settings or
+    /// for any interface under `__SCOPED__`, and whether `__SCOPED__` contains an interface whose name
+    /// starts with utun, tun, tap, ppp, or ipsec. These names suggest a tunnel but do not prove this
+    /// connection uses a VPN. The proxy host and PAC URL are omitted to protect network details.
     private static func networkContext() -> [String: Any] {
         let proxy = CFNetworkCopySystemProxySettings()?.takeRetainedValue() as? [String: Any] ?? [:]
-        let httpProxy = (proxy[kCFNetworkProxiesHTTPEnable as String] as? Bool) ?? false
-        let pac = (proxy[kCFNetworkProxiesProxyAutoConfigEnable as String] as? Bool) ?? false
         let scoped = proxy["__SCOPED__"] as? [String: Any] ?? [:]
+        // A proxy configured for one Wi-Fi network or VPN can appear only in that interface's scoped entry.
+        let settings = [proxy] + scoped.values.compactMap { $0 as? [String: Any] }
+        // kCFNetworkProxiesHTTPSEnable is unavailable on iOS, but iOS proxy settings can include the key.
+        let proxyKeys = [kCFNetworkProxiesHTTPEnable as String, "HTTPSEnable"]
+        let httpProxy = settings.contains { entry in proxyKeys.contains { key in (entry[key] as? Bool) == true } }
+        let pac = settings.contains { entry in (entry[kCFNetworkProxiesProxyAutoConfigEnable as String] as? Bool) == true }
         let tunnelPrefixes = ["utun", "tun", "tap", "ppp", "ipsec"]
         let tunnel = scoped.keys.contains { interface in tunnelPrefixes.contains { interface.hasPrefix($0) } }
         return [
@@ -363,9 +375,10 @@ enum CertificatePinning {
         ]
     }
 
-    /// Current interface type, cached from a path monitor started on first use so the lookup stays synchronous.
+    /// Interface type cached by `pathMonitor`, which `initialize()` starts at launch. The lookup is
+    /// synchronous and returns "unknown" until the first update. "other" includes virtual networks and
+    /// interfaces of unknown types; it does not prove that a VPN is in use.
     private static func interfaceType() -> String {
-        _ = pathMonitor
         return currentInterfaceType
     }
 }
