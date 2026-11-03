@@ -1,5 +1,5 @@
 /**
- * A promise keeps the editor open until the confirm modal settles, so the typed value stays visible.
+ * A promise keeps the editor open until it settles, so the typed value stays visible.
  * Once it settles, the editor closes. Resolving false means the user cancelled, and the draft is dropped.
  * A synchronous false keeps the editor open with the typed value.
  */
