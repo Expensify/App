@@ -22,6 +22,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getTaxReclaimableAmount} from '@libs/PolicyDistanceRatesUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -152,7 +153,8 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     };
 
     const rateValueToDisplay = convertAmountToDisplayString(rate?.rate, currency);
-    const taxClaimableValueToDisplay = taxClaimablePercentage && rate.rate ? convertAmountToDisplayString(taxClaimablePercentage * rate.rate, currency) : '';
+    const taxReclaimableAmount = getTaxReclaimableAmount(rate);
+    const taxClaimableValueToDisplay = taxReclaimableAmount !== undefined ? convertAmountToDisplayString(taxReclaimableAmount, currency) : '';
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
     const clearErrorFields = (fieldName: keyof Rate | keyof RateAttributes) => {
@@ -270,7 +272,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             </View>
                         </OfflineWithFeedback>
                     )}
-                    {/* Expenses use the percentage even when the rate has no valid tax rate, so show it whenever one is set. Keep the tax rate check so admins can set it on a new rate. */}
+                    {/* Expenses use the percentage even without a valid tax rate. The tax rate check lets admins add an amount to a rate that has none. */}
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (!!taxRate || !!taxClaimablePercentage) && (
                         <OfflineWithFeedback
                             errors={getLatestErrorField(rate, 'taxClaimablePercentage')}
