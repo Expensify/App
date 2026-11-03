@@ -7,6 +7,7 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import MenuItem from '@components/MenuItem';
+import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -93,18 +94,28 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
                 // Many partner logos are transparent, so they need a white backdrop in both themes
                 avatarImageStyles={styles.backgroundWhite}
                 fallbackIcon={icons.Building}
+                // The badge and button leave little room for the status message, so it shows in full on hover once it's cut off
                 descriptionAddon={
                     status ? (
-                        <Badge
-                            text={translate(status?.isBroken ? 'workspace.connections.broken' : 'workspace.connections.active')}
-                            success={!status.isBroken}
-                            error={status.isBroken}
-                            isCondensed
-                            badgeStyles={styles.ml0}
-                        />
+                        <>
+                            <Badge
+                                text={translate(status?.isBroken ? 'workspace.connections.broken' : 'workspace.connections.active')}
+                                success={!status.isBroken}
+                                error={status.isBroken}
+                                isCondensed
+                                badgeStyles={styles.ml0}
+                            />
+                            {!!status.message && (
+                                <TextWithTooltip
+                                    shouldShowTooltip
+                                    text={status.message}
+                                    numberOfLines={1}
+                                    style={[styles.textLabelSupporting, styles.textLineHeightNormal, styles.flex1, styles.ml2]}
+                                />
+                            )}
+                        </>
                     ) : undefined
                 }
-                description={status?.message}
                 titleAddon={
                     offer ? (
                         <Badge
@@ -117,7 +128,6 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
                         />
                     ) : undefined
                 }
-                numberOfLinesDescription={1}
                 wrapperStyle={[styles.pv4, styles.ph4]}
                 onPress={status ? onConfigure : onConnect}
                 sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.CONNECTIONS.CARD}
