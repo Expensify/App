@@ -1,6 +1,6 @@
 /**
- * Fetch fresh navigation HTML without waiting for a service worker update to finish downloading.
- * The installed worker's precached shell and assets remain available for offline navigation.
+ * Open the saved app immediately on ordinary visits, and fetch fresh HTML for required upgrades.
+ * Keep the installed shell and assets available offline without unregistering the worker.
  */
 import {APP_UPDATE_QUERY_PARAM} from '@libs/AppUpdateURL';
 
@@ -12,15 +12,15 @@ import {NetworkOnly, StaleWhileRevalidate} from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope;
 
-const NAVIGATION_TIMEOUT_SECONDS = 3;
 const USER_MEDIA_MAX_ENTRIES = 200;
 const USER_MEDIA_MAX_AGE_SECONDS = 7 * 24 * 60 * 60;
+const UPGRADE_REDIRECT_MAX_AGE_MS = 60 * 1000;
+const upgradeRedirects = new Map<string, ReturnType<typeof setTimeout>>();
 
 self.skipWaiting();
 clientsClaim();
 
-const navigationStrategy = new NetworkOnly({
-    networkTimeoutSeconds: NAVIGATION_TIMEOUT_SECONDS,
+const upgradeNavigationStrategy = new NetworkOnly({
     plugins: [
         {
             fetchDidSucceed: async ({response}) => {
@@ -39,16 +39,38 @@ const navigationStrategy = new NetworkOnly({
     ],
 });
 
-// A 426 means the cached app cannot continue. Wait for network headers instead of returning it after three seconds.
-// An actual network failure still uses the installed shell so the user can work offline or retry the upgrade.
-const upgradeNavigationStrategy = new NetworkOnly({plugins: navigationStrategy.plugins});
-
-// Navigation must win over the precache routes for / and /index.html as well as deep links.
+// Upgrade requests must reach the network even when / or /index.html already has a precached response.
 registerRoute(
     new NavigationRoute(
-        (options) => {
-            const strategy = options.url.searchParams.has(APP_UPDATE_QUERY_PARAM) ? upgradeNavigationStrategy : navigationStrategy;
-            return strategy.handle(options);
+        async (options) => {
+            const navigationEvent = options.event instanceof FetchEvent ? options.event : undefined;
+            const clientID = navigationEvent?.resultingClientId;
+            const redirectTimeout = clientID ? upgradeRedirects.get(clientID) : undefined;
+            if (redirectTimeout !== undefined && clientID) {
+                clearTimeout(redirectTimeout);
+                upgradeRedirects.delete(clientID);
+            }
+            const isUpgrade = options.url.searchParams.has(APP_UPDATE_QUERY_PARAM) || redirectTimeout !== undefined;
+            if (!isUpgrade) {
+                const cachedResponse = await matchPrecache('/index.html').catch((error: unknown) => {
+                    console.error('Failed to read the saved app; trying the network.', error);
+                    return undefined;
+                });
+                if (cachedResponse) {
+                    return cachedResponse;
+                }
+            }
+
+            const response = await upgradeNavigationStrategy.handle(options);
+            if (response.type === 'opaqueredirect' && clientID) {
+                // Redirects may drop the query marker, but keep the ID of the page being opened.
+                // Expire abandoned redirects, including those that leave this worker's scope entirely.
+                upgradeRedirects.set(
+                    clientID,
+                    setTimeout(() => upgradeRedirects.delete(clientID), UPGRADE_REDIRECT_MAX_AGE_MS),
+                );
+            }
+            return response;
         },
         {denylist: [/^\/_/, /^\/\.well-known/, /^(?!\/index\.html(?:\?|$)).*\/[^/?]+\.[^/]+$/]},
     ),
