@@ -971,7 +971,7 @@ type NetSuiteMappingValues = 'NETSUITE_DEFAULT' | 'REPORT_FIELD' | 'TAG';
 type NetSuiteInvoiceItemPreferenceValues = 'create' | 'select';
 
 /** NetSuite export destination values */
-type NetSuiteExportDestinationValues = 'EXPENSE_REPORT' | 'VENDOR_BILL' | 'JOURNAL_ENTRY';
+type NetSuiteExportDestinationValues = 'CREDIT_CARD_CHARGE' | 'EXPENSE_REPORT' | 'VENDOR_BILL' | 'JOURNAL_ENTRY';
 
 /** NetSuite expense report approval level values */
 type NetSuiteExpenseReportApprovalLevels = 'REPORTS_APPROVED_NONE' | 'REPORTS_SUPERVISOR_APPROVED' | 'REPORTS_ACCOUNTING_APPROVED' | 'REPORTS_APPROVED_BOTH';
@@ -996,6 +996,7 @@ type NetSuiteCustomFormIDOptions = {
     expenseReport?: string;
     vendorBill?: string;
     journalEntry?: string;
+    creditCardCharge?: string;
 };
 
 /** NetSuite custom list */
@@ -1172,6 +1173,12 @@ type NetSuiteConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** The default vendor to use for Transactions in NetSuite */
         defaultVendor?: string;
+
+        /** Credit card account used when exporting company card expenses as credit card charges */
+        creditCardAccount?: string;
+
+        /** Authentication method used for this connection */
+        authType?: 'tba' | 'oauth2';
 
         /** The payable account to use for Expensify Travel expenses when exporting to NetSuite */
         travelInvoicingPayableAccountID?: string;
@@ -1811,6 +1818,9 @@ type RilletExport = {
 
     /** Export behavior for non-reimbursable expenses. */
     nonReimbursable: RilletExportNonReimbursable;
+
+    /** Account code where reimbursements land (applicable if `reimbursable` type is REIMBURSEMENT). */
+    reimbursementAccountCode: string;
 
     /** Default vendor to associate with exported transactions. */
     defaultVendorID: string;
@@ -2780,6 +2790,20 @@ type ZohoBooksAccount = {
 };
 
 /**
+ * Bank or credit card account retrieved from Zoho Books. The backend syncs only active ones, for the company card account picker.
+ */
+type ZohoBooksBankAccount = {
+    /** Unique identifier of the account. */
+    id: string;
+
+    /** Name of the account. */
+    name: string;
+
+    /** Currency associated with the account. */
+    currency?: string;
+};
+
+/**
  * Reporting tag retrieved from Zoho Books.
  */
 type ZohoBooksReportingTag = {
@@ -2861,6 +2885,9 @@ type ZohoBooksConnectionData = {
 
     /** Accounts available in Zoho Books. */
     accounts?: ZohoBooksAccount[];
+
+    /** Active bank and credit card accounts that company card expenses can export to. */
+    bankAccounts?: ZohoBooksBankAccount[];
 
     /** Reporting tags available in Zoho Books. */
     reportingTags?: ZohoBooksReportingTag[];
@@ -4048,6 +4075,12 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** When the monthly scheduled submit should happen */
         autoReportingOffset?: AutoReportingOffset;
 
+        /** The second day of the month a twice a month scheduled submit happens on */
+        autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset;
+
+        /** The IANA timezone the scheduled submit runs in */
+        timeZone?: string;
+
         employeeList?: OnyxTypes.PolicyEmployeeList;
 
         /** How the workspace pays reimbursable expenses. Can hold a deprecated value, so read it through `PolicyUtils.getReimbursementChoice`. */
@@ -4238,6 +4271,9 @@ type Policy = OnyxCommon.OnyxValueWithOfflineFeedback<
 
         /** Whether the Travel feature is enabled */
         isTravelEnabled?: boolean;
+
+        /** Whether the workspace has been provisioned for Travel */
+        isTravelProvisioned?: boolean;
 
         /** Whether the Per diem rates feature is enabled */
         arePerDiemRatesEnabled?: boolean;
@@ -4492,6 +4528,7 @@ export type {
     RilletCoding,
     RilletConnectionsConfig,
     RilletExport,
+    RilletExportReimbursable,
     RilletBankAccount,
     RilletAutoSync,
     RilletSync,
@@ -4521,6 +4558,7 @@ export type {
     ZohoBooksExportDate,
     ZohoBooksVendor,
     ZohoBooksAccount,
+    ZohoBooksBankAccount,
     BusinessCentralBankAccount,
     BusinessCentralCompany,
     BusinessCentralCoding,
@@ -4536,7 +4574,7 @@ export type {
  *
  * @public
  */
-export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksSync};
+export type {ZohoBooksAutoSync, ZohoBooksCoding, ZohoBooksConnectionsConfig, ZohoBooksExport, ZohoBooksOrganization, ZohoBooksSync};
 
 /**
  * The Digits action module is the only importer of these config types, and Knip ignores that module until workspace screens import it.

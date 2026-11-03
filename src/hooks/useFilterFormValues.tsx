@@ -18,32 +18,32 @@ import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useExportedToFilterOptions from './useExportedToFilterOptions';
 import useOnyx from './useOnyx';
 
-function policiesSelector(policies: OnyxCollection<Policy>): OnyxCollection<Policy> {
+function policiesSelector(policies: OnyxCollection<Policy>): OnyxCollection<Pick<Policy, 'taxRates'>> {
     if (!policies) {
         return policies;
     }
-    const result: OnyxCollection<Policy> = {};
+    const result: OnyxCollection<Pick<Policy, 'taxRates'>> = {};
     for (const [key, policy] of Object.entries(policies)) {
         if (!policy) {
             continue;
         }
-        result[key] = {taxRates: policy.taxRates} as Policy;
+        result[key] = {taxRates: policy.taxRates};
     }
     return result;
 }
 
-function policyCategoriesSelector(categories: OnyxCollection<PolicyCategories>): OnyxCollection<PolicyCategories> {
+function policyCategoriesSelector(categories: OnyxCollection<PolicyCategories>): OnyxCollection<Record<string, Pick<PolicyCategories[string], 'name'>>> {
     if (!categories) {
         return categories;
     }
-    const result: OnyxCollection<PolicyCategories> = {};
+    const result: OnyxCollection<Record<string, Pick<PolicyCategories[string], 'name'>>> = {};
     for (const [collectionKey, policyCategories] of Object.entries(categories)) {
         if (!policyCategories) {
             continue;
         }
-        const minimalCategories: PolicyCategories = {};
+        const minimalCategories: Record<string, Pick<PolicyCategories[string], 'name'>> = {};
         for (const [catKey, category] of Object.entries(policyCategories)) {
-            minimalCategories[catKey] = {name: category.name} as PolicyCategories[string];
+            minimalCategories[catKey] = {name: category.name};
         }
         result[collectionKey] = minimalCategories;
     }
