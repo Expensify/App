@@ -41,6 +41,7 @@ function addBreadcrumb(message: string, data?: Record<string, string | number | 
 
 type ReviewTransactionPageProps = PlatformStackScreenProps<MultifactorAuthenticationParamList, typeof SCREENS.MULTIFACTOR_AUTHENTICATION.REVIEW_TRANSACTION>;
 
+/** Forced review where the cardholder tells us whether they recognize a transaction declined as possible fraud */
 function ReviewTransactionPage({route}: ReviewTransactionPageProps) {
     const transactionID = route.params.transactionID;
 

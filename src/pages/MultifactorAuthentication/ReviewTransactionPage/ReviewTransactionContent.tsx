@@ -14,6 +14,7 @@ type ReviewTransactionContentProps = {
     transaction: TransactionPendingFraudReview;
 };
 
+/** Question and details of the transaction the cardholder is asked to review */
 function ReviewTransactionContent({transaction}: ReviewTransactionContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();

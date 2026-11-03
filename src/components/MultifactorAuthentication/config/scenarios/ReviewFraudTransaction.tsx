@@ -47,6 +47,7 @@ const ReviewServerFailureScreen = createScreenWithDefaults(
     'ReviewServerFailureScreen',
 );
 
+/** MFA scenario run when the cardholder confirms they recognize a transaction declined as possible fraud */
 export default {
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: confirmRecognizedTransaction,
