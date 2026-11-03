@@ -21,8 +21,7 @@ function buildAction(reportActionID: string, actionName: ReportAction['actionNam
         created,
         pendingAction,
         message: [{type: 'COMMENT', html: actionName, text: actionName}],
-        originalMessage: {},
-    } as ReportAction;
+    };
 }
 
 function toReportActions(actions: ReportAction[]): ReportActions {
