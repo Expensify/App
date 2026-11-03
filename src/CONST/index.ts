@@ -10600,6 +10600,9 @@ const CONST = {
         TAG_PICKER_MODAL: {
             BACK_BUTTON: 'TagPickerModal-BackButton',
         },
+        REPORT_FIELD_OPTIONS_POPOVER: {
+            BACK_BUTTON: 'ReportFieldOptionsPopover-BackButton',
+        },
         TAX_PICKER_MODAL: {
             BACK_BUTTON: 'TaxPickerModal-BackButton',
         },

@@ -1,5 +1,6 @@
 import ExpenseFieldDropdown from '@components/MoneyRequestConfirmationList/sections/ExpenseFieldDropdown';
 import useFieldRowHighlightStyle from '@components/MoneyRequestConfirmationList/sections/useFieldRowHighlightStyle';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -75,6 +76,7 @@ function TagFieldRow({
             isInteractive={isInteractive}
             onPress={onPress}
             shouldOpenInDropdown={shouldOpenInDropdown}
+            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
             renderDropdown={(dropdownProps) => (
                 <TagFieldDropdown
                     {...dropdownProps}

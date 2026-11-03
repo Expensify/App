@@ -10,6 +10,7 @@ import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 import FilterPopupButton from '@components/Search/FilterDropdowns/FilterPopupButton';
 import type {FilterPopupButtonProps} from '@components/Search/FilterDropdowns/FilterPopupButton';
+import SelectionListPopoverHeader, {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -69,7 +70,9 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
     const {translate} = useLocalize();
     const {windowHeight} = useWindowDimensions();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {isInNarrowPaneModal} = useResponsiveLayout();
+    // The options open as a bottom sheet only on a small screen, which is where they need a title and a back button
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isInNarrowPaneModal, isSmallScreenWidth} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'Trashcan']);
 
     const [draftValue, setDraftValue] = useState(value);
@@ -215,8 +218,16 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                     isSearchable: shouldShowSearchInput,
                     // Selecting an option submits straight away, so there is no apply button to leave room for.
                     hasButton: false,
+                    extraHeight: isSmallScreenWidth ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0,
                 })}
             >
+                {isSmallScreenWidth && (
+                    <SelectionListPopoverHeader
+                        title={label}
+                        onBackButtonPress={closeOverlay}
+                        backButtonSentryLabel={CONST.SENTRY_LABEL.REPORT_FIELD_OPTIONS_POPOVER.BACK_BUTTON}
+                    />
+                )}
                 <EditReportFieldDropdown
                     fieldKey={fieldKey}
                     fieldValue={value}

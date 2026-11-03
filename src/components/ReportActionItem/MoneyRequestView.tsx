@@ -11,6 +11,7 @@ import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
+import {SELECTION_LIST_POPOVER_HEADER_HEIGHT} from '@components/SelectionListPopoverHeader';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import UserPills from '@components/UserPills';
@@ -1511,6 +1512,7 @@ function MoneyRequestView({
                             onPress={openCategoryPage}
                             copyValue={decodedCategoryName || undefined}
                             shouldOpenInDropdown={!!policy && !shouldShowCategoryDisabledAlert && !shouldNavigateToUpgradePath}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
                             renderDropdown={(dropdownProps) => (
                                 <CategoryFieldDropdown
                                     {...dropdownProps}
@@ -1560,6 +1562,7 @@ function MoneyRequestView({
                             onPress={openTaxRatePage}
                             copyValue={taxRateValue || undefined}
                             shouldOpenInDropdown={!shouldShowTaxDisabledAlert}
+                            listHeaderHeight={SELECTION_LIST_POPOVER_HEADER_HEIGHT}
                             renderDropdown={(dropdownProps) => (
                                 <TaxFieldDropdown
                                     {...dropdownProps}
