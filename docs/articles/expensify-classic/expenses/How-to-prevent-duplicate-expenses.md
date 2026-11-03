@@ -55,7 +55,7 @@ The status clears when any of the following happens:
 - The expense is more than seven days old.
 - You select **Mark as cash** to indicate that you paid with cash or a card that isn't connected to Expensify.
 
-**Note:** If your connected credit card has a connection issue, the expense may remain blocked even after seven days. 
+**Note:** If your connected credit card has a connection issue, the expense may keep the **Awaiting merge with card transaction** status even after seven days.
 
 ---
 
