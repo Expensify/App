@@ -48,7 +48,6 @@ jest.mock(
 );
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => ({currentSearchQueryJSON: mockQueryJSON}),
-    useSearchResultsContext: () => ({currentSearchResults: undefined}),
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
     useSearchSelectionContext: () => ({
         selectedReports: [{reportID: 'report1'}, {reportID: 'report2'}],

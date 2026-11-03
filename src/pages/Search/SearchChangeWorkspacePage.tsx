@@ -2,7 +2,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -11,7 +11,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {getAllMatchingExpenseActionQuery} from '@hooks/useSearchBulkActions';
+import {getAllMatchingReportQuery} from '@hooks/useSearchBulkActions';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 
 import {queueBulkChangeReportPolicy} from '@libs/actions/Search';
@@ -39,7 +39,6 @@ function SearchChangeWorkspacePage() {
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {currentSearchQueryJSON} = useSearchQueryContext();
-    const {currentSearchResults} = useSearchResultsContext();
     const {selectedReports, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
@@ -55,7 +54,8 @@ function SearchChangeWorkspacePage() {
 
     const getJSONQuery = () => {
         if (areAllMatchingItemsSelected) {
-            return currentSearchQueryJSON ? getAllMatchingExpenseActionQuery(currentSearchQueryJSON, excludedTransactions, currentSearchResults?.data)?.jsonQuery : undefined;
+            const allMatchingQuery = currentSearchQueryJSON ? getAllMatchingReportQuery(currentSearchQueryJSON, excludedTransactions) : undefined;
+            return allMatchingQuery ? serializeQueryJSONForBackend(allMatchingQuery) : undefined;
         }
         const reportIDs = selectedReports.length ? selectedReports.map((report) => report.reportID) : Object.values(selectedTransactions).map((transaction) => transaction.reportID);
         const uniqueReportIDs = [...new Set(reportIDs.filter((reportID): reportID is string => !!reportID))];
