@@ -125,8 +125,7 @@ The first list is dead or ignored props: do not replicate them. The second list 
 ```tsx
 <KeypadAmountEditor
     ref={amountEditorRef}
-    value={hours}
-    onInputChange={setHours}
+    value={committedHours}
     decimals={CONST.HOURS_DECIMAL_PLACES}
     errorText={formError}
     shouldUseDynamicFontSize
@@ -149,17 +148,26 @@ The first list is dead or ignored props: do not replicate them. The second list 
     </KeypadAmountEditor.Symbol>
 </KeypadAmountEditor>
 ```
-* **Asynchronous value updates**: `useAmountEditingController` intentionally ignores external `value` changes while editing, resetting only when `value === ''`. If the initial or draft value arrives asynchronously from Onyx or when switching tabs (e.g. `IOURequestStepHours`, `DynamicIOURequestStepDistanceManual`), push it into the editor with `updateNumber` from an effect.
-* **Preferred: do not mirror the value in parent state.** If the parent only needs the value on submit, read it imperatively via `amountEditorRef.current?.getNumber()` in the submit handler and do not pass `onInputChange` just to copy the value. This avoids the extra state update and render entirely.
-* **Fallback: `updateNumber(value, {notify: true})`.** Use it only when the parent genuinely must hold the value continuously (e.g. to drive other UI or validation):
+* **Do not mirror the value in parent state.** Pass the initial value via `value` and read the current one imperatively with `amountEditorRef.current?.getNumber()` wherever it is needed: in the submit handler and in callbacks such as `getHasUnsavedChanges` (dirty check). Do not pass `onInputChange` just to copy the value into `useState`. Use it only for side effects of user edits (e.g. clearing `formError`).
+```tsx
+const saveHours = () => {
+    const hours = amountEditorRef.current?.getNumber() ?? '';
+    // validate and submit `hours`
+};
+
+useDiscardChangesConfirmation({
+    getHasUnsavedChanges: () => getStringFieldHasUnsavedChanges(amountEditorRef.current?.getNumber() ?? committedHours, committedHours, isEmbeddedInStartPage),
+    // ...
+});
+```
+* **Asynchronous value updates**: `useAmountEditingController` intentionally ignores external `value` changes while editing, resetting only when `value === ''`. If the initial or draft value arrives asynchronously from Onyx or when switching tabs (e.g. `IOURequestStepHours`, `DynamicIOURequestStepDistanceManual`), push it into the editor with `updateNumber` from an effect. This syncs an imperative widget, so it has no `setState`, needs no `eslint-disable`, and does not notify `onInputChange`:
 ```tsx
 useEffect(() => {
-    amountEditorRef.current?.updateNumber(committedHours, {notify: true});
+    amountEditorRef.current?.updateNumber(committedHours);
 }, [selectedTab, committedHours]);
 ```
-* `{notify: true}` makes the controller call `onInputChange` synchronously from inside the effect, so the parent's state update (e.g. `setHours`) still runs during the effect phase and still costs one extra render. It does not remove the cascading update, it only keeps a single source of truth without a manual `setState` mirror in the effect body (so the `react-hooks/set-state-in-effect` rule is not triggered by that indirection, but the cost is the same).
-* `updateNumber` skips input normalization and validation (`decimals`, `maxLength`, `allowNegative`), so pass a canonical, already-valid string (e.g. a frontend amount string with `.` as the decimal separator, not a locale-formatted display string). With `{notify: true}` that value is forwarded to `onInputChange` as is.
-* Note on legacy call sites: `IOURequestStepHours.tsx` and `DynamicIOURequestStepDistanceManual.tsx` historically called `updateNumber` without notification and mirrored the value with manual `setState` in an effect. When migrating those pages, prefer reading `getNumber()` on submit; use `{notify: true}` only if the parent must hold the value continuously, rather than copying the `react-hooks/set-state-in-effect` disable.
+* `updateNumber` skips input normalization and validation (`decimals`, `maxLength`, `allowNegative`), so pass a canonical, already-valid string (e.g. a frontend amount string with `.` as the decimal separator, not a locale-formatted display string).
+* Note on legacy call sites: `IOURequestStepHours.tsx` and `DynamicIOURequestStepDistanceManual.tsx` mirrored the value (`typedCount`, `typedDistance`) with manual `setState` in an effect plus an `eslint-disable` for `react-hooks/set-state-in-effect`. When migrating those pages, drop the mirror and read `getNumber()` instead (the mirror is only needed in `getHasUnsavedChanges` and on submit). Do not copy the disable.
 * Pass `textStyle={styles.textSupporting}` to `KeypadAmountEditor.Symbol` when the unit suffix should match the supporting color rather than the bold amount text.
 
 ### C. Inline Field (e.g. `AmountField` in Confirmation List)
@@ -324,7 +332,7 @@ The seatbelt rule freezes all active call sites (source of truth: the `no-deprec
 |---|---|---|---|
 | `src/pages/iou/MoneyRequestAmountForm.tsx` | Full-screen currency amount | `KeypadAmountEditor` | Remove outer `ScrollView`; attach `testID="moneyRequestAmountInput"` to `.Input`; handle signed `getNumber()` and `onSignDirtyChange`. |
 | `src/pages/iou/request/step/IOURequestStepHours.tsx` | Full-screen unit suffix | `KeypadAmountEditor` | Unit suffix ordering (`.Input` before `.Symbol`); sync Onyx drafts via `updateNumber` in `useEffect`. |
-| `src/pages/iou/request/step/DynamicIOURequestStepDistanceManual.tsx` | Full-screen unit suffix | `KeypadAmountEditor` | Wraps the editor in `StepScreenWrapper`; tab-switching resync via `updateNumber(value, {notify: true})` (or read `getNumber()` on submit) instead of mirroring `typedDistance` manually; verify there is no nested scroll after migration. |
+| `src/pages/iou/request/step/DynamicIOURequestStepDistanceManual.tsx` | Full-screen unit suffix | `KeypadAmountEditor` | Wraps the editor in `StepScreenWrapper`; tab-switching resync via `updateNumber` in an effect; read `getNumber()` on submit and in the dirty check instead of mirroring `typedDistance`; verify there is no nested scroll after migration. |
 | `src/pages/iou/request/step/DistanceManualTabContent.tsx` | Tab content (manual distance tab) | `KeypadAmountEditor` | Rendered by `DynamicIOURequestStepDistance` inside `TabScreenWithFocusTrapWrapper`, not a standalone screen; receives `manualNumberFormRef` from the parent, so retype it to `AmountEditingRef` together with the parent. |
 | `src/pages/workspace/taxes/ValuePage.tsx` | Full-screen tax percentage | `KeypadAmountEditor` (Approach 1) | Refactor away from `FormProvider` to standalone `KeypadAmountEditor`; recreate `validateTaxValue` inside `save` callback. |
 | `src/components/MoneyRequestConfirmationList/sections/AmountField.tsx` | Inline confirmation row | `AmountFormField` | Preserve `key={transactionID}` for item switching; add `ref` to `AmountCurrencyPickerButton`; keep `amountTrailingAction` sibling. |
@@ -333,6 +341,7 @@ The seatbelt rule freezes all active call sites (source of truth: the `no-deprec
 | `src/components/MoneyRequestConfirmationList/hooks/useSplitParticipants.tsx` | Inline split row | `AmountFormField` | Convert locale-aware strings to canonical frontend values before feeding `updateNumber`. |
 | `src/components/OptionRow.tsx` | Inline split row | `AmountFormField` | Participant split row styling. |
 | `src/components/EditableCell/InlineNumberEditCell.tsx` | Table edit cell | `AmountFormField` | Add `autoGrow` to `AmountFormField.Input` to prevent text jumping during typing (commit `f64d6fa7060`). |
+| `src/components/Search/FilterComponents/AmountFilterInput.tsx` | Inline Search filter field (`displayAsTextInput`) | `AmountFormField` | Empty `currency` means "Any": hide the prefix (`prefixCharacter=''`) and show `translate('common.any')` on `AmountFormField.CurrencyPickerButton` (custom visible label, see `currencyButtonLabel` in section 1); compose `AmountFormField.SignFlipButton` only when `getAmountFilterInputKeyboard()` returns `shouldShowFlipButton`; uses `shouldUseBorderlessButtons` (no equivalent yet). |
 | `src/pages/ChronosScheduleOOOPage.tsx` | Form duration input (uses `AmountForm`) | `AmountFormField` / `AmountForm` | Does not render `NumberWithSymbolForm` directly: it uses `AmountForm` and the `NumberWithSymbolFormRef` type. Switch the ref type to `AmountFormFieldRef` / `AmountEditingRef` when `AmountForm` migrates; keep the custom visible label (time units) via `currencyButtonLabel`. |
 | `src/components/AmountForm.tsx` | Form wrapper | Internal migration | Grandfathered wrapper; will migrate to `AmountFormField` once remaining call sites move. |
 | `src/stories/NumberWithSymbolForm.stories.tsx` | Storybook | Update stories | Migrate or retire stories alongside component deprecation. |
@@ -346,6 +355,7 @@ The seatbelt rule freezes all active call sites (source of truth: the `no-deprec
 | `tests/unit/hooks/useSplitParticipants.test.tsx` | Test | Update | Mocks `MoneyRequestAmountInput`; update with the `useSplitParticipants` migration. |
 | `tests/unit/components/MoneyRequestConfirmationList/AmountField.test.tsx` | Test | Update | Mocks `NumberWithSymbolForm` and uses `NumberWithSymbolFormProps`; update with the `AmountField` migration. |
 | `tests/unit/components/MoneyRequestConfirmationList/TaxFields.test.tsx` | Test | Update | Mocks `NumberWithSymbolForm`; update with the `TaxFields` migration. |
+| `tests/unit/Search/AmountFilterContentTest.tsx` | Test | Update | Mocks `NumberWithSymbolForm` and asserts its props; update with the `AmountFilterInput` migration. |
 | Cleanup (after the last call site migrates): `src/components/NumberWithSymbolForm.tsx`, `src/components/TextInputWithSymbol/` (`BaseTextInputWithSymbol.tsx`, `index.tsx`, `index.web.tsx`, `index.android.tsx`, `types.ts`), `src/components/SymbolButton.tsx` | Deprecated components | Delete | `SymbolButton` is only used by `TextInputWithSymbol/BaseTextInputWithSymbol.tsx` (no other users in `src/` or `tests/`; the `onSymbolButtonPress` prop name is unrelated to the component), so it is safe to delete together with `TextInputWithSymbol/`. Also remove the matching entries from `config/oxlint/oxlint.seatbelt.tsv`. |
 | `CONST.TEXT_INPUT_SYMBOL_POSITION` in `src/CONST/index.ts` | Constant | Remove | Delete only after all its users are gone: besides the deprecated files above, it is still referenced by `AmountForm.tsx`, `MoneyRequestAmountInput.tsx`, `InlineNumberEditCell.tsx`, `ValuePage.tsx`, `DistanceManualTabContent.tsx`, `IOURequestStepHours.tsx`, `DynamicIOURequestStepDistanceManual.tsx`, `NumberWithSymbolForm.stories.tsx` and `NumberWithSymbolFormTest.tsx`, all of which are covered by the rows above. |
 | `oxlint.config.mts` | Lint config | Remove `no-restricted-imports` entries | Remove the `**/NumberWithSymbolForm` pattern from `restrictedImportPatterns` in `oxlint.config.mts` once the component is deleted. The `**/MoneyRequestAmountInput` pattern goes the same way when `MoneyRequestAmountInput.tsx` is deleted. |

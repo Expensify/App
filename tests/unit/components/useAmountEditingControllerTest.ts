@@ -121,4 +121,21 @@ describe('useAmountEditingController', () => {
             expect(result.current.formattedNumber).toBe('123');
         });
     });
+
+    describe('updateNumber', () => {
+        it('updates number and moves caret to end without notifying onInputChange', () => {
+            // Given a controller initialized with value "10"
+            const {result, onInputChange} = renderController('10');
+
+            // When updateNumber is called imperatively with a new value
+            act(() => {
+                result.current.updateNumber('25');
+            });
+
+            // Then the value is updated and caret is moved to the end without notifying onInputChange
+            expect(result.current.getNumber()).toBe('25');
+            expect(result.current.selection).toEqual({start: 2, end: 2});
+            expect(onInputChange).not.toHaveBeenCalled();
+        });
+    });
 });
