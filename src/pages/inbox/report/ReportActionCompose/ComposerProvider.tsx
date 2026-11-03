@@ -1,16 +1,28 @@
-import React, {useRef, useState} from 'react';
-import type {View} from 'react-native';
-import {scheduleOnUI} from 'react-native-worklets';
 import useOnyx from '@hooks/useOnyx';
 import useOriginalReportID from '@hooks/useOriginalReportID';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
+import Log from '@libs/Log';
 import {chatIncludesConcierge} from '@libs/ReportUtils';
+
 import {useReportActionActiveEdit} from '@pages/inbox/report/ReportActionEditMessageContext';
+import useShouldEditInComposer from '@pages/inbox/report/useShouldEditInComposer';
+
 import {isBlockedFromConcierge as isBlockedFromConciergeUserAction} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {ComponentRef} from 'react';
+import type {View} from 'react-native';
+
+import React, {useRef, useState} from 'react';
+import {scheduleOnUI} from 'react-native-worklets';
+
+import type {SuggestionsRef} from './ComposerContext';
+import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
+
 import {
     ComposerActionsContext,
     ComposerEditActionsContext,
@@ -20,11 +32,10 @@ import {
     ComposerStateContext,
     ComposerTextContext,
 } from './ComposerContext';
-import type {SuggestionsRef} from './ComposerContext';
-import type {ComposerWithSuggestionsRef} from './ComposerWithSuggestions';
 import useComposerFocus from './useComposerFocus';
 import useDebouncedCommentMaxLengthValidation from './useDebouncedCommentMaxLengthValidation';
 import useEditMessage from './useEditMessage';
+import useShouldSkipComposerAutoFocus from './useShouldSkipComposerAutoFocus';
 
 const shouldFocusInputOnScreenFocus = canFocusInputOnScreenFocus();
 
@@ -34,7 +45,7 @@ type ComposerProviderProps = {
 };
 
 function ComposerProvider({children, reportID}: ComposerProviderProps) {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldEditInComposer = useShouldEditInComposer();
 
     const [blockedFromConcierge] = useOnyx(ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE);
     const [initialModalState] = useOnyx(ONYXKEYS.MODAL);
@@ -42,8 +53,10 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
 
+    const shouldSkipAutoFocus = useShouldSkipComposerAutoFocus(report);
+
     const shouldFocusComposerOnScreenFocus = shouldFocusInputOnScreenFocus || !!draftComment;
-    const initialFocused = shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
+    const initialFocused = !shouldSkipAutoFocus && shouldFocusComposerOnScreenFocus && !initialModalState?.isVisible && !initialModalState?.willAlertModalBecomeVisible;
 
     const includesConcierge = chatIncludesConcierge({participants: report?.participants});
     const userBlockedFromConcierge = isBlockedFromConciergeUserAction(blockedFromConcierge);
@@ -62,17 +75,17 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
         textRef.current = v;
     };
 
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
     const suggestionsRef = useRef<SuggestionsRef>(null);
     const composerRef = useRef<ComposerWithSuggestionsRef | null>(null);
-    const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
+    const actionButtonRef = useRef<ComponentRef<typeof View> | HTMLDivElement | null>(null);
     const attachmentFileRef = useRef<FileObject | FileObject[] | null>(null);
 
     const {editingState, editingReportID, editingReportActionID, editingReportAction, editingMessage, currentEditMessageSelection} = useReportActionActiveEdit();
 
     const [didResetComposerHeightWhileEditing, setDidResetComposerHeightWhileEditing] = useState(false);
 
-    const isEditingInComposer = shouldUseNarrowLayout && editingState !== 'off' && !didResetComposerHeightWhileEditing;
+    const isEditingInComposer = shouldEditInComposer && editingState !== 'off' && !didResetComposerHeightWhileEditing;
     const effectiveDraft = isEditingInComposer ? editingMessage : draftComment;
 
     const {debouncedCommentMaxLengthValidation, exceededMaxLength, isExceedingMaxLength, isTaskTitle} = useDebouncedCommentMaxLengthValidation({
@@ -112,11 +125,30 @@ function ComposerProvider({children, reportID}: ComposerProviderProps) {
     });
 
     const clearComposer = () => {
-        const clearWorklet = composerRef.current?.clearWorklet;
-        if (!clearWorklet) {
-            throw new Error('The composerRef.clearWorklet function is not set yet. This should never happen, and indicates a developer error.');
-        }
-        scheduleOnUI(clearWorklet);
+        const tryClear = (attemptsLeft: number) => {
+            const clearWorklet = composerRef.current?.clearWorklet;
+            if (clearWorklet) {
+                scheduleOnUI(clearWorklet);
+                return;
+            }
+
+            // On the attachment-send path, clearComposer is the trigger for the actual send: clearWorklet runs the
+            // native input clear, whose onClear handler calls validateAndSubmitDraft -> addAttachmentWithComment. So a
+            // missing ref must not be swallowed, or the attachment is silently dropped. The composer lives on an
+            // RNSScreen that react-native-screens freezes while another screen (e.g. ReportAddAttachment) is on top, so
+            // right after navigating back the ref may not have re-attached yet. Retry on the next frame instead of
+            // throwing/dropping the submit, but bound the retries so we never loop forever if the composer is truly gone.
+            if (attemptsLeft <= 0) {
+                // We never got the composer back, so the attachment can't be sent. Drop the pending file so a
+                // future send in this same provider doesn't piggyback the stale attachment onto an unrelated message.
+                attachmentFileRef.current = null;
+                Log.hmmm('[ComposerProvider] Skipping clearComposer because composerRef.clearWorklet never re-attached');
+                return;
+            }
+            requestAnimationFrame(() => tryClear(attemptsLeft - 1));
+        };
+
+        tryClear(CONST.COMPOSER.CLEAR_WORKLET_MAX_RETRIES);
     };
 
     const setComposerRef = (ref: ComposerWithSuggestionsRef | null) => {

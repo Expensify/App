@@ -1,6 +1,7 @@
+import type {AnyNode, Document} from 'domhandler';
+
 import render from 'dom-serializer';
 import {ElementType} from 'domelementtype';
-import type {AnyNode, Document, Element as DomElement} from 'domhandler';
 import {parseDocument} from 'htmlparser2';
 
 /**
@@ -77,17 +78,25 @@ function buildClippedNodes(doc: Document, anchor: Anchor): AnyNode[] {
         }
         if (isLeaf) {
             if (stopNode.type === ElementType.Text && anchor.textEndIdx !== undefined) {
-                const truncated = {...stopNode, data: stopNode.data.slice(0, anchor.textEndIdx)} as unknown as AnyNode;
+                const truncated = stopNode.cloneNode(false);
+                // dom-serializer uses the parent to preserve raw text escaping.
+                truncated.parent = stopNode.parent;
+                truncated.data = stopNode.data.slice(0, anchor.textEndIdx);
                 return [...before, truncated];
             }
             return [...before, stopNode];
         }
-        const elem = stopNode as DomElement;
-        const innerChildren = clip(elem.children as AnyNode[], depth + 1);
-        const partialElem = {...elem, children: innerChildren} as unknown as AnyNode;
+        if (stopNode.type !== ElementType.Tag) {
+            return [...before, stopNode];
+        }
+        const innerChildren = clip(stopNode.children, depth + 1);
+        const partialElem = stopNode.cloneNode(false);
+        // dom-serializer uses the parent to preserve HTML inside MathML and SVG.
+        partialElem.parent = stopNode.parent;
+        partialElem.children = innerChildren;
         return [...before, partialElem];
     };
-    return clip(doc.children as AnyNode[], 0);
+    return clip(doc.children, 0);
 }
 
 /**
@@ -98,11 +107,15 @@ function tokenizeForReveal(html: string): string[] {
     if (!html) {
         return [''];
     }
-    const doc = parseDocument(html);
+    // `recognizeSelfClosing` defaults to false in HTML mode, which makes the parser ignore the trailing slash on
+    // custom tags like `<victorypie … />` and nest each following sibling inside the previous one. `decodeEntities`
+    // keeps `&amp;`, `&lt;` and `&gt;` escaped on the way back out, so escaped markup in a comment stays text
+    // instead of being re-serialized as live markup.
+    const doc = parseDocument(html, {recognizeSelfClosing: true});
     const anchors = collectAnchors(doc);
     const stages: string[] = [''];
     for (const anchor of anchors) {
-        stages.push(render(buildClippedNodes(doc, anchor)));
+        stages.push(render(buildClippedNodes(doc, anchor), {decodeEntities: true}));
     }
     return stages;
 }

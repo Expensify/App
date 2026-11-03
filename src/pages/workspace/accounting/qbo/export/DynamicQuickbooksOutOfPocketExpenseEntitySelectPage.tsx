@@ -1,25 +1,33 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateManyPolicyConnectionConfigs} from '@libs/actions/connections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Account, QBOReimbursableExportAccountType} from '@src/types/onyx/Policy';
 
-function Footer({isTaxEnabled}: {isTaxEnabled: boolean}) {
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+function Footer({isTaxEnabled, integrationName}: {isTaxEnabled: boolean; integrationName: string}) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -29,7 +37,7 @@ function Footer({isTaxEnabled}: {isTaxEnabled: boolean}) {
 
     return (
         <View style={[styles.gap2, styles.mt2, styles.ph5]}>
-            {isTaxEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription')}</Text>}
+            {isTaxEnabled && <Text style={styles.mutedNormalTextLabel}>{translate('workspace.qbo.outOfPocketTaxEnabledDescription', integrationName)}</Text>}
         </View>
     );
 }
@@ -42,6 +50,7 @@ type MenuItem = ListItem & {
 
 function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
     const {bankAccounts, accountPayable, journalEntryAccounts} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -52,70 +61,64 @@ function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.path);
     const [selectedExportDestinationError, setSelectedExportDestinationError] = useState<Errors | null>(null);
 
-    const data: MenuItem[] = useMemo(
-        () => [
-            {
-                value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
-                text: translate('workspace.qbo.accounts.check'),
-                keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
-                isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
-                isShown: qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                accounts: bankAccounts ?? [],
-            },
-            {
-                value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                text: translate('workspace.qbo.accounts.journal_entry'),
-                keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                isShown: !isTaxesEnabled,
-                accounts: journalEntryAccounts ?? [],
-            },
-            {
-                value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                text: translate('workspace.qbo.accounts.bill'),
-                keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                isShown: qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
-                accounts: accountPayable ?? [],
-            },
-        ],
-        [qboConfig?.reimbursableExpensesExportDestination, qboConfig?.syncLocations, translate, bankAccounts, accountPayable, journalEntryAccounts, isTaxesEnabled],
-    );
-
-    const filteredData = useMemo(() => data.filter((item) => item.isShown), [data]);
-
-    const goBack = useCallback(() => {
-        Navigation.goBack(backPath);
-    }, [backPath]);
-
-    const selectExportEntity = useCallback(
-        (row: MenuItem) => {
-            if (!row.accounts.at(0)) {
-                setSelectedExportDestinationError({
-                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.exportDestinationSetupAccountsInfo.${row.value}`),
-                });
-                return;
-            }
-
-            if (row.value !== qboConfig?.reimbursableExpensesExportDestination) {
-                setSelectedExportDestinationError(null);
-                updateManyPolicyConnectionConfigs(
-                    policyID,
-                    CONST.POLICY.CONNECTIONS.NAME.QBO,
-                    {
-                        [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: row.value,
-                        [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts.at(0),
-                    },
-                    {
-                        [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: qboConfig?.reimbursableExpensesExportDestination,
-                        [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: qboConfig?.reimbursableExpensesAccount,
-                    },
-                );
-            }
-            goBack();
+    const data: MenuItem[] = [
+        {
+            value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
+            text: translate('workspace.qbo.accounts.check'),
+            keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
+            isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
+            isShown: qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+            accounts: bankAccounts ?? [],
         },
-        [qboConfig?.reimbursableExpensesExportDestination, policyID, qboConfig?.reimbursableExpensesAccount, goBack, translate],
-    );
+        {
+            value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+            text: translate('workspace.qbo.accounts.journal_entry'),
+            keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+            isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+            isShown: !isTaxesEnabled,
+            accounts: journalEntryAccounts ?? [],
+        },
+        {
+            value: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+            text: translate('workspace.qbo.accounts.bill'),
+            keyForList: CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+            isSelected: qboConfig?.reimbursableExpensesExportDestination === CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+            isShown: qboConfig?.syncLocations !== CONST.INTEGRATION_ENTITY_MAP_TYPES.TAG,
+            accounts: accountPayable ?? [],
+        },
+    ];
+
+    const filteredData = data.filter((item) => item.isShown);
+
+    const goBack = () => {
+        Navigation.goBack(backPath);
+    };
+
+    const selectExportEntity = (row: MenuItem) => {
+        if (!row.accounts.at(0)) {
+            setSelectedExportDestinationError({
+                [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: translate(`workspace.qbo.exportDestinationSetupAccountsInfo.${row.value}`, integrationName),
+            });
+            return;
+        }
+
+        if (row.value !== qboConfig?.reimbursableExpensesExportDestination) {
+            setSelectedExportDestinationError(null);
+            updateManyPolicyConnectionConfigs(
+                policyID,
+                CONST.POLICY.CONNECTIONS.NAME.QBO,
+                {
+                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: row.value,
+                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: row.accounts.at(0),
+                },
+                {
+                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION]: qboConfig?.reimbursableExpensesExportDestination,
+                    [CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT]: qboConfig?.reimbursableExpensesAccount,
+                },
+            );
+        }
+        goBack();
+    };
 
     const errors =
         hasErrors && qboConfig?.reimbursableExpensesExportDestination
@@ -145,7 +148,12 @@ function DynamicQuickbooksOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
                 setSelectedExportDestinationError(null);
                 clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION);
             }}
-            listFooterContent={<Footer isTaxEnabled={isTaxesEnabled} />}
+            listFooterContent={
+                <Footer
+                    isTaxEnabled={isTaxesEnabled}
+                    integrationName={integrationName}
+                />
+            }
         />
     );
 }

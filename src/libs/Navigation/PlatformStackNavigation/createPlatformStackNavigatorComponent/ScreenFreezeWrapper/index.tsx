@@ -1,11 +1,15 @@
+import TooltipSense from '@components/Tooltip/TooltipSense';
+
+import type NonTopScreenWrapperProps from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/nonTopScreenWrapperTypes';
+
+import {areAllModalsHidden} from '@userActions/Modal';
+
 import React, {useLayoutEffect, useRef, useState} from 'react';
 import {Freeze} from 'react-freeze';
-import TooltipSense from '@components/Tooltip/TooltipSense';
-import {areAllModalsHidden} from '@userActions/Modal';
-import ScreenFreezeContext from './ScreenFreezeContext';
-import type ScreenFreezeWrapperProps from './types';
 
-function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperProps) {
+import ScreenFreezeContext from './ScreenFreezeContext';
+
+function ScreenFreezeWrapper({isScreenBlurred, children}: NonTopScreenWrapperProps) {
     const [frozen, setFrozen] = useState(false);
     const freezeDeferCountRef = useRef(0);
 

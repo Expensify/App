@@ -1,13 +1,17 @@
-import React, {useMemo} from 'react';
 import PushRowFieldsStep from '@components/SubStepForms/PushRowFieldsStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React from 'react';
 
 type AverageReimbursementProps = SubPageProps;
 
@@ -23,24 +27,18 @@ function AverageReimbursement({onNext, onMove, isEditing}: AverageReimbursementP
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
 
-    const tradeVolumeRangeListOptions = useMemo(
-        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange),
-        [corpayOnboardingFields?.picklists.TradeVolumeRange],
-    );
+    const tradeVolumeRangeListOptions = getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange);
 
-    const pushRowFields = useMemo(
-        () => [
-            {
-                inputID: TRADE_VOLUME,
-                defaultValue: reimbursementAccount?.achData?.corpay?.[TRADE_VOLUME] ?? '',
-                options: tradeVolumeRangeListOptions,
-                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', currency),
-                modalHeaderTitle: translate('businessInfoStep.selectAverageReimbursement'),
-                searchInputTitle: translate('businessInfoStep.findAverageReimbursement'),
-            },
-        ],
-        [reimbursementAccount, currency, tradeVolumeRangeListOptions, translate],
-    );
+    const pushRowFields = [
+        {
+            inputID: TRADE_VOLUME,
+            defaultValue: reimbursementAccount?.achData?.corpay?.[TRADE_VOLUME] ?? '',
+            options: tradeVolumeRangeListOptions,
+            description: translate('businessInfoStep.averageReimbursementAmountInCurrency', currency),
+            modalHeaderTitle: translate('businessInfoStep.selectAverageReimbursement'),
+            searchInputTitle: translate('businessInfoStep.findAverageReimbursement'),
+        },
+    ];
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

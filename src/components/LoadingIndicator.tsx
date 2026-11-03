@@ -1,33 +1,35 @@
-import React from 'react';
-import type {ActivityIndicatorProps as RNActivityIndicatorProps, StyleProp, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import type {ExtraLoadingContext} from '@libs/AppState/types';
+
 import CONST from '@src/CONST';
+
+import type {ActivityIndicatorProps as RNActivityIndicatorProps, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import ActivityIndicator from './ActivityIndicator';
 
 type LoadingIndicatorIconSize = RNActivityIndicatorProps['size'];
 
 type LoadingIndicatorProps = {
-    /** Styles of the outer view */
     style?: StyleProp<ViewStyle>;
-
-    /** Size of the icon */
     iconSize?: LoadingIndicatorIconSize;
 
-    /** Reason attributes for skeleton span telemetry */
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    /** Extra context logged if the spinner is shown for longer than expected */
+    extraLoadingContext?: ExtraLoadingContext;
 };
 
-function LoadingIndicator({style, iconSize, reasonAttributes}: LoadingIndicatorProps) {
+function LoadingIndicator({style, iconSize, extraLoadingContext}: LoadingIndicatorProps) {
     const styles = useThemeStyles();
 
     return (
-        <View style={[StyleSheet.absoluteFillObject, styles.fullScreenLoading, styles.w100, style]}>
+        <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading, styles.w100, style]}>
             <View style={styles.w100}>
                 <ActivityIndicator
                     size={iconSize ?? CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={reasonAttributes ?? {context: 'LoadingIndicator'}}
+                    extraLoadingContext={extraLoadingContext}
                 />
             </View>
         </View>

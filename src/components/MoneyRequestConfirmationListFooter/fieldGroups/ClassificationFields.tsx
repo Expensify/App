@@ -1,6 +1,3 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import AttendeeField from '@components/MoneyRequestConfirmationList/sections/AttendeeField';
 import CategoryField from '@components/MoneyRequestConfirmationList/sections/CategoryField';
@@ -8,15 +5,28 @@ import DateField from '@components/MoneyRequestConfirmationList/sections/DateFie
 import TagFields from '@components/MoneyRequestConfirmationList/sections/TagFields';
 import TaxFields from '@components/MoneyRequestConfirmationList/sections/TaxFields';
 import type {ErrorState} from '@components/MoneyRequestConfirmationListFooter/fieldGroupTypes';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import type {FieldVisibility, TagEntry} from './fieldVisibility';
 
 type TagFieldRowProps = {
     /** Tag entry to render (carries name, index, and required flag) */
     entry: TagEntry;
 
+    /** Policy the tags belong to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+
     /** Tag lists configured on the policy (used to look up the list at the entry's index) */
     policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagLists>>;
+
+    /** Whether each tag level's options depend on the level above */
+    hasDependentTags: boolean;
 
     /** Previous render's per-tag-list `shouldShow` projection (drives transition styling) */
     previousTagsVisibility: boolean[];
@@ -25,7 +35,7 @@ type TagFieldRowProps = {
     formError: string;
 };
 
-function TagFieldRow({entry: {index, isTagRequired}, policyTagLists, previousTagsVisibility, formError}: TagFieldRowProps) {
+function TagFieldRow({entry: {index, isTagRequired}, policy, policyTagLists, hasDependentTags, previousTagsVisibility, formError}: TagFieldRowProps) {
     const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm} = useConfirmationFields();
     const policyTagList = policyTagLists.at(index);
     if (!policyTagList) {
@@ -34,6 +44,8 @@ function TagFieldRow({entry: {index, isTagRequired}, policyTagLists, previousTag
     return (
         <TagFields
             tagIndex={index}
+            policy={policy}
+            hasDependentTags={hasDependentTags}
             policyTagList={policyTagList}
             isTagRequired={isTagRequired}
             previousShouldShow={previousTagsVisibility.at(index) ?? false}
@@ -58,6 +70,9 @@ type ClassificationFieldsProps = {
 
     /** Tag lists configured on the policy (used to look up the list at each tag entry's index) */
     policyTagLists: Array<ValueOf<OnyxTypes.PolicyTagLists>>;
+
+    /** Whether each tag level's options depend on the level above */
+    hasDependentTags: boolean;
 
     /** Previous render's per-tag-list `shouldShow` projection (drives `TagFields` transitions) */
     previousTagsVisibility: boolean[];
@@ -94,6 +109,7 @@ function ClassificationFields({
     policy,
     policyForMovingExpenses,
     policyTagLists,
+    hasDependentTags,
     previousTagsVisibility,
     isCategoryRequired,
     canModifyTaxFields,
@@ -105,7 +121,7 @@ function ClassificationFields({
     isCompactMode,
     fieldVisibility,
 }: ClassificationFieldsProps) {
-    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm, isNewManualExpenseFlowEnabled} = useConfirmationFields();
+    const {action, iouType, transactionID, reportID, reportActionID, isReadOnly, didConfirm} = useConfirmationFields();
 
     return (
         <>
@@ -131,9 +147,7 @@ function ClassificationFields({
                     shouldDisplayFieldError={errorState.shouldDisplayFieldError}
                     didConfirm={didConfirm}
                     isReadOnly={isReadOnly}
-                    isNewManualExpenseFlowEnabled={isNewManualExpenseFlowEnabled}
                     formError={errorState.formError}
-                    clearFormErrors={errorState.clearFormErrors}
                     transactionID={transactionID}
                     action={action}
                     iouType={iouType}
@@ -146,7 +160,9 @@ function ClassificationFields({
                 <TagFieldRow
                     key={`tag_${entry.name}`}
                     entry={entry}
+                    policy={policy}
                     policyTagLists={policyTagLists}
+                    hasDependentTags={hasDependentTags}
                     previousTagsVisibility={previousTagsVisibility}
                     formError={errorState.formError}
                 />
@@ -157,7 +173,9 @@ function ClassificationFields({
                     <TagFieldRow
                         key={`tag_${entry.name}`}
                         entry={entry}
+                        policy={policy}
                         policyTagLists={policyTagLists}
+                        hasDependentTags={hasDependentTags}
                         previousTagsVisibility={previousTagsVisibility}
                         formError={errorState.formError}
                     />

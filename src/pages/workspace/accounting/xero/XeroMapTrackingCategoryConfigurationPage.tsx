@@ -1,21 +1,26 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateXeroMappings} from '@libs/actions/connections/Xero';
 import {clearXeroErrorField, enablePolicyReportFields} from '@libs/actions/Policy/Policy';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy, settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
 
 type RouteParams = {
     categoryId?: string;
@@ -41,57 +46,47 @@ function XeroMapTrackingCategoryConfigurationPage({policy}: WithPolicyProps) {
         ([key, value]) => key.startsWith(CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX) && value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD,
     );
 
-    const optionsList = useMemo(
-        () =>
-            Object.values(CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS).map((option) => ({
-                value: option,
-                text: translate(`workspace.xero.trackingCategoriesOptions.${option.toUpperCase()}` as TranslationPaths),
-                keyForList: option,
-                isSelected: option === currentTrackingCategoryValue,
-            })),
-        [translate, currentTrackingCategoryValue],
+    const optionsList = Object.values(CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS).map((option) => ({
+        value: option,
+        text: translate(`workspace.xero.trackingCategoriesOptions.${option.toUpperCase()}` as TranslationPaths),
+        keyForList: option,
+        isSelected: option === currentTrackingCategoryValue,
+    }));
+
+    const listHeaderComponent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.mapTrackingCategoryToDescription', decodedCategoryName)}</Text>
+        </View>
     );
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.mapTrackingCategoryToDescription', decodedCategoryName)}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, decodedCategoryName],
-    );
-
-    const updateMapping = useCallback(
-        (option: {value: string}) => {
-            if (option.value !== currentTrackingCategoryValue) {
-                if (option.value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD && !isControlPolicy(policy)) {
-                    const backToRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(
-                        policyID,
-                        `${CONST.REPORT_FIELDS_FEATURE.xero.mapping}`,
-                        ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID),
-                    );
-                    Navigation.navigate(`${backToRoute}&categoryId=${categoryId}`);
-                    return;
-                }
-                if (!policyID) {
-                    return;
-                }
-                updateXeroMappings(
+    const updateMapping = (option: {value: string}) => {
+        if (option.value !== currentTrackingCategoryValue) {
+            if (option.value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD && !isControlPolicy(policy)) {
+                const backToRoute = ROUTES.WORKSPACE_UPGRADE.getRoute(
                     policyID,
-                    categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {},
-                    categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: currentTrackingCategoryValue} : {},
+                    `${CONST.REPORT_FIELDS_FEATURE.xero.mapping}`,
+                    ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID),
                 );
-                if (!reportFieldTrackingCategories.length && option.value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD) {
-                    enablePolicyReportFields(policyID, true);
-                }
-                if (reportFieldTrackingCategories.length === 1 && currentTrackingCategoryValue === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD) {
-                    enablePolicyReportFields(policyID, false);
-                }
+                Navigation.navigate(`${backToRoute}&categoryId=${categoryId}`);
+                return;
             }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
-        },
-        [categoryId, currentTrackingCategoryValue, reportFieldTrackingCategories.length, policy, policyID],
-    );
+            if (!policyID) {
+                return;
+            }
+            updateXeroMappings(
+                policyID,
+                categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: option.value} : {},
+                categoryId ? {[`${CONST.XERO_CONFIG.TRACKING_CATEGORY_PREFIX}${categoryId}`]: currentTrackingCategoryValue} : {},
+            );
+            if (!reportFieldTrackingCategories.length && option.value === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD) {
+                enablePolicyReportFields(policyID, true);
+            }
+            if (reportFieldTrackingCategories.length === 1 && currentTrackingCategoryValue === CONST.XERO_CONFIG.TRACKING_CATEGORY_OPTIONS.REPORT_FIELD) {
+                enablePolicyReportFields(policyID, false);
+            }
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_XERO_TRACKING_CATEGORIES.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen

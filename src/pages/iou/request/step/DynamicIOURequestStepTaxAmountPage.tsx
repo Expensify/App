@@ -1,37 +1,49 @@
-import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
-import {setMoneyRequestCurrency, setMoneyRequestParticipantsFromReport, setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
+
+import {setMoneyRequestCurrency, setMoneyRequestTaxAmount} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTaxAmount} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTransactionDetails} from '@libs/ReportUtils';
 import {calculateTaxAmount, getAmount, getDefaultTaxCode, getTaxValue, getTaxAmount as getTransactionTaxAmount} from '@libs/TransactionUtils';
+
 import type {CurrentMoney} from '@pages/iou/MoneyRequestAmountForm';
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {loginSelector} from '@selectors/PersonalDetails';
+import React, {useCallback, useRef} from 'react';
+
+import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
+
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
-import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepTaxAmountPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT> & {
+type DynamicIOURequestStepTaxAmountPageProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TAX_AMOUNT> & {
     transaction: OnyxEntry<Transaction>;
 };
 
@@ -50,22 +62,27 @@ function getTaxAmount(transaction: OnyxEntry<Transaction>, policy: OnyxEntry<Pol
     return convertToBackendAmount(calculateTaxAmount(taxPercentage, transactionTaxAmount, decimals));
 }
 
-function IOURequestStepTaxAmountPage({
+function DynamicIOURequestStepTaxAmountPage({
     route: {
         params: {action, iouType, reportID, transactionID},
     },
     transaction,
     report,
-}: IOURequestStepTaxAmountPageProps) {
+}: DynamicIOURequestStepTaxAmountPageProps) {
     const {policy} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType});
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.path);
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
+    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
+    const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {translate} = useLocalize();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const textInput = useRef<BaseTextInputRef | null>(null);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
@@ -75,11 +92,9 @@ function IOURequestStepTaxAmountPage({
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled} = usePermissions();
+    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_AMOUNT.path);
-    const shouldReturnToPreviousScreen = backPath !== ROUTES.HOME;
-    const isEditingOrReturning = isEditing || shouldReturnToPreviousScreen;
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionDetails = getTransactionDetails(currentTransaction);
@@ -102,24 +117,30 @@ function IOURequestStepTaxAmountPage({
         Navigation.goBack(backPath);
     };
 
+    const saveAndNavigateBack = () => {
+        Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
+    };
+
     const updateTaxAmount = (currentAmount: CurrentMoney) => {
         const taxAmountInSmallestCurrencyUnits = convertToBackendAmount(Number.parseFloat(currentAmount.amount));
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits});
-            navigateBack();
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {taxAmount: taxAmountInSmallestCurrencyUnits}, getCurrencyDecimals, getCurrencySymbol);
+            saveAndNavigateBack();
             return;
         }
 
         if (isEditing) {
             if (taxAmountInSmallestCurrencyUnits === getTransactionTaxAmount(currentTransaction, false)) {
-                navigateBack();
+                saveAndNavigateBack();
                 return;
             }
             updateMoneyRequestTaxAmount({
+                isVendorMatchingBetaEnabled,
                 transactionID,
                 transactionThreadReport: report,
                 parentReport,
+                iouReportOwnerLogin,
                 taxAmount: taxAmountInSmallestCurrencyUnits,
                 policy,
                 policyTagList: policyTags,
@@ -127,36 +148,22 @@ function IOURequestStepTaxAmountPage({
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
-                parentReportNextStep,
                 delegateAccountID,
+                reportPolicyTags,
+                isTrackIntentUser,
+                getCurrencyDecimals,
+                getCurrencySymbol,
+                rules,
             });
-            navigateBack();
+            saveAndNavigateBack();
             return;
         }
 
         setMoneyRequestTaxAmount(transactionID, taxAmountInSmallestCurrencyUnits);
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         setMoneyRequestCurrency(transactionID, currency || CONST.CURRENCY.USD);
 
-        if (shouldReturnToPreviousScreen) {
-            navigateBack();
-            return;
-        }
-
-        // If a reportID exists in the report object, it's because the user started this flow from using the + button in the composer
-        // inside a report. In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
-        // to the confirm step.
-        if (report?.reportID) {
-            // TODO: Is this really needed at all?
-            setMoneyRequestParticipantsFromReport(transactionID, report, currentUserPersonalDetails.accountID);
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID));
-            return;
-        }
-
-        // If there was no reportID, then that means the user started this flow from the global + menu
-        // and an optimistic reportID was generated. In that case, the next step is to select the participants for this request.
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(iouType, transactionID, reportID));
+        navigateBack();
     };
 
     return (
@@ -164,14 +171,14 @@ function IOURequestStepTaxAmountPage({
             headerTitle={translate('iou.taxAmount')}
             onBackButtonPress={navigateBack}
             testID="DynamicIOURequestStepTaxAmountPage"
-            shouldShowWrapper={isEditingOrReturning}
+            shouldShowWrapper
             includeSafeAreaPaddingBottom
         >
             <MoneyRequestAmountForm
-                isEditing={isEditingOrReturning}
+                isEditing
                 currency={currency}
                 amount={Math.abs(transactionDetails?.taxAmount ?? 0)}
-                taxAmount={getTaxAmount(currentTransaction, policy, currency, decimals, isEditingOrReturning)}
+                taxAmount={getTaxAmount(currentTransaction, policy, currency, decimals, true)}
                 ref={(e) => {
                     textInput.current = e;
                 }}
@@ -185,7 +192,7 @@ function IOURequestStepTaxAmountPage({
     );
 }
 
-const DynamicIOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepTaxAmountPage);
+const DynamicIOURequestStepTaxAmountPageWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepTaxAmountPage);
 
 const DynamicIOURequestStepTaxAmountPageWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepTaxAmountPageWithWritableReportOrNotFound);
 

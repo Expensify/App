@@ -1,30 +1,31 @@
-import React, {useCallback, useEffect} from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import getActionBadgeText from '@components/utils/getActionBadgeText';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ButtonVariant} from '@styles/utils/types';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type FloatingPillButtonProps = {
-    /** Whether the button uses the success style */
-    success: boolean;
+import type {StyleProp, TextStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
-    /** Whether the button uses the danger style */
-    danger?: boolean;
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withSpring} from 'react-native-reanimated';
+
+type FloatingPillButtonProps = {
+    variant?: ButtonVariant;
 
     /** Callback when the button is pressed */
     onPress?: () => void;
 
-    /** The icon to display */
     icon: IconAsset;
 
     /** The fill color for the icon */
@@ -33,24 +34,24 @@ type FloatingPillButtonProps = {
     /** The label text to display */
     label: string;
 
-    /** Additional text styles */
     textStyle?: StyleProp<TextStyle>;
 };
 
-function FloatingPillButton({success, danger, onPress, icon, iconFill, label, textStyle}: FloatingPillButtonProps) {
+function FloatingPillButton({variant, onPress, icon, iconFill, label, textStyle}: FloatingPillButtonProps) {
     const styles = useThemeStyles();
 
     return (
         <Button
-            success={success}
-            danger={danger}
-            small
+            variant={variant}
+            size={CONST.BUTTON_SIZE.SMALL}
             onPress={onPress}
             sentryLabel={CONST.SENTRY_LABEL.REPORT.FLOATING_MESSAGE_COUNTER}
+            // Restores the 12px horizontal padding from the legacy implementation.
+            innerStyles={styles.ph3}
         >
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                 <Icon
-                    small
+                    size={CONST.ICON_SIZE.SMALL}
                     src={icon}
                     fill={iconFill}
                 />
@@ -70,7 +71,6 @@ type FloatingMessageCounterProps = {
     /** Whether the New Messages indicator is active */
     isActive?: boolean;
 
-    /** Whether there are new messages */
     hasNewMessages: boolean;
 
     /** Callback to be called when user clicks the New Messages indicator */
@@ -86,7 +86,7 @@ type FloatingMessageCounterProps = {
     onActionBadgePress?: () => void;
 
     /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
 const MARKER_INACTIVE_TRANSLATE_Y = -40;
@@ -99,7 +99,7 @@ function FloatingMessageCounter({
     actionBadge,
     actionBadgeBrickRoadStatus,
     onActionBadgePress,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
 }: FloatingMessageCounterProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const theme = useTheme();
@@ -108,46 +108,58 @@ function FloatingMessageCounter({
     const translateY = useSharedValue(MARKER_INACTIVE_TRANSLATE_Y);
 
     const shouldShowActionBadgePill = !!actionBadge && !!actionBadgeBrickRoadStatus;
-    const isError = actionBadgeBrickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+    const isVisible = isActive || shouldShowActionBadgePill;
 
-    const show = useCallback(() => {
+    // Keep the last shown pill while it slides out so hiding the action badge pill does not flash the Latest messages pill
+    const visibleActionBadge = shouldShowActionBadgePill ? {actionBadge, actionBadgeBrickRoadStatus} : undefined;
+    const [lastVisibleActionBadge, setLastVisibleActionBadge] = useState(visibleActionBadge);
+    if (
+        isVisible &&
+        (lastVisibleActionBadge?.actionBadge !== visibleActionBadge?.actionBadge || lastVisibleActionBadge?.actionBadgeBrickRoadStatus !== visibleActionBadge?.actionBadgeBrickRoadStatus)
+    ) {
+        setLastVisibleActionBadge(visibleActionBadge);
+    }
+    const renderedActionBadge = isVisible ? visibleActionBadge : lastVisibleActionBadge;
+    const shouldRenderActionBadgePill = !!renderedActionBadge;
+    const isError = renderedActionBadge?.actionBadgeBrickRoadStatus === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+
+    const show = () => {
         'worklet';
 
         translateY.set(withSpring(MARKER_ACTIVE_TRANSLATE_Y));
-    }, [translateY]);
+    };
 
-    const hide = useCallback(() => {
+    const hide = () => {
         'worklet';
 
         translateY.set(withSpring(MARKER_INACTIVE_TRANSLATE_Y));
-    }, [translateY]);
+    };
 
     useEffect(() => {
-        if (isActive || shouldShowActionBadgePill) {
+        if (isVisible) {
             show();
         } else {
             hide();
         }
-    }, [isActive, shouldShowActionBadgePill, show, hide]);
+    }, [isVisible, show, hide]);
 
     const wrapperStyle = useAnimatedStyle(() => ({
         ...styles.floatingMessageCounterWrapper,
         transform: [{translateY: translateY.get()}],
     }));
 
-    const actionBadgeText = getActionBadgeText(actionBadge, translate, isMarkAsDone);
+    const actionBadgeText = getActionBadgeText(renderedActionBadge?.actionBadge, translate, shouldShowMarkAsDoneCopy);
 
     return (
         <Animated.View
-            accessibilityHint={translate(shouldShowActionBadgePill ? 'accessibilityHints.scrollToActionBadgeTarget' : 'accessibilityHints.scrollToNewestMessages')}
+            accessibilityHint={translate(shouldRenderActionBadgePill ? 'accessibilityHints.scrollToActionBadgeTarget' : 'accessibilityHints.scrollToNewestMessages')}
             style={wrapperStyle}
         >
             <View style={styles.floatingMessageCounter}>
                 <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
-                    {shouldShowActionBadgePill ? (
+                    {shouldRenderActionBadgePill ? (
                         <FloatingPillButton
-                            success={!isError}
-                            danger={isError}
+                            variant={isError ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={onActionBadgePress}
                             icon={icons.UpArrow}
                             iconFill={theme.textLight}
@@ -156,7 +168,7 @@ function FloatingMessageCounter({
                         />
                     ) : (
                         <FloatingPillButton
-                            success={hasNewMessages}
+                            variant={hasNewMessages ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                             onPress={onClick}
                             icon={icons.DownArrow}
                             iconFill={hasNewMessages ? theme.textLight : theme.icon}
@@ -172,4 +184,4 @@ function FloatingMessageCounter({
 
 FloatingMessageCounter.displayName = 'FloatingMessageCounter';
 
-export default React.memo(FloatingMessageCounter);
+export default FloatingMessageCounter;

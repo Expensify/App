@@ -1,8 +1,12 @@
-import {StackActions} from '@react-navigation/native';
 import popReportsSplitNavigatorToReport from '@libs/Navigation/helpers/popReportsSplitNavigatorToReport';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import {StackActions} from '@react-navigation/native';
+
+import createMock from '../utils/createMock';
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     __esModule: true,
@@ -18,8 +22,8 @@ const SPLIT_NAV_KEY = 'splitNavKey';
 
 // The mocked navigationRef has no `this` usage in its methods, so unbinding the references is safe.
 /* eslint-disable @typescript-eslint/unbound-method */
-const mockedGetRootState = navigationRef.getRootState as unknown as jest.Mock;
-const mockedDispatch = navigationRef.dispatch as unknown as jest.Mock;
+const mockedGetRootState = jest.mocked(navigationRef.getRootState);
+const mockedDispatch = jest.mocked(navigationRef.dispatch);
 /* eslint-enable @typescript-eslint/unbound-method */
 
 /**
@@ -29,7 +33,7 @@ const mockedDispatch = navigationRef.dispatch as unknown as jest.Mock;
  * a non-REPORT placeholder (e.g. sidebar).
  */
 function buildRootStateWithSplitNavRoutes(splitRoutes: Array<{reportID: string} | null>, splitNavKey: string | undefined = SPLIT_NAV_KEY) {
-    return {
+    return createMock<NonNullable<ReturnType<typeof navigationRef.getRootState>>>({
         routes: [
             {
                 name: NAVIGATORS.TAB_NAVIGATOR,
@@ -46,7 +50,7 @@ function buildRootStateWithSplitNavRoutes(splitRoutes: Array<{reportID: string} 
                 },
             },
         ],
-    };
+    });
 }
 
 describe('popReportsSplitNavigatorToReport', () => {
@@ -61,15 +65,17 @@ describe('popReportsSplitNavigatorToReport', () => {
     });
 
     it('no-ops when there is no TAB_NAVIGATOR in the root state', () => {
-        mockedGetRootState.mockReturnValue({routes: [{name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}]});
+        mockedGetRootState.mockReturnValue(createMock<NonNullable<ReturnType<typeof navigationRef.getRootState>>>({routes: [{name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR}]}));
         popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
         expect(mockedDispatch).not.toHaveBeenCalled();
     });
 
     it('no-ops when there is no REPORTS_SPLIT_NAVIGATOR inside the TAB_NAVIGATOR', () => {
-        mockedGetRootState.mockReturnValue({
-            routes: [{name: NAVIGATORS.TAB_NAVIGATOR, state: {routes: [{name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}]}}],
-        });
+        mockedGetRootState.mockReturnValue(
+            createMock<NonNullable<ReturnType<typeof navigationRef.getRootState>>>({
+                routes: [{name: NAVIGATORS.TAB_NAVIGATOR, state: {routes: [{name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}]}}],
+            }),
+        );
         popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
         expect(mockedDispatch).not.toHaveBeenCalled();
     });
@@ -110,39 +116,41 @@ describe('popReportsSplitNavigatorToReport', () => {
 
     it('uses the last (most recent) occurrence of REPORTS_SPLIT_NAVIGATOR when nested in multiple TAB_NAVIGATORs', () => {
         // Older TAB_NAVIGATOR contains an unrelated split navigator state — the helper must target the newest one only.
-        mockedGetRootState.mockReturnValue({
-            routes: [
-                {
-                    name: NAVIGATORS.TAB_NAVIGATOR,
-                    state: {
-                        routes: [
-                            {
-                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-                                state: {key: 'oldSplit', routes: [{name: SCREENS.REPORT, params: {reportID: SELF_DM_REPORT_ID}}]},
-                            },
-                        ],
-                    },
-                },
-                {
-                    name: NAVIGATORS.TAB_NAVIGATOR,
-                    state: {
-                        routes: [
-                            {
-                                name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
-                                state: {
-                                    key: SPLIT_NAV_KEY,
-                                    routes: [
-                                        {name: SCREENS.HOME},
-                                        {name: SCREENS.REPORT, params: {reportID: SELF_DM_REPORT_ID}},
-                                        {name: SCREENS.REPORT, params: {reportID: OTHER_REPORT_ID}},
-                                    ],
+        mockedGetRootState.mockReturnValue(
+            createMock<NonNullable<ReturnType<typeof navigationRef.getRootState>>>({
+                routes: [
+                    {
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            routes: [
+                                {
+                                    name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                    state: {key: 'oldSplit', routes: [{name: SCREENS.REPORT, params: {reportID: SELF_DM_REPORT_ID}}]},
                                 },
-                            },
-                        ],
+                            ],
+                        },
                     },
-                },
-            ],
-        });
+                    {
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            routes: [
+                                {
+                                    name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+                                    state: {
+                                        key: SPLIT_NAV_KEY,
+                                        routes: [
+                                            {name: SCREENS.HOME},
+                                            {name: SCREENS.REPORT, params: {reportID: SELF_DM_REPORT_ID}},
+                                            {name: SCREENS.REPORT, params: {reportID: OTHER_REPORT_ID}},
+                                        ],
+                                    },
+                                },
+                            ],
+                        },
+                    },
+                ],
+            }),
+        );
         popReportsSplitNavigatorToReport(SELF_DM_REPORT_ID);
         expect(mockedDispatch).toHaveBeenCalledWith({...StackActions.pop(1), target: SPLIT_NAV_KEY});
     });

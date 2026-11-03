@@ -1,27 +1,37 @@
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {ValidateCodeActionContentProps} from './type';
-import ValidateCodeForm from './ValidateCodeForm';
 import type {ValidateCodeFormHandle} from './ValidateCodeForm/BaseValidateCodeForm';
+
+import ValidateCodeForm from './ValidateCodeForm';
 
 function ValidateCodeActionContent({
     title,
     descriptionPrimary,
     descriptionSecondary,
     onClose,
+    shouldShowCloseButton = false,
     validateError,
     validatePendingAction,
     validateCodeActionErrorField,
     handleSubmitForm,
     clearError,
+    shouldClearErrorOnClose = true,
     sendValidateCode,
+    validateCodeReasonCode,
     isLoading,
     threeDotsMenuItems = [],
     onThreeDotsButtonPress = () => {},
@@ -29,24 +39,36 @@ function ValidateCodeActionContent({
 }: ValidateCodeActionContentProps) {
     const themeStyles = useThemeStyles();
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const [validateCodeAction, validateCodeActionMetadata] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const firstRenderRef = useRef(true);
 
     useEffect(() => {
-        if (!firstRenderRef.current || validateCodeAction?.validateCodeSent) {
+        // Wait for Onyx to hydrate before deciding, otherwise on reload we read undefined and wrongly re-send
+        if (isLoadingOnyxValue(validateCodeActionMetadata) || !firstRenderRef.current) {
             return;
         }
         firstRenderRef.current = false;
 
-        sendValidateCode();
-        // We only want to send validate code on first render not on change of validateCodeSent, so we don't add it as a dependency.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sendValidateCode]);
+        // The validateCode is account-level, so skip sending if one was already requested within the resend window (e.g. a page reload).
+        // When this screen declares a reason, only suppress if the recent request was for the same flow.
+        const requestedAt = validateCodeAction?.lastValidateCodeRequestedAt;
+        const sentRecently = !!requestedAt && Date.now() - requestedAt < CONST.REQUEST_CODE_DELAY * CONST.MILLISECONDS_PER_SECOND;
+        const sentRecentlyForSameReason = sentRecently && (!validateCodeReasonCode || validateCodeAction?.lastValidateCodeReason === validateCodeReasonCode);
+        if (sentRecentlyForSameReason) {
+            return;
+        }
 
-    const hide = useCallback(() => {
-        clearError();
+        sendValidateCode();
+        // We only want to decide whether to send once Onyx has hydrated, so we depend on the hydration metadata rather than the value
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [sendValidateCode, validateCodeActionMetadata]);
+
+    const hide = () => {
+        if (shouldClearErrorOnClose) {
+            clearError();
+        }
         onClose?.();
-    }, [onClose, clearError]);
+    };
 
     return (
         <ScreenWrapper
@@ -57,14 +79,20 @@ function ValidateCodeActionContent({
             offlineIndicatorStyle={themeStyles.mtAuto}
             shouldShowOfflineIndicatorInWideScreen
         >
-            <HeaderWithBackButton
-                title={title}
-                onBackButtonPress={hide}
-                threeDotsMenuItems={threeDotsMenuItems}
-                shouldShowThreeDotsButton={threeDotsMenuItems.length > 0}
-                shouldOverlayDots
-                onThreeDotsButtonPress={onThreeDotsButtonPress}
-            />
+            <Header>
+                {!shouldShowCloseButton && <Header.BackButton onPress={hide} />}
+                <Header.Title title={title} />
+                <Header.Right>
+                    {threeDotsMenuItems.length > 0 && (
+                        <Header.ThreeDotsMenu
+                            items={threeDotsMenuItems}
+                            onIconPress={onThreeDotsButtonPress}
+                            shouldOverlay
+                        />
+                    )}
+                    {shouldShowCloseButton && <Header.CloseButton onPress={hide} />}
+                </Header.Right>
+            </Header>
 
             <ScrollView
                 style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}

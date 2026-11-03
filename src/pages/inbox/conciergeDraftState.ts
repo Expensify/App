@@ -1,8 +1,11 @@
 import Parser from '@libs/Parser';
 import type {ConciergeDraftEvent} from '@libs/Pusher/types';
 import {getParsedComment} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+
+import {Str} from 'expensify-common';
 
 type ConciergeDraft = {
     /** Currently rendered markdown. Pusher pacing may intentionally lag this behind the latest server snapshot. */
@@ -17,6 +20,8 @@ type ConciergeDraft = {
     pusherQueuedTargetEvents?: ConciergeDraftEvent[];
     /** Completion event held while the Pusher pacer is still revealing banked text. */
     pusherPendingCompletionEvent?: ConciergeDraftEvent;
+    /** Terminal lifecycle event used to reject stale chunks after a content-free completion. */
+    pusherTerminalEvent?: ConciergeDraftEvent;
     /** Number of UTF-16 source units consumed from the current Pusher target. */
     pusherVisibleSourceOffset?: number;
     /** Source markdown prefix consumed from the current Pusher target, used to detect server-side corrections. */
@@ -30,11 +35,13 @@ type ConciergeDraft = {
 
 type BuildConciergeDraftReportActionParams = {
     actorAccountID?: number;
+    accountIDToName?: Record<string, string>;
     bodyMarkdown?: string;
     created: string;
     finalRenderedHTML?: string;
     reportActionID: string;
     reportID: string;
+    isGroupPolicyReport: boolean;
 };
 
 type TextRange = {
@@ -579,8 +586,30 @@ function stripIncompleteMarkdown(markdown: string): string {
     return result;
 }
 
-function buildConciergeDraftReportAction({actorAccountID, bodyMarkdown, created, finalRenderedHTML, reportActionID, reportID}: BuildConciergeDraftReportActionParams): ReportAction | null {
-    const html = finalRenderedHTML ?? (bodyMarkdown ? getParsedComment(stripIncompleteMarkdown(bodyMarkdown), {reportID}) : '');
+function buildConciergeDraftReportAction({
+    actorAccountID,
+    accountIDToName,
+    bodyMarkdown,
+    created,
+    finalRenderedHTML,
+    reportActionID,
+    reportID,
+    isGroupPolicyReport,
+}: BuildConciergeDraftReportActionParams): ReportAction | null {
+    // ExpensiMark escapes entities that the server renders as literal text, so recognized entities wait for final HTML.
+    // Match named/numeric candidates with an optional semicolon, or a bare trailing '&'.
+    // Hold unfinished candidates at the snapshot boundary; the decoder lets completed literals such as '&D;' stream.
+    let ampersandIndex = -1;
+    for (const match of bodyMarkdown?.matchAll(/&(?:[A-Za-z#][A-Za-z0-9#]*;?|$)/g) ?? []) {
+        const candidate = match[0];
+        const isUnfinishedCandidate = !candidate.endsWith(';') && match.index + candidate.length === bodyMarkdown?.length;
+        if (isUnfinishedCandidate || Str.htmlDecode(candidate) !== candidate) {
+            ampersandIndex = match.index;
+            break;
+        }
+    }
+    const visibleBodyMarkdown = ampersandIndex === -1 ? bodyMarkdown : bodyMarkdown?.slice(0, ampersandIndex);
+    const html = finalRenderedHTML ?? (visibleBodyMarkdown ? getParsedComment(stripIncompleteMarkdown(visibleBodyMarkdown), {reportID}, undefined, undefined, isGroupPolicyReport) : '');
 
     if (!html) {
         return null;
@@ -596,7 +625,7 @@ function buildConciergeDraftReportAction({actorAccountID, bodyMarkdown, created,
         actorAccountID: resolvedActorAccountID,
         person: [{style: 'strong', text: CONST.CONCIERGE_DISPLAY_NAME, type: 'TEXT'}],
         created,
-        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html, text: Parser.htmlToText(html)}],
+        message: [{type: CONST.REPORT.MESSAGE.TYPE.COMMENT, html, text: Parser.htmlToText(html, {accountIDToName})}],
         originalMessage: {html, whisperedTo: []},
         shouldShow: true,
     } as ReportAction;
@@ -651,10 +680,6 @@ function getNextVisibleConciergeDraftMarkdown(
     };
 }
 
-function getNextVisibleConciergeDraftBodyMarkdown(currentBodyMarkdown: string, targetBodyMarkdown: string): string {
-    return getNextVisibleConciergeDraftMarkdown(currentBodyMarkdown, targetBodyMarkdown).bodyMarkdown;
-}
-
 // Module-level cache so a chat re-mount (ReportScreen unmount/remount on chat
 // switch) preserves the in-progress draft. Without this the gate's local state
 // resets to null on every revisit and the synthetic bubble disappears for the
@@ -675,7 +700,13 @@ function setCachedDraft(reportID: string, draft: ConciergeDraft | null): void {
     }
 }
 
-function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: ConciergeDraftEvent, reportID: string): ConciergeDraft | null {
+function applyConciergeDraftEvent(
+    currentDraft: ConciergeDraft | null,
+    event: ConciergeDraftEvent,
+    reportID: string,
+    isGroupPolicyReport: boolean,
+    accountIDToName?: Record<string, string>,
+): ConciergeDraft | null {
     if (event.reportID !== reportID) {
         return currentDraft;
     }
@@ -697,11 +728,13 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     const nextReportAction =
         buildConciergeDraftReportAction({
             actorAccountID: event.actorAccountID,
+            accountIDToName,
             bodyMarkdown: event.bodyMarkdown,
             created: event.created,
             finalRenderedHTML: event.finalRenderedHTML,
             reportActionID: event.reportActionID,
             reportID: event.reportID,
+            isGroupPolicyReport,
         }) ?? currentDraft?.reportAction;
 
     if (!nextReportAction) {
@@ -718,13 +751,5 @@ function applyConciergeDraftEvent(currentDraft: ConciergeDraft | null, event: Co
     };
 }
 
-export {
-    applyConciergeDraftEvent,
-    CONCIERGE_DRAFT_STATUS,
-    getCachedDraft,
-    getNextVisibleConciergeDraftBodyMarkdown,
-    getNextVisibleConciergeDraftMarkdown,
-    setCachedDraft,
-    stripIncompleteMarkdown,
-};
+export {applyConciergeDraftEvent, CONCIERGE_DRAFT_STATUS, getCachedDraft, getNextVisibleConciergeDraftMarkdown, setCachedDraft, stripIncompleteMarkdown};
 export type {ConciergeDraft};

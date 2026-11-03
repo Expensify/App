@@ -1,17 +1,24 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import type {OnyxCollection} from 'react-native-onyx';
 import {
-    getCardFeedNamesWithType,
+    getAssignedCardFeedAccess,
     getCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
     getExpensifyCardFeedsForDisplay,
+    getCombinedCardFeedsFromAllFeeds,
     getFeedInfo,
-    getSelectedCardsFromFeeds,
+    getPolicyIDsNamedByCardFeeds,
+    getVisibleCompanyCardFeedsForSelector,
 } from '@libs/CardFeedUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {Card, CardFeeds, CardList, CompanyCardFeed, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Card, CardFeeds, CardList, CompanyCardFeed, Domain, Policy} from '@src/types/onyx';
+import type {CardFeedWithNumber, CustomCardFeedData, FeedReimbursable} from '@src/types/onyx/CardFeeds';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import type {OnyxCollection} from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -26,8 +33,16 @@ function createTestCard(overrides: Partial<Card> & Pick<Card, 'cardID' | 'bank'>
     };
 }
 
-function createCardNameValuePairs(nameValuePairs: Partial<NonNullable<Card['nameValuePairs']>>): Card['nameValuePairs'] {
-    return nameValuePairs as Card['nameValuePairs'];
+function createCardNameValuePairs(nameValuePairs: Partial<NonNullable<Card['nameValuePairs']>>): NonNullable<Card['nameValuePairs']> {
+    return createMock<NonNullable<Card['nameValuePairs']>>(nameValuePairs);
+}
+
+function createTestDomain(overrides: Partial<Domain> & Pick<Domain, 'accountID' | 'email'>): Domain {
+    return {
+        validated: true,
+        domain_defaultSecurityGroupID: '',
+        ...overrides,
+    };
 }
 
 function createTestPolicy(overrides: Partial<Policy> & Pick<Policy, 'id'>): Policy {
@@ -37,83 +52,22 @@ function createTestPolicy(overrides: Partial<Policy> & Pick<Policy, 'id'>): Poli
         type: CONST.POLICY.TYPE.TEAM,
         owner: 'admin@test.com',
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: false,
         ...overrides,
     };
 }
 
-function createExpensifyCardBase(cardID: number, fundID: string, feedCountry?: string): Card {
-    return createTestCard({
-        accountID: cardID,
-        lastUpdated: '2024-11-29',
-        bank: CONST.EXPENSIFY_CARD.BANK,
-        cardID,
-        cardName: `${cardID}XXXXXX`,
-        domainName: 'user.com',
-        fundID,
-        lastFourPAN: '1234',
-        lastScrapeResult: 200,
-        scrapeMinDate: '',
-        ...(feedCountry ? {nameValuePairs: createCardNameValuePairs({feedCountry})} : {}),
-    });
+function createCompanyCardFeedsWithRawKeys(feedNames: string[]): Record<string, CustomCardFeedData> {
+    const companyCards: Record<string, CustomCardFeedData> = {};
+    for (const feedName of feedNames) {
+        companyCards[feedName] = createMock<CustomCardFeedData>({});
+    }
+    return companyCards;
 }
 
 const cardFeedAmericaExpressMock: CardFeedWithNumber = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 1001`;
 const cardFeedVisaMock: CompanyCardFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.VISA;
 const cardFeedCitiBankMock: CompanyCardFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.CITIBANK;
 const cardFeedStripeMock: CompanyCardFeed = CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE;
-
-const fakeWorkspace: Record<string, WorkspaceCardsList> = {
-    'cards_11111111_Expensify Card': {
-        '11111111': {
-            accountID: 11111111,
-            lastUpdated: '2024-11-29',
-            bank: 'Expensify Card',
-            cardID: 11111111,
-            cardName: '111111XXXXXX1111',
-            domainName: 'expensify-policy1234567891011121.exfy',
-            fraud: 'none',
-            fundID: '11111111',
-            lastFourPAN: '1234',
-            lastScrape: '',
-            lastScrapeResult: 200,
-            scrapeMinDate: '',
-            state: 3,
-        },
-        '22222222': {
-            accountID: 22222222,
-            lastUpdated: '2024-11-29',
-            bank: 'Expensify Card',
-            cardID: 22222222,
-            cardName: '222222XXXXXX2222',
-            domainName: 'expensify-policy1234567891011121.exfy',
-            fraud: 'none',
-            fundID: '11111111',
-            lastFourPAN: '5678',
-            lastScrape: '',
-            lastScrapeResult: 200,
-            scrapeMinDate: '',
-            state: 3,
-        },
-    },
-    'cards_22222222_Expensify Card': {
-        '33333333': {
-            accountID: 33333333,
-            lastUpdated: '2024-11-29',
-            bank: 'Expensify Card',
-            cardID: 33333333,
-            cardName: '333333XXXXXX3333',
-            domainName: 'expensify-policy1234567891011121.exfy',
-            fraud: 'none',
-            fundID: '22222222',
-            lastFourPAN: '9101',
-            lastScrape: '',
-            lastScrapeResult: 200,
-            scrapeMinDate: '',
-            state: 3,
-        },
-    },
-};
 
 const cardListMock: CardList = {
     '11223344': createTestCard({cardID: 11223344, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, fundID: '5555', state: CONST.EXPENSIFY_CARD.STATE.OPEN}),
@@ -145,34 +99,11 @@ describe('Card Feed Utils', () => {
         IntlStore.load(CONST.LOCALES.EN);
         return waitForBatchedUpdates();
     });
-    it('returns display name of workspace & domain cards', () => {
-        const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, policies: undefined, translate: translateLocal});
-        expect(Object.keys(cardFeedNamesWithType).length).toBe(2);
-        expect(Object.values(cardFeedNamesWithType).every((cardFeedName) => cardFeedName.name === 'All Expensify')).toBe(true);
-    });
-
-    it('returns feeds to selected cards', () => {
-        const feeds = ['22222222_Expensify Card'];
-        const selected = getSelectedCardsFromFeeds({}, fakeWorkspace, feeds);
-        expect(selected.length).toBe(1);
-        expect(selected.at(0)).toEqual('33333333');
-    });
-
-    it('returns empty object when workspaceCardFeeds is empty', () => {
-        const names = getCardFeedNamesWithType({workspaceCardFeeds: {key: {}}, policies: undefined, translate: translateLocal});
-        expect(names).toEqual({});
-    });
-
-    it('returns empty array when selectedFeeds contains a non-existent feed', () => {
-        const feeds = ['99999999_Expensify Card'];
-        const selected = getSelectedCardsFromFeeds({}, fakeWorkspace, feeds);
-        expect(selected).toEqual([]);
-    });
 
     it('returns card feeds for display with custom names', () => {
         const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsMock, cardListMock, translateLocal);
         expect(cardFeedsForDisplay).toEqual({
-            '5555_Expensify Card': {id: '5555_Expensify Card', fundID: '5555', feed: 'Expensify Card', name: 'Expensify Card'},
+            '5555_Expensify Card': {id: '5555_Expensify Card', fundID: '5555', feed: 'Expensify Card', name: 'Expensify Card', subtitle: 'test.com'},
             '1234_oauth.americanexpressfdx.com 1001': {id: '1234_oauth.americanexpressfdx.com 1001', fundID: '1234', feed: 'oauth.americanexpressfdx.com 1001', name: 'American Express'},
             '1234_vcf': {id: '1234_vcf', fundID: '1234', feed: 'vcf', name: 'Custom feed name'},
             '1234_oauth.citibank.com': {id: '1234_oauth.citibank.com', fundID: '1234', feed: 'oauth.citibank.com', name: 'Citibank'},
@@ -187,6 +118,51 @@ describe('Card Feed Utils', () => {
             '1234_vcf': {id: '1234_vcf', fundID: '1234', feed: 'vcf', name: 'Custom feed name'},
             '1234_oauth.citibank.com': {id: '1234_oauth.citibank.com', fundID: '1234', feed: 'oauth.citibank.com', name: 'Citibank'},
             '1234_stripe': {id: '1234_stripe', fundID: '1234', feed: 'stripe', name: 'Stripe'},
+        });
+    });
+
+    it('adds the origin workspace name as the subtitle for workspace-level company feeds via preferredPolicy', () => {
+        const policies: OnyxCollection<Policy> = {
+            [`${ONYXKEYS.COLLECTION.POLICY}AA1BB2CC3`]: createTestPolicy({id: 'AA1BB2CC3', name: 'Marketing'}),
+            [`${ONYXKEYS.COLLECTION.POLICY}XX1YY2ZZ3`]: createTestPolicy({id: 'XX1YY2ZZ3', name: 'Engineering'}),
+        };
+
+        const result = getCardFeedsForDisplay(cardFeedsMock, {}, translateLocal, undefined, policies);
+
+        // Visa and Citibank both point at preferredPolicy AA1BB2CC3, Stripe at XX1YY2ZZ3.
+        expect(result['1234_vcf']?.subtitle).toBe('Marketing');
+        expect(result['1234_oauth.citibank.com']?.subtitle).toBe('Marketing');
+        expect(result['1234_stripe']?.subtitle).toBe('Engineering');
+    });
+
+    it('falls back to the domain name as the subtitle for domain-level company feeds without a preferredPolicy', () => {
+        // American Express has no preferredPolicy, so it resolves via the domain backing fundID 1234.
+        const domains: OnyxCollection<Domain> = {
+            [`${ONYXKEYS.COLLECTION.DOMAIN}1234`]: createTestDomain({accountID: 1234, email: 'admin@acme.com'}),
+        };
+
+        const result = getCardFeedsForDisplay(cardFeedsMock, {}, translateLocal, undefined, undefined, domains);
+
+        expect(result['1234_oauth.americanexpressfdx.com 1001']?.subtitle).toBe('acme.com');
+    });
+
+    it('returns numbered commercial card feed names for search display', () => {
+        const companyCards = createCompanyCardFeedsWithRawKeys([`${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}2`, 'vcfanzfav1', 'cdfbmo', 'vcfcitibank2']);
+        const cardFeedsWithNumberedCommercialFeeds: OnyxCollection<CardFeeds> = {
+            sharedNVP_private_domain_member_1234: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards,
+                },
+            },
+        };
+
+        const cardFeedsForDisplay = getCardFeedsForDisplay(cardFeedsWithNumberedCommercialFeeds, {}, translateLocal);
+        expect(cardFeedsForDisplay).toEqual({
+            '1234_vcf2': {id: '1234_vcf2', fundID: '1234', feed: 'vcf2', name: 'Visa 2'},
+            '1234_vcfanzfav1': {id: '1234_vcfanzfav1', fundID: '1234', feed: 'vcfanzfav1', name: 'ANZ NZ 1'},
+            '1234_cdfbmo': {id: '1234_cdfbmo', fundID: '1234', feed: 'cdfbmo', name: 'Mastercard'},
+            '1234_vcfcitibank2': {id: '1234_vcfcitibank2', fundID: '1234', feed: 'vcfcitibank2', name: 'Visa'},
         });
     });
 
@@ -372,7 +348,7 @@ describe('getExpensifyCardFeedsForDisplay', () => {
         };
 
         expect(getExpensifyCardFeedsForDisplay(allCards, undefined)).toEqual({
-            '5555_Expensify Card': {id: '5555_Expensify Card', fundID: '5555', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK},
+            '5555_Expensify Card': {id: '5555_Expensify Card', fundID: '5555', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK, subtitle: 'test.com'},
         });
     });
 
@@ -385,7 +361,7 @@ describe('getExpensifyCardFeedsForDisplay', () => {
 
         const result = getExpensifyCardFeedsForDisplay(allCards, undefined);
         expect(Object.keys(result)).toHaveLength(1);
-        expect(result['5555_Expensify Card']).toEqual({id: '5555_Expensify Card', fundID: '5555', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK});
+        expect(result['5555_Expensify Card']).toEqual({id: '5555_Expensify Card', fundID: '5555', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK, subtitle: 'test.com'});
     });
 
     it('returns separate entries for different fundIDs', () => {
@@ -396,8 +372,8 @@ describe('getExpensifyCardFeedsForDisplay', () => {
 
         const result = getExpensifyCardFeedsForDisplay(allCards, undefined);
         expect(Object.keys(result)).toHaveLength(2);
-        expect(result['5555_Expensify Card']).toEqual({id: '5555_Expensify Card', fundID: '5555', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK});
-        expect(result['6666_Expensify Card']).toEqual({id: '6666_Expensify Card', fundID: '6666', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK});
+        expect(result['5555_Expensify Card']).toEqual({id: '5555_Expensify Card', fundID: '5555', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK, subtitle: 'test.com'});
+        expect(result['6666_Expensify Card']).toEqual({id: '6666_Expensify Card', fundID: '6666', feed: CONST.EXPENSIFY_CARD.BANK, name: CONST.EXPENSIFY_CARD.BANK, subtitle: 'test.com'});
     });
 
     it('filters out non-Expensify cards from mixed card list', () => {
@@ -461,76 +437,270 @@ describe('getExpensifyCardFeedsForDisplay', () => {
     });
 });
 
-describe('country-aware domain feed picker', () => {
-    beforeAll(() => {
-        IntlStore.load(CONST.LOCALES.EN);
-        return waitForBatchedUpdates();
-    });
+describe('getVisibleCompanyCardFeedsForSelector', () => {
+    const fundID = 1234;
+    const currentUserAccountID = 777;
 
-    it('feed names are different for Expensify Cards and Travel invoicing', () => {
-        const workspaceCardFeeds: Record<string, WorkspaceCardsList> = {
-            'cards_5555_Expensify Card': {
-                '1': createExpensifyCardBase(1, '5555', CONST.COUNTRY.US),
-                '2': createExpensifyCardBase(2, '5555', CONST.COUNTRY.GB),
-            },
-            'cards_5555_Expensify Card_TRAVEL_US': {
-                '3': createExpensifyCardBase(3, '5555', CONST.TRAVEL.PROGRAM_TRAVEL_US),
+    function createCompanyCardFeeds(companyCards: NonNullable<NonNullable<CardFeeds['settings']>['companyCards']>): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${fundID}`]: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards,
+                },
             },
         };
+    }
 
-        const names = getCardFeedNamesWithType({workspaceCardFeeds, policies: undefined, translate: translateLocal});
-        expect(Object.keys(names).sort()).toEqual(['cards_5555_Expensify Card', 'cards_5555_Expensify Card_TRAVEL_US']);
-        expect(names['cards_5555_Expensify Card'].name).toBe('All Expensify - user.com');
-        expect(names['cards_5555_Expensify Card_TRAVEL_US'].name).toBe('All Travel invoicing - user.com');
-    });
-
-    it('resolves a travel selection to only travel cards', () => {
-        const cardList: CardList = {
-            '1': createExpensifyCardBase(1, '5555', CONST.COUNTRY.US),
-            '2': createExpensifyCardBase(2, '5555', CONST.TRAVEL.PROGRAM_TRAVEL_US),
-            '3': createExpensifyCardBase(3, '5555', CONST.TRAVEL.PROGRAM_TRAVEL_US),
+    function createAdminDomain(accountID: number, adminAccountID: number): Domain {
+        const domain: Domain = {
+            validated: true,
+            accountID,
+            email: '+@company.com',
+            domain_defaultSecurityGroupID: '0',
         };
+        // Set the prefixed admin-access key separately so the object literal isn't widened to a string index
+        // signature (which would force an unsafe `as unknown as Domain` assertion).
+        domain[`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`] = adminAccountID;
+        return domain;
+    }
 
-        const selected = getSelectedCardsFromFeeds(cardList, {}, ['5555_Expensify Card_TRAVEL_US']);
-        expect(selected.sort()).toEqual(['2', '3']);
+    it('enumerates a feed once when the user is an admin of a policy backed by the fund (no linkedPolicyIDs)', () => {
+        const cardFeeds = createCompanyCardFeeds({[cardFeedAmericaExpressMock]: {}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID})};
+
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, {}, currentUserAccountID);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.id).toBe('1234_oauth.americanexpressfdx.com 1001');
     });
 
-    it('resolves a 2-segment Expensify selection to every non-travel card for the fundID', () => {
-        const cardList: CardList = {
-            '1': createExpensifyCardBase(1, '5555', CONST.COUNTRY.US),
-            '2': createExpensifyCardBase(2, '5555', CONST.COUNTRY.GB),
-            '3': createExpensifyCardBase(3, '5555', CONST.TRAVEL.PROGRAM_TRAVEL_US),
-        };
+    it('enumerates a feed once when the user is a domain admin for the fund', () => {
+        const cardFeeds = createCompanyCardFeeds({[cardFeedAmericaExpressMock]: {}});
+        const domains: OnyxCollection<Domain> = {[`domain_${fundID}`]: createAdminDomain(fundID, currentUserAccountID)};
 
-        const selected = getSelectedCardsFromFeeds(cardList, {}, ['5555_Expensify Card']);
-        expect(selected.sort()).toEqual(['1', '2']);
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, {}, domains, currentUserAccountID);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.id).toBe('1234_oauth.americanexpressfdx.com 1001');
     });
 
-    it('still resolves a 2-segment selection when cards carry no feedCountry', () => {
-        const cardList: CardList = {
-            '1': createExpensifyCardBase(1, '5555'),
-            '2': createExpensifyCardBase(2, '5555'),
-        };
+    it('excludes feeds when the user is neither a domain admin nor a workspace admin for the fund', () => {
+        const cardFeeds = createCompanyCardFeeds({[cardFeedAmericaExpressMock]: {}});
+        const policies: OnyxCollection<Policy> = {policy_OTHER: createTestPolicy({id: 'OTHER', policyAccountID: 9999})};
 
-        const selected = getSelectedCardsFromFeeds(cardList, {}, ['5555_Expensify Card']);
-        expect(selected.sort()).toEqual(['1', '2']);
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, {}, currentUserAccountID);
+
+        expect(result).toHaveLength(0);
     });
 
-    it('keeps the travel workspace feed visible when the only domain entry is a regular Expensify Card', () => {
-        const workspaceCardFeeds: Record<string, WorkspaceCardsList> = {
-            'cards_5555_Expensify Card': {
-                '1': {...createExpensifyCardBase(1, '5555', CONST.COUNTRY.US), domainName: 'user.com'},
-                '2': {...createExpensifyCardBase(2, '5555', CONST.COUNTRY.US), domainName: 'expensify-policy1234567891011121.exfy'},
+    it('enumerates a feed with multiple linkedPolicyIDs exactly once (no per-policy duplication)', () => {
+        const cardFeeds = createCompanyCardFeeds({[cardFeedAmericaExpressMock]: {linkedPolicyIDs: ['WS', 'WS2', 'WS3']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID})};
+
+        const result = getVisibleCompanyCardFeedsForSelector(cardFeeds, translateLocal, undefined, policies, {}, currentUserAccountID);
+
+        expect(result).toHaveLength(1);
+        expect(result.at(0)?.linkedPolicyIDs).toEqual(['WS', 'WS2', 'WS3']);
+    });
+});
+
+describe('getAssignedCardFeedAccess', () => {
+    const fundID = 1234;
+    const currentUserLogin = 'admin@test.com';
+    const bank = cardFeedAmericaExpressMock;
+    const card = {bank, domainName: 'acme-corp.com', fundID: String(fundID)};
+
+    function createCompanyCardFeeds(companyCards: NonNullable<NonNullable<CardFeeds['settings']>['companyCards']>): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${fundID}`]: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards,
+                },
             },
-            'cards_5555_Expensify Card_TRAVEL_US': {
-                '3': {...createExpensifyCardBase(3, '5555', CONST.TRAVEL.PROGRAM_TRAVEL_US), domainName: 'expensify-policy1234567891011121.exfy'},
-            },
+        };
+    }
+
+    // A domain feed's fundID is the domain's account ID, so the workspace can only come from the feed itself.
+    it('resolves the workspace a feed links to', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    // A feed's policy IDs come from the back end in whatever case it sent them, while the Onyx key is upper case.
+    // Missing the workspace here reads as the cardholder not being able to fix the feed, which is the bug this resolves.
+    it('resolves a workspace the feed names in a different case', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['ws']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    it('falls back to the preferred policy when the feed links to none', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {preferredPolicy: 'WS'}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    // The link is only worth offering on a workspace the cardholder can act in, so one they can fix the feed on wins
+    // over one that would show them the same problem again.
+    it('prefers a linked workspace the user can fix the feed on', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['MEMBER', 'ADMIN']}});
+        const policies: OnyxCollection<Policy> = {
+            policy_MEMBER: createTestPolicy({id: 'MEMBER', role: CONST.POLICY.ROLE.USER}),
+            policy_ADMIN: createTestPolicy({id: 'ADMIN'}),
         };
 
-        const names = getCardFeedNamesWithType({workspaceCardFeeds, policies: undefined, translate: translateLocal});
-        expect(Object.keys(names)).toContain('cards_5555_Expensify Card_TRAVEL_US');
-        expect(names['cards_5555_Expensify Card_TRAVEL_US'].type).toBe('workspace');
-        expect(Object.keys(names)).toContain('cards_5555_Expensify Card');
-        expect(names['cards_5555_Expensify Card'].type).toBe('domain');
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'ADMIN', isAdmin: true});
+    });
+
+    // A card admin is not a workspace admin but is exactly who the Company cards page lets fix a feed, so the role
+    // alone would send them to ask somebody else to do what they can do themselves.
+    it('offers the link to a card admin who is not a workspace admin', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', role: CONST.POLICY.ROLE.CARD_ADMIN, type: CONST.POLICY.TYPE.CORPORATE})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    // The Company cards page is read-only for an auditor, so the link would open a page with the fix banner hidden.
+    it('does not offer the link to an auditor of the linked workspace', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', role: CONST.POLICY.ROLE.AUDITOR, type: CONST.POLICY.TYPE.CORPORATE})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: false});
+    });
+
+    // A member cannot open the page at all, so the link would land on Not Found.
+    it('does not offer the link to a member of the linked workspace', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', role: CONST.POLICY.ROLE.USER})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: false});
+    });
+
+    // An orphan feed names no workspace at all, so the fund is all that is left to go on.
+    it('falls back to the workspace backing the fund when the feed names none', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS', policyAccountID: fundID})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, currentUserLogin)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    // The personal details that hold the login load separately from the policies, so a row rendered before they
+    // arrive must still offer the link rather than telling an admin to ask themselves.
+    it('offers the link when the login has not loaded yet', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess(card, cardFeeds, policies, undefined)).toEqual({policyID: 'WS', isAdmin: true});
+    });
+
+    it('returns nothing for a card without a fundID', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS']}});
+        const policies: OnyxCollection<Policy> = {policy_WS: createTestPolicy({id: 'WS'})};
+
+        expect(getAssignedCardFeedAccess({bank, domainName: '', fundID: undefined}, cardFeeds, policies, currentUserLogin)).toEqual({policyID: undefined, isAdmin: false});
+    });
+});
+
+describe('getPolicyIDsNamedByCardFeeds', () => {
+    const fundID = 1234;
+    const bank = cardFeedAmericaExpressMock;
+    const card = {bank, domainName: 'acme-corp.com', fundID: String(fundID)};
+
+    function createCompanyCardFeeds(companyCards: NonNullable<NonNullable<CardFeeds['settings']>['companyCards']>): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${fundID}`]: {
+                settings: {
+                    companyCardNicknames: {},
+                    companyCards,
+                },
+            },
+        };
+    }
+
+    // These IDs decide which policies a consumer loads. Returning none leaves the workspace unresolved, which reads
+    // as the cardholder not being an admin of it.
+    it('collects every workspace a feed links to', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1', 'WS2']}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card], cardFeeds)).toEqual(['WS1', 'WS2']);
+    });
+
+    it('collects the preferred policy as well as the linked ones', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1'], preferredPolicy: 'WS2'}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card], cardFeeds)).toEqual(['WS1', 'WS2']);
+    });
+
+    it('lists a workspace two cards share only once', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1']}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card, {...card, bank}], cardFeeds)).toEqual(['WS1']);
+    });
+
+    it('skips the empty entries a feed can carry', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['', 'WS1'], preferredPolicy: ''}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card], cardFeeds)).toEqual(['WS1']);
+    });
+
+    it('returns nothing for a feed that names no workspace', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {}});
+
+        expect(getPolicyIDsNamedByCardFeeds([card], cardFeeds)).toEqual([]);
+    });
+
+    it('returns nothing for a card without a fundID', () => {
+        const cardFeeds = createCompanyCardFeeds({[bank]: {linkedPolicyIDs: ['WS1']}});
+
+        expect(getPolicyIDsNamedByCardFeeds([{bank, domainName: '', fundID: undefined}], cardFeeds)).toEqual([]);
+    });
+});
+
+describe('getCombinedCardFeedsFromAllFeeds forceReimbursable', () => {
+    const domainID = 1234;
+    const feed = cardFeedAmericaExpressMock;
+    const getFeed = (result: ReturnType<typeof getCombinedCardFeedsFromAllFeeds>) => Object.values(result).at(0);
+
+    function buildFeeds(companyCard: Partial<CustomCardFeedData>, oAuthForceReimbursable?: FeedReimbursable): OnyxCollection<CardFeeds> {
+        return {
+            [`sharedNVP_private_domain_member_${domainID}`]: {
+                settings: {
+                    companyCards: {[feed]: companyCard},
+                    oAuthAccountDetails: {[feed]: {accountList: [], credentials: '', expiration: 0, ...(oAuthForceReimbursable ? {forceReimbursable: oAuthForceReimbursable} : {})}},
+                },
+            },
+        };
+    }
+
+    it('prefers the pending optimistic value over the stale OAuth value', () => {
+        const result = getCombinedCardFeedsFromAllFeeds(
+            buildFeeds({forceReimbursable: 'force_yes', pendingFields: {forceReimbursable: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}, 'force_no'),
+        );
+        expect(getFeed(result)?.forceReimbursable).toBe('force_yes');
+        expect(getFeed(result)?.pendingFields?.forceReimbursable).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+    });
+
+    it('shows the rolled-back value and keeps the error after a failure', () => {
+        const errors = {1: 'error'};
+        const result = getCombinedCardFeedsFromAllFeeds(buildFeeds({forceReimbursable: 'force_no', errorFields: {forceReimbursable: errors}}, 'force_no'));
+        expect(getFeed(result)?.forceReimbursable).toBe('force_no');
+        expect(getFeed(result)?.errorFields?.forceReimbursable).toEqual(errors);
+    });
+
+    it('keeps the OAuth value when the local rollback cleared the setting', () => {
+        const result = getCombinedCardFeedsFromAllFeeds(buildFeeds({forceReimbursable: undefined, errorFields: {forceReimbursable: {1: 'error'}}}, 'default_yes'));
+        expect(getFeed(result)?.forceReimbursable).toBe('default_yes');
+    });
+
+    it('leaves OAuth data untouched when there is no local reimbursable change', () => {
+        const result = getCombinedCardFeedsFromAllFeeds(buildFeeds({forceReimbursable: 'force_yes'}, 'force_no'));
+        expect(getFeed(result)?.forceReimbursable).toBe('force_no');
     });
 });

@@ -3,6 +3,7 @@ import * as IOU from '@libs/actions/IOU';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import * as TransactionUtils from '@libs/TransactionUtils';
+
 import * as Policy from '@userActions/Policy/Policy';
 import * as Task from '@userActions/Task';
 
@@ -34,11 +35,6 @@ describe('ReportUtils', () => {
     it('does not export getInvoiceReceiverIcons', () => {
         // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
         expect(ReportUtils.getInvoiceReceiverIcons).toBeUndefined();
-    });
-
-    it('does not export getParticipantIcon', () => {
-        // @ts-expect-error the test is asserting that it's undefined, so the TS error is normal
-        expect(ReportUtils.getParticipantIcon).toBeUndefined();
     });
 
     it('does not export getIconsForExpenseRequest', () => {

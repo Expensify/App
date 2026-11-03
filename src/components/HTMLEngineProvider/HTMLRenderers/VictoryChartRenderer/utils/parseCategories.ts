@@ -1,4 +1,5 @@
 import lodashIsObject from 'lodash/isObject';
+
 import parseAttribute from './parseAttribute';
 
 /**

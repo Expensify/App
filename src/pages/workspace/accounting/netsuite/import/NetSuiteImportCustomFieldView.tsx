@@ -1,26 +1,33 @@
-import React, {useCallback, useMemo} from 'react';
-import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateNetSuiteCustomLists, updateNetSuiteCustomSegments} from '@libs/actions/connections/NetSuiteCommands';
 import {clearNetSuiteErrorField, clearNetSuitePendingField, removeNetSuiteCustomFieldByIndex} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNameFromNetSuiteCustomField, isNetSuiteCustomFieldPropertyEditable, isNetSuiteCustomSegmentRecord, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNameFromNetSuiteCustomField, isNetSuiteCustomFieldPropertyEditable, isNetSuiteCustomSegmentRecord} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomList, NetSuiteCustomSegment} from '@src/types/onyx/Policy';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
 
 type CustomField = NetSuiteCustomList | NetSuiteCustomSegment;
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
@@ -31,7 +38,6 @@ type NetSuiteImportCustomFieldViewProps = WithPolicyConnectionsProps & {
             /** Whether the record is of type custom segment or list */
             importCustomField: ImportCustomFieldsKeys;
 
-            /** Index of the current record */
             valueIndex: number;
         };
     };
@@ -49,14 +55,14 @@ function NetSuiteImportCustomFieldView({
     const {showConfirmModal} = useConfirmModal();
 
     const config = policy?.connections?.netsuite?.options?.config;
-    const allRecords = useMemo(() => config?.syncOptions?.[importCustomField] ?? [], [config?.syncOptions, importCustomField]);
+    const allRecords = config?.syncOptions?.[importCustomField] ?? [];
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     const customField: CustomField | undefined = allRecords[valueIndex];
     const fieldList =
         customField && isNetSuiteCustomSegmentRecord(customField) ? CONST.NETSUITE_CONFIG.CUSTOM_SEGMENT_FIELDS : [INPUT_IDS.LIST_NAME, INPUT_IDS.TRANSACTION_FIELD_ID, INPUT_IDS.MAPPING];
 
-    const removeRecord = useCallback(() => {
+    const removeRecord = () => {
         if (!policyID) {
             return;
         }
@@ -83,7 +89,7 @@ function NetSuiteImportCustomFieldView({
             }
         }
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, importCustomField));
-    }, [allRecords, customField, importCustomField, policyID, valueIndex]);
+    };
 
     return (
         <ConnectionLayout
@@ -119,11 +125,10 @@ function NetSuiteImportCustomFieldView({
                     {fieldList.map((fieldName) => {
                         const isEditable = !config?.pendingFields?.[importCustomField] && isNetSuiteCustomFieldPropertyEditable(customField, fieldName);
                         return (
-                            <MenuItemWithTopDescription
+                            <MenuItemField
                                 key={fieldName}
-                                description={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
-                                shouldShowRightIcon={isEditable}
-                                title={
+                                name={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.fields.${fieldName}` as TranslationPaths)}
+                                value={
                                     fieldName === 'mapping'
                                         ? translate(`workspace.netsuite.import.importTypes.${customField[fieldName as keyof CustomField].toUpperCase()}.label` as TranslationPaths)
                                         : customField[fieldName as keyof CustomField]
@@ -136,17 +141,17 @@ function NetSuiteImportCustomFieldView({
                             />
                         );
                     })}
-                    <MenuItem
+                    <MenuItemAction
                         icon={icons.Trashcan}
                         title={translate('common.remove')}
-                        disabled={!!config?.pendingFields?.[importCustomField]}
+                        isDisabled={!!config?.pendingFields?.[importCustomField]}
                         onPress={() => {
                             showConfirmModal({
                                 title: translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removeTitle`),
                                 prompt: translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.removePrompt`),
                                 confirmText: translate('common.remove'),
                                 cancelText: translate('common.cancel'),
-                                danger: true,
+                                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                             }).then((result) => {
                                 if (result.action !== ModalActions.CONFIRM) {
                                     return;

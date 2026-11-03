@@ -1,7 +1,5 @@
-import {NavigationContainer} from '@react-navigation/native';
-import type * as NativeNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import {addPaymentCard, addSubscriptionPaymentCard} from '@libs/actions/PaymentMethods';
 import {createWorkspace} from '@libs/actions/Policy/Policy';
@@ -9,10 +7,18 @@ import GoogleTagManager from '@libs/GoogleTagManager';
 import OnboardingModalNavigator from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FundList} from '@src/types/onyx';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import {NavigationContainer} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
+
 import getOnyxValue from '../utils/getOnyxValue';
+import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/GoogleTagManager');
@@ -163,6 +169,7 @@ describe('GoogleTagManagerTest', () => {
     test('workspace_created', async () => {
         // When we run the createWorkspace action a few times
         createWorkspace({
+            conciergeChat: undefined,
             policyName: '',
             introSelected: undefined,
             currentUserAccountIDParam: 123456,
@@ -170,11 +177,13 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@test.com',
             currency: undefined,
             isSelfTourViewed: false,
-            betas: undefined,
             hasActiveAdminPolicies: false,
+            delegateAccountID: undefined,
+            hasOwnedPaidPolicy: false,
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
+            conciergeChat: undefined,
             policyName: '',
             currentUserAccountIDParam: 123456,
             activePolicy: undefined,
@@ -182,11 +191,13 @@ describe('GoogleTagManagerTest', () => {
             introSelected: undefined,
             currency: undefined,
             isSelfTourViewed: false,
-            betas: undefined,
             hasActiveAdminPolicies: true,
+            delegateAccountID: undefined,
+            hasOwnedPaidPolicy: false,
         });
         await waitForBatchedUpdatesWithAct();
         createWorkspace({
+            conciergeChat: undefined,
             policyName: '',
             currentUserAccountIDParam: 123456,
             activePolicy: undefined,
@@ -194,8 +205,9 @@ describe('GoogleTagManagerTest', () => {
             introSelected: undefined,
             currency: undefined,
             isSelfTourViewed: false,
-            betas: undefined,
             hasActiveAdminPolicies: true,
+            delegateAccountID: undefined,
+            hasOwnedPaidPolicy: false,
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -207,6 +219,7 @@ describe('GoogleTagManagerTest', () => {
     test('workspace_created_sales_eligible', async () => {
         // When we create a first workspace with the "Manage my team" intent, a company of 5+ employees, and a private email domain
         createWorkspace({
+            conciergeChat: undefined,
             policyName: '',
             introSelected: undefined,
             currentUserAccountIDParam: 123456,
@@ -214,10 +227,11 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@test.com',
             currency: undefined,
             isSelfTourViewed: false,
-            betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -229,6 +243,7 @@ describe('GoogleTagManagerTest', () => {
     test('workspace_created - public email domain is not sales eligible', async () => {
         // When we create a first workspace that meets the intent and company size criteria but uses a public email domain
         createWorkspace({
+            conciergeChat: undefined,
             policyName: '',
             introSelected: undefined,
             currentUserAccountIDParam: 123456,
@@ -236,10 +251,11 @@ describe('GoogleTagManagerTest', () => {
             currentUserEmailParam: 'test@gmail.com',
             currency: undefined,
             isSelfTourViewed: false,
-            betas: undefined,
             hasActiveAdminPolicies: false,
+            hasOwnedPaidPolicy: false,
             engagementChoice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
             companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO_MEDIUM,
+            delegateAccountID: undefined,
         });
         await waitForBatchedUpdatesWithAct();
 
@@ -256,6 +272,9 @@ describe('GoogleTagManagerTest', () => {
         const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
 
         trackExpense({
+            isDraftChatReport: false,
+            conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: {reportID: '123'},
             isDraftPolicy: true,
             action: CONST.IOU.ACTION.CATEGORIZE,
@@ -282,9 +301,11 @@ describe('GoogleTagManagerTest', () => {
             introSelected: undefined,
             quickAction: undefined,
             recentWaypoints,
-            betas: [CONST.BETAS.ALL],
             isSelfTourViewed: false,
             currentUserLocalCurrency: undefined,
+            delegateAccountID: undefined,
+            reportActionsList: undefined,
+            rules: undefined,
         });
 
         await waitForBatchedUpdatesWithAct();

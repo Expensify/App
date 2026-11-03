@@ -6,6 +6,7 @@ type ImportPlaidAccountsParams = {
     domainName: string;
     plaidAccounts: string;
     plaidAccessToken?: string;
+    domainAccountID?: string;
 };
 
 export default ImportPlaidAccountsParams;

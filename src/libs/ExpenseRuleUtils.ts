@@ -1,8 +1,11 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, TaxRate} from '@src/types/onyx';
+
 import {getDecodedCategoryName} from './CategoryUtils';
+import {filterObject} from './ObjectUtils';
 import Parser from './Parser';
 import {getCommaSeparatedTagNameWithSanitizedColons} from './PolicyUtils';
 import StringUtils from './StringUtils';
@@ -85,7 +88,9 @@ function extractRuleFromForm(form: ExpenseRuleForm, taxRate?: TaxRate) {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         tax: form.tax && taxRate ? {field_id_TAX: {externalID: form.tax, value: taxRate.value}} : undefined,
     };
-    return rule;
+
+    // Classic stores fields that were never set as empty strings, so don't persist them back
+    return filterObject(rule, (key, value) => value !== '');
 }
 
 function getKeyForRule(rule: ExpenseRule) {

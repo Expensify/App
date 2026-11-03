@@ -1,6 +1,3 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
@@ -8,13 +5,22 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isPlaidSupportedCountry} from '@libs/CardUtils';
+
 import {setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 function SelectFeedType() {
     const {translate} = useLocalize();
@@ -24,10 +30,10 @@ function SelectFeedType() {
     const [hasError, setHasError] = useState(false);
     const doesCountrySupportPlaid = isPlaidSupportedCountry(addNewCard?.data?.selectedCountry);
     const isUSCountry = addNewCard?.data?.selectedCountry === CONST.COUNTRY.US;
-    const defaultTypeSelected = addNewCard?.data.selectedFeedType ?? (doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM);
+    const defaultTypeSelected = addNewCard?.data?.selectedFeedType ?? (doesCountrySupportPlaid ? CONST.COMPANY_CARDS.FEED_TYPE.DIRECT : CONST.COMPANY_CARDS.FEED_TYPE.CUSTOM);
     const typeSelected = localTypeSelected ?? defaultTypeSelected;
 
-    const submit = useCallback(() => {
+    const submit = () => {
         if (!typeSelected) {
             setHasError(true);
             return;
@@ -56,7 +62,7 @@ function SelectFeedType() {
             step,
             data: {selectedFeedType: typeSelected},
         });
-    }, [isUSCountry, typeSelected]);
+    };
 
     const handleBackButtonPress = () => {
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_COUNTRY});
@@ -88,14 +94,11 @@ function SelectFeedType() {
 
     const finalData = doesCountrySupportPlaid ? [directFeedItem, commercialFeedItem, fileImportItem] : [commercialFeedItem, fileImportItem];
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.next'),
-            onConfirm: submit,
-        }),
-        [submit, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.next'),
+        onConfirm: submit,
+    };
 
     return (
         <ScreenWrapper

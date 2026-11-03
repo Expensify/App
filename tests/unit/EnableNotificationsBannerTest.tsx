@@ -1,12 +1,18 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {dismissForSession} from '@libs/actions/ConciergeNotificationBanner';
 import type {NotificationPermissionStatus} from '@libs/Notification/notificationPermission/types';
+
 import EnableNotificationsBanner from '@pages/inbox/report/EnableNotificationsBanner';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 let mockRequestResult: NotificationPermissionStatus = 'default';

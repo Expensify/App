@@ -1,9 +1,9 @@
-import {Num} from 'expensify-common';
-import Onyx from 'react-native-onyx';
 import {
     addAdminToDomain,
     addMemberToDomain,
+    approveDomainAdminshipRequest,
     changeDomainSecurityGroup,
+    clearAdminshipRequesterError,
     clearDomainErrors,
     clearDomainMemberError,
     clearDomainMembersSelectedForMove,
@@ -15,27 +15,41 @@ import {
     closeUserAccount,
     createDomain,
     createDomainSecurityGroup,
+    declineDomainAdminshipRequest,
     deleteDomainSecurityGroup,
     deleteDomainVacationDelegate,
+    getScimToken,
+    requestDomainAdminship,
     resetCreateDomainForm,
     resetDomain,
     resetDomainMemberTwoFactorAuth,
+    setCreateDomainAlreadyHaveAccessError,
     setDefaultSecurityGroup,
     setDomainMembersSelectedForMove,
     setDomainVacationDelegate,
     setTwoFactorAuthExemptEmailForDomain,
     updateDomainSecurityGroup,
 } from '@libs/actions/Domain';
+import {ScimTokenState} from '@libs/actions/ScimToken/ScimTokenUtils';
+import type {makeRequestWithSideEffects, write} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {generateAccountID} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
+import type {Domain, DomainSecurityGroup, UserSecurityGroupData} from '@src/types/onyx';
 import type {SecurityGroupKey} from '@src/types/onyx/Domain';
 import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
-import type PrefixedRecord from '@src/types/utils/PrefixedRecord';
+
+import type {OnyxSetInput} from 'react-native-onyx';
+
+import {Num} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -54,15 +68,16 @@ describe('actions/Domain', () => {
 
     it('createDomain', () => {
         const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-        createDomain('test.com');
+        const domainKeysBeforeCreation = new Set([`${ONYXKEYS.COLLECTION.DOMAIN}123`]);
+        createDomain('test.com', domainKeysBeforeCreation);
 
         expect(apiWriteSpy).toHaveBeenCalledWith(
             WRITE_COMMANDS.CREATE_DOMAIN,
             {domainName: 'test.com'},
             {
                 successData: [expect.objectContaining({value: {hasCreationSucceeded: true, isLoading: null}})],
-                optimisticData: [expect.objectContaining({value: {hasCreationSucceeded: null, isLoading: true}})],
-                failureData: [expect.objectContaining({value: {isLoading: null}})],
+                optimisticData: [expect.objectContaining({value: {hasCreationSucceeded: null, isLoading: true, errors: null, domainAccountID: null}})],
+                failureData: [expect.objectContaining({value: {isLoading: null, domainKeysBeforeCreation: [...domainKeysBeforeCreation]}})],
             },
         );
 
@@ -81,10 +96,25 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            waitForCollectionCallback: false,
             callback: (form) => {
                 expect(form?.hasCreationSucceeded).toBeFalsy();
                 expect(form?.errors).toBeFalsy();
+            },
+        });
+    });
+
+    it('setCreateDomainAlreadyHaveAccessError - sets an inline error and clears domainAccountID', async () => {
+        await Onyx.set(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {
+            domainAccountID: 123,
+        });
+
+        setCreateDomainAlreadyHaveAccessError();
+
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            callback: (form) => {
+                expect(form?.domainAccountID).toBeFalsy();
+                expect(form?.errors).toBeTruthy();
             },
         });
     });
@@ -117,6 +147,56 @@ describe('actions/Domain', () => {
         apiWriteSpy.mockRestore();
     });
 
+    describe('requestDomainAdminship', () => {
+        it('optimistically marks the requester as pending', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const currentUserAccountID = 456;
+
+            requestDomainAdminship(domainAccountID, currentUserAccountID, false);
+
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const optimisticUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.REQUEST_DOMAIN_ADMINSHIP, {domainAccountID}, expect.anything());
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            expect(optimisticUpdate.value).toMatchObject({domain_adminRequesters: {[currentUserAccountID]: 'read'}});
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('rolls only the requester back on failure when the domain is one the user can see', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const currentUserAccountID = 456;
+
+            requestDomainAdminship(domainAccountID, currentUserAccountID, false);
+
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const failureUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            expect(failureUpdate.value).toMatchObject({domain_adminRequesters: {[currentUserAccountID]: null}});
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('drops the whole entry on failure when it only exists to carry the flow, so no empty domain lingers', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const currentUserAccountID = 456;
+
+            requestDomainAdminship(domainAccountID, currentUserAccountID, true);
+
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const failureUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, Onyx.METHOD.SET, false);
+
+            expect(failureUpdate.value).toBeNull();
+
+            apiWriteSpy.mockRestore();
+        });
+    });
+
     it('clearDomainErrors- clears domain errors and pending actions', async () => {
         const domainAccountID = 123;
         const timestamp = 456;
@@ -133,7 +213,6 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (errors) => {
                 expect(errors?.errors).toBeFalsy();
             },
@@ -141,11 +220,35 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (pendingActions) => {
                 expect(pendingActions?.pendingAction).toBeFalsy();
             },
         });
+    });
+
+    it('applies and clears added domain membership on success through real Onyx', async () => {
+        // Given an existing security group with an unrelated member, as stored in the domain collection.
+        const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}123` as const;
+        const groupKey: SecurityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}10`;
+        const domain: NonNullable<OnyxSetInput<typeof ONYXKEYS.COLLECTION.DOMAIN>> = {};
+        domain[groupKey] = {shared: {[String(99)]: 'read'}};
+        await Onyx.set(domainKey, domain);
+        const request = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
+        // When the actual action creates membership for its generated account ID.
+        addMemberToDomain(123, 'new@example.com', '10');
+        const data = request.mock.calls.at(0)?.[2];
+        expect(data).toBeDefined();
+        await Onyx.update(data?.optimisticData ?? []);
+        const accountID = generateAccountID('new@example.com');
+        // Then real nested merges retain the unrelated member and success removes only the optimistic membership.
+        const optimisticDomain = await getOnyxValue(domainKey);
+        expect(optimisticDomain?.[groupKey]?.shared?.[String(accountID)]).toBe('read');
+        expect(optimisticDomain?.[groupKey]?.shared?.['99']).toBe('read');
+        await Onyx.update(data?.successData ?? []);
+        const settledDomain = await getOnyxValue(domainKey);
+        expect(settledDomain?.[groupKey]?.shared).not.toHaveProperty(String(accountID));
+        expect(settledDomain?.[groupKey]?.shared?.['99']).toBe('read');
+        request.mockRestore();
     });
 
     it('addMemberToDomain', () => {
@@ -179,6 +282,11 @@ describe('actions/Domain', () => {
                         key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
                         value: {memberErrors: {[email]: {errors: null}}},
                     }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                        value: {type: 'members', id: expect.any(String)},
+                    }),
                 ],
                 successData: expect.arrayContaining([
                     expect.objectContaining({
@@ -196,6 +304,10 @@ describe('actions/Domain', () => {
                         key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
                         value: {member: {[email]: {pendingAction: null}}},
                     }),
+                    expect.objectContaining({
+                        key: `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`,
+                        value: {type: null, id: null},
+                    }),
                 ]),
             },
         );
@@ -203,7 +315,7 @@ describe('actions/Domain', () => {
         apiWriteSpy.mockRestore();
     });
 
-    it('addAdminToDomain - adds and clears optimistic personal details for optimistic accounts', () => {
+    it('addAdminToDomain - adds optimistic personal details, clears them on success and keeps them on failure', () => {
         const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
         const domainAccountID = 123;
         const accountID = 456;
@@ -235,12 +347,9 @@ describe('actions/Domain', () => {
                         value: {[accountID]: null},
                     }),
                 ]),
-                failureData: expect.arrayContaining([
-                    expect.objectContaining({
-                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                        value: {[accountID]: null},
-                    }),
-                ]),
+                // Kept on failure so the errored row still renders with its dismiss button.
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                failureData: expect.not.arrayContaining([expect.objectContaining({key: ONYXKEYS.PERSONAL_DETAILS_LIST})]),
             },
         );
 
@@ -272,12 +381,201 @@ describe('actions/Domain', () => {
         apiWriteSpy.mockRestore();
     });
 
+    describe('approveDomainAdminshipRequest', () => {
+        it('calls API.write with ADD_DOMAIN_ADMIN and the domainAccountID', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const accountID = 456;
+            const targetEmail = 'test@example.com';
+            const domainName = 'test.com';
+
+            approveDomainAdminshipRequest(domainAccountID, accountID, targetEmail, domainName);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.ADD_DOMAIN_ADMIN, {domainName, targetEmail, domainAccountID}, expect.anything());
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('optimistically grants the permission key and clears the pending request', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const accountID = 456;
+            const permissionKey = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
+
+            approveDomainAdminshipRequest(domainAccountID, accountID, 'test@example.com', 'test.com');
+
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const permissionUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+            const pendingActionUpdate = TestHelper.getRequiredOnyxUpdate(
+                onyxData,
+                'optimisticData',
+                `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                Onyx.METHOD.MERGE,
+                true,
+            );
+            const errorsUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+            const highlightUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+
+            expect(permissionUpdate.value).toMatchObject({[permissionKey]: accountID});
+            expect(pendingActionUpdate.value).toEqual({admin: {[accountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}}});
+            expect(errorsUpdate.value).toEqual({
+                adminErrors: {[accountID]: {errors: null}},
+                adminshipRequesterErrors: {[accountID]: {errors: null}},
+            });
+            expect(highlightUpdate.value).toEqual({type: 'admins', id: String(accountID)});
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('restores the pending request and nulls the permission key on failure, with the error parked on the requester', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const accountID = 456;
+            const permissionKey = `${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}${accountID}`;
+
+            approveDomainAdminshipRequest(domainAccountID, accountID, 'test@example.com', 'test.com');
+
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const domainOnyxKey = `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`;
+            const domainUpdates = TestHelper.getRequiredOnyxUpdates(onyxData, 'failureData').filter(
+                (candidate): candidate is {key: string; value: Record<string, unknown>} =>
+                    typeof candidate === 'object' && candidate !== null && 'key' in candidate && candidate.key === domainOnyxKey,
+            );
+            const combinedDomainValue = domainUpdates.reduce<Record<string, unknown>>((acc, update) => {
+                Object.assign(acc, update.value);
+                return acc;
+            }, {});
+            const pendingActionUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+            const errorsUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+            const highlightUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN_HIGHLIGHT_ITEMS}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+
+            expect(domainUpdates).toHaveLength(2);
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            expect(combinedDomainValue).toEqual({[permissionKey]: null, domain_adminRequesters: {[accountID]: 'read'}});
+            expect(pendingActionUpdate.value).toEqual({admin: {[accountID]: null}});
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            expect(errorsUpdate.value).toEqual({adminshipRequesterErrors: {[accountID]: {errors: expect.any(Object)}}});
+            expect(highlightUpdate.value).toEqual({type: null, id: null});
+
+            apiWriteSpy.mockRestore();
+        });
+    });
+
+    describe('declineDomainAdminshipRequest', () => {
+        it('calls API.write with DECLINE_DOMAIN_ADMINSHIP_REQUEST and correct parameters', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const accountID = 456;
+
+            declineDomainAdminshipRequest(domainAccountID, accountID);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.DECLINE_DOMAIN_ADMINSHIP_REQUEST, {domainAccountID, targetAccountID: accountID}, expect.anything());
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('optimistically marks the requester pending delete and clears its error', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const accountID = 456;
+
+            declineDomainAdminshipRequest(domainAccountID, accountID);
+
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const pendingActionUpdate = TestHelper.getRequiredOnyxUpdate(
+                onyxData,
+                'optimisticData',
+                `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                Onyx.METHOD.MERGE,
+                true,
+            );
+            const errorsUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+
+            expect(pendingActionUpdate.value).toEqual({adminshipRequester: {[accountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}});
+            expect(errorsUpdate.value).toEqual({adminshipRequesterErrors: {[accountID]: {errors: null}}});
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('clears the pending action and sets an error on failure', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const accountID = 456;
+
+            declineDomainAdminshipRequest(domainAccountID, accountID);
+
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const pendingActionUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+            const errorsUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+
+            expect(pendingActionUpdate.value).toEqual({adminshipRequester: {[accountID]: {pendingAction: null}}});
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            expect(errorsUpdate.value).toEqual({adminshipRequesterErrors: {[accountID]: {errors: expect.any(Object)}}});
+
+            apiWriteSpy.mockRestore();
+        });
+
+        it('drops the requester only once the decline succeeds, so the row survives offline and on failure', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const accountID = 456;
+
+            declineDomainAdminshipRequest(domainAccountID, accountID);
+
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const domainUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+            const pendingActionUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, Onyx.METHOD.MERGE, true);
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            expect(domainUpdate.value).toEqual({domain_adminRequesters: {[accountID]: null}});
+            expect(pendingActionUpdate.value).toEqual({adminshipRequester: {[accountID]: null}});
+
+            // The requester has to stay put until then: offline the row renders from its pending action, and on failure it
+            // renders to show the error, so neither the optimistic nor the failure data may touch the domain.
+            const domainKeyUpdate = expect.objectContaining({key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`});
+            expect(TestHelper.getRequiredOnyxUpdates(onyxData, 'optimisticData')).toEqual(expect.not.arrayContaining([domainKeyUpdate]));
+            expect(TestHelper.getRequiredOnyxUpdates(onyxData, 'failureData')).toEqual(expect.not.arrayContaining([domainKeyUpdate]));
+
+            apiWriteSpy.mockRestore();
+        });
+    });
+
+    it('clearAdminshipRequesterError - clears the adminship requester error and pending action', async () => {
+        const domainAccountID = 123;
+        const accountID = 456;
+        const timestamp = 789;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
+            adminshipRequesterErrors: {[accountID]: {errors: {[timestamp]: 'error'}}},
+        });
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`, {
+            adminshipRequester: {[accountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+        });
+
+        clearAdminshipRequesterError(domainAccountID, accountID);
+
+        await TestHelper.getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
+            callback: (errors) => {
+                expect(errors?.adminshipRequesterErrors?.[accountID]).toBeFalsy();
+            },
+        });
+
+        await TestHelper.getOnyxData({
+            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+            callback: (pendingActions) => {
+                expect(pendingActions?.adminshipRequester?.[accountID]).toBeFalsy();
+            },
+        });
+    });
+
     it('clearAddMemberError - clears member errors and optimistic data', async () => {
         const domainAccountID = 123;
         const email = 'test@example.com';
         const optimisticAccountID = generateAccountID(email);
         const defaultSecurityGroupID = '1';
-        const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}`;
+        const DOMAIN_SECURITY_GROUP = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${defaultSecurityGroupID}` as const satisfies SecurityGroupKey;
         const timestamp = 456;
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const, {
@@ -290,31 +588,33 @@ describe('actions/Domain', () => {
 
         await Onyx.set(
             `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const,
-            {
+            createMock<Domain>({
                 [DOMAIN_SECURITY_GROUP]: {
                     shared: {
                         [optimisticAccountID]: 'read',
                     },
                 },
-            } as PrefixedRecord<typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX, Partial<DomainSecurityGroup>>,
+            }),
         );
 
-        clearDomainMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        clearDomainMemberError(domainAccountID, optimisticAccountID, email, defaultSecurityGroupID, true);
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (errors) => {
                 expect(errors?.memberErrors?.[email]).toBeFalsy();
                 expect(errors?.memberErrors?.[optimisticAccountID]).toBeFalsy();
             },
         });
 
-        await TestHelper.getOnyxData({
+        await TestHelper.getOnyxData<`${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`>({
             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (domain) => {
-                const securityGroup = domain?.[DOMAIN_SECURITY_GROUP as keyof typeof domain] as {shared?: Record<number, string>} | undefined;
+                expect(domain).toBeTruthy();
+                if (!domain) {
+                    throw new Error('Expected domain data to be present.');
+                }
+                const securityGroup = domain[DOMAIN_SECURITY_GROUP];
                 expect(securityGroup?.shared?.[optimisticAccountID]).toBeFalsy();
             },
         });
@@ -338,7 +638,7 @@ describe('actions/Domain', () => {
                 },
             };
 
-            closeUserAccount(domainAccountID, domainName, targetEmail, securityGroupsData);
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, securityGroupsData);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
@@ -347,7 +647,10 @@ describe('actions/Domain', () => {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {member: {[targetEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}},
+                            value: {
+                                member: {[targetEmail]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                                adminshipRequester: {[accountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}},
+                            },
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -357,11 +660,11 @@ describe('actions/Domain', () => {
                     successData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {member: {[targetEmail]: null}},
+                            value: {member: {[targetEmail]: null}, adminshipRequester: {[accountID]: null}},
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                            value: {memberErrors: {[targetEmail]: null}},
+                            value: {memberErrors: {[targetEmail]: null}, adminshipRequesterErrors: {[accountID]: null}},
                         }),
                     ]),
                     failureData: expect.arrayContaining([
@@ -377,7 +680,7 @@ describe('actions/Domain', () => {
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                            value: {member: {[targetEmail]: null}},
+                            value: {member: {[targetEmail]: null}, adminshipRequester: {[accountID]: null}},
                         }),
                     ]),
                 },
@@ -391,8 +694,9 @@ describe('actions/Domain', () => {
             const domainAccountID = 123;
             const domainName = 'test.com';
             const targetEmail = 'user@test.com';
+            const accountID = 456;
 
-            closeUserAccount(domainAccountID, domainName, targetEmail, undefined, true);
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, undefined, true);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
@@ -402,28 +706,93 @@ describe('actions/Domain', () => {
 
             apiWriteSpy.mockRestore();
         });
+
+        it('closeUserAccount - marks the adminship request for deletion and drops it only once the close lands', () => {
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const domainName = 'test.com';
+            const targetEmail = 'user@test.com';
+            const accountID = 456;
+
+            closeUserAccount(domainAccountID, domainName, targetEmail, accountID, undefined);
+
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
+                expect.any(Object),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: expect.objectContaining({adminshipRequester: {[accountID]: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}}}),
+                        }),
+                    ]),
+                    successData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            // eslint-disable-next-line @typescript-eslint/naming-convention
+                            value: {domain_adminRequesters: {[accountID]: null}},
+                        }),
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: expect.objectContaining({adminshipRequester: {[accountID]: null}}),
+                        }),
+                    ]),
+                    failureData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
+                            value: expect.objectContaining({adminshipRequester: {[accountID]: null}}),
+                        }),
+                    ]),
+                }),
+            );
+
+            // The request entry is never removed optimistically, so there is nothing to restore on failure
+            const requestersUpdate = expect.objectContaining({
+                key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                // eslint-disable-next-line @typescript-eslint/naming-convention, @typescript-eslint/no-unsafe-assignment
+                value: expect.objectContaining({domain_adminRequesters: expect.anything()}),
+            });
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.DELETE_DOMAIN_MEMBER,
+                expect.any(Object),
+                expect.objectContaining({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    optimisticData: expect.not.arrayContaining([requestersUpdate]),
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    failureData: expect.not.arrayContaining([requestersUpdate]),
+                }),
+            );
+
+            apiWriteSpy.mockRestore();
+        });
     });
 
     describe('setDomainVacationDelegate', () => {
         it('sends SET_VACATION_DELEGATE request with ADD pending action when no existing delegate', () => {
-            const apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
+            // Given a domain member with no vacation delegate set yet
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainMemberAccountID = 456;
             const creator = 'admin@test.com';
             const vacationer = 'vacationer@test.com';
             const delegate = 'delegate@test.com';
-            const PRIVATE_VACATION_DELEGATE_KEY = `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`;
+            const PRIVATE_VACATION_DELEGATE_KEY =
+                `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const satisfies `${typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${string}`;
 
+            // When a domain admin sets a delegate for that member
             setDomainVacationDelegate(domainAccountID, domainMemberAccountID, creator, vacationer, delegate);
 
-            expect(apiSideEffectSpy).toHaveBeenCalledWith(
-                SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
+            // Then the request is a persisted write with overridePolicyDiffWarning always true, since a domain admin
+            // acting on someone else's behalf skips the per-workspace confirmation step entirely, and the pending
+            // action is ADD because no delegate existed before this pick
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_VACATION_DELEGATE,
                 {creator, vacationerEmail: vacationer, vacationDelegateEmail: delegate, overridePolicyDiffWarning: true, domainAccountID},
                 {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {delegate, creator, previousDelegate: undefined}},
+                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {delegate, creator, clearAfter: null, previousDelegate: undefined, previousClearAfter: null}},
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -437,7 +806,7 @@ describe('actions/Domain', () => {
                     successData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {previousDelegate: null}},
+                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {previousDelegate: null, previousClearAfter: null}},
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
@@ -462,11 +831,12 @@ describe('actions/Domain', () => {
                 },
             );
 
-            apiSideEffectSpy.mockRestore();
+            apiWriteSpy.mockRestore();
         });
 
         it('uses UPDATE pending action when existing delegate is present', () => {
-            const apiSideEffectSpy = jest.spyOn(require('@libs/API'), 'makeRequestWithSideEffects').mockImplementation(() => Promise.resolve());
+            // Given a domain member who already has a vacation delegate set
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
             const domainAccountID = 123;
             const domainMemberAccountID = 456;
             const creator = 'admin@test.com';
@@ -474,10 +844,12 @@ describe('actions/Domain', () => {
             const delegate = 'newdelegate@test.com';
             const existingVacationDelegate: BaseVacationDelegate = {delegate: 'olddelegate@test.com'};
 
+            // When a domain admin changes that member's delegate to someone new
             setDomainVacationDelegate(domainAccountID, domainMemberAccountID, creator, vacationer, delegate, existingVacationDelegate);
 
-            expect(apiSideEffectSpy).toHaveBeenCalledWith(
-                SIDE_EFFECT_REQUEST_COMMANDS.SET_VACATION_DELEGATE,
+            // Then the pending action is UPDATE rather than ADD, since a delegate was already in place before this pick
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_VACATION_DELEGATE,
                 expect.any(Object),
                 expect.objectContaining({
                     optimisticData: expect.arrayContaining([
@@ -489,7 +861,47 @@ describe('actions/Domain', () => {
                 }),
             );
 
-            apiSideEffectSpy.mockRestore();
+            apiWriteSpy.mockRestore();
+        });
+    });
+
+    describe('setDomainVacationDelegate with clearAfter', () => {
+        it('sends clearAfter and keeps the old one for rollback', () => {
+            // Given a domain member whose delegate already clears on a date
+            const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const domainAccountID = 123;
+            const domainMemberAccountID = 456;
+            const vacationer = 'vacationer@test.com';
+            const clearAfter = '2026-10-02 06:59:59';
+            const vacationDelegate: BaseVacationDelegate = {delegate: 'old@test.com', creator: 'admin@test.com', clearAfter: '2026-09-30 06:59:59'};
+            const PRIVATE_VACATION_DELEGATE_KEY =
+                `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const satisfies `${typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${string}`;
+
+            // When the admin saves a new delegate with a new clear after datetime
+            setDomainVacationDelegate(domainAccountID, domainMemberAccountID, 'admin@test.com', vacationer, 'new@test.com', vacationDelegate, clearAfter);
+
+            // Then the backend gets the datetime to clear the delegate at, and the old datetime is kept so dismissing an error can restore it
+            expect(apiWriteSpy).toHaveBeenCalledWith(
+                WRITE_COMMANDS.SET_VACATION_DELEGATE,
+                expect.objectContaining({vacationDelegateEmail: 'new@test.com', clearAfter}),
+                expect.objectContaining({
+                    optimisticData: expect.arrayContaining([
+                        expect.objectContaining({
+                            key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
+                            value: {
+                                [PRIVATE_VACATION_DELEGATE_KEY]: expect.objectContaining({
+                                    delegate: 'new@test.com',
+                                    clearAfter,
+                                    previousDelegate: 'old@test.com',
+                                    previousClearAfter: '2026-09-30 06:59:59',
+                                }),
+                            },
+                        }),
+                    ]),
+                }),
+            );
+
+            apiWriteSpy.mockRestore();
         });
     });
 
@@ -500,7 +912,8 @@ describe('actions/Domain', () => {
             const domainMemberAccountID = 456;
             const vacationer = 'vacationer@test.com';
             const vacationDelegate: BaseVacationDelegate = {delegate: 'delegate@test.com', creator: 'admin@test.com'};
-            const PRIVATE_VACATION_DELEGATE_KEY = `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`;
+            const PRIVATE_VACATION_DELEGATE_KEY =
+                `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const satisfies `${typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${string}`;
 
             deleteDomainVacationDelegate(domainAccountID, domainMemberAccountID, vacationer, vacationDelegate);
 
@@ -511,7 +924,9 @@ describe('actions/Domain', () => {
                     optimisticData: expect.arrayContaining([
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                            value: {[PRIVATE_VACATION_DELEGATE_KEY]: {creator: null, delegate: null, previousDelegate: vacationDelegate.delegate}},
+                            value: {
+                                [PRIVATE_VACATION_DELEGATE_KEY]: {creator: null, delegate: null, clearAfter: null, previousDelegate: vacationDelegate.delegate, previousClearAfter: null},
+                            },
                         }),
                         expect.objectContaining({
                             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
@@ -560,15 +975,15 @@ describe('actions/Domain', () => {
             const domainMemberAccountID = 456;
             const domainMemberEmail = 'member@test.com';
             const previousDelegate = 'olddelegate@test.com';
-            const PRIVATE_VACATION_DELEGATE_KEY = `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`;
+            const PRIVATE_VACATION_DELEGATE_KEY =
+                `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const satisfies `${typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${string}`;
             const timestamp = 789;
 
             await Onyx.set(
                 `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const,
-                {[PRIVATE_VACATION_DELEGATE_KEY]: {delegate: 'currentdelegate@test.com', creator: 'admin@test.com'}} as PrefixedRecord<
-                    typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX,
-                    BaseVacationDelegate
-                >,
+                createMock<Domain>({
+                    [PRIVATE_VACATION_DELEGATE_KEY]: {delegate: 'currentdelegate@test.com', creator: 'admin@test.com'},
+                }),
             );
             await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}` as const, {
                 memberErrors: {[domainMemberEmail]: {vacationDelegateErrors: {[timestamp]: 'error'}}},
@@ -579,24 +994,25 @@ describe('actions/Domain', () => {
 
             clearVacationDelegateError(domainAccountID, domainMemberAccountID, domainMemberEmail, previousDelegate);
 
-            await TestHelper.getOnyxData({
+            await TestHelper.getOnyxData<`${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`>({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (domain) => {
-                    const delegateData = domain?.[PRIVATE_VACATION_DELEGATE_KEY as keyof typeof domain] as BaseVacationDelegate | undefined;
+                    expect(domain).toBeTruthy();
+                    if (!domain) {
+                        throw new Error('Expected domain data to be present.');
+                    }
+                    const delegateData = domain[PRIVATE_VACATION_DELEGATE_KEY];
                     expect(delegateData?.delegate).toBe(previousDelegate);
                 },
             });
-            await TestHelper.getOnyxData({
+            await TestHelper.getOnyxData<`${typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${string}`>({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (errors) => {
                     expect(errors?.memberErrors?.[domainMemberEmail]?.vacationDelegateErrors).toBeFalsy();
                 },
             });
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (pendingActions) => {
                     expect(pendingActions?.member?.[domainMemberEmail]?.vacationDelegate).toBeFalsy();
                 },
@@ -607,23 +1023,26 @@ describe('actions/Domain', () => {
             const domainAccountID = 123;
             const domainMemberAccountID = 456;
             const domainMemberEmail = 'member@test.com';
-            const PRIVATE_VACATION_DELEGATE_KEY = `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}`;
+            const PRIVATE_VACATION_DELEGATE_KEY =
+                `${CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${domainMemberAccountID}` as const satisfies `${typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX}${string}`;
 
             await Onyx.set(
                 `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const,
-                {[PRIVATE_VACATION_DELEGATE_KEY]: {delegate: 'currentdelegate@test.com', creator: 'admin@test.com'}} as PrefixedRecord<
-                    typeof CONST.DOMAIN.PRIVATE_VACATION_DELEGATE_PREFIX,
-                    BaseVacationDelegate
-                >,
+                createMock<Domain>({
+                    [PRIVATE_VACATION_DELEGATE_KEY]: {delegate: 'currentdelegate@test.com', creator: 'admin@test.com'},
+                }),
             );
 
             clearVacationDelegateError(domainAccountID, domainMemberAccountID, domainMemberEmail);
 
-            await TestHelper.getOnyxData({
+            await TestHelper.getOnyxData<`${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`>({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (domain) => {
-                    const delegateData = domain?.[PRIVATE_VACATION_DELEGATE_KEY as keyof typeof domain] as BaseVacationDelegate | undefined;
+                    expect(domain).toBeTruthy();
+                    if (!domain) {
+                        throw new Error('Expected domain data to be present.');
+                    }
+                    const delegateData = domain?.[PRIVATE_VACATION_DELEGATE_KEY];
                     expect(delegateData?.delegate).toBeFalsy();
                 },
             });
@@ -654,7 +1073,6 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (errors) => {
                 expect(errors?.memberErrors?.[accountID]).toBeFalsy();
                 expect(errors?.memberErrors?.[email]).toBeFalsy();
@@ -663,9 +1081,46 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (pendingActions) => {
                 expect(pendingActions?.member?.[email]).toBeFalsy();
+            },
+        });
+    });
+
+    it('clearDomainMemberError - clears the placeholder personal details for an optimistic account', async () => {
+        const domainAccountID = 123;
+        const email = 'user@test.com';
+        const optimisticAccountID = generateAccountID(email);
+
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [optimisticAccountID]: {accountID: optimisticAccountID, login: email, isOptimisticPersonalDetail: true},
+        });
+
+        clearDomainMemberError(domainAccountID, optimisticAccountID, email, '', true);
+
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            callback: (personalDetails) => {
+                expect(personalDetails?.[optimisticAccountID]).toBeFalsy();
+            },
+        });
+    });
+
+    it('clearDomainMemberError - keeps the personal details of a real account', async () => {
+        const domainAccountID = 123;
+        const accountID = 456;
+        const email = 'user@test.com';
+
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [accountID]: {accountID, login: email},
+        });
+
+        clearDomainMemberError(domainAccountID, accountID, email, '');
+
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            callback: (personalDetails) => {
+                expect(personalDetails?.[accountID]?.login).toBe(email);
             },
         });
     });
@@ -685,7 +1140,6 @@ describe('actions/Domain', () => {
 
         await TestHelper.getOnyxData({
             key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-            waitForCollectionCallback: false,
             callback: (errors) => {
                 expect(errors?.memberErrors?.[email]?.twoFactorAuthExemptEmailsError).toBeFalsy();
             },
@@ -873,6 +1327,69 @@ describe('actions/Domain', () => {
         });
     });
 
+    describe('getScimToken', () => {
+        test.each(['token-value', ''])('keeps successful string token %p', async (token) => {
+            // Given a successful network response, including the valid empty string.
+            const response = {jsonCode: CONST.JSON_CODE.SUCCESS, SCIMToken: token};
+            const request = jest
+                .spyOn(jest.requireActual<{makeRequestWithSideEffects: typeof makeRequestWithSideEffects}>('@libs/API'), 'makeRequestWithSideEffects')
+                .mockResolvedValue(response);
+            // When the production action consumes the response.
+            const result = await getScimToken('example.com');
+            // Then token display retains the exact string and the original request.
+            expect(result).toEqual({state: ScimTokenState.VALUE, value: token});
+            expect(request).toHaveBeenCalledWith(SIDE_EFFECT_REQUEST_COMMANDS.GET_SCIM_TOKEN, {domain: 'example.com'});
+            request.mockRestore();
+        });
+
+        test.each([
+            {description: 'missing', response: {jsonCode: CONST.JSON_CODE.SUCCESS}},
+            {description: 'undefined', response: {jsonCode: CONST.JSON_CODE.SUCCESS, SCIMToken: undefined}},
+            {description: 'null', response: {jsonCode: CONST.JSON_CODE.SUCCESS, SCIMToken: null}},
+            {description: 'number', response: {jsonCode: CONST.JSON_CODE.SUCCESS, SCIMToken: 123}},
+            {description: 'object', response: {jsonCode: CONST.JSON_CODE.SUCCESS, SCIMToken: {token: 'value'}}},
+        ])('returns the existing error for a successful $description token', async ({response}) => {
+            // Given malformed token data at the network boundary, without changing the typed action call.
+            const request = jest
+                .spyOn(jest.requireActual<{makeRequestWithSideEffects: typeof makeRequestWithSideEffects}>('@libs/API'), 'makeRequestWithSideEffects')
+                .mockResolvedValue(response);
+            // When the production action handles an otherwise successful response.
+            const result = await getScimToken('example.com');
+            // Then the approved correction selects the existing error/retry state.
+            expect(result).toEqual({state: ScimTokenState.ERROR, error: "Couldn't fetch SCIM token"});
+            request.mockRestore();
+        });
+
+        test.each([
+            {response: {jsonCode: 400, message: 'Server error', SCIMToken: 123}, error: 'Server error'},
+            {response: {jsonCode: 400, message: ''}, error: "Couldn't fetch SCIM token"},
+            {response: {jsonCode: 400}, error: "Couldn't fetch SCIM token"},
+            {response: undefined, error: "Couldn't fetch SCIM token"},
+        ])('preserves non-success response $response', async ({response, error}) => {
+            // Given an unsuccessful or absent response, whose message must take precedence over token validation.
+            const request = jest
+                .spyOn(jest.requireActual<{makeRequestWithSideEffects: typeof makeRequestWithSideEffects}>('@libs/API'), 'makeRequestWithSideEffects')
+                .mockResolvedValue(response);
+            // When the action follows its existing non-success branch.
+            const result = await getScimToken('example.com');
+            // Then message selection and the generic fallback stay unchanged.
+            expect(result).toEqual({state: ScimTokenState.ERROR, error});
+            request.mockRestore();
+        });
+
+        it('preserves the generic error when the request rejects', async () => {
+            // Given a rejected network request rather than a response object.
+            const request = jest
+                .spyOn(jest.requireActual<{makeRequestWithSideEffects: typeof makeRequestWithSideEffects}>('@libs/API'), 'makeRequestWithSideEffects')
+                .mockRejectedValue(new Error('Network failure'));
+            // When the production catch branch runs.
+            const result = await getScimToken('example.com');
+            // Then the existing retry state remains available.
+            expect(result).toEqual({state: ScimTokenState.ERROR, error: "Couldn't fetch SCIM token"});
+            request.mockRestore();
+        });
+    });
+
     describe('changeDomainSecurityGroup', () => {
         const DOMAIN_ACCOUNT_ID = 1001;
         const DOMAIN_NAME = 'example.com';
@@ -901,7 +1418,7 @@ describe('actions/Domain', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => {});
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
-            const [, parameters] = apiWriteSpy.mock.calls.at(0) as [unknown, Record<string, unknown>];
+            const [, parameters] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
             expect(parameters).toEqual({
                 domainName: DOMAIN_NAME,
                 newID: '20',
@@ -915,22 +1432,27 @@ describe('actions/Domain', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => {});
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
-            const [, , {optimisticData}] = apiWriteSpy.mock.calls.at(0) as [unknown, unknown, {optimisticData: Array<{key: string; value: unknown}>}];
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const optimisticDomainUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, Onyx.METHOD.MERGE);
+            const optimisticPendingUpdate = TestHelper.getRequiredOnyxUpdate(
+                onyxData,
+                'optimisticData',
+                `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${DOMAIN_ACCOUNT_ID}`,
+                Onyx.METHOD.MERGE,
+            );
+            const optimisticErrorsUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'optimisticData', `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${DOMAIN_ACCOUNT_ID}`, Onyx.METHOD.MERGE);
             const accountIDStr = String(ACCOUNT_ID);
 
-            const domainUpdate = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`);
-            expect(domainUpdate?.value).toMatchObject({
+            expect(optimisticDomainUpdate.value).toMatchObject({
                 [CURRENT_SECURITY_GROUP_KEY]: {shared: {[accountIDStr]: null}},
                 [TARGET_SECURITY_GROUP_KEY]: {shared: {[accountIDStr]: 'read'}},
             });
 
-            const pendingUpdate = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${DOMAIN_ACCOUNT_ID}`);
-            expect(pendingUpdate?.value).toMatchObject({
+            expect(optimisticPendingUpdate.value).toMatchObject({
                 member: {[EMPLOYEE_EMAIL]: {changeDomainSecurityGroup: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}},
             });
 
-            const errorsUpdate = optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${DOMAIN_ACCOUNT_ID}`);
-            expect(errorsUpdate?.value).toMatchObject({
+            expect(optimisticErrorsUpdate.value).toMatchObject({
                 memberErrors: {[EMPLOYEE_EMAIL]: null},
             });
             apiWriteSpy.mockRestore();
@@ -940,13 +1462,13 @@ describe('actions/Domain', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => {});
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
-            const [, , {successData}] = apiWriteSpy.mock.calls.at(0) as [unknown, unknown, {successData: Array<{key: string; value: unknown}>}];
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const successPendingUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${DOMAIN_ACCOUNT_ID}`, Onyx.METHOD.MERGE);
+            const successErrorsUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${DOMAIN_ACCOUNT_ID}`, Onyx.METHOD.MERGE);
 
-            const pendingUpdate = successData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${DOMAIN_ACCOUNT_ID}`);
-            expect(pendingUpdate?.value).toMatchObject({member: {[EMPLOYEE_EMAIL]: null}});
+            expect(successPendingUpdate.value).toMatchObject({member: {[EMPLOYEE_EMAIL]: null}});
 
-            const errorsUpdate = successData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${DOMAIN_ACCOUNT_ID}`);
-            expect(errorsUpdate?.value).toMatchObject({memberErrors: {[EMPLOYEE_EMAIL]: null}});
+            expect(successErrorsUpdate.value).toMatchObject({memberErrors: {[EMPLOYEE_EMAIL]: null}});
             apiWriteSpy.mockRestore();
         });
 
@@ -954,17 +1476,69 @@ describe('actions/Domain', () => {
             const apiWriteSpy = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => {});
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, TARGET_SECURITY_GROUP_KEY);
 
-            const [, , {failureData}] = apiWriteSpy.mock.calls.at(0) as [unknown, unknown, {failureData: Array<{key: string; value: Record<string, unknown>}>}];
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
+            const failureDomainUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`, Onyx.METHOD.MERGE);
+            const failurePendingUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${DOMAIN_ACCOUNT_ID}`, Onyx.METHOD.MERGE);
+            const failureErrorsUpdate = TestHelper.getRequiredOnyxUpdate(onyxData, 'failureData', `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${DOMAIN_ACCOUNT_ID}`, Onyx.METHOD.MERGE, true);
 
-            const domainRevert = failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}`);
-            expect(domainRevert?.value).toMatchObject({[CURRENT_SECURITY_GROUP_KEY]: CURRENT_SECURITY_GROUP});
+            expect(failureDomainUpdate.value).toMatchObject({[CURRENT_SECURITY_GROUP_KEY]: CURRENT_SECURITY_GROUP});
 
-            const pendingUpdate = failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS}${DOMAIN_ACCOUNT_ID}`);
-            expect(pendingUpdate?.value).toMatchObject({member: {[EMPLOYEE_EMAIL]: null}});
+            expect(failurePendingUpdate.value).toMatchObject({member: {[EMPLOYEE_EMAIL]: null}});
 
-            const errorsUpdate = failureData.find((update) => update.key === `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${DOMAIN_ACCOUNT_ID}`);
-            expect((errorsUpdate?.value as Record<string, Record<string, unknown>>).memberErrors?.[EMPLOYEE_EMAIL]).toHaveProperty('changeDomainSecurityGroupErrors');
+            expect(failureErrorsUpdate.value).toHaveProperty(['memberErrors', EMPLOYEE_EMAIL, 'changeDomainSecurityGroupErrors']);
             apiWriteSpy.mockRestore();
+        });
+
+        const membershipCases: Array<{description: string; shared: DomainSecurityGroup['shared']; collision: boolean}> = [
+            {description: 'read membership', shared: {[String(ACCOUNT_ID)]: 'read'}, collision: false},
+            {description: 'omitted membership', shared: {}, collision: false},
+            // @ts-expect-error This stored undefined membership is malformed at this one field. Omitted valid membership is a separate case.
+            {description: 'undefined membership', shared: {[String(ACCOUNT_ID)]: undefined}, collision: false},
+            {description: 'colliding keys', shared: {[String(ACCOUNT_ID)]: 'read'}, collision: true},
+        ];
+        test.each(membershipCases)('applies and rolls back real Onyx merges for $description', async ({shared, collision}) => {
+            // Given a domain snapshot with an unrelated member that must survive nested deletion.
+            const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}${DOMAIN_ACCOUNT_ID}` as const;
+            const targetKey = collision ? CURRENT_SECURITY_GROUP_KEY : TARGET_SECURITY_GROUP_KEY;
+            const currentGroup: Partial<DomainSecurityGroup> = {shared};
+            const seededDomain: NonNullable<OnyxSetInput<typeof ONYXKEYS.COLLECTION.DOMAIN>> = {};
+            seededDomain[CURRENT_SECURITY_GROUP_KEY] = {shared: {...shared, [String(99)]: 'read'}};
+            if (!collision) {
+                seededDomain[TARGET_SECURITY_GROUP_KEY] = {shared: {[String(98)]: 'read'}};
+            }
+            await Onyx.set(domainKey, seededDomain);
+            const request = jest.spyOn(jest.requireActual<{write: typeof write}>('@libs/API'), 'write').mockResolvedValue(undefined);
+            // When the actual action produces its ordered optimistic and failure updates.
+            changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, currentGroup, targetKey);
+            const data = request.mock.calls.at(0)?.[2];
+            expect(data).toBeDefined();
+            const [, , inspectedData] = TestHelper.getRequiredWriteCall(request.mock.calls, 0);
+            const rollback = TestHelper.getRequiredOnyxUpdate(inspectedData, 'failureData', domainKey, Onyx.METHOD.MERGE);
+            expect(rollback.value).toEqual(
+                collision
+                    ? {[targetKey]: {shared: {[ACCOUNT_ID]: null}}}
+                    : {
+                          [CURRENT_SECURITY_GROUP_KEY]: {shared: {[ACCOUNT_ID]: shared[String(ACCOUNT_ID)]}},
+                          [targetKey]: {shared: {[ACCOUNT_ID]: null}},
+                      },
+            );
+            await Onyx.update(data?.optimisticData ?? []);
+            const optimisticDomain = await getOnyxValue(domainKey);
+            expect(optimisticDomain?.[targetKey]?.shared?.[String(ACCOUNT_ID)]).toBe('read');
+            expect(optimisticDomain?.[CURRENT_SECURITY_GROUP_KEY]?.shared?.['99']).toBe('read');
+            if (!collision) {
+                expect(optimisticDomain?.[CURRENT_SECURITY_GROUP_KEY]?.shared).not.toHaveProperty(String(ACCOUNT_ID));
+            }
+            await Onyx.update(data?.failureData ?? []);
+            // Then explicit undefined remains in the payload, null deletes the target, and the last assignment wins collisions.
+            const rollbackDomain = await getOnyxValue(domainKey);
+            expect(rollbackDomain?.[targetKey]?.shared).not.toHaveProperty(String(ACCOUNT_ID));
+            expect(rollbackDomain?.[CURRENT_SECURITY_GROUP_KEY]?.shared?.['99']).toBe('read');
+            if (!collision) {
+                expect(rollbackDomain?.[CURRENT_SECURITY_GROUP_KEY]?.shared?.[String(ACCOUNT_ID)]).toBe(shared[String(ACCOUNT_ID)]);
+                expect(rollbackDomain?.[targetKey]?.shared?.['98']).toBe('read');
+            }
+            request.mockRestore();
         });
 
         it('extracts newID correctly from targetSecurityGroupKey', () => {
@@ -972,7 +1546,7 @@ describe('actions/Domain', () => {
             const customTargetKey: SecurityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}999`;
             changeDomainSecurityGroup(DOMAIN_ACCOUNT_ID, DOMAIN_NAME, EMPLOYEE_EMAIL, ACCOUNT_ID, CURRENT_SECURITY_GROUP_KEY, CURRENT_SECURITY_GROUP, customTargetKey);
 
-            const [, parameters] = apiWriteSpy.mock.calls.at(0) as [unknown, {newID: string}];
+            const [, parameters] = TestHelper.getRequiredWriteCall(apiWriteSpy.mock.calls, 0);
             expect(parameters.newID).toBe('999');
             apiWriteSpy.mockRestore();
         });
@@ -984,7 +1558,6 @@ describe('actions/Domain', () => {
             setDomainMembersSelectedForMove(memberAccountIDs);
             await TestHelper.getOnyxData({
                 key: ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
-                waitForCollectionCallback: false,
                 callback: (value) => {
                     expect(value).toEqual(memberAccountIDs);
                 },
@@ -995,7 +1568,6 @@ describe('actions/Domain', () => {
             setDomainMembersSelectedForMove([]);
             await TestHelper.getOnyxData({
                 key: ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
-                waitForCollectionCallback: false,
                 callback: (value) => {
                     expect(value).toEqual([]);
                 },
@@ -1007,7 +1579,6 @@ describe('actions/Domain', () => {
             clearDomainMembersSelectedForMove();
             await TestHelper.getOnyxData({
                 key: ONYXKEYS.RAM_ONLY_DOMAIN_MEMBERS_SELECTED_FOR_MOVE,
-                waitForCollectionCallback: false,
                 callback: (value) => {
                     expect(value).toEqual([]);
                 },
@@ -1023,7 +1594,7 @@ describe('actions/Domain', () => {
             const accountID = 789;
             const newGroupName = 'New Group Name';
             const settingsName = 'name';
-            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}` as const satisfies SecurityGroupKey;
             const currentSecurityGroup: DomainSecurityGroup = {
                 name: 'Old Group Name',
                 shared: {[accountID]: 'read'},
@@ -1178,7 +1749,7 @@ describe('actions/Domain', () => {
         it('clears the base errors for the given security group', async () => {
             const domainAccountID = 123;
             const groupID = '456';
-            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}` as const satisfies SecurityGroupKey;
             const timestamp = 789;
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
@@ -1189,11 +1760,14 @@ describe('actions/Domain', () => {
 
             clearGroupDeleteError(domainAccountID, groupID);
 
-            await TestHelper.getOnyxData({
+            await TestHelper.getOnyxData<`${typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${string}`>({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (errors) => {
-                    const groupErrors = errors?.[SECURITY_GROUP_KEY as keyof typeof errors] as Record<string, Record<string, string>> | undefined;
+                    expect(errors).toBeTruthy();
+                    if (!errors) {
+                        throw new Error('Expected domain errors data to be present.');
+                    }
+                    const groupErrors = errors[SECURITY_GROUP_KEY];
                     expect(groupErrors?.errors).toBeFalsy();
                 },
             });
@@ -1204,8 +1778,8 @@ describe('actions/Domain', () => {
         it('clears setting errors for the given security group', async () => {
             const domainAccountID = 123;
             const groupID = '456';
-            const settingsName = 'nameErrors';
-            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+            const settingsName = 'nameErrors' as const;
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}` as const satisfies SecurityGroupKey;
             const timestamp = 789;
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
@@ -1216,11 +1790,14 @@ describe('actions/Domain', () => {
 
             clearDomainSecurityGroupSettingError(domainAccountID, groupID, settingsName);
 
-            await TestHelper.getOnyxData({
+            await TestHelper.getOnyxData<`${typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${string}`>({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (errors) => {
-                    const groupErrors = errors?.[SECURITY_GROUP_KEY as keyof typeof errors] as Record<string, Record<string, string>> | undefined;
+                    expect(errors).toBeTruthy();
+                    if (!errors) {
+                        throw new Error('Expected domain errors data to be present.');
+                    }
+                    const groupErrors = errors[SECURITY_GROUP_KEY];
                     expect(groupErrors?.[settingsName]).toBeFalsy();
                 },
             });
@@ -1233,7 +1810,7 @@ describe('actions/Domain', () => {
             const domainAccountID = 123;
             const groupID = '456';
             const previousGroupID = '789';
-            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+            const SECURITY_GROUP_KEY: SecurityGroupKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
 
             setDefaultSecurityGroup(domainAccountID, groupID, previousGroupID);
 
@@ -1431,32 +2008,40 @@ describe('actions/Domain', () => {
         it('removes the optimistic group entry and its errors from Onyx', async () => {
             const domainAccountID = 123;
             const groupID = '456';
-            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}`;
+            const SECURITY_GROUP_KEY = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}${groupID}` as const satisfies SecurityGroupKey;
             const timestamp = 789;
 
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {[SECURITY_GROUP_KEY]: {name: 'Test Group', shared: {}}} as PrefixedRecord<
-                typeof CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX,
-                DomainSecurityGroup
-            >);
+            await Onyx.merge(
+                `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}` as const,
+                createMock<Domain>({
+                    [SECURITY_GROUP_KEY]: {name: 'Test Group', shared: {}},
+                }),
+            );
             await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`, {
                 [SECURITY_GROUP_KEY]: {errors: {[timestamp]: 'error'}},
             });
 
             clearGroupCreateError(domainAccountID, groupID);
 
-            await TestHelper.getOnyxData({
+            await TestHelper.getOnyxData<`${typeof ONYXKEYS.COLLECTION.DOMAIN}${string}`>({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (domain) => {
-                    expect((domain as Record<string, unknown>)?.[SECURITY_GROUP_KEY]).toBeFalsy();
+                    expect(domain).toBeTruthy();
+                    if (!domain) {
+                        throw new Error('Expected domain data to be present.');
+                    }
+                    expect(domain[SECURITY_GROUP_KEY]).toBeFalsy();
                 },
             });
 
-            await TestHelper.getOnyxData({
+            await TestHelper.getOnyxData<`${typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${string}`>({
                 key: `${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domainAccountID}`,
-                waitForCollectionCallback: false,
                 callback: (errors) => {
-                    expect((errors as Record<string, unknown>)?.[SECURITY_GROUP_KEY]).toBeFalsy();
+                    expect(errors).toBeTruthy();
+                    if (!errors) {
+                        throw new Error('Expected domain errors data to be present.');
+                    }
+                    expect(errors[SECURITY_GROUP_KEY]).toBeFalsy();
                 },
             });
         });

@@ -1,21 +1,28 @@
-import React, {useMemo} from 'react';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
+
 import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {areSettingsInErrorFields, getCurrentXeroOrganizationName, settingsPendingAction} from '@libs/PolicyUtils';
-import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+import {areSettingsInErrorFields, getCurrentXeroOrganizationName, getXeroSupplierByID, isXeroVendorMatchingActive, settingsPendingAction} from '@libs/PolicyUtils';
+import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import CONST from '@src/CONST';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React from 'react';
 
 function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
@@ -24,21 +31,27 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
     const policyOwner = policy?.owner ?? '';
     const dynamicBackPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path);
 
-    const {export: exportConfiguration, errorFields, pendingFields} = policy?.connections?.xero?.config ?? {};
+    const {export: exportConfiguration, errorFields, pendingFields, defaultVendor} = policy?.connections?.xero?.config ?? {};
 
     const {bankAccounts} = policy?.connections?.xero?.data ?? {};
-    const exportPath = policyID ? `${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_EXPORT.path}` : undefined;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+
+    // Gate the Xero Default vendor row on Xero specifically being configured, not on the global
+    // hasVendorFeature predicate. hasVendorFeature OR's all integrations, so on a dual-connected
+    // workspace where QBO/Intacct is the active vendor-matching source it would still expose the
+    // row even when Xero is mid tenant-switch (config.isConfigured=false) and data.contacts is
+    // stale from the prior tenant — allowing the admin to persist a defaultVendor that flips
+    // invalid the moment the new sync completes.
+    const isVendorFeatureAvailable = isXeroVendorMatchingActive(policy);
+    const defaultVendorName = getXeroSupplierByID(policy, defaultVendor)?.name ?? '';
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
-    const isTravelInvoicingEnabled = getIsTravelInvoicingEnabled(travelSettings);
+    const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
-    const selectedBankAccountName = useMemo(() => {
-        const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === exportConfiguration?.nonReimbursableAccount);
-        return selectedAccount?.name ?? '';
-    }, [bankAccounts, exportConfiguration?.nonReimbursableAccount]);
+    const selectedAccount = (bankAccounts ?? []).find((bank) => bank.id === exportConfiguration?.nonReimbursableAccount);
+    const selectedBankAccountName = selectedAccount?.name ?? '';
 
-    const currentXeroOrganizationName = useMemo(() => getCurrentXeroOrganizationName(policy ?? undefined), [policy]);
+    const currentXeroOrganizationName = getCurrentXeroOrganizationName(policy ?? undefined);
 
     const menuItems = [
         {
@@ -50,8 +63,6 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         {
             description: translate('workspace.accounting.exportOutOfPocket'),
             title: translate('workspace.xero.purchaseBill'),
-            interactive: false,
-            shouldShowRightIcon: false,
             helperText: translate('workspace.xero.exportExpensesDescription'),
         },
         {
@@ -69,25 +80,21 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
         {
             description: translate('workspace.xero.exportInvoices'),
             title: translate('workspace.xero.salesInvoice'),
-            interactive: false,
-            shouldShowRightIcon: false,
             helperText: translate('workspace.xero.exportInvoicesDescription'),
         },
-        ...(isTravelInvoicingEnabled
+        ...(isTravelBillingEnabled
             ? [
                   {
                       title: translate('workspace.xero.bankTransactions'),
-                      description: translate('workspace.common.travelInvoicing'),
-                      onPress: !exportPath ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_INVOICING_CONFIGURATION.path, exportPath)),
-                      subscribedSettings: [CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT],
+                      description: translate('workspace.common.travelBilling'),
+                      onPress: !policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_TRAVEL_BILLING_CONFIGURATION.path)),
+                      subscribedSettings: [CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT],
                   },
               ]
             : []),
         {
             description: translate('workspace.accounting.exportCompanyCard'),
             title: translate('workspace.xero.bankTransactions'),
-            shouldShowRightIcon: false,
-            interactive: false,
             helperText: translate('workspace.xero.exportDeepDiveCompanyCard'),
         },
         {
@@ -96,6 +103,20 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
             title: selectedBankAccountName,
             subscribedSettings: [CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT],
         },
+        ...(isVendorFeatureAvailable
+            ? [
+                  {
+                      description: translate('workspace.accounting.defaultVendor'),
+                      onPress: () => (!policyID ? undefined : Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT.path))),
+                      title: defaultVendorName,
+                      // No fallback vendor name: Xero posts company card expenses as bank transactions and never
+                      // auto-creates a stand-in vendor, so clearing the default just turns the fallback off. Passing
+                      // one here would tell the admin their expenses export as "Credit Card Misc.", which is QBO-only.
+                      helperText: translate('workspace.accounting.defaultVendorHelperText', !!defaultVendorName),
+                      subscribedSettings: [CONST.XERO_CONFIG.DEFAULT_VENDOR],
+                  },
+              ]
+            : []),
     ];
 
     return (
@@ -117,15 +138,21 @@ function DynamicXeroExportConfigurationPage({policy}: WithPolicyConnectionsProps
                     key={menuItem.description}
                     pendingAction={settingsPendingAction(menuItem?.subscribedSettings ?? [], pendingFields)}
                 >
-                    <MenuItemWithTopDescription
-                        title={menuItem.title}
-                        interactive={menuItem?.interactive ?? true}
-                        description={menuItem.description}
-                        shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
+                    <MenuItemField
+                        name={menuItem.description}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        helperText={menuItem?.helperText}
-                    />
+                        value={menuItem.title}
+                    >
+                        {areSettingsInErrorFields(menuItem?.subscribedSettings ?? [], errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                    </MenuItemField>
+                    {!!menuItem?.helperText && (
+                        <FormHelpMessage
+                            isError={false}
+                            shouldShowRedDotIndicator={false}
+                            message={menuItem.helperText}
+                            style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
+                        />
+                    )}
                 </OfflineWithFeedback>
             ))}
         </ConnectionLayout>

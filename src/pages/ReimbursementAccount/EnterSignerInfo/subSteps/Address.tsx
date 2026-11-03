@@ -1,15 +1,18 @@
-import React, {useMemo, useState} from 'react';
 import AddressStep from '@components/SubStepForms/AddressStep';
+
 import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
-function Address({onNext, isEditing, onMove}: SubStepProps) {
+import React, {useState} from 'react';
+
+function Address({onNext, isEditing, onMove}: SubPageProps) {
     const {translate} = useLocalize();
     const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
 
@@ -37,14 +40,8 @@ function Address({onNext, isEditing, onMove}: SubStepProps) {
     );
     const [shouldValidateZipCodeFormat, setShouldValidateZipCodeFormat] = useState<boolean>(defaultValues.country === CONST.COUNTRY.US);
 
-    const stepFieldsWithState = useMemo(
-        () => [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, inputKeys.country],
-        [inputKeys.country, inputKeys.city, inputKeys.state, inputKeys.street, inputKeys.zipCode],
-    );
-    const stepFieldsWithoutState = useMemo(
-        () => [inputKeys.street, inputKeys.city, inputKeys.zipCode, inputKeys.country],
-        [inputKeys.country, inputKeys.city, inputKeys.street, inputKeys.zipCode],
-    );
+    const stepFieldsWithState = [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, inputKeys.country];
+    const stepFieldsWithoutState = [inputKeys.street, inputKeys.city, inputKeys.zipCode, inputKeys.country];
 
     const stepFields = shouldDisplayStateSelector ? stepFieldsWithState : stepFieldsWithoutState;
 

@@ -1,15 +1,21 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type NonUSDPageProps from './types';
+
 import Agreements from './Agreements';
 import BankInfo from './BankInfo/BankInfo';
 import BeneficialOwnerInfo from './BeneficialOwnerInfo/BeneficialOwnerInfo';
@@ -18,7 +24,6 @@ import Country from './Country';
 import Docusign from './Docusign';
 import Finish from './Finish';
 import SignerInfo from './SignerInfo';
-import type NonUSDPageProps from './types';
 import getInitialSubPageForSignerInfoStep from './utils/getInitialSubPageForSignerInfoStep';
 import requiresDocusignStep from './utils/requiresDocusignStep';
 
@@ -78,29 +83,29 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
     const initialSignerSubPage = getInitialSubPageForSignerInfoStep(savedSignerEmail, savedSignerFullName, savedSecondSignerEmail, currency);
 
     const isAUD = currency === CONST.CURRENCY.AUD;
-    const pages = useMemo(() => {
-        const filteredPages = isDocusignStepRequired ? allPages : allPages.filter((page) => page.pageName !== PAGE_NAME.DOCUSIGN);
-        return filteredPages.map((page) => {
-            if (page.pageName !== PAGE_NAME.SIGNER_INFO) {
-                return page;
-            }
-            return {
-                ...page,
-                firstSubPage: initialSignerSubPage,
-                ...(isAUD ? {lastSubPage: SIGNER_INFO_SUB_PAGES.HANG_TIGHT} : {}),
-            };
-        });
-    }, [isDocusignStepRequired, isAUD, initialSignerSubPage]);
+    const filteredPages = isDocusignStepRequired ? allPages : allPages.filter((page) => page.pageName !== PAGE_NAME.DOCUSIGN);
+    const pages = filteredPages.map((page) => {
+        if (page.pageName !== PAGE_NAME.SIGNER_INFO) {
+            return page;
+        }
+        return {
+            ...page,
+            firstSubPage: initialSignerSubPage,
+            ...(isAUD
+                ? {
+                      lastSubPage: SIGNER_INFO_SUB_PAGES.HANG_TIGHT,
+                  }
+                : {}),
+        };
+    });
 
-    const currentPageIndex = useMemo(() => {
-        const index = pages.findIndex((p) => p.pageName === currentPage);
-        return index >= 0 ? index : 0;
-    }, [pages, currentPage]);
+    const index = pages.findIndex((p) => p.pageName === currentPage);
+    const currentPageIndex = index >= 0 ? index : 0;
 
     const currentEntry = pages.at(currentPageIndex);
     const CurrentPage = currentEntry?.component ?? Country;
 
-    const onSubmit = useCallback(() => {
+    const onSubmit = () => {
         const nextIndex = currentPageIndex + 1;
         if (nextIndex >= pages.length) {
             Navigation.goBack();
@@ -108,9 +113,9 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
         }
         const nextPage = pages.at(nextIndex);
         Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: nextPage?.pageName, subPage: nextPage?.firstSubPage, backTo}));
-    }, [backTo, currentPageIndex, pages, policyID]);
+    };
 
-    const onBackButtonPress = useCallback(() => {
+    const onBackButtonPress = () => {
         const prevIndex = currentPageIndex - 1;
         if (prevIndex < 0) {
             Navigation.goBack();
@@ -118,7 +123,7 @@ function NonUSDVerifiedBankAccountFlowPage({route}: NonUSDVerifiedBankAccountFlo
         }
         const prevPage = pages.at(prevIndex);
         Navigation.goBack(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: prevPage?.pageName, subPage: prevPage?.lastSubPage, backTo}));
-    }, [backTo, currentPageIndex, pages, policyID]);
+    };
 
     return (
         <View style={[styles.flex1, styles.appBG]}>

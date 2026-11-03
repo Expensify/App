@@ -1,11 +1,15 @@
-import React, {memo, useMemo} from 'react';
-import {StyleSheet, View} from 'react-native';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import Animated, {useSharedValue} from 'react-native-reanimated';
 import {useAttachmentCarouselPagerState} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
+
 import useThemeStyles from '@hooks/useThemeStyles';
-import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
+
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
+import Animated, {useSharedValue} from 'react-native-reanimated';
+
 import type AttachmentViewPdfProps from './types';
+
+import BaseAttachmentViewPdf from './BaseAttachmentViewPdf';
 
 // If the user pans less than this threshold, we'll not enable/disable the pager scroll, since the touch will most probably be a tap.
 // If the user moves their finger more than this threshold in the X direction, we'll enable the pager scroll. Otherwise if in the Y direction, we'll disable it.
@@ -29,9 +33,9 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
     const offsetY = useSharedValue(0);
     const isPanGestureActive = useSharedValue(false);
 
-    const Pan = Gesture.Pan()
-        .manualActivation(true)
-        .onTouchesMove((evt) => {
+    const Pan = usePanGesture({
+        manualActivation: true,
+        onTouchesMove: (evt) => {
             if (offsetX.get() !== 0 && offsetY.get() !== 0 && isScrollEnabled && scale.get() === 1) {
                 const translateX = Math.abs((evt.allTouches.at(0)?.absoluteX ?? 0) - offsetX.get());
                 const translateY = Math.abs((evt.allTouches.at(0)?.absoluteY ?? 0) - offsetY.get());
@@ -50,28 +54,26 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
             isPanGestureActive.set(true);
             offsetX.set(evt.allTouches.at(0)?.absoluteX ?? 0);
             offsetY.set(evt.allTouches.at(0)?.absoluteY ?? 0);
-        })
-        .onTouchesUp(() => {
+        },
+        onTouchesUp: () => {
             isPanGestureActive.set(false);
             if (!isScrollEnabled) {
                 return;
             }
             isScrollEnabled.set(scale.get() === 1);
-        });
+        },
+    });
 
-    const Content = useMemo(
-        () => (
-            <BaseAttachmentViewPdf
-                {...props}
-                onScaleChanged={(newScale) => {
-                    // The react-native-pdf's onScaleChanged event will sometimes give us scale values of e.g. 0.99... instead of 1,
-                    // even though we're not pinching/zooming
-                    // Rounding the scale value to 2 decimal place fixes this issue, since pinching will still be possible but very small pinches are ignored.
-                    scale.set(Math.round(newScale * 1e2) / 1e2);
-                }}
-            />
-        ),
-        [props, scale],
+    const Content = (
+        <BaseAttachmentViewPdf
+            {...props}
+            onScaleChanged={(newScale) => {
+                // The react-native-pdf's onScaleChanged event will sometimes give us scale values of e.g. 0.99... instead of 1,
+                // even though we're not pinching/zooming
+                // Rounding the scale value to 2 decimal place fixes this issue, since pinching will still be possible but very small pinches are ignored.
+                scale.set(Math.round(newScale * 1e2) / 1e2);
+            }}
+        />
     );
 
     return (
@@ -95,4 +97,4 @@ function AttachmentViewPdf(props: AttachmentViewPdfProps) {
     );
 }
 
-export default memo(AttachmentViewPdf);
+export default AttachmentViewPdf;

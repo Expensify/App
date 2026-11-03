@@ -1,19 +1,25 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setNewRoomFormLoading} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import React, {useEffect, useRef, useState} from 'react';
+
+import type {WorkspaceNewRoomPageRef} from './workspace/WorkspaceNewRoomPage';
+
 import NewChatPage from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
-import type {WorkspaceNewRoomPageRef} from './workspace/WorkspaceNewRoomPage';
 
 function NewChatSelectorPage() {
     const {translate} = useLocalize();
@@ -26,13 +32,11 @@ function NewChatSelectorPage() {
     const roomPageInputRef = useRef<WorkspaceNewRoomPageRef | null>(null);
 
     // Theoretically, the focus trap container element can be null (due to component unmount/remount), so we filter out the null elements
-    const containerElements = useMemo(() => {
-        return [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
-    }, [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement]);
+    const containerElements = [headerWithBackBtnContainerElement, tabBarContainerElement, activeTabContainerElement].filter((element) => !!element);
 
-    const onTabFocusTrapContainerElementChanged = useCallback((activeTabElement?: HTMLElement | null) => {
+    const onTabFocusTrapContainerElementChanged = (activeTabElement?: HTMLElement | null) => {
         setActiveTabContainerElement(activeTabElement ?? null);
-    }, []);
+    };
 
     // We're focusing the input using internal onPageSelected to fix input focus inconsistencies.
     // More info: https://github.com/Expensify/App/issues/59388

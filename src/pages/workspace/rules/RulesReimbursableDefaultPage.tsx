@@ -1,20 +1,24 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCashExpenseReimbursableMode, setPolicyReimbursableMode} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useState} from 'react';
 
 type RulesReimbursableDefaultPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REIMBURSABLE_DEFAULT>;
 
@@ -26,8 +30,6 @@ function RulesReimbursableDefaultPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
-    const {isBetaEnabled} = usePermissions();
-    const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const reimbursableMode = getCashExpenseReimbursableMode(policy);
 
@@ -44,27 +46,24 @@ function RulesReimbursableDefaultPage({
         keyForList: mode,
     }));
 
-    const saveAndGoBack = useCallback(() => {
+    const saveAndGoBack = () => {
         if (!selectedMode) {
             return;
         }
         setPolicyReimbursableMode(policyID, selectedMode, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable);
         Navigation.goBack();
-    }, [policyID, selectedMode, policy?.defaultReimbursable, policy?.disabledFields?.reimbursable]);
+    };
 
-    const confirmButtonOptions = useMemo(
-        () => ({
-            showButton: true,
-            text: translate('common.save'),
-            onConfirm: saveAndGoBack,
-        }),
-        [saveAndGoBack, translate],
-    );
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+    };
 
     return (
         <AccessOrNotFoundWrapper
             policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
@@ -72,10 +71,7 @@ function RulesReimbursableDefaultPage({
                 shouldEnableMaxHeight
                 testID="RulesReimbursableDefaultPage"
             >
-                <HeaderWithBackButton
-                    title={translate(isRevamp ? 'workspace.rules.generalTab.cashExpenses' : 'workspace.rules.individualExpenseRules.cashExpenseDefault')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButtonAndTitle title={translate('workspace.rules.generalTab.cashExpenses')} />
                 <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.rules.individualExpenseRules.cashExpenseDefaultDescription')}</Text>
                 </Text>

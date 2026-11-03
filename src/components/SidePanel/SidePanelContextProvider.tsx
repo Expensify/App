@@ -1,22 +1,27 @@
-import type {PropsWithChildren, RefObject} from 'react';
-import React, {createContext, useEffect, useRef, useState} from 'react';
-// Import Animated directly from 'react-native' as animations are used with navigation.
-// eslint-disable-next-line no-restricted-imports
-import {Animated} from 'react-native';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelDisplayStatus from '@hooks/useSidePanelDisplayStatus';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import SidePanelActions from '@libs/actions/SidePanel';
-import DateUtils from '@libs/DateUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import {getServerAnchoredDBTime} from '@libs/NetworkState';
 import {canEditWorkspaceSettings, shouldShowPolicy} from '@libs/PolicyUtils';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {emailSelector} from '@src/selectors/Session';
 import type {SidePanel} from '@src/types/onyx';
+
+import type {PropsWithChildren, RefObject} from 'react';
+
+import React, {createContext, useEffect, useRef, useState} from 'react';
+// Import Animated directly from 'react-native' as animations are used with navigation.
+// eslint-disable-next-line no-restricted-imports
+import {Animated} from 'react-native';
 
 type SidePanelStateContextProps = {
     isSidePanelTransitionEnded: boolean;
@@ -32,7 +37,7 @@ type SidePanelStateContextProps = {
 };
 
 type SidePanelActionsContextProps = {
-    openSidePanel: () => void;
+    openSidePanel: (options?: {forceConcierge?: boolean; reportID?: string}) => void;
     closeSidePanel: (options?: {afterTransition?: () => void}) => void;
 };
 
@@ -86,7 +91,9 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
     const isPolicyActive = shouldShowPolicy(activePolicy, false, sessionEmail ?? '');
     const adminsChatReportID = activePolicy?.chatReportIDAdmins?.toString();
 
-    const reportID = (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
+    const defaultReportID =
+        !sidePanelNVP?.forceConcierge && (isRHPAdminsRoom || isRHPHomePage) && isUserAdmin && isPolicyActive && adminsChatReportID ? adminsChatReportID : conciergeReportID;
+    const reportID = sidePanelNVP?.reportID ?? defaultReportID;
 
     const onCloseCompleteRef = useRef<(() => void) | undefined>(undefined);
     const [sessionStartTime, setSessionStartTime] = useState<string | null>(null);
@@ -94,10 +101,8 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
     if (prevShouldHideSidePanel !== shouldHideSidePanel) {
         setPrevShouldHideSidePanel(shouldHideSidePanel);
-        if (shouldHideSidePanel) {
-            setSessionStartTime(null);
-        } else if (!sessionStartTime) {
-            setSessionStartTime(DateUtils.getDBTime());
+        if (!shouldHideSidePanel && !sessionStartTime) {
+            setSessionStartTime(getServerAnchoredDBTime());
         }
     }
 
@@ -122,8 +127,13 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
                 duration: CONST.SIDE_PANEL_ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
-        ]).start(() => {
+        ]).start(({finished}) => {
             setIsSidePanelTransitionEnded(true);
+            // Clear the session after the slide-out, not when it starts: the panel stays mounted for the animation and
+            // a null session empties its message list. `finished` is false on an interrupted close, sparing the new session.
+            if (finished && shouldHideSidePanel) {
+                setSessionStartTime(null);
+            }
             onCloseCompleteRef.current?.();
             onCloseCompleteRef.current = undefined;
         });
@@ -137,15 +147,15 @@ function SidePanelContextProvider({children}: PropsWithChildren) {
 
         onCloseCompleteRef.current = options?.afterTransition;
         setIsSidePanelTransitionEnded(false);
-        SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth);
+        SidePanelActions.dismissSidePanel();
 
         // Focus the composer after closing the Side Panel
         focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.SIDE_PANEL_ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
     };
 
-    const openSidePanel = () => {
-        setSessionStartTime(DateUtils.getDBTime());
-        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth);
+    const openSidePanel = (options?: {forceConcierge?: boolean; reportID?: string}) => {
+        setSessionStartTime(getServerAnchoredDBTime());
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth, options?.forceConcierge, options?.reportID);
     };
 
     // Because of the React Compiler we don't need to memoize it manually

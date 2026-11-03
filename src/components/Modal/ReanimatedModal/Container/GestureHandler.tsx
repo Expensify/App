@@ -1,14 +1,17 @@
-import type {PropsWithChildren} from 'react';
-import React, {useMemo} from 'react';
-import type {GestureStateChangeEvent, GestureType, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
-import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {useSharedValue} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
 import type {GestureHandlerProps, SwipeDirection} from '@components/Modal/ReanimatedModal/types';
+
 import CONST from '@src/CONST';
 
+import type {PropsWithChildren} from 'react';
+import type {PanGestureActiveEvent} from 'react-native-gesture-handler';
+
+import React from 'react';
+import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
+import {useSharedValue} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
 function hasSwipeEnded(
-    e: GestureStateChangeEvent<PanGestureHandlerEventPayload>,
+    e: PanGestureActiveEvent,
     initialPosition: {x: number; y: number},
     swipeThreshold: number,
     swipeDirection?: SwipeDirection | SwipeDirection[],
@@ -52,18 +55,15 @@ function hasSwipeEnded(
 function GestureHandler({swipeDirection, onSwipeComplete, swipeThreshold = 100, children}: PropsWithChildren<GestureHandlerProps>) {
     const initialTranslationX = useSharedValue(0);
     const initialTranslationY = useSharedValue(0);
-    const panGesture: GestureType = useMemo(
-        () =>
-            Gesture.Pan()
-                .onStart((e) => {
-                    initialTranslationX.set(e.translationX);
-                    initialTranslationY.set(e.translationY);
-                })
-                .onEnd((e) => {
-                    hasSwipeEnded(e, {x: initialTranslationX.get(), y: initialTranslationY.get()}, swipeThreshold, swipeDirection, onSwipeComplete);
-                }),
-        [initialTranslationX, initialTranslationY, onSwipeComplete, swipeDirection, swipeThreshold],
-    );
+    const panGesture = usePanGesture({
+        onActivate: (e) => {
+            initialTranslationX.set(e.translationX);
+            initialTranslationY.set(e.translationY);
+        },
+        onDeactivate: (e) => {
+            hasSwipeEnded(e, {x: initialTranslationX.get(), y: initialTranslationY.get()}, swipeThreshold, swipeDirection, onSwipeComplete);
+        },
+    });
 
     if (!swipeDirection || !swipeDirection?.length || !onSwipeComplete) {
         return children;

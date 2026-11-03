@@ -1,0 +1,715 @@
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/consistent-return.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/consistent-return.js
+index 73fa424..a3931d0 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/consistent-return.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/consistent-return.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const getESLintCoreRule_1 = require("../util/getESLintCoreRule");
+ const baseRule = (0, getESLintCoreRule_1.getESLintCoreRule)('consistent-return');
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/consistent-type-assertions.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/consistent-type-assertions.js
+index fb941d4..a9b4a80 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/consistent-type-assertions.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/consistent-type-assertions.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const getWrappedCode_1 = require("../util/getWrappedCode");
+ exports.default = (0, util_1.createRule)({
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/consistent-type-exports.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/consistent-type-exports.js
+index 282f947..b30ceca 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/consistent-type-exports.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/consistent-type-exports.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'consistent-type-exports',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/dot-notation.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/dot-notation.js
+index 6101acd..9a791b7 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/dot-notation.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/dot-notation.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const getESLintCoreRule_1 = require("../util/getESLintCoreRule");
+ const baseRule = (0, getESLintCoreRule_1.getESLintCoreRule)('dot-notation');
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/enum-utils/shared.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/enum-utils/shared.js
+index c8ea8d2..d6794e1 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/enum-utils/shared.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/enum-utils/shared.js
+@@ -37,7 +37,7 @@ exports.getEnumLiterals = getEnumLiterals;
+ exports.getEnumTypes = getEnumTypes;
+ exports.getEnumKeyForLiteral = getEnumKeyForLiteral;
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../../util");
+ /*
+  * If passed an enum member, returns the type of the parent. Otherwise,
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-base-to-string.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-base-to-string.js
+index f9e0ae6..dda8f25 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-base-to-string.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-base-to-string.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ var Usefulness;
+ (function (Usefulness) {
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-confusing-void-expression.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-confusing-void-expression.js
+index da39922..1d5706a 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-confusing-void-expression.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-confusing-void-expression.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const getParentFunctionNode_1 = require("../util/getParentFunctionNode");
+ exports.default = (0, util_1.createRule)({
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-deprecated.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-deprecated.js
+index ed7256c..b44e193 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-deprecated.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-deprecated.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'no-deprecated',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-duplicate-type-constituents.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-duplicate-type-constituents.js
+index acb785c..aac681a 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-duplicate-type-constituents.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-duplicate-type-constituents.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const astIgnoreKeys = new Set(['loc', 'parent', 'range']);
+ const isSameAstNode = (actualNode, expectedNode) => {
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-for-in-array.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-for-in-array.js
+index 95f3e8b..5160f63 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-for-in-array.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-for-in-array.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const getForStatementHeadLoc_1 = require("../util/getForStatementHeadLoc");
+ exports.default = (0, util_1.createRule)({
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-implied-eval.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-implied-eval.js
+index 52c745e..047f2e2 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-implied-eval.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-implied-eval.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const FUNCTION_CONSTRUCTOR = 'Function';
+ const GLOBAL_CANDIDATES = new Set(['global', 'globalThis', 'window']);
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-meaningless-void-operator.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-meaningless-void-operator.js
+index a0ff0c9..19ed577 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-meaningless-void-operator.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-meaningless-void-operator.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'no-meaningless-void-operator',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-misused-promises.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-misused-promises.js
+index ba6af96..f07b4d8 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-misused-promises.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-misused-promises.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const promiseUtils_1 = require("../util/promiseUtils");
+ function parseChecksVoidReturn(checksVoidReturn) {
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-misused-spread.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-misused-spread.js
+index 6384187..8aee751 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-misused-spread.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-misused-spread.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'no-misused-spread',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-mixed-enums.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-mixed-enums.js
+index 91e064a..19508b3 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-mixed-enums.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-mixed-enums.js
+@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ const scope_manager_1 = require("@typescript-eslint/scope-manager");
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ var AllowedType;
+ (function (AllowedType) {
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-redundant-type-constituents.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-redundant-type-constituents.js
+index 8e14210..6909b15 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-redundant-type-constituents.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-redundant-type-constituents.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const literalToPrimitiveTypeFlags = {
+     [ts.TypeFlags.BigIntLiteral]: ts.TypeFlags.BigInt,
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-boolean-literal-compare.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-boolean-literal-compare.js
+index f2db70a..0de1a41 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-boolean-literal-compare.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-boolean-literal-compare.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'no-unnecessary-boolean-literal-compare',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-condition.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-condition.js
+index f2c1db3..7706a54 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-condition.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-condition.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const assertionFunctionUtils_1 = require("../util/assertionFunctionUtils");
+ // #region
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-qualifier.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-qualifier.js
+index bd0d2fb..c499504 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-qualifier.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-qualifier.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'no-unnecessary-qualifier',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-template-expression.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-template-expression.js
+index bd7a477..7612731 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-template-expression.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-template-expression.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const rangeToLoc_1 = require("../util/rangeToLoc");
+ const evenNumOfBackslashesRegExp = /(?<!(?:[^\\]|^)(?:\\\\)*\\)/;
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-arguments.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-arguments.js
+index bb7b4ff..6f0fc58 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-arguments.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-arguments.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'no-unnecessary-type-arguments',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-assertion.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-assertion.js
+index 41e10c3..a9e4538 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-assertion.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-assertion.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'no-unnecessary-type-assertion',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-constraint.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-constraint.js
+index adb49ee..3487c7e 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-constraint.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-constraint.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const node_path_1 = require("node:path");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'no-unnecessary-type-constraint',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-conversion.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-conversion.js
+index cf85311..455d4f1 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-conversion.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-conversion.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ function isEnumType(type) {
+     return (type.getFlags() & ts.TypeFlags.EnumLike) !== 0;
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-parameters.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-parameters.js
+index 8ef5eae..4e61e9f 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-parameters.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unnecessary-type-parameters.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'no-unnecessary-type-parameters',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-argument.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-argument.js
+index 0ac4090..e21dd93 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-argument.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-argument.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ var RestTypeKind;
+ (function (RestTypeKind) {
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-enum-comparison.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-enum-comparison.js
+index ff271cb..a6993b3 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-enum-comparison.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-enum-comparison.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const shared_1 = require("./enum-utils/shared");
+ /**
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-return.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-return.js
+index c6fa845..0da7613 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-return.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-return.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const getParentFunctionNode_1 = require("../util/getParentFunctionNode");
+ exports.default = (0, util_1.createRule)({
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-type-assertion.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-type-assertion.js
+index 9e3a2c8..878658a 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-type-assertion.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-type-assertion.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'no-unsafe-type-assertion',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-unary-minus.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-unary-minus.js
+index 749f4b0..c9a4f95 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-unary-minus.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-unsafe-unary-minus.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util = __importStar(require("../util"));
+ exports.default = util.createRule({
+     name: 'no-unsafe-unary-minus',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-useless-default-assignment.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-useless-default-assignment.js
+index 6ce4442..22d3be3 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-useless-default-assignment.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/no-useless-default-assignment.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'no-useless-default-assignment',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/non-nullable-type-assertion-style.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/non-nullable-type-assertion-style.js
+index 056a2ad..a75c2a4 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/non-nullable-type-assertion-style.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/non-nullable-type-assertion-style.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'non-nullable-type-assertion-style',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/only-throw-error.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/only-throw-error.js
+index d2ab353..16bde13 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/only-throw-error.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/only-throw-error.js
+@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+ const ts_api_utils_1 = require("ts-api-utils");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const promiseUtils_1 = require("../util/promiseUtils");
+ exports.default = (0, util_1.createRule)({
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-includes.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-includes.js
+index acca977..7da3ba5 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-includes.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-includes.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const regexpp_1 = require("@eslint-community/regexpp");
+ const utils_1 = require("@typescript-eslint/utils");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'prefer-includes',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-nullish-coalescing.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-nullish-coalescing.js
+index 51d527a..b216b0a 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-nullish-coalescing.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-nullish-coalescing.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const getWrappedCode_1 = require("../util/getWrappedCode");
+ const isMemberAccessLike = (0, util_1.isNodeOfTypes)([
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-optional-chain-utils/analyzeChain.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-optional-chain-utils/analyzeChain.js
+index c58e040..8d89626 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-optional-chain-utils/analyzeChain.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-optional-chain-utils/analyzeChain.js
+@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.analyzeChain = analyzeChain;
+ const utils_1 = require("@typescript-eslint/utils");
+ const ts_api_utils_1 = require("ts-api-utils");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../../util");
+ const checkNullishAndReport_1 = require("./checkNullishAndReport");
+ const compareNodes_1 = require("./compareNodes");
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-optional-chain-utils/checkNullishAndReport.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-optional-chain-utils/checkNullishAndReport.js
+index 55724e0..cd4fa92 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-optional-chain-utils/checkNullishAndReport.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-optional-chain-utils/checkNullishAndReport.js
+@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.checkNullishAndReport = checkNullishAndReport;
+ const type_utils_1 = require("@typescript-eslint/type-utils");
+ const ts_api_utils_1 = require("ts-api-utils");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ function checkNullishAndReport(context, parserServices, { requireNullish }, maybeNullishNodes, descriptor) {
+     if (!requireNullish ||
+         maybeNullishNodes.some(node => (0, ts_api_utils_1.unionConstituents)(parserServices.getTypeAtLocation(node)).some(t => (0, type_utils_1.isTypeFlagSet)(t, ts.TypeFlags.Null | ts.TypeFlags.Undefined)))) {
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-optional-chain-utils/gatherLogicalOperands.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-optional-chain-utils/gatherLogicalOperands.js
+index b357185..3403d8e 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-optional-chain-utils/gatherLogicalOperands.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-optional-chain-utils/gatherLogicalOperands.js
+@@ -37,7 +37,7 @@ exports.ComparisonType = exports.NullishComparisonType = exports.OperandValidity
+ exports.gatherLogicalOperands = gatherLogicalOperands;
+ const utils_1 = require("@typescript-eslint/utils");
+ const ts_api_utils_1 = require("ts-api-utils");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../../util");
+ var Yoda;
+ (function (Yoda) {
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-readonly.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-readonly.js
+index 91e6263..86f9b45 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-readonly.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-readonly.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const getMemberHeadLoc_1 = require("../util/getMemberHeadLoc");
+ const functionScopeBoundaries = [
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-return-this-type.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-return-this-type.js
+index 4344adf..c9fb363 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-return-this-type.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/prefer-return-this-type.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const ts_api_utils_1 = require("ts-api-utils");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'prefer-return-this-type',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/promise-function-async.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/promise-function-async.js
+index b7418ad..e1e0d14 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/promise-function-async.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/promise-function-async.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'promise-function-async',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/restrict-plus-operands.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/restrict-plus-operands.js
+index 8b05a73..5237409 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/restrict-plus-operands.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/restrict-plus-operands.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'restrict-plus-operands',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/restrict-template-expressions.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/restrict-template-expressions.js
+index 95d3e2b..4e14c1b 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/restrict-template-expressions.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/restrict-template-expressions.js
+@@ -2,7 +2,7 @@
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const type_utils_1 = require("@typescript-eslint/type-utils");
+ const utils_1 = require("@typescript-eslint/utils");
+-const typescript_1 = require("typescript");
++const typescript_1 = require("@typescript/typescript6");
+ const util_1 = require("../util");
+ const testTypeFlag = (flagsToCheck) => type => (0, util_1.isTypeFlagSet)(type, flagsToCheck);
+ const optionTesters = [
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/return-await.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/return-await.js
+index 954a50d..e9f9997 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/return-await.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/return-await.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ exports.default = (0, util_1.createRule)({
+     name: 'return-await',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/strict-boolean-expressions.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/strict-boolean-expressions.js
+index 1407465..485c7ad 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/strict-boolean-expressions.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/strict-boolean-expressions.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const assertionFunctionUtils_1 = require("../util/assertionFunctionUtils");
+ exports.default = (0, util_1.createRule)({
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/strict-void-return.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/strict-void-return.js
+index bcbdcf6..f8b0f74 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/strict-void-return.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/strict-void-return.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util = __importStar(require("../util"));
+ exports.default = util.createRule({
+     name: 'strict-void-return',
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/switch-exhaustiveness-check.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/switch-exhaustiveness-check.js
+index cce57df..5a4ffc6 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/switch-exhaustiveness-check.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/switch-exhaustiveness-check.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ const DEFAULT_COMMENT_PATTERN = /^no default$/iu;
+ exports.default = (0, util_1.createRule)({
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/unbound-method.js b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/unbound-method.js
+index f8e7b6c..82a719d 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/rules/unbound-method.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/rules/unbound-method.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const util_1 = require("../util");
+ /**
+  * Static methods on these globals are either not `this`-aware or supported being
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/util/assertionFunctionUtils.js b/node_modules/@typescript-eslint/eslint-plugin/dist/util/assertionFunctionUtils.js
+index fca21d0..ded477f 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/util/assertionFunctionUtils.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/util/assertionFunctionUtils.js
+@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.findTruthinessAssertedArgument = findTruthinessAssertedArgument;
+ exports.findTypeGuardAssertedArgument = findTypeGuardAssertedArgument;
+ const utils_1 = require("@typescript-eslint/utils");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ /**
+  * Inspect a call expression to see if it's a call to an assertion function.
+  * If it is, return the node of the argument that is asserted.
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/util/astUtils.js b/node_modules/@typescript-eslint/eslint-plugin/dist/util/astUtils.js
+index 6104aef..a2849f2 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/util/astUtils.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/util/astUtils.js
+@@ -40,7 +40,7 @@ exports.getNameLocationInGlobalDirectiveComment = getNameLocationInGlobalDirecti
+ exports.forEachReturnStatement = forEachReturnStatement;
+ exports.forEachChildESTree = forEachChildESTree;
+ const visitor_keys_1 = require("@typescript-eslint/visitor-keys");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const escapeRegExp_1 = require("./escapeRegExp");
+ // deeply re-export, for convenience
+ __exportStar(require("@typescript-eslint/utils/ast-utils"), exports);
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/util/baseTypeUtils.js b/node_modules/@typescript-eslint/eslint-plugin/dist/util/baseTypeUtils.js
+index 448eeb9..e79ec4c 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/util/baseTypeUtils.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/util/baseTypeUtils.js
+@@ -37,7 +37,7 @@ exports.hasBaseTypes = hasBaseTypes;
+ exports.matchesTypeOrBaseType = matchesTypeOrBaseType;
+ const ts_api_utils_1 = require("ts-api-utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ function getBaseTypesForType(checker, type) {
+     if (!tsutils.isObjectType(type)) {
+         return [];
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/util/getOperatorPrecedence.js b/node_modules/@typescript-eslint/eslint-plugin/dist/util/getOperatorPrecedence.js
+index 5367109..8cbf140 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/util/getOperatorPrecedence.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/util/getOperatorPrecedence.js
+@@ -5,7 +5,7 @@ exports.getOperatorPrecedenceForNode = getOperatorPrecedenceForNode;
+ exports.getOperatorPrecedence = getOperatorPrecedence;
+ exports.getBinaryOperatorPrecedence = getBinaryOperatorPrecedence;
+ const utils_1 = require("@typescript-eslint/utils");
+-const typescript_1 = require("typescript");
++const typescript_1 = require("@typescript/typescript6");
+ var OperatorPrecedence;
+ (function (OperatorPrecedence) {
+     // Expression:
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/util/isHigherPrecedenceThanAwait.js b/node_modules/@typescript-eslint/eslint-plugin/dist/util/isHigherPrecedenceThanAwait.js
+index a2e7dc4..3248a85 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/util/isHigherPrecedenceThanAwait.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/util/isHigherPrecedenceThanAwait.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.isHigherPrecedenceThanAwait = isHigherPrecedenceThanAwait;
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const getOperatorPrecedence_1 = require("./getOperatorPrecedence");
+ function isHigherPrecedenceThanAwait(tsNode) {
+     const operator = ts.isBinaryExpression(tsNode)
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/util/misc.js b/node_modules/@typescript-eslint/eslint-plugin/dist/util/misc.js
+index 3de4549..20e43c3 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/util/misc.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/util/misc.js
+@@ -50,7 +50,7 @@ exports.isParenlessArrowFunction = isParenlessArrowFunction;
+ exports.getStaticMemberAccessValue = getStaticMemberAccessValue;
+ const type_utils_1 = require("@typescript-eslint/type-utils");
+ const utils_1 = require("@typescript-eslint/utils");
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const astUtils_1 = require("./astUtils");
+ const DEFINITION_EXTENSIONS = [
+     ts.Extension.Dts,
+diff --git a/node_modules/@typescript-eslint/eslint-plugin/dist/util/truthinessUtils.js b/node_modules/@typescript-eslint/eslint-plugin/dist/util/truthinessUtils.js
+index 2ef0dc4..8c3e713 100644
+--- a/node_modules/@typescript-eslint/eslint-plugin/dist/util/truthinessUtils.js
++++ b/node_modules/@typescript-eslint/eslint-plugin/dist/util/truthinessUtils.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.isPossiblyTruthy = exports.isPossiblyFalsy = void 0;
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const getValueOfLiteralType_1 = require("./getValueOfLiteralType");
+ // Truthiness utilities
+ const isTruthyLiteral = (type) => tsutils.isTrueLiteralType(type) ||

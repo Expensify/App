@@ -1,52 +1,49 @@
-import {deepEqual} from 'fast-equals';
-import React, {useEffect, useRef, useState} from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
-import {shouldOptionShowTooltip} from '@libs/OptionsListUtils';
 import {getDisplayNamesWithTooltips} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+
+import AccountAvatar from './Avatar/connected/AccountAvatar';
+import ReportAvatar from './Avatar/connected/ReportAvatar';
+import {AvatarTooltipsProvider} from './Avatar/tooltips/AvatarTooltipContext';
 import DisplayNames from './DisplayNames';
 import Hoverable from './Hoverable';
 import Icon from './Icon';
 import MoneyRequestAmountInput from './MoneyRequestAmountInput';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
-import ReportActionAvatars from './ReportActionAvatars';
 import Text from './Text';
 
 type OptionDataWithOptionalReportID = Omit<OptionData, 'reportID'> & {reportID?: string};
 
 type OptionRowProps = {
-    /** Style for hovered state */
     hoverStyle?: StyleProp<ViewStyle>;
 
     /** Option to allow the user to choose from can be type 'report' or 'user' */
     option: OptionDataWithOptionalReportID;
 
-    /** Whether this option is currently in focus so we can modify its style */
     optionIsFocused?: boolean;
-
-    /** A function that is called when an option is selected */
     onSelectRow?: () => void;
-
-    /** Whether this item is selected */
     isSelected?: boolean;
 
     /** Display the text of the option in bold font style */
     boldStyle?: boolean;
 
-    /** Whether to show the title tooltip */
     showTitleTooltip?: boolean;
-
-    /** Whether this option should be disabled */
     isDisabled?: boolean;
 
     /** Whether to show a line separating options in list */
@@ -55,7 +52,6 @@ type OptionRowProps = {
     /** Whether to remove the lateral padding and align the content with the margins */
     shouldDisableRowInnerPadding?: boolean;
 
-    /** Whether to prevent default focusing on select */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
 
     /** Whether to wrap large text up to 2 lines */
@@ -94,7 +90,7 @@ function OptionRow({
     const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Checkmark']);
-    const pressableRef = useRef<View | HTMLDivElement>(null);
+    const pressableRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
     const [isDisabled, setIsDisabled] = useState(isOptionDisabled);
 
     useEffect(() => {
@@ -110,8 +106,7 @@ function OptionRow({
     const fullTitle = isMultilineSupported ? text.trimStart() : text;
     const indentsLength = text.length - fullTitle.length;
     const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
-    const textStyle = optionIsFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
-    const textUnreadStyle = boldStyle || option.boldStyle ? [textStyle, styles.sidebarLinkTextBold] : [textStyle];
+    const textUnreadStyle = boldStyle || option.boldStyle ? [styles.sidebarLinkText, styles.sidebarLinkTextBold] : [styles.sidebarLinkText];
     const displayNameStyle: StyleProp<TextStyle> = [
         styles.optionDisplayName,
         textUnreadStyle,
@@ -121,7 +116,7 @@ function OptionRow({
         isMultilineSupported ? {paddingLeft} : {},
     ];
     const alternateTextStyle: StyleProp<TextStyle> = [
-        textStyle,
+        styles.sidebarLinkText,
         styles.optionAlternateText,
         styles.textLabelSupporting,
         style,
@@ -142,13 +137,13 @@ function OptionRow({
         shouldUseShortFormInTooltip,
         localeCompare,
         formatPhoneNumber,
+        translate,
     );
     let subscriptColor = theme.appBG;
     if (optionIsFocused) {
         subscriptColor = focusedBackgroundColor;
     }
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const reportID = (option.iouReportID ?? option.reportID) || undefined;
 
     return (
@@ -196,15 +191,22 @@ function OptionRow({
                         <View style={sidebarInnerRowStyle}>
                             <View style={[styles.flexRow, styles.alignItemsCenter]}>
                                 {!!option.icons?.length && !!firstIcon && (
-                                    <ReportActionAvatars
-                                        subscriptAvatarBorderColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
-                                        reportID={reportID}
-                                        accountIDs={!reportID && option.accountID ? [option.accountID] : []}
-                                        size={CONST.AVATAR_SIZE.DEFAULT}
-                                        secondaryAvatarContainerStyle={[StyleUtils.getBackgroundAndBorderStyle(hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor)]}
-                                        shouldShowTooltip={showTitleTooltip && shouldOptionShowTooltip(option as OptionData)}
-                                    />
+                                    <AvatarTooltipsProvider isEnabled={showTitleTooltip && !option.private_isArchived}>
+                                        {!reportID && option.accountID ? (
+                                            <AccountAvatar
+                                                accountID={option.accountID}
+                                                size={CONST.AVATAR_SIZE.DEFAULT}
+                                            />
+                                        ) : (
+                                            <ReportAvatar
+                                                backdropColor={hovered && !optionIsFocused ? hoveredBackgroundColor : subscriptColor}
+                                                reportID={reportID}
+                                                size={CONST.AVATAR_SIZE.DEFAULT}
+                                            />
+                                        )}
+                                    </AvatarTooltipsProvider>
                                 )}
+
                                 <View style={contentContainerStyles}>
                                     <DisplayNames
                                         accessibilityLabel={translate('accessibilityHints.chatUserDisplayNames')}
@@ -299,29 +301,6 @@ function OptionRow({
 
 OptionRow.displayName = 'OptionRow';
 
-export default React.memo(
-    OptionRow,
-    (prevProps, nextProps) =>
-        prevProps.isDisabled === nextProps.isDisabled &&
-        prevProps.isMultilineSupported === nextProps.isMultilineSupported &&
-        prevProps.isSelected === nextProps.isSelected &&
-        prevProps.shouldHaveOptionSeparator === nextProps.shouldHaveOptionSeparator &&
-        prevProps.showTitleTooltip === nextProps.showTitleTooltip &&
-        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- icons array is created inline in some usages (e.g., BaseReactionList) with unstable references
-        deepEqual(prevProps.option.icons, nextProps.option.icons) &&
-        prevProps.optionIsFocused === nextProps.optionIsFocused &&
-        prevProps.option.text === nextProps.option.text &&
-        prevProps.option.alternateText === nextProps.option.alternateText &&
-        prevProps.option.descriptiveText === nextProps.option.descriptiveText &&
-        prevProps.option.brickRoadIndicator === nextProps.option.brickRoadIndicator &&
-        prevProps.option.shouldShowSubscript === nextProps.option.shouldShowSubscript &&
-        prevProps.option.ownerAccountID === nextProps.option.ownerAccountID &&
-        prevProps.option.subtitle === nextProps.option.subtitle &&
-        prevProps.option.pendingAction === nextProps.option.pendingAction &&
-        prevProps.option.customIcon === nextProps.option.customIcon &&
-        prevProps.option.tabIndex === nextProps.option.tabIndex &&
-        // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- amountInputProps origin and reference stability cannot be determined across all usages
-        deepEqual(prevProps.option.amountInputProps, nextProps.option.amountInputProps),
-);
+export default OptionRow;
 
 export type {OptionRowProps};

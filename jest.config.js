@@ -1,15 +1,25 @@
 const testFileExtension = 'ts?(x)';
 
-// Reassure runs only the performance tests, matched by the `.perf-test` suffix / `__perf__` folder,
+// Reassure runs only the performance tests, matched by the `.perf-test` suffix / `__perf__` folder (or the `.perf-local` suffix for local benchmarks),
 // which it passes to Jest as `--testMatch`. We detect that from the test-runner argv so we can leave
 // `performance` real for perf runs only: enabling Jest's modern fake timers globally also fakes
 // `performance`, and React's Scheduler captures that (frozen) clock once at module load, which zeroes
 // every React Profiler render duration — and thus every Reassure `[render]` measurement.
-const isPerfTestRun = process.argv.some((arg) => arg.includes('perf-test') || arg.includes('__perf__'));
+const isPerfTestRun = process.argv.some((arg) => /perf-(test|local)|__perf__/.test(arg));
+
+// With `--coverage`, Jest also instruments every file matched by `collectCoverageFrom` that no test loaded, so
+// untested files show up at 0%. Under `--shard=N/M` each shard would repeat that pass over all of `src/**`
+// (~7k files, 10-60s per shard). Only the first shard emits the untested files, the others report just what
+// their tests load. Codecov unions the per-shard reports, so the merged totals are unchanged.
+const shardMatch = process.argv.map((arg) => /^--shard=(\d+)\/\d+$/.exec(arg)).find(Boolean);
+const emitsUntestedFiles = !shardMatch || shardMatch[1] === '1';
 
 module.exports = {
     preset: 'jest-expo',
-    collectCoverageFrom: ['<rootDir>/src/**/*.{ts,tsx,js,jsx}', '!<rootDir>/src/**/__mocks__/**', '!<rootDir>/src/**/tests/**', '!**/*.d.ts'],
+    resolver: '<rootDir>/jest/resolver.ts',
+    collectCoverageFrom: emitsUntestedFiles ? ['<rootDir>/src/**/*.{ts,tsx,js,jsx}', '!<rootDir>/src/**/__mocks__/**', '!<rootDir>/src/**/tests/**', '!**/*.d.ts'] : undefined,
+    // Keeps the instrumented set identical to `collectCoverageFrom` above on the shards that skip it.
+    coveragePathIgnorePatterns: ['/node_modules/', '<rootDir>/(?!src/)', '/__mocks__/', '<rootDir>/src/.*/tests/', '\\.d\\.ts$'],
     testMatch: [
         `<rootDir>/tests/ui/**/*.${testFileExtension}`,
         `<rootDir>/tests/unit/**/*.${testFileExtension}`,
@@ -18,7 +28,10 @@ module.exports = {
         `<rootDir>/?(*.)+(spec|test).${testFileExtension}`,
     ],
     transform: {
-        '^.+\\.[jt]sx?$': 'babel-jest',
+        // OXC + esbuild is native and stays fast without TurboFan, where Babel was measured as
+        // roughly half of each Reassure measure job. The transformer sends test files, mocks and
+        // node_modules to babel-jest itself, so `jest.mock` is still hoisted there.
+        '^.+\\.[jt]sx?$': '<rootDir>/config/babel/oxcJestTransformer.js',
         '^.+\\.svg?$': 'jest-transformer-svg',
     },
     transformIgnorePatterns: [
@@ -26,14 +39,19 @@ module.exports = {
         // Prevent Babel from transforming worklets in this file so they are treated as normal functions, otherwise FormatSelectionUtilsTest won't run.
         '<rootDir>/node_modules/@expensify/react-native-live-markdown/lib/commonjs/parseExpensiMark.js',
     ],
-    testPathIgnorePatterns: ['<rootDir>/node_modules'],
-    // .worktrees/ holds parallel git worktrees a developer may check out locally.
+    // tests/tooling/ covers .github/ and scripts/ and runs under `bun test` instead (see the `test:bun` npm
+    // script), so those files import `bun:test` rather than Jest's globals. They aren't in testMatch above, and
+    // this keeps them out even if a future testMatch entry broadens to all of tests/.
+    testPathIgnorePatterns: ['<rootDir>/node_modules', '<rootDir>/tests/tooling/'],
+    // .worktrees/ and .claude/worktrees/ hold parallel git worktrees a developer may check out locally.
     // Each one carries its own modules/hybrid-app/package.json, which trips
     // jest-haste-map's "duplicate package name" assertion. Skip them entirely.
-    modulePathIgnorePatterns: ['<rootDir>/.worktrees/'],
+    modulePathIgnorePatterns: ['<rootDir>/.worktrees/', '<rootDir>/.claude/worktrees/'],
     globals: {
         __DEV__: true,
         WebSocket: {},
+        // Build-time define from config/rsbuild/rsbuild.common.ts. SkiaWebChart reads it when mounting CanvasKit.
+        __CANVASKIT_WASM_URL__: '/canvaskit-test.wasm',
     },
     fakeTimers: {
         enableGlobally: true,
@@ -44,6 +62,8 @@ module.exports = {
     testEnvironment: 'jsdom',
     setupFiles: ['<rootDir>/jest/setup.ts', './node_modules/@react-native-google-signin/google-signin/jest/build/setup.js'],
     setupFilesAfterEnv: ['<rootDir>/jest/setupAfterEnv.ts', '<rootDir>/tests/perf-test/setupAfterEnv.ts'],
+    // Restarts a worker between suites once it holds this much memory, so long-lived CI workers don't get OOM killed.
+    workerIdleMemoryLimit: '2GB',
     cacheDirectory: '<rootDir>/.jest-cache',
     coverageReporters: ['json', 'lcov', 'text-summary'],
     moduleNameMapper: {

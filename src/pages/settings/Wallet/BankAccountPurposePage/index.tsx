@@ -1,8 +1,14 @@
-import React, {useState} from 'react';
+import CollapsibleHeaderOnKeyboardGroup from '@components/CollapsibleHeaderOnKeyboard/Group';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@navigation/Navigation';
+
+import React, {useState} from 'react';
+
 import BankAccountPurpose from './substeps/BankAccountPurpose';
 import CountrySelection from './substeps/CountrySelection';
 
@@ -28,12 +34,16 @@ function BankAccountPurposePage() {
             shouldShowOfflineIndicator={false}
             testID={BankAccountPurposePage.displayName}
         >
-            <HeaderWithBackButton
-                title={translate('bankAccount.addBankAccount')}
-                onBackButtonPress={handleBackButtonPress}
-                shouldDisplayHelpButton={false}
-            />
-            {showCountrySelection ? <CountrySelection /> : <BankAccountPurpose showCountrySelectionStep={showCountrySelectionStep} />}
+            <CollapsibleHeaderOnKeyboardGroup>
+                <CollapsibleHeaderOnKeyboardGroupMember>
+                    <HeaderWithBackButton
+                        title={translate('bankAccount.addBankAccount')}
+                        onBackButtonPress={handleBackButtonPress}
+                        shouldDisplayHelpButton={false}
+                    />
+                </CollapsibleHeaderOnKeyboardGroupMember>
+                {showCountrySelection ? <CountrySelection /> : <BankAccountPurpose showCountrySelectionStep={showCountrySelectionStep} />}
+            </CollapsibleHeaderOnKeyboardGroup>
         </ScreenWrapper>
     );
 }

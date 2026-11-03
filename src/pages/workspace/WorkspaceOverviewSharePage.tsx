@@ -1,10 +1,9 @@
-import React, {useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import type {ImageSourcePropType} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
+
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import {useSession} from '@components/OnyxListItemProvider';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type {QRShareWithDownloadHandle} from '@components/QRShare/QRShareWithDownload/types';
@@ -12,22 +11,32 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultWorkspaceAvatar, getRoom} from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
 import addTrailingForwardSlash from '@libs/UrlUtils';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import type {ImageSourcePropType} from 'react-native';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
+import type {WithPolicyProps} from './withPolicy';
+
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicy from './withPolicy';
-import type {WithPolicyProps} from './withPolicy';
 
 function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Copy', 'Download', 'FallbackAvatar']);
@@ -56,12 +65,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const logoBackgroundColor = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
     const svgLogoFillColor = !hasAvatar ? defaultWorkspaceAvatarColors.fill : undefined;
 
-    const adminRoomReportID = useMemo(() => {
-        if (!policy?.id) {
-            return undefined;
-        }
-        return getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id)?.reportID ?? String(policy?.chatReportIDAdmins);
-    }, [policy?.chatReportIDAdmins, policy?.id]);
+    const adminRoomReportID = !policy?.id ? undefined : (getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id)?.reportID ?? String(policy?.chatReportIDAdmins));
 
     const adminsRoomLink = adminRoomReportID ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(adminRoomReportID)}` : '';
 
@@ -119,13 +123,16 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                             We shouldn't introduce platform specific code in our codebase.
                             This is a temporary solution while Web is not supported for the QR code download feature */}
                             {shouldAllowDownloadQRCode && (
-                                <MenuItem
-                                    isAnonymousAction
-                                    title={translate('common.download')}
-                                    icon={icons.Download}
-                                    onPress={() => qrCodeRef.current?.download?.()}
-                                    wrapperStyle={styles.sectionMenuItemTopDescription}
-                                />
+                                <MenuItemSectionRoot onPress={() => qrCodeRef.current?.download?.()}>
+                                    <MenuItem.Row>
+                                        <MenuItem.Leading>
+                                            <MenuItem.Icon src={icons.Download} />
+                                        </MenuItem.Leading>
+                                        <MenuItem.Content>
+                                            <MenuItem.Title>{translate('common.download')}</MenuItem.Title>
+                                        </MenuItem.Content>
+                                    </MenuItem.Row>
+                                </MenuItemSectionRoot>
                             )}
                         </View>
                     </View>

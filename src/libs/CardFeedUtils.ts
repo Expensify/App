@@ -1,23 +1,36 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {AdditionalCardProps} from '@components/SelectionList/ListItem/CardListItem';
+
 import type {FeedKeysWithAssignedCards} from '@hooks/useFeedKeysWithAssignedCards';
+
 import type IllustrationsType from '@styles/theme/illustrations/types';
+
 import CONST from '@src/CONST';
 import type {CombinedCardFeeds} from '@src/hooks/useCardFeeds';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, CardFeeds, CardList, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
-import type {CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithNumber, CombinedCardFeed} from '@src/types/onyx/CardFeeds';
+import type {Card, CardFeeds, CardList, Domain, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeedData, CardFeedsStatus, CardFeedsStatusByDomainID, CardFeedWithDomainID, CardFeedWithNumber, CombinedCardFeed, CustomCardFeedData} from '@src/types/onyx/CardFeeds';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {isAdminSelector} from '@selectors/Domain';
+import {Str} from 'expensify-common';
+
+import type {CompanyCardFeedIcons} from './CardUtils';
+import type {OptionData} from './ReportUtils';
+
 import {
     feedHasCards,
-    getBankName,
     getCardFeedIcon,
     getCardFeedWithDomainID,
+    getCompanyCardFeed,
     getCustomOrFormattedFeedName,
+    getDomainByFundID,
     getOriginalCompanyFeeds,
     getPlaidInstitutionIconUrl,
-    getPlaidInstitutionId,
     isCard,
     isCardClosed,
     isCardHiddenFromSearch,
@@ -26,19 +39,13 @@ import {
     isDirectFeed,
     isPersonalCard,
 } from './CardUtils';
-import type {CompanyCardFeedIcons} from './CardUtils';
-import {getDescriptionForPolicyDomainCard} from './PolicyUtils';
-import type {OptionData} from './ReportUtils';
+import {getExpensifyCardFeedDescription} from './ExpensifyCardFeedSelectorUtils';
+import {canMemberWrite, getPolicyForAssignedCard, isPolicyAdmin} from './PolicyUtils';
+
+/** The fields of an assigned card needed to resolve the workspace behind its feed */
+type AssignedCardForFeedAccess = Pick<Card, 'bank' | 'domainName' | 'fundID'>;
 
 type CardFilterItem = Partial<OptionData> & AdditionalCardProps & {isCardFeed?: boolean; correspondingCards?: string[]; cardFeedKey: string; plaidUrl?: string; keyForList: string};
-type DomainFeedData = {bank: CardFeedWithNumber; domainName: string; correspondingCardIDs: string[]; fundID?: string; feedCountry?: string};
-type CardFeedNamesWithType = Record<string, {name: string; type: 'domain' | 'workspace'}>;
-type CardFeedData = {cardName: string; bank: CardFeedWithNumber; label?: string; type: 'domain' | 'workspace'; feedCountry?: string};
-type GetCardFeedData = {
-    workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined;
-    translate: LocaleContextProps['translate'];
-    policies: OnyxCollection<Policy>;
-};
 type CardFeedForDisplay = {
     id: string;
     feed: CardFeedWithNumber;
@@ -46,53 +53,15 @@ type CardFeedForDisplay = {
     name: string;
     country?: string;
     linkedPolicyIDs?: string[];
+
+    /**
+     * Supporting text shown beneath the feed name in the Spend page feed filter so feeds of the same
+     * type can be told apart: the origin workspace name (workspace-level feeds) or the domain
+     * (domain-level feeds).
+     */
+    subtitle?: string;
 };
 type CardFeedsForDisplay = Record<string, CardFeedForDisplay>;
-
-function getRepeatingBanks(workspaceCardFeedsKeys: string[], domainFeedsData: Record<string, DomainFeedData>) {
-    const bankFrequency: Record<string, number> = {};
-    for (const key of workspaceCardFeedsKeys) {
-        // Example: "cards_18755165_Expensify Card" -> "Expensify Card"
-        const bankName = key.split('_').at(2);
-        if (bankName) {
-            bankFrequency[bankName] = (bankFrequency[bankName] || 0) + 1;
-        }
-    }
-    for (const domainFeed of Object.values(domainFeedsData)) {
-        bankFrequency[domainFeed.bank] = (bankFrequency[domainFeed.bank] || 0) + 1;
-    }
-    return Object.keys(bankFrequency).filter((bank) => bankFrequency[bank] > 1);
-}
-
-/**
- * @returns string with the 'cards_' part removed from the beginning
- */
-function getCardFeedKey(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined, workspaceFeedKey: string) {
-    const workspaceFeed = workspaceCardFeeds ? workspaceCardFeeds[workspaceFeedKey] : undefined;
-    if (!workspaceFeed) {
-        return;
-    }
-    const representativeCard = Object.values(workspaceFeed).find((cardFeedItem) => isCard(cardFeedItem));
-    if (!representativeCard) {
-        return;
-    }
-    // Auth emits `cards_<fundID>_<bank>` for every feed, and only Travel Invoicing (Expensify Card
-    // with feedCountry TRAVEL_US) gets the 3-segment `cards_<fundID>_Expensify Card_TRAVEL_US`
-    // (see Auth/auth/lib/Card.cpp `buildCardsCollectionKey`). Stripping the `cards_` prefix returns
-    // the exact token that `getWorkspaceCardFeedKey` re-prefixes to look the bucket back up, so the
-    // round-trip holds for every bank.
-    return workspaceFeedKey.startsWith(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST) ? workspaceFeedKey.slice(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST.length) : workspaceFeedKey;
-}
-
-/**
- * @returns string with added 'cards_' substring at the beginning
- */
-function getWorkspaceCardFeedKey(cardFeedKey: string) {
-    if (!cardFeedKey.startsWith(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST)) {
-        return `${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardFeedKey}`;
-    }
-    return cardFeedKey;
-}
 
 /**
  * Resolves the display name of a linked policy when preferredPolicy differs from the current policyID.
@@ -171,296 +140,8 @@ function buildCardsData(
 }
 
 /**
- * @param cardList - The list of cards to process. Can be undefined.
- * @returns a record where keys are domain names and values contain domain feed data.
- */
-function generateDomainFeedData(cardList: CardList | undefined): Record<string, DomainFeedData> {
-    return Object.values(cardList ?? {}).reduce(
-        (domainFeedData, currentCard) => {
-            // Cards in cardList can also be domain cards, we use them to compute domain feed
-            if (!currentCard?.domainName?.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME) && !isCardHiddenFromSearch(currentCard) && currentCard.fundID) {
-                const feedCountry = getFeedCountryForDisplay(currentCard);
-                const key = createCardFeedKey(currentCard.fundID, currentCard.bank, feedCountry);
-                if (domainFeedData[key]) {
-                    domainFeedData[key].correspondingCardIDs.push(currentCard.cardID.toString());
-                } else {
-                    // if the cards belongs to the same domain, every card of it should have the same fundID
-                    // eslint-disable-next-line no-param-reassign
-                    domainFeedData[key] = {
-                        fundID: currentCard.fundID,
-                        domainName: currentCard.domainName,
-                        bank: currentCard?.bank,
-                        correspondingCardIDs: [currentCard.cardID?.toString()],
-                        ...(feedCountry ? {feedCountry} : {}),
-                    };
-                }
-            }
-            return domainFeedData;
-        },
-        {} as Record<string, DomainFeedData>,
-    );
-}
-
-function getDomainFeedData(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined) {
-    const flattenedWorkspaceCardFeeds = Object.values(workspaceCardFeeds ?? {}).reduce<CardList>((result, domainCards) => {
-        Object.assign(result, domainCards);
-        return result;
-    }, {});
-    return generateDomainFeedData(flattenedWorkspaceCardFeeds);
-}
-
-function getWorkspaceCardFeedData(
-    cardFeed: WorkspaceCardsList | undefined,
-    policies: OnyxCollection<Policy>,
-    repeatingBanks: string[],
-    translate: LocaleContextProps['translate'],
-): CardFeedData | undefined {
-    const cardFeedArray = Object.values(cardFeed ?? {});
-    const representativeCard = cardFeedArray.find((cardFeedItem) => isCard(cardFeedItem));
-    if (!representativeCard || !cardFeedArray.some((cardFeedItem) => isCard(cardFeedItem) && !isCardHiddenFromSearch(cardFeedItem))) {
-        return;
-    }
-    const {domainName, bank, cardName} = representativeCard;
-    const isBankRepeating = repeatingBanks.includes(bank);
-    const policyID = domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1] ?? '';
-    const correspondingPolicy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID?.toUpperCase()}`];
-    const cardFeedLabel = isBankRepeating ? correspondingPolicy?.name : undefined;
-    const isPlaid = !!getPlaidInstitutionId(bank);
-    const companyCardBank = isPlaid && cardName ? cardName : getBankName(bank);
-
-    const feedCountry = getFeedCountryForDisplay(representativeCard);
-    const cardFeedBankName = getCardFeedBankDisplayName(bank, feedCountry, companyCardBank, translate);
-    const fullCardName =
-        cardFeedBankName === CONST.COMPANY_CARDS.CARD_TYPE.CSV
-            ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel})
-            : translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
-
-    return {
-        cardName: fullCardName,
-        bank,
-        label: cardFeedLabel,
-        type: 'workspace',
-        ...(feedCountry ? {feedCountry} : {}),
-    };
-}
-
-function getDomainCardFeedData(domainFeed: DomainFeedData, policies: OnyxCollection<Policy>, repeatingBanks: string[], translate: LocaleContextProps['translate']): CardFeedData {
-    const {domainName, bank, feedCountry} = domainFeed;
-    const isBankRepeating = repeatingBanks.includes(bank);
-    const cardFeedBankName = getCardFeedBankDisplayName(bank, feedCountry, getBankName(bank), translate);
-    const cardFeedLabel = isBankRepeating ? getDescriptionForPolicyDomainCard(domainName, policies) : undefined;
-    const cardName =
-        cardFeedBankName === CONST.COMPANY_CARDS.CARD_TYPE.CSV
-            ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel})
-            : translate('search.filters.card.cardFeedName', {cardFeedBankName, cardFeedLabel});
-    return {
-        cardName,
-        bank,
-        label: cardFeedLabel,
-        type: 'domain',
-        ...(feedCountry ? {feedCountry} : {}),
-    };
-}
-
-function filterOutDomainCards(workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined) {
-    const domainFeedData = getDomainFeedData(workspaceCardFeeds);
-    return Object.entries(workspaceCardFeeds ?? {}).filter(([, workspaceFeed]) => {
-        const firstCard = Object.values(workspaceFeed ?? {}).find(isCard);
-        if (!firstCard) {
-            return !isEmptyObject(workspaceFeed);
-        }
-        const feedCountry = getFeedCountryForDisplay(firstCard);
-        const workspaceKey = createCardFeedKey(firstCard.fundID, firstCard.bank, feedCountry);
-        if (workspaceKey in domainFeedData) {
-            return false;
-        }
-        return !isEmptyObject(workspaceFeed);
-    });
-}
-
-function getCardFeedsData({workspaceCardFeeds, policies, translate}: GetCardFeedData) {
-    const domainFeedData = getDomainFeedData(workspaceCardFeeds);
-    const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds ?? CONST.EMPTY_OBJECT), domainFeedData);
-    const cardFeedData: Record<string, CardFeedData> = {};
-
-    for (const [cardFeedKey, cardFeed] of filterOutDomainCards(workspaceCardFeeds)) {
-        const workspaceData = getWorkspaceCardFeedData(cardFeed, policies, repeatingBanks, translate);
-        if (workspaceData) {
-            cardFeedData[cardFeedKey] = workspaceData;
-        }
-    }
-
-    for (const domainFeed of Object.values(domainFeedData)) {
-        const cardFeedKey = createCardFeedKey(`cards_${domainFeed.fundID}`, domainFeed.bank, domainFeed.feedCountry);
-        cardFeedData[cardFeedKey] = getDomainCardFeedData(domainFeed, policies, repeatingBanks, translate);
-    }
-
-    return cardFeedData;
-}
-
-function getCardFeedNamesWithType(params: GetCardFeedData) {
-    const cardFeedData = getCardFeedsData(params);
-    return Object.keys(cardFeedData).reduce<CardFeedNamesWithType>((cardFeedNamesWithType, cardFeedKey) => {
-        /* eslint-disable-next-line no-param-reassign */
-        cardFeedNamesWithType[cardFeedKey] = {
-            name: cardFeedData[cardFeedKey].cardName,
-            type: cardFeedData[cardFeedKey].type,
-        };
-        return cardFeedNamesWithType;
-    }, {});
-}
-
-function createCardFeedKey(fundID: string | undefined, bank: string, feedCountry: string | undefined) {
-    if (!fundID) {
-        return bank;
-    }
-    if (feedCountry) {
-        return `${fundID}_${bank}_${feedCountry}`;
-    }
-    return `${fundID}_${bank}`;
-}
-
-function createCardFeedItem({
-    cardName,
-    bank,
-    keyForList,
-    cardFeedKey,
-    correspondingCardIDs,
-    selectedCards,
-    illustrations,
-    companyCardIcons,
-}: {
-    cardName: string;
-    bank: CardFeedWithNumber;
-    keyForList: string;
-    cardFeedKey: string;
-    correspondingCardIDs: string[];
-    selectedCards: string[];
-    illustrations: IllustrationsType;
-    companyCardIcons: CompanyCardFeedIcons;
-}): CardFilterItem {
-    const isSelected = correspondingCardIDs.every((card) => selectedCards.includes(card));
-    const plaidUrl = getPlaidInstitutionIconUrl(bank);
-
-    const icon = getCardFeedIcon(bank, illustrations, companyCardIcons);
-    return {
-        text: cardName,
-        keyForList,
-        isSelected,
-        shouldShowOwnersAvatar: false,
-        bankIcon: {
-            icon,
-        },
-        plaidUrl,
-        cardFeedKey,
-        isCardFeed: true,
-        correspondingCards: correspondingCardIDs,
-    };
-}
-
-function buildCardFeedsData(
-    workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined>,
-    domainFeedsData: Record<string, DomainFeedData>,
-    policies: OnyxCollection<Policy>,
-    selectedCards: string[],
-    translate: LocaleContextProps['translate'],
-    illustrations: IllustrationsType,
-    companyCardIcons: CompanyCardFeedIcons,
-): CardFilterItem[] {
-    const feeds: CardFilterItem[] = [];
-    const repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
-
-    for (const domainFeed of Object.values(domainFeedsData)) {
-        const {domainName, bank, correspondingCardIDs, feedCountry} = domainFeed;
-
-        const cardFeedKey = createCardFeedKey(domainFeed.fundID, bank, feedCountry);
-        const {cardName} = getDomainCardFeedData(domainFeed, policies, repeatingBanks, translate);
-
-        feeds.push(
-            createCardFeedItem({
-                cardName,
-                bank,
-                correspondingCardIDs,
-                keyForList: feedCountry ? `${domainName}-${bank}-${feedCountry}` : `${domainName}-${bank}`,
-                cardFeedKey,
-                selectedCards,
-                illustrations,
-                companyCardIcons,
-            }),
-        );
-    }
-
-    for (const [workspaceFeedKey, workspaceFeed] of filterOutDomainCards(workspaceCardFeeds)) {
-        const correspondingCardIDs = Object.entries(workspaceFeed ?? {})
-            .filter(([cardKey, card]) => cardKey !== 'cardList' && isCard(card) && !isCardHiddenFromSearch(card))
-            .map(([cardKey]) => cardKey);
-
-        const cardFeedData = getWorkspaceCardFeedData(workspaceFeed, policies, repeatingBanks, translate);
-        if (!cardFeedData) {
-            continue;
-        }
-        const {cardName, bank} = cardFeedData;
-        const cardFeedKey = getCardFeedKey(workspaceCardFeeds, workspaceFeedKey);
-
-        feeds.push(
-            createCardFeedItem({
-                cardName,
-                bank,
-                correspondingCardIDs,
-                cardFeedKey: cardFeedKey ?? '',
-                keyForList: workspaceFeedKey,
-                selectedCards,
-                illustrations,
-                companyCardIcons,
-            }),
-        );
-    }
-
-    return feeds;
-}
-
-function getSelectedCardsFromFeeds(cards: CardList | undefined, workspaceCardFeeds?: Record<string, WorkspaceCardsList | undefined>, selectedFeeds?: string[]): string[] {
-    const domainFeedsData = generateDomainFeedData(cards);
-    const domainFeedCards = Object.fromEntries(
-        Object.values(domainFeedsData).map((domainFeedData) => [
-            createCardFeedKey(domainFeedData.fundID, domainFeedData.bank, domainFeedData.feedCountry),
-            domainFeedData.correspondingCardIDs,
-        ]),
-    );
-
-    if (!workspaceCardFeeds || !selectedFeeds) {
-        return [];
-    }
-
-    const selectedCards = selectedFeeds.flatMap((cardFeedKey) => {
-        const workspaceCardFeed = workspaceCardFeeds[getWorkspaceCardFeedKey(cardFeedKey)];
-        if (!workspaceCardFeed) {
-            if (!cards || !domainFeedCards[cardFeedKey] || Object.keys(domainFeedCards).length === 0) {
-                return [];
-            }
-
-            return domainFeedCards[cardFeedKey].filter((cardNumber) => cards[cardNumber].state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
-        }
-
-        return Object.keys(workspaceCardFeed).filter((cardNumber) => workspaceCardFeed[cardNumber].state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED);
-    });
-
-    return [...new Set(selectedCards)];
-}
-
-const generateSelectedCards = (
-    cardList: CardList | undefined,
-    workspaceCardFeeds: Record<string, WorkspaceCardsList | undefined> | undefined,
-    feeds: string[] | undefined,
-    cards: string[] | undefined,
-) => {
-    const selectedCards = getSelectedCardsFromFeeds(cardList, workspaceCardFeeds, feeds);
-    return [...new Set([...selectedCards, ...(cards ?? [])])];
-};
-
-/**
  * Returns the wire-level country segment used in the Search feed filter token for a card. We only
- * care about Travel Invoicing feed country segment since it has its own
+ * care about Travel Billing feed country segment since it has its own
  * Onyx key and its own search feed. Every other bank and every other Expensify Card program
  * (US/GB/CURRENT) shares the 2-segment token, so we return an empty string and the token and the
  * Onyx key always line up.
@@ -472,17 +153,13 @@ function getFeedCountryForDisplay(card: Card): string {
     return card.nameValuePairs?.feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US ? CONST.TRAVEL.PROGRAM_TRAVEL_US : '';
 }
 
-function getCardFeedBankDisplayName(bank: string, feedCountry: string | undefined, companyCardBankName: string, translate: LocaleContextProps['translate']): string {
-    if (bank !== CONST.EXPENSIFY_CARD.BANK) {
-        return companyCardBankName;
-    }
-    if (feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
-        return translate('search.filters.card.travelInvoicing');
-    }
-    return translate('search.filters.card.expensify');
-}
-
-function getExpensifyCardFeedsForDisplay(allCards: CardList | undefined, translate: LocaleContextProps['translate'] | undefined): CardFeedsForDisplay {
+function getExpensifyCardFeedsForDisplay(
+    allCards: CardList | undefined,
+    translate: LocaleContextProps['translate'] | undefined,
+    policies?: OnyxCollection<Policy>,
+    domains?: OnyxCollection<Domain>,
+    expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
+): CardFeedsForDisplay {
     const result = {} as CardFeedsForDisplay;
 
     for (const card of Object.values(allCards ?? {})) {
@@ -497,16 +174,22 @@ function getExpensifyCardFeedsForDisplay(allCards: CardList | undefined, transla
             continue;
         }
 
-        // Travel Invoicing lives on its own feed but shares the `Expensify Card` bank. Use the
-        // translated label so the Feed dropdown shows "Travel Invoicing" for travel cards and
+        // Travel Billing lives on its own feed but shares the `Expensify Card` bank. Use the
+        // translated label so the Feed dropdown shows "Travel Billing" for travel cards and
         // "Expensify Card" for everything else.
-        const name = translate && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US ? translate('search.filters.card.travelInvoicing') : CONST.EXPENSIFY_CARD.BANK;
+        const name = translate && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US ? translate('search.filters.card.travelBilling') : CONST.EXPENSIFY_CARD.BANK;
+
+        // Reuse the Expensify Card feed selector's origin resolver so the filter shows the same
+        // domain/workspace supporting text (empty string means we have nothing to disambiguate with).
+        const cardSettings = expensifyCardSettings?.[`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${card.fundID}`];
+        const subtitle = getExpensifyCardFeedDescription(cardSettings, policies, domains, Number(card.fundID), allCards) || undefined;
 
         result[id] = {
             id,
             feed: CONST.EXPENSIFY_CARD.BANK,
             fundID: card.fundID,
             name,
+            subtitle,
             ...(feedCountry ? {country: feedCountry} : {}),
         };
     }
@@ -515,15 +198,46 @@ function getExpensifyCardFeedsForDisplay(allCards: CardList | undefined, transla
 }
 
 /**
+ * Resolves the domain/workspace supporting text for a company card feed shown in the Spend page feed filter.
+ *
+ * Workspace-level feeds show the origin workspace name via `preferredPolicy`. That is the workspace where the feed
+ * was originally configured, even when it is shared to several workspaces. Domain-level feeds (no
+ * `preferredPolicy`) fall back to the domain backing the feed's fund. Returns `undefined` when there is
+ * nothing to disambiguate with.
+ */
+function getCompanyFeedSubtitle(
+    feedData: CardFeedData | undefined,
+    fundID: string,
+    policies: OnyxCollection<Policy> | undefined,
+    domains: OnyxCollection<Domain> | undefined,
+): string | undefined {
+    const preferredPolicy = feedData && 'preferredPolicy' in feedData ? feedData.preferredPolicy : undefined;
+    if (preferredPolicy) {
+        const policyName = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${preferredPolicy.toUpperCase()}`]?.name;
+        if (policyName) {
+            return policyName;
+        }
+    }
+
+    const domainEmail = getDomainByFundID(domains, Number(fundID))?.email;
+    return domainEmail ? Str.extractEmailDomain(domainEmail) : undefined;
+}
+
+/**
  * Given a collection of card feeds, return formatted card feeds.
  *
  * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feeds.
+ * `policies`, `domains` and `expensifyCardSettings` are optional and only used to resolve each feed's
+ * domain/workspace supporting text (`subtitle`). Omit them when the subtitle isn't needed.
  */
 function getCardFeedsForDisplay(
     allCardFeeds: OnyxCollection<CardFeeds>,
     allCards: CardList | undefined,
     translate: LocalizedTranslate,
     feedKeysWithCards?: FeedKeysWithAssignedCards,
+    policies?: OnyxCollection<Policy>,
+    domains?: OnyxCollection<Domain>,
+    expensifyCardSettings?: OnyxCollection<ExpensifyCardSettings>,
 ): CardFeedsForDisplay {
     const cardFeedsForDisplay = {} as CardFeedsForDisplay;
 
@@ -534,7 +248,7 @@ function getCardFeedsForDisplay(
             continue;
         }
 
-        for (const key of Object.keys(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
+        for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, Number(fundID)))) {
             const feed = key as CardFeedWithNumber;
             const id = `${fundID}_${feed}`;
 
@@ -547,13 +261,94 @@ function getCardFeedsForDisplay(
                 feed,
                 fundID,
                 name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
+                subtitle: getCompanyFeedSubtitle(feedData, fundID, policies, domains),
             };
         }
     }
 
-    Object.assign(cardFeedsForDisplay, getExpensifyCardFeedsForDisplay(allCards, translate));
+    Object.assign(cardFeedsForDisplay, getExpensifyCardFeedsForDisplay(allCards, translate, policies, domains, expensifyCardSettings));
 
     return cardFeedsForDisplay;
+}
+
+/**
+ * The settings of the company card feed an assigned card belongs to.
+ *
+ * Both direct and custom feeds keep their settings, including the workspaces they are linked to, in `companyCards`.
+ * `oAuthAccountDetails` only holds a direct feed's credentials. The card's `bank` can carry the `#domainID` suffix,
+ * which is not part of the settings key.
+ */
+function getFeedSettingsForCard(card: AssignedCardForFeedAccess, allCardFeeds: OnyxCollection<CardFeeds>): CustomCardFeedData | undefined {
+    if (!card.fundID) {
+        return undefined;
+    }
+
+    return allCardFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${card.fundID}`]?.settings?.companyCards?.[getCompanyCardFeed(card.bank)];
+}
+
+/**
+ * The workspaces the given cards' feeds name, so a consumer can make sure those policies are loaded before it
+ * resolves a card to its workspace. A feed names them with `linkedPolicyIDs`, or with a single `preferredPolicy`.
+ */
+function getPolicyIDsNamedByCardFeeds(cards: AssignedCardForFeedAccess[], allCardFeeds: OnyxCollection<CardFeeds>): string[] {
+    const policyIDs = new Set<string>();
+
+    for (const card of cards) {
+        const feedSettings = getFeedSettingsForCard(card, allCardFeeds);
+        for (const linkedPolicyID of feedSettings?.linkedPolicyIDs ?? []) {
+            if (linkedPolicyID) {
+                policyIDs.add(linkedPolicyID);
+            }
+        }
+        if (feedSettings?.preferredPolicy) {
+            policyIDs.add(feedSettings.preferredPolicy);
+        }
+    }
+
+    return [...policyIDs];
+}
+
+/**
+ * The workspace an assigned company card sends its holder to, and whether they are allowed to fix its feed.
+ *
+ * The wallet offers a link to the Company cards page, so it has to agree with what that page already shows. The
+ * workspace comes from the feed's own `linkedPolicyIDs`, then its `preferredPolicy`, and only a feed naming neither
+ * falls back to the fund, as in `getCardFeedsForDisplayPerPolicy`. A domain feed's `fundID` is the domain's account
+ * ID rather than a workspace's, so that fallback cannot find the workspace for one on its own.
+ *
+ * Whether the link is offered is the Company cards page's own write permission rather than the workspace role, so a
+ * card admin who can fix the feed is offered it, while a member or an auditor who would land on Not Found or a
+ * read-only page is told to ask an admin instead.
+ */
+function getAssignedCardFeedAccess(
+    card: AssignedCardForFeedAccess,
+    allCardFeeds: OnyxCollection<CardFeeds>,
+    policies: OnyxCollection<Policy>,
+    currentUserLogin: string | undefined,
+): {policyID: string | undefined; isAdmin: boolean} {
+    const fundID = Number(card.fundID);
+    if (!fundID) {
+        return {policyID: undefined, isAdmin: false};
+    }
+
+    const feedSettings = getFeedSettingsForCard(card, allCardFeeds);
+    const linkedPolicyIDs = feedSettings?.linkedPolicyIDs?.filter(Boolean) ?? [];
+    const namedPolicyIDs = linkedPolicyIDs.length ? linkedPolicyIDs : [feedSettings?.preferredPolicy].filter((policyID): policyID is string => !!policyID);
+    // A feed spells its policy IDs however the back end sent them, while the Onyx key is upper case, so the ID is
+    // normalized here as it is wherever else a feed's workspace is looked up.
+    const namedPolicies = namedPolicyIDs.map((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID.toUpperCase()}`]).filter((policy) => !!policy);
+
+    // The link goes to a workspace's Company cards page, which checks this same permission before it renders
+    // anything, so asking it here is what decides whether the link can do what it offers. A missing login falls back
+    // to the role the policy itself carries rather than hiding the link, because the personal details that hold the
+    // login load separately from the policy.
+    const canFixFeedOn = (policy: OnyxEntry<Policy>) => canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS);
+
+    // A feed can name more than one workspace. Prefer one the cardholder can fix the feed on, so the link lands
+    // somewhere they can act rather than on a workspace that would only show them the same problem again.
+    const policyForCard = namedPolicies.find(canFixFeedOn) ?? namedPolicies.at(0) ?? getPolicyForAssignedCard(card, policies);
+
+    return {policyID: policyForCard?.id, isAdmin: canFixFeedOn(policyForCard)};
 }
 
 /**
@@ -630,6 +425,95 @@ function getCardFeedsForDisplayPerPolicy(
 }
 
 /**
+ * Narrows a raw company-feed object key (widened to `string` by `Object.entries`) to `CardFeedWithNumber`.
+ * This is not a full type guard that validates the key against the union — it only asserts that a non-empty
+ * key belongs to `CardFeedWithNumber` (the map is keyed by that union at runtime), and rejects empty keys.
+ * Used to avoid an unsafe `as` assertion when iterating the feed map.
+ */
+function isCardFeedWithNumber(feedKey: string): feedKey is CardFeedWithNumber {
+    return !!feedKey;
+}
+
+/**
+ * Returns the company card feeds that should be visible to the current user in the feed selector,
+ * enumerated exactly once per feed (keyed by `${fundID}_${feed}`).
+ *
+ * A feed is gathered from one of two sources:
+ *  1. A domain the user is an admin of (the domain's account ID matches the feed's fundID).
+ *  2. A policy the user is an admin of whose `policyAccountID` matches the feed's fundID.
+ *
+ * Whether a feed shows as an available feed or under "From other workspaces" is decided by the
+ * caller using `linkedPolicyIDs` (active policy in `linkedPolicyIDs` → available, otherwise other).
+ * There is intentionally no decision based on `preferredPolicy`.
+ *
+ * Note: "Expensify Card" feeds are not included (handled by the Expensify card selector).
+ */
+function getVisibleCompanyCardFeedsForSelector(
+    allCardFeeds: OnyxCollection<CardFeeds>,
+    translate: LocalizedTranslate,
+    feedKeysWithCards: FeedKeysWithAssignedCards | undefined,
+    policies: OnyxCollection<Policy>,
+    domains: OnyxCollection<Domain>,
+    currentUserAccountID: number,
+): CardFeedForDisplay[] {
+    const visibleFeeds: CardFeedForDisplay[] = [];
+    const seenFeedIDs = new Set<string>();
+
+    // Precompute the fundIDs (policyAccountIDs) backed by non-deleted policies the user can administer.
+    // This avoids re-scanning every policy for each domain entry (was O(domains × policies)).
+    const adminPolicyFundIDs = new Set<number>();
+    for (const policy of Object.values(policies ?? {})) {
+        if (policy?.policyAccountID === undefined || !isPolicyAdmin(policy) || policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            continue;
+        }
+        adminPolicyFundIDs.add(policy.policyAccountID);
+    }
+
+    for (const [domainKey, cardFeeds] of Object.entries(allCardFeeds ?? {})) {
+        // sharedNVP_private_domain_member_123456 -> 123456
+        const fundID = domainKey.split('_').at(-1);
+        if (!fundID) {
+            continue;
+        }
+        const numericFundID = Number(fundID);
+
+        // Visibility: the user must be an admin of the feed's domain or of a policy backed by this fund.
+        const domain = getDomainByFundID(domains, numericFundID);
+        const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
+        const isWorkspaceAdmin = adminPolicyFundIDs.has(numericFundID);
+        if (!isDomainAdmin && !isWorkspaceAdmin) {
+            continue;
+        }
+
+        for (const [key, feedData] of Object.entries(getOriginalCompanyFeeds(cardFeeds, feedKeysWithCards, numericFundID))) {
+            // `getOriginalCompanyFeeds` is keyed by `CardFeedWithNumber`, but `Object.entries` widens the key to
+            // `string`. Narrow it back with a type guard instead of an unsafe `as` assertion.
+            if (!isCardFeedWithNumber(key)) {
+                continue;
+            }
+            const country = feedData && 'country' in feedData ? (feedData.country ?? '') : '';
+            const linkedPolicyIDs = feedData && 'linkedPolicyIDs' in feedData ? feedData.linkedPolicyIDs : undefined;
+            const feed = key;
+            const id = `${fundID}_${feed}`;
+            if (seenFeedIDs.has(id)) {
+                continue;
+            }
+            seenFeedIDs.add(id);
+            visibleFeeds.push({
+                id,
+                feed,
+                country,
+                fundID,
+                linkedPolicyIDs,
+                name: getCustomOrFormattedFeedName(translate, feed, cardFeeds?.settings?.companyCardNicknames?.[feed], false) ?? feed,
+            });
+        }
+    }
+
+    return visibleFeeds;
+}
+
+/**
  * Finds a feed by id in the card feeds grouped by policy.
  *
  * @param feedId - The feed id (e.g. `${fundID}_${feed}`) to look up
@@ -703,9 +587,21 @@ function getCombinedCardFeedsFromAllFeeds(
                 }
             }
 
+            // Use the local reimbursable value during pending or failed saves. The OAuth value may be stale.
+            const hasLocalReimbursableChange = !!feedSettings?.pendingFields?.forceReimbursable || !!feedSettings?.errorFields?.forceReimbursable;
+            const reimbursableOverrides: Partial<CombinedCardFeed> =
+                oAuthAccountDetails && hasLocalReimbursableChange
+                    ? {
+                          forceReimbursable: feedSettings?.forceReimbursable ?? oAuthAccountDetails.forceReimbursable,
+                          pendingFields: {...oAuthAccountDetails.pendingFields, ...feedSettings?.pendingFields},
+                          errorFields: {...oAuthAccountDetails.errorFields, ...feedSettings?.errorFields},
+                      }
+                    : {};
+
             const combinedCardFeed: CombinedCardFeed = {
                 ...feedSettings,
                 ...oAuthAccountDetails,
+                ...reimbursableOverrides,
                 customFeedName: customFeedName ?? feedSettings?.uploadLayoutSettings?.layoutName,
                 domainID,
                 feed: feedName,
@@ -725,20 +621,104 @@ function getCombinedCardFeedsFromAllFeeds(
     }, {});
 }
 
+function findMatchingCards(cardFeeds: CombinedCardFeeds, cardLists: OnyxCollection<WorkspaceCardsList>, cardFeed?: CardFeedWithNumber, cardID?: number) {
+    const feedsWithDomainIDs = Object.keys(cardFeeds) as CardFeedWithDomainID[];
+    return Object.values(cardLists ?? {})
+        .flatMap((cardList) => Object.values(cardList ?? {}))
+        .filter((card) => {
+            const feedKey = card.bank as CardFeedWithNumber;
+            const feedDomainID = card.fundID ?? CONST.DEFAULT_MISSING_ID;
+            const feedWithDomainID = getCardFeedWithDomainID(feedKey, feedDomainID);
+            if (!feedsWithDomainIDs.includes(feedWithDomainID)) {
+                return false;
+            }
+            if (cardFeed && cardFeed !== feedKey) {
+                return false;
+            }
+            if (cardID && cardID !== card.cardID) {
+                return false;
+            }
+            return true;
+        });
+}
+
+function getCardsUsingCustomExportCount(
+    cardFeeds: CombinedCardFeeds,
+    cardLists: OnyxCollection<WorkspaceCardsList>,
+    exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
+): {
+    perFeedCount: Partial<Record<CardFeedWithNumber, number>>;
+    totalCount: number;
+} {
+    const perFeedCount: Partial<Record<CardFeedWithNumber, number>> = {};
+    let totalCount = 0;
+    for (const card of findMatchingCards(cardFeeds, cardLists)) {
+        const feedKey = card.bank as CardFeedWithNumber;
+        if (typeof card.nameValuePairs !== 'object') {
+            continue;
+        }
+        if (!(exportType in card.nameValuePairs)) {
+            continue;
+        }
+        perFeedCount[feedKey] = (perFeedCount[feedKey] ?? 0) + 1;
+        totalCount += 1;
+    }
+    return {perFeedCount, totalCount};
+}
+
+function getCardsCustomExportPendingAction(
+    cardFeeds: CombinedCardFeeds,
+    cardLists: OnyxCollection<WorkspaceCardsList>,
+    exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
+    cardFeed?: CardFeedWithNumber,
+    cardID?: number,
+): PendingAction | undefined {
+    for (const card of findMatchingCards(cardFeeds, cardLists, cardFeed, cardID)) {
+        if (typeof card.nameValuePairs !== 'object') {
+            continue;
+        }
+        if (!(exportType in (card.nameValuePairs.pendingFields ?? {}))) {
+            continue;
+        }
+        return card.nameValuePairs.pendingFields?.[exportType];
+    }
+    return undefined;
+}
+
+function areCardsCustomExportInErrorFields(
+    cardFeeds: CombinedCardFeeds,
+    cardLists: OnyxCollection<WorkspaceCardsList>,
+    exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES>,
+    cardFeed?: CardFeedWithNumber,
+    cardID?: number,
+): boolean {
+    for (const card of findMatchingCards(cardFeeds, cardLists, cardFeed, cardID)) {
+        if (typeof card.nameValuePairs !== 'object') {
+            continue;
+        }
+        if (!(exportType in (card.nameValuePairs.errorFields ?? {}))) {
+            continue;
+        }
+        return true;
+    }
+    return false;
+}
+
 export type {CardFilterItem, CardFeedForDisplay};
-export type {DomainFeedData};
 export {
     buildCardsData,
-    getCardFeedNamesWithType,
-    buildCardFeedsData,
-    generateSelectedCards,
-    getSelectedCardsFromFeeds,
     getFeedInfo,
     getLinkedPolicyName,
-    getDomainFeedData,
     getCardFeedsForDisplay,
     getExpensifyCardFeedsForDisplay,
     getCardFeedsForDisplayPerPolicy,
+    getPolicyIDsNamedByCardFeeds,
+    getAssignedCardFeedAccess,
+    getVisibleCompanyCardFeedsForSelector,
     getCombinedCardFeedsFromAllFeeds,
     getWorkspaceCardFeedsStatus,
+    getCardsUsingCustomExportCount,
+    getCardsCustomExportPendingAction,
+    areCardsCustomExportInErrorFields,
+    findMatchingCards,
 };

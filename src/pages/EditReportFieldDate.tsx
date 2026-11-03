@@ -1,13 +1,16 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type EditReportFieldDatePageProps = {
     /** Value of the policy report field */
@@ -30,16 +33,13 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback(
-        (value: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
-            if (isRequired && value[fieldKey].trim() === '') {
-                errors[fieldKey] = translate('common.error.fieldRequired');
-            }
-            return errors;
-        },
-        [fieldKey, isRequired, translate],
-    );
+    const validate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORT_FIELDS_EDIT_FORM> = {};
+        if (isRequired && value[fieldKey].trim() === '') {
+            errors[fieldKey] = translate('common.error.fieldRequired');
+        }
+        return errors;
+    };
 
     return (
         <FormProvider

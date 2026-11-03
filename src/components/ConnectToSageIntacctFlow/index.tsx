@@ -1,11 +1,14 @@
-import {useEffect} from 'react';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import useOnyx from '@hooks/useOnyx';
+
 import {isAuthenticationError} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import {useEffect} from 'react';
 
 type ConnectToSageIntacctFlowProps = {
     policyID: string;
@@ -22,7 +25,7 @@ function ConnectToSageIntacctFlow({policyID}: ConnectToSageIntacctFlowProps) {
             return;
         }
         if (!hasReusablePoliciesConnectedToSageIntacct) {
-            Navigation.navigate(`${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}/${DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path}`);
+            Navigation.navigate(`${ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID)}/${DYNAMIC_ROUTES.SAGE_INTACCT_PREREQUISITES.path}`);
             return;
         }
         Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.getRoute(policyID));

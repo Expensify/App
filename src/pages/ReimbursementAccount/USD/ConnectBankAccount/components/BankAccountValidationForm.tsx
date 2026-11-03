@@ -1,23 +1,29 @@
-import {Str} from 'expensify-common';
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {validateBankAccount} from '@libs/actions/BankAccounts';
 import getPermittedDecimalSeparator from '@libs/getPermittedDecimalSeparator';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {Policy, ReimbursementAccount} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import Enable2FACard from './Enable2FACard';
 
 type BankAccountValidationFormProps = {
@@ -69,7 +75,7 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
         const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> = {};
         const amountValues = getAmountValues(values);
         const outputCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-        const amountRegex = RegExp(String.raw`^-?\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}([${permittedDecimalSeparator}]\d{0,${getCurrencyDecimals(outputCurrency)}})?$`, 'i');
+        const amountRegex = RegExp(`^-?\\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}([${permittedDecimalSeparator}]\\d{0,${getCurrencyDecimals(outputCurrency)}})?$`, 'i');
 
         for (const key of Object.keys(amountValues)) {
             const value = amountValues[key as keyof AmountValues];
@@ -83,21 +89,18 @@ function BankAccountValidationForm({requiresTwoFactorAuth, reimbursementAccount,
         return errors;
     };
 
-    const submit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>) => {
-            const amount1 = filterInput(values.amount1 ?? '', undefined, permittedDecimalSeparator);
-            const amount2 = filterInput(values.amount2 ?? '', undefined, permittedDecimalSeparator);
-            const amount3 = filterInput(values.amount3 ?? '', undefined, permittedDecimalSeparator);
+    const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>) => {
+        const amount1 = filterInput(values.amount1 ?? '', undefined, permittedDecimalSeparator);
+        const amount2 = filterInput(values.amount2 ?? '', undefined, permittedDecimalSeparator);
+        const amount3 = filterInput(values.amount3 ?? '', undefined, permittedDecimalSeparator);
 
-            const validateCode = [amount1, amount2, amount3].join(',');
+        const validateCode = [amount1, amount2, amount3].join(',');
 
-            // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
-            if (bankAccountID) {
-                validateBankAccount(bankAccountID, validateCode, policyID);
-            }
-        },
-        [bankAccountID, policyID, permittedDecimalSeparator],
-    );
+        // Send valid amounts to BankAccountAPI::validateBankAccount in Web-Expensify
+        if (bankAccountID) {
+            validateBankAccount(bankAccountID, validateCode, policyID);
+        }
+    };
     // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
     // See https://github.com/Expensify/App/issues/51868 for more information
     return (

@@ -1,8 +1,9 @@
-import type {Dispatch, RefObject, SetStateAction} from 'react';
-import type {View} from 'react-native';
 import createContextNamespace from '@hooks/createContextNamespace';
 
-type AnchorRef = RefObject<View | null>;
+import type {ComponentRef, Dispatch, RefObject, SetStateAction} from 'react';
+import type {View} from 'react-native';
+
+type AnchorRef = RefObject<ComponentRef<typeof View> | null>;
 
 type AnchorRect = {x: number; y: number; width: number; height: number};
 

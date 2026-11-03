@@ -1,6 +1,7 @@
 import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import ROUTES from '@src/ROUTES';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -10,8 +11,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 describe('getReportRouteForCurrentContext', () => {
-    const mockGetActiveRoute = Navigation.getActiveRoute as jest.MockedFunction<typeof Navigation.getActiveRoute>;
-    const mockIsSearchTopmostFullScreenRoute = isSearchTopmostFullScreenRoute as jest.MockedFunction<typeof isSearchTopmostFullScreenRoute>;
+    const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
+    const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -31,6 +32,14 @@ describe('getReportRouteForCurrentContext', () => {
                 reportID: '42',
                 backTo: 'search?q=type:chat',
             }),
+        );
+    });
+
+    it('keeps a pending report on the standard report route', () => {
+        mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+
+        expect(getReportRouteForCurrentContext({reportID: '42', isPendingCreation: true})).toBe(
+            ROUTES.REPORT_WITH_ID.getRoute('42', undefined, undefined, 'search?q=type:chat', undefined, true),
         );
     });
 });

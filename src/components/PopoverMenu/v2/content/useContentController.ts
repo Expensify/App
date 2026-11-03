@@ -1,5 +1,7 @@
 import {useRootActions, useRootVisibility} from '@components/PopoverMenu/v2/root/RootContext';
+
 import type {ContentClose, ContentFocus, ContentItemActions, ContentNavigation, ContentSubActions} from './ContentContext';
+
 import useCloseOnModalCover from './useCloseOnModalCover';
 import useCloseOnScreenBlur from './useCloseOnScreenBlur';
 import useFocusableRegistry from './useFocusableRegistry';

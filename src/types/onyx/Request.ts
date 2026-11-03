@@ -1,6 +1,8 @@
+import type {OnyxCollectionKey} from '@src/ONYXKEYS';
+
 import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
 import type OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
-import type {OnyxCollectionKey} from '@src/ONYXKEYS';
+
 import type Response from './Response';
 
 /** Expands an Onyx key, allowing template patterns for collections or enforcing literals otherwise. */
@@ -29,6 +31,15 @@ type AnyOnyxUpdate<TKey extends OnyxKey = any> = {
     value?: any;
 };
 
+/** Identifies a bulk edit's local action and thread after its queued request is replayed. */
+type BulkEditActionContext = {
+    actionID: string;
+    threadReportID: string;
+    parentReportID?: string;
+    parentActionID?: string;
+    isOptimisticThread: boolean;
+};
+
 /** Generic base for types of onyx requests model sent to the API */
 type OnyxDataBase<TOnyxUpdate> = {
     /** Onyx instructions that are executed after getting response from server with jsonCode === 200 */
@@ -45,6 +56,9 @@ type OnyxDataBase<TOnyxUpdate> = {
 
     /** Onyx instructions that are executed when Onyx queue is flushed */
     queueFlushedData?: TOnyxUpdate[];
+
+    /** Client-only details retained with a queued bulk-edit request for response reconciliation. */
+    bulkEditActionContext?: BulkEditActionContext;
 };
 
 /** Model of onyx requests sent to the API */
@@ -269,4 +283,16 @@ type PaginatedRequest<TKey extends OnyxKey> = Request<TKey> &
     };
 
 export default Request;
-export type {AnyOnyxUpdate, OnyxData, AnyOnyxData, RequestType, PaginationConfig, PaginatedRequest, RequestConflictResolver, ConflictActionData, ConflictData, AnyRequest};
+export type {
+    AnyOnyxUpdate,
+    OnyxData,
+    AnyOnyxData,
+    BulkEditActionContext,
+    RequestType,
+    PaginationConfig,
+    PaginatedRequest,
+    RequestConflictResolver,
+    ConflictActionData,
+    ConflictData,
+    AnyRequest,
+};

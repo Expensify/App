@@ -1,26 +1,35 @@
-import React, {memo, useCallback, useEffect, useState} from 'react';
-import type {LayoutRectangle} from 'react-native';
-import {cancelAnimation, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import Log from '@libs/Log';
 import StringUtils from '@libs/StringUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import callOrReturn from '@src/types/utils/callOrReturn';
+
+import type {LayoutRectangle} from 'react-native';
+
+import React, {useEffect, useLayoutEffect, useState} from 'react';
+import {cancelAnimation, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
+
+import type {GenericTooltipProps} from './types';
+
 import BaseGenericTooltip from './BaseGenericTooltip';
 import TooltipSense from './TooltipSense';
-import type {GenericTooltipProps} from './types';
 
 /**
  * The generic tooltip implementation, exposing the tooltip's state
  * while leaving the tooltip's target bounds computation to its parent.
  */
+const defaultTooltipMaxWidth = variables.sideBarWidth - 2 * variables.uploadViewMargin;
+
 function GenericTooltip({
     children,
     numberOfLines = CONST.TOOLTIP_MAX_LINES,
-    maxWidth = variables.sideBarWidth - 2 * variables.uploadViewMargin,
+    maxWidth = defaultTooltipMaxWidth,
     minWidth,
     text = '',
     renderTooltipContent,
@@ -69,6 +78,10 @@ function GenericTooltip({
     const isAnimationCanceled = useSharedValue<boolean>(false);
     const prevText = usePrevious(text);
 
+    // The target bounds are only re-measured once the tooltip becomes visible. Showing instantly before that commit would
+    // paint the tooltip at its last position for a frame, e.g. after the target moved because the RHP was resized.
+    const shouldShowInstantlyOnCommit = useSharedValue<boolean>(false);
+
     useEffect(() => {
         if (!renderTooltipContent || !text) {
             return;
@@ -79,7 +92,7 @@ function GenericTooltip({
     /**
      * Display the tooltip in an animation.
      */
-    const showTooltip = useCallback(() => {
+    const showTooltip = () => {
         setIsRendered(true);
         setIsVisible(true);
 
@@ -87,7 +100,11 @@ function GenericTooltip({
 
         // When TooltipSense is active, immediately show the tooltip
         if (TooltipSense.isActive() && !shouldForceAnimate) {
-            animation.set(1);
+            if (isVisible) {
+                animation.set(1);
+            } else {
+                shouldShowInstantlyOnCommit.set(true);
+            }
         } else {
             isTooltipSenseInitiator.set(true);
             animation.set(
@@ -106,7 +123,17 @@ function GenericTooltip({
             );
         }
         TooltipSense.activate();
-    }, [animation, isAnimationCanceled, isTooltipSenseInitiator, shouldForceAnimate]);
+    };
+
+    // This must be a layout effect: it runs after BoundsObserver (a child) re-measured the target in componentDidUpdate,
+    // and React applies those bounds before paint, so the tooltip first appears at the correct position.
+    useLayoutEffect(() => {
+        if (!isVisible || !shouldShowInstantlyOnCommit.get()) {
+            return;
+        }
+        shouldShowInstantlyOnCommit.set(false);
+        animation.set(1);
+    }, [isVisible, animation, shouldShowInstantlyOnCommit]);
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
@@ -134,8 +161,9 @@ function GenericTooltip({
     /**
      * Hide the tooltip in an animation.
      */
-    const hideTooltip = useCallback(() => {
+    const hideTooltip = () => {
         cancelAnimation(animation);
+        shouldShowInstantlyOnCommit.set(false);
 
         if (TooltipSense.isActive() && !isTooltipSenseInitiator.get()) {
             animation.set(0);
@@ -146,15 +174,15 @@ function GenericTooltip({
         }
         TooltipSense.deactivate();
         setIsVisible(false);
-    }, [animation, isTooltipSenseInitiator]);
+    };
 
-    const onPressOverlay = useCallback(() => {
+    const onPressOverlay = () => {
         if (!shouldUseOverlay) {
             return;
         }
         setShouldUseOverlay(false);
         hideTooltip();
-    }, [shouldUseOverlay, hideTooltip]);
+    };
 
     // Skip the tooltip and return the children if the text is empty, we don't have a render function.
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
@@ -197,4 +225,4 @@ function GenericTooltip({
     );
 }
 
-export default memo(GenericTooltip);
+export default GenericTooltip;

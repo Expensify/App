@@ -1,45 +1,41 @@
-import React, {useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+
 import {MENU_CLOSE_DELAY_MS} from '@hooks/useShareSavedSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
 
 type ThreeDotsMenuHandle = {hidePopoverMenu: () => void; isPopupMenuVisible: boolean};
 
 type SavedSearchItemThreeDotMenuProps = {
     menuItems: PopoverMenuItem[];
     isDisabledItem: boolean;
-    hideProductTrainingTooltip?: () => void;
-    renderTooltipContent: () => React.JSX.Element;
-    shouldRenderTooltip: boolean;
     isCopied?: boolean;
 };
 
-function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrainingTooltip, renderTooltipContent, shouldRenderTooltip, isCopied}: SavedSearchItemThreeDotMenuProps) {
+function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, isCopied}: SavedSearchItemThreeDotMenuProps) {
     const styles = useThemeStyles();
     const {endPeek} = useSearchSidebarCollapse();
     const threeDotsMenuRef = useRef<ThreeDotsMenuHandle | null>(null);
 
-    const menuItemsWithPeekCleanup = useMemo(
-        () =>
-            menuItems.map((item) => {
-                if (item.shouldCloseModalOnSelect === false) {
-                    return item;
-                }
+    const menuItemsWithPeekCleanup = menuItems.map((item) => {
+        if (item.shouldCloseModalOnSelect === false) {
+            return item;
+        }
 
-                return {
-                    ...item,
-                    onSelected: () => {
-                        endPeek();
-                        item.onSelected?.();
-                    },
-                };
-            }),
-        [endPeek, menuItems],
-    );
+        return {
+            ...item,
+            onSelected: () => {
+                endPeek();
+                item.onSelected?.();
+            },
+        };
+    });
 
     useEffect(() => {
         if (!isCopied) {
@@ -56,14 +52,11 @@ function SavedSearchItemThreeDotMenu({menuItems, isDisabledItem, hideProductTrai
             <ThreeDotsMenu
                 shouldSelfPosition
                 menuItems={menuItemsWithPeekCleanup}
-                renderProductTrainingTooltipContent={renderTooltipContent}
-                shouldShowProductTrainingTooltip={shouldRenderTooltip}
                 anchorAlignment={{
                     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                     vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
                 }}
                 iconStyles={styles.wAuto}
-                hideProductTrainingTooltip={hideProductTrainingTooltip}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_THREE_DOT_MENU}
                 threeDotsMenuRef={threeDotsMenuRef}
             />

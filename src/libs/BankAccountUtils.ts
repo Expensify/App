@@ -1,13 +1,33 @@
-import {Str} from 'expensify-common';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
+import type useConfirmModal from '@hooks/useConfirmModal';
+
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 import type {ACHData} from '@src/types/onyx/ReimbursementAccount';
 
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+
 /** Responses of the additional KYB verification checks, hinting at which documents the user still needs to upload */
 type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalApiResponses'];
+
+type BankAccountConnectionStatus = {
+    labelKey: TranslationPaths;
+    tone: 'default' | 'success' | 'danger';
+    badgeTone?: 'default' | 'success' | 'danger';
+    messageKey?: TranslationPaths;
+    actionKey?: TranslationPaths;
+    requiresUnlockHandler?: boolean;
+    requiresPlaidHandler?: boolean;
+    tooltipKey?: TranslationPaths;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+};
 
 function getDefaultCompanyWebsite(session: OnyxEntry<OnyxTypes.Session>, account: OnyxEntry<OnyxTypes.Account>, shouldShowPublicDomain = false): string {
     return account?.isFromPublicDomain && !shouldShowPublicDomain ? '' : `https://www.${Str.extractEmailDomain(session?.email ?? '')}`;
@@ -17,8 +37,256 @@ function getLastFourDigits(bankAccountNumber: string): string {
     return bankAccountNumber ? bankAccountNumber.slice(-4) : '';
 }
 
+/**
+ * Renders a bank account as `${friendlyBankName} xx${last4}` for Search filter
+ * pickers, chips, and autocomplete suggestions. Falls back to GENERIC_BANK when
+ * the bank name is missing or not in CONST.BANK_NAMES_USER_FRIENDLY.
+ */
+function getBankAccountSearchLabel(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): string {
+    // BE returns bankName with the first letter uppercase (e.g. "Chase") but CONST.BANK_NAMES_USER_FRIENDLY keys are lowercase, so lowercase before the lookup.
+    const bankName = bankAccount?.accountData?.additionalData?.bankName?.toLowerCase() as keyof typeof CONST.BANK_NAMES_USER_FRIENDLY | undefined;
+    const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
+    const formattedBankName = (bankName ? CONST.BANK_NAMES_USER_FRIENDLY[bankName] : undefined) ?? CONST.BANK_NAMES_USER_FRIENDLY[CONST.BANK_NAMES.GENERIC_BANK];
+    const maskedNumber = accountNumber ? `xx${getLastFourDigits(accountNumber)}` : '';
+    return maskedNumber ? `${formattedBankName} ${maskedNumber}` : formattedBankName;
+}
+
 function isBankAccountPartiallySetup(state: string | undefined) {
     return state === CONST.BANK_ACCOUNT.STATE.SETUP || state === CONST.BANK_ACCOUNT.STATE.VERIFYING || state === CONST.BANK_ACCOUNT.STATE.PENDING;
+}
+
+function getBankAccountState(accountData: AccountData | undefined): string | undefined {
+    if (!accountData) {
+        return undefined;
+    }
+
+    return accountData.state;
+}
+
+function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.allowDebit;
+}
+
+function isConnectedViaPlaid(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.plaidAccountID || !!accountData.additionalData?.plaidAccountID;
+}
+
+function hasBrokenPlaidConnection(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.additionalData?.verifications?.externalApiResponses?.plaidAssets?.needsFixing;
+}
+
+/**
+ * Whether the bank account can be connected via Plaid:
+ * - Provisioned as the Expensify Card settlement account; or
+ * - Linked policy is on Expensify Card waitlist (NVP_EXPENSIFY_ON_CARD_WAITLIST)
+ */
+function canLinkPlaid(bankAccount: {isExpensifyCardSettlementAccount?: boolean; accountData?: AccountData} | null | undefined, cardOnWaitlistPolicyIDs: Set<string> | undefined): boolean {
+    if (!bankAccount) {
+        return false;
+    }
+
+    if (bankAccount.isExpensifyCardSettlementAccount || bankAccount.accountData?.isExpensifyCardSettlementAccount) {
+        return true;
+    }
+
+    const policyID = bankAccount.accountData?.additionalData?.policyID;
+    if (policyID && cardOnWaitlistPolicyIDs?.has(policyID)) {
+        return true;
+    }
+
+    for (const id of bankAccount.accountData?.policyIDs ?? []) {
+        if (cardOnWaitlistPolicyIDs?.has(id)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function getIncompleteBankAccountStatus(): BankAccountConnectionStatus {
+    return {
+        labelKey: 'walletPage.bankAccountStatus.incomplete',
+        messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
+        actionKey: 'walletPage.bankAccountStatus.finish',
+        tone: 'danger',
+        brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+    };
+}
+
+/**
+ * Only the USD flow has a test transaction step, and the backend puts non-USD accounts in PENDING while they are still
+ * being set up. So for those, PENDING means the setup is incomplete rather than waiting on the user to confirm test
+ * transactions.
+ *
+ * This keys off currency rather than country because currency is what selects the flow everywhere else. See
+ * ReimbursementAccountPage, which routes a PENDING account to the validation (test transaction) step only when the
+ * currency is USD. An absent currency is treated as USD, matching BankAccount.getCurrency().
+ */
+function getBankAccountConnectionStatus(accountData: AccountData | undefined, currency?: string, canBankAccountLinkPlaid = false): BankAccountConnectionStatus | undefined {
+    if (!accountData) {
+        return undefined;
+    }
+
+    const {state, type, additionalData: {country = CONST.COUNTRY.US} = {}} = accountData;
+    if (canBankAccountLinkPlaid && country === CONST.COUNTRY.US && state === CONST.BANK_ACCOUNT.STATE.OPEN && type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
+        if (hasBrokenPlaidConnection(accountData)) {
+            return {
+                requiresPlaidHandler: true,
+                labelKey: 'walletPage.bankAccountStatus.active',
+                messageKey: 'walletPage.bankAccountStatus.plaidBrokenReconnect',
+                actionKey: 'common.actionBadge.fix',
+                tone: 'danger',
+                badgeTone: 'success',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        }
+        if (!isConnectedViaPlaid(accountData)) {
+            return {
+                requiresPlaidHandler: true,
+                labelKey: 'walletPage.bankAccountStatus.active',
+                messageKey: 'walletPage.bankAccountStatus.plaidConnectForLimit',
+                actionKey: 'walletPage.bankAccountStatus.connect',
+                tone: 'success',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+            };
+        }
+    }
+
+    if (state === CONST.BANK_ACCOUNT.STATE.PENDING && !!currency && currency !== CONST.CURRENCY.USD) {
+        return getIncompleteBankAccountStatus();
+    }
+
+    switch (state) {
+        case CONST.BANK_ACCOUNT.STATE.OPEN:
+            return {
+                labelKey: 'walletPage.bankAccountStatus.active',
+                tone: 'success',
+            };
+        case CONST.BANK_ACCOUNT.STATE.SETUP:
+            return getIncompleteBankAccountStatus();
+        case CONST.BANK_ACCOUNT.STATE.PENDING:
+            return {
+                labelKey: 'walletPage.bankAccountStatus.pending',
+                messageKey: 'walletPage.bankAccountStatus.confirmTestTransactions',
+                actionKey: 'common.confirm',
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        case CONST.BANK_ACCOUNT.STATE.VERIFYING:
+            return {
+                labelKey: 'walletPage.bankAccountStatus.verifying',
+                tooltipKey: 'walletPage.bankAccountStatus.reviewingDocumentation',
+                tone: 'default',
+            };
+        case CONST.BANK_ACCOUNT.STATE.LOCKED:
+            return {
+                labelKey: 'common.locked',
+                messageKey: 'walletPage.bankAccountStatus.accountRequiresAttention',
+                actionKey: 'walletPage.bankAccountStatus.unlock',
+                requiresUnlockHandler: true,
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        default:
+            return undefined;
+    }
+}
+
+/**
+ * A BUSINESS account in a state that has actually been usable for paying expenses (anything other than SETUP / VERIFYING / PENDING).
+ * Used by the search picker, the autocomplete suggestions, and the advanced-filter visibility gate so all three surfaces accept and count the same set of accounts.
+ */
+function isFilterableBankAccount(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS && !isBankAccountPartiallySetup(bankAccount?.accountData?.state);
+}
+
+/**
+ * A verified (OPEN) USD business bank account that is not already set up for global reimbursements can start the Wise flow.
+ * Pass the record's top-level `bankCurrency` when available, since the nested `additionalData.currency` is optional.
+ */
+function isBankAccountEligibleForGlobalReimbursements(accountData: AccountData | undefined, bankCurrency?: string): boolean {
+    return (
+        // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
+        (bankCurrency || accountData?.additionalData?.currency) === CONST.CURRENCY.USD &&
+        accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
+        !accountData.additionalData?.verifications?.corpay &&
+        accountData.state === CONST.BANK_ACCOUNT.STATE.OPEN
+    );
+}
+
+/**
+ * Whether a payment from this account would be rejected until global reimbursements are set up, so the onboarding should open instead of paying.
+ * Only an explicit `false` counts, so an account without the flag still goes to the backend, which makes the final call.
+ */
+function shouldSetUpGlobalReimbursementsBeforePaying(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    return (
+        bankAccount?.accountData?.additionalData?.isGlobalReimbursementEnabled === false && isBankAccountEligibleForGlobalReimbursements(bankAccount.accountData, bankAccount.bankCurrency)
+    );
+}
+
+/**
+ * Picks the bank account the Wallet global reimbursements banner points to: the most recently added eligible account.
+ */
+function getWiseGlobalReimbursementsBannerBankAccountID(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
+    const newest = Object.values(bankAccountList ?? {}).reduce<AccountData | undefined>((latest, bankAccount) => {
+        // Accounts deleted offline stay in the list until the request syncs
+        if (bankAccount.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return latest;
+        }
+
+        const accountData = bankAccount.accountData;
+        if (!accountData?.bankAccountID || !isBankAccountEligibleForGlobalReimbursements(accountData, bankAccount.bankCurrency)) {
+            return latest;
+        }
+
+        if (!latest) {
+            return accountData;
+        }
+
+        // `created` is a DB timestamp, so string comparison orders accounts chronologically. When two accounts share the same second, the higher bank account ID wins.
+        const created = accountData.created ?? '';
+        const latestCreated = latest.created ?? '';
+        const isNewer = created > latestCreated || (created === latestCreated && accountData.bankAccountID > (latest.bankAccountID ?? CONST.DEFAULT_NUMBER_ID));
+
+        return isNewer ? accountData : latest;
+    }, undefined);
+
+    return newest?.bankAccountID;
+}
+
+/**
+ * Picks the bank account the Workspace Workflows global reimbursements banner points to: the workspace's connected account, when it is eligible.
+ */
+function getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy: OnyxEntry<OnyxTypes.Policy>, bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): number | undefined {
+    // Only "Reimburse via Expensify" pays out of the connected account, so the other choices have nothing to enable
+    if (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+        return undefined;
+    }
+
+    const bankAccountID = policy.achAccount?.bankAccountID;
+    if (!bankAccountID) {
+        return undefined;
+    }
+
+    // Admins without a copy of the account can't see its currency, type or verifications, so the banner stays hidden for them
+    const bankAccount = bankAccountList?.[bankAccountID];
+    if (bankAccount?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)) {
+        return undefined;
+    }
+
+    return bankAccountID;
 }
 
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
@@ -34,6 +302,10 @@ function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<Onyx
 
 function hasPartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
     return Object.values(bankAccountList ?? {}).some((bankAccount) => isBankAccountPartiallySetup(bankAccount?.accountData?.state));
+}
+
+function hasBrokenPlaidConnectionBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>): boolean {
+    return Object.values(bankAccountList ?? {}).some((bankAccount) => hasBrokenPlaidConnection(bankAccount?.accountData));
 }
 
 const PERSONAL_INFO_STEP = {
@@ -173,11 +445,33 @@ function getRequiredKYBDocuments(externalApiResponses: KYBVerificationResponses)
     return requiredDocuments;
 }
 
+function showUnlockAlreadyRequestedModal(showConfirmModal: ReturnType<typeof useConfirmModal>['showConfirmModal'], translate: LocaleContextProps['translate']) {
+    showConfirmModal({
+        title: translate('bankAccount.unlockAlreadyRequestedTitle'),
+        prompt: translate('bankAccount.unlockAlreadyRequestedDescription'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
+}
+
 export {
+    getBankAccountSearchLabel,
+    isFilterableBankAccount,
+    isBankAccountEligibleForGlobalReimbursements,
+    shouldSetUpGlobalReimbursementsBeforePaying,
+    getWiseGlobalReimbursementsBannerBankAccountID,
+    getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
     getDefaultCompanyWebsite,
+    getBankAccountState,
+    hasBankAccountAllowDebit,
+    isConnectedViaPlaid,
+    hasBrokenPlaidConnection,
+    canLinkPlaid,
+    getBankAccountConnectionStatus,
     getRequiredKYBDocuments,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
+    hasBrokenPlaidConnectionBankAccount,
     hasPersonalBankAccountMissingInfo,
     isBankAccountPartiallySetup,
     isUserAddressVerificationRequired,
@@ -185,6 +479,7 @@ export {
     doesPolicyHavePartiallySetupBankAccount,
     isPersonalBankAccountMissingInfo,
     getCompletedStepsForBankAccount,
+    showUnlockAlreadyRequestedModal,
     PERSONAL_INFO_STEP,
 };
-export type {KYBVerificationResponses};
+export type {BankAccountConnectionStatus, KYBVerificationResponses};

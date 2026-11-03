@@ -1,6 +1,8 @@
-import {filterOutPersonalCards} from '@selectors/Card';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardList} from '@src/types/onyx';
+
+import {filterOutPersonalCards} from '@selectors/Card';
+
 import useOnyx from './useOnyx';
 
 function useNonPersonalCardList(): CardList {

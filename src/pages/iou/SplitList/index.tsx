@@ -1,21 +1,23 @@
-import React, {useMemo, useRef} from 'react';
-import type {ValueOf} from 'type-fest';
 import SelectionList from '@components/SelectionList';
 import SplitListItem from '@components/SelectionList/ListItem/SplitListItem';
-import type {ListItem, SplitListItemType} from '@components/SelectionList/ListItem/types';
+import type {SplitListItemType} from '@components/SelectionList/ListItem/types';
 import type {SelectionListHandle} from '@components/SelectionList/types';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useRef} from 'react';
+
 import useHandleInputFocus from './useHandleInputFocus';
 
 type SplitListProps = {
     /** The split expense sections data. */
     data: SplitListItemType[];
 
-    /** The initially focused option key. */
     initiallyFocusedOptionKey: string | undefined;
-
-    /** Callback when a row is selected. */
     onSelectRow: (item: SplitListItemType) => void;
 
     /** Footer content to render at the bottom of the list. */
@@ -28,8 +30,6 @@ type SplitListProps = {
     mode: ValueOf<typeof CONST.TAB.SPLIT>;
 };
 
-type SplitListItemProps = React.ComponentProps<typeof SplitListItem>;
-
 /**
  * Unified component for split expense tabs (Amount, Percentage, Date).
  * Renders split items with the appropriate input type based on mode,
@@ -41,19 +41,7 @@ function SplitList({data, initiallyFocusedOptionKey, onSelectRow, listFooterCont
 
     const handleInputFocus = useHandleInputFocus({listRef});
 
-    // Create a wrapper component that adds the onInputFocus handler
-    const SplitListItemWithInputFocus = useMemo(
-        () =>
-            ((props: SplitListItemProps) => (
-                <SplitListItem
-                    onInputFocus={(item: ListItem) => handleInputFocus(item as SplitListItemType)}
-                    {...props}
-                />
-            )) as typeof SplitListItem,
-        [handleInputFocus],
-    );
-
-    const splitOptions = data.map((option) => ({...option, mode}));
+    const splitOptions = data.map((option) => ({...option, mode, onInputFocus: handleInputFocus}));
 
     return (
         <SelectionList
@@ -61,7 +49,7 @@ function SplitList({data, initiallyFocusedOptionKey, onSelectRow, listFooterCont
             onSelectRow={onSelectRow}
             ref={listRef}
             initiallyFocusedItemKey={initiallyFocusedOptionKey}
-            ListItem={SplitListItemWithInputFocus}
+            ListItem={SplitListItem}
             style={{containerStyle: styles.flexBasisAuto}}
             customListHeaderContent={listHeaderContent}
             listFooterContent={listFooterContent}

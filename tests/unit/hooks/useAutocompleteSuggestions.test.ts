@@ -1,8 +1,20 @@
-import {renderHook} from '@testing-library/react-native';
-import type {OnyxCollection} from 'react-native-onyx';
+import {renderHook, waitFor} from '@testing-library/react-native';
+
 import useAutocompleteSuggestions from '@hooks/useAutocompleteSuggestions';
+import useNetwork from '@hooks/useNetwork';
+
+import {openSearchCategoryFiltersPage} from '@libs/actions/Search';
+import {getSearchOptions} from '@libs/OptionsListUtils';
+import type * as SearchAutocompleteUtils from '@libs/SearchAutocompleteUtils';
+import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
 
 const onyxData: Record<string, unknown> = {};
 
@@ -11,6 +23,15 @@ jest.mock('@hooks/useOnyx', () => ({
     default: (key: string) => [onyxData[key]],
 }));
 
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
+
+jest.mock('@components/OnyxListItemProvider', () => ({
+    useCardList: () => ({}),
+    useWorkspaceCardList: () => ({}),
+}));
+jest.mock('@libs/actions/Search', () => ({openSearchCategoryFiltersPage: jest.fn()}));
+
+const mockConvertToDisplayString = jest.fn(() => '$0.00');
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListState: () => ({
         currencyList: {
@@ -22,6 +43,7 @@ jest.mock('@hooks/useCurrencyList', () => ({
             RETIRED_CURRENCY: {symbol: 'X', name: 'Retired', retired: true},
         },
     }),
+    useCurrencyListActions: () => ({convertToDisplayString: mockConvertToDisplayString}),
 }));
 
 jest.mock('@libs/SearchAutocompleteUtils', () => ({
@@ -34,6 +56,7 @@ jest.mock('@libs/SearchAutocompleteUtils', () => ({
         {taxRateName: 'VAT 20%', taxRateIds: ['vat20']},
         {taxRateName: 'GST 10%', taxRateIds: ['gst10']},
     ]),
+    CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
 }));
 
 jest.mock('@libs/OptionsListUtils', () => ({
@@ -76,6 +99,7 @@ jest.mock('@libs/CategoryUtils', () => ({
 jest.mock('@libs/SearchQueryUtils', () => ({
     getUserFriendlyKey: jest.fn((key: string) => key),
     getUserFriendlyValue: jest.fn((value: string) => value),
+    isFilterSupported: jest.requireActual<typeof SearchQueryUtils>('@libs/SearchQueryUtils').isFilterSupported,
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({
@@ -87,37 +111,45 @@ jest.mock('@hooks/useExportedToFilterOptions', () => ({
     __esModule: true,
     default: () => ({
         exportedToFilterOptions: ['QuickBooks Online', 'Xero', 'NetSuite'],
-        combinedUniqueExportTemplates: [],
         connectedIntegrationNames: new Set<string>(),
     }),
 }));
 
 const {parseForAutocomplete} = jest.requireMock<{parseForAutocomplete: jest.Mock}>('@libs/SearchAutocompleteUtils');
-const {getSearchOptions} = jest.requireMock<{getSearchOptions: jest.Mock}>('@libs/OptionsListUtils');
+const {getUserFriendlyKey} = jest.requireMock<{getUserFriendlyKey: jest.Mock}>('@libs/SearchQueryUtils');
 const {getExpensifyTeamExclusions} = jest.requireMock<{getExpensifyTeamExclusions: jest.Mock}>('@libs/PolicyUtils');
+const mockedUseNetwork = jest.mocked(useNetwork);
+const mockedOpenSearchCategoryFiltersPage = jest.mocked(openSearchCategoryFiltersPage);
+const mockedGetSearchOptions = jest.mocked(getSearchOptions);
 
-const defaultParams = {
+type Params = Parameters<typeof useAutocompleteSuggestions>[0];
+
+const defaultParams: Params = {
     autocompleteQueryValue: '',
     allCards: {},
     allFeeds: {},
     options: {reports: [], personalDetails: []},
+    getReportByID: () => undefined,
     draftComments: {},
-    betas: [] as never[],
+    isDefaultRoomsBetaEnabled: false,
     countryCode: 1,
     loginList: {},
     policies: {},
     visibleReportActionsData: undefined,
-    sortedActions: undefined,
     currentUserAccountID: 100,
     currentUserEmail: 'me@example.com',
     personalDetails: {},
     feedKeysWithCards: undefined,
-    translate: jest.fn((key: string) => key) as never,
+    translate: (key, ...parameters) => String([key, ...parameters].at(0)),
 };
 
 describe('useAutocompleteSuggestions', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockedUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
+        for (const key of Object.keys(onyxData)) {
+            delete onyxData[key];
+        }
     });
 
     it('returns empty array when autocompleteKey is undefined (empty query)', () => {
@@ -134,6 +166,20 @@ describe('useAutocompleteSuggestions', () => {
         const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'random text'}));
 
         expect(result.current).toEqual([]);
+    });
+
+    it('keeps the same empty array reference across renders and hook instances', () => {
+        parseForAutocomplete.mockReturnValue({autocomplete: null, ranges: []});
+
+        // Each render builds a fresh params object, mirroring a parent re-render.
+        const {result: first, rerender} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: ''}));
+        const firstResult = first.current;
+        rerender({});
+
+        const {result: second} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: ''}));
+
+        expect(first.current).toBe(firstResult);
+        expect(second.current).toBe(firstResult);
     });
 
     it('returns tag suggestions when autocomplete key is tag', () => {
@@ -170,6 +216,110 @@ describe('useAutocompleteSuggestions', () => {
 
         expect(result.current.length).toBeGreaterThan(0);
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.CATEGORY);
+    });
+
+    it('loads category data when a pasted query contains a completed category filter', async () => {
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = false;
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: null,
+            ranges: [
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 0, length: 12},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'SecondTesting', start: 13, length: 22},
+            ],
+        });
+
+        renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:expense category:SecondTesting'}));
+
+        await waitFor(() => expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(1));
+    });
+
+    it('retries loading category data when category autocomplete is reopened after a failure', async () => {
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = false;
+        parseForAutocomplete.mockImplementation((query: string) => ({
+            autocomplete: {
+                key: query.startsWith('category:') ? CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY : CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
+                value: 'tra',
+            },
+            ranges: [],
+        }));
+
+        const {rerender} = renderHook(({query}) => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: query}), {
+            initialProps: {query: 'category:t'},
+        });
+
+        await waitFor(() => expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(1));
+
+        rerender({query: 'category:tr'});
+        expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(1);
+
+        rerender({query: 'tag:t'});
+        rerender({query: 'category:tr'});
+
+        await waitFor(() => expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(2));
+
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = true;
+        rerender({query: 'tag:t'});
+        rerender({query: 'category:tra'});
+
+        expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not load category data when it is already loaded', () => {
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = true;
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'tra'},
+            ranges: [],
+        });
+
+        renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'category:tra'}));
+
+        expect(mockedOpenSearchCategoryFiltersPage).not.toHaveBeenCalled();
+    });
+
+    it('reloads category data when cache is cleared while a category query remains open', async () => {
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = false;
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'second'},
+            ranges: [],
+        });
+
+        const {rerender} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'category:second'}));
+        await waitFor(() => expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(1));
+
+        onyxData[ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA] = false;
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = true;
+        rerender(undefined);
+
+        delete onyxData[ONYXKEYS.RAM_ONLY_IS_LOADING_SEARCH_FILTERS_CATEGORY_DATA];
+        delete onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED];
+        rerender(undefined);
+
+        await waitFor(() => expect(mockedOpenSearchCategoryFiltersPage).toHaveBeenCalledTimes(2));
+    });
+
+    it('does not load category data while offline', () => {
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = false;
+        mockedUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: 'tra'},
+            ranges: [],
+        });
+
+        renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'category:tra'}));
+
+        expect(mockedOpenSearchCategoryFiltersPage).not.toHaveBeenCalled();
+    });
+
+    it('keeps showing only recent categories when autocomplete value is empty', () => {
+        onyxData[ONYXKEYS.IS_SEARCH_FILTERS_CATEGORY_DATA_LOADED] = true;
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, value: ''},
+            ranges: [],
+        });
+
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'category:'}));
+
+        expect(result.current.map((item) => item.text)).toEqual(['Meals', 'Travel']);
     });
 
     it('returns currency suggestions when autocomplete key is currency', () => {
@@ -261,7 +411,7 @@ describe('useAutocompleteSuggestions', () => {
 
     it('returns status suggestions when autocomplete key is status', () => {
         parseForAutocomplete.mockReturnValue({
-            autocomplete: {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, value: ''},
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS, value: ''},
             ranges: [{key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 0, length: 12}],
         });
 
@@ -283,6 +433,23 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE);
     });
 
+    it('suggests date presets after anyApproval:', () => {
+        // Given the user has typed the anyApproval filter key with no value yet
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL, value: ''},
+            ranges: [],
+        });
+
+        // When the autocomplete suggestions are computed for that query
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'anyApproval:'}));
+
+        // Then the date presets are suggested for the anyApproval key, since it is a date filter like the other date keys
+        expect(result.current.length).toBeGreaterThan(0);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
+        expect(result.current.map((item) => item.text)).toEqual(['today', 'yesterday', 'lastWeek', 'lastMonth'].sort());
+        expect(getUserFriendlyKey).toHaveBeenCalledWith(CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL);
+    });
+
     it('returns boolean suggestions for reimbursable key', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE, value: ''},
@@ -293,6 +460,36 @@ describe('useAutocompleteSuggestions', () => {
 
         expect(result.current.length).toBeGreaterThan(0);
         expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE);
+    });
+
+    it('returns yes and no suggestions for declined key', () => {
+        // Given the user has typed the declined key with no value yet
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED, value: ''},
+            ranges: [],
+        });
+
+        // When suggestions are computed
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'declined:'}));
+
+        // Then both boolean values are suggested for the declined key
+        expect(result.current.map((suggestion) => suggestion.text)).toEqual([CONST.SEARCH.BOOLEAN.NO, CONST.SEARCH.BOOLEAN.YES]);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED);
+    });
+
+    it('returns yes and no suggestions for held key', () => {
+        // Given the user has typed the held key with no value yet
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD, value: ''},
+            ranges: [],
+        });
+
+        // When suggestions are computed
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'held:'}));
+
+        // Then both boolean values are suggested for the held key
+        expect(result.current.map((suggestion) => suggestion.text)).toEqual([CONST.SEARCH.BOOLEAN.NO, CONST.SEARCH.BOOLEAN.YES]);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD);
     });
 
     it('returns in: suggestions for chat reports', () => {
@@ -319,6 +516,72 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current).toEqual([]);
     });
 
+    it('returns no in: suggestions when the query has an explicit type that does not support in:', () => {
+        // Given a query with type:expense, which does not support the in: filter
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: ''},
+            ranges: [{key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 0, length: 12}],
+        });
+
+        // When the user starts typing an in: value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:expense in:'}));
+
+        // Then no chat suggestions are shown, because selecting one would build a query that can never match any expense
+        expect(result.current).toEqual([]);
+        expect(mockedGetSearchOptions).not.toHaveBeenCalled();
+    });
+
+    it('returns in: suggestions when the query has an explicit type that supports in:', () => {
+        // Given a query with type:chat, which supports the in: filter
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: ''},
+            ranges: [{key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.CHAT, start: 0, length: 9}],
+        });
+
+        // When the user starts typing an in: value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:chat in:'}));
+
+        // Then chat suggestions are still shown
+        expect(result.current.length).toBeGreaterThan(0);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN);
+    });
+
+    it('uses the last type filter to decide whether to show in: suggestions', () => {
+        // Given a query with type:expense followed by type:chat, where the search parser uses the last type (chat)
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: ''},
+            ranges: [
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 0, length: 12},
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.CHAT, start: 13, length: 9},
+            ],
+        });
+
+        // When the user starts typing an in: value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:expense type:chat in:'}));
+
+        // Then chat suggestions are shown, because the query that runs is a chat search
+        expect(result.current.length).toBeGreaterThan(0);
+        expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN);
+    });
+
+    it('hides in: suggestions when the last type filter does not support in:', () => {
+        // Given a query with type:chat followed by type:expense, where the search parser uses the last type (expense)
+        parseForAutocomplete.mockReturnValue({
+            autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, value: ''},
+            ranges: [
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.CHAT, start: 0, length: 9},
+                {key: CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, value: CONST.SEARCH.DATA_TYPES.EXPENSE, start: 10, length: 12},
+            ],
+        });
+
+        // When the user starts typing an in: value
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'type:chat type:expense in:'}));
+
+        // Then no chat suggestions are shown, because the query that runs is an expense search
+        expect(result.current).toEqual([]);
+        expect(mockedGetSearchOptions).not.toHaveBeenCalled();
+    });
+
     it('returns empty array for unknown autocomplete key', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: 'unknownKey', value: 'test'},
@@ -330,6 +593,41 @@ describe('useAutocompleteSuggestions', () => {
         expect(result.current).toEqual([]);
     });
 
+    test.each(['createdBy:alice', 'ReportID:123', 'TAXRATE:20', 'report-field-Custom:value'])('consumes real non-canonical parser keys in %s', (query) => {
+        // Given the generated parser rather than the existing scenario stub.
+        parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
+        // When the production hook consumes a key without a suggestion branch.
+        const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: query}));
+        // Then it returns no suggestions without narrowing the parser to canonical keys.
+        expect(result.current).toEqual([]);
+        expect(parseForAutocomplete).toHaveBeenCalledWith(query);
+    });
+
+    it('uses real parser offsets and repeated substitutions for workspaces with the same name', () => {
+        // Given two selected workspaces whose display names collide but whose IDs differ.
+        parseForAutocomplete.mockImplementation(jest.requireActual<typeof SearchAutocompleteUtils>('@libs/SearchAutocompleteUtils').parseForAutocomplete);
+        const policies: NonNullable<OnyxCollection<Policy>> = {
+            first: createMock<Policy>({id: 'A', name: 'Test Workspace'}),
+            second: createMock<Policy>({id: 'B', name: 'Test Workspace'}),
+            third: createMock<Policy>({id: 'C', name: 'Test Workspace'}),
+        };
+        // When the production branch resolves occurrences by the existing indexed substitution keys.
+        const {result} = renderHook(() =>
+            useAutocompleteSuggestions({
+                ...defaultParams,
+                autocompleteQueryValue: 'workspace:"Test Workspace","Test Workspace",',
+                policies,
+                autocompleteSubstitutions: Object.fromEntries([
+                    ['policyID:Test Workspace', 'A'],
+                    ['policyID:Test Workspace:1', 'B'],
+                ]),
+            }),
+        );
+        // Then only the unselected policy remains despite the repeated display value.
+        expect(result.current).toHaveLength(1);
+        expect(result.current.at(0)).toMatchObject({autocompleteID: 'C', text: 'Test Workspace'});
+    });
+
     it('excludes already selected workspaces by policy ID when names are duplicated', () => {
         parseForAutocomplete.mockReturnValue({
             autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, value: 'test workspace'},
@@ -339,11 +637,11 @@ describe('useAutocompleteSuggestions', () => {
             ],
         });
 
-        const policiesWithSameName = {
-            policyOne: {id: 'policyA', name: 'Test Workspace'},
-            policyTwo: {id: 'policyB', name: 'Test Workspace'},
-            policyThree: {id: 'policyC', name: 'Test Workspace'},
-        } as unknown as NonNullable<OnyxCollection<Policy>>;
+        const policiesWithSameName: NonNullable<OnyxCollection<Policy>> = {
+            policyOne: createMock<Policy>({id: 'policyA', name: 'Test Workspace'}),
+            policyTwo: createMock<Policy>({id: 'policyB', name: 'Test Workspace'}),
+            policyThree: createMock<Policy>({id: 'policyC', name: 'Test Workspace'}),
+        };
 
         const {result} = renderHook(() =>
             useAutocompleteSuggestions({
@@ -371,8 +669,7 @@ describe('useAutocompleteSuggestions', () => {
         };
 
         const lastSearchOptionsCallExclusions = (): Record<string, boolean> | undefined => {
-            const calls = getSearchOptions.mock.calls as Array<[{excludeFromSuggestionsOnly?: Record<string, boolean>}]>;
-            return calls.at(-1)?.[0]?.excludeFromSuggestionsOnly;
+            return mockedGetSearchOptions.mock.calls.at(-1)?.[0]?.excludeFromSuggestionsOnly;
         };
 
         it('passes Expensify-team exclusions to getSearchOptions for from: autocomplete', () => {
@@ -435,7 +732,7 @@ describe('useAutocompleteSuggestions', () => {
     /* eslint-enable @typescript-eslint/naming-convention */
 
     describe('withdrawal-status autocomplete', () => {
-        it('returns all three settlement statuses when value is empty', () => {
+        it('returns all settlement statuses when value is empty', () => {
             parseForAutocomplete.mockReturnValue({
                 autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS, value: ''},
                 ranges: [],
@@ -444,7 +741,7 @@ describe('useAutocompleteSuggestions', () => {
             const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'withdrawal-status:'}));
 
             const values = result.current.map((item) => item.text).sort();
-            expect(values).toEqual(['cleared', 'failed', 'pending']);
+            expect(values).toEqual(['cleared', 'failed', 'never', 'pending']);
             expect(result.current.at(0)?.filterKey).toBe(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_STATUS);
         });
 
@@ -469,7 +766,7 @@ describe('useAutocompleteSuggestions', () => {
             const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, autocompleteQueryValue: 'withdrawal-status:pending,'}));
 
             const values = result.current.map((item) => item.text).sort();
-            expect(values).toEqual(['cleared', 'failed']);
+            expect(values).toEqual(['cleared', 'failed', 'never']);
         });
     });
 });

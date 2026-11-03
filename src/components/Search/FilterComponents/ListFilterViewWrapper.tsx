@@ -1,8 +1,10 @@
-import React from 'react';
-import {View} from 'react-native';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import {useListFilterHeightContext} from './ListFilterHeightContext';
 
 type ListFilterWrapperProps = {
@@ -12,11 +14,12 @@ type ListFilterWrapperProps = {
     hasTitle?: boolean;
     hasHeader?: boolean;
     isSearchable?: boolean;
+    isNegatable?: boolean;
     extraHeight?: number;
     shouldUseFixedPopoverHeight?: boolean;
 };
 
-function ListFilterView({children, itemCount, itemHeight, hasTitle = true, hasHeader, isSearchable, extraHeight, shouldUseFixedPopoverHeight}: ListFilterWrapperProps) {
+function ListFilterView({children, itemCount, itemHeight, hasTitle = true, hasHeader, isSearchable, isNegatable, extraHeight, shouldUseFixedPopoverHeight}: ListFilterWrapperProps) {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -34,6 +37,7 @@ function ListFilterView({children, itemCount, itemHeight, hasTitle = true, hasHe
                     hasTitle: hasTitle && !hasHeader && isSmallScreenWidth,
                     hasHeader,
                     isSearchable,
+                    isNegatable,
                     extraHeight,
                 }),
             ]}

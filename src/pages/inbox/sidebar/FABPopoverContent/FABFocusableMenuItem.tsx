@@ -1,7 +1,10 @@
-import React from 'react';
 import FocusableMenuItem from '@components/FocusableMenuItem';
 import type {MenuItemProps} from '@components/MenuItem';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import useFABMenuItem from './useFABMenuItem';
 
 type FABFocusableMenuItemProps = Omit<MenuItemProps, 'focused' | 'onFocus' | 'wrapperStyle' | 'shouldCheckActionAllowedOnPress' | 'role' | 'onPress'> & {

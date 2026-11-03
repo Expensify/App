@@ -1,35 +1,35 @@
-import React from 'react';
-import {View} from 'react-native';
+import AccountAvatarWithCardFeed from '@components/Avatar/connected/AccountAvatarWithCardFeed';
 import Checkbox from '@components/Checkbox';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ListItem} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
-import type {CompanyCardFeed} from '@src/types/onyx/CardFeeds';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TransactionCardGroupListItemType} from './types';
+
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
-import type {TransactionCardGroupListItemType} from './types';
 
-type CardListItemHeaderProps<TItem extends ListItem> = {
-    /** The card currently being looked at */
+type CardListItemHeaderProps = {
     card: TransactionCardGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TransactionCardGroupListItemType) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
 
-    /** Whether the item is focused */
     isFocused?: boolean;
 
     /** Whether selecting multiple transactions at once is allowed */
@@ -41,7 +41,6 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
@@ -51,7 +50,7 @@ type CardListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function CardListItemHeader<TItem extends ListItem>({
+function CardListItemHeader({
     card: cardItem,
     onCheckboxPress,
     isDisabled,
@@ -62,17 +61,17 @@ function CardListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     columns,
     isExpanded,
-}: CardListItemHeaderProps<TItem>) {
+}: CardListItemHeaderProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const {translate, formatPhoneNumber} = useLocalize();
-    const formattedDisplayName = formatPhoneNumber(getDisplayNameOrDefault(cardItem));
+    const formattedDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: cardItem, translate, formatPhoneNumber});
     const backgroundColor =
         StyleUtils.getItemBackgroundColorStyle(!!cardItem.isSelected, !!isFocused, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
-    const columnComponents = {
+    const columnComponents: Partial<Record<SearchColumnType, React.JSX.Element>> = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
@@ -80,11 +79,11 @@ function CardListItemHeader<TItem extends ListItem>({
             >
                 <UserDetailsTooltip accountID={cardItem.accountID}>
                     <View>
-                        <ReportActionAvatars
-                            subscriptCardFeed={cardItem.bank as CompanyCardFeed}
-                            subscriptAvatarBorderColor={backgroundColor}
-                            noRightMarginOnSubscriptContainer
-                            accountIDs={[cardItem.accountID]}
+                        <AccountAvatarWithCardFeed
+                            accountID={cardItem.accountID}
+                            cardFeed={cardItem.bank}
+                            borderColor={backgroundColor}
+                            containerStyle={styles.mr0}
                             size={CONST.AVATAR_SIZE.SMALL}
                         />
                     </View>
@@ -101,6 +100,7 @@ function CardListItemHeader<TItem extends ListItem>({
                         text={cardItem.formattedCardName ?? ''}
                         numberOfLines={2}
                         style={[styles.preWrap]}
+                        isSelectable
                     />
                 </View>
             </View>
@@ -114,6 +114,7 @@ function CardListItemHeader<TItem extends ListItem>({
                     text={cardItem.formattedFeedName ?? ''}
                     numberOfLines={2}
                     style={[styles.lineHeightLarge, styles.preWrap]}
+                    isSelectable
                 />
             </View>
         ),
@@ -144,7 +145,7 @@ function CardListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(cardItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(cardItem)}
                             isChecked={isSelectAllChecked}
                             isIndeterminate={isIndeterminate}
                             disabled={!!isDisabled || cardItem.isDisabledCheckbox}
@@ -154,26 +155,28 @@ function CardListItemHeader<TItem extends ListItem>({
                     )}
                     {!isLargeScreenWidth && (
                         <View style={[styles.flexRow, styles.flex1, styles.gap3]}>
-                            <ReportActionAvatars
-                                subscriptCardFeed={cardItem.bank as CompanyCardFeed}
-                                subscriptAvatarBorderColor={backgroundColor}
-                                noRightMarginOnSubscriptContainer
-                                accountIDs={[cardItem.accountID]}
+                            <AccountAvatarWithCardFeed
+                                accountID={cardItem.accountID}
+                                cardFeed={cardItem.bank}
+                                borderColor={backgroundColor}
+                                containerStyle={styles.mr0}
                             />
                             <View style={[styles.gap1, styles.flexShrink1]}>
                                 <TextWithTooltip
                                     text={formattedDisplayName}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                    isSelectable
                                 />
                                 <TextWithTooltip
                                     text={cardItem.formattedCardName ?? ''}
                                     numberOfLines={2}
                                     style={[styles.textLabelSupporting, styles.lh16, styles.preWrap]}
+                                    isSelectable
                                 />
                             </View>
                         </View>
                     )}
-                    {isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
+                    {isLargeScreenWidth && columns?.map((column) => columnComponents[column])}
                 </View>
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>

@@ -18,15 +18,35 @@ In order to have more consistent builds, we use a strict `node` and `npm` versio
 
 ## Configuring HTTPS
 
-The webpack development server now uses https. If you're using a mac, you can simply run `npm run setup-https`.
+The Rspack development server now uses https. If you're using a mac, you can simply run `npm run setup-https`.
 
-If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `dev.new.expensify.com` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/webpack`.
+If you're using another operating system, you will need to ensure `mkcert` is installed, and then follow the instructions in the repository to generate certificates valid for `dev.new.expensify.com` and `localhost`. The certificate should be named `certificate.pem` and the key should be named `key.pem`. They should be placed in `config/rsbuild`.
+
+If you already generated certificates before the Webpack → Rsbuild migration, they're now in the wrong place (`config/webpack`, which no longer exists). Just re-run `npm run setup-https` to regenerate them in `config/rsbuild`, or move the existing files: `mv config/webpack/{key,certificate}.pem config/rsbuild/`.
 
 ## Running the Web App
 
 ### Development Server
 - To run the **development web app**: `npm run web`
-- Changes applied to Javascript will be applied automatically via WebPack as configured in `webpack.dev.ts`
+- Changes applied to Javascript will be applied automatically via Rsbuild as configured in `config/rsbuild/rsbuild.config.ts`
+
+`npm run web` starts the API proxy, Rsbuild, and the Cloudflare Worker in local workerd through Wrangler. It opens `https://dev.new.expensify.com:8082/` after the Worker serves the app. The Worker uses your existing mkcert certificate and forwards to a private loopback HTTP Rsbuild listener.
+
+React edits use Fast Refresh through the Worker's WSS connection. Worker entry-point and imported module edits (including CSP changes) use Wrangler's native reload without restarting the command or the other services. A new document request/reload is needed to receive changed CSP headers; existing pages do not automatically acquire new response headers.
+
+Optional shell or `.env` settings (shell values take precedence):
+
+```bash
+USE_CLOUDFLARE_WORKER=false npm run web # direct HTTPS Rsbuild, API proxy still enabled
+USE_WEB_PROXY=false npm run web        # Worker still enabled; use your configured local backend
+WEB_PORT=8102 WEB_OPEN=false npm run web # isolated session suitable for Playwright
+```
+
+`WEB_PORT` defaults to the first free port from `8082`, and `WEB_INTERNAL_PORT` to the next free port after it, so a second worktree's session starts alongside the first. A port you set explicitly must be free, or startup fails. The API proxy keeps port `9000`: if another session already runs it, the new session reuses it, and its API requests stop working when that session stops. Ctrl-C or a required service exiting stops the remaining services.
+
+Set `EXPENSIFY_URL` and `SECURE_EXPENSIFY_URL` for your local backend and disable `USE_WEB_PROXY` for direct backend requests. Explicit backend origins are added only to the development connection policy. Backend CORS rules and TLS trust still apply; CSP allowances do not bypass them. Third-party OAuth may require an approved origin.
+
+For exact built-asset caching, service-worker, and staging/production CSP checks, use the separate [Worker build preview](../web/cloudflare-worker/README.md#running-a-web-build-locally). Live Rsbuild mode uses development caching and does not exercise Cloudflare's asset store or previous-build R2 fallback.
 
 ### Production Build
 To build and run the production web build locally:
@@ -81,6 +101,25 @@ If you want to set up both iOS and Android simulators at once:
 ### Browser DevTools
 To make it easier to test things in web, we expose the Onyx object to the window, so you can easily do `Onyx.set('bla', 1)`.
 
+### Build Profiling (Rspack)
+To time, profile, and analyze the Rspack build itself (as opposed to the app's runtime), set the `RSPACK_PROFILE` environment variable on any build or dev server command:
+
+```bash
+# Core build process timing (recommended)
+RSPACK_PROFILE=OVERVIEW npm run build
+
+# Every trace event - much larger output, only for deep investigation
+RSPACK_PROFILE=ALL npm run build
+```
+
+This generates a `.rspack-profile-<timestamp>-<pid>/rspack.log` file (JSON Lines) with per-loader/per-plugin timing for the build. To generate a [Perfetto](https://ui.perfetto.dev)-format trace instead, set `RSPACK_TRACE_LAYER=perfetto`:
+
+```bash
+RSPACK_TRACE_LAYER=perfetto RSPACK_PROFILE=OVERVIEW npm run build
+```
+
+Open the resulting `.rspack-profile-<timestamp>-<pid>/rspack.pftrace` file at [ui.perfetto.dev](https://ui.perfetto.dev) to visualize it. For bundle size (as opposed to build time) analysis, use `npm run analyze-packages`, which runs [Rsdoctor](https://rsdoctor.rs/) against the build output and opens an interactive report covering bundle composition, duplicate packages, and per-loader/per-plugin timing.
+
 ### Release Profiling for Web
 1. Install the necessary packages: `npm i`
 2. Run your web app in production mode
@@ -122,5 +161,8 @@ You probably have a misconfigured `.env` file - remove it (`rm .env`) and try ag
 1. If you are having issues with **_Getting Started_**, please reference [React Native's Documentation](https://reactnative.dev/docs/environment-setup)
 2. Make sure you have the correct Node version installed as specified in `.nvmrc`
 3. Ensure HTTPS is properly configured if you're having certificate issues
+4. If the Worker tooling is missing, `npm run web` warns and serves Rsbuild directly. Rerun `npm install` to restore the Worker; it skips the Worker when `CI` is set, and launching the server never installs dependencies. Missing certificates require `npm run setup-https`. Trust the mkcert CA in the browser rather than disabling certificate checks.
+5. If the Worker returns `503`, inspect the Rsbuild process output. There is no fallback to an old `dist/` build. If a page appears stale, check for an old service worker in the disposable browser profile.
+6. The old ngrok workaround for Wrangler upstream ports is not required: live mode explicitly fetches a loopback HTTP origin. Do not clear CA settings or disable TLS verification to work around unrelated certificate errors.
 
 **Note:** Expensify engineers that will be testing with the API in your local dev environment please refer to [these additional instructions](https://stackoverflow.com/c/expensify/questions/7699/7700).

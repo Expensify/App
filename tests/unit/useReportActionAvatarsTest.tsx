@@ -1,10 +1,15 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createAdminRoom, createAnnounceRoom, createInvoiceReport, createInvoiceRoom, createRegularChat} from '../utils/collections/reports';
@@ -43,17 +48,17 @@ describe('useReportActionAvatars', () => {
 
         test.each(
             Object.values(CONST.REPORT.ACTIONS.TYPE)
-                .reduce((result, cur) => {
+                .reduce<ReportActionName[]>((result, cur) => {
                     if (typeof cur === 'object') {
                         result.push(...Object.values(cur));
                     } else {
                         result.push(cur);
                     }
                     return result;
-                }, [] as string[])
-                .map((value) => [value === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, value]),
+                }, [])
+                .map((value) => [value === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, value] as const),
         )('With an invoice report, isWorkspaceActor should be %s when the actionName is "%s"', async (expected, actionName) => {
-            const reportAction = {...mockReportAction, actionName: actionName as typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT};
+            const reportAction = {...mockReportAction, actionName};
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.reportActionID}`, {[reportAction.reportActionID]: reportAction});
 
             const {
@@ -146,6 +151,108 @@ describe('useReportActionAvatars', () => {
             // Same bug as admin room: useNearestReportAvatars falls through to getIcons(policyRoom) → workspace icon.
             // Proves the fix must cover all policy room types, not just admin rooms.
             expect(data.avatars.at(0)?.type).toBe(CONST.ICON_TYPE_WORKSPACE);
+        });
+    });
+
+    describe('Concierge thread', () => {
+        const conciergeDMReportID = 9200;
+        const threadReportID = 9201;
+        const askerAccountID = 12345;
+        const parentActionID = '9202';
+
+        const mockConciergeDM = createRegularChat(conciergeDMReportID, [CONST.ACCOUNT_ID.CONCIERGE, askerAccountID]);
+        const mockThread = {
+            ...createRegularChat(threadReportID, [CONST.ACCOUNT_ID.CONCIERGE, askerAccountID]),
+            chatReportID: String(conciergeDMReportID),
+            parentReportID: String(conciergeDMReportID),
+            parentReportActionID: parentActionID,
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, String(conciergeDMReportID));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${conciergeDMReportID}`, mockConciergeDM);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, mockThread);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeDMReportID}`, {
+                [parentActionID]: {
+                    ...createRandomReportAction(Number(parentActionID)),
+                    reportActionID: parentActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: askerAccountID,
+                    childReportID: String(threadReportID),
+                },
+            });
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: 'concierge@expensify.com'},
+                [askerAccountID]: {accountID: askerAccountID, displayName: 'Asker', login: 'asker@example.com'},
+            });
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(() => {
+            Onyx.clear();
+        });
+
+        test('shows the Concierge avatar once the parent action has loaded', () => {
+            const {
+                result: {current: data},
+            } = renderHook(() => useReportActionAvatars({report: mockThread, action: undefined}), {wrapper});
+
+            expect(data.avatars.at(0)?.id).toBe(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+    });
+
+    describe('support ticket avatars', () => {
+        const customerAccountID = 12345;
+        const assigneeAccountID = 23456;
+        const parentReportID = '9300';
+        const parentActionID = '9301';
+        const assigneeAvatar = 'https://example.com/rep-avatar.png';
+        const customerAvatar = 'https://example.com/customer-avatar.png';
+        const supportTicket = {
+            reportID: '9302',
+            type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+            chatReportID: parentReportID,
+            parentReportID,
+            parentReportActionID: parentActionID,
+            ownerAccountID: customerAccountID,
+            managerID: assigneeAccountID,
+        };
+        const customerAction = {
+            ...createRandomReportAction(Number(parentActionID)),
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            actorAccountID: customerAccountID,
+            childReportID: supportTicket.reportID,
+        };
+
+        beforeEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, createRegularChat(Number(parentReportID), [CONST.ACCOUNT_ID.CONCIERGE, customerAccountID]));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentActionID]: customerAction});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [customerAccountID]: {accountID: customerAccountID, displayName: 'Customer', avatar: customerAvatar},
+                [assigneeAccountID]: {accountID: assigneeAccountID, displayName: 'Support rep', avatar: assigneeAvatar},
+            });
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(() => Onyx.clear());
+
+        test('shows the assigned rep in the header even when the parent message is loaded', () => {
+            // Given a support ticket created from the customer's Concierge message
+            // When its header requests the report avatar
+            const {result} = renderHook(() => useReportActionAvatars({report: supportTicket, action: undefined}), {wrapper});
+
+            // Then the header identifies the assigned rep, not the customer
+            expect(result.current.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE);
+            expect(result.current.avatars.at(0)).toMatchObject({id: assigneeAccountID, source: assigneeAvatar});
+        });
+
+        test('keeps the customer avatar on their support ticket messages', () => {
+            // Given a message authored by the customer in a support ticket
+            // When the message requests its author avatar
+            const {result} = renderHook(() => useReportActionAvatars({report: supportTicket, action: customerAction}), {wrapper});
+
+            // Then it identifies the customer rather than the assigned rep
+            expect(result.current.avatars.at(0)).toMatchObject({id: customerAccountID, source: customerAvatar});
         });
     });
 

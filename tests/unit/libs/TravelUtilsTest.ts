@@ -4,7 +4,8 @@ describe('TravelUtils', () => {
     describe('isTravelLink', () => {
         it('should return false for empty or undefined values', () => {
             expect(isTravelLink('')).toBe(false);
-            expect(isTravelLink(undefined as unknown as string)).toBe(false);
+            // @ts-expect-error -- Deliberately verifies the defensive runtime behavior for undefined input.
+            expect(isTravelLink(undefined)).toBe(false);
         });
 
         it('should return true for direct travel domain links', () => {
@@ -78,8 +79,10 @@ describe('TravelUtils', () => {
         });
 
         it('should return an empty string for undefined or null values', () => {
-            expect(getRelativeUrl(undefined as unknown as string)).toBe('');
-            expect(getRelativeUrl(null as unknown as string)).toBe('');
+            // @ts-expect-error -- Deliberately verifies the defensive runtime behavior for undefined input.
+            expect(getRelativeUrl(undefined)).toBe('');
+            // @ts-expect-error -- Deliberately verifies the defensive runtime behavior for null input.
+            expect(getRelativeUrl(null)).toBe('');
         });
 
         it('should return an empty string for invalid URLs', () => {

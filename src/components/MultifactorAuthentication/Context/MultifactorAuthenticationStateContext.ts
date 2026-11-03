@@ -1,4 +1,5 @@
 import {createContext, useContext} from 'react';
+
 import type {MultifactorAuthenticationState, MultifactorAuthenticationStateContextType} from './types';
 
 const MultifactorAuthenticationStateContext = createContext<MultifactorAuthenticationStateContextType | undefined>(undefined);

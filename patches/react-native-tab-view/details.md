@@ -1,6 +1,6 @@
 # `react-native-tab-view` patches
 
-### [react-native-tab-view+4.3.0+001+fix-tab-animation.patch](react-native-tab-view+4.3.0+001+fix-tab-animation.patch)
+### [react-native-tab-view+4.3.2+001+fix-tab-animation.patch](react-native-tab-view+4.3.2+001+fix-tab-animation.patch)
 
 - Reason: 
 
@@ -13,18 +13,22 @@
 - E/App issue: 🛑
 - PR Introducing Patch: [#39854](https://github.com/Expensify/App/pull/39854)
 
-### [react-native-tab-view+4.3.0+002+fix-glitching-on-initial-load.patch](react-native-tab-view+4.3.0+002+fix-glitching-on-initial-load.patch)
+### [react-native-tab-view+4.3.2+002+fix-glitching-on-initial-load.patch](react-native-tab-view+4.3.2+002+fix-glitching-on-initial-load.patch)
 
 - Reason: 
     ```
     There was a visible glitching on initial load. The glitch was visible because two animated values:
     position and translateX were equal to 0 for a brief moment before changing to a proper value.
     ```
+
+    The 4.3.2 re-port dropped the `lib/typescript/src/PanResponderAdapter.d.ts.map` hunk. It only rewrites a
+    source map for declaration files, which nothing at runtime reads, and its base content changed in 4.3.2.
+    The `PanResponderAdapter.js` and `.js.map` hunks are carried over unchanged.
 - Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/12627#issuecomment-2945055209
 - E/App issue: https://github.com/Expensify/App/issues/62346
 - PR Introducing Patch: [#63570](https://github.com/Expensify/App/pull/63570)
 
-### [react-native-tab-view+4.3.0+003+fix-web-onTabSelect-on-mount.patch](react-native-tab-view+4.3.0+003+fix-web-onTabSelect-on-mount.patch)
+### [react-native-tab-view+4.3.2+003+fix-web-onTabSelect-on-mount.patch](react-native-tab-view+4.3.2+003+fix-web-onTabSelect-on-mount.patch)
 
 - Reason: 
     ```
@@ -35,7 +39,7 @@
 - E/App issue: https://github.com/Expensify/App/issues/71913#issuecomment-3584103273
 - PR Introducing Patch: [#76586](https://github.com/Expensify/App/pull/76586)
 
-### [react-native-tab-view+4.3.0+004+fix-native-onTabSelect-on-mount.patch](react-native-tab-view+4.3.0+004+fix-native-onTabSelect-on-mount.patch)
+### [react-native-tab-view+4.3.2+004+fix-native-onTabSelect-on-mount.patch](react-native-tab-view+4.3.2+004+fix-native-onTabSelect-on-mount.patch)
 
 - Reason:
     ```
@@ -45,3 +49,16 @@
     ```
 - Upstream PR/issue: 🛑 (must merge https://github.com/react-navigation/react-navigation/pull/12627 first)
 - E/App issue: https://github.com/Expensify/App/issues/83010
+
+### [react-native-tab-view+4.3.2+005+fix-pager-scrollleft-91610.patch](react-native-tab-view+4.3.2+005+fix-pager-scrollleft-91610.patch)
+
+- Reason:
+    ```
+    On web, the pager's overflow:hidden clip container could pick up a stray scrollLeft from the auto-focused
+    Search input while the RHP was translated wide. The pager positions its pages with a transform and never
+    with scroll, so this leftover scrollLeft shifted the active per-diem page left and clipped the first column
+    (e.g. the first letters of country names). This patch pins the pager's scrollLeft to 0 on web.
+    ```
+- Upstream PR/issue: 🛑
+- E/App issue: https://github.com/Expensify/App/issues/91610
+- PR Introducing Patch: [#97754](https://github.com/Expensify/App/pull/97754)

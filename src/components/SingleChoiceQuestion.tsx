@@ -1,10 +1,15 @@
-import type {ForwardedRef} from 'react';
-import React from 'react';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {ComponentRef, ForwardedRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import React from 'react';
+
 import type {Choice} from './RadioButtons';
+
 import RadioButtons from './RadioButtons';
 import Text from './Text';
 
@@ -14,7 +19,7 @@ type SingleChoiceQuestionProps = ForwardedFSClassProps & {
     possibleAnswers: Choice[];
     currentQuestionIndex: number;
     onInputChange: (value: string) => void;
-    ref?: ForwardedRef<RNText>;
+    ref?: ForwardedRef<ComponentRef<typeof RNText>>;
 };
 
 function SingleChoiceQuestion({prompt, errorText, possibleAnswers, currentQuestionIndex, onInputChange, forwardedFSClass, ref}: SingleChoiceQuestionProps) {

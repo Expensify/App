@@ -1,18 +1,22 @@
-import type {EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {createStackNavigator} from '@react-navigation/stack';
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import getBackgroundColor from '@components/TabSelector/getBackground';
 import getOpacity from '@components/TabSelector/getOpacity';
 import TabSelectorItem from '@components/TabSelector/TabSelectorItem';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {EventMapCore, NavigationProp, NavigationState, ParamListBase} from '@react-navigation/native';
+
+import {useNavigation, useRoute} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 type IconAndTitle = {
     icon: IconAsset;
@@ -40,7 +44,7 @@ const StackNavigator = createStackNavigator<ParamListBase, string>();
 
 type DebugTabNavigatorRoute = {
     name: string;
-    component: () => React.ReactNode;
+    content: React.ReactNode;
 };
 
 type DebugTabNavigatorRoutes = DebugTabNavigatorRoute[];
@@ -57,7 +61,7 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
     const navigation = useNavigation<NavigationProp<Record<string, unknown>>>();
     const {translate} = useLocalize();
     const [currentTab, setCurrentTab] = useState(routes.at(0)?.name);
-    const defaultAffectedAnimatedTabs = useMemo(() => Array.from({length: routes.length}, (v, i) => i), [routes.length]);
+    const defaultAffectedAnimatedTabs = Array.from({length: routes.length}, (v, i) => i);
     const [affectedAnimatedTabs, setAffectedAnimatedTabs] = useState(defaultAffectedAnimatedTabs);
     const routeData = useRoute();
 
@@ -142,8 +146,9 @@ function DebugTabNavigator({id, routes}: DebugTabNavigatorProps) {
                     <StackNavigator.Screen
                         key={route.name}
                         name={route.name}
-                        component={route.component}
-                    />
+                    >
+                        {() => route.content}
+                    </StackNavigator.Screen>
                 ))}
             </StackNavigator.Navigator>
         </>

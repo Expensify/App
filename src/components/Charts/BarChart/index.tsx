@@ -1,30 +1,27 @@
-import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
+import ChartFrame from '@components/Charts/components/ChartFrame';
+import SkiaWebChart from '@components/Charts/SkiaWebChart';
+import {getBarChartLoadingHeight} from '@components/Charts/utils/chartHeights';
+
 import React from 'react';
-import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import type {BarChartProps} from './BarChartContent';
+
+import type BarChartProps from './types';
 
 const getBarChartContent = () => import('./BarChartContent');
-function BarChart(props: BarChartProps) {
-    const styles = useThemeStyles();
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'BarChart.SkiaWebLoading'};
 
+function BarChart(props: BarChartProps) {
     return (
-        <WithSkiaWeb
-            opts={{locateFile: (file: string) => `/${file}`}}
-            getComponent={getBarChartContent}
-            componentProps={props}
-            fallback={
-                <View style={styles.chartWebFallback}>
-                    <ActivityIndicator
-                        size="large"
-                        reasonAttributes={reasonAttributes}
-                    />
-                </View>
-            }
-        />
+        <ChartFrame
+            isLoading={props.isLoading}
+            hasData={props.data.length > 0}
+            getLoadingHeight={() => getBarChartLoadingHeight(props.shouldShowLabels, props.shouldWrapLabels)}
+        >
+            {(chartWidth) => (
+                <SkiaWebChart
+                    getComponent={getBarChartContent}
+                    componentProps={{...props, chartWidth}}
+                />
+            )}
+        </ChartFrame>
     );
 }
 

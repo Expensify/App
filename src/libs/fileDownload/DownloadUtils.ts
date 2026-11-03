@@ -1,29 +1,13 @@
 import * as ApiUtils from '@libs/ApiUtils';
+import openExternalLink from '@libs/openExternalLink';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
-import * as Link from '@userActions/Link';
+
 import CONST from '@src/CONST';
-import {appendTimeToFileName, getFileName} from './FileUtils';
+
 import type {FileDownload} from './types';
 
-const createDownloadLink = (href: string, fileName: string) => {
-    // creating anchor tag to initiate download
-    const link = document.createElement('a');
-    // adding href to anchor
-    link.href = href;
-    link.style.display = 'none';
-
-    link.download = fileName;
-
-    // Append to html link element page
-    document.body.appendChild(link);
-
-    // Start download
-    link.click();
-
-    // Clean up and remove the link
-    URL.revokeObjectURL(link.href);
-    link.parentNode?.removeChild(link);
-};
+import createDownloadLink from './createDownloadLink';
+import {appendTimeToFileName, getFileName} from './FileUtils';
 
 /**
  * The function downloads an attachment on web platforms.
@@ -38,6 +22,10 @@ const fetchFileDownload: FileDownload = (
     formData = undefined,
     requestType = 'get',
     onDownloadFailed?: () => void,
+    // `shouldUnlink` is part of the cross-platform FileDownload signature but has no meaning on web, so it is intentionally unused here.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    shouldUnlink = false,
+    appendTimestamp = true,
 ) => {
     const resolvedUrl = tryResolveUrlFromApiRoot(url);
 
@@ -51,7 +39,7 @@ const fetchFileDownload: FileDownload = (
     ) {
         // Different origin URLs might pose a CORS issue during direct downloads.
         // Opening in a new tab avoids this limitation, letting the browser handle the download.
-        Link.openExternalLink(url);
+        openExternalLink(url);
         return Promise.resolve();
     }
 
@@ -72,7 +60,8 @@ const fetchFileDownload: FileDownload = (
         .then((blob) => {
             // Create blob link to download
             const href = URL.createObjectURL(new Blob([blob]));
-            const completeFileName = appendTimeToFileName(fileName ?? getFileName(url));
+            const resolvedFileName = fileName ?? getFileName(url);
+            const completeFileName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
             createDownloadLink(href, completeFileName);
         })
         .catch(() => {
@@ -80,7 +69,7 @@ const fetchFileDownload: FileDownload = (
                 onDownloadFailed();
             } else {
                 // file could not be downloaded, open sourceURL in new tab
-                Link.openExternalLink(url);
+                openExternalLink(url);
             }
         });
 };

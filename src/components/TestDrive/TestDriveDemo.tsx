@@ -1,11 +1,9 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import EmbeddedDemo from '@components/EmbeddedDemo';
 import Modal from '@components/Modal';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import {shouldOpenRHPVariant} from '@components/SidePanel/RHPVariantTest';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
@@ -14,6 +12,7 @@ import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openReport} from '@libs/actions/Report';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
@@ -22,9 +21,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isAdminRoom} from '@libs/ReportUtils';
 import {getTestDriveURL} from '@libs/TourUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React, {useEffect, useRef, useState} from 'react';
+
 import TestDriveBanner from './TestDriveBanner';
 
 function TestDriveDemo() {
@@ -35,7 +40,8 @@ function TestDriveDemo() {
     const [onboardingReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${onboarding?.chatReportID}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [hasConciergeReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeReportID}`, {selector: Boolean});
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const {
         taskReport: viewTourTaskReport,
@@ -48,13 +54,11 @@ function TestDriveDemo() {
     const parentReportAction = useParentReportAction(viewTourTaskReport);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
-    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-    });
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const hasCalledOpenReportRef = useRef(false);
 
     useEffect(() => {
-        if (hasSeenTour) {
+        if (guidedSetupAndTourStatus?.isSelfTourViewed) {
             return;
         }
         if (!viewTourTaskReport) {
@@ -62,7 +66,15 @@ function TestDriveDemo() {
             setSelfTourViewed();
             if (conciergeReportID && !hasCalledOpenReportRef.current) {
                 hasCalledOpenReportRef.current = true;
-                openReport({reportID: conciergeReportID, introSelected, betas});
+                openReport({
+                    reportID: conciergeReportID,
+                    introSelected,
+                    conciergeChat,
+                    hasReportActions: hasConciergeReportActions,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                });
             }
             return;
         }
@@ -81,7 +93,9 @@ function TestDriveDemo() {
             false,
         );
     }, [
-        hasSeenTour,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        hasConciergeReportActions,
         viewTourTaskReport,
         viewTourTaskParentReport,
         isViewTourTaskParentReportArchived,
@@ -90,8 +104,8 @@ function TestDriveDemo() {
         parentReportAction,
         delegateEmail,
         conciergeReportID,
+        conciergeChat,
         introSelected,
-        betas,
     ]);
 
     useEffect(() => {
@@ -102,7 +116,7 @@ function TestDriveDemo() {
         return () => handle.cancel();
     }, []);
 
-    const closeModal = useCallback(() => {
+    const closeModal = () => {
         setIsVisible(false);
         TransitionTracker.runAfterTransitions({
             callback: () => {
@@ -118,7 +132,7 @@ function TestDriveDemo() {
             },
             waitForUpcomingTransition: true,
         });
-    }, [onboardingReport]);
+    };
 
     return (
         <SafeAreaConsumer>

@@ -1,11 +1,25 @@
-import type RNFS from 'react-native-fs';
 import checkFileExists from '@libs/fileDownload/checkFileExists/index';
+import Log from '@libs/Log';
+
+import type RNFS from 'react-native-fs';
 
 const mockStat = jest.fn<Promise<RNFS.StatResult>, [string]>();
 
 jest.mock('react-native-fs', () => ({
     stat: (...args: [string]) => mockStat(...args),
 }));
+
+const buildStatResult = (isFile: boolean): RNFS.StatResult => ({
+    name: undefined,
+    path: '',
+    size: 0,
+    mode: 0,
+    ctime: 0,
+    mtime: 0,
+    originalFilepath: '',
+    isFile: () => isFile,
+    isDirectory: () => !isFile,
+});
 
 describe('checkFileExists', () => {
     beforeEach(() => {
@@ -25,24 +39,59 @@ describe('checkFileExists', () => {
     });
 
     it('should call RNFS.stat with a plain POSIX path', async () => {
-        mockStat.mockResolvedValue({isFile: () => true} as RNFS.StatResult);
+        mockStat.mockResolvedValue(buildStatResult(true));
         const result = await checkFileExists('/var/mobile/Containers/shared_image.png');
         expect(result).toBe(true);
         expect(mockStat).toHaveBeenCalledWith('/var/mobile/Containers/shared_image.png');
     });
 
     it('should strip file:// prefix before calling RNFS.stat', async () => {
-        mockStat.mockResolvedValue({isFile: () => true} as RNFS.StatResult);
+        mockStat.mockResolvedValue(buildStatResult(true));
         const result = await checkFileExists('file:///var/mobile/Containers/shared_image.png');
         expect(result).toBe(true);
         expect(mockStat).toHaveBeenCalledWith('/var/mobile/Containers/shared_image.png');
     });
 
     it('should decode URI-encoded paths', async () => {
-        mockStat.mockResolvedValue({isFile: () => true} as RNFS.StatResult);
+        mockStat.mockResolvedValue(buildStatResult(true));
         const result = await checkFileExists('file:///var/mobile/Containers/my%20receipt.png');
         expect(result).toBe(true);
         expect(mockStat).toHaveBeenCalledWith('/var/mobile/Containers/my receipt.png');
+    });
+
+    it('should decode reserved characters like # in the filename', async () => {
+        mockStat.mockResolvedValue(buildStatResult(true));
+        const result = await checkFileExists('file:///var/mobile/Containers/sharedFiles/Receipt%20%2342.pdf');
+        expect(result).toBe(true);
+        expect(mockStat).toHaveBeenCalledWith('/var/mobile/Containers/sharedFiles/Receipt #42.pdf');
+    });
+
+    it('should fall back to the raw path when the filename literally contains a % sequence', async () => {
+        // moveReceiptToDurableStorage builds file:// paths from the raw filename without encoding,
+        // so a file literally named "Receipt %23.pdf" must not be decoded to "Receipt #.pdf".
+        const rawPath = '/var/mobile/Containers/Receipts-Upload/Receipt %23.pdf';
+        mockStat.mockImplementation((candidate: string) => (candidate === rawPath ? Promise.resolve(buildStatResult(true)) : Promise.reject(new Error('File not found'))));
+        const result = await checkFileExists(`file://${rawPath}`);
+        expect(result).toBe(true);
+        expect(mockStat).toHaveBeenCalledWith('/var/mobile/Containers/Receipts-Upload/Receipt #.pdf');
+        expect(mockStat).toHaveBeenCalledWith(rawPath);
+    });
+
+    it('should fall back to the raw path when the URI is not valid percent-encoding', async () => {
+        // A literal "%" that is not a valid escape (e.g. "50%") makes decodeURIComponent throw.
+        const rawPath = '/var/mobile/Containers/Receipts-Upload/Report 50%.pdf';
+        mockStat.mockResolvedValue(buildStatResult(true));
+        const result = await checkFileExists(`file://${rawPath}`);
+        expect(result).toBe(true);
+        expect(mockStat).toHaveBeenCalledWith(rawPath);
+    });
+
+    it('should return false when neither the decoded nor the raw path exists', async () => {
+        mockStat.mockRejectedValue(new Error('File not found'));
+        const result = await checkFileExists('file:///var/mobile/Containers/sharedFiles/Ghost%20%2342.pdf');
+        expect(result).toBe(false);
+        expect(mockStat).toHaveBeenCalledWith('/var/mobile/Containers/sharedFiles/Ghost #42.pdf');
+        expect(mockStat).toHaveBeenCalledWith('/var/mobile/Containers/sharedFiles/Ghost%20%2342.pdf');
     });
 
     it('should return false when RNFS.stat throws', async () => {
@@ -51,8 +100,42 @@ describe('checkFileExists', () => {
         expect(result).toBe(false);
     });
 
+    it('should log the stat error code so a locked device is distinguishable from a missing file', async () => {
+        // Given a stat that fails the way a locked device fails it
+        const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
+        mockStat.mockRejectedValue(Object.assign(new Error('Operation not permitted'), {code: 'EPERM'}));
+
+        // When the file is checked
+        const result = await checkFileExists('/var/mobile/Containers/sharedFiles/locked.jpg');
+
+        // Then it still reports missing, but the code reaches telemetry
+        expect(result).toBe(false);
+        expect(logInfoSpy).toHaveBeenCalledWith(expect.stringContaining('stat failed'), false, {event: 'statFailed', code: 'EPERM'});
+
+        logInfoSpy.mockRestore();
+    });
+
+    it('should log the locked-device code, not the raw-path fallback code', async () => {
+        // Given an encoded path whose decoded file is locked, and whose raw form does not exist
+        const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
+        const decodedPath = '/var/mobile/Containers/sharedFiles/Receipt #42.pdf';
+        mockStat.mockImplementation((candidate: string) =>
+            Promise.reject(candidate === decodedPath ? Object.assign(new Error('Operation not permitted'), {code: 'EPERM'}) : Object.assign(new Error('File not found'), {code: 'ENOENT'})),
+        );
+
+        // When the file is checked
+        const result = await checkFileExists('file:///var/mobile/Containers/sharedFiles/Receipt%20%2342.pdf');
+
+        // Then telemetry carries the decoded-path error, because the raw fallback never existed
+        expect(result).toBe(false);
+        expect(logInfoSpy).toHaveBeenCalledTimes(1);
+        expect(logInfoSpy).toHaveBeenCalledWith(expect.stringContaining('stat failed'), false, {event: 'statFailed', code: 'EPERM'});
+
+        logInfoSpy.mockRestore();
+    });
+
     it('should return false when path is a directory', async () => {
-        mockStat.mockResolvedValue({isFile: () => false} as RNFS.StatResult);
+        mockStat.mockResolvedValue(buildStatResult(false));
         const result = await checkFileExists('/var/mobile/Containers/');
         expect(result).toBe(false);
     });

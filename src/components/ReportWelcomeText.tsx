@@ -1,18 +1,15 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
+import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+
+import {getPersonalDetailsForAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getReportName} from '@libs/ReportNameUtils';
 import {
     getInvoiceReceiverPolicyID,
@@ -27,16 +24,23 @@ import {
     temporary_getMoneyRequestOptions,
 } from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
+
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React from 'react';
+import {View} from 'react-native';
+
 import RenderHTML from './RenderHTML';
 import Text from './Text';
 
 type ReportWelcomeTextProps = {
-    /** The report currently being looked at */
     report: OnyxEntry<Report>;
 
     /** The policy for the current route */
@@ -44,14 +48,14 @@ type ReportWelcomeTextProps = {
 };
 
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
-    const reportAttributes = useReportAttributes();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
+    const [personalDetails] = useAllPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(report);
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID || undefined}`);
     const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(report);
     const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
@@ -63,11 +67,11 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const isSelfDM = isSelfDMReportUtils(report);
     const isInvoiceRoom = isInvoiceRoomReportUtils(report);
     const isSystemChat = isSystemChatReportUtils(report);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isDefault = !(isChatRoom || isPolicyExpenseChat || isSelfDM || isSystemChat);
-    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true, true, reportMetadata);
-    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, betas, isReportArchived, isRestrictedToPreferredPolicy);
-    const policyName = getPolicyName({report});
+    const participantAccountIDs = getParticipantsAccountIDsForDisplay(report, reportMetadata, undefined, true, true);
+    const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs, rules, isReportArchived, isRestrictedToPreferredPolicy);
+    const policyName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const filteredOptions = moneyRequestOptions.filter(
@@ -86,15 +90,14 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                 )}`,
         )
         .join(', ');
-    const reportName = getReportName(report, reportAttributes);
+    const reportName = getReportName(report, derivedReportName);
     const shouldShowUsePlusButtonText =
         moneyRequestOptions.includes(CONST.IOU.TYPE.PAY) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SUBMIT) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.TRACK) ||
         moneyRequestOptions.includes(CONST.IOU.TYPE.SPLIT);
 
-    const reportRHPActiveRoute = Navigation.getReportRHPActiveRoute();
-    const reportDetailsPath = reportRHPActiveRoute ? createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path, reportRHPActiveRoute) : createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path);
+    const reportDetailsPath = buildDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.path);
     const reportDetailsLink = report?.reportID ? `${environmentURL}/${reportDetailsPath}` : '';
 
     let welcomeHeroText = translate('reportActionsView.sayHello');
@@ -114,7 +117,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
 
     // If we are the only participant (e.g. solo group chat) then keep the current user personal details so the welcome message does not show up empty.
     const shouldExcludeCurrentUser = participantAccountIDs.length > 0;
-    const participantAccountIDsExcludeCurrentUser = getParticipantsAccountIDsForDisplay(report, undefined, undefined, shouldExcludeCurrentUser);
+    const participantAccountIDsExcludeCurrentUser = getParticipantsAccountIDsForDisplay(report, undefined, undefined, undefined, shouldExcludeCurrentUser);
     const participantPersonalDetailListExcludeCurrentUser = Object.values(getPersonalDetailsForAccountIDs(participantAccountIDsExcludeCurrentUser, personalDetails));
     const welcomeMessage = SidebarUtils.getWelcomeMessage({
         report,
@@ -124,13 +127,14 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         translate,
         localeCompare,
         conciergeReportID,
-        reportAttributes,
+        derivedReportName,
         isReportArchived,
         reportDetailsLink,
         shouldShowUsePlusButtonText,
         additionalText,
         isTrackIntentUser: !!isTrackIntentUser,
         currentUserAccountID,
+        formatPhoneNumber,
     });
 
     return (

@@ -1,5 +1,6 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 function setIsSentryDebugEnabled(isEnabled: boolean) {
     Onyx.set(ONYXKEYS.IS_SENTRY_DEBUG_ENABLED, isEnabled);

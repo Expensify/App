@@ -1,8 +1,12 @@
 import {fireEvent, render, renderHook, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 describe('ButtonWithDropdownMenu (single option)', () => {
     const mockOnSelected = jest.fn();
@@ -90,14 +94,14 @@ describe('ButtonWithDropdownMenu (dropdown arrow flip)', () => {
         );
 
         const arrowIcon = screen.getByTestId('dropdown-arrow-icon', {includeHiddenElements: true});
-        expect(arrowIcon).not.toHaveStyle({transform: 'rotate(180deg)'});
+        expect(arrowIcon).not.toHaveStyle({transform: [{rotate: '180deg'}]});
 
         const buttons = screen.getAllByRole('button');
         const buttonToPress = buttons?.at(1);
         if (buttonToPress) {
             fireEvent.press(buttonToPress);
         }
-        expect(arrowIcon).toHaveStyle({transform: 'rotate(180deg)'});
+        expect(arrowIcon).toHaveStyle({transform: [{rotate: '180deg'}]});
     });
 
     it('reverts the arrow icon when the dropdown menu is closed', () => {
@@ -115,11 +119,11 @@ describe('ButtonWithDropdownMenu (dropdown arrow flip)', () => {
         if (buttonToPress) {
             fireEvent.press(buttonToPress);
         }
-        expect(arrowIcon).toHaveStyle({transform: 'rotate(180deg)'});
+        expect(arrowIcon).toHaveStyle({transform: [{rotate: '180deg'}]});
 
         if (buttonToPress) {
             fireEvent.press(buttonToPress);
         }
-        expect(arrowIcon).not.toHaveStyle({transform: 'rotate(180deg)'});
+        expect(arrowIcon).not.toHaveStyle({transform: [{rotate: '180deg'}]});
     });
 });

@@ -1,9 +1,13 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
-import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
+
+import {getUnitTranslationKey} from '@libs/WorkspaceDisplayUtils';
+
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+
 import SelectionList from './SelectionList';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
 
@@ -24,16 +28,12 @@ const units = [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS, CONST.CUSTOM_UNITS.D
 function UnitPicker({defaultValue, onOptionSelected}: UnitPickerProps) {
     const {translate} = useLocalize();
 
-    const unitOptions = useMemo(
-        () =>
-            units.map((unit) => ({
-                value: unit as Unit,
-                text: Str.recapitalize(translate(getUnitTranslationKey(unit))),
-                keyForList: unit,
-                isSelected: defaultValue === unit,
-            })),
-        [defaultValue, translate],
-    );
+    const unitOptions = units.map((unit) => ({
+        value: unit as Unit,
+        text: Str.recapitalize(translate(getUnitTranslationKey(unit))),
+        keyForList: unit,
+        isSelected: defaultValue === unit,
+    }));
 
     return (
         <SelectionList

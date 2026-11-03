@@ -1,83 +1,127 @@
-import escapeRegExp from 'lodash/escapeRegExp';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import {hasSynchronizationErrorMessage, isConnectionUnverified} from '@libs/actions/connections';
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import {hasSynchronizationErrorMessage, isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {getDisplayNameForWorkspace} from '@libs/actions/Policy/Policy';
-import {getActiveAdminWorkspaces, getOwnedPaidPolicies, isPaidGroupPolicy, isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
+import {getConnectedHRProvider} from '@libs/merge/HRUtils';
+import type {PolicyPaymentAttribution} from '@libs/PolicyPaymentUtils';
+import {
+    canSendInvoice,
+    getActiveAdminWorkspaces,
+    getActivePoliciesWithExpenseChat,
+    getOwnedPaidPolicies,
+    getPolicyIDFromDomainName,
+    getPolicyRole,
+    hasPolicyWithXeroConnection,
+    // eslint-disable-next-line no-restricted-imports -- isPaidGroupPolicy is intentional: copy-settings targets are billing/paid-only (Collect/Control), so free group plans like Submit must be excluded (see createCopySettingsEligibleTargetsSelector).
+    isPaidGroupPolicy,
+    isPendingDeletePolicy,
+    isPerDiemEligiblePolicy,
+    isPolicyAccessible,
+    isPolicyAdmin,
+    isArchivedOrPendingDeletePolicy,
+    isArchivedPolicy,
+    isPolicyProvisionedForTravel,
+    isTimeTrackingEnabled,
+    shouldShowPolicy,
+} from '@libs/PolicyUtils';
+import type {BillingRestrictionPolicy} from '@libs/SubscriptionUtils';
+import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyReportField} from '@src/types/onyx';
-import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
+import type {Card, FullPolicySnapshot, Policy, PolicyConnectionSyncProgress, PolicyEmployee, PolicyReportField} from '@src/types/onyx';
+import type {PolicyConnectionName, PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import escapeRegExp from 'lodash/escapeRegExp';
 
 type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.NETSUITE
     | typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT
     | typeof CONST.POLICY.CONNECTIONS.NAME.QBD
-    | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA;
-
-const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CERTINIA
+    | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY
+    | typeof CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE
+    | typeof CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS
+    | typeof CONST.POLICY.CONNECTIONS.NAME.DIGITS;
 
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
 type OwnedPaidPoliciesCounts = {
-    /** Number of paid policies owned by the user */
+    /** Number of non-archived paid policies owned by the user */
     total: number;
 
-    /** Number of owned paid policies that are not pending deletion */
+    /** Number of owned paid policies that are neither archived nor pending deletion */
     active: number;
 };
 
 /**
  * Creates a selector returning only the counts of owned paid policies, so subscribers don't re-render
- * when anything else on the policy collection changes.
+ * when anything else on the policy collection changes. Archived workspaces are no longer billed and stay
+ * in the policy collection after they are archived, so they must not count towards "is this the user's
+ * last paid workspace" checks (final bill calculation, outstanding balance guard).
  */
 const createOwnedPaidPoliciesCountsSelector =
     (currentUserAccountID: number | undefined) =>
     (policies: OnyxCollection<Policy>): OwnedPaidPoliciesCounts => {
-        const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID);
+        const ownedPaidPolicies = getOwnedPaidPolicies(policies, currentUserAccountID).filter((policy) => !isArchivedPolicy(policy));
         return {
             total: ownedPaidPolicies.length,
             active: ownedPaidPolicies.filter((policy) => !isPendingDeletePolicy(policy)).length,
         };
     };
 
-type CopySettingsEligibleTargets = {
-    /** IDs of non-personal policies administered by the user that can be copy-settings targets */
-    adminNonPersonal: string[];
-
-    /** Subset of adminNonPersonal limited to corporate (Control) policies */
-    corporateOnly: string[];
-};
+/** Whether any workspace collects deposit account details, which is what makes the collect flow relevant. */
+const isCollectingDepositAccountsSelector = (policies: OnyxCollection<Policy>): boolean =>
+    Object.values(policies ?? {}).some((policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy));
 
 /**
- * Creates a selector returning only the policy IDs eligible as copy-settings targets,
- * so subscribers don't re-render when anything else on the policy collection changes.
+ * Whether any collecting workspace would have to pay this country from abroad, which means wire details.
+ * One account has to serve every collecting workspace, so a single one banking elsewhere settles it.
+ */
+const createIsInternationalCountrySelector =
+    (countryISO: string) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        Object.values(policies ?? {}).some(
+            (policy) => !!policy?.isCollectDepositAccountsEnabled && !isArchivedOrPendingDeletePolicy(policy) && !(countryISO in (policy.reimbursement?.countries ?? {})),
+        );
+
+/**
+ * Creates a selector returning only the IDs of policies eligible as copy-settings targets, so
+ * subscribers don't re-render when anything else on the policy collection changes. Targets are
+ * limited to paid group workspaces (Collect/Control) the user administers - copy-settings carries
+ * paid features, and Collect targets are upgraded to Control in-flow, so Submit/Personal workspaces
+ * are never valid targets.
  */
 const createCopySettingsEligibleTargetsSelector =
     (currentUserLogin: string | undefined) =>
-    (policies: OnyxCollection<Policy>): CopySettingsEligibleTargets => {
-        const adminNonPersonal: string[] = [];
-        const corporateOnly: string[] = [];
-        for (const policy of Object.values(policies ?? {})) {
-            if (!policy || policy.type === CONST.POLICY.TYPE.PERSONAL || !isPolicyAdmin(policy, currentUserLogin) || isPendingDeletePolicy(policy)) {
-                continue;
-            }
-            adminNonPersonal.push(policy.id);
-            if (policy.type === CONST.POLICY.TYPE.CORPORATE) {
-                corporateOnly.push(policy.id);
-            }
-        }
-        return {adminNonPersonal, corporateOnly};
-    };
+    (policies: OnyxCollection<Policy>): string[] =>
+        Object.values(policies ?? {})
+            .filter((policy): policy is Policy => !!policy && isPaidGroupPolicy(policy) && isPolicyAdmin(policy, currentUserLogin) && !isPendingDeletePolicy(policy))
+            .map((policy) => policy.id);
 
 type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'ownerAccountID' | 'avatarURL' | 'pendingAction' | 'errors'> & {
     /** Whether the policy is optimistically pending deletion */
     isPendingDelete: boolean;
 
+    /** Whether the policy has been archived */
+    isArchived: boolean;
+
     /** Whether the current user has a pending request to join the policy */
     isJoinRequestPending: boolean;
 
     /** Projection of policyDetailsForNonMembers for join-request-pending policies */
-    nonMemberDetails?: Pick<PolicyDetailsForNonMembers, 'name' | 'type' | 'ownerAccountID' | 'avatar'> & {policyID: string};
+    nonMemberDetails?: Pick<PolicyDetailsForNonMembers, 'name' | 'type' | 'ownerAccountID' | 'ownerEmail' | 'avatar'> & {
+        policyID: string;
+
+        /** Default avatar URL for the owner, derived here so the page doesn't re-hash the email on every render */
+        ownerDefaultAvatar?: string;
+    };
 };
 
 /**
@@ -86,15 +130,24 @@ type WorkspaceListPolicy = Pick<Policy, 'id' | 'name' | 'type' | 'role' | 'owner
  * employeeList, customUnits, connections, etc.).
  */
 const createWorkspaceListPoliciesSelector =
-    (currentUserLogin: string | undefined) =>
+    (currentUserLogin: string | undefined, showArchived = false) =>
     (policies: OnyxCollection<Policy>): WorkspaceListPolicy[] => {
         const result: WorkspaceListPolicy[] = [];
         for (const policy of Object.values(policies ?? {})) {
-            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin)) {
+            if (!policy || !shouldShowPolicy(policy, true, currentUserLogin, showArchived)) {
                 continue;
             }
 
+            const isArchived = isArchivedPolicy(policy);
             const isJoinRequestPending = !!policy.isJoinRequestPending && !!policy.policyDetailsForNonMembers;
+
+            // A `policy_` record is merged field-by-field, so a freshly joined workspace can show up here before its
+            // `id` has landed. Such a row has no key, no avatar seed and nothing to navigate to, so skip it until the
+            // next update fills it in. Join requests are exempt because they carry their ID in `nonMemberDetails`.
+            if (!policy.id && !isJoinRequestPending) {
+                continue;
+            }
+
             let nonMemberDetails: WorkspaceListPolicy['nonMemberDetails'];
             if (isJoinRequestPending) {
                 const nonMemberEntry = Object.entries(policy.policyDetailsForNonMembers ?? {}).at(0);
@@ -105,6 +158,9 @@ const createWorkspaceListPoliciesSelector =
                         name: details.name,
                         type: details.type,
                         ownerAccountID: details.ownerAccountID,
+                        ownerEmail: details.ownerEmail,
+                        ownerDefaultAvatar:
+                            details.ownerAccountID && details.ownerEmail ? getDefaultAvatarURL({accountID: details.ownerAccountID, accountEmail: details.ownerEmail}) : undefined,
                         avatar: details.avatar,
                     };
                 }
@@ -114,12 +170,13 @@ const createWorkspaceListPoliciesSelector =
                 id: policy.id,
                 name: policy.name,
                 type: policy.type,
-                role: policy.role,
+                role: getPolicyRole(policy, currentUserLogin) as ValueOf<typeof CONST.POLICY.ROLE>,
                 ownerAccountID: policy.ownerAccountID,
                 avatarURL: policy.avatarURL,
                 pendingAction: policy.pendingAction,
                 errors: policy.errors,
                 isPendingDelete: isPendingDeletePolicy(policy),
+                isArchived,
                 isJoinRequestPending,
                 nonMemberDetails,
             });
@@ -129,7 +186,97 @@ const createWorkspaceListPoliciesSelector =
 
 const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin);
 
-const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => !!activeAdminPoliciesSelector(policies, currentUserAccountLogin).length;
+type BrokenPolicyConnection = {
+    /** The policy ID associated with this connection */
+    policyID: string;
+
+    /** The policy name associated with this connection */
+    policyName: string;
+
+    /** The connection name that has an error */
+    connectionName: PolicyConnectionName;
+
+    /** Human-readable integration name (e.g. "QuickBooks Online", "Gusto", "BambooHR"). */
+    integrationName: string;
+};
+
+/** Only what the Time sensitive widgets read, so the section never deep-compares whole policies */
+type TimeSensitiveAdminPolicy = Pick<Policy, 'id' | 'name' | 'achAccount' | 'policyAccountID'>;
+
+type TimeSensitiveAdminPolicies = {
+    policies: TimeSensitiveAdminPolicy[];
+    brokenConnections: BrokenPolicyConnection[];
+};
+
+// derive the broken-connection verdict here: the sync-progress check needs the policy's `connections`
+const createTimeSensitiveAdminPoliciesSelector =
+    (currentUserLogin: string | undefined, connectionSyncProgress: OnyxCollection<PolicyConnectionSyncProgress>) =>
+    (policies: OnyxCollection<Policy>): TimeSensitiveAdminPolicies => {
+        const result: TimeSensitiveAdminPolicies = {policies: [], brokenConnections: []};
+
+        for (const policy of getActiveAdminWorkspaces(policies, currentUserLogin)) {
+            result.policies.push({
+                id: policy.id,
+                name: policy.name,
+                achAccount: policy.achAccount,
+                policyAccountID: policy.policyAccountID,
+            });
+
+            const policyConnections = policy.connections;
+            if (!policyConnections) {
+                continue;
+            }
+
+            // Check if there's a sync in progress for this policy using the proper check that handles JOB_DONE and timeout
+            const syncProgress = connectionSyncProgress?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
+            const isSyncInProgress = isConnectionInProgress(syncProgress, policy);
+
+            for (const [connectionName] of ObjectUtils.typedEntries(policyConnections)) {
+                if (!hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress)) {
+                    continue;
+                }
+                const integrationName =
+                    connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR
+                        ? (getConnectedHRProvider(policy)?.displayName ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName])
+                        : CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+                result.brokenConnections.push({
+                    policyID: policy.id,
+                    policyName: policy.name,
+                    connectionName,
+                    integrationName,
+                });
+            }
+        }
+
+        return result;
+    };
+
+// boolean out, so subscribers don't deep-compare a policy array on every policy_ write
+const createHasAdminPolicyWithXeroConnectionSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        hasPolicyWithXeroConnection(getActiveAdminWorkspaces(policies, currentUserLogin));
+
+const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => getActiveAdminWorkspaces(policies, currentUserAccountLogin).length > 0;
+
+/**
+ * Creates a selector for whether the user belongs to any workspace with Travel enabled and provisioned, so subscribers only
+ * re-render when that answer changes rather than on every policy collection change.
+ */
+const createHasTravelEnabledPolicySelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        Object.values(policies ?? {}).some((policy) => policy?.isTravelEnabled && isPolicyProvisionedForTravel(policy) && isPolicyAccessible(policy, currentUserLogin ?? ''));
+
+/**
+ * Creates a selector returning only whether the user has any active workspace they can submit expenses to
+ * (paid Collect/Control workspaces, plus free Submit (submit2026) workspaces),
+ * so subscribers don't re-render when anything else on the policy collection changes.
+ */
+const createHasWorkspaceToSubmitToSelector =
+    (currentUserLogin: string | undefined) =>
+    (policies: OnyxCollection<Policy>): boolean =>
+        getActivePoliciesWithExpenseChat(policies, currentUserLogin).length > 0;
 
 /**
  * Creates a selector that aggregates all non-formula policy report fields from all policies,
@@ -149,25 +296,81 @@ const createAllPolicyReportFieldsSelector = (policies: OnyxCollection<Policy>, l
     return Object.fromEntries(nonFormulaReportFields);
 };
 
-const createPoliciesForDomainCardsSelector = (domainNames: string[]) => {
-    const policyIDs = new Set(
-        domainNames
-            .map((domainName) => domainName.match(CONST.REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)?.[1])
-            .filter((policyID): policyID is string => !!policyID)
-            .map((policyID) => policyID.toUpperCase()),
-    );
+/**
+ * Creates a selector returning only the policies the given cards belong to.
+ *
+ * A card's feed is what names its workspace, so `namedPolicyIDs` carries what the feeds point at. The fund and the
+ * domain name are matched as well, for a feed that names no workspace of its own.
+ */
+const createPoliciesForAssignedCardsSelector = (cards: Array<Pick<Card, 'domainName' | 'fundID'>>, namedPolicyIDs: string[] = []) => {
+    const workspaceAccountIDs = new Set(cards.map((card) => Number(card.fundID)).filter((workspaceAccountID) => !!workspaceAccountID));
+    const policyIDs = new Set([
+        ...namedPolicyIDs.map((policyID) => policyID.toUpperCase()),
+        ...cards.map((card) => (card.domainName ? getPolicyIDFromDomainName(card.domainName) : undefined)).filter((policyID): policyID is string => !!policyID),
+    ]);
 
     return (policies: OnyxCollection<Policy>) => {
-        if (policyIDs.size === 0) {
+        if (workspaceAccountIDs.size === 0 && policyIDs.size === 0) {
             return {};
         }
 
         return Object.entries(policies ?? {}).reduce<NonNullable<OnyxCollection<Policy>>>((acc, [key, policy]) => {
-            if (policy?.id && policyIDs.has(policy.id.toUpperCase())) {
+            if ((!!policy?.policyAccountID && workspaceAccountIDs.has(policy.policyAccountID)) || (!!policy?.id && policyIDs.has(policy.id.toUpperCase()))) {
                 acc[key] = policy;
             }
             return acc;
         }, {});
+    };
+};
+
+/**
+ * Creates a selector returning only the policies for the given IDs, so a consumer interested in a
+ * known handful of workspaces doesn't re-render when unrelated policies change.
+ */
+const createPoliciesByIDsSelector = (policyIDs: string[]) => {
+    const policyKeys = new Set(policyIDs.map((policyID) => `${ONYXKEYS.COLLECTION.POLICY}${policyID}`));
+
+    return (policies: OnyxCollection<Policy>): NonNullable<OnyxCollection<Policy>> => {
+        if (policyKeys.size === 0) {
+            return {};
+        }
+
+        const filtered: NonNullable<OnyxCollection<Policy>> = {};
+        for (const key of policyKeys) {
+            const policy = policies?.[key];
+            if (policy) {
+                filtered[key] = policy;
+            }
+        }
+        return filtered;
+    };
+};
+
+type MemberCustomFields = Pick<PolicyEmployee, ValueOf<typeof CONST.CUSTOM_FIELD_KEYS>>;
+
+type MemberCustomFieldsByPolicyID = Record<string, Record<string, MemberCustomFields>>;
+
+/**
+ * Creates a selector returning only the member custom fields of the given policies, keyed by policy ID and then
+ * by member login, so a consumer watching for custom field edits doesn't re-render on every other policy write.
+ */
+const createMemberCustomFieldsSelector = (policyIDs: string[]) => {
+    const customFieldKeys = Object.values(CONST.CUSTOM_FIELD_KEYS);
+
+    return (policies: OnyxCollection<Policy>): MemberCustomFieldsByPolicyID => {
+        const customFieldsByPolicyID: MemberCustomFieldsByPolicyID = {};
+        for (const policyID of policyIDs) {
+            const employeeList = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList;
+            if (!employeeList) {
+                continue;
+            }
+            const customFieldsByLogin: Record<string, MemberCustomFields> = {};
+            for (const [login, employee] of Object.entries(employeeList)) {
+                customFieldsByLogin[login] = Object.fromEntries(customFieldKeys.map((key) => [key, employee[key]]));
+            }
+            customFieldsByPolicyID[policyID] = customFieldsByLogin;
+        }
+        return customFieldsByPolicyID;
     };
 };
 
@@ -180,75 +383,115 @@ const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
         units: policy.units,
     };
 
-const hasMultipleOutputCurrenciesSelector = (policies: OnyxCollection<Policy>) => {
-    const currencies = new Set<string>();
+type PolicySelector = Pick<Policy, 'type' | 'role' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
 
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy || !isPaidGroupPolicy(policy)) {
-            continue;
-        }
-
-        currencies.add(policy.outputCurrency);
-        if (currencies.size > 1) {
-            return true;
-        }
+const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector | undefined => {
+    if (!policy) {
+        return undefined;
     }
-
-    return false;
-};
-
-type PolicySelector = Pick<Policy, 'type' | 'role' | 'isPolicyExpenseChatEnabled' | 'pendingAction' | 'avatarURL' | 'name' | 'id' | 'areInvoicesEnabled'>;
-
-const policyMapper = (policy: OnyxEntry<Policy>): PolicySelector =>
-    (policy && {
+    return {
         type: policy.type,
         role: policy.role,
         id: policy.id,
-        isPolicyExpenseChatEnabled: policy.isPolicyExpenseChatEnabled,
         pendingAction: policy.pendingAction,
         avatarURL: policy.avatarURL,
         name: policy.name,
         areInvoicesEnabled: policy.areInvoicesEnabled,
-    }) as PolicySelector;
+    };
+};
 
-// deepEqual on ~15 fields is cheaper than re-rendering IOURequestStartPage's full hook/memo tree.
-const iouRequestPolicyCollectionSelector = (policies: OnyxCollection<Policy>): OnyxCollection<Policy> => {
-    if (!policies) {
-        return {};
-    }
+type IOURequestStartPolicies = {
+    hasPerDiemPolicy: boolean;
+    hasMultiplePerDiemPolicies: boolean;
+    firstPerDiemPolicyID: string | undefined;
+    hasTimePolicy: boolean;
+    hasMultipleTimePolicies: boolean;
+    firstTimePolicyID: string | undefined;
 
-    const result: Record<string, Policy> = {};
+    /** false unless the invoice flow asked for it */
+    canSendInvoiceFromAnyWorkspace: boolean;
+};
 
-    for (const [id, policyItem] of Object.entries(policies)) {
-        if (!policyItem) {
-            continue;
+// Fixed-size output: same shape on 5 workspaces or 5000, so no employeeList/customUnits deepEqual and no growing ID list
+const createIOURequestStartPoliciesSelector =
+    (currentUserLogin: string | undefined, isInvoice: boolean) =>
+    (policies: OnyxCollection<Policy>): IOURequestStartPolicies => {
+        let perDiemCount = 0;
+        let timeCount = 0;
+        let firstPerDiemPolicyID: string | undefined;
+        let firstTimePolicyID: string | undefined;
+
+        for (const policy of getActivePoliciesWithExpenseChat(policies, currentUserLogin)) {
+            if (perDiemCount < 2 && isPerDiemEligiblePolicy(policy)) {
+                firstPerDiemPolicyID ??= policy.id;
+                perDiemCount++;
+            }
+            if (timeCount < 2 && isTimeTrackingEnabled(policy)) {
+                firstTimePolicyID ??= policy.id;
+                timeCount++;
+            }
+            // counts cap at 2, nothing downstream needs the real total
+            if (perDiemCount >= 2 && timeCount >= 2) {
+                break;
+            }
         }
 
-        result[id] = {
-            id: policyItem.id,
-            type: policyItem.type,
-            name: policyItem.name,
-            pendingAction: policyItem.pendingAction,
-            isPolicyExpenseChatEnabled: policyItem.isPolicyExpenseChatEnabled,
-            role: policyItem.role,
-            chatReportIDAdmins: policyItem.chatReportIDAdmins,
-            employeeList: policyItem.employeeList,
-            arePerDiemRatesEnabled: policyItem.arePerDiemRatesEnabled,
-            customUnits: policyItem.customUnits,
-            units: policyItem.units,
-            isJoinRequestPending: policyItem.isJoinRequestPending,
-            errors: policyItem.errors,
-            owner: policyItem.owner,
-            areInvoicesEnabled: policyItem.areInvoicesEnabled,
-        } as Policy;
-    }
+        return {
+            hasPerDiemPolicy: perDiemCount > 0,
+            hasMultiplePerDiemPolicies: perDiemCount > 1,
+            firstPerDiemPolicyID,
+            hasTimePolicy: timeCount > 0,
+            hasMultipleTimePolicies: timeCount > 1,
+            firstTimePolicyID,
+            canSendInvoiceFromAnyWorkspace: isInvoice && canSendInvoice(policies, currentUserLogin),
+        };
+    };
 
-    return result;
+type FilteredPoliciesInfo = {
+    /** Number of policies that should be shown to the user (short-circuited at 2) */
+    filteredPoliciesCount: number;
+
+    /** The first policy to show the user, projected to the billing-gate fields — see `BillingRestrictionPolicy`. */
+    firstPolicy: BillingRestrictionPolicy | undefined;
 };
+
+/** Projects a policy down to just the fields the billing gate reads — see `BillingRestrictionPolicy`. */
+const billingRestrictionPolicySelector = (policy: OnyxEntry<Policy>): BillingRestrictionPolicy | undefined => (policy ? {id: policy.id, ownerAccountID: policy.ownerAccountID} : undefined);
+
+// Fixed-size output: same shape on 5 workspaces or 5000, so no employeeList/customUnits deepEqual
+const createFilteredPoliciesInfoSelector =
+    (email: string | undefined) =>
+    (policies: OnyxCollection<Policy>): FilteredPoliciesInfo => {
+        let filteredPoliciesCount = 0;
+        let firstPolicy: BillingRestrictionPolicy | undefined;
+        for (const policy of Object.values(policies ?? {})) {
+            if (!policy || !shouldShowPolicy(policy, false, email) || isTeachersUnitePolicyID(policy.id)) {
+                continue;
+            }
+            if (filteredPoliciesCount === 0) {
+                firstPolicy = billingRestrictionPolicySelector(policy);
+            }
+            filteredPoliciesCount++;
+            if (filteredPoliciesCount > 1) {
+                break;
+            }
+        }
+        return {filteredPoliciesCount, firstPolicy};
+    };
 
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 };
+
+/**
+ * Returns the name of a workspace the member belongs to that calculates commuter exclusions from the member's
+ * home address, so the private home address row can name the workspace relying on it.
+ */
+const homeAndOfficeCommuterExclusionPolicyNameSelector = (policies: OnyxCollection<Policy>): string | undefined =>
+    Object.values(policies ?? {}).find(
+        (policy): policy is Policy =>
+            !!policy && policy.commuterExclusions?.method === CONST.POLICY.COMMUTER_EXCLUSION_METHOD.HOME_AND_OFFICE && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+    )?.name;
 
 function isAdminPolicyConnectedTo(policy: OnyxEntry<Policy>, connectionName: ReusablePolicyConnectionName): policy is Policy {
     return !!policy && policy.role === CONST.POLICY.ROLE.ADMIN && !!policy.connections?.[connectionName];
@@ -266,11 +509,31 @@ const adminPoliciesConnectedToNetSuiteSelector = (policies: OnyxCollection<Polic
 const adminPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) =>
     Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.QBD));
 
+const adminPoliciesConnectedToRilletSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.RILLET));
+
+const adminPoliciesConnectedToDualEntrySelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.DUALENTRY));
+
+const adminPoliciesConnectedToCampfireSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE));
+
+const adminPoliciesConnectedToZohoBooksSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS));
+
+const adminPoliciesConnectedToDigitsSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).filter<Policy>((policy): policy is Policy => isAdminPolicyConnectedTo(policy, CONST.POLICY.CONNECTIONS.NAME.DIGITS));
+
 const reusableConnectionAdminSelectors: Record<ReusablePolicyConnectionName, (policies: OnyxCollection<Policy>) => Policy[]> = {
     [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: adminPoliciesConnectedToNetSuiteSelector,
     [CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]: adminPoliciesConnectedToSageIntacctSelector,
     [CONST.POLICY.CONNECTIONS.NAME.QBD]: adminPoliciesConnectedToQBDSelector,
     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: adminPoliciesConnectedToCertiniaSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.RILLET]: adminPoliciesConnectedToRilletSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]: adminPoliciesConnectedToDualEntrySelector,
+    [CONST.POLICY.CONNECTIONS.NAME.CAMPFIRE]: adminPoliciesConnectedToCampfireSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS]: adminPoliciesConnectedToZohoBooksSelector,
+    [CONST.POLICY.CONNECTIONS.NAME.DIGITS]: adminPoliciesConnectedToDigitsSelector,
 };
 
 function isReusablePolicyConnection(policy: Policy, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) {
@@ -288,8 +551,6 @@ function getReusablePoliciesConnectedTo(policies: OnyxCollection<Policy>, connec
 const reusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) =>
     getReusablePoliciesConnectedTo(policies, connectionName, currentPolicyID);
 
-const hasPoliciesConnectedToQBDSelector = (policies: OnyxCollection<Policy>) => !!adminPoliciesConnectedToQBDSelector(policies).length;
-
 const hasReusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>, connectionName: ReusablePolicyConnectionName, currentPolicyID?: string) =>
     Object.values(policies ?? {}).some((policy) => isAdminPolicyConnectedTo(policy, connectionName) && isReusablePolicyConnection(policy, connectionName, currentPolicyID));
 
@@ -298,13 +559,13 @@ const hasReusablePoliciesConnectedToSelector = (policies: OnyxCollection<Policy>
 // cspell:disable-next-line
 const WORKSPACE_TRANSLATIONS = 'Workspace|Espacio de trabajo|Espace de travail|Spazio di lavoro|ワークスペース|Werkruimte|Przestrzeń robocza|Espaço de trabalho|工作区';
 
-function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string): number | undefined {
+function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: string, userDisplayName: string | undefined, localeTranslate: LocalizedTranslate): number | undefined {
     const emailParts = email.split('@');
     if (emailParts.length !== 2) {
         return undefined;
     }
 
-    const displayNameForWorkspace = getDisplayNameForWorkspace(email);
+    const displayNameForWorkspace = getDisplayNameForWorkspace(email, userDisplayName, localeTranslate);
     // find default named workspaces and increment the last number
     const escapedName = escapeRegExp(displayNameForWorkspace);
 
@@ -323,9 +584,34 @@ function lastWorkspaceNumberSelector(policies: OnyxCollection<Policy>, email: st
 
 const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
+const fullPolicySnapshotLastModifiedSelector = (snapshot: OnyxEntry<FullPolicySnapshot>) => snapshot?.lastModified;
+
+/** Maps each policyID to the lastModified of its full policy snapshot, for screens that open reports from several policies. */
+const fullPolicySnapshotLastModifiedByPolicyIDSelector = (snapshots: OnyxCollection<FullPolicySnapshot>): Record<string, number> => {
+    const lastModifiedByPolicyID: Record<string, number> = {};
+    for (const [key, snapshot] of Object.entries(snapshots ?? {})) {
+        if (!snapshot?.lastModified) {
+            continue;
+        }
+        lastModifiedByPolicyID[key.slice(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT.length)] = snapshot.lastModified;
+    }
+    return lastModifiedByPolicyID;
+};
+
+/** The policy fields a workspace avatar renders from. */
+const policyAvatarFieldsSelector = (policy: OnyxEntry<Policy>): Pick<Policy, 'avatarURL' | 'name'> | undefined => (policy ? {avatarURL: policy.avatarURL, name: policy.name} : undefined);
+
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
+const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
+
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
+
+const policyDefaultBankAccountIDSelector = (policy: OnyxEntry<Policy>) => policy?.achAccount?.bankAccountID;
+
+/** The policy fields that attribute a payment to a bank account (see `getBankAccountLastFourDigits`). */
+const policyPaymentAttributionSelector = (policy: OnyxEntry<Policy>): PolicyPaymentAttribution | undefined =>
+    policy ? {achAccount: policy.achAccount, reimburser: policy.reimburser} : undefined;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
     return (policies: OnyxCollection<Policy> | null): boolean => {
@@ -348,36 +634,64 @@ const createAdminPoliciesSelector =
             if (!isCurrentPolicy && (policy.type === CONST.POLICY.TYPE.PERSONAL || policy.role !== CONST.POLICY.ROLE.ADMIN)) {
                 return acc;
             }
-            acc[key] = {id: policy.id, name: policy.name, avatarURL: policy.avatarURL, created: policy.created};
+            acc[key] = {
+                id: policy.id,
+                name: policy.name,
+                avatarURL: policy.avatarURL,
+                created: policy.created,
+            };
             return acc;
         }, {});
     };
 
-export type {PolicySelector};
+const groupByPolicyAccountIDPoliciesSelector = (policies: OnyxCollection<Policy>) =>
+    Object.values(policies ?? {}).reduce((m, policy) => {
+        if (policy?.policyAccountID) {
+            m.set(policy.policyAccountID, policy);
+        }
+        return m;
+    }, new Map<number, Policy>());
+
+export type {MemberCustomFieldsByPolicyID, PolicySelector, TimeSensitiveAdminPolicy};
 export {
-    activePolicySelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,
     createCopySettingsEligibleTargetsSelector,
+    createFilteredPoliciesInfoSelector,
+    billingRestrictionPolicySelector,
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
-    createPoliciesForDomainCardsSelector,
+    createHasAdminPolicyWithXeroConnectionSelector,
+    createTimeSensitiveAdminPoliciesSelector,
+    createHasTravelEnabledPolicySelector,
+    createHasWorkspaceToSubmitToSelector,
+    createPoliciesForAssignedCardsSelector,
+    createPoliciesByIDsSelector,
+    createMemberCustomFieldsSelector,
     policyTimeTrackingSelector,
-    hasMultipleOutputCurrenciesSelector,
-    iouRequestPolicyCollectionSelector,
+    createIOURequestStartPoliciesSelector,
     policyMapper,
     adminPoliciesConnectedToQBDSelector,
     reusablePoliciesConnectedToSelector,
-    hasPoliciesConnectedToQBDSelector,
     hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
+    homeAndOfficeCommuterExclusionPolicyNameSelector,
+    policyAvatarFieldsSelector,
     policyNameSelector,
+    fullPolicySnapshotLastModifiedSelector,
+    fullPolicySnapshotLastModifiedByPolicyIDSelector,
+    policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
+    policyDefaultBankAccountIDSelector,
+    policyPaymentAttributionSelector,
     createAdminPoliciesSelector,
     isAdminForPolicyByIDSelector,
+    isCollectingDepositAccountsSelector,
+    createIsInternationalCountrySelector,
+    groupByPolicyAccountIDPoliciesSelector,
 };
-export type {ReusablePolicyConnectionName, CopySettingsEligibleTargets};
+export type {ReusablePolicyConnectionName};

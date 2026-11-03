@@ -1,9 +1,12 @@
-import OpenAI from 'openai';
-import type {MessageContent, TextContentBlock} from 'openai/resources/beta/threads';
-import type {ResponseCreateParamsNonStreaming} from 'openai/resources/responses/responses';
-import type {AssistantResponse} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
 import sanitizeJSONStringValues from '@github/libs/sanitizeJSONStringValues';
+
 import retryWithBackoff from '@scripts/utils/retryWithBackoff';
+
+import type {Conversation} from 'openai/resources/conversations/conversations';
+import type {ConversationItem} from 'openai/resources/conversations/items';
+import type {ResponseCreateParamsNonStreaming, ResponseFormatTextJSONSchemaConfig, ResponseInputItem} from 'openai/resources/responses/responses';
+
+import OpenAI from 'openai';
 
 type ResponsesModel = ResponseCreateParamsNonStreaming['model'];
 
@@ -17,36 +20,6 @@ type ResponseResult = {
 
 class OpenAIUtils {
     /**
-     * How frequently to poll a thread to wait for it to be done.
-     */
-    private static readonly POLL_RATE = 1500;
-
-    /**
-     * The maximum amount of time to wait for a thread to produce a response.
-     */
-    private static readonly POLL_TIMEOUT = 90000;
-
-    /**
-     * The role of the `user` in the OpenAI model.
-     */
-    private static readonly USER = 'user';
-
-    /**
-     * The role of the `assistant` in the OpenAI model.
-     */
-    private static readonly ASSISTANT = 'assistant';
-
-    /**
-     * The status of a completed run in the OpenAI model.
-     */
-    private static readonly OPENAI_RUN_COMPLETED = 'completed';
-
-    /**
-     * The maximum number of requests to make when polling for thread completion.
-     */
-    private static readonly MAX_POLL_COUNT = Math.floor(OpenAIUtils.POLL_TIMEOUT / OpenAIUtils.POLL_RATE);
-
-    /**
      * OpenAI API client.
      */
     private client: OpenAI;
@@ -56,18 +29,22 @@ class OpenAIUtils {
     }
 
     /**
-     * Prompt the Responses API with optional prompt caching.
+     * Prompt the Responses API with optional prompt caching and/or a persistent conversation.
      */
     public async promptResponses({
         input,
         instructions,
         promptCacheKey,
         model = 'gpt-5.1',
+        conversation,
+        textFormat,
     }: {
         input: string;
         instructions?: string;
         promptCacheKey?: string;
         model?: ResponsesModel;
+        conversation?: string;
+        textFormat?: ResponseFormatTextJSONSchemaConfig;
     }): Promise<ResponseResult> {
         const response = await retryWithBackoff(
             () =>
@@ -75,6 +52,8 @@ class OpenAIUtils {
                     model,
                     input,
                     instructions,
+                    conversation,
+                    ...(textFormat ? {text: {format: textFormat}} : {}),
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     prompt_cache_key: promptCacheKey,
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -94,61 +73,41 @@ class OpenAIUtils {
     }
 
     /**
-     * Prompt a pre-defined assistant.
+     * Create a Conversation, optionally seeded with up to 20 initial items.
      */
-    public async promptAssistant(assistantID: string, userMessage: string): Promise<string> {
-        // 1. Create a thread
-        const thread = await retryWithBackoff(
-            () =>
-                this.client.beta.threads.create({
-                    messages: [{role: OpenAIUtils.USER, content: userMessage}],
-                }),
-            {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
-        );
-
-        // 2. Create a run on the thread
-        let run = await retryWithBackoff(
-            () =>
-                this.client.beta.threads.runs.create(thread.id, {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    assistant_id: assistantID,
-                }),
-            {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
-        );
-
-        // 3. Poll for completion
-        let response = '';
-        let count = 0;
-        while (!response && count < OpenAIUtils.MAX_POLL_COUNT) {
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            run = await this.client.beta.threads.runs.retrieve(run.id, {thread_id: thread.id});
-            if (run.status !== OpenAIUtils.OPENAI_RUN_COMPLETED) {
-                count++;
-                await new Promise((resolve) => {
-                    setTimeout(resolve, OpenAIUtils.POLL_RATE);
-                });
-                continue;
-            }
-
-            for await (const message of this.client.beta.threads.messages.list(thread.id)) {
-                if (message.role !== OpenAIUtils.ASSISTANT) {
-                    continue;
-                }
-                response += message.content
-                    .map((contentBlock) => OpenAIUtils.isTextContentBlock(contentBlock) && contentBlock.text.value)
-                    .join('\n')
-                    .trim();
-                console.log('Parsed assistant response:', response);
-            }
-            if (!response) {
-                throw new Error('Assistant response is empty or had no text content. This is unexpected.');
-            }
-        }
-        return response;
+    public async createConversation(items?: ResponseInputItem[]): Promise<Conversation> {
+        return retryWithBackoff(() => this.client.conversations.create(items ? {items} : undefined), {isRetryable: (err) => OpenAIUtils.isRetryableError(err)});
     }
 
-    private static isTextContentBlock(block: MessageContent): block is TextContentBlock {
-        return block.type === 'text';
+    /**
+     * Add up to 20 items at a time to an existing Conversation.
+     */
+    public async addConversationItems(conversationID: string, items: ResponseInputItem[]): Promise<void> {
+        await retryWithBackoff(() => this.client.conversations.items.create(conversationID, {items}), {isRetryable: (err) => OpenAIUtils.isRetryableError(err)});
+    }
+
+    /**
+     * Every item in a Conversation, following pagination.
+     */
+    public async listConversationItems(conversationID: string): Promise<ConversationItem[]> {
+        return retryWithBackoff(
+            async () => {
+                const items: ConversationItem[] = [];
+                for await (const item of this.client.conversations.items.list(conversationID)) {
+                    items.push(item);
+                }
+                return items;
+            },
+            {isRetryable: (err) => OpenAIUtils.isRetryableError(err)},
+        );
+    }
+
+    /**
+     * Remove a single item from a Conversation.
+     */
+    public async deleteConversationItem(conversationID: string, itemID: string): Promise<void> {
+        // eslint-disable-next-line @typescript-eslint/naming-convention -- matches OpenAI's API field name
+        await retryWithBackoff(() => this.client.conversations.items.delete(itemID, {conversation_id: conversationID}), {isRetryable: (err) => OpenAIUtils.isRetryableError(err)});
     }
 
     private static isRetryableError(error: unknown): boolean {
@@ -191,20 +150,19 @@ class OpenAIUtils {
     }
 
     /**
-     * @deprecated Use promptResponses instead. This method exists only for backwards compatibility with proposalPoliceComment.
+     * Parse a JSON response from the model, validating its shape with the given type guard.
      */
-    public parseAssistantResponse<T extends AssistantResponse>(response: string): T | null {
-        const sanitized = sanitizeJSONStringValues(response);
-        let parsed: T;
-
+    public parseJSONResponse<T>(response: string, isValid: (value: unknown) => value is T): T | null {
+        let parsed: unknown;
         try {
-            parsed = JSON.parse(sanitized) as T;
+            const sanitized = sanitizeJSONStringValues(response);
+            parsed = JSON.parse(sanitized);
         } catch (e) {
             console.error('Failed to parse AI response as JSON:', response);
             return null;
         }
 
-        if (typeof parsed !== 'object' || typeof parsed.action !== 'string' || typeof parsed.message !== 'string') {
+        if (!isValid(parsed)) {
             console.error('AI response missing required fields:', parsed);
             return null;
         }

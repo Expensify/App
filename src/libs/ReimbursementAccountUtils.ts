@@ -1,6 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
+
+import type {ValueOf} from 'type-fest';
 
 type ReimbursementAccountStepToOpen = ValueOf<typeof REIMBURSEMENT_ACCOUNT_ROUTE_NAMES> | '';
 

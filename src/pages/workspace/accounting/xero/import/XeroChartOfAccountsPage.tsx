@@ -1,20 +1,28 @@
-import React from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
+import MenuItemSectionRoot from '@components/MenuItem/presets/MenuItemSectionRoot';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import variables from '@styles/variables';
+
+import {fontScale} from '@styles/typography';
+
 import {updateXeroEnableNewCategories} from '@userActions/connections/Xero';
 import * as Policy from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
     const {translate} = useLocalize();
@@ -35,7 +43,7 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
         >
             <View style={[styles.flexRow, styles.mb4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                 <View style={styles.flex1}>
-                    <Text fontSize={variables.fontSizeNormal}>{translate('workspace.accounting.import')}</Text>
+                    <Text fontSize={fontScale.text}>{translate('workspace.accounting.import')}</Text>
                 </View>
                 <View style={[styles.flex1, styles.alignItemsEnd, styles.pl3]}>
                     <Switch
@@ -46,12 +54,12 @@ function XeroChartOfAccountsPage({policy}: WithPolicyProps) {
                     />
                 </View>
             </View>
-            <MenuItemWithTopDescription
-                interactive={false}
-                title={translate('workspace.common.categories')}
-                description={translate('workspace.common.displayedAs')}
-                wrapperStyle={styles.sectionMenuItemTopDescription}
-            />
+            <MenuItemSectionRoot>
+                <MenuItemField.Row
+                    name={translate('workspace.common.displayedAs')}
+                    value={translate('workspace.common.categories')}
+                />
+            </MenuItemSectionRoot>
             <Text style={styles.pv5}>{translate('workspace.xero.accountsSwitchTitle')}</Text>
             <ToggleSettingOptionRow
                 title={translate('workspace.common.enabled')}

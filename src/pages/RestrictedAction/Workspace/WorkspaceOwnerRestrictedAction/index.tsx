@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,12 +5,21 @@ import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
-import ROUTES from '@src/ROUTES';
+
+import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function WorkspaceOwnerRestrictedAction() {
     const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
@@ -22,7 +29,7 @@ function WorkspaceOwnerRestrictedAction() {
 
     const addPaymentCard = () => {
         Navigation.dismissModal({
-            afterTransition: () => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD),
+            afterTransition: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path)),
         });
     };
 
@@ -53,11 +60,12 @@ function WorkspaceOwnerRestrictedAction() {
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.restrictedAction.addPaymentCardToContinueUsingWorkspace')}</Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.mb5]}>{translate('workspace.restrictedAction.youWillNeedToAddOrUpdatePaymentCard')}</Text>
                     <Button
-                        text={translate('workspace.restrictedAction.addPaymentCard')}
                         onPress={addPaymentCard}
-                        success
-                        large
-                    />
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                    >
+                        <Button.Text>{translate('workspace.restrictedAction.addPaymentCard')}</Button.Text>
+                    </Button>
                 </View>
             </ScrollView>
         </ScreenWrapper>

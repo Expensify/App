@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useInboxTabSpanLifecycle from '@hooks/useInboxTabSpanLifecycle';
+
 import CONST from '@src/CONST';
 
 type FocusCallback = () => (() => void) | void;
@@ -9,7 +11,7 @@ const SPAN = CONST.TELEMETRY.SPAN_NAVIGATE_TO_INBOX_TAB;
 
 const mockUseFocusEffect = jest.fn<void, [FocusCallback]>();
 const mockGetSpan = jest.fn<FakeSpan | undefined, [string]>();
-const mockEndSpan = jest.fn<void, [string]>();
+const mockEndSpanWithAttributes = jest.fn<void, [string, Record<string, unknown>]>();
 const mockCancelSpan = jest.fn<void, [string]>();
 
 // The hook only consumes useFocusEffect from this module. We capture the focus callback
@@ -23,7 +25,7 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('@libs/telemetry/activeSpans', () => ({
     getSpan: (spanId: string) => mockGetSpan(spanId),
-    endSpan: (spanId: string) => mockEndSpan(spanId),
+    endSpanWithAttributes: (spanId: string, attributes: Record<string, unknown>) => mockEndSpanWithAttributes(spanId, attributes),
     cancelSpan: (spanId: string) => mockCancelSpan(spanId),
 }));
 
@@ -56,8 +58,8 @@ describe('useInboxTabSpanLifecycle', () => {
             result.current();
         });
 
-        expect(mockEndSpan).toHaveBeenCalledTimes(1);
-        expect(mockEndSpan).toHaveBeenCalledWith(SPAN);
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledTimes(1);
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledWith(SPAN, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
         expect(mockCancelSpan).not.toHaveBeenCalled();
     });
 
@@ -68,7 +70,7 @@ describe('useInboxTabSpanLifecycle', () => {
             getFocusCallback()();
         });
 
-        expect(mockEndSpan).not.toHaveBeenCalled();
+        expect(mockEndSpanWithAttributes).not.toHaveBeenCalled();
     });
 
     it('ends the span on re-focus after layout (warm react-freeze path)', () => {
@@ -79,14 +81,14 @@ describe('useInboxTabSpanLifecycle', () => {
         act(() => {
             result.current();
         });
-        mockEndSpan.mockClear();
+        mockEndSpanWithAttributes.mockClear();
 
         act(() => {
             getFocusCallback()();
         });
 
-        expect(mockEndSpan).toHaveBeenCalledTimes(1);
-        expect(mockEndSpan).toHaveBeenCalledWith(SPAN);
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledTimes(1);
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledWith(SPAN, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
     });
 
     it('cancels the span on blur when layout never completed (orphan cleanup)', () => {
@@ -121,6 +123,42 @@ describe('useInboxTabSpanLifecycle', () => {
         unmount();
 
         expect(mockCancelSpan).not.toHaveBeenCalled();
+    });
+
+    it('reports a repeat layout as warm', () => {
+        const {result} = renderHook(() => useInboxTabSpanLifecycle());
+
+        act(() => {
+            result.current();
+        });
+        mockEndSpanWithAttributes.mockClear();
+
+        act(() => {
+            result.current();
+        });
+
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledTimes(1);
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledWith(SPAN, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+    });
+
+    it('reports the same value from either end path', () => {
+        const {result} = renderHook(() => useInboxTabSpanLifecycle());
+
+        act(() => {
+            result.current();
+        });
+        mockEndSpanWithAttributes.mockClear();
+
+        act(() => {
+            result.current();
+        });
+        act(() => {
+            getFocusCallback()();
+        });
+
+        expect(mockEndSpanWithAttributes).toHaveBeenCalledTimes(2);
+        expect(mockEndSpanWithAttributes).toHaveBeenNthCalledWith(1, SPAN, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
+        expect(mockEndSpanWithAttributes).toHaveBeenNthCalledWith(2, SPAN, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
     });
 
     it('does not cancel on unmount after layout has completed', () => {

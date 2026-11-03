@@ -1,24 +1,34 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
-import {getActiveScreenInRoute, isNavigatingToReportActionWithinSameReport, isSwitchingTabsWithinTabNavigator, shouldChangeToMatchingFullScreen} from '@libs/Navigation/helpers/linkTo';
+import {
+    getActiveScreenInRoute,
+    getMatchingFullScreenRouteParams,
+    isNavigatingToReportActionWithinSameReport,
+    isSwitchingTabsWithinTabNavigator,
+    shouldChangeToMatchingFullScreen,
+} from '@libs/Navigation/helpers/linkTo';
 import type {NavigationPartialRoute, RootNavigatorParamList} from '@libs/Navigation/types';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
-function makeRootState(routes: Array<{name: string; key?: string}>): NavigationState<RootNavigatorParamList> {
-    return {
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
+import createMock from '../utils/createMock';
+
+function makeRootState(routes: Array<{name: keyof RootNavigatorParamList; key?: string}>): NavigationState<RootNavigatorParamList> {
+    return createMock<NavigationState<RootNavigatorParamList>>({
         routes: routes.map((r, i) => ({name: r.name, key: r.key ?? `k-${i}`, params: undefined})),
         index: routes.length - 1,
         key: 'root',
         routeNames: routes.map((r) => r.name),
         stale: false,
         type: 'stack',
-    } as unknown as NavigationState<RootNavigatorParamList>;
+    });
 }
 
-function makePartialState(routes: Array<{name: string}>): PartialState<NavigationState<RootNavigatorParamList>> {
-    return {
+function makePartialState(routes: Array<{name: keyof RootNavigatorParamList}>): PartialState<NavigationState<RootNavigatorParamList>> {
+    return createMock<PartialState<NavigationState<RootNavigatorParamList>>>({
         routes: routes.map((r) => ({name: r.name})),
-    } as PartialState<NavigationState<RootNavigatorParamList>>;
+    });
 }
 
 describe('isSwitchingTabsWithinTabNavigator', () => {
@@ -49,7 +59,7 @@ describe('isSwitchingTabsWithinTabNavigator', () => {
 
     it('returns false when target state has no routes', () => {
         const current = makeRootState([{name: NAVIGATORS.TAB_NAVIGATOR}]);
-        const target = {routes: undefined} as unknown as PartialState<NavigationState<RootNavigatorParamList>>;
+        const target = createMock<PartialState<NavigationState<RootNavigatorParamList>>>({routes: undefined});
         expect(isSwitchingTabsWithinTabNavigator(current, target)).toBe(false);
     });
 });
@@ -110,6 +120,45 @@ describe('getActiveScreenInRoute', () => {
     });
 });
 
+describe('getMatchingFullScreenRouteParams', () => {
+    it('returns the route params when there is no nested route', () => {
+        const route: NavigationPartialRoute = {name: NAVIGATORS.WORKSPACE_NAVIGATOR, params: {policyID: '1'}};
+
+        expect(getMatchingFullScreenRouteParams(route)).toEqual({policyID: '1'});
+    });
+
+    it('omits state when the last route has none', () => {
+        const route: NavigationPartialRoute = {
+            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+            state: {index: 0, routes: [{name: SCREENS.WORKSPACE.INITIAL, params: {policyID: '1'}}]},
+        };
+
+        expect(getMatchingFullScreenRouteParams(route)).toEqual({screen: SCREENS.WORKSPACE.INITIAL, params: {policyID: '1'}});
+    });
+
+    it('preserves the nested split state when building an initialized workspace background', () => {
+        const splitState = {
+            routes: [
+                {name: SCREENS.WORKSPACE.INITIAL, params: {policyID: '1'}},
+                {name: SCREENS.WORKSPACE.DISTANCE_RATES, params: {policyID: '1'}},
+            ],
+            index: 1,
+        };
+        const route: NavigationPartialRoute = {
+            name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+            state: {
+                routes: [{name: SCREENS.WORKSPACES_LIST}, {name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, state: splitState}],
+                index: 1,
+            },
+        };
+
+        expect(getMatchingFullScreenRouteParams(route)).toEqual({
+            screen: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+            params: {state: splitState},
+        });
+    });
+});
+
 describe('shouldChangeToMatchingFullScreen', () => {
     it('returns true when names differ', () => {
         const result = shouldChangeToMatchingFullScreen({name: 'SomeRHPScreen', key: 'k1'}, {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR});
@@ -146,26 +195,7 @@ describe('shouldChangeToMatchingFullScreen', () => {
         expect(result).toBe(true);
     });
 
-    it('returns true for ADD_PAYMENT_CARD when not on SUBSCRIPTION tab', () => {
-        const result = shouldChangeToMatchingFullScreen(
-            {name: SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, key: 'k1'},
-            {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
-            {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
-        );
-        // Same name, not TAB_NAVIGATOR, but ADD_PAYMENT_CARD and lastActiveScreen is undefined (not SUBSCRIPTION.ROOT)
-        expect(result).toBe(true);
-    });
-
-    it('returns false for ADD_PAYMENT_CARD when on SUBSCRIPTION tab', () => {
-        const result = shouldChangeToMatchingFullScreen(
-            {name: SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD, key: 'k1'},
-            {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, state: {routes: [{name: SCREENS.SETTINGS.SUBSCRIPTION.ROOT}]}},
-            {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR, state: {routes: [{name: SCREENS.SETTINGS.SUBSCRIPTION.ROOT}]}},
-        );
-        expect(result).toBe(false);
-    });
-
-    it('returns false when same name, not TAB, not ADD_PAYMENT_CARD', () => {
+    it('returns false when same name and not TAB_NAVIGATOR', () => {
         const result = shouldChangeToMatchingFullScreen({name: 'SomeOtherScreen', key: 'k1'}, {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
         expect(result).toBe(false);
     });

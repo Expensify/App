@@ -55,12 +55,16 @@ function calculateDayOfYear(date: Date): number {
  * Get localized month and day names using date-fns
  */
 function getLocalizedNames(date: Date) {
+    // Report title formulas resolve to a name stored on the report and seen by everyone who opens it, so it must not vary
+    // with the language of whoever happened to trigger the computation.
+    /* eslint-disable rulesdir/require-locale-for-localized-date-format */
     return {
         fullMonthName: dateFnsFormat(date, 'MMMM'),
         shortMonthName: dateFnsFormat(date, 'MMM'),
         fullDayName: dateFnsFormat(date, 'EEEE'),
         shortDayName: dateFnsFormat(date, 'EEE'),
     };
+    /* eslint-enable rulesdir/require-locale-for-localized-date-format */
 }
 
 /**

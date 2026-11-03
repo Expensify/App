@@ -1,11 +1,17 @@
-import React, {useMemo} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import BillingBanner from '@pages/settings/Subscription/CardSection/BillingBanner/BillingBanner';
+
+import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Badge from './Badge';
 import Button from './Button';
 import Text from './Text';
@@ -45,51 +51,46 @@ function AgentPromotionalBanner({title, subtitle, onDismiss, dismissSentryLabel,
 
     const hasCta = !!ctaText && !!onCtaPress;
 
-    const titleNode = useMemo(
-        () => (
-            <View style={[styles.flexRow, styles.flexShrink1]}>
-                <Text style={[styles.textStrong]}>
-                    {title}
-                    <Badge
-                        badgeStyles={styles.agentPromotionalBannerBadge}
-                        success
-                        isStrong
-                        isCondensed
-                        text={translate('common.new')}
-                    />
-                </Text>
-            </View>
-        ),
-        [title, styles, translate],
+    const titleNode = (
+        <View style={[styles.flexRow, styles.flexShrink1]}>
+            <Text style={[styles.textStrong]}>
+                {title}
+                <Badge
+                    badgeStyles={styles.agentPromotionalBannerBadge}
+                    success
+                    isStrong
+                    isCondensed
+                    text={translate('common.new')}
+                />
+            </Text>
+        </View>
     );
 
-    const rightComponent = useMemo(() => {
-        if (!hasCta) {
-            return null;
-        }
-        if (shouldUseNarrowLayout && !isInLandscapeMode) {
-            return (
-                <View style={[styles.flex0, styles.flexBasis100, styles.maxWidth100Percentage, styles.justifyContentCenter]}>
+    let rightComponent;
+    if (!hasCta) {
+        rightComponent = null;
+    } else {
+        rightComponent =
+            shouldUseNarrowLayout && !isInLandscapeMode ? (
+                <View style={[styles.w100, styles.justifyContentCenter]}>
                     <Button
-                        success
-                        medium
-                        text={ctaText}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={onCtaPress}
                         sentryLabel={ctaSentryLabel}
-                    />
+                    >
+                        <Button.Text>{ctaText ?? ''}</Button.Text>
+                    </Button>
                 </View>
+            ) : (
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={onCtaPress}
+                    sentryLabel={ctaSentryLabel}
+                >
+                    <Button.Text>{ctaText ?? ''}</Button.Text>
+                </Button>
             );
-        }
-        return (
-            <Button
-                success
-                medium
-                text={ctaText}
-                onPress={onCtaPress}
-                sentryLabel={ctaSentryLabel}
-            />
-        );
-    }, [hasCta, shouldUseNarrowLayout, isInLandscapeMode, ctaText, onCtaPress, ctaSentryLabel, styles]);
+    }
 
     return (
         <View style={style}>

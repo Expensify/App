@@ -1,43 +1,46 @@
-import React, {useCallback} from 'react';
-import type {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+
 import Clipboard from '@libs/Clipboard';
+
 import CONST from '@src/CONST';
-import PressableWithDelayToggle from './Pressable/PressableWithDelayToggle';
+
+import type {AccessibilityRole, StyleProp, TextStyle} from 'react-native';
+
+import React from 'react';
+
 import type {PressableWithDelayToggleProps} from './Pressable/PressableWithDelayToggle';
+
+import PressableWithDelayToggle from './Pressable/PressableWithDelayToggle';
 
 type CopyTextToClipboardProps = {
     /** The text to display and copy to the clipboard */
     text?: string;
 
-    /** Styles to apply to the text */
     textStyles?: StyleProp<TextStyle>;
-
     urlToCopy?: string;
 
     accessibilityRole?: AccessibilityRole;
-} & Pick<PressableWithDelayToggleProps, 'iconStyles' | 'iconHeight' | 'iconWidth' | 'styles' | 'shouldUseButtonBackground' | 'shouldHaveActiveBackground'>;
+} & Pick<PressableWithDelayToggleProps, 'iconStyles' | 'iconSize' | 'styles' | 'shouldUseButtonBackground' | 'shouldHaveActiveBackground' | 'inline'>;
 
 function CopyTextToClipboard({
     text,
     textStyles,
     urlToCopy,
     accessibilityRole,
-    iconHeight,
     iconStyles,
-    iconWidth,
+    iconSize,
     shouldHaveActiveBackground,
     shouldUseButtonBackground,
     styles,
+    inline,
 }: CopyTextToClipboardProps) {
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Copy']);
 
-    const copyToClipboard = useCallback(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
+    const copyToClipboard = () => {
         Clipboard.setString(urlToCopy || text || '');
-    }, [text, urlToCopy]);
+    };
 
     return (
         <PressableWithDelayToggle
@@ -52,11 +55,11 @@ function CopyTextToClipboard({
             accessibilityRole={accessibilityRole}
             sentryLabel={CONST.SENTRY_LABEL.COPY_TEXT_TO_CLIPBOARD.COPY_BUTTON}
             shouldHaveActiveBackground={shouldHaveActiveBackground}
-            iconWidth={iconWidth}
-            iconHeight={iconHeight}
+            iconSize={iconSize}
             iconStyles={iconStyles}
             styles={styles}
             shouldUseButtonBackground={shouldUseButtonBackground}
+            inline={inline}
         />
     );
 }

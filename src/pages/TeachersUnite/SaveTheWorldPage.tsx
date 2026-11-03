@@ -1,6 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef} from 'react';
-import {View} from 'react-native';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
@@ -10,24 +7,35 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCardForSubscriptionBilling} from '@libs/SubscriptionUtils';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {openSaveTheWorldPage, updatePersonalKarma} from '@userActions/Subscription';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
+import shouldDisablePersonalKarmaToggle from './shouldDisablePersonalKarmaToggle';
 import useSaveTheWorldSectionIllustration from './useSaveTheWorldSectionIllustration';
 
 function SaveTheWorldPage() {
@@ -39,7 +47,6 @@ function SaveTheWorldPage() {
     const theme = useTheme();
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const illustrations = useMemoizedLazyIllustrations(['TeachersUnite']);
     const [personalOffsetsEnabled = false] = useOnyx(ONYXKEYS.NVP_PERSONAL_OFFSETS);
     const [userBillingFundID] = useOnyx(ONYXKEYS.NVP_BILLING_FUND_ID);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
@@ -50,38 +57,34 @@ function SaveTheWorldPage() {
     const personalKarmaTitle = translate('teachersUnitePage.personalKarma.title');
     const personalKarmaDescription = translate('teachersUnitePage.personalKarma.description');
     const personalKarmaStopDonationsPrompt = translate('teachersUnitePage.personalKarma.stopDonationsPrompt');
-    const billingCard = useMemo(() => {
-        const userBillingCard = userBillingFundID ? fundList?.[`${userBillingFundID}`] : undefined;
-        if (userBillingCard?.accountData) {
-            return userBillingCard;
-        }
-
-        return getCardForSubscriptionBilling(fundList);
-    }, [fundList, userBillingFundID]);
-    const menuItems = useMemo(() => {
-        const baseMenuItems = [
-            {
-                translationKey: 'teachersUnitePage.iKnowATeacher',
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.I_KNOW_A_TEACHER)),
-                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_KNOW_A_TEACHER,
-            },
-            {
-                translationKey: 'teachersUnitePage.iAmATeacher',
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.I_AM_A_TEACHER)),
-                sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_AM_A_TEACHER,
-            },
-        ];
-
-        return baseMenuItems.map((item) => ({
-            key: item.translationKey,
-            title: translate(item.translationKey as TranslationPaths),
-            onPress: item.action,
-            shouldShowRightIcon: true,
-            link: '',
-            wrapperStyle: [styles.sectionMenuItemTopDescription],
-            sentryLabel: item.sentryLabel,
-        }));
-    }, [translate, waitForNavigate, styles]);
+    let billingCard;
+    const userBillingCard = userBillingFundID ? fundList?.[`${userBillingFundID}`] : undefined;
+    if (userBillingCard?.accountData) {
+        billingCard = userBillingCard;
+    } else {
+        billingCard = getCardForSubscriptionBilling(fundList);
+    }
+    const baseMenuItems = [
+        {
+            translationKey: 'teachersUnitePage.iKnowATeacher',
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.I_KNOW_A_TEACHER)),
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_KNOW_A_TEACHER,
+        },
+        {
+            translationKey: 'teachersUnitePage.iAmATeacher',
+            action: waitForNavigate(() => Navigation.navigate(ROUTES.I_AM_A_TEACHER)),
+            sentryLabel: CONST.SENTRY_LABEL.SETTINGS_TEACHERS_UNITE.I_AM_A_TEACHER,
+        },
+    ];
+    const menuItems = baseMenuItems.map((item) => ({
+        key: item.translationKey,
+        title: translate(item.translationKey as TranslationPaths),
+        onPress: item.action,
+        shouldShowRightIcon: true,
+        link: '',
+        wrapperStyle: [styles.sectionMenuItemTopDescription],
+        sentryLabel: item.sentryLabel,
+    }));
 
     useEffect(() => {
         openSaveTheWorldPage();
@@ -112,7 +115,7 @@ function SaveTheWorldPage() {
                 prompt: personalKarmaStopDonationsPrompt,
                 confirmText: translate('common.disable'),
                 cancelText: translate('common.cancel'),
-                danger: true,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             }).then(({action}) => {
                 if (action !== ModalActions.CONFIRM) {
                     return;
@@ -124,7 +127,7 @@ function SaveTheWorldPage() {
 
         if (!billingCard) {
             pendingPersonalKarmaEnableRef.current = true;
-            Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD_ADD_PAYMENT_CARD);
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
             return;
         }
         updatePersonalKarma(true);
@@ -143,7 +146,6 @@ function SaveTheWorldPage() {
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
                 onBackButtonPress={Navigation.goBack}
-                icon={illustrations.TeachersUnite}
                 shouldUseHeadlineHeader
             />
             <ScrollView contentContainerStyle={styles.pt3}>
@@ -182,7 +184,8 @@ function SaveTheWorldPage() {
                             onToggle={handlePersonalKarmaToggle}
                             isActive={personalOffsetsEnabled}
                             pendingAction={isPendingUpdatePersonalKarma ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined}
-                            disabled={isPendingUpdatePersonalKarma}
+                            disabled={isPendingUpdatePersonalKarma || shouldDisablePersonalKarmaToggle()}
+                            subtitle={shouldDisablePersonalKarmaToggle() ? translate('teachersUnitePage.personalKarma.managePreferencesFromWeb') : undefined}
                             wrapperStyle={styles.mt8}
                         />
                         {personalOffsetsEnabled && (

@@ -1,14 +1,19 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
-import {findFocusedRoute, StackActions, TabActions} from '@react-navigation/native';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isPendingDeletePolicy, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Domain, Policy} from '@src/types/onyx';
+import type {Domain, Policy, Session} from '@src/types/onyx';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {findFocusedRoute, StackActions, TabActions} from '@react-navigation/native';
+
 import getActiveTabName from './getActiveTabName';
 import {saveWorkspacesTabPathToSessionStorage} from './lastVisitedTabPathUtils';
 
@@ -28,9 +33,10 @@ type Params = {
     domain?: Domain;
     lastWorkspacesTabNavigatorRoute?: RouteType;
     lastTabNavigatorRoute?: RouteType;
+    session: OnyxEntry<Session>;
 };
 
-const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain, lastWorkspacesTabNavigatorRoute, lastTabNavigatorRoute}: Params) => {
+const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, policy, domain, lastWorkspacesTabNavigatorRoute, lastTabNavigatorRoute, session}: Params) => {
     const rootState = navigationRef.getRootState();
     const focusedRoute = rootState ? findFocusedRoute(rootState) : undefined;
     const isOnWorkspacesList = focusedRoute?.name === SCREENS.WORKSPACES_LIST;
@@ -83,6 +89,11 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
             if (policy?.id && existingTabNavStateKey) {
                 const focusedWorkspaceSplitRouteName = lastWorkspacesTabNavigatorRoute.state ? findFocusedRoute(lastWorkspacesTabNavigatorRoute.state)?.name : undefined;
                 const isOnWorkspaceInitial = focusedWorkspaceSplitRouteName === SCREENS.WORKSPACE.INITIAL;
+                // On narrow layouts, navigating with the bottom tab bar must always land on a page that still
+                // displays that tab bar. Workspace sub-pages (Travel, Members, Workflows, Accounting, ...) hide
+                // it, so restoring one here would switch the tab and hide the tab bar in a single action.
+                // Intentionally reset the workspace split back to WorkspaceInitialPage instead of restoring the
+                // last visited sub-page.
                 if (shouldUseNarrowLayout && !isOnWorkspaceInitial) {
                     if (lastWorkspacesTabNavigatorRoute.state?.key) {
                         // Live state: pop the workspace split to WorkspaceInitialPage while the tab is
@@ -112,7 +123,7 @@ const navigateToWorkspacesPage = ({currentUserLogin, shouldUseNarrowLayout, poli
 
         // Fallback: any other state, go to the list.
         Navigation.navigate(ROUTES.WORKSPACES_LIST.route);
-    });
+    }, session);
 };
 
 export default navigateToWorkspacesPage;

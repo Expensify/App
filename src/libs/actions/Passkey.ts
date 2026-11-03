@@ -1,6 +1,7 @@
-import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LocalPasskeyCredentialsEntry, PasskeyCredential} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
 
 /** Identifies a passkey storage scope for a specific user */
 type PasskeyScope = {

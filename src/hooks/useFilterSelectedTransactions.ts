@@ -1,6 +1,8 @@
-import {useEffect, useMemo} from 'react';
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+
 import type {Transaction} from '@src/types/onyx';
+
+import {useEffect} from 'react';
 
 /**
  * Hook that filters selected transaction IDs to only include transactions that exist in the provided list.
@@ -9,12 +11,13 @@ import type {Transaction} from '@src/types/onyx';
  * @param transactions - The current list of transactions
  * @param reportID - The report that owns the current transaction list
  */
+
 function useFilterSelectedTransactions(transactions: Transaction[], reportID?: string) {
     const {selectedTransactionIDs, currentSelectedTransactionReportID} = useSearchSelectionContext();
     const {setSelectedTransactions} = useSearchSelectionActions();
 
-    const transactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
-    const filteredSelectedTransactionIDs = useMemo(() => selectedTransactionIDs.filter((id) => transactionIDs.includes(id)), [selectedTransactionIDs, transactionIDs]);
+    const transactionIDs = new Set(transactions.map((transaction) => transaction.transactionID));
+    const filteredSelectedTransactionIDs = selectedTransactionIDs.filter((id) => transactionIDs.has(id));
     useEffect(() => {
         if (filteredSelectedTransactionIDs.length === selectedTransactionIDs.length) {
             return;

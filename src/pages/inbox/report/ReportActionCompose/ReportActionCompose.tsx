@@ -1,8 +1,10 @@
 import React from 'react';
+
+import type {SuggestionsRef} from './ComposerContext';
+
 import ComposerActionMenu from './ComposerActionMenu';
 import ComposerBox from './ComposerBox';
 import ComposerContainer from './ComposerContainer';
-import type {SuggestionsRef} from './ComposerContext';
 import ComposerDefaultFooter from './ComposerDefaultFooter';
 import ComposerDropZone from './ComposerDropZone';
 import ComposerEditingButtons from './ComposerEditingButtons';
@@ -19,7 +21,6 @@ import ComposerSendButton from './ComposerSendButton';
 import ComposerTypingIndicator from './ComposerTypingIndicator';
 
 type ReportActionComposeProps = {
-    /** Report ID */
     reportID: string;
 };
 

@@ -1,17 +1,25 @@
-import {useCallback, useMemo} from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import isSidePanelReportSupported from '@components/SidePanel/isSidePanelReportSupported';
+
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
-import isTrackOnboardingChoice from '@libs/OnboardingUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
+
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding, extractRHPVariantFromResponse} from '@userActions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnboardingPurpose, OnboardingRHPVariant, Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import {useCallback, useMemo} from 'react';
+
+import useDelegateAccountID from './useDelegateAccountID';
+import useIsAnonymousUser from './useIsAnonymousUser';
 import useOnboardingWorkspaceCreationState from './useOnboardingWorkspaceCreationState';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
@@ -28,7 +36,6 @@ function useAutoCreateTrackWorkspace() {
         onboardingAdminsChatReportID,
         introSelected,
         isSelfTourViewed,
-        betas,
         currentUserEmail,
         currentUserAccountID,
         localCurrencyCode,
@@ -37,6 +44,7 @@ function useAutoCreateTrackWorkspace() {
         formatPhoneNumber,
         isRestrictedPolicyCreation,
         hasActiveAdminPolicies,
+        hasOwnedPaidPolicy,
         onboardingMessages,
         lastWorkspaceNumber,
         shouldUseNarrowLayout,
@@ -50,9 +58,14 @@ function useAutoCreateTrackWorkspace() {
     const [hasPaidGroupAdminPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: paidGroupPolicySelector});
 
     const [conciergeChatReportID = ''] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReportID}`);
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`);
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
     const {isBetaEnabled} = usePermissions();
+    const delegateAccountID = useDelegateAccountID();
 
     const mergedAccountConciergeReportID = !onboardingValues?.shouldRedirectToClassicAfterMerge && onboardingValues?.shouldValidate ? conciergeChatReportID : undefined;
 
@@ -68,9 +81,9 @@ function useAutoCreateTrackWorkspace() {
 
             const {adminsChatReportID: newAdminsChatReportID, policyID: newPolicyID} = shouldCreateWorkspace
                 ? createWorkspace({
-                      policyOwnerEmail: undefined,
+                      policyOwner: undefined,
                       makeMeAdmin: true,
-                      policyName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate, displayName),
+                      policyName: generateDefaultWorkspaceName(currentUserEmail, displayName, lastWorkspaceNumber, translate),
                       policyID: generatePolicyID(),
                       engagementChoice,
                       currency: localCurrencyCode,
@@ -78,14 +91,16 @@ function useAutoCreateTrackWorkspace() {
                       shouldAddOnboardingTasks: false,
                       introSelected,
                       activePolicy,
+                      conciergeChat,
                       currentUserAccountIDParam: currentUserAccountID,
                       currentUserEmailParam: currentUserEmail,
                       shouldAddGuideWelcomeMessage: false,
                       onboardingPurposeSelected,
-                      betas,
                       isSelfTourViewed,
                       hasActiveAdminPolicies,
+                      hasOwnedPaidPolicy,
                       personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
+                      delegateAccountID,
                   })
                 : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
 
@@ -104,20 +119,24 @@ function useAutoCreateTrackWorkspace() {
                     personalTrackGoal: onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL && !!personalTrackGoal ? personalTrackGoal : undefined,
                     introSelected,
                     isSelfTourViewed,
+                    conciergeChat,
+                    selfDMReport,
+                    currentUserAccountID,
+                    delegateAccountID,
                 });
 
                 if (isSidePanelReportSupported) {
                     rhpVariant = extractRHPVariantFromResponse(response);
-                    // Every Track onboarding choice should land in the Concierge RHP, but the backend
-                    // doesn't reliably return trackExpensesWithConcierge for all of them, so fall back to it
-                    // whenever the response omits a variant.
-                    if (!rhpVariant && isTrackOnboardingChoice(onboardingPurposeSelected)) {
-                        rhpVariant = CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE;
-                    }
                 }
             } catch (error) {
                 Log.warn('[useAutoCreateTrackWorkspace] Error completing onboarding', {error});
             } finally {
+                // Every Track onboarding choice should get the Track landing, but the backend doesn't reliably return
+                // trackExpensesWithConcierge for all of them, and a failed request returns nothing. Falling back here
+                // covers both cases.
+                if (!rhpVariant && isTrackOnboardingChoice(onboardingPurposeSelected)) {
+                    rhpVariant = CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE;
+                }
                 setOnboardingAdminsChatReportID();
                 setOnboardingPolicyID();
 
@@ -126,10 +145,11 @@ function useAutoCreateTrackWorkspace() {
                     isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
                     conciergeChatReportID,
                     reportNameValuePairs,
+                    isAnonymousUser,
                     newPolicyID,
                     mergedAccountConciergeReportID,
                     false,
-                    rhpVariant,
+                    {variantOverride: rhpVariant},
                 );
             }
         },
@@ -149,13 +169,17 @@ function useAutoCreateTrackWorkspace() {
             activePolicy,
             isSelfTourViewed,
             onboardingMessages,
-            betas,
             hasActiveAdminPolicies,
+            hasOwnedPaidPolicy,
             shouldUseNarrowLayout,
             isBetaEnabled,
             conciergeChatReportID,
             reportNameValuePairs,
+            isAnonymousUser,
             mergedAccountConciergeReportID,
+            conciergeChat,
+            selfDMReport,
+            delegateAccountID,
         ],
     );
 

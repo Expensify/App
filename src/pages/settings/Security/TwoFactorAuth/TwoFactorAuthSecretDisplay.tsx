@@ -1,21 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
 import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
+
 import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import QRCode from '@components/QRCode';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Clipboard from '@libs/Clipboard';
 import {buildAuthenticatorUrl, splitSecretInChunks} from '@libs/TwoFactorAuthUtils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type TwoFactorAuthSecretDisplayProps = {
     /** The contact method (email) for the authenticator URL */
     contactMethod: string;
 
-    /** The two-factor auth secret key */
     secretKey: string;
 
     /** Optional description text to show above the QR code */

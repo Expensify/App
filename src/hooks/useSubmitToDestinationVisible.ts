@@ -1,10 +1,13 @@
-import {useFocusEffect} from '@react-navigation/native';
-import {useCallback, useRef} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import type {SubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
+
+import type {LayoutChangeEvent} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import {useFocusEffect} from '@react-navigation/native';
+import {useCallback, useRef} from 'react';
 
 type Trigger = ValueOf<typeof CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER>;
 
@@ -36,7 +39,7 @@ function useSubmitToDestinationVisible(
     const usesFocus = triggers.includes(CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS);
     const usesLayout = triggers.includes(CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.LAYOUT);
 
-    const tryEnd = useCallback(() => {
+    const tryEnd = () => {
         if (hasEndedRef.current) {
             return;
         }
@@ -49,11 +52,11 @@ function useSubmitToDestinationVisible(
         }
         hasEndedRef.current = true;
         endSubmitFollowUpActionSpan(pending.followUpAction, reportID);
-    }, [followUpActions, reportID]);
+    };
 
-    const reset = useCallback(() => {
+    const reset = () => {
         hasEndedRef.current = false;
-    }, []);
+    };
 
     useFocusEffect(
         useCallback(() => {

@@ -1,125 +1,115 @@
-import React, {useEffect} from 'react';
-import {FlatList, View} from 'react-native';
 import Button from '@components/Button';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
-import useChatWithAgent from '@hooks/useChatWithAgent';
-import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
-import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSwitchToDelegator from '@hooks/useSwitchToDelegator';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import {clearAgentDeleteError, clearAgentError, clearAgentUpdateError, openAgentsPage} from '@userActions/Agent';
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
-import AgentsListRow from './AgentsListRow';
+import AgentsTable from '@components/Tables/AgentsTable';
 
-type AgentItem = {
-    accountID: number;
-    displayName: string;
-    login: string;
-    pendingAction?: PendingAction | null;
-    errors?: Errors | null;
-    hasUpdateErrors: boolean;
-};
+import useAgentsTable from '@hooks/useAgentsTable';
+import useDocumentTitle from '@hooks/useDocumentTitle';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldDisplayButtonsInSeparateLine from '@hooks/useShouldDisplayButtonsInSeparateLine';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {openAgentsPage} from '@libs/actions/Agent';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
+
+import {useEffect} from 'react';
+import {View} from 'react-native';
 
 function AgentsPage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {pageGutter} = useLayoutSpacing();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['TvScreenRobot', 'AiBot']);
-    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const chatWithAgent = useChatWithAgent();
-    const switchToDelegator = useSwitchToDelegator();
-    const {isBetaEnabled} = usePermissions();
-    const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isMobileSelectionModeEnabled = useMobileSelectionMode();
+    const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
+    const selectionModeHeader = isMobileSelectionModeEnabled && shouldUseNarrowLayout;
+    const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
+    const {agents, selectedAgentKeys, setSelectedAgents, clearSelectedAgents, askForConfirmationToDelete, tableRef} = useAgentsTable();
+    const hasAgents = agents.length > 0;
+    const canSelectMultiple = shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true;
+    const shouldShowBulkActionsButton = shouldUseNarrowLayout ? canSelectMultiple : selectedAgentKeys.length > 0;
+
     useDocumentTitle(translate('agentsPage.title'));
+    useEffect(() => openAgentsPage(), []);
 
-    const [agentPrompts] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT);
-    const personalDetailsList = usePersonalDetails();
+    const newAgentButton = hasAgents ? (
+        <Button
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute()))}
+        >
+            <Button.Icon src={icons.Plus} />
+            <Button.Text>{translate('agentsPage.newAgent')}</Button.Text>
+        </Button>
+    ) : null;
+    const emptyStateButtons = [
+        {
+            icon: icons.Plus,
+            buttonText: translate('agentsPage.newAgent'),
+            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+            buttonAction: () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.AGENT_NEW.getRoute())),
+        },
+    ];
 
-    useEffect(() => {
-        if (!isCustomAgentEnabled) {
+    const bulkActionsButtonOptions: Array<DropdownOption<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>> = [
+        {
+            text: translate('agentsPage.deleteAgentsTitle', {count: selectedAgentKeys.length}),
+            value: CONST.AGENTS.BULK_ACTION_TYPES.DELETE,
+            icon: icons.Trashcan,
+            shouldSkipFocusRestore: true,
+            onSelected: askForConfirmationToDelete,
+        },
+    ];
+
+    const headerButtons = shouldShowBulkActionsButton ? (
+        <ButtonWithDropdownMenu<DeepValueOf<typeof CONST.AGENTS.BULK_ACTION_TYPES>>
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            shouldAlwaysShowDropdownMenu
+            customText={translate('workspace.common.selected', {count: selectedAgentKeys.length})}
+            size={CONST.BUTTON_SIZE.MEDIUM}
+            onPress={() => null}
+            options={bulkActionsButtonOptions}
+            isSplitButton={false}
+            isDisabled={!selectedAgentKeys.length}
+        />
+    ) : (
+        newAgentButton
+    );
+
+    const agentsTableHeaderComponent = (
+        <>
+            {shouldDisplayButtonsInSeparateLine && <View style={[pageGutter, styles.pb3]}>{headerButtons}</View>}
+            {hasAgents && (
+                <View style={[styles.renderHTML, styles.flexRow, styles.w100, styles.ph5, styles.pb5, styles.pt3]}>
+                    <RenderHTML html={translate('agentsPage.subtitle')} />
+                </View>
+            )}
+        </>
+    );
+
+    const headerContent = shouldDisplayButtonsInSeparateLine ? undefined : headerButtons;
+
+    const goBackOrClearSelection = () => {
+        if (isMobileSelectionModeEnabled) {
+            clearSelectedAgents();
+            turnOffMobileSelectionMode();
             return;
         }
-        openAgentsPage();
-    }, [isCustomAgentEnabled]);
-
-    const agentItems: AgentItem[] = Object.entries(agentPrompts ?? {})
-        .map(([key, agentPrompt]) => {
-            const accountID = Number(key.slice(ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT.length));
-            const details = personalDetailsList?.[accountID];
-            if (!details) {
-                return null;
-            }
-            const hasNameErrors = Object.keys(agentPrompt?.nameErrors ?? {}).length > 0;
-            const hasPromptErrors = Object.keys(agentPrompt?.promptErrors ?? {}).length > 0;
-            const hasAvatarErrors = Object.keys(agentPrompt?.avatarErrors ?? {}).length > 0;
-            return {
-                accountID,
-                displayName: details.displayName ?? details.login ?? '',
-                login: details.login ?? '',
-                pendingAction: agentPrompt?.pendingAction,
-                errors: agentPrompt?.errors,
-                hasUpdateErrors: hasNameErrors || hasPromptErrors || hasAvatarErrors,
-            };
-        })
-        .filter(Boolean) as AgentItem[];
-
-    const handleErrorClose = (pendingAction: PendingAction | null | undefined, accountID: number) => {
-        if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            clearAgentError(accountID);
-        } else if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            clearAgentDeleteError(accountID);
-        } else {
-            clearAgentUpdateError(accountID);
-        }
+        Navigation.goBack();
     };
-
-    const shouldShowErrors = (pendingAction: PendingAction | null | undefined) =>
-        pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD || pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-    const renderItem = ({item}: {item: AgentItem}) => (
-        <AgentsListRow
-            accountID={item.accountID}
-            displayName={item.displayName}
-            login={item.login}
-            pendingAction={item.pendingAction}
-            errors={shouldShowErrors(item.pendingAction) ? item.errors : null}
-            onErrorClose={() => handleErrorClose(item.pendingAction, item.accountID)}
-            brickRoadIndicator={item.hasUpdateErrors ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : null}
-            onChatPress={chatWithAgent}
-            onCopilotPress={switchToDelegator}
-        />
-    );
-
-    const keyExtractor = (item: AgentItem) => String(item.accountID);
-
-    const hasAgents = agentItems.length > 0;
-
-    const newAgentButton = (
-        <Button
-            success
-            icon={icons.Plus}
-            text={translate('agentsPage.newAgent')}
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute())}
-        />
-    );
-
-    if (!isCustomAgentEnabled) {
-        return <NotFoundPage />;
-    }
 
     return (
         <ScreenWrapper
@@ -130,44 +120,28 @@ function AgentsPage() {
             shouldMobileOfflineIndicatorStickToBottom={false}
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
-                icon={illustrations.AiBot}
-                onBackButtonPress={() => Navigation.goBack()}
-                shouldShowBackButton={shouldUseNarrowLayout}
-                shouldUseHeadlineHeader
-                shouldDisplaySearchRouter
-                shouldDisplayHelpButton
-                title={translate('agentsPage.title')}
-            >
-                {!shouldUseNarrowLayout && newAgentButton}
-            </HeaderWithBackButton>
-            {shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb3]}>{newAgentButton}</View>}
-            {hasAgents ? (
-                <FlatList
-                    data={agentItems}
-                    renderItem={renderItem}
-                    keyExtractor={keyExtractor}
-                    ListHeaderComponent={
-                        <View style={[styles.renderHTML, styles.ph5, styles.pb3, styles.pt3]}>
-                            <RenderHTML html={translate('agentsPage.subtitle')} />
-                        </View>
-                    }
-                />
-            ) : (
-                <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                    <GenericEmptyStateComponent
-                        headerMedia={illustrations.TvScreenRobot}
-                        title={translate('agentsPage.emptyAgents.title')}
-                        subtitleText={
-                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter, !shouldUseNarrowLayout && styles.agentsPageEmptyStateSubtitle]}>
-                                <RenderHTML html={translate('agentsPage.emptyAgents.subtitle')} />
-                            </View>
-                        }
-                        headerStyles={styles.emptyStateCardIllustrationContainer}
-                        headerContentStyles={styles.agentsPageEmptyStateIllustration}
-                    />
-                </ScrollView>
-            )}
+            <CollapsibleHeaderOnKeyboard>
+                <HeaderWithBackButton
+                    onBackButtonPress={goBackOrClearSelection}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
+                    shouldDisplaySearchRouter
+                    shouldDisplayHelpButton
+                    title={selectionModeHeader ? translate('common.selectMultiple') : translate('agentsPage.title')}
+                >
+                    {headerContent}
+                </HeaderWithBackButton>
+            </CollapsibleHeaderOnKeyboard>
+            <AgentsTable
+                ref={tableRef}
+                agents={agents}
+                headerComponent={agentsTableHeaderComponent}
+                canSelectAgents
+                selectedKeys={selectedAgentKeys}
+                onRowSelectionChange={setSelectedAgents}
+                shouldShowOwnerColumn
+                emptyStateButtons={emptyStateButtons}
+            />
         </ScreenWrapper>
     );
 }

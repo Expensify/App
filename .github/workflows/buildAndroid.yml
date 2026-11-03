@@ -35,9 +35,6 @@ on:
       ROCK_ARTIFACT_URL:
         description: URL to download the ad-hoc build artifact (adhoc only)
         value: ${{ jobs.build.outputs.ROCK_ARTIFACT_URL }}
-      SENTRY_URL:
-        description: URL to Sentry size analysis
-        value: ${{ jobs.build.outputs.SENTRY_URL }}
       AAB_FILENAME:
         description: Filename of the AAB artifact (empty if no AAB was produced)
         value: ${{ jobs.build.outputs.AAB_FILENAME }}
@@ -60,14 +57,13 @@ jobs:
     outputs:
       VERSION_CODE: ${{ steps.getAndroidVersion.outputs.VERSION_CODE }}
       ROCK_ARTIFACT_URL: ${{ steps.set-artifact-url.outputs.ARTIFACT_URL }}
-      SENTRY_URL: ${{ steps.sentry-upload.outputs.SENTRY_URL }}
       AAB_FILENAME: ${{ steps.collectArtifacts.outputs.AAB_FILENAME }}
       APK_FILENAME: ${{ steps.collectArtifacts.outputs.APK_FILENAME }}
       SOURCEMAP_FILENAME: index.android.bundle.map
       PROGUARD_MAPPING_FILENAME: mapping.txt
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
         with:
           submodules: true
           ref: ${{ inputs.ref }}
@@ -126,6 +122,11 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@50e97c2cd7a37755bbfafc9c5b7cafaece252f6e
 
+      - name: Block compromised Java certificates
+        uses: Expensify/GitHub-Actions/block-compromised-java-certificates@b70c378d6cfae84f6844379eef3568cb33ea9680
+        with:
+          restrict-gradle: 'true'
+
       - name: Setup 1Password CLI and certificates
         uses: Expensify/GitHub-Actions/setup-certificate-1p@main
         with:
@@ -160,8 +161,10 @@ jobs:
         # v6
         uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7
         with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          role-to-assume: arn:aws:iam::949552126497:role/app-rock-cache-gh-actions
+          role-session-name: gh-${{ github.run_id }}-${{ github.run_attempt }}
+          # Match the 6h job timeout because Rock does not refresh credentials before uploading
+          role-duration-seconds: 21600
           aws-region: us-east-1
 
       - name: Rock Remote Build - Android
@@ -195,22 +198,6 @@ jobs:
         if: ${{ inputs.variant == 'Adhoc' }}
         run: echo "ARTIFACT_URL=$ARTIFACT_URL" >> "$GITHUB_OUTPUT"
 
-      - name: Upload Android build to Sentry for size analysis
-        id: sentry-upload
-        if: ${{ inputs.variant == 'Release' && env.ARTIFACT_PATH != '' }}
-        continue-on-error: true
-        timeout-minutes: 5
-        run: |
-          OUTPUT=$(npx sentry-cli build upload "$ARTIFACT_PATH" --org expensify --project app --build-configuration Release --log-level debug 2>&1)
-          echo "$OUTPUT"
-          SENTRY_URL=$(echo "$OUTPUT" | grep -oE 'https://expensify\.sentry\.io/[^ "}]+' | head -1)
-          if [ -n "$SENTRY_URL" ]; then
-            echo "::notice::Android Sentry size analysis: $SENTRY_URL"
-            echo "SENTRY_URL=$SENTRY_URL" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-
       - name: Upload Gradle profile report
         if: always()
         # v6
@@ -226,6 +213,10 @@ jobs:
           mkdir -p /tmp/android-artifacts
 
           AAB_FILE=$(find Mobile-Expensify/Android -path '*/outputs/bundle/*/*.aab' -print -quit 2>/dev/null || true)
+          # Adhoc builds produce an APK, so only use the Rock artifact when it is an AAB
+          if [ -z "$AAB_FILE" ] && [[ "${ARTIFACT_PATH:-}" == *.aab ]] && [ -f "$ARTIFACT_PATH" ]; then
+            AAB_FILE="$ARTIFACT_PATH"
+          fi
           if [ -n "$AAB_FILE" ]; then
             echo "Found AAB: $AAB_FILE"
             cp "$AAB_FILE" /tmp/android-artifacts/
@@ -235,7 +226,11 @@ jobs:
               echo "APK_FILENAME=Expensify.apk"
             } >> "$GITHUB_OUTPUT"
           else
-            echo "::warning::No AAB file found (expected for remote-cache hits on Adhoc builds)"
+            if [ "${{ inputs.variant }}" == 'Release' ]; then
+              echo '::error::No AAB file found for Release build'
+              exit 1
+            fi
+            echo '::warning::No AAB file found for Adhoc build'
             echo "HAS_AAB=false" >> "$GITHUB_OUTPUT"
           fi
 
@@ -295,7 +290,7 @@ jobs:
       - name: Generate APK from AAB
         if: steps.collectArtifacts.outputs.HAS_AAB == 'true'
         run: |
-          AAB_PATH=$(find Mobile-Expensify/Android -path '*/outputs/bundle/*/*.aab' | head -1)
+          AAB_PATH="/tmp/android-artifacts/${{ steps.collectArtifacts.outputs.AAB_FILENAME }}"
           java -jar bundletool.jar build-apks --bundle="$AAB_PATH" --output=Expensify.apks \
             --mode=universal \
             --ks=upload-key.keystore \
@@ -315,4 +310,3 @@ jobs:
         with:
           name: ${{ inputs.artifact-prefix }}android-apk-artifact
           path: Expensify.apk
-

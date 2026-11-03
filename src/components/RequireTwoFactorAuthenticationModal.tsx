@@ -1,12 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Button from './Button';
 import ImageSVG from './ImageSVG';
 import Lottie from './Lottie';
@@ -24,7 +29,6 @@ type RequireTwoFactorAuthenticationModalProps = {
     /** Modal visibility */
     isVisible: boolean;
 
-    /** Describe what is showing */
     description: string;
 
     /**
@@ -43,15 +47,19 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
     const StyleUtils = useStyleUtils();
     const isReduceMotionEnabled = Accessibility.useReducedMotion();
     const illustrations = useMemoizedLazyIllustrations(['Safe']);
+
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: isSmallScreenWidth, addOfflineIndicatorBottomSafeAreaPadding: false});
     return (
         <Modal
             onClose={onCancel}
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={{...styles.pb5, ...styles.pt0, ...styles.boxShadowNone}}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <View>
+            <View style={bottomSafeAreaPaddingStyle}>
                 <View style={[styles.cardSectionIllustration, styles.alignItemsCenter, StyleUtils.getBackgroundColorStyle(LottieAnimations.Safe.backgroundColor)]}>
                     {isReduceMotionEnabled ? (
                         <ImageSVG
@@ -74,12 +82,13 @@ function RequireTwoFactorAuthenticationModal({onCancel = () => {}, description, 
                         <Text style={styles.textSupporting}>{description}</Text>
                     </View>
                     <Button
-                        large
-                        success
-                        pressOnEnter
+                        size={CONST.BUTTON_SIZE.LARGE}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={onSubmit}
-                        text={translate('twoFactorAuth.enableTwoFactorAuth')}
-                    />
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate('twoFactorAuth.enableTwoFactorAuth')}</Button.Text>
+                    </Button>
                 </View>
             </View>
         </Modal>

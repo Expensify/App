@@ -1,19 +1,21 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
+import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import Text from '@components/Text';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useFilteredOptions from '@hooks/useFilteredOptions';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
 import {clearUnknownUserDetails, saveUnknownUserDetails} from '@libs/actions/Share';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,9 +23,14 @@ import {combineOrderingOfReportsAndPersonalDetails, getHeaderMessage, getSearchO
 import type {OptionData} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
 
 const defaultListOptions = {
     userToInvite: null,
@@ -35,18 +42,22 @@ const defaultListOptions = {
 
 function ShareTab() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const [textInputValue, debouncedTextInputValue, setTextInputValue] = useDebouncedState('');
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const {isBetaEnabled} = usePermissions();
     const [selectedReportID, setSelectedReportID] = useState<string | number | undefined>();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {activePolicyID} = useActivePolicyContext();
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -54,10 +65,14 @@ function ShareTab() {
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
-    const {options: listOptions, isLoading} = useFilteredOptions({
+    const {
+        options: listOptions,
+        isLoading,
+        getReportByID,
+    } = useFilteredOptions({
         enabled: didScreenTransitionEnd,
-        betas: betas ?? [],
         isSearching: !!debouncedTextInputValue.trim(),
+        includeP2P: true,
     });
     const areOptionsInitialized = !isLoading;
     const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
@@ -67,9 +82,12 @@ function ShareTab() {
 
     const searchOptions = areOptionsInitialized
         ? getSearchOptions({
+              dateFnsLocale,
+              convertToDisplayString,
+              convertToDisplayStringWithoutCurrency,
               options: listOptions ?? {reports: [], personalDetails: []},
               draftComments,
-              betas: betas ?? [],
+              isDefaultRoomsBetaEnabled: isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
               isUsedInChatFinder: false,
               includeReadOnly: false,
               searchQuery: textInputValue,
@@ -85,6 +103,10 @@ function ShareTab() {
               sortedActions,
               conciergeReportID,
               isTrackIntentUser,
+              translate,
+              getReportByID,
+              rules,
+              formatPhoneNumber,
           }).options
         : defaultListOptions;
 
@@ -92,7 +114,7 @@ function ShareTab() {
     if (textInputValue.trim() === '') {
         recentReportsOptions = optionsOrderBy(searchOptions.recentReports, recentReportComparator, 20).options;
     } else {
-        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, {
+        const orderedOptions = combineOrderingOfReportsAndPersonalDetails(searchOptions, textInputValue, activePolicyID, {
             sortByReportTypeInSearch: true,
             preferChatRoomsOverThreads: true,
         });
@@ -119,7 +141,7 @@ function ShareTab() {
         canShowSeveralIndicators: true,
     }));
 
-    const header = getHeaderMessage(styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
+    const header = getHeaderMessage(translate, styledRecentReports.length !== 0, false, textInputValue.trim(), countryCode, false);
 
     const onSelectRow = (item: OptionData) => {
         let reportID = item?.reportID ?? CONST.DEFAULT_NUMBER_ID;

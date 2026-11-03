@@ -1,21 +1,25 @@
-// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
-import * as core from '@actions/core';
+import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
+
 import '@shopify/flash-list/jestSetup';
 import type {ReactNode} from 'react';
-import {useMemo} from 'react';
+import type React from 'react';
 import type * as RNAppLogs from 'react-native-app-logs';
 import type {ReadDirItem} from 'react-native-fs';
-import 'react-native-gesture-handler/jestSetup';
 import type * as RNKeyboardController from 'react-native-keyboard-controller';
-import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
+
+import 'react-native-gesture-handler/jestSetup';
 import type Animated from 'react-native-reanimated';
+
+import {useMemo} from 'react';
 import 'setimmediate';
+import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
 import {TextDecoder, TextEncoder} from 'util';
-import type {RenderInfo} from '@components/FlatList/RenderTaskQueue';
 import '@src/polyfills/PromiseWithResolvers';
 import '@src/polyfills/requestIdleCallback';
+
 import mockFSLibrary from './setupMockFullstoryLib';
 import setupMockImages from './setupMockImages';
+import setupMockLegendList from './setupMockLegendList';
 
 // Needed for tests to have the necessary environment variables set
 if (!('GITHUB_REPOSITORY' in process.env)) {
@@ -25,12 +29,22 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 
 setupMockImages();
 mockFSLibrary();
+setupMockLegendList();
 
+// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
 Object.assign(global, {TextDecoder, TextEncoder});
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
 jest.mock('react-native/src/private/animated/NativeAnimatedHelper');
+
+// Gesture Handler 3 throws in __DEV__ when a GestureDetector has no GestureHandlerRootView above it. In the app every screen
+// renders under the root view in App.tsx, but tests render screens on their own, so the context pretends a root view is always present.
+// Jest resolves the package through `main` (lib/module), so the compiled file is the one to mock.
+jest.mock('react-native-gesture-handler/lib/module/GestureHandlerRootViewContext', () => ({
+    __esModule: true,
+    default: jest.requireActual<typeof React>('react').createContext(true),
+}));
 
 // Mock react-native-onyx storage layer because the SQLite storage layer doesn't work in jest.
 // Mocking this file in __mocks__ does not work because jest doesn't support mocking files that are not directly used in the testing project,
@@ -73,6 +87,13 @@ jest.mock('expo-location', () => ({
         Highest: 5,
         BestForNavigation: 6,
     },
+    ActivityType: {
+        Other: 1,
+        AutomotiveNavigation: 2,
+        Fitness: 3,
+        OtherNavigation: 4,
+        Airborne: 5,
+    },
 }));
 
 // Needed for: https://stackoverflow.com/questions/76903168/mocking-libraries-in-jest
@@ -87,13 +108,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
 const isVerbose = process.env.JEST_VERBOSE === 'true';
 
 if (!isVerbose) {
-    jest.spyOn(core, 'startGroup').mockImplementation(() => {});
-    jest.spyOn(core, 'endGroup').mockImplementation(() => {});
-    jest.spyOn(core, 'group').mockImplementation(<T>(_title: string, fn: () => T) => fn());
-    jest.spyOn(core, 'info').mockImplementation(() => {});
-    jest.spyOn(core, 'setOutput').mockImplementation(() => {});
-
-    // Make them global to override module-level console calls
+    // Override console methods globally so module-level console calls are silenced too
     global.console = {
         ...console,
         log: jest.fn(),
@@ -117,7 +132,14 @@ jest.mock('react-native-fs', () => ({
                 res([]);
             }),
     ),
-    CachesDirectoryPath: jest.fn(),
+    exists: jest.fn(() => Promise.resolve(false)),
+    mkdir: jest.fn(() => Promise.resolve()),
+    moveFile: jest.fn(() => Promise.resolve()),
+    copyFile: jest.fn(() => Promise.resolve()),
+    writeFile: jest.fn(() => Promise.resolve()),
+    DocumentDirectoryPath: '/mock/documents',
+    CachesDirectoryPath: '/mock/caches',
+    LibraryDirectoryPath: '/mock/library',
 }));
 
 jest.mock('react-native-share', () => ({
@@ -127,6 +149,9 @@ jest.mock('react-native-share', () => ({
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
+    // react-native-reanimated/mock leaves dispatchCommand out (see its own "ADD ME IF NEEDED" comment). forceClearInput
+    // (src/libs/ComponentUtils) dispatches it from a UI-thread worklet, so any test exercising that path needs it mocked.
+    dispatchCommand: jest.fn(),
     useReducedMotion: jest.fn,
     useScrollViewOffset: jest.fn(() => 0),
     useAnimatedRef: jest.fn(() => jest.fn()),
@@ -309,11 +334,24 @@ jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
 }));
 
+jest.mock('react-native-nitro-fetch', () => ({
+    __esModule: true,
+    fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args),
+    prefetchOnAppStart: jest.fn(() => Promise.resolve()),
+    registerTokenRefresh: jest.fn(),
+    clearTokenRefresh: jest.fn(),
+    removeFromAutoPrefetch: jest.fn(() => Promise.resolve()),
+    removeAllFromAutoprefetch: jest.fn(() => Promise.resolve()),
+}));
+
 jest.mock('@shopify/react-native-skia', () => ({
     useFont: jest.fn(() => null),
     matchFont: jest.fn(() => null),
     listFontFamilies: jest.fn(() => []),
 }));
+
+// The native tab bar icons are drawn with Skia's imperative API, which the mock above leaves out, so the tabs get no icons.
+jest.mock('@libs/Navigation/AppNavigator/Navigators/NativeTabNavigator/tabIconRasterizer', () => jest.fn(() => undefined));
 
 jest.mock('@sbaiahmed1/react-native-biometrics', () => ({
     isSensorAvailable: jest.fn(() => Promise.resolve({available: false})),
@@ -330,6 +368,8 @@ jest.mock('victory-native', () => ({
     CartesianChart: jest.fn(
         ({children}: {children?: (args: Record<string, unknown>) => ReactNode}) => children?.({points: {y: []}, chartBounds: {left: 0, right: 0, top: 0, bottom: 0}}) ?? null,
     ),
+    Pie: {Chart: jest.fn(() => null)},
+    PolarChart: jest.fn(() => null),
 }));
 
 // Provide a default global fetch mock for tests that do not explicitly set it up

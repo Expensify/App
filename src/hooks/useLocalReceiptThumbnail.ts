@@ -1,6 +1,8 @@
-import {useEffect, useRef, useState, useTransition} from 'react';
-import {Image} from 'react-native';
 import {generateThumbnail} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+
+import {useEffect, useRef, useState, useTransition} from 'react';
+
+import useReceiptUpgradeCount from './useReceiptUpgradeCount';
 
 const thumbnailCache = new Map<string, string>();
 /** Track how many mounted hook instances reference each sourceUri */
@@ -24,16 +26,11 @@ function releaseUri(uri: string) {
  * Pre-populate the receipt-image cache so the confirm screen can use it
  * synchronously on first render, avoiding any source swap / flash.
  */
-function precacheReceiptImage(sourceUri: string): Promise<string | undefined> {
+function precacheReceiptImage(sourceUri: string) {
     if (thumbnailCache.has(sourceUri)) {
-        return Promise.resolve(thumbnailCache.get(sourceUri));
+        return;
     }
     thumbnailCache.set(sourceUri, sourceUri);
-    // Pre-decode the image in the native image pipeline so the
-    // confirmation screen can display it instantly without decode latency.
-    return Image.prefetch(sourceUri)
-        .then(() => sourceUri)
-        .catch(() => sourceUri);
 }
 
 /**
@@ -47,10 +44,13 @@ function useLocalReceiptThumbnail(sourceUri: string | undefined, isLocalFile: bo
     const [, startTransition] = useTransition();
     const retainedUriRef = useRef<string | undefined>(undefined);
 
+    const upgradeCount = useReceiptUpgradeCount(sourceUri);
+
     // Resolve cached thumbnails synchronously during render (fast path)
     const cachedUri = sourceUri ? thumbnailCache.get(sourceUri) : undefined;
     const resultForCurrentSource = asyncResult?.source === sourceUri ? asyncResult : undefined;
-    const thumbnailUri = cachedUri ?? resultForCurrentSource?.uri;
+    const resolvedUri = cachedUri ?? resultForCurrentSource?.uri;
+    const thumbnailUri = resolvedUri && upgradeCount > 0 ? `${resolvedUri.split('#').at(0) ?? resolvedUri}#upgraded${upgradeCount}` : resolvedUri;
 
     const shouldGenerate = !!sourceUri && isLocalFile && !cachedUri;
     const isGenerating = shouldGenerate && !resultForCurrentSource?.done;

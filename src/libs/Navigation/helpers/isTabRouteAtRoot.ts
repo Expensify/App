@@ -1,6 +1,8 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
 import getFocusedLeafScreenName from './getFocusedLeafScreenName';
 
 /**
@@ -11,6 +13,7 @@ const SCREENS_WITH_TAB_BAR = new Set<string>([
     SCREENS.HOME,
     SCREENS.INBOX,
     SCREENS.SEARCH.ROOT,
+    SCREENS.INSIGHTS,
     SCREENS.SETTINGS.ROOT,
     SCREENS.WORKSPACES_LIST,
     SCREENS.DOMAINS_LIST,

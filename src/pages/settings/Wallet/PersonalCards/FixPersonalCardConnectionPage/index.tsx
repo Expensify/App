@@ -1,5 +1,3 @@
-import React, {useEffect, useRef, useState} from 'react';
-import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -7,28 +5,36 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import openBankConnection from '@pages/settings/Wallet/PersonalCards/steps/BankConnection/openBankConnection';
+
 import {handleRestrictedEvent} from '@userActions/App';
 import {setPlaidEvent} from '@userActions/BankAccounts';
 import {updatePersonalCardConnection} from '@userActions/PersonalCards';
 import {addPersonalPlaidCard, openPlaidCompanyCardLogin} from '@userActions/Plaid';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {PlaidLinkOnSuccessMetadata} from 'react-plaid-link/src/types';
+
+import React, {useEffect, useRef, useState} from 'react';
+
 import useFixPersonalCardConnection from './useFixPersonalCardConnection';
 
-type FixPersonalCardConnectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_FIX_CONNECTION>;
+type FixPersonalCardConnectionPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_FIX_CONNECTION>;
 
 let customWindow: Window | null = null;
 
@@ -37,7 +43,7 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
-    const {card, bankDisplayName, url, isOffline, isPlaid, country} = useFixPersonalCardConnection(cardID);
+    const {card, bankDisplayName, url, isOffline, isPlaid, country, cardDetailsPath} = useFixPersonalCardConnection(cardID);
 
     const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
@@ -48,6 +54,10 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
     useEffect(() => {
         lastScrapeResultRef.current = card?.lastScrapeResult;
     }, [card?.lastScrapeResult]);
+    const cardDetailsPathRef = useRef(cardDetailsPath);
+    useEffect(() => {
+        cardDetailsPathRef.current = cardDetailsPath;
+    }, [cardDetailsPath]);
     // Snapshot any stale Plaid token left over in Onyx from a previous Plaid flow.
     // We only open Plaid once we receive a token that differs from this snapshot — otherwise an
     // initial mount with the stale token starts a create/destroy cycle that leaves the SDK stuck.
@@ -137,7 +147,7 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
                 // The non-Plaid flow relies on useFixPersonalCardConnection's effect, which
                 // doesn't fire here because we navigate away before isCardBroken flips.
                 updatePersonalCardConnection(cardID, lastScrapeResultRef.current);
-                Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
+                Navigation.goBack(cardDetailsPathRef.current);
             },
             onExit: () => {
                 Navigation.goBack();
@@ -164,15 +174,10 @@ function FixPersonalCardConnectionPage({route}: FixPersonalCardConnectionPagePro
         if (plaidDataErrorMessage) {
             return <Text style={[styles.formError, styles.mh5]}>{plaidDataErrorMessage}</Text>;
         }
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'FixPersonalCardConnectionPage.renderPlaid',
-            isPlaidLoading: plaidData?.isLoading,
-        };
         return (
             <ActivityIndicator
                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                 style={styles.flex1}
-                reasonAttributes={reasonAttributes}
             />
         );
     };

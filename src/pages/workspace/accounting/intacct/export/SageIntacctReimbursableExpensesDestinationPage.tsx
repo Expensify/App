@@ -1,23 +1,31 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback} from 'react';
-import type {ValueOf} from 'type-fest';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {changeMappingsValueFromDefaultToTag, updateSageIntacctReimbursableExpensesExportDestination} from '@userActions/connections/SageIntacct';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE>;
@@ -38,23 +46,20 @@ function SageIntacctReimbursableExpensesDestinationPage({policy}: WithPolicyConn
         isSelected: config?.export.reimbursable === expenseType,
     }));
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_REIMBURSABLE_EXPENSES.getRoute(policyID)));
-    }, [backTo, policyID]);
+    };
 
-    const selectDestination = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.export.reimbursable && policyID) {
-                updateSageIntacctReimbursableExpensesExportDestination(policyID, row.value, config?.export.reimbursable);
-                if (row.value === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL) {
-                    // Employee default mapping value is not allowed when expense type is VENDOR_BILL, so we have to change mapping value to Tag
-                    changeMappingsValueFromDefaultToTag(policyID, config?.mappings);
-                }
+    const selectDestination = (row: MenuListItem) => {
+        if (row.value !== config?.export.reimbursable && policyID) {
+            updateSageIntacctReimbursableExpensesExportDestination(policyID, row.value, config?.export.reimbursable);
+            if (row.value === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL) {
+                // Employee default mapping value is not allowed when expense type is VENDOR_BILL, so we have to change mapping value to Tag
+                changeMappingsValueFromDefaultToTag(policyID, config?.mappings);
             }
-            goBack();
-        },
-        [config?.export.reimbursable, config?.mappings, policyID, goBack],
-    );
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen

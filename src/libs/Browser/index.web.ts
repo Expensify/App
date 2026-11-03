@@ -1,5 +1,7 @@
 import getOSAndName from '@libs/actions/Device/getDeviceInfo/getOSAndName';
+
 import CONST from '@src/CONST';
+
 import type {GetBrowser, IsMobile, IsMobileChrome, IsMobileIOS, IsMobileSafari, IsMobileSafariOnIos26, IsMobileWebKit, IsSafari} from './types';
 
 /**

@@ -1,9 +1,12 @@
-import Onyx from 'react-native-onyx';
 import clearOnyxAndSeedFullReconnect from '@libs/actions/clearOnyxAndSeedFullReconnect';
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
@@ -73,15 +76,16 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
         });
     });
 
-    it('applies extraSeeds atomically and keeps seeded keys after the clear', async () => {
+    it('marks the app as loading by default and keeps the loading state after the clear', async () => {
+        // Given a fully loaded app before an Onyx reset
         await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         await waitForBatchedUpdates();
 
-        await clearOnyxAndSeedFullReconnect([], {
-            [ONYXKEYS.IS_LOADING_APP]: true,
-        });
+        // When Onyx is reset without an explicit loading-state override
+        await clearOnyxAndSeedFullReconnect([]);
         await waitForBatchedUpdates();
 
+        // Then the app remains marked as loading until the next OpenApp response arrives
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.IS_LOADING_APP,
@@ -99,6 +103,27 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
                 callback: (value) => {
                     expect(typeof value).toBe('string');
                     expect((value ?? '').length > 0).toBe(true);
+                    Onyx.disconnect(connection);
+                    resolve();
+                },
+            });
+        });
+    });
+
+    it('allows extraSeeds to override the default loading state', async () => {
+        // Given a reset that does not lead to another OpenApp call
+        // When the caller explicitly overrides the default loading state
+        await clearOnyxAndSeedFullReconnect([], {
+            [ONYXKEYS.IS_LOADING_APP]: false,
+        });
+        await waitForBatchedUpdates();
+
+        // Then the caller-provided loading state survives the clear
+        await new Promise<void>((resolve) => {
+            const connection = Onyx.connect({
+                key: ONYXKEYS.IS_LOADING_APP,
+                callback: (value) => {
+                    expect(value).toBe(false);
                     Onyx.disconnect(connection);
                     resolve();
                 },
@@ -135,10 +160,8 @@ describe('actions/clearOnyxAndSeedFullReconnect', () => {
         });
         await waitForBatchedUpdates();
 
-        // Preserve SESSION, seed IS_LOADING_APP, leave the rest to be cleared.
-        await clearOnyxAndSeedFullReconnect([ONYXKEYS.SESSION], {
-            [ONYXKEYS.IS_LOADING_APP]: true,
-        });
+        // Preserve SESSION and leave the rest to be cleared.
+        await clearOnyxAndSeedFullReconnect([ONYXKEYS.SESSION]);
         await waitForBatchedUpdates();
 
         await new Promise<void>((resolve) => {

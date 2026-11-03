@@ -1,26 +1,30 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {searchUserInServer} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 function AddDelegatePage() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const existingDelegates =
@@ -33,22 +37,33 @@ function AddDelegatePage() {
             {} as Record<string, boolean>,
         ) ?? {};
 
-    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedNonExistingOptions, areOptionsInitialized, toggleSelection} = usePersonalDetailSearchSelector({
-        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
-        includeUserToInvite: true,
-        excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
-        includeRecentReports: true,
-        maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
-        shouldKeepSelectedInAvailableOptions: true,
-        shouldUpdateSelectedOptionsOnSingleSelect: true,
-    });
+    const {searchTerm, debouncedSearchTerm, setSearchTerm, availableOptions, selectedOptions, selectedNonExistingOptions, areOptionsInitialized, toggleSelection} =
+        usePersonalDetailSearchSelector({
+            selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_SINGLE,
+            includeUserToInvite: true,
+            excludeLogins: {...CONST.EXPENSIFY_EMAILS_OBJECT, ...existingDelegates},
+            includeRecentReports: true,
+            maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
+            shouldKeepSelectedInAvailableOptions: true,
+            shouldUpdateSelectedOptionsOnSingleSelect: true,
+        });
 
     const handleSelectRow = (option: OptionData) => {
-        // toggleSelection would deselect an already-selected row on re-tap, so only select when it isn't selected yet
-        if (!option.isSelected) {
-            toggleSelection(option);
-        }
-        Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(option.login ?? ''));
+        toggleSelection(option);
+    };
+
+    const selectedLogin = selectedOptions.at(0)?.login;
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.next'),
+        onConfirm: () => {
+            if (!selectedLogin) {
+                return;
+            }
+            Navigation.navigate(ROUTES.SETTINGS_DELEGATE_ROLE.getRoute(selectedLogin));
+        },
+        isDisabled: !selectedLogin,
     };
 
     const sectionsList = (() => {
@@ -115,7 +130,7 @@ function AddDelegatePage() {
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="AddDelegatePage"
         >
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
@@ -128,6 +143,7 @@ function AddDelegatePage() {
                         sections={areOptionsInitialized ? sections : []}
                         ListItem={UserListItem}
                         onSelectRow={handleSelectRow}
+                        confirmButtonOptions={confirmButtonOptions}
                         shouldSingleExecuteRowSelect
                         textInputOptions={{
                             value: searchTerm,
@@ -136,8 +152,9 @@ function AddDelegatePage() {
                             label: translate('selectionList.nameEmailOrPhoneNumber'),
                         }}
                         shouldShowLoadingPlaceholder={!areOptionsInitialized}
-                        isLoadingNewOptions={!!isSearchingForReports}
+                        isLoadingNewOptions={!!isSearchingForUsers}
                         shouldShowTextInput
+                        addBottomSafeAreaPadding
                     />
                 </View>
             </DelegateNoAccessWrapper>

@@ -1,26 +1,35 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {useEffect, useEffectEvent, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsOwnWorkspaceChatRef from '@hooks/useIsOwnWorkspaceChatRef';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDeletedParentAction} from '@libs/ReportActionsUtils';
 import {isAdminRoom, isAnnounceRoom, isGroupChat, isMoneyRequest, isMoneyRequestReport, isMoneyRequestReportPendingDeletion, isPolicyExpenseChat} from '@libs/ReportUtils';
+
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from '@navigation/types';
+
 import {navigateToConciergeChat} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
+import {useEffect, useEffectEvent, useRef} from 'react';
+
 import useReportWasDeleted from './hooks/useReportWasDeleted';
 
 type ReportScreenRoute =
@@ -66,9 +75,10 @@ function ReportNavigateAwayHandler() {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [userLeavingStatus = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
     const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isSelfTourViewed = onboarding?.selfTourViewed;
+    const hasCompletedGuidedSetupFlow = hasCompletedGuidedSetupFlowSelector(onboarding);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const parentReportAction = useParentReportAction(report);
@@ -81,11 +91,13 @@ function ReportNavigateAwayHandler() {
 
     const isOptimisticDelete = report?.statusNum === CONST.REPORT.STATUS_NUM.CLOSED;
     const {wasDeleted: reportWasDeleted, parentReportID: deletedReportParentID} = useReportWasDeleted(reportIDFromRoute, report, isOptimisticDelete, userLeavingStatus);
+    const previousReportWasDeleted = usePrevious(reportWasDeleted);
 
     // Track whether the current route is an own workspace chat. A vacation delegate split sends
     // a temporary Onyx SET that wipes the report; by the time effects fire, report is undefined
     // so we must persist the value in a ref updated synchronously during render. See issue #84248.
     const isCurrentRouteOwnWorkspaceChatRef = useIsOwnWorkspaceChatRef(report, reportIDFromRoute);
+    const isPendingCreationFromRoute = route.name === SCREENS.REPORT ? route.params?.isPendingCreation === 'true' : false;
 
     const firstRender = useRef(true);
 
@@ -94,7 +106,8 @@ function ReportNavigateAwayHandler() {
         const currentRoute = navigationRef.getCurrentRoute();
         const topmostReportIDInSearchRHP = Navigation.getTopmostSearchReportID();
         const isTopmostSearchReportID = reportIDFromRoute === topmostReportIDInSearchRHP;
-        const isHoldScreenOpenInRHP = currentRoute?.name === SCREENS.MONEY_REQUEST.HOLD && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
+        const isHoldScreenOpenInRHP =
+            currentRoute?.name === SCREENS.MONEY_REQUEST.DYNAMIC_HOLD_REASON && (route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT ? isTopmostSearchReportID : isTopMostReportId);
         const isReportDetailOpenInRHP =
             isTopMostReportId &&
             reportDetailScreens.find((r) => r === currentRoute?.name) &&
@@ -134,7 +147,15 @@ function ReportNavigateAwayHandler() {
         }
 
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false);
+            navigateToConciergeChat({
+                conciergeReportID,
+                introSelected,
+                currentUserAccountID,
+                isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
+                conciergePersonalDetails,
+                shouldDismissModal: false,
+            });
         });
     });
 
@@ -192,12 +213,10 @@ function ReportNavigateAwayHandler() {
 
     // Navigate on deletion
     useEffect(() => {
-        if (!reportWasDeleted) {
-            return;
-        }
-
-        // Only redirect if focused
-        if (!isFocused) {
+        // Only navigate on the transition into "deleted" (the moment the report is removed), and only if this
+        // screen is focused at that moment. A screen deleted while it was underneath (unfocused) must NOT navigate
+        // when the user later presses back and refocuses it — that re-focus is what traps the user in a navigation loop.
+        if (!reportWasDeleted || previousReportWasDeleted || !isFocused) {
             return;
         }
 
@@ -212,19 +231,42 @@ function ReportNavigateAwayHandler() {
             return;
         }
 
-        // Try to navigate to parent report if available
-        if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
-            Navigation.isNavigationReady().then(() => {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
-            });
+        // A report still pending creation was never created, so its removal is a failed create that the opener handles.
+        if (isPendingCreationFromRoute) {
             return;
         }
 
-        // Fallback to Concierge
         Navigation.isNavigationReady().then(() => {
-            navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas);
+            // Drop the deleted report from the split navigator stack before navigating away. Otherwise, it stays
+            // mounted underneath the destination, and tapping back refocuses it and re-triggers this effect,
+            // trapping the user in a navigation loop
+            if (Navigation.getTopmostReportId() === reportIDFromRoute) {
+                Navigation.popToSidebar();
+            }
+
+            // Try to navigate to parent report if available
+            if (deletedReportParentID && !isMoneyRequestReportPendingDeletion(deletedReportParentID)) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(deletedReportParentID));
+                return;
+            }
+
+            // Fallback to Concierge
+            navigateToConciergeChat({conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, hasCompletedGuidedSetupFlow, conciergePersonalDetails});
         });
-    }, [reportWasDeleted, isFocused, deletedReportParentID, conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas]);
+    }, [
+        reportWasDeleted,
+        previousReportWasDeleted,
+        isFocused,
+        isPendingCreationFromRoute,
+        deletedReportParentID,
+        conciergeReportID,
+        introSelected,
+        currentUserAccountID,
+        isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
+        conciergePersonalDetails,
+        reportIDFromRoute,
+    ]);
 
     return null;
 }

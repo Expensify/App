@@ -1,5 +1,7 @@
-import type {TNode} from 'react-native-render-html';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
+
+import type {TNode} from 'react-native-render-html';
+
 import type CanvasSize from './types/CanvasSize';
 
 const DEFAULT_WIDTH = 600;

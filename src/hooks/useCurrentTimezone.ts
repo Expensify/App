@@ -1,6 +1,8 @@
 import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 
 function useCurrentTimezone(): SelectedTimezone {

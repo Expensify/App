@@ -1,8 +1,11 @@
-import type {ComponentProps} from 'react';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {ComponentProps} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import RenderHTML from './RenderHTML';
 
 type SectionSubtitleHTMLProps = {
@@ -12,10 +15,7 @@ type SectionSubtitleHTMLProps = {
     /** Whether the subtitle text should be muted */
     subtitleMuted?: boolean;
 
-    /** Optional link press handler */
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
-
-    /** Optional wrapper style */
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 

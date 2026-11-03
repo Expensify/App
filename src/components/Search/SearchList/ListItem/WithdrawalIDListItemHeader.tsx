@@ -1,13 +1,11 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
 import getBankIcon from '@components/Icon/BankIcons';
 import RenderHTML from '@components/RenderHTML';
 import type {SearchColumnType} from '@components/Search/types';
-import type {ListItem} from '@components/SelectionList/types';
 import StatusBadge from '@components/StatusBadge';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -15,22 +13,27 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import {getSettlementStatus, getSettlementStatusBadgeProps} from '@libs/SearchUIUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {TransactionWithdrawalIDGroupListItemType} from './types';
+
 import ExpandCollapseArrowButton from './ExpandCollapseArrowButton';
 import TextCell from './TextCell';
 import TotalCell from './TotalCell';
-import type {TransactionWithdrawalIDGroupListItemType} from './types';
 
-type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
-    /** The withdrawal ID currently being looked at */
+type WithdrawalIDListItemHeaderProps = {
     withdrawalID: TransactionWithdrawalIDGroupListItemType;
-
-    /** Callback to fire when a checkbox is pressed */
-    onCheckboxPress?: (item: TItem) => void;
+    onCheckboxPress?: (item: TransactionWithdrawalIDGroupListItemType) => void;
 
     /** Whether this section items disabled for selection */
     isDisabled?: boolean | null;
@@ -44,7 +47,6 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     /** Whether only some transactions are selected */
     isIndeterminate?: boolean;
 
-    /** Callback for when the down arrow is clicked */
     onDownArrowClick?: () => void;
 
     /** Whether the down arrow is expanded */
@@ -54,7 +56,7 @@ type WithdrawalIDListItemHeaderProps<TItem extends ListItem> = {
     columns?: SearchColumnType[];
 };
 
-function WithdrawalIDListItemHeader<TItem extends ListItem>({
+function WithdrawalIDListItemHeader({
     withdrawalID: withdrawalIDItem,
     onCheckboxPress,
     isDisabled,
@@ -64,12 +66,12 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     onDownArrowClick,
     isExpanded,
     columns,
-}: WithdrawalIDListItemHeaderProps<TItem>) {
+}: WithdrawalIDListItemHeaderProps) {
     const {isLargeScreenWidth} = useResponsiveLayout();
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
@@ -81,9 +83,13 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+        dateFnsLocale,
     );
-    const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
-    const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
+    const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = withdrawalIDItem;
+
+    const isCashBack = !!withdrawalIDItem.isCashBack;
+    const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme, isCashBack);
+    const settlementStatus = isCashBack ? undefined : getSettlementStatus(withdrawalIDItem.state);
     const statusBadge = !!badgeProps && (
         <StatusBadge
             text={badgeProps.text}
@@ -101,7 +107,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                   return translate('settlement.failedError', {link: walletLink});
               })();
 
-    const columnComponents = {
+    const columnComponents: Partial<Record<SearchColumnType, React.JSX.Element>> = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
             <View
                 key={CONST.SEARCH.TABLE_COLUMNS.AVATAR}
@@ -123,6 +129,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 <TextWithTooltip
                     text={accountLabel}
                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                    isSelectable
                 />
             </View>
         ),
@@ -136,6 +143,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 <TextWithTooltip
                     text={formattedWithdrawalDate}
                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                    isSelectable
                 />
             </View>
         ),
@@ -155,6 +163,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 <TextWithTooltip
                     text={withdrawalIDItem.entryID?.toString() ?? ''}
                     style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre]}
+                    isSelectable
                 />
             </View>
         ),
@@ -163,7 +172,34 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 key={CONST.SEARCH.TABLE_COLUMNS.EXPENSES}
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
             >
-                <TextCell text={String(withdrawalIDItem.count)} />
+                <TextCell text={isCashBack ? '' : String(withdrawalIDItem.count)} />
+            </View>
+        ),
+        // A settlement that did not convert currencies reports neither amount, and an amount says nothing without the currency it moved in.
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED)}
+            >
+                {!!debitedAmount && !!debitedCurrency && (
+                    <TotalCell
+                        total={debitedAmount}
+                        currency={debitedCurrency}
+                    />
+                )}
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED)}
+            >
+                {!!creditedAmount && !!creditedCurrency && (
+                    <TotalCell
+                        total={creditedAmount}
+                        currency={creditedCurrency}
+                    />
+                )}
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (
@@ -185,7 +221,7 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex1, styles.gap3]}>
                     {!!canSelectMultiple && (
                         <Checkbox
-                            onPress={() => onCheckboxPress?.(withdrawalIDItem as unknown as TItem)}
+                            onPress={() => onCheckboxPress?.(withdrawalIDItem)}
                             isChecked={isSelectAllChecked}
                             disabled={!!isDisabled || withdrawalIDItem.isDisabledCheckbox}
                             accessibilityLabel={translate('common.select')}
@@ -205,18 +241,20 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                 <TextWithTooltip
                                     text={`${formattedBankName} xx${withdrawalIDItem.accountNumber.slice(-4)}`}
                                     style={[styles.optionDisplayName, styles.sidebarLinkTextBold, styles.pre, styles.fontWeightNormal]}
+                                    isSelectable
                                 />
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
                                     {statusBadge}
                                     <TextWithTooltip
                                         text={withdrawalInfoText}
-                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                                        style={[styles.textLabelSupporting, styles.lh16, styles.pre, styles.flexShrink1]}
+                                        isSelectable
                                     />
                                 </View>
                             </View>
                         </View>
                     )}
-                    {isLargeScreenWidth && columns?.map((column) => columnComponents[column as keyof typeof columnComponents])}
+                    {isLargeScreenWidth && columns?.map((column) => columnComponents[column])}
                 </View>
                 {!isLargeScreenWidth && (
                     <View style={[styles.flexShrink0, styles.flexRow, styles.alignItemsCenter]}>
@@ -230,6 +268,13 @@ function WithdrawalIDListItemHeader<TItem extends ListItem>({
                                 onPress={onDownArrowClick}
                             />
                         )}
+                        {!onDownArrowClick &&
+                            isCashBack && (
+                                // Reserves the arrow's footprint so the total stays aligned with the settlement rows.
+                                <View style={[styles.pl3, styles.justifyContentCenter, styles.alignItemsEnd]}>
+                                    <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeNormal)} />
+                                </View>
+                            )}
                     </View>
                 )}
             </View>

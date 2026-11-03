@@ -1,11 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
 import HighContrastModeSwitcher from '@components/HighContrastModeSwitcher';
 import LocalePicker from '@components/LocalePicker';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const currentYear = new Date().getFullYear();
 

@@ -106,7 +106,7 @@ Monitor spending trends, forecast budgets, and build reports with [the Insights 
 2. Toggle on 2FA and save your recovery codes. **Note on Backup Codes:** Download or copy them to a secure location.
 3. Link your authenticator app by scanning the QR code or entering a code.
 
-When logging in, use the Magic Code from your email and the 6-digit code from your authenticator app.
+When logging in, use the Security Code from your email and the 6-digit code from your authenticator app.
 
 ---
 

@@ -1,9 +1,11 @@
 import type {MultifactorAuthenticationScenarioConfig, MultifactorAuthenticationScenarioResponse} from '@components/MultifactorAuthentication/config/types';
+
 import {isHttpSuccess} from '@libs/MultifactorAuthentication/shared/helpers';
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {MFAResult} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import type {RegistrationKeyInfo} from '@libs/MultifactorAuthentication/shared/types';
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
+
 import {registerAuthenticationKey} from './index';
 
 type RegistrationParams = {
@@ -31,6 +33,7 @@ async function processRegistration(params: RegistrationParams): Promise<MFAResul
 async function processScenarioAction(
     action: MultifactorAuthenticationScenarioConfig['action'],
     params: Parameters<MultifactorAuthenticationScenarioConfig['action']>[0],
+    context?: {signal: AbortSignal},
 ): Promise<MFAResult<MultifactorAuthenticationScenarioResponse>> {
     if (!params.signedChallenge) {
         return {
@@ -39,7 +42,7 @@ async function processScenarioAction(
         };
     }
 
-    const {httpStatusCode, reason, message, body} = await action(params);
+    const {httpStatusCode, reason, message, body} = await (context ? action(params, context) : action(params));
 
     if (isHttpSuccess(httpStatusCode)) {
         return {

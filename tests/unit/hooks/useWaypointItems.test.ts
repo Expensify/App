@@ -1,6 +1,8 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useWaypointItems from '@hooks/useWaypointItems';
 import type {UseWaypointItemsParams} from '@hooks/useWaypointItems';
+
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
 function createFilledWaypoints(): WaypointCollection {
@@ -30,10 +32,10 @@ function createFilledWaypoints(): WaypointCollection {
 }
 
 function checkAllElement(waypointList: Waypoint[], result: UseWaypointItemsParams) {
-    expect(result.waypointItems).toEqual(waypointList.map((w) => w.keyForList ?? ''));
+    expect(result.waypointItems).toEqual(waypointList.map((w, index) => w.keyForList ?? `waypoint${index}`));
     expect(result.waypointItems.map((i: string) => result.getWaypoint(i))).toEqual(waypointList.map((w: Waypoint) => w));
     expect(result.waypointItems.map((i: string) => result.getWaypointKey(i))).toEqual(waypointList.map((_, index: number) => `waypoint${index}`));
-    expect(result.waypointItems.map((i: string) => result.extractKey(i))).toEqual(waypointList.map((w: Waypoint, index: number) => `${w.keyForList ?? ''}waypoint${index}`));
+    expect(result.waypointItems.map((i: string) => result.extractKey(i))).toEqual(waypointList.map((w: Waypoint, index: number) => `${w.keyForList ?? `waypoint${index}`}waypoint${index}`));
 }
 
 describe('useWaypointItems', () => {

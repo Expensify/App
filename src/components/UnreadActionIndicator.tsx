@@ -1,15 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Text from './Text';
 
 type UnreadActionIndicatorProps = {
-    /** The ID of the report action */
     reportActionID: string | undefined;
-
-    /** Whether we should hide thread divider line */
     shouldHideThreadDividerLine?: boolean;
 };
 

@@ -1,7 +1,9 @@
+import type CONST from '@src/CONST';
+
 import type {LinkAccount} from 'react-native-plaid-link-sdk';
 import type {PlaidAccount} from 'react-plaid-link';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Company card feed name */
@@ -49,6 +51,12 @@ type StatementPeriodEnd = Exclude<ValueOf<typeof CONST.COMPANY_CARDS.STATEMENT_C
 /** Statement period end day */
 type StatementPeriodEndDay = number;
 
+/** Reimbursable setting an admin can select for a card feed */
+type SelectableFeedReimbursable = ValueOf<typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE>;
+
+/** Reimbursable setting of a card feed. `none` is a legacy value that behaves like `default_no` */
+type FeedReimbursable = SelectableFeedReimbursable | typeof CONST.COMPANY_CARDS.FEED_REIMBURSABLE_LEGACY_NONE;
+
 /** Card feed provider */
 type CardFeedProvider =
     | typeof CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD
@@ -58,7 +66,6 @@ type CardFeedProvider =
 
 /** Card feed details */
 type CardFeedDetails = {
-    /** Processor ID */
     processorID?: string;
 
     /** Financial institution (bank) ID */
@@ -67,13 +74,8 @@ type CardFeedDetails = {
     /** Financial institution (bank) name */
     bankName?: string;
 
-    /** Company ID */
     companyID?: string;
-
-    /** Distribution ID */
     distributionID?: string;
-
-    /** Delivery file name */
     deliveryFileName?: string;
 };
 
@@ -86,15 +88,12 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     asrEnabled?: boolean;
 
     /** Specifies if the expenses on this card should be force reimbursable */
-    forceReimbursable?: string;
+    forceReimbursable?: FeedReimbursable;
 
     /** Defines the type of liability for the card */
     liabilityType?: string;
 
-    /** Preferred policy */
     preferredPolicy?: string;
-
-    /** Linked policy IDs */
     linkedPolicyIDs?: string[];
 
     /** Country associated with this feed (ISO 3166-1 alpha-2 code) */
@@ -111,8 +110,19 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
      */
     statementPeriodEndDay?: StatementPeriodEnd | StatementPeriodEndDay;
 
-    /** Plaid access token */
     plaidAccessToken?: string;
+
+    /** Current balance of the feed in cents, reported by the bank via Plaid. Null when the bank did not report it. */
+    currentBalance?: number | null;
+
+    /** Remaining credit limit of the feed in cents, reported by the bank via Plaid. Null when the bank did not report it. */
+    remainingLimit?: number | null;
+
+    /** Datetime the feed balance was last fetched from the bank, formatted as 'yyyy-MM-dd HH:mm:ss' */
+    balanceTimestamp?: string | null;
+
+    /** ISO currency of currentBalance and remainingLimit. Null when a single credit account omitted it (amounts still valid); mixed currencies null the amounts too. */
+    balanceCurrency?: string | null;
 
     /** CSV upload layout settings (present on ccupload feeds) */
     uploadLayoutSettings?: {
@@ -129,27 +139,22 @@ type CustomCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
     };
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
+    errorFields?: Partial<OnyxCommon.ErrorFields<'statementPeriodEndDay' | 'forceReimbursable'>>;
 
-    /**
-     * Collection of errors coming from BE
-     */
     errors?: OnyxCommon.Errors;
 }>;
 
 /** Direct card feed data */
 type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** List of accounts */
     accountList: string[];
-
-    /** Credentials info */
     credentials: string;
-
-    /** Expiration number */
     expiration: number;
 
     /** Defines the type of liability for the card */
     liabilityType?: string;
+
+    /** Whether transactions from this feed are always reimbursable, always non-reimbursable, or use an editable default */
+    forceReimbursable?: FeedReimbursable;
 
     /** The id of the domain the feed relates to */
     domainID?: number;
@@ -162,15 +167,11 @@ type DirectCardFeedData = OnyxCommon.OnyxValueWithOfflineFeedback<{
      */
     statementPeriodEndDay?: StatementPeriodEnd | StatementPeriodEndDay;
 
-    /** Plaid access token */
     plaidAccessToken?: string;
 
     /** Field-specific error messages */
-    errorFields?: OnyxCommon.ErrorFields<'statementPeriodEndDay'>;
+    errorFields?: Partial<OnyxCommon.ErrorFields<'statementPeriodEndDay' | 'forceReimbursable'>>;
 
-    /**
-     * Collection of errors coming from BE
-     */
     errors?: OnyxCommon.Errors;
 }>;
 
@@ -206,7 +207,6 @@ type CardFeedsStatus = {
     /** Whether we are loading the data via the API */
     isLoading?: boolean;
 
-    /** Collection of errors coming from BE */
     errors?: OnyxCommon.Errors;
 };
 
@@ -220,17 +220,31 @@ type CardFeedsStatusByDomainID = Record<number, CardFeedsStatus>;
  */
 type WorkspaceCardFeedsStatus = Record<CardFeedWithNumber, CardFeedsStatus>;
 
+/** A single travel billing provisioning error for a workspace member */
+type TravelBillingProvisioningError = {
+    /** Account ID of the member whose card provisioning failed */
+    accountID: number;
+
+    /** Email of the member whose card provisioning failed */
+    email: string;
+
+    /** Whether the scheduled retry has already re-attempted this member */
+    retried?: boolean;
+};
+
+/** Travel billing provisioning errors keyed by the failed member's account ID */
+type TravelBillingProvisioningErrors = Record<string, TravelBillingProvisioningError>;
+
 /** Card feeds model, including domain settings */
 type CardFeeds = {
-    /** Feed settings */
     settings: {
         /** User-friendly feed nicknames */
         companyCardNicknames?: Partial<Record<CardFeedWithNumber, string>>;
 
-        /** Company cards feeds */
-        companyCards?: Partial<Record<CardFeedWithNumber, CustomCardFeedData>>;
+        /** Custom card names by card ID */
+        companyCardCustomNames?: Record<string, string>;
 
-        /** Account details */
+        companyCards?: Partial<Record<CardFeedWithNumber, CustomCardFeedData>>;
         oAuthAccountDetails?: Partial<Record<CardFeedWithNumber, DirectCardFeedData>>;
 
         /** Collection of card feeds status by domain ID */
@@ -239,7 +253,6 @@ type CardFeeds = {
         /** Email address of the technical contact for the domain */
         technicalContactEmail?: string;
 
-        /** Whether to use the technical contact's billing card */
         useTechnicalContactBillingCard?: boolean;
 
         /** Whether 2FA is required for all members */
@@ -248,10 +261,10 @@ type CardFeeds = {
         /** List of member emails exempt from the domain's 2FA requirement */
         twoFactorAuthExemptEmails?: string[];
 
-        /** Travel invoicing provisioning data */
+        /** Travel billing provisioning data. The key keeps the legacy spelling because the backend sends it. */
         travelInvoicing?: {
-            /** Provisioning errors for workspace members */
-            errors?: string[];
+            /** Provisioning errors keyed by the failed member's account ID */
+            errors?: TravelBillingProvisioningErrors;
         };
     };
 } & CardFeedsStatus &
@@ -259,52 +272,36 @@ type CardFeeds = {
 
 /** Data required to be sent to add a new card */
 type AddNewCardFeedData = {
-    /** Card feed provider */
     feedType: CardFeedProvider;
-
-    /** Card feed details */
     feedDetails?: CardFeedDetails;
-
-    /** Name of the card */
     cardTitle: string;
-
-    /** Selected bank */
     selectedBank: ValueOf<typeof CONST.COMPANY_CARDS.BANKS> | null;
-
-    /** Selected feed type */
     selectedFeedType: ValueOf<typeof CONST.COMPANY_CARDS.FEED_TYPE>;
 
     /** Selected Amex bank custom feed */
     selectedAmexCustomFeed: ValueOf<typeof CONST.COMPANY_CARDS.AMEX_CUSTOM_FEED>;
 
-    /** Name of the bank */
     bankName?: string;
-
-    /** Selected country */
     selectedCountry?: string;
 
     /** Public token from Plaid connection */
     publicToken?: string;
 
-    /** Feed from Plaid connection */
-    plaidConnectedFeed?: CardFeedWithNumber;
-
-    /** Feed name from Plaid connection */
+    plaidConnectedFeed?: string;
     plaidConnectedFeedName?: string;
 
     /** Name of the CSV layout template */
     companyCardLayoutName?: string;
 
     /** Identifier for the CSV layout template */
-    layoutType?: string;
-
-    /** Whether to use advanced fields in the CSV layout */
-    useAdvancedFields?: boolean;
+    layoutType?: CompanyCardFeedWithNumber;
 
     /** Existing instance ID when editing a CSV feed */
     existingInstanceID?: string;
 
-    /** Plaid accounts */
+    /** Account that owns the CSV feed being edited */
+    domainAccountID?: number;
+
     plaidAccounts?: LinkAccount[] | PlaidAccount[];
 };
 
@@ -321,6 +318,9 @@ type AddNewCompanyCardFeed = {
 
     /** Whether the user is editing step */
     isEditing: boolean;
+
+    /** Collection of errors coming from BE */
+    errors?: OnyxCommon.Errors;
 };
 
 /** Card fund ID */
@@ -332,10 +332,7 @@ type CombinedCardFeed = CustomCardFeedData &
         /** Custom feed name, originally coming from settings.companyCardNicknames */
         customFeedName?: string;
 
-        /** Feed name */
         feed: CardFeedWithNumber;
-
-        /** Card feed status */
         status?: CardFeedsStatus;
     };
 
@@ -367,7 +364,10 @@ export type {
     FundID,
     StatementPeriodEnd,
     StatementPeriodEndDay,
+    FeedReimbursable,
+    SelectableFeedReimbursable,
     DomainSettings,
     CombinedCardFeed,
     CombinedCardFeeds,
+    TravelBillingProvisioningErrors,
 };

@@ -1,4 +1,5 @@
 import type {MemberForList} from '@libs/OptionsListUtils';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Model of share bank account */
@@ -15,7 +16,6 @@ type ShareBankAccount = {
     /** Whether the form is loading */
     isLoading?: boolean;
 
-    /** The list of admins */
     admins?: MemberForList[] | null;
 };
 

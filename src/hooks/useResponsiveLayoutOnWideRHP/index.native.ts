@@ -1,4 +1,5 @@
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import type ResponsiveLayoutOnWideRHPResult from './types';
 
 // Super Wide and Wide RHPs are not displayed on native platforms.
@@ -11,3 +12,9 @@ export default function useResponsiveLayoutOnWideRHP(): ResponsiveLayoutOnWideRH
         isSuperWideRHPDisplayedOnWideLayout: false,
     };
 }
+
+function useIsDisplayedInWideRHP(): boolean {
+    return false;
+}
+
+export {useIsDisplayedInWideRHP};

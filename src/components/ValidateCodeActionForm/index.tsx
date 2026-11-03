@@ -1,8 +1,11 @@
-import React, {useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {ValidateCodeActionFormProps} from './type';
 
 function ValidateCodeActionForm({
@@ -12,7 +15,7 @@ function ValidateCodeActionForm({
     descriptionSecondaryStyles,
     validatePendingAction,
     validateError,
-    hasMagicCodeBeenSent,
+    hasValidateCodeBeenSent,
     handleSubmitForm,
     clearError,
     sendValidateCode,
@@ -50,7 +53,7 @@ function ValidateCodeActionForm({
             {!!descriptionSecondary && <Text style={[themeStyles.mb6, descriptionSecondaryStyles]}>{descriptionSecondary}</Text>}
             <ValidateCodeForm
                 isLoading={isLoading}
-                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                hasValidateCodeBeenSent={hasValidateCodeBeenSent}
                 validatePendingAction={validatePendingAction}
                 validateCodeActionErrorField="validateLogin"
                 validateError={validateError}

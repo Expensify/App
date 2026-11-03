@@ -1,5 +1,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import {convertToFrontendAmountAsString} from './CurrencyUtils';
 import {validateAmount} from './MoneyRequestUtils';
 
@@ -20,7 +22,7 @@ function formatTimeMerchant(
     translate: LocalizedTranslate,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ): string {
-    return translate('iou.timeTracking.hoursAt', hours, convertToDisplayString(rate, currency));
+    return translate('iou.timeTracking.hoursAt', {count: hours, rate: convertToDisplayString(rate, currency)});
 }
 
 /**

@@ -1,4 +1,3 @@
-import React from 'react';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
 import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {
@@ -6,9 +5,13 @@ import type {
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioCustomConfig,
 } from '@components/MultifactorAuthentication/config/types';
+
 import {revealPINForCard} from '@libs/actions/MultifactorAuthentication';
 import {setRevealedPhysicalCardPin} from '@libs/RevealedCardSecretsStore';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 /**
  * Payload type for the REVEAL_PIN scenario.

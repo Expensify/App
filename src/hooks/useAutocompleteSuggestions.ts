@@ -1,17 +1,17 @@
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 import type {SearchFilterKey, UserFriendlyKey} from '@components/Search/types';
+
+import {getBankAccountSearchLabel, isFilterableBankAccount} from '@libs/BankAccountUtils';
 import {getCardFeedsForDisplay} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch} from '@libs/CardUtils';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import type {OptionList} from '@libs/OptionsListUtils';
+import type {GetOptionsConfig, OptionList} from '@libs/OptionsListUtils';
 import {getSearchOptions} from '@libs/OptionsListUtils';
 import {getAllTaxRates, getCleanedTagName, getExpensifyTeamExclusions, shouldShowPolicy} from '@libs/PolicyUtils';
 import {
+    CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,
@@ -19,24 +19,37 @@ import {
     getAutocompleteTaxList,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {getUserFriendlyKey, getUserFriendlyValue} from '@libs/SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue, isFilterSupported} from '@libs/SearchQueryUtils';
 import {getDatePresets, getHasOptions} from '@libs/SearchUIUtils';
-import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
-import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {CardFeeds, CardList, PersonalDetailsList, Policy} from '@src/types/onyx';
+import type {ReportAttributesDerivedValue, VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import {useCurrencyListState} from './useCurrencyList';
-import useExportedToFilterOptions from './useExportedToFilterOptions';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+
 import type {FeedKeysWithAssignedCards} from './useFeedKeysWithAssignedCards';
+
+import {useCurrencyListActions, useCurrencyListState} from './useCurrencyList';
+import useExportedToFilterOptions from './useExportedToFilterOptions';
+import useLoadSearchCategoryData from './useLoadSearchCategoryData';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
-import useSortedActions from './useSortedActions';
+import useSortedReportActionsData from './useSortedReportActionsData';
 
 type AutocompleteItemData = {
     filterKey: UserFriendlyKey;
     text: string;
     autocompleteID?: string;
     mapKey?: SearchFilterKey;
+    /** Workspace avatar/name that owns the report. Only set for report-backed `in:` suggestions so the row can show which workspace the room belongs to. */
+    workspaceIcon?: Icon;
 };
 
 type UseAutocompleteSuggestionsParams = {
@@ -44,12 +57,15 @@ type UseAutocompleteSuggestionsParams = {
     allCards: CardList | undefined;
     allFeeds: Record<string, CardFeeds | undefined> | undefined;
     options: OptionList;
+    /** Resolves a report from the same snapshot `options` was built from @see useFilteredOptions */
+    getReportByID: GetOptionsConfig['getReportByID'];
     draftComments: OnyxCollection<string>;
-    betas: OnyxEntry<Beta[]>;
+    isDefaultRoomsBetaEnabled: boolean;
     countryCode: OnyxEntry<number>;
     loginList: OnyxEntry<Record<string, unknown>>;
     policies: NonNullable<OnyxCollection<Policy>>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     currentUserAccountID: number;
     currentUserEmail: string;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -64,8 +80,11 @@ const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
 const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
+const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));
+const TRANSACTION_STATUS_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
 const WITHDRAWAL_TYPE_VALUES = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE);
 const WITHDRAWAL_STATUS_VALUES = Object.values(CONST.SEARCH.SETTLEMENT_STATUS);
+const PAID_STATUS_VALUES = Object.values(CONST.SEARCH.PAID_STATUS);
 const BOOLEAN_VALUES = Object.values(CONST.SEARCH.BOOLEAN);
 const ACTION_FILTER_VALUES = Object.values(CONST.SEARCH.ACTION_FILTERS);
 const IS_VALUES_LIST = Object.values(CONST.SEARCH.IS_VALUES);
@@ -92,12 +111,14 @@ function useAutocompleteSuggestions({
     allCards = CONST.EMPTY_OBJECT,
     allFeeds,
     options,
+    getReportByID,
     draftComments,
-    betas,
+    isDefaultRoomsBetaEnabled,
     countryCode,
     loginList,
     policies,
     visibleReportActionsData,
+    reportAttributesDerived,
     currentUserAccountID,
     currentUserEmail,
     personalDetails,
@@ -105,13 +126,20 @@ function useAutocompleteSuggestions({
     translate,
     autocompleteSubstitutions,
 }: UseAutocompleteSuggestionsParams): AutocompleteItemData[] {
+    const {localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allRecentCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
-    const sortedActions = useSortedActions();
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const {currencyList} = useCurrencyListState();
     const {exportedToFilterOptions} = useExportedToFilterOptions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -124,7 +152,7 @@ function useAutocompleteSuggestions({
 
     if (!autocomplete && ranges.length > 0) {
         const lastRange = ranges.at(ranges.length - 1);
-        if (lastRange && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(lastRange.key)) {
+        if (lastRange && CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.some((key) => key === lastRange.key)) {
             const afterLastRange = autocompleteQueryValue.substring(lastRange.start + lastRange.length);
             const continuationMatch = afterLastRange.match(/^\s+(\w+)/);
 
@@ -135,8 +163,12 @@ function useAutocompleteSuggestions({
         }
     }
 
+    const shouldLoadCategoryData = autocompleteKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY || ranges.some((range) => range.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY);
+    useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
+
     if (!autocompleteKey) {
-        return [];
+        // Returns the same array reference on every render, so the consumer's `sections` memo stays valid and the list doesn't re-render.
+        return getEmptyArray<AutocompleteItemData>();
     }
 
     const alreadyAutocompletedKeys = new Set(
@@ -147,7 +179,8 @@ function useAutocompleteSuggestions({
             .map((range) => range.value.toLowerCase()),
     );
 
-    const typeFilter = parsedQuery?.ranges?.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+    // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
+    const typeFilter = parsedQuery?.ranges?.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = (typeFilter?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE) as SearchDataTypes;
 
     switch (autocompleteKey) {
@@ -218,16 +251,21 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER: {
             // Soft-exclude Expensify-team logins (current and former AMs/Guides) from user filter suggestions. Users can still type any email manually because the search bar accepts free text.
             const memberExclusions = getExpensifyTeamExclusions(personalDetails, policies, currentUserEmail);
 
             const participants = getSearchOptions({
+                dateFnsLocale,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 options,
                 draftComments,
-                betas: betas ?? [],
+                isDefaultRoomsBetaEnabled,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: autocompleteValue,
@@ -243,20 +281,35 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reportAttributesDerived,
+                currentUserLogin: currentUserEmail,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                localeCompare,
+                formatPhoneNumber,
                 conciergeReportID,
                 excludeFromSuggestionsOnly: memberExclusions,
+                allPolicyTags: allPoliciesTags,
                 isTrackIntentUser,
+                translate,
+                getReportByID,
+                rules,
             }).options.personalDetails.filter((participant) => participant.text && !alreadyAutocompletedKeys.has(participant.text.toLowerCase()));
 
             return participants.map((participant) => ({
-                filterKey: autocompleteKey,
+                filterKey: getUserFriendlyKey(autocompleteKey),
                 text: participant.login === currentUserEmail ? CONST.SEARCH.ME : (participant.text ?? ''),
                 autocompleteID: String(participant.accountID),
                 mapKey: autocompleteKey,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
+            // `in:` only works for types that support it (chat, task). A bare `in:` with no explicit type resolves to `type:chat`, so keep suggesting in that case.
+            if (typeFilter && !isFilterSupported(CONST.SEARCH.SYNTAX_FILTER_KEYS.IN, currentType)) {
+                return getEmptyArray<AutocompleteItemData>();
+            }
+
             // If autocompleteValue is empty or just whitespace and we have already completed keys,
             // return empty array to hide suggestion list (consistent with group-by behavior)
             if (!autocompleteValue.trim() && alreadyAutocompletedKeys.size > 0) {
@@ -264,9 +317,12 @@ function useAutocompleteSuggestions({
             }
 
             const filteredReports = getSearchOptions({
+                dateFnsLocale,
+                convertToDisplayString,
+                convertToDisplayStringWithoutCurrency,
                 options,
                 draftComments,
-                betas: betas ?? [],
+                isDefaultRoomsBetaEnabled,
                 isUsedInChatFinder: true,
                 includeReadOnly: true,
                 searchQuery: autocompleteValue,
@@ -282,9 +338,19 @@ function useAutocompleteSuggestions({
                 currentUserAccountID,
                 currentUserEmail,
                 personalDetails,
+                reportAttributesDerived,
+                currentUserLogin: currentUserEmail,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
+                localeCompare,
+                formatPhoneNumber,
                 conciergeReportID,
+                allPolicyTags: allPoliciesTags,
                 isTrackIntentUser,
+                translate,
+                getReportByID,
+                rules,
             }).options.recentReports.filter((chat) => {
                 if (!chat.text) {
                     return false;
@@ -292,12 +358,19 @@ function useAutocompleteSuggestions({
                 return !alreadyAutocompletedKeys.has(chat.text.toLowerCase());
             });
 
-            return filteredReports.map((chat) => ({
-                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
-                text: chat.text ?? '',
-                autocompleteID: chat.reportID,
-                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
-            }));
+            return filteredReports.map((chat) => {
+                // For reports owned by a workspace (rooms, policy expense chats, etc.) the first icon is the workspace
+                // avatar. We surface it on the row so identically named rooms (e.g. #admins) in different workspaces can
+                // be told apart. DMs/groups have an avatar-type first icon, so they naturally get no workspace icon.
+                const firstIcon = chat.icons?.at(0);
+                return {
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.IN,
+                    text: chat.text ?? '',
+                    autocompleteID: chat.reportID,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.IN,
+                    workspaceIcon: firstIcon?.type === CONST.ICON_TYPE_WORKSPACE ? firstIcon : undefined,
+                };
+            });
         }
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE: {
             const filteredTypes = DATA_TYPE_VALUES.filter((type) => type.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(type.toLowerCase())).sort();
@@ -326,7 +399,7 @@ function useAutocompleteSuggestions({
             );
             return filteredViews.map((viewValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.VIEW, text: viewValue}));
         }
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS: {
             const statusAutocompleteList = (() => {
                 let suggestedStatuses;
                 switch (currentType) {
@@ -348,7 +421,7 @@ function useAutocompleteSuggestions({
                     default:
                         suggestedStatuses = DEFAULT_STATUS_VALUES;
                 }
-                return suggestedStatuses.filter((value) => value !== '').map((value) => getUserFriendlyValue(value));
+                return suggestedStatuses.map(getUserFriendlyValue);
             })();
             const filteredStatuses = statusAutocompleteList
                 .filter((status) => status.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(status))
@@ -365,6 +438,26 @@ function useAutocompleteSuggestions({
             return filteredExpenseTypes.map((expenseType) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.EXPENSE_TYPE,
                 text: expenseType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE: {
+            const filteredReceiptTypes = RECEIPT_TYPE_FRIENDLY_VALUES.filter(
+                (receiptType) => receiptType.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(receiptType),
+            ).sort();
+
+            return filteredReceiptTypes.map((receiptType) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.RECEIPT_TYPE,
+                text: receiptType,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS: {
+            const filteredTransactionStatuses = TRANSACTION_STATUS_FRIENDLY_VALUES.filter(
+                (transactionStatus) => transactionStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(transactionStatus),
+            ).sort();
+
+            return filteredTransactionStatuses.map((transactionStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TRANSACTION_STATUS,
+                text: transactionStatus,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE: {
@@ -385,6 +478,14 @@ function useAutocompleteSuggestions({
             return filteredWithdrawalStatuses.map((withdrawalStatus) => ({
                 filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.WITHDRAWAL_STATUS,
                 text: withdrawalStatus,
+            }));
+        }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS: {
+            const filteredPaidStatuses = PAID_STATUS_VALUES.filter((paidStatus) => paidStatus.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(paidStatus)).sort();
+
+            return filteredPaidStatuses.map((paidStatus) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.PAID_STATUS,
+                text: paidStatus,
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED: {
@@ -421,8 +522,40 @@ function useAutocompleteSuggestions({
                 mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
             }));
         }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT: {
+            const bankAccountSuggestions: Array<{id: string; label: string; accountNumber: string}> = [];
+            for (const bankAccount of Object.values(bankAccountList ?? {})) {
+                const bankAccountID = bankAccount?.accountData?.bankAccountID;
+                if (!bankAccountID) {
+                    continue;
+                }
+                if (!isFilterableBankAccount(bankAccount)) {
+                    continue;
+                }
+                const accountNumber = bankAccount?.accountData?.accountNumber ?? '';
+                const label = getBankAccountSearchLabel(bankAccount);
+                bankAccountSuggestions.push({id: bankAccountID.toString(), label, accountNumber});
+            }
+            const filteredBankAccounts = bankAccountSuggestions
+                .filter(
+                    (item) =>
+                        (item.label.toLowerCase().includes(autocompleteValue.toLowerCase()) || item.accountNumber.includes(autocompleteValue)) &&
+                        !alreadyAutocompletedKeys.has(item.label.toLowerCase()),
+                )
+                .sort((a, b) => localeCompare(a.label, b.label))
+                .slice(0, 10);
+
+            return filteredBankAccounts.map((item) => ({
+                filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.BANK_ACCOUNT,
+                text: item.label,
+                autocompleteID: item.id,
+                mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT,
+            }));
+        }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
-        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE: {
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD: {
             const filteredValues = BOOLEAN_VALUES.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(value)).sort();
 
             return filteredValues.map((value) => ({
@@ -435,7 +568,7 @@ function useAutocompleteSuggestions({
             // Other filters currently continue to use value-based exclusion.
             const workspaceList: Array<{id: string; name: string}> = [];
             for (const singlePolicy of Object.values(policies)) {
-                if (!singlePolicy || singlePolicy.isJoinRequestPending || !shouldShowPolicy(singlePolicy, false, currentUserEmail)) {
+                if (!singlePolicy || singlePolicy.isJoinRequestPending || !shouldShowPolicy(singlePolicy, false, currentUserEmail, true)) {
                     continue;
                 }
                 workspaceList.push({id: singlePolicy.id, name: singlePolicy.name ?? ''});
@@ -447,10 +580,10 @@ function useAutocompleteSuggestions({
                 new Set(
                     policyIdRanges
                         .map((range) => {
-                            const baseKey = getSubstitutionMapKey(range.key, range.value);
+                            const baseKey = getSubstitutionMapKey(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value);
                             const index = keyValueCount.get(baseKey) ?? 0;
                             keyValueCount.set(baseKey, index + 1);
-                            const fullKey = getSubstitutionMapKeyWithIndex(range.key, range.value, index);
+                            const fullKey = getSubstitutionMapKeyWithIndex(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, range.value, index);
                             return autocompleteSubstitutions[fullKey] ?? (index === 0 ? autocompleteSubstitutions[baseKey] : undefined);
                         })
                         .filter(Boolean),
@@ -485,7 +618,11 @@ function useAutocompleteSuggestions({
             }));
         }
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS: {
-            const hasAutocompleteList = getHasOptions(translate, currentType);
+            // Use {} while policies load so every has: option does not flash before the collection arrives.
+            const hasAutocompleteList = getHasOptions(translate, currentType, {
+                policies: policies ?? {},
+                policyCategories: allPolicyCategories,
+            });
             const filteredHasValues = hasAutocompleteList.filter((hasValue) => {
                 return hasValue.value.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(hasValue.value.toLowerCase());
             });
@@ -524,6 +661,7 @@ function useAutocompleteSuggestions({
                 mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             }));
         }
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
@@ -535,7 +673,7 @@ function useAutocompleteSuggestions({
                 .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(datePreset.toLowerCase()))
                 .sort()
                 .slice(0, 10);
-            return filteredDatePresets.map((datePreset) => ({filterKey: autocompleteKey, text: datePreset}));
+            return filteredDatePresets.map((datePreset) => ({filterKey: getUserFriendlyKey(autocompleteKey), text: datePreset}));
         }
         default: {
             return [];

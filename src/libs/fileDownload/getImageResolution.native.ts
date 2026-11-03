@@ -1,4 +1,5 @@
 import type {Asset} from 'react-native-image-picker';
+
 import type {GetImageResolution} from './types';
 
 /**

@@ -1,13 +1,18 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import {buildDeleteApprovalWorkflowRulesOnyxData} from '@libs/actions/Workflow';
 import {write} from '@libs/API';
 import type {ConnectPolicyToZenefitsParams} from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Rule from '@src/types/onyx/Rule';
+
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 function getZenefitsSetupLink(policyID: string) {
     const params: ConnectPolicyToZenefitsParams = {policyID};
@@ -21,14 +26,17 @@ function getZenefitsSetupLink(policyID: string) {
 function updateZenefitsApprovalMode(
     policyID: string | undefined,
     approvalMode: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE>,
-    currentApprovalMode?: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | null,
+    currentApprovalMode: ValueOf<typeof CONST.ZENEFITS.APPROVAL_MODE> | null | undefined,
+    rules: OnyxCollection<Rule>,
 ) {
     if (!policyID) {
         return;
     }
 
+    // In every mode but custom, Zenefits' syncs set the approvers, so the backend deletes the workspace's approval workflow rules
+    const approvalWorkflowRulesOnyxData = approvalMode === CONST.ZENEFITS.APPROVAL_MODE.CUSTOM ? undefined : buildDeleteApprovalWorkflowRulesOnyxData(policyID, rules);
     const previousApprovalMode = currentApprovalMode ?? null;
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -44,8 +52,9 @@ function updateZenefitsApprovalMode(
                 },
             },
         },
+        ...(approvalWorkflowRulesOnyxData?.optimisticData ?? []),
     ];
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -60,8 +69,9 @@ function updateZenefitsApprovalMode(
                 },
             },
         },
+        ...(approvalWorkflowRulesOnyxData?.successData ?? []),
     ];
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.RULE>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
@@ -77,6 +87,7 @@ function updateZenefitsApprovalMode(
                 },
             },
         },
+        ...(approvalWorkflowRulesOnyxData?.failureData ?? []),
     ];
 
     write(WRITE_COMMANDS.UPDATE_ZENEFITS_APPROVAL_MODE, {policyID, approvalMode}, {optimisticData, successData, failureData});

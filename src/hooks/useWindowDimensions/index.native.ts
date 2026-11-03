@@ -1,4 +1,5 @@
 import {useSafeAreaFrame} from 'react-native-safe-area-context';
+
 import type WindowDimensions from './types';
 
 /**

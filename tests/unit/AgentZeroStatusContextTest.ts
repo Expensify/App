@@ -1,20 +1,29 @@
-import {act, renderHook, waitFor} from '@testing-library/react-native';
-import fs from 'fs';
-import path from 'path';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+import {act, render, renderHook, waitFor} from '@testing-library/react-native';
+
 import useAgentZeroStatusIndicator from '@hooks/useAgentZeroStatusIndicator';
+
 import {clearAgentZeroProcessingIndicator, subscribeToReportReasoningEvents, unsubscribeFromReportReasoningChannel} from '@libs/actions/Report';
 import AgentZeroOptimisticStore from '@libs/AgentZeroOptimisticStore';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import {setForceOffline} from '@libs/NetworkState';
+
 import {AgentZeroStatusProvider, useAgentZeroStatus, useAgentZeroStatusActions} from '@pages/inbox/AgentZeroStatusContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import fs from 'fs';
+import path from 'path';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockTranslate = jest.fn((key: string) => {
     if (key === 'common.thinking') {
+        return 'Concierge is thinking...';
+    }
+    if (key === 'common.agentThinking') {
         return 'Thinking...';
     }
     return key;
@@ -39,19 +48,76 @@ jest.mock('@libs/actions/Report', () => {
     };
 });
 
-const mockClearAgentZeroProcessingIndicator = clearAgentZeroProcessingIndicator as jest.MockedFunction<typeof clearAgentZeroProcessingIndicator>;
-const mockSubscribeToReportReasoningEvents = subscribeToReportReasoningEvents as jest.MockedFunction<typeof subscribeToReportReasoningEvents>;
-const mockUnsubscribeFromReportReasoningChannel = unsubscribeFromReportReasoningChannel as jest.MockedFunction<typeof unsubscribeFromReportReasoningChannel>;
+const mockClearAgentZeroProcessingIndicator = jest.mocked(clearAgentZeroProcessingIndicator);
+const mockSubscribeToReportReasoningEvents = jest.mocked(subscribeToReportReasoningEvents);
+const mockUnsubscribeFromReportReasoningChannel = jest.mocked(unsubscribeFromReportReasoningChannel);
 
 const reportID = '123';
+const currentUserAccountID = 111;
+const customAgentAccountID = 555;
+
+const participant = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
 
 /** Simulates a reasoning event for Concierge via AgentZeroReasoningStore (the real store, since it's not mocked) */
 function simulateReasoning(data: {reasoning: string; agentZeroRequestID: string; loopCount: number}) {
     AgentZeroReasoningStore.addReasoning(reportID, CONST.ACCOUNT_ID.CONCIERGE, data);
 }
 
+async function seedCustomAgentReport({isDM, includeSession = true}: {isDM: boolean; includeSession?: boolean}) {
+    await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
+    if (includeSession) {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+    }
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        reportID,
+        type: CONST.REPORT.TYPE.CHAT,
+        chatType: isDM ? undefined : CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+        participants: {
+            [currentUserAccountID]: participant,
+            [customAgentAccountID]: participant,
+        },
+    });
+    await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [customAgentAccountID]: {
+            accountID: customAgentAccountID,
+            displayName: 'Agent',
+            isCustomAgent: true,
+        },
+    });
+    await waitForBatchedUpdates();
+}
+
+/**
+ * Seeds a report that qualifies for the indicator only because the server writes a processing
+ * indicator for it — no Concierge DM, no #admins room, no custom-agent participant.
+ */
+async function seedServerDrivenReport(report: {type: string; parentReportID?: string; parentReportActionID?: string}) {
+    await Onyx.merge(ONYXKEYS.CONCIERGE_REPORT_ID, '999');
+    await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        reportID,
+        participants: {[currentUserAccountID]: participant},
+        ...report,
+    });
+    await waitForBatchedUpdates();
+}
+
+async function setProcessingIndicator(indicator: Record<number, string>) {
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {agentZeroProcessingRequestIndicator: indicator});
+    await waitForBatchedUpdates();
+}
+
 function wrapper({children}: {children: React.ReactNode}) {
     return React.createElement(AgentZeroStatusProvider, {reportID}, children);
+}
+
+/** Counts how many times it mounts, so a test can prove the provider didn't remount its subtree. */
+let childMountCount = 0;
+function MountCounter() {
+    React.useEffect(() => {
+        childMountCount += 1;
+    }, []);
+    return null;
 }
 
 describe('AgentZeroStatusContext', () => {
@@ -67,6 +133,7 @@ describe('AgentZeroStatusContext', () => {
         // Clear AgentZeroOptimisticStore between tests so a leftover entry from a prior
         // test doesn't hydrate the next hook mount with unexpected optimistic state.
         AgentZeroOptimisticStore.clear(reportID, CONST.ACCOUNT_ID.CONCIERGE);
+        AgentZeroOptimisticStore.clear(reportID, customAgentAccountID);
 
         // Make clearAgentZeroProcessingIndicator actually clear the Onyx NVP slot for the agent
         // so safety timeout and reconnect tests can verify the full clearing flow
@@ -122,6 +189,18 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.statusLabel).toBe(serverLabel);
         });
 
+        it('should keep the default Concierge server thinking label for Concierge chats', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
+                agentZeroProcessingRequestIndicator: 'Concierge is thinking...',
+            });
+
+            const {result} = renderHook(() => useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), {wrapper});
+
+            await waitForBatchedUpdates();
+            expect(result.current.isProcessing).toBe(true);
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
+        });
+
         it('should return empty status when server label is cleared', async () => {
             // Given a Concierge chat with an initial server label
             const serverLabel = 'Concierge is looking up categories...';
@@ -163,6 +242,79 @@ describe('AgentZeroStatusContext', () => {
             expect(result.current.candidateAgentIDs).toContain(CUSTOM_AGENT);
         });
 
+        it('includes the agent the server names on an expense report', async () => {
+            // Given an expense report — not a Concierge DM, #admins room, or custom-agent chat
+            await seedServerDrivenReport({type: CONST.REPORT.TYPE.EXPENSE});
+
+            // When the server names Concierge as actively processing
+            await setProcessingIndicator({[CONST.ACCOUNT_ID.CONCIERGE]: 'Concierge is looking up categories...'});
+
+            // Then Concierge gets a bubble and the server's label drives it
+            const {result} = renderHook(() => ({state: useAgentZeroStatus(), status: useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE)}), {wrapper});
+            await waitForBatchedUpdates();
+            expect(result.current.state.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
+            expect(result.current.status.isProcessing).toBe(true);
+            expect(result.current.status.statusLabel).toBe('Concierge is looking up categories...');
+        });
+
+        it('includes the agent the server names on a thread', async () => {
+            // Given a thread hanging off another report
+            await seedServerDrivenReport({type: CONST.REPORT.TYPE.CHAT, parentReportID: '456', parentReportActionID: '789'});
+
+            // When the server names Concierge as actively processing
+            await setProcessingIndicator({[CONST.ACCOUNT_ID.CONCIERGE]: 'Concierge is thinking...'});
+
+            // Then Concierge gets a bubble
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            await waitForBatchedUpdates();
+            expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
+        });
+
+        it('stays inert on an expense report while no agent is processing', async () => {
+            // Given an expense report the server has not written an indicator for
+            await seedServerDrivenReport({type: CONST.REPORT.TYPE.EXPENSE});
+
+            // When we render without any processing indicator
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            await waitForBatchedUpdates();
+
+            // Then no bubble renders and the gate never mounts, so nothing subscribes to reasoning
+            expect(result.current.candidateAgentIDs).toEqual([]);
+            expect(mockSubscribeToReportReasoningEvents).not.toHaveBeenCalled();
+        });
+
+        it('drops the bubble on an expense report once the server clears the indicator', async () => {
+            // Given an expense report the server is actively processing
+            await seedServerDrivenReport({type: CONST.REPORT.TYPE.EXPENSE});
+            await setProcessingIndicator({[CONST.ACCOUNT_ID.CONCIERGE]: 'Concierge is thinking...'});
+
+            const {result} = renderHook(() => useAgentZeroStatus(), {wrapper});
+            await waitForBatchedUpdates();
+            expect(result.current.candidateAgentIDs).toContain(CONST.ACCOUNT_ID.CONCIERGE);
+
+            // When the server clears the label at the end of the run
+            await setProcessingIndicator({[CONST.ACCOUNT_ID.CONCIERGE]: ''});
+            await waitForBatchedUpdates();
+
+            // Then the bubble goes away — nothing but the NVP was keeping this report gated in
+            expect(result.current.candidateAgentIDs).toEqual([]);
+        });
+
+        it('keeps children mounted when the server starts processing mid-session', async () => {
+            // Given an expense report with no processing indicator yet
+            await seedServerDrivenReport({type: CONST.REPORT.TYPE.EXPENSE});
+            childMountCount = 0;
+            render(React.createElement(AgentZeroStatusProvider, {reportID}, React.createElement(MountCounter)));
+            await waitForBatchedUpdates();
+            expect(childMountCount).toBe(1);
+
+            // When the server starts processing for Concierge on this report
+            await setProcessingIndicator({[CONST.ACCOUNT_ID.CONCIERGE]: 'Concierge is thinking...'});
+
+            // Then the subtree is not remounted — the report feed keeps its scroll position and list state
+            expect(childMountCount).toBe(1);
+        });
+
         it('never includes the current user, even when the server names their accountID', async () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: CUSTOM_AGENT});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
@@ -176,6 +328,117 @@ describe('AgentZeroStatusContext', () => {
     });
 
     describe('kickoffWaitingIndicator', () => {
+        it('should trigger optimistic waiting state for a custom-agent DM', async () => {
+            await seedCustomAgentReport({isDM: true});
+
+            const {result} = renderHook(
+                () => ({
+                    state: useAgentZeroStatus(),
+                    status: useAgentZeroStatusIndicator(reportID, customAgentAccountID),
+                    actions: useAgentZeroStatusActions(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            expect(result.current.state.candidateAgentIDs).toContain(customAgentAccountID);
+            expect(result.current.state.candidateAgentIDs).not.toContain(CONST.ACCOUNT_ID.CONCIERGE);
+
+            act(() => {
+                result.current.actions.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+
+            expect(result.current.status.isProcessing).toBe(true);
+            expect(result.current.status.statusLabel).toBe('Thinking...');
+        });
+
+        it('should classify custom-agent DMs when session hydrates after the report', async () => {
+            await seedCustomAgentReport({isDM: true, includeSession: false});
+
+            const {result} = renderHook(
+                () => ({
+                    state: useAgentZeroStatus(),
+                    status: useAgentZeroStatusIndicator(reportID, customAgentAccountID),
+                    actions: useAgentZeroStatusActions(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            expect(result.current.state.candidateAgentIDs).not.toContain(customAgentAccountID);
+
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+
+            expect(result.current.state.candidateAgentIDs).toContain(customAgentAccountID);
+
+            act(() => {
+                result.current.actions.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+
+            expect(result.current.status.isProcessing).toBe(true);
+            expect(result.current.status.statusLabel).toBe('Thinking...');
+        });
+
+        it('should not trigger optimistic waiting state for a custom-agent non-DM report', async () => {
+            await seedCustomAgentReport({isDM: false});
+
+            const {result} = renderHook(
+                () => ({
+                    state: useAgentZeroStatus(),
+                    status: useAgentZeroStatusIndicator(reportID, customAgentAccountID),
+                    actions: useAgentZeroStatusActions(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.actions.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+
+            expect(result.current.state.candidateAgentIDs).not.toContain(customAgentAccountID);
+            expect(result.current.status.isProcessing).toBe(false);
+            expect(result.current.status.statusLabel).toBe('');
+        });
+
+        it('should clear optimistic waiting state when a custom-agent DM reply arrives', async () => {
+            await seedCustomAgentReport({isDM: true});
+
+            const {result} = renderHook(
+                () => ({
+                    status: useAgentZeroStatusIndicator(reportID, customAgentAccountID),
+                    actions: useAgentZeroStatusActions(),
+                }),
+                {wrapper},
+            );
+            await waitForBatchedUpdates();
+
+            act(() => {
+                result.current.actions.kickoffWaitingIndicator();
+            });
+            await waitForBatchedUpdates();
+            expect(result.current.status.isProcessing).toBe(true);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+                customAgentReply: {
+                    reportActionID: 'customAgentReply',
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    actorAccountID: customAgentAccountID,
+                    created: '2024-01-01 00:00:00.000',
+                    message: [{type: 'TEXT', text: 'Agent reply'}],
+                },
+            });
+            await waitForBatchedUpdates();
+
+            await waitFor(() => {
+                expect(mockClearAgentZeroProcessingIndicator).toHaveBeenCalledWith(reportID, customAgentAccountID);
+            });
+        });
+
         it('should trigger optimistic waiting state when called in Concierge chat without server label', async () => {
             // Given a Concierge chat with no server label (user about to send a message)
             const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
@@ -189,7 +452,7 @@ describe('AgentZeroStatusContext', () => {
             // Then it should show optimistic processing state with waiting label
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
         });
 
         it('should not trigger waiting state if server label already exists', async () => {
@@ -245,7 +508,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
 
             act(() => {
                 jest.advanceTimersByTime(120000);
@@ -272,7 +535,7 @@ describe('AgentZeroStatusContext', () => {
             });
 
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
         });
 
         it('should keep indicator visible while server label is active within the safety window', async () => {
@@ -320,7 +583,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
 
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
 
             // When a server label arrives
             const serverLabel = 'Concierge is looking up categories...';
@@ -451,14 +714,14 @@ describe('AgentZeroStatusContext', () => {
             originalSetTimeout = global.setTimeout;
             originalClearTimeout = global.clearTimeout;
 
-            jest.spyOn(global, 'setTimeout').mockImplementation(((callback: () => void, ms?: number) => {
+            jest.spyOn(global, 'setTimeout').mockImplementation((callback, ms) => {
                 if (ms === MAX_INDICATOR_DURATION_MS) {
                     const id = originalSetTimeout(() => {}, 0);
                     safetyTimerId = id;
                     return id;
                 }
                 return originalSetTimeout(callback, ms);
-            }) as typeof setTimeout);
+            });
 
             jest.spyOn(global, 'clearTimeout').mockImplementation((id) => {
                 if (id !== undefined && id !== null && id === safetyTimerId) {
@@ -491,7 +754,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
 
             // Server SET arrives — display switches to server label, but optimistic floor
             // stays alive so we survive a subsequent flicker.
@@ -510,7 +773,7 @@ describe('AgentZeroStatusContext', () => {
             // flicker. Authoritative clears (reply detection / safety timeout / reconnect)
             // are the only paths that drop it.
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
             expect(safetyTimerId).not.toBeNull();
         });
     });
@@ -520,7 +783,7 @@ describe('AgentZeroStatusContext', () => {
             // After kickoff, the display prefers the server label once it arrives, but the
             // optimistic counter stays alive as a floor. If the server CLEAR happens without
             // a corresponding Concierge reply (flicker between processing phases), display
-            // falls back to the optimistic "Thinking..." label rather than blanking out.
+            // falls back to the optimistic "Concierge is thinking..." label rather than blanking out.
 
             const {result} = renderHook(() => ({...useAgentZeroStatusIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE), ...useAgentZeroStatusActions()}), {wrapper});
             await waitForBatchedUpdates();
@@ -531,7 +794,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
 
             // When the server sets a label (processing started)
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
@@ -607,7 +870,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
 
             // Backend starts processing → server label arrives
             const serverLabel = 'Processing your request...';
@@ -658,7 +921,7 @@ describe('AgentZeroStatusContext', () => {
             originalClearTimeout = global.clearTimeout;
 
             // Intercept setTimeout to capture the 120s safety callback
-            jest.spyOn(global, 'setTimeout').mockImplementation(((callback: () => void, ms?: number) => {
+            jest.spyOn(global, 'setTimeout').mockImplementation((callback, ms) => {
                 if (ms === MAX_INDICATOR_DURATION_MS) {
                     const id = originalSetTimeout(() => {}, 0);
                     safetyCallback = callback;
@@ -666,7 +929,7 @@ describe('AgentZeroStatusContext', () => {
                     return id;
                 }
                 return originalSetTimeout(callback, ms);
-            }) as typeof setTimeout);
+            });
 
             jest.spyOn(global, 'clearTimeout').mockImplementation((id) => {
                 if (id !== undefined && id !== null && id === safetyTimerId) {
@@ -723,7 +986,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
             expect(safetyCallback).not.toBeNull();
 
             // When the safety timeout fires at 120s — should hard-clear
@@ -854,7 +1117,7 @@ describe('AgentZeroStatusContext', () => {
 
             // Indicator stays visible so the safety timer keeps running until reply or timeout
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
         });
 
         it('should clear indicator after reconnect when a Concierge reply finally arrives', async () => {
@@ -929,7 +1192,7 @@ describe('AgentZeroStatusContext', () => {
 
             // Then the indicator should appear and NOT be cleared by the pre-existing Concierge action
             expect(result.current.isProcessing).toBe(true);
-            expect(result.current.statusLabel).toBe('Thinking...');
+            expect(result.current.statusLabel).toBe('Concierge is thinking...');
             expect(mockClearAgentZeroProcessingIndicator).not.toHaveBeenCalled();
         });
 
@@ -1018,7 +1281,7 @@ describe('AgentZeroStatusContext', () => {
             });
             await waitForBatchedUpdates();
             expect(firstResult.current.isProcessing).toBe(true);
-            expect(firstResult.current.statusLabel).toBe('Thinking...');
+            expect(firstResult.current.statusLabel).toBe('Concierge is thinking...');
 
             // User navigates to another chat — ReportScreen unmounts
             unmount();
@@ -1030,7 +1293,7 @@ describe('AgentZeroStatusContext', () => {
 
             // The indicator should still be showing on remount
             expect(secondResult.current.isProcessing).toBe(true);
-            expect(secondResult.current.statusLabel).toBe('Thinking...');
+            expect(secondResult.current.statusLabel).toBe('Concierge is thinking...');
         });
 
         it('should bump startedAt on each kickoff so the safety window measures from the most recent', () => {

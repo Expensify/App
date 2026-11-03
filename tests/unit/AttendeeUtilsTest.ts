@@ -1,5 +1,7 @@
-import {convertAttendeesToArray, enrichAndSortAttendees, normalizeAttendee, normalizeAttendees} from '@libs/AttendeeUtils';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import {convertAttendeesToArray, enrichAndSortAttendees, getIsMissingAttendeesViolation, normalizeAttendee, normalizeAttendees, syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
+
+import CONST from '@src/CONST';
+import type {PersonalDetailsList, PolicyCategories, TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 
 const makeAttendee = (overrides: Partial<Attendee> = {}): Attendee => ({
@@ -61,9 +63,9 @@ describe('AttendeeUtils', () => {
             });
 
             it('preserves all attendee fields when converting from an object', () => {
-                const attendee = makeAttendee({email: 'user@test.com', displayName: 'Alice', login: 'alice', accountID: 42, selected: true});
+                const attendee = makeAttendee({email: 'user@test.com', displayName: 'Alice'});
                 const result = convertAttendeesToArray({first: attendee});
-                expect(result.at(0)).toMatchObject({email: 'user@test.com', displayName: 'Alice', login: 'alice', accountID: 42, selected: true});
+                expect(result.at(0)).toMatchObject({email: 'user@test.com', displayName: 'Alice'});
             });
         });
 
@@ -88,7 +90,6 @@ describe('AttendeeUtils', () => {
                 email: '   ',
                 displayName: '  John Smith  ',
                 avatarUrl: '',
-                login: '  john@example.com  ',
             };
 
             const result = normalizeAttendee(attendee);
@@ -96,23 +97,20 @@ describe('AttendeeUtils', () => {
             expect(result).toEqual({
                 displayName: 'John Smith',
                 avatarUrl: '',
-                login: 'john@example.com',
             });
         });
 
-        it('should fall back to login when displayName and email are missing', () => {
+        it('should fall back to an empty display name when displayName and email are missing', () => {
             const attendee: Attendee = {
                 displayName: '   ',
                 avatarUrl: '',
-                login: '  login-only@example.com  ',
             };
 
             const result = normalizeAttendee(attendee);
 
             expect(result).toEqual({
-                displayName: 'login-only@example.com',
+                displayName: '',
                 avatarUrl: '',
-                login: 'login-only@example.com',
             });
         });
 
@@ -129,7 +127,6 @@ describe('AttendeeUtils', () => {
                 email: 'attendee@example.com',
                 displayName: 'attendee@example.com',
                 avatarUrl: '',
-                login: undefined,
             });
         });
     });
@@ -141,13 +138,13 @@ describe('AttendeeUtils', () => {
 
         it('should normalize each attendee in the list', () => {
             const attendees: Attendee[] = [
-                {email: '  one@example.com  ', displayName: ' One ', avatarUrl: '', login: ' one@example.com '},
-                {displayName: '   ', avatarUrl: '', login: ' two@example.com '},
+                {email: '  one@example.com  ', displayName: ' One ', avatarUrl: ''},
+                {displayName: '   ', avatarUrl: ''},
             ];
 
             expect(normalizeAttendees(attendees)).toEqual([
-                {email: 'one@example.com', displayName: 'One', avatarUrl: '', login: 'one@example.com'},
-                {displayName: 'two@example.com', avatarUrl: '', login: 'two@example.com'},
+                {email: 'one@example.com', displayName: 'One', avatarUrl: ''},
+                {displayName: '', avatarUrl: ''},
             ]);
         });
     });
@@ -156,49 +153,56 @@ describe('AttendeeUtils', () => {
         const localeCompare = (a: string, b: string) => a.localeCompare(b);
 
         it('returns input as-is when it is not an array', () => {
-            expect(enrichAndSortAttendees(undefined, undefined, localeCompare)).toBeUndefined();
+            expect(enrichAndSortAttendees(undefined, undefined, undefined, localeCompare)).toBeUndefined();
         });
 
         it('sorts alphabetically by stored displayName when no personalDetails are available', () => {
             const attendees: Attendee[] = [
-                {email: 'b@x.com', displayName: 'banana', avatarUrl: '', login: 'b@x.com'},
-                {email: 'a@x.com', displayName: 'apple', avatarUrl: '', login: 'a@x.com'},
+                {email: 'b@x.com', displayName: 'banana', avatarUrl: ''},
+                {email: 'a@x.com', displayName: 'apple', avatarUrl: ''},
             ];
 
-            expect(enrichAndSortAttendees(attendees, undefined, localeCompare).map((a) => a.displayName)).toEqual(['apple', 'banana']);
+            expect((enrichAndSortAttendees(attendees, undefined, undefined, localeCompare) ?? []).map((a) => a.displayName)).toEqual(['apple', 'banana']);
         });
 
-        it('enriches displayName and avatar from personalDetails when accountID matches', () => {
+        it('enriches displayName and avatar from personalDetails when the login maps to an accountID', () => {
             const accountID = 1;
-            const attendees: Attendee[] = [{accountID, displayName: 'Old', avatarUrl: 'old.png'}];
+            const email = 'user@x.com';
+            const attendees: Attendee[] = [{email, displayName: 'Old', avatarUrl: 'old.png'}];
+            const loginToAccountIDMap = {[email]: accountID};
             const personalDetailsList: PersonalDetailsList = {[accountID]: {accountID, displayName: 'New', avatar: 'new.png'}};
 
-            const result = enrichAndSortAttendees(attendees, personalDetailsList, localeCompare);
+            const result = enrichAndSortAttendees(attendees, loginToAccountIDMap, personalDetailsList, localeCompare);
 
-            expect(result.at(0)?.displayName).toBe('New');
-            expect(result.at(0)?.avatarUrl).toBe('new.png');
+            expect(result?.at(0)?.displayName).toBe('New');
+            expect(result?.at(0)?.avatarUrl).toBe('new.png');
         });
 
         it('falls back to stored value when personalDetails has empty strings', () => {
             const accountID = 1;
-            const attendees: Attendee[] = [{accountID, displayName: 'Stored', avatarUrl: 'stored.png'}];
+            const email = 'user@x.com';
+            const attendees: Attendee[] = [{email, displayName: 'Stored', avatarUrl: 'stored.png'}];
+            const loginToAccountIDMap = {[email]: accountID};
             const personalDetailsList: PersonalDetailsList = {[accountID]: {accountID, displayName: '', avatar: ''}};
 
-            const result = enrichAndSortAttendees(attendees, personalDetailsList, localeCompare);
+            const result = enrichAndSortAttendees(attendees, loginToAccountIDMap, personalDetailsList, localeCompare);
 
-            expect(result.at(0)?.displayName).toBe('Stored');
-            expect(result.at(0)?.avatarUrl).toBe('stored.png');
+            expect(result?.at(0)?.displayName).toBe('Stored');
+            expect(result?.at(0)?.avatarUrl).toBe('stored.png');
         });
 
         it('sorts using enriched displayName so a profile rename moves the pill', () => {
             const renamedAccountID = 1;
+            const aliceEmail = 'alice@x.com';
+            const bobEmail = 'bob@x.com';
             const attendees: Attendee[] = [
-                {accountID: renamedAccountID, displayName: 'alice', avatarUrl: ''},
-                {accountID: 2, displayName: 'bob', avatarUrl: ''},
+                {email: aliceEmail, displayName: 'alice', avatarUrl: ''},
+                {email: bobEmail, displayName: 'bob', avatarUrl: ''},
             ];
+            const loginToAccountIDMap = {[aliceEmail]: renamedAccountID, [bobEmail]: 2};
             const personalDetailsList: PersonalDetailsList = {[renamedAccountID]: {accountID: renamedAccountID, displayName: 'zoe'}};
 
-            expect(enrichAndSortAttendees(attendees, personalDetailsList, localeCompare).map((a) => a.displayName)).toEqual(['bob', 'zoe']);
+            expect((enrichAndSortAttendees(attendees, loginToAccountIDMap, personalDetailsList, localeCompare) ?? []).map((a) => a.displayName)).toEqual(['bob', 'zoe']);
         });
 
         it('does not mutate the input array', () => {
@@ -208,9 +212,75 @@ describe('AttendeeUtils', () => {
             ];
             const snapshot = [...attendees];
 
-            enrichAndSortAttendees(attendees, undefined, localeCompare);
+            enrichAndSortAttendees(attendees, undefined, undefined, localeCompare);
 
             expect(attendees).toEqual(snapshot);
+        });
+    });
+
+    describe('missing attendees violation', () => {
+        const ownerLogin = 'member@test.com';
+        const approverLogin = 'approver@test.com';
+        const category = 'Meals';
+        const policyCategories: PolicyCategories = {[category]: {name: category, enabled: true, areAttendeesRequired: true}};
+        const missingAttendeesViolation: TransactionViolation = {name: CONST.VIOLATIONS.MISSING_ATTENDEES, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
+
+        describe('getIsMissingAttendeesViolation', () => {
+            it('returns true when the owner is the only attendee, even if someone else is viewing', () => {
+                // Given an expense where the member (owner) is the only attendee.
+                // The approver viewing it isn't passed in, because the check must not depend on the viewer
+                const attendees = [makeAttendee({email: ownerLogin})];
+
+                // When checking the violation with the owner's login
+                const isMissing = getIsMissingAttendeesViolation(policyCategories, category, attendees, ownerLogin, true, true);
+
+                // Then the violation is reported, matching what the backend sends
+                expect(isMissing).toBe(true);
+            });
+
+            it('returns false when there is an attendee other than the owner', () => {
+                // Given the owner and the approver as attendees
+                const attendees = [makeAttendee({email: ownerLogin}), makeAttendee({email: approverLogin})];
+
+                // When checking the violation with the owner's login
+                const isMissing = getIsMissingAttendeesViolation(policyCategories, category, attendees, ownerLogin, true, true);
+
+                // Then there is no violation, because the approver counts as a real attendee
+                expect(isMissing).toBe(false);
+            });
+
+            it('returns true when there are no attendees', () => {
+                // Given an expense with no attendees saved
+                // When checking the violation
+                const isMissing = getIsMissingAttendeesViolation(policyCategories, category, [], ownerLogin, true, true);
+
+                // Then the violation is reported
+                expect(isMissing).toBe(true);
+            });
+        });
+
+        describe('syncMissingAttendeesViolation', () => {
+            it('keeps the backend violation when the owner is the only attendee', () => {
+                // Given the backend sent a missingAttendees violation for an expense where the owner is the only attendee
+                const attendees = [makeAttendee({email: ownerLogin})];
+
+                // When an approver's row syncs the violation, passing the report owner's login
+                const violations = syncMissingAttendeesViolation([missingAttendeesViolation], policyCategories, category, attendees, ownerLogin, true, true);
+
+                // Then the backend violation is kept instead of being removed
+                expect(violations).toEqual([missingAttendeesViolation]);
+            });
+
+            it('removes the backend violation when there is an attendee other than the owner', () => {
+                // Given a stale missingAttendees violation, and the expense now has a non-owner attendee
+                const attendees = [makeAttendee({email: ownerLogin}), makeAttendee({email: approverLogin})];
+
+                // When syncing the violation
+                const violations = syncMissingAttendeesViolation([missingAttendeesViolation], policyCategories, category, attendees, ownerLogin, true, true);
+
+                // Then the stale violation is removed
+                expect(violations).toEqual([]);
+            });
         });
     });
 });

@@ -1,27 +1,31 @@
-import {useRoute} from '@react-navigation/native';
-import React from 'react';
-import Accordion from '@components/Accordion';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import FormHelpMessage from '@components/FormHelpMessage';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import useAccordionAnimation from '@hooks/useAccordionAnimation';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {areSettingsInErrorFields, getSageIntacctNonReimbursableActiveDefaultVendor, settingsPendingAction} from '@libs/PolicyUtils';
-import type {ExtendedMenuItemWithSubscribedSettings, MenuItemToRender} from '@pages/workspace/accounting/intacct/types';
+
+import type {MenuItemToRender} from '@pages/workspace/accounting/intacct/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
-import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+
 import {getDefaultVendorName} from './utils';
 
 function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsProps) {
@@ -32,34 +36,43 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
 
     const activeDefaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor(policy);
     const defaultVendorName = getDefaultVendorName(activeDefaultVendor, intacctData?.vendors);
-    const expandedCondition = !(
-        !config?.export.nonReimbursable ||
-        (config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE && !config?.export.nonReimbursableCreditCardChargeDefaultVendor)
-    );
+    const defaultVendorSettingName =
+        config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
+            ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
+            : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES>>();
     const backTo = route.params?.backTo;
 
-    const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(expandedCondition);
+    const isDefaultVendorSet = !!(defaultVendorName && defaultVendorName !== '');
 
     const renderDefault = (item: MenuItemToRender) => {
         return (
             <OfflineWithFeedback
                 key={item.description}
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
+                errors={item.errors}
+                onClose={item.onCloseError}
             >
-                <MenuItemWithTopDescription
-                    key={item.title}
-                    title={item.title}
-                    description={item.description}
-                    shouldShowRightIcon
-                    onPress={item?.onPress}
-                    brickRoadIndicator={areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                />
+                <MenuItemField
+                    name={item.description ?? ''}
+                    onPress={item.onPress}
+                    value={item.title}
+                >
+                    {areSettingsInErrorFields(item.subscribedSettings, config?.errorFields) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                </MenuItemField>
+                {!!item.helperText && (
+                    <FormHelpMessage
+                        isError={false}
+                        shouldShowRedDotIndicator={false}
+                        message={item.helperText}
+                        style={[styles.mt0, styles.mb0, styles.ph5, styles.pb5]}
+                    />
+                )}
             </OfflineWithFeedback>
         );
     };
 
-    const menuItems: ExtendedMenuItemWithSubscribedSettings[] = [
+    const menuItems: MenuItemToRender[] = [
         {
             type: 'menuitem',
             title: config?.export.nonReimbursable ? translate(`workspace.sageIntacct.nonReimbursableExpenses.values.${config?.export.nonReimbursable}`) : undefined,
@@ -87,61 +100,28 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             shouldHide: config?.export.nonReimbursable !== CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE,
         },
         {
-            type: 'toggle',
-            title: translate('workspace.sageIntacct.defaultVendor'),
-            key: 'Default vendor toggle',
-            subtitle: translate('workspace.sageIntacct.defaultVendorDescription', false),
-            shouldPlaceSubtitleBelowSwitch: true,
-            isActive: !!config?.export.nonReimbursableCreditCardChargeDefaultVendor,
-            switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
-            onToggle: (enabled) => {
+            type: 'menuitem',
+            title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : undefined,
+            description: translate('workspace.sageIntacct.defaultVendor'),
+            helperText:
+                config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE
+                    ? translate('workspace.accounting.defaultVendorHelperText', isDefaultVendorSet, CONST.NON_REIMBURSABLE_FALLBACK_VENDOR_NAME.CREDIT_CARD)
+                    : undefined,
+            onPress: () => {
                 if (!policyID) {
                     return;
                 }
-                const vendor = enabled ? policy?.connections?.intacct?.data?.vendors?.[0].id : '';
-                updateSageIntacctDefaultVendor(
-                    policyID,
-                    CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
-                    vendor ?? '',
-                    config?.export.nonReimbursableCreditCardChargeDefaultVendor,
-                );
-                isAccordionExpanded.set(enabled);
-                shouldAnimateAccordionSection.set(true);
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase())));
             },
-            onCloseError: () => clearSageIntacctErrorField(policyID, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR),
-            pendingAction: settingsPendingAction([CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR], config?.pendingFields),
-            errors: getLatestErrorField(config, CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR),
-            shouldHide: config?.export.nonReimbursable !== CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE,
-        },
-        {
-            type: 'accordion',
-            children: [
-                {
-                    type: 'menuitem',
-                    title: defaultVendorName && defaultVendorName !== '' ? defaultVendorName : undefined,
-                    description: translate('workspace.sageIntacct.defaultVendor'),
-                    onPress: () => {
-                        if (!policyID) {
-                            return;
-                        }
-                        Navigation.navigate(
-                            createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_DEFAULT_VENDOR.getRoute(CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase())),
-                        );
-                    },
-                    subscribedSettings: [
-                        config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.VENDOR_BILL
-                            ? CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_VENDOR
-                            : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR,
-                    ],
-                    shouldHide:
-                        !config?.export.nonReimbursable ||
-                        (config?.export.nonReimbursable === CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE &&
-                            !config?.export.nonReimbursableCreditCardChargeDefaultVendor),
-                },
-            ],
-            shouldHide: false,
-            shouldExpand: isAccordionExpanded,
-            shouldAnimateSection: shouldAnimateAccordionSection,
+            subscribedSettings: [defaultVendorSettingName],
+            errors: getLatestErrorField(config, defaultVendorSettingName),
+            onCloseError: () => {
+                if (!policyID) {
+                    return;
+                }
+                clearSageIntacctErrorField(policyID, defaultVendorSettingName);
+            },
+            shouldHide: !config?.export.nonReimbursable,
         },
     ];
 
@@ -151,7 +131,9 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.sageIntacct.nonReimbursableExpenses.description"
             onBackButtonPress={() =>
-                Navigation.goBack(backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID))))
+                Navigation.goBack(
+                    backTo ?? (policyID && createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXPORT.path, ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))),
+                )
             }
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -160,33 +142,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
         >
-            {menuItems
-                .filter((item) => !item.shouldHide)
-                .map((item) => {
-                    switch (item.type) {
-                        case 'toggle':
-                            // eslint-disable-next-line no-case-declarations
-                            const {type, shouldHide, key, ...rest} = item;
-                            return (
-                                <ToggleSettingOptionRow
-                                    key={key}
-                                    {...rest}
-                                    wrapperStyle={[styles.mv3, styles.ph5]}
-                                />
-                            );
-                        case 'accordion':
-                            return (
-                                <Accordion
-                                    isExpanded={item.shouldExpand}
-                                    isToggleTriggered={item.shouldAnimateSection}
-                                >
-                                    {item.children.map((child) => renderDefault(child))}
-                                </Accordion>
-                            );
-                        default:
-                            return renderDefault(item);
-                    }
-                })}
+            {menuItems.filter((item) => !item.shouldHide).map((item) => renderDefault(item))}
         </ConnectionLayout>
     );
 }

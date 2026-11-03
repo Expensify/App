@@ -1,14 +1,18 @@
-import React from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import {getFieldRequiredErrors, isValidSSNLastFour} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+
+import {SafeString} from 'expensify-common';
+import React from 'react';
 
 const SSN_LAST_4 = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.SSN_LAST_4;
 const BENEFICIAL_OWNER_PREFIX = CONST.BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA.PREFIX;
@@ -44,16 +48,17 @@ function SocialSecurityNumberUBO({onNext, onMove, isEditing, beneficialOwnerBein
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={translate('beneficialOwnerInfoStep.enterTheLast4')}
+            formTitle={translate('beneficialOwnerInfoStep.enterTheSSN')}
             formDisclaimer={translate('beneficialOwnerInfoStep.dontWorry')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={ssnLast4InputID}
-            inputLabel={translate('beneficialOwnerInfoStep.last4SSN')}
+            inputLabel={translate('personalInfoStep.last4SSN')}
             inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultSsnLast4}
             shouldShowHelpLinks={false}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+            forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}
             shouldDelayAutoFocus
         />
     );

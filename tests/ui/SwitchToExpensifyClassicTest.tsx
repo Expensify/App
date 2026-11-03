@@ -1,9 +1,12 @@
-import * as NativeNavigation from '@react-navigation/native';
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import App from '@src/App';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import type {NativeNavigationMock} from '../../__mocks__/@react-navigation/native';
+
 import PusherHelper from '../utils/PusherHelper';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -15,6 +18,8 @@ const USER_A_EMAIL = 'user_a@test.com';
 jest.setTimeout(120000);
 
 jest.mock('@react-navigation/native');
+
+const {triggerTransitionEnd} = jest.requireMock<NativeNavigationMock>('@react-navigation/native');
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();
@@ -58,7 +63,7 @@ function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
             return navigateToSetting();
         })
         .then(() => {
-            act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
+            act(() => triggerTransitionEnd());
             return navigateToExpensifyClassicFlow();
         });
 }

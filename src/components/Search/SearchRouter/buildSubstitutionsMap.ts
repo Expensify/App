@@ -1,11 +1,16 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SearchAutocompleteQueryRange} from '@components/Search/types';
+
 import {parse} from '@libs/SearchParser/autocompleteParser';
 import {getFilterDisplayValue} from '@libs/SearchQueryUtils';
+
 import CONST from '@src/CONST';
-import type {CardFeeds, CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {BankAccountList, CardFeeds, CardList, PersonalDetailsList, Policy, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import type {SubstitutionMap} from './getQueryWithSubstitutions';
+
 import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from './getQueryWithSubstitutions';
 
 /**
@@ -24,6 +29,8 @@ import {getSubstitutionMapKey, getSubstitutionMapKeyWithIndex} from './getQueryW
  *     to:SomeoneElse: 98765,
  * }
  */
+// Adds bankAccountList for the new bank account filter. Refactoring this to a params object would touch every call site and is out of scope here.
+// eslint-disable-next-line @typescript-eslint/max-params
 function buildSubstitutionsMap(
     query: string,
     personalDetails: PersonalDetailsList | undefined,
@@ -34,7 +41,9 @@ function buildSubstitutionsMap(
     policies: OnyxCollection<Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
+    bankAccountList?: BankAccountList,
 ): SubstitutionMap {
     const parsedQuery = parse(query) as {ranges: SearchAutocompleteQueryRange[]};
 
@@ -45,7 +54,7 @@ function buildSubstitutionsMap(
 
     const substitutionKeyOccurrences = new Map<string, number>();
 
-    const substitutionsMap = searchAutocompleteQueryRanges.reduce((map, range) => {
+    const substitutionsMap = searchAutocompleteQueryRanges.reduce<SubstitutionMap>((map, range) => {
         const {key: filterKey, value: filterValue} = range;
 
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
@@ -67,15 +76,18 @@ function buildSubstitutionsMap(
             }
         } else if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE
         ) {
             const displayValue = getFilterDisplayValue({
@@ -88,7 +100,9 @@ function buildSubstitutionsMap(
                 policies,
                 currentUserAccountID,
                 translate,
+                formatPhoneNumber,
                 reportAttributes,
+                bankAccountList,
             });
 
             // If displayValue === filterValue, then it means there is nothing to substitute, so we don't add any key to map
@@ -103,7 +117,7 @@ function buildSubstitutionsMap(
         }
 
         return map;
-    }, {} as SubstitutionMap);
+    }, {});
     return substitutionsMap;
 }
 

@@ -1,8 +1,10 @@
-import {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 /**
@@ -12,12 +14,11 @@ function useAllTransactions() {
     const {currentSearchResults} = useSearchResultsContext();
     const [allTransactionsCollection] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
 
-    const allTransactions = useMemo(() => {
-        const data = currentSearchResults?.data;
-        if (!data) {
-            return allTransactionsCollection;
-        }
-
+    let allTransactions;
+    const data = currentSearchResults?.data;
+    if (!data) {
+        allTransactions = allTransactionsCollection;
+    } else {
         const filteredSearchTransactions = Object.keys(data)
             .filter((key): key is `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}` => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION))
             .reduce(
@@ -30,12 +31,11 @@ function useAllTransactions() {
                 },
                 {} as Record<string, OnyxEntry<Transaction>>,
             );
-
-        return {
+        allTransactions = {
             ...filteredSearchTransactions,
             ...allTransactionsCollection,
         };
-    }, [currentSearchResults?.data, allTransactionsCollection]);
+    }
 
     return allTransactions;
 }

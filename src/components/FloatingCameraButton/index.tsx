@@ -1,7 +1,11 @@
-import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import BaseFloatingCameraButton from './BaseFloatingCameraButton';
 
 function FloatingCameraButton() {

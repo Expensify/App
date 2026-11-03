@@ -1,34 +1,45 @@
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import type {MapState} from '@rnmapbox/maps';
-import Mapbox, {MarkerView} from '@rnmapbox/maps';
-import {memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import type {GeolocationErrorCallback} from '@libs/getCurrentPosition/getCurrentPosition.types';
 import {GeolocationErrorCode} from '@libs/getCurrentPosition/getCurrentPosition.types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
+
 import CONST from '@src/CONST';
 import useLocalize from '@src/hooks/useLocalize';
 import useNetwork from '@src/hooks/useNetwork';
 import ONYXKEYS from '@src/ONYXKEYS';
-import Direction from './Direction';
+
+import type {MapState} from '@rnmapbox/maps';
+
+import {useFocusEffect} from '@react-navigation/native';
+import Mapbox, {MarkerView} from '@rnmapbox/maps';
+import {getForegroundPermissionsAsync} from 'expo-location';
+import {useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import {useSharedValue} from 'react-native-reanimated';
+
 import type {MapViewProps} from './MapViewTypes';
+
+import Compass from './Compass';
+import Directions from './Directions';
+import MapMarkerIcon from './MapMarkerIcon';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
-import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
 import useAccessToken from './useAccessToken';
-import useDistanceUnit from './useDistanceUnit';
 import utils from './utils';
+
+// Default is 1000ms which feels a bit too long for the animations when coming back from waypoints
+// selection screen. 300ms is much lower and animations still trigger correctly
+const MAX_WAIT_FOR_TRANSITION_TIME_FOR_CAMERA_MOVEMENTS_MS = 300;
 
 function MapView({
     accessToken,
@@ -38,57 +49,46 @@ function MapView({
     pitchEnabled,
     initialState,
     waypoints,
-    directionCoordinates: directionCoordinatesProp,
+    directionCoordinates,
+    alternateDirection,
+    setIsAlternateDirectionSelected,
     onMapReady,
     interactive = true,
     distanceInMeters,
     unit,
-    ref,
     shouldDisplayCurrentLocation = true,
     shouldDisplayCompass = true,
 }: MapViewProps) {
-    const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
-
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
-    const navigation = useNavigation();
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'MapCurrentLocation', 'Compass']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Crosshair', 'Expand', 'MapCurrentLocation']);
     const cameraRef = useRef<Mapbox.Camera>(null);
+    const pendingFramingRef = useRef<CancelHandle | null>(null);
     const [isIdle, setIsIdle] = useState(false);
-    const initialLocation = useMemo(() => initialState && {longitude: initialState.location[0], latitude: initialState.location[1]}, [initialState]);
+    const initialLocation = initialState && {longitude: initialState.location[0], latitude: initialState.location[1]};
     const currentPosition = userLocation ?? initialLocation;
+    const currentPositionLongitude = currentPosition?.longitude;
+    const currentPositionLatitude = currentPosition?.latitude;
     const [userInteractedWithMap, setUserInteractedWithMap] = useState(false);
+    const [isWaypointsNextCenterTarget, setIsWaypointsNextCenterTarget] = useState(false);
     const shouldInitializeCurrentPosition = useRef(true);
-    const isAccessTokenSet = useAccessToken({accessToken});
-
-    const {distanceUnit, toggleDistanceUnit} = useDistanceUnit(unit);
-
-    const distanceLabelText = useMemo(
-        () => DistanceRequestUtils.getDistanceForDisplayLabel(distanceInMeters ?? 0, distanceUnit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS),
-        [distanceInMeters, distanceUnit],
-    );
+    const isAccessTokenReady = useAccessToken({accessToken});
 
     // Determines if map can be panned to user's detected
     // location without bothering the user. It will return
     // false if user has already started dragging the map or
     // if there are one or more waypoints present.
-    const shouldPanMapToCurrentPosition = useCallback(
-        () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0),
-        [userInteractedWithMap, waypoints, shouldDisplayCurrentLocation],
-    );
+    const shouldPanMapToCurrentPosition = () => !userInteractedWithMap && shouldDisplayCurrentLocation && (!waypoints || waypoints.length === 0);
 
-    const setCurrentPositionToInitialState: GeolocationErrorCallback = useCallback(
-        (error) => {
-            if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
-                return;
-            }
-            clearUserLocation();
-        },
-        [initialLocation],
-    );
+    const setCurrentPositionToInitialState: GeolocationErrorCallback = (error) => {
+        if (error?.code !== GeolocationErrorCode.PERMISSION_DENIED || !initialLocation) {
+            return;
+        }
+        clearUserLocation();
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -107,10 +107,26 @@ function MapView({
                 return;
             }
 
-            getCurrentPosition((params) => {
-                const currentCoords = {longitude: params.coords.longitude, latitude: params.coords.latitude};
-                setUserLocation(currentCoords);
-            }, setCurrentPositionToInitialState);
+            // Only read the device location when permission is ALREADY granted. We never request it here,
+            // so opening the map cannot trigger an OS permission prompt without a prior explicit user action.
+            getForegroundPermissionsAsync().then(({granted}) => {
+                if (!granted) {
+                    // Pass the permission-denied error so any stale cached location is cleared and the map falls back to initialState.
+                    setCurrentPositionToInitialState({
+                        code: GeolocationErrorCode.PERMISSION_DENIED,
+                        message: 'User denied access to location.',
+                    });
+                    return;
+                }
+
+                getCurrentPosition((params) => {
+                    const currentCoords = {
+                        longitude: params.coords.longitude,
+                        latitude: params.coords.latitude,
+                    };
+                    setUserLocation(currentCoords);
+                }, setCurrentPositionToInitialState);
+            });
         }, [isOffline, shouldPanMapToCurrentPosition, setCurrentPositionToInitialState]),
     );
 
@@ -125,53 +141,77 @@ function MapView({
 
         cameraRef.current.setCamera({
             zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
-            animationDuration: 1500,
+            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_LONG,
+            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
             centerCoordinate: [currentPosition.longitude, currentPosition.latitude],
         });
     }, [currentPosition, shouldPanMapToCurrentPosition]);
 
-    useImperativeHandle(
-        ref,
-        () => ({
-            flyTo: (location: [number, number], zoomLevel: number = CONST.MAPBOX.DEFAULT_ZOOM, animationDuration?: number) =>
-                cameraRef.current?.setCamera({zoomLevel, centerCoordinate: location, animationDuration}),
-            fitBounds: (northEast: [number, number], southWest: [number, number], paddingConfig?: number | number[] | undefined, animationDuration?: number | undefined) =>
-                cameraRef.current?.fitBounds(northEast, southWest, paddingConfig, animationDuration),
-        }),
-        [],
-    );
+    const allDirectionCoordinates = utils.getCoordinatesFromAllDirections(directionCoordinates, alternateDirection);
 
-    // When the page loses focus, we temporarily set the "idled" state to false.
-    // When the page regains focus, the onIdled method of the map will set the actual "idled" state,
-    // which in turn triggers the callback.
+    // Frames the camera on every focus once the map has loaded.
     useFocusEffect(
         useCallback(() => {
-            if (!waypoints || waypoints.length === 0 || !isIdle) {
+            if (!isIdle) {
                 return;
             }
 
+            // The camera goes back to its default framing below, so the center button starts the cycle again from the current position.
+            setIsWaypointsNextCenterTarget(false);
+
+            if (!waypoints || waypoints.length === 0) {
+                if (currentPositionLongitude === undefined || currentPositionLatitude === undefined) {
+                    return;
+                }
+
+                pendingFramingRef.current = TransitionTracker.runAfterTransitions({
+                    callback: () =>
+                        cameraRef.current?.setCamera({
+                            zoomLevel: CONST.MAPBOX.DEFAULT_ZOOM,
+                            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                            centerCoordinate: [currentPositionLongitude, currentPositionLatitude],
+                        }),
+                    waitForUpcomingTransition: true,
+                    maxWaitForUpcomingTransitionMs: MAX_WAIT_FOR_TRANSITION_TIME_FOR_CAMERA_MOVEMENTS_MS,
+                });
+                return () => pendingFramingRef.current?.cancel();
+            }
+
             if (waypoints.length === 1) {
-                cameraRef.current?.setCamera({
-                    zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
-                    animationDuration: 1500,
-                    centerCoordinate: waypoints.at(0)?.coordinate,
+                pendingFramingRef.current = TransitionTracker.runAfterTransitions({
+                    callback: () =>
+                        cameraRef.current?.setCamera({
+                            zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_LONG,
+                            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                            centerCoordinate: waypoints.at(0)?.coordinate,
+                        }),
+                    waitForUpcomingTransition: true,
+                    maxWaitForUpcomingTransitionMs: MAX_WAIT_FOR_TRANSITION_TIME_FOR_CAMERA_MOVEMENTS_MS,
                 });
             } else {
                 const {southWest, northEast} = utils.getBounds(
                     waypoints.map((waypoint) => waypoint.coordinate),
-                    directionCoordinates,
+                    allDirectionCoordinates,
                 );
-                cameraRef.current?.fitBounds(northEast, southWest, mapPadding, 1000);
-            }
-        }, [mapPadding, waypoints, isIdle, directionCoordinates]),
-    );
 
-    useEffect(() => {
-        const unsubscribe = navigation.addListener('blur', () => {
-            setIsIdle(false);
-        });
-        return unsubscribe;
-    }, [navigation]);
+                pendingFramingRef.current = TransitionTracker.runAfterTransitions({
+                    callback: () =>
+                        cameraRef.current?.setCamera({
+                            bounds: {ne: northEast, sw: southWest},
+                            padding: utils.getCameraPadding(mapPadding),
+                            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                        }),
+                    waitForUpcomingTransition: true,
+                    maxWaitForUpcomingTransitionMs: MAX_WAIT_FOR_TRANSITION_TIME_FOR_CAMERA_MOVEMENTS_MS,
+                });
+            }
+
+            return () => pendingFramingRef.current?.cancel();
+        }, [mapPadding, waypoints, isIdle, allDirectionCoordinates, currentPositionLongitude, currentPositionLatitude]),
+    );
 
     useEffect(() => {
         if (!isOffline) {
@@ -196,88 +236,129 @@ function MapView({
         mapHeading.set(e.properties.heading ?? 0);
     };
 
-    // Rotate the compass needle opposite to the map's bearing so it keeps pointing to true north.
-    const compassAnimatedStyle = useAnimatedStyle(() => ({
-        transform: [{rotate: `${-mapHeading.get()}deg`}],
-    }));
+    // Only a real, displayed user location is something to alternate with. currentPosition falls back to initialState
+    // (e.g. the first waypoint), which would otherwise make the first press zoom into that waypoint instead of framing the route.
+    const canCenterOnCurrentPosition = shouldDisplayCurrentLocation && !!userLocation;
+    const {singleWaypointCoordinate, hasWaypointsTarget} = utils.getCenterTargets(
+        waypoints,
+        allDirectionCoordinates,
+        canCenterOnCurrentPosition ? [userLocation.longitude, userLocation.latitude] : undefined,
+    );
 
-    const resetMapToNorth = () => {
-        cameraRef.current?.setCamera({
-            heading: 0,
-            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
-        });
-    };
+    // The waypoints can disappear after the user centered on their location, so the button only offers them while they are still a target.
+    const shouldShowWaypointsCenterIcon = isWaypointsNextCenterTarget && hasWaypointsTarget;
 
-    const centerMap = useCallback(() => {
+    const centerMap = () => {
+        pendingFramingRef.current?.cancel();
         const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
-        if (waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1) {
-            const {southWest, northEast} = utils.getBounds(waypoints?.map((waypoint) => waypoint.coordinate) ?? [], directionCoordinates);
-            cameraRef.current?.fitBounds(southWest, northEast, mapPadding, CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME);
+        const shouldCenterOnWaypoints = hasWaypointsTarget && (isWaypointsNextCenterTarget || !canCenterOnCurrentPosition);
+        setIsWaypointsNextCenterTarget(!shouldCenterOnWaypoints && hasWaypointsTarget && canCenterOnCurrentPosition);
+
+        if (shouldCenterOnWaypoints) {
+            if (singleWaypointCoordinate) {
+                cameraRef.current?.setCamera({
+                    heading: 0,
+                    centerCoordinate: singleWaypointCoordinate,
+                    zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                    animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                    animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+                });
+                return;
+            }
+            const {southWest, northEast} = utils.getBounds(waypointCoordinates, allDirectionCoordinates);
+            cameraRef.current?.setCamera({
+                bounds: {ne: northEast, sw: southWest},
+                padding: utils.getCameraPadding(mapPadding),
+                animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+                animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
+            });
             return;
         }
         cameraRef?.current?.setCamera({
             heading: 0,
-            centerCoordinate: [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0],
-            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_ON_CENTER_ME,
+            centerCoordinate: [currentPositionLongitude ?? 0, currentPositionLatitude ?? 0],
+            animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT,
+            animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE,
             zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
         });
-    }, [directionCoordinates, currentPosition?.longitude, currentPosition?.latitude, mapPadding, waypoints]);
+    };
 
-    const centerCoordinate = useMemo(() => (currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location), [currentPosition, initialState?.location]);
+    const centerCoordinate = currentPosition ? [currentPosition.longitude, currentPosition.latitude] : initialState?.location;
 
-    const waypointsBounds = useMemo(() => {
-        if (!waypoints) {
-            return undefined;
-        }
+    let waypointsBounds;
+    if (!waypoints) {
+        waypointsBounds = undefined;
+    } else {
         const {northEast, southWest} = utils.getBounds(
             waypoints.map((waypoint) => waypoint.coordinate),
-            directionCoordinates,
+            allDirectionCoordinates,
         );
-        return {ne: northEast, sw: southWest};
-    }, [waypoints, directionCoordinates]);
-
-    const defaultSettings: Mapbox.CameraStop | undefined = useMemo(() => {
-        if (interactive) {
-            if (!centerCoordinate) {
-                return undefined;
-            }
-            return {
-                zoomLevel: initialState?.zoom,
-                centerCoordinate,
-            };
-        }
-        if (!waypointsBounds) {
-            return undefined;
-        }
-        return {
-            bounds: waypointsBounds,
+        waypointsBounds = {
+            ne: northEast,
+            sw: southWest,
         };
-    }, [interactive, centerCoordinate, waypointsBounds, initialState?.zoom]);
+    }
 
-    const initCenterCoordinate = useMemo(() => (interactive ? centerCoordinate : undefined), [interactive, centerCoordinate]);
-    const initBounds = useMemo(() => (interactive ? undefined : waypointsBounds), [interactive, waypointsBounds]);
+    const hasWaypoints = !!waypoints?.length;
 
-    const distanceSymbolCoordinate = useMemo(() => {
-        if (!directionCoordinates?.length || !waypoints?.length) {
-            return;
+    let defaultSettings: Mapbox.CameraStop | undefined;
+    if (interactive) {
+        // Start framed on the waypoints the same way the focus effect frames them, so the map does not fly in from the current location
+        if (waypoints?.length === 1) {
+            defaultSettings = {
+                zoomLevel: CONST.MAPBOX.SINGLE_MARKER_ZOOM,
+                centerCoordinate: waypoints.at(0)?.coordinate,
+            };
+        } else if (waypoints?.length && waypointsBounds) {
+            defaultSettings = {
+                bounds: waypointsBounds,
+                padding: utils.getCameraPadding(mapPadding),
+            };
+        } else {
+            defaultSettings = !centerCoordinate
+                ? undefined
+                : {
+                      zoomLevel: initialState?.zoom,
+                      centerCoordinate,
+                  };
         }
-        const {northEast, southWest} = utils.getBounds(
-            waypoints.map((waypoint) => waypoint.coordinate),
-            directionCoordinates,
-        );
-        const boundsCenter = utils.getBoundsCenter({northEast, southWest});
+    } else {
+        defaultSettings = !waypointsBounds
+            ? undefined
+            : {
+                  bounds: waypointsBounds,
+              };
+    }
 
-        return utils.findClosestCoordinateOnLineFromCenter(boundsCenter, directionCoordinates);
-    }, [waypoints, directionCoordinates]);
+    // The controlled centerCoordinate is applied after defaultSettings, so skip it while waypoints are shown or it would pull the camera back to the current location
+    const initCenterCoordinate = interactive && !hasWaypoints ? centerCoordinate : undefined;
+    const initBounds = interactive ? undefined : waypointsBounds;
 
-    return !isOffline && isAccessTokenSet && !!defaultSettings ? (
+    // Localize the map labels to the user's preferred app locale so they match the rest of the app.
+    const language = utils.getNativeMapboxLanguage(preferredLocale);
+    const localizeLabels:
+        | {
+              locale: string;
+          }
+        | undefined = language
+        ? {
+              locale: language,
+          }
+        : undefined;
+
+    return !isOffline && isAccessTokenReady && !!defaultSettings ? (
         <View style={[style, !interactive ? styles.pointerEventsNone : {}]}>
             <Mapbox.MapView
                 style={{flex: 1}}
                 styleURL={styleURL}
+                localizeLabels={localizeLabels}
                 onMapIdle={setMapIdle}
                 onCameraChanged={onCameraChanged}
-                onTouchStart={() => setUserInteractedWithMap(true)}
+                onTouchStart={() => {
+                    pendingFramingRef.current?.cancel();
+                    setUserInteractedWithMap(true);
+                    setIsWaypointsNextCenterTarget(false);
+                }}
                 pitchEnabled={pitchEnabled}
                 attributionPosition={{...styles.r2, ...styles.b2}}
                 scaleBarEnabled={false}
@@ -289,11 +370,15 @@ function MapView({
             >
                 <Mapbox.Camera
                     ref={cameraRef}
-                    defaultSettings={defaultSettings}
+                    defaultSettings={
+                        defaultSettings ? {...defaultSettings, animationDuration: CONST.MAPBOX.ANIMATION_DURATION_DEFAULT, animationMode: CONST.MAPBOX.CAMERA_ANIMATION_MODE} : undefined
+                    }
                     // Include centerCoordinate here as well to address the issue of incorrect coordinates
                     // displayed after the first render when the app's storage is cleared.
                     centerCoordinate={initCenterCoordinate}
                     bounds={initBounds}
+                    animationDuration={CONST.MAPBOX.ANIMATION_DURATION_DEFAULT}
+                    animationMode={CONST.MAPBOX.CAMERA_ANIMATION_MODE}
                 />
                 {interactive && shouldDisplayCurrentLocation && (
                     <MarkerView
@@ -308,8 +393,7 @@ function MapView({
                         />
                     </MarkerView>
                 )}
-                {waypoints?.map(({coordinate, markerComponent, id}) => {
-                    const MarkerComponent = markerComponent;
+                {waypoints?.map(({coordinate, markerType, id}) => {
                     if (
                         utils.areSameCoordinate([coordinate[0], coordinate[1]], [currentPosition?.longitude ?? 0, currentPosition?.latitude ?? 0]) &&
                         interactive &&
@@ -325,59 +409,38 @@ function MapView({
                             coordinate={coordinate}
                             allowOverlap
                         >
-                            <MarkerComponent />
+                            <MapMarkerIcon markerType={markerType} />
                         </MarkerView>
                     );
                 })}
 
-                {!!directionCoordinatesProp && <Direction coordinates={directionCoordinatesProp} />}
-                {!!distanceSymbolCoordinate && !!distanceInMeters && !!distanceUnit && (
-                    <MarkerView
-                        coordinate={distanceSymbolCoordinate}
-                        id="distance-label"
-                        key="distance-label"
-                        allowOverlap
-                    >
-                        <View style={{zIndex: 1}}>
-                            <ToggleDistanceUnitButton
-                                accessibilityRole={CONST.ROLE.BUTTON}
-                                accessibilityLabel="distance-label"
-                                onPress={toggleDistanceUnit}
-                            >
-                                <View style={[styles.distanceLabelWrapper]}>
-                                    <Text style={styles.distanceLabelText}> {distanceLabelText}</Text>
-                                </View>
-                            </ToggleDistanceUnitButton>
-                        </View>
-                    </MarkerView>
-                )}
+                <Directions
+                    directionCoordinates={directionCoordinates}
+                    alternateDirection={alternateDirection}
+                    setIsAlternateDirectionSelected={setIsAlternateDirectionSelected}
+                    distanceInMeters={distanceInMeters}
+                    unit={unit}
+                    waypoints={waypoints}
+                />
             </Mapbox.MapView>
-            {interactive && shouldDisplayCompass && (
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.l0, {zIndex: 1}]}>
-                    <PressableWithoutFeedback
-                        onPress={resetMapToNorth}
-                        accessibilityLabel={translate('common.resetMapToNorth')}
-                        role={CONST.ROLE.BUTTON}
-                        sentryLabel={CONST.SENTRY_LABEL.MAP_VIEW.COMPASS}
-                    >
-                        <Animated.View style={compassAnimatedStyle}>
-                            <ImageSVG
-                                src={expensifyIcons.Compass}
-                                width={CONST.MAP_VIEW_COMPASS_SIZE.width}
-                                height={CONST.MAP_VIEW_COMPASS_SIZE.height}
-                            />
-                        </Animated.View>
-                    </PressableWithoutFeedback>
-                </View>
-            )}
+            <Compass
+                interactive={interactive}
+                shouldDisplayCompass={shouldDisplayCompass}
+                cameraRef={cameraRef}
+                mapHeading={mapHeading}
+            />
             {interactive && (
-                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, {zIndex: 1}]}>
+                <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                     <Button
                         onPress={centerMap}
-                        iconFill={theme.icon}
-                        icon={expensifyIcons.Crosshair}
                         accessibilityLabel={translate('common.center')}
-                    />
+                    >
+                        <Button.Icon
+                            src={shouldShowWaypointsCenterIcon ? expensifyIcons.Expand : expensifyIcons.Crosshair}
+                            fill={theme.icon}
+                            hoverFill={theme.icon}
+                        />
+                    </Button>
                 </View>
             )}
         </View>
@@ -390,4 +453,4 @@ function MapView({
     );
 }
 
-export default memo(MapView);
+export default MapView;

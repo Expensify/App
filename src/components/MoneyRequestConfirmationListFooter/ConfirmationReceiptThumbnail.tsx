@@ -1,18 +1,24 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import {View} from 'react-native';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
+import Badge from '@components/Badge';
 import PDFThumbnail from '@components/PDFThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import ReceiptImage from '@components/ReceiptImage';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
+
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+
+import {Str} from 'expensify-common';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type ConfirmationReceiptThumbnailProps = {
     /** ID of the transaction whose receipt is being previewed */
@@ -60,20 +66,28 @@ type ConfirmationReceiptThumbnailProps = {
     /** Stable image source captured for non-flashing display (from useReceiptThumbnailSource) */
     effectiveReceiptSource: ReceiptSource;
 
+    /** Page count of the receipt, used to show a "Page 1 of N" badge on multi-page PDFs */
+    receiptPageCount: number;
+
     /** Whether the active transaction is an odometer-driven distance request */
     isOdometerDistanceRequest: boolean;
 
     /** Whether the active transaction is a distance request (drives object-position behaviour) */
     isDistanceRequest: boolean;
 
+    /** Generated map receipts are drawn as an e-receipt card, so their stored PDF page count is never shown */
+    isMapDistanceRequest: boolean;
+
     /** Compact-mode container style (undefined when not in compact mode) */
     compactReceiptContainerStyle: StyleProp<ViewStyle> | undefined;
 
-    /** Callback for PDF load errors */
     onPDFLoadError?: () => void;
 
     /** Callback when the PDF requests a password */
     onPDFPassword?: () => void;
+
+    /** Callback when the PDF thumbnail finishes rendering, used to end the receipt-load span */
+    onPDFLoadSuccess?: () => void;
 
     /** Layout callback used in compact mode to capture container width */
     onCompactReceiptContainerLayout: (event: LayoutChangeEvent) => void;
@@ -98,20 +112,44 @@ function ConfirmationReceiptThumbnail({
     receiptThumbnail,
     resolvedReceiptImage,
     effectiveReceiptSource,
+    receiptPageCount,
     isOdometerDistanceRequest,
     isDistanceRequest,
+    isMapDistanceRequest,
     compactReceiptContainerStyle,
     onPDFLoadError,
     onPDFPassword,
+    onPDFLoadSuccess,
     onCompactReceiptContainerLayout,
     onReceiptLoad,
 }: ConfirmationReceiptThumbnailProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [isReceiptLoaded, setIsReceiptLoaded] = useState(false);
+
+    // A local PDF has no server pageCount until it is uploaded, so we read it from the rendered document.
+    // The count is stamped with the source it was measured from, so a replaced receipt never inherits it.
+    const [detectedPDF, setDetectedPDF] = useState<{source: string | undefined; pageCount: number}>({source: undefined, pageCount: 0});
+    if (detectedPDF.source !== resolvedReceiptImage) {
+        setDetectedPDF({source: resolvedReceiptImage, pageCount: 0});
+    }
+
+    // Stitching replaces the receipt, so drop the loaded flag and detected count or the badge sits on the spinner.
+    if (isLoadingReceipt && (isReceiptLoaded || detectedPDF.pageCount > 0)) {
+        setIsReceiptLoaded(false);
+        setDetectedPDF({source: resolvedReceiptImage, pageCount: 0});
+    }
 
     const receiptContainerStyle = isCompactMode && compactReceiptContainerStyle ? compactReceiptContainerStyle : styles.expenseViewImageSmall;
     const receiptThumbnailStyle = [styles.h100, styles.flex1];
     const isPDF = isLocalFile && Str.isPDF(receiptFilename);
+    const effectiveReceiptPageCount = receiptPageCount || (detectedPDF.source === resolvedReceiptImage ? detectedPDF.pageCount : 0);
+    const shouldShowReceiptPageCount = effectiveReceiptPageCount > 1 && Str.isPDF(receiptFilename) && !isLoadingReceipt && isReceiptLoaded && !isMapDistanceRequest;
+
+    const resetDetectedPDF = () => {
+        setIsReceiptLoaded(false);
+        setDetectedPDF({source: resolvedReceiptImage, pageCount: 0});
+    };
 
     const navigateToReceipt = () => {
         if (!transactionID) {
@@ -127,7 +165,7 @@ function ConfirmationReceiptThumbnail({
             style={[styles.moneyRequestImage, receiptContainerStyle, isLoadingReceipt && [styles.justifyContentCenter, styles.alignItemsCenter]]}
             onLayout={isCompactMode ? onCompactReceiptContainerLayout : undefined}
         >
-            {isLoadingReceipt && <ActivityIndicator reasonAttributes={{context: 'MoneyRequestConfirmationListFooter.receiptThumbnail'}} />}
+            {isLoadingReceipt && <ActivityIndicator />}
             {!isLoadingReceipt &&
                 (isPDF ? (
                     <PressableWithoutFocus
@@ -140,11 +178,24 @@ function ConfirmationReceiptThumbnail({
                         style={styles.h100}
                     >
                         <PDFThumbnail
+                            // Remount per source so a renderer still loading the replaced file can't report through the new file's callbacks.
+                            key={resolvedReceiptImage}
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style -- resolvedReceiptImage is guaranteed string when isLocalFile + PDF
                             previewSourceURL={resolvedReceiptImage as string}
                             style={styles.h100}
-                            onLoadError={onPDFLoadError}
-                            onPassword={onPDFPassword}
+                            onLoadError={() => {
+                                resetDetectedPDF();
+                                onPDFLoadError?.();
+                            }}
+                            onPassword={() => {
+                                resetDetectedPDF();
+                                onPDFPassword?.();
+                            }}
+                            onLoadSuccess={(pageCount) => {
+                                setIsReceiptLoaded(true);
+                                setDetectedPDF({source: resolvedReceiptImage, pageCount: pageCount ?? 0});
+                                onPDFLoadSuccess?.();
+                            }}
                         />
                     </PressableWithoutFocus>
                 ) : (
@@ -165,11 +216,20 @@ function ConfirmationReceiptThumbnail({
                             shouldUseThumbnailImage
                             shouldUseInitialObjectPosition={isDistanceRequest}
                             shouldUseFullHeight={isCompactMode}
-                            onLoad={onReceiptLoad}
+                            onLoad={(event) => {
+                                setIsReceiptLoaded(true);
+                                onReceiptLoad(event);
+                            }}
                             resizeMode={isOdometerDistanceRequest ? 'contain' : undefined}
                         />
                     </PressableWithoutFocus>
                 ))}
+            {shouldShowReceiptPageCount && (
+                <Badge
+                    text={translate('receipt.pageCount', {page: CONST.RECEIPT.FIRST_PDF_PAGE, pageCount: effectiveReceiptPageCount})}
+                    badgeStyles={[styles.receiptPageCountBadge, styles.pointerEventsNone]}
+                />
+            )}
         </View>
     );
 }

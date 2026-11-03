@@ -1,5 +1,3 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -7,22 +5,33 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getPerDiemNameError, getPerDiemNameErrorMessage} from '@libs/PolicyPerDiemUtils';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import StringUtils from '@libs/StringUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {editPerDiemRateDestination} from '@userActions/Policy/PerDiem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspacePerDiemForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type EditPerDiemDestinationPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_EDIT_DESTINATION>;
 
@@ -40,33 +49,24 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
 
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM> = {};
+        const nameError = getPerDiemNameError(values.destination);
 
-            const destinationTrimmed = values.destination.trim();
+        if (nameError) {
+            errors.destination = getPerDiemNameErrorMessage(translate, nameError, values.destination);
+        }
 
-            if (!destinationTrimmed) {
-                errors.destination = translate('common.error.fieldRequired');
-            } else if (destinationTrimmed.length > CONST.MAX_LENGTH_256) {
-                errors.destination = translate('common.error.characterLimitExceedCounter', destinationTrimmed.length, CONST.MAX_LENGTH_256);
-            }
+        return errors;
+    };
 
-            return errors;
-        },
-        [translate],
-    );
-
-    const editDestination = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
-            const newDestination = values.destination.trim();
-            if (newDestination !== selectedRate?.name) {
-                editPerDiemRateDestination(policyID, rateID, customUnit, newDestination);
-            }
-            Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
-        },
-        [selectedRate?.name, policyID, rateID, subRateID, customUnit],
-    );
+    const editDestination = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM>) => {
+        const newDestination = StringUtils.sanitizeName(values.destination);
+        if (newDestination !== selectedRate?.name) {
+            editPerDiemRateDestination(policyID, rateID, customUnit, newDestination);
+        }
+        Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
+    };
 
     return (
         <AccessOrNotFoundWrapper

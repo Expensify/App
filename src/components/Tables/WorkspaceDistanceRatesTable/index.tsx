@@ -1,25 +1,41 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React, {useMemo} from 'react';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
+
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import {getRateStatus} from '@libs/PolicyDistanceRatesUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
-import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
+import ROUTES from '@src/ROUTES';
+import type {Unit} from '@src/types/onyx/Policy';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+
 import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
+
+import WorkspaceDistanceRatesTableRow from './WorkspaceDistanceRatesTableRow';
 
 type DistanceRatesTableColumnKey = 'status' | 'name' | 'rate' | 'startDate' | 'endDate' | 'enabled' | 'actions';
 
 type WorkspaceDistanceRatesTableProps = {
     ratesData: DistanceRateTableItemData[];
+    policyID: string;
+    unit?: Unit;
     selectionEnabled: boolean;
     selectedKeys: string[];
+    canWriteDistanceRates: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
-    EmptyStateComponent: React.ReactElement;
+    headerComponent?: React.ReactElement;
 };
 
 const STATUS_ORDER: Record<string, number> = {
@@ -29,9 +45,19 @@ const STATUS_ORDER: Record<string, number> = {
     [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: 3,
 };
 
-function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys, onRowSelectionChange, EmptyStateComponent}: WorkspaceDistanceRatesTableProps) {
+function WorkspaceDistanceRatesTable({
+    ratesData,
+    policyID,
+    unit,
+    selectionEnabled,
+    selectedKeys,
+    canWriteDistanceRates,
+    onRowSelectionChange,
+    headerComponent,
+}: WorkspaceDistanceRatesTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const icons = useMemoizedLazyExpensifyIcons(['Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -45,8 +71,24 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             width: variables.tableStatusColumnWidth,
             styling: {containerStyles: [styles.justifyContentCenter]},
         },
-        {key: 'name', label: translate('common.name'), sortable: true},
-        {key: 'rate', label: translate('workspace.distanceRates.rate'), sortable: true},
+        {
+            key: 'name',
+            label: translate('common.name'),
+            sortable: true,
+            styling: {
+                // editableCellHeader matches the padded name cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
+        },
+        {
+            key: 'rate',
+            label: translate('workspace.distanceRates.rate'),
+            sortable: true,
+            styling: {
+                // Same chrome as the name column so the rate label lines up with the padded rate cell.
+                containerStyles: [styles.editableCellHeader],
+            },
+        },
         ...(hasAnyDateBound
             ? ([
                   {key: 'startDate', label: translate('workspace.distanceRates.startDate'), sortable: true},
@@ -67,11 +109,11 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             if (diff !== 0) {
                 return diff * orderMultiplier;
             }
-            return localeCompare(a.rate.name ?? '', b.rate.name ?? '') * orderMultiplier;
+            return DistanceRequestUtils.compareRatesByDisplayName(a.rate, b.rate, localeCompare, orderMultiplier);
         }
 
         if (activeSorting.columnKey === 'name') {
-            return localeCompare(a.rate.name ?? '', b.rate.name ?? '') * orderMultiplier;
+            return DistanceRequestUtils.compareRatesByDisplayName(a.rate, b.rate, localeCompare, orderMultiplier);
         }
 
         if (activeSorting.columnKey === 'rate') {
@@ -98,15 +140,26 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
         return matchingItems.length > 0;
     };
 
-    const statusLabels = useMemo(
-        () => ({
-            [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE]: translate('workspace.distanceRates.statusFuture'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED]: translate('workspace.distanceRates.statusExpired'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: translate('workspace.distanceRates.statusInactive'),
-        }),
-        [translate],
-    );
+    const emptyStateButtons = canWriteDistanceRates
+        ? [
+              {
+                  icon: icons.Plus,
+                  buttonText: translate('workspace.distanceRates.addRate'),
+
+                  buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
+                  buttonAction: () => {
+                      Navigation.navigate(ROUTES.WORKSPACE_CREATE_DISTANCE_RATE.getRoute(policyID));
+                  },
+              },
+          ]
+        : undefined;
+
+    const statusLabels = {
+        [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE]: translate('workspace.distanceRates.statusFuture'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED]: translate('workspace.distanceRates.statusExpired'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: translate('workspace.distanceRates.statusInactive'),
+    };
 
     const renderItem = ({item, index}: ListRenderItemInfo<DistanceRateTableItemData>) => (
         <WorkspaceDistanceRatesTableRow
@@ -116,11 +169,12 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
             shouldShowDateColumns={hasAnyDateBound}
             statusLabels={statusLabels}
+            unit={unit}
         />
     );
 
-    const isEmpty = ratesData.length === 0;
-    const shouldShowSearchBar = ratesData.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -137,14 +191,15 @@ function WorkspaceDistanceRatesTable({ratesData, selectionEnabled, selectedKeys,
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    {shouldShowSearchBar && <Table.SearchBar label={translate('workspace.distanceRates.findRate')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
+            <Table.EmptyState
+                title={translate('workspace.distanceRates.emptyRates.title')}
+                subtitle={translate('workspace.distanceRates.emptyRates.subtitle')}
+                buttons={emptyStateButtons}
+            />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

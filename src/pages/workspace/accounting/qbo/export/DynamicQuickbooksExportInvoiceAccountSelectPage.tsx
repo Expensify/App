@@ -1,23 +1,32 @@
-import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateQuickbooksOnlineReceivableAccount} from '@libs/actions/connections/QuickbooksOnline';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import variables from '@styles/variables';
+
 import {clearQBOErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Account} from '@src/types/onyx/Policy';
+
+import React from 'react';
 
 type CardListItem = ListItem & {
     value: Account;
@@ -25,6 +34,7 @@ type CardListItem = ListItem & {
 
 function DynamicQuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const {accountsReceivable} = policy?.connections?.quickbooksOnline?.data ?? {};
@@ -32,43 +42,34 @@ function DynamicQuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyCon
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.path);
 
     const policyID = policy?.id;
-    const data: CardListItem[] = useMemo(
-        () =>
-            accountsReceivable?.map((account) => ({
-                value: account,
-                text: account.name,
-                keyForList: account.name,
-                isSelected: account.id === qboConfig?.receivableAccount?.id,
-            })) ?? [],
-        [qboConfig?.receivableAccount, accountsReceivable],
-    );
+    const data: CardListItem[] =
+        accountsReceivable?.map((account) => ({
+            value: account,
+            text: account.name,
+            keyForList: account.name,
+            isSelected: account.id === qboConfig?.receivableAccount?.id,
+        })) ?? [];
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const selectExportInvoice = useCallback(
-        (row: CardListItem) => {
-            if (row.value.id !== qboConfig?.receivableAccount?.id) {
-                updateQuickbooksOnlineReceivableAccount(policyID, row.value, qboConfig?.receivableAccount);
-            }
-            goBack();
-        },
-        [qboConfig?.receivableAccount, policyID, goBack],
-    );
+    const selectExportInvoice = (row: CardListItem) => {
+        if (row.value.id !== qboConfig?.receivableAccount?.id) {
+            updateQuickbooksOnlineReceivableAccount(policyID, row.value, qboConfig?.receivableAccount);
+        }
+        goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.qbo.noAccountsFound')}
+            subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (
@@ -78,7 +79,7 @@ function DynamicQuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyCon
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="DynamicQuickbooksExportInvoiceAccountSelectPage"
             data={data}
-            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription')}</Text>}
+            headerContent={<Text style={[styles.ph5, styles.pb5]}>{translate('workspace.qbo.exportInvoicesDescription', integrationName)}</Text>}
             onBackButtonPress={goBack}
             onSelectRow={selectExportInvoice}
             initiallyFocusedOptionKey={data.find((mode) => mode.isSelected)?.keyForList}

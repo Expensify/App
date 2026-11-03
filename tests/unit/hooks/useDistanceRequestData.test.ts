@@ -1,10 +1,24 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useDistanceRequestData from '@pages/iou/request/step/IOURequestStepDistance/hooks/useDistanceRequestData';
+
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
+import createMock from '../../utils/createMock';
+
 const mockSetMoneyRequestAmount = jest.fn();
 const mockSetSplitShares = jest.fn();
+const mockGetCurrencyDecimals = jest.fn(() => 2);
+
+jest.mock('@hooks/useCurrencyList', () => ({
+    useCurrencyListActions: () => ({
+        convertToDisplayString: (amount?: number, currency?: string) => `${currency ?? 'USD'} ${(amount ?? 0).toFixed(2)}`,
+        convertToDisplayStringWithoutCurrency: (amount: number) => `${(amount ?? 0).toFixed(2)}`,
+        getCurrencySymbol: () => '$',
+        getCurrencyDecimals: mockGetCurrencyDecimals,
+    }),
+}));
 
 jest.mock('@libs/actions/IOU/MoneyRequest', () => ({
     setMoneyRequestAmount: (...args: unknown[]) => {
@@ -36,9 +50,9 @@ jest.mock('@libs/TransactionUtils', () => ({
 type Params = Parameters<typeof useDistanceRequestData>[0];
 
 const baseParams: Params = {
-    policy: {outputCurrency: 'USD'} as unknown as OnyxTypes.Policy,
+    policy: createMock<OnyxTypes.Policy>({outputCurrency: 'USD'}),
     personalPolicy: {outputCurrency: 'USD'},
-    transaction: {transactionID: 'txn1'} as unknown as OnyxTypes.Transaction,
+    transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1'}),
     customUnitRateID: 'rate1',
     transactionID: 'txn1',
     isSplitRequest: false,
@@ -75,7 +89,7 @@ describe('useDistanceRequestData', () => {
         result.current([personalParticipant, otherParticipant]);
 
         expect(mockSetSplitShares).toHaveBeenCalledTimes(1);
-        expect(mockSetSplitShares).toHaveBeenCalledWith(baseParams.transaction, 300, 'USD', [1, 2], 1);
+        expect(mockSetSplitShares).toHaveBeenCalledWith(baseParams.transaction, 300, 'USD', [1, 2], 1, mockGetCurrencyDecimals);
     });
 
     it('skips setSplitShares for split requests against a policy expense chat', () => {

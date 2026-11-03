@@ -1,4 +1,5 @@
 import ROUTES from '@src/ROUTES';
+
 import Navigation from './Navigation/Navigation';
 
 const navigateAfterJoinRequest = () => {

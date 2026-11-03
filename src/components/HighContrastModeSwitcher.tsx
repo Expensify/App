@@ -1,19 +1,26 @@
-import React from 'react';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getBaseTheme, getContrastTheme, isHighContrastTheme} from '@styles/theme/utils';
 import variables from '@styles/variables';
+
 import {setHighContrastIntent, updateTheme} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
+
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 import Text from './Text';
 
 function HighContrastModeSwitcher() {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -27,7 +34,7 @@ function HighContrastModeSwitcher() {
 
     const toggleHighContrast = () => {
         const baseTheme = getBaseTheme(currentTheme);
-        updateTheme(isHighContrast ? baseTheme : getContrastTheme(baseTheme), false);
+        updateTheme(isHighContrast ? baseTheme : getContrastTheme(baseTheme), false, session);
         setHighContrastIntent(!isHighContrast);
     };
 

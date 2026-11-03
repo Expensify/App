@@ -1,22 +1,29 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {isChatThread} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportActions} from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const isReportUnread = ({lastReadTime = '', lastVisibleActionCreated = '', lastMentionedTime = ''}: Report): boolean =>
     lastReadTime < lastVisibleActionCreated || lastReadTime < (lastMentionedTime ?? '');
@@ -27,20 +34,11 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nonEmptyStringTransactionReportID = getNonEmptyStringOnyxID(transaction.reportID);
 
-    const getIOUActionForTransactionIDSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
+    const [iouReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringTransactionReportID}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
             return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transaction.transactionID);
         },
-        [transaction.transactionID],
-    );
-
-    const [iouReportAction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nonEmptyStringTransactionReportID}`,
-        {
-            selector: getIOUActionForTransactionIDSelector,
-        },
-        [getIOUActionForTransactionIDSelector],
-    );
+    });
 
     const [childReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportAction?.childReportID}`);
 
@@ -48,13 +46,10 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
 
     const transactionReport = isInSingleTransactionReport ? parentReport : childReport;
 
-    const threadMessages = useMemo(
-        () => ({
-            count: iouReportAction?.childVisibleActionCount ?? 0,
-            isUnread: isChatThread(transactionReport) && isReportUnread(transactionReport),
-        }),
-        [iouReportAction?.childVisibleActionCount, transactionReport],
-    );
+    const threadMessages = {
+        count: iouReportAction?.childVisibleActionCount ?? 0,
+        isUnread: isChatThread(transactionReport) && isReportUnread(transactionReport),
+    };
 
     const StyleUtils = useStyleUtils();
     const icons = useMemoizedLazyExpensifyIcons(['ChatBubbleCounter']);
@@ -64,7 +59,18 @@ function ChatBubbleCell({transaction, containerStyles, isInSingleTransactionRepo
 
     return (
         threadMessages.count > 0 && (
-            <View style={[styles.dFlex, styles.alignItemsCenter, styles.justifyContentCenter, styles.textAlignCenter, StyleUtils.getWidthAndHeightStyle(iconSize), containerStyles]}>
+            <View
+                style={[
+                    styles.dFlex,
+                    styles.alignItemsCenter,
+                    styles.justifyContentCenter,
+                    styles.textAlignCenter,
+                    styles.userSelectNone,
+                    StyleUtils.getWidthAndHeightStyle(iconSize),
+                    containerStyles,
+                ]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+            >
                 <Icon
                     src={icons.ChatBubbleCounter}
                     additionalStyles={[styles.pAbsolute]}

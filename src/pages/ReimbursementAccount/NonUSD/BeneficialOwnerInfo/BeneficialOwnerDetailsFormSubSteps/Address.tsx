@@ -1,13 +1,16 @@
-import React, {useMemo, useState} from 'react';
 import AddressStep from '@components/SubStepForms/AddressStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import SafeString from '@src/utils/SafeString';
+
+import {SafeString} from 'expensify-common';
+import React, {useState} from 'react';
 
 type NameProps = SubPageProps & {isUserEnteringHisOwnData: boolean; ownerBeingModifiedID: string};
 
@@ -42,14 +45,8 @@ function Address({onNext, isEditing, onMove, isUserEnteringHisOwnData, ownerBein
         defaultValues.country === CONST.COUNTRY.US || defaultValues.country === CONST.COUNTRY.CA || defaultValues.country === '',
     );
 
-    const stepFieldsWithState = useMemo(
-        () => [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, countryInputKey],
-        [countryInputKey, inputKeys.city, inputKeys.state, inputKeys.street, inputKeys.zipCode],
-    );
-    const stepFieldsWithoutState = useMemo(
-        () => [inputKeys.street, inputKeys.city, inputKeys.zipCode, countryInputKey],
-        [countryInputKey, inputKeys.city, inputKeys.street, inputKeys.zipCode],
-    );
+    const stepFieldsWithState = [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, countryInputKey];
+    const stepFieldsWithoutState = [inputKeys.street, inputKeys.city, inputKeys.zipCode, countryInputKey];
 
     const stepFields = shouldDisplayStateSelector ? stepFieldsWithState : stepFieldsWithoutState;
 

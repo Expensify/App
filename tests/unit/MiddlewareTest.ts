@@ -1,10 +1,13 @@
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
+
+import CONST from '@src/CONST';
+import * as App from '@src/libs/actions/App';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
+import type MoveIOUReportToExistingPolicyParams from '@src/libs/API/parameters/MoveIOUReportToExistingPolicyParams';
+import HttpUtils from '@src/libs/HttpUtils';
 // This import is needed to initialize the Onyx connections that call replaceOptimisticReportWithActualReport
 import '@src/libs/actions/replaceOptimisticReportWithActualReport';
-import HttpUtils from '@src/libs/HttpUtils';
 import handleUnusedOptimisticID from '@src/libs/Middleware/HandleUnusedOptimisticID';
 import * as Network from '@src/libs/Network';
 import * as MainQueue from '@src/libs/Network/MainQueue';
@@ -13,11 +16,18 @@ import * as SequentialQueue from '@src/libs/Network/SequentialQueue';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report as OnyxReport, PersonalDetailsList} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
 
-type FormDataObject = {body: TestHelper.FormData};
+let fetchMock: ReturnType<typeof TestHelper.createGlobalFetchMock>;
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -42,7 +52,8 @@ beforeEach(async () => {
     await waitForNetworkPromises();
     // Reassign global.fetch to a fresh mock to clear any leftover mockImplementationOnce
     // queue from the previous test. jest.clearAllMocks() only resets call counts, not the queue.
-    global.fetch = TestHelper.getGlobalFetchMock();
+    fetchMock = TestHelper.createGlobalFetchMock();
+    global.fetch = fetchMock;
     jest.clearAllMocks();
     Request.clearMiddlewares();
 });
@@ -79,6 +90,106 @@ describe('Middleware', () => {
             expect(result).toBeDefined();
             expect(result?.jsonCode).toBe(200);
         });
+
+        test.each([
+            ['the client watermark is behind the response', 1],
+            ['the client has no watermark yet', undefined],
+        ])('applies a sign-in response on arrival when %s', async (_case, clientLastUpdateID) => {
+            if (clientLastUpdateID) {
+                await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, clientLastUpdateID);
+            }
+            await Onyx.set(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN, true);
+            await waitForBatchedUpdates();
+
+            Request.addMiddleware(SaveResponseInOnyx);
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: 200, lastUpdateID: 501, previousUpdateID: 500});
+
+            await Request.processWithMiddleware({
+                command: READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN,
+                data: {apiRequestType: CONST.API_REQUEST_TYPE.READ},
+                finallyData: [
+                    {
+                        onyxMethod: Onyx.METHOD.SET,
+                        key: ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN,
+                        value: false,
+                    },
+                ],
+            });
+            await waitForBatchedUpdates();
+
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_IS_AUTHENTICATING_WITH_SHORT_LIVED_TOKEN)).toBe(false);
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_FROM_SERVER)).toBeUndefined();
+            expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT)).toBe(clientLastUpdateID);
+        });
+
+        describe('when the server no longer knows the client lastUpdateID', () => {
+            beforeEach(() => {
+                jest.spyOn(App, 'reconnectApp').mockImplementation(() => {});
+            });
+
+            afterEach(() => {
+                jest.restoreAllMocks();
+            });
+
+            test.each([
+                ['AddComment', 'AddComment'],
+                // DeleteMoneyRequest skips the OnyxUpdates flow but still moves lastUpdateID forward, so it can leave the same gap
+                ['DeleteMoneyRequest', WRITE_COMMANDS.DELETE_MONEY_REQUEST],
+            ])('applies the response and runs a full ReconnectApp to cover the gap for %s', async (_case, command) => {
+                // Given a device that was backgrounded for a long time, so the server no longer has its lastUpdateIDAppliedToClient
+                await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, 100);
+                await waitForBatchedUpdates();
+
+                Request.addMiddleware(SaveResponseInOnyx);
+
+                // When a write returns a lastUpdateID but no previousUpdateID
+                jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: 200, lastUpdateID: 5001});
+                const result = await Request.processWithMiddleware({
+                    command,
+                    data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE},
+                    successData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.IS_LOADING_APP, value: false}],
+                });
+                await waitForBatchedUpdates();
+
+                // Then the response is applied without pausing the queue
+                expect(result?.shouldPauseQueue).toBeUndefined();
+                expect(await getOnyxValue(ONYXKEYS.ONYX_UPDATES_FROM_SERVER)).toBeUndefined();
+
+                // And a full ReconnectApp runs, because an incremental one would start after the skipped updates
+                expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+                expect(App.reconnectApp).toHaveBeenCalledWith();
+            });
+
+            test.each([
+                ['the response has a previousUpdateID', 100, 'AddComment', {lastUpdateID: 101, previousUpdateID: 100}],
+                ['the client has no lastUpdateID yet', undefined, 'AddComment', {lastUpdateID: 5001}],
+                ['the response is not newer than the client', 100, 'AddComment', {lastUpdateID: 100}],
+                ['the request is a ReconnectApp', 100, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, {lastUpdateID: 5001}],
+                ['the request is an OpenApp', 100, WRITE_COMMANDS.OPEN_APP, {lastUpdateID: 5001}],
+                ['the request is a GetMissingOnyxMessages', 100, SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES, {lastUpdateID: 5001}],
+                ['the request is a CloseAccount', 100, WRITE_COMMANDS.CLOSE_ACCOUNT, {lastUpdateID: 5001}],
+            ])('does not run a full ReconnectApp when %s', async (_case, clientLastUpdateID, command, updateIDs) => {
+                // Given a client whose lastUpdateID is either still known to the server or has nothing to lose
+                if (clientLastUpdateID) {
+                    await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, clientLastUpdateID);
+                }
+                await waitForBatchedUpdates();
+
+                Request.addMiddleware(SaveResponseInOnyx);
+                jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({jsonCode: 200, ...updateIDs});
+
+                // When the response comes back
+                await Request.processWithMiddleware({
+                    command,
+                    data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE},
+                    successData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.IS_LOADING_APP, value: false}],
+                });
+                await waitForBatchedUpdates();
+
+                // Then no extra full ReconnectApp runs, since no updates were skipped or the request already returns full data
+                expect(App.reconnectApp).not.toHaveBeenCalled();
+            });
+        });
     });
 
     describe('HandleUnusedOptimisticID', () => {
@@ -105,19 +216,17 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                {
-                    reportID: '1234',
-                },
-                ((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1)?.body,
-            );
+            const addCommentFormData = fetchMock.mock.calls.at(1)?.[1]?.body;
+            if (!(addCommentFormData instanceof FormData)) {
+                throw new Error('Expected AddComment request body to be native FormData.');
+            }
+            TestHelper.assertFormDataMatchesObject(createMock<OnyxReport>({reportID: '1234'}), {entries: () => Array.from(addCommentFormData.entries())});
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                {
-                    reportID: '1234',
-                },
-                ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body,
-            );
+            const openReportFormData = fetchMock.mock.calls.at(0)?.[1]?.body;
+            if (!(openReportFormData instanceof FormData)) {
+                throw new Error('Expected OpenReport request body to be native FormData.');
+            }
+            TestHelper.assertFormDataMatchesObject(createMock<OnyxReport>({reportID: '1234'}), {entries: () => Array.from(openReportFormData.entries())});
         });
 
         test('Request with preexistingReportID', async () => {
@@ -138,21 +247,16 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
-                ok: true,
-
-                json: async () => ({
-                    jsonCode: 200,
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
-                            value: {
-                                preexistingReportID: '5555',
-                            },
+            fetchMock.mockAPICommand('OpenReport', () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                        value: {
+                            preexistingReportID: '5555',
                         },
-                    ],
-                }),
+                    },
+                ],
             }));
 
             SequentialQueue.unpause();
@@ -161,14 +265,17 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(2);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/AddComment?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                {
-                    reportID: '5555',
-                },
-                ((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1)?.body,
-            );
+            const addCommentFormData = fetchMock.mock.calls.at(1)?.[1]?.body;
+            if (!(addCommentFormData instanceof FormData)) {
+                throw new Error('Expected AddComment request body to be native FormData.');
+            }
+            TestHelper.assertFormDataMatchesObject(createMock<OnyxReport>({reportID: '5555'}), {entries: () => Array.from(addCommentFormData.entries())});
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject({reportID: '1234'}, ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body);
+            const openReportFormData = fetchMock.mock.calls.at(0)?.[1]?.body;
+            if (!(openReportFormData instanceof FormData)) {
+                throw new Error('Expected OpenReport request body to be native FormData.');
+            }
+            TestHelper.assertFormDataMatchesObject(createMock<OnyxReport>({reportID: '1234'}), {entries: () => Array.from(openReportFormData.entries())});
         });
 
         test('Request with preexistingReportID and no reportID in params', async () => {
@@ -194,21 +301,16 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
-                ok: true,
-
-                json: async () => ({
-                    jsonCode: 200,
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
-                            value: {
-                                preexistingReportID: '5555',
-                            },
+            fetchMock.mockAPICommand('RequestMoney', () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                        value: {
+                            preexistingReportID: '5555',
                         },
-                    ],
-                }),
+                    },
+                ],
             }));
 
             SequentialQueue.unpause();
@@ -217,25 +319,18 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(3);
             expect(global.fetch).toHaveBeenLastCalledWith('https://www.expensify.com.dev/api/OpenReport?', expect.anything());
-            TestHelper.assertFormDataMatchesObject(
-                {
-                    reportID: '5555',
-                },
-                ((global.fetch as jest.Mock).mock.calls.at(1) as FormDataObject[]).at(1)?.body,
-            );
-            const formData = ((global.fetch as jest.Mock).mock.calls.at(2) as FormDataObject[]).at(1)?.body;
-            expect(formData).not.toBeUndefined();
-            if (formData) {
-                const formDataObject = Array.from(formData.entries()).reduce(
-                    (acc, [key, val]) => {
-                        acc[key] = val;
-                        return acc;
-                    },
-                    {} as Record<string, string | Blob | undefined>,
-                );
-                expect(formDataObject.reportActionID).toBeUndefined();
-                expect(formDataObject.parentReportActionID).toBeUndefined();
+            const openReportFormData = fetchMock.mock.calls.at(1)?.[1]?.body;
+            if (!(openReportFormData instanceof FormData)) {
+                throw new Error('Expected OpenReport request body to be native FormData.');
             }
+            TestHelper.assertFormDataMatchesObject(createMock<OnyxReport>({reportID: '5555'}), {entries: () => Array.from(openReportFormData.entries())});
+            const rawFormData = fetchMock.mock.calls.at(2)?.[1]?.body;
+            expect(rawFormData).not.toBeUndefined();
+            if (!(rawFormData instanceof FormData)) {
+                throw new Error('Expected the third request body to be native FormData.');
+            }
+            expect(rawFormData.get('reportActionID')).toBeNull();
+            expect(rawFormData.get('parentReportActionID')).toBeNull();
         });
 
         test('Request with preexistingReportID and optimisticReportID param', async () => {
@@ -251,21 +346,16 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
-                ok: true,
-
-                json: async () => ({
-                    jsonCode: 200,
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
-                            value: {
-                                preexistingReportID: '5555',
-                            },
+            fetchMock.mockAPICommand('MoveIOUReportToExistingPolicy', () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}1234`,
+                        value: {
+                            preexistingReportID: '5555',
                         },
-                    ],
-                }),
+                    },
+                ],
             }));
 
             SequentialQueue.unpause();
@@ -274,7 +364,12 @@ describe('Middleware', () => {
 
             expect(global.fetch).toHaveBeenCalledTimes(1);
             expect(global.fetch).toHaveBeenNthCalledWith(1, 'https://www.expensify.com.dev/api/MoveIOUReportToExistingPolicy?', expect.anything());
-            TestHelper.assertFormDataMatchesObject({optimisticReportID: '1234'} as unknown as OnyxReport, ((global.fetch as jest.Mock).mock.calls.at(0) as FormDataObject[]).at(1)?.body);
+            const moveReportFormData = fetchMock.mock.calls.at(0)?.[1]?.body;
+            if (!(moveReportFormData instanceof FormData)) {
+                throw new Error('Expected MoveIOUReportToExistingPolicy request body to be native FormData.');
+            }
+            const expectedMoveReportParams = {optimisticReportID: '1234'} satisfies Pick<MoveIOUReportToExistingPolicyParams, 'optimisticReportID'>;
+            expect(moveReportFormData.get('optimisticReportID')).toBe(expectedMoveReportParams.optimisticReportID);
         });
 
         test('OpenReport to a chat with preexistingReportID and clean up optimistic participant data', async () => {
@@ -314,12 +409,9 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            (global.fetch as jest.Mock)
-                .mockImplementationOnce(async () => ({
-                    ok: true,
-
-                    json: async () => ({
-                        jsonCode: 200,
+            fetchMock.mockAPICommand('OpenReport', ({reportID}) => {
+                if (reportID === optimisticReportID) {
+                    return {
                         onyxData: [
                             {
                                 onyxMethod: Onyx.METHOD.MERGE,
@@ -329,34 +421,31 @@ describe('Middleware', () => {
                                 },
                             },
                         ],
-                    }),
-                }))
-                .mockImplementationOnce(async () => ({
-                    ok: true,
+                    };
+                }
 
-                    json: async () => ({
-                        jsonCode: 200,
-                        onyxData: [
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: `${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`,
-                                value: {
-                                    reportID: preexistingReportID,
-                                    participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
+                return {
+                    onyxData: [
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: `${ONYXKEYS.COLLECTION.REPORT}${preexistingReportID}`,
+                            value: {
+                                reportID: preexistingReportID,
+                                participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
+                            },
+                        },
+                        {
+                            onyxMethod: Onyx.METHOD.MERGE,
+                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                            value: {
+                                [preexistingAccountID]: {
+                                    accountID: preexistingAccountID,
                                 },
                             },
-                            {
-                                onyxMethod: Onyx.METHOD.MERGE,
-                                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                                value: {
-                                    [preexistingAccountID]: {
-                                        accountID: preexistingAccountID,
-                                    },
-                                },
-                            },
-                        ],
-                    }),
-                }));
+                        },
+                    ],
+                };
+            });
 
             SequentialQueue.unpause();
             await SequentialQueue.waitForIdle();
@@ -431,31 +520,26 @@ describe('Middleware', () => {
                 SequentialQueue.push(request);
             }
 
-            (global.fetch as jest.Mock).mockImplementationOnce(async () => ({
-                ok: true,
-
-                json: async () => ({
-                    jsonCode: 200,
-                    onyxData: [
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
-                            value: {
-                                reportID: optimisticReportID,
-                                participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
+            fetchMock.mockAPICommand('OpenReport', () => ({
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[preexistingAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [preexistingAccountID]: {
+                                accountID: preexistingAccountID,
                             },
                         },
-                        {
-                            onyxMethod: Onyx.METHOD.MERGE,
-                            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                            value: {
-                                [preexistingAccountID]: {
-                                    accountID: preexistingAccountID,
-                                },
-                            },
-                        },
-                    ],
-                }),
+                    },
+                ],
             }));
 
             SequentialQueue.unpause();
@@ -487,6 +571,324 @@ describe('Middleware', () => {
             });
             expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
             expect(personalDetails?.[preexistingAccountID]).not.toBeUndefined();
+        });
+
+        test('OpenReport restores the invited login when the settled participant arrives without one', async () => {
+            const optimisticReportID = '1234';
+            const optimisticAccountID = 999;
+            const settledAccountID = 333;
+            const invitedEmail = 'invited@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [optimisticAccountID]: {
+                        accountID: optimisticAccountID,
+                        login: invitedEmail,
+                        isOptimisticPersonalDetail: true,
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: invitedEmail},
+                requestIndex: 13,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[settledAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [settledAccountID]: {
+                                accountID: settledAccountID,
+                            },
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+            expect(personalDetails?.[settledAccountID]?.login).toBe(invitedEmail);
+        });
+
+        test('OpenReport does not restore the invited login when the settled participant already has one', async () => {
+            const optimisticReportID = '1234';
+            const optimisticAccountID = 999;
+            const settledAccountID = 333;
+            const serverLogin = 'server@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [optimisticAccountID]: {
+                        accountID: optimisticAccountID,
+                        login: 'invited@example.com',
+                        isOptimisticPersonalDetail: true,
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: 'invited@example.com'},
+                requestIndex: 14,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[settledAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [settledAccountID]: {
+                                accountID: settledAccountID,
+                                login: serverLogin,
+                            },
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+            expect(personalDetails?.[settledAccountID]?.login).toBe(serverLogin);
+        });
+
+        test('OpenReport does not restore the invited login when the response sets an explicitly empty one', async () => {
+            const optimisticReportID = '1234';
+            const optimisticAccountID = 999;
+            const settledAccountID = 333;
+            const invitedEmail = 'invited@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[optimisticAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [optimisticAccountID]: {
+                        accountID: optimisticAccountID,
+                        login: invitedEmail,
+                        isOptimisticPersonalDetail: true,
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: invitedEmail},
+                requestIndex: 18,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[settledAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                        value: {
+                            [settledAccountID]: {
+                                accountID: settledAccountID,
+                                login: '',
+                            },
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[optimisticAccountID]).toBeUndefined();
+            expect(personalDetails?.[settledAccountID]?.login).toBe('');
+        });
+
+        test('OpenReport restores the invited login when the participant is already known without a login key', async () => {
+            const optimisticReportID = '1234';
+            const knownAccountID = 333;
+            const invitedEmail = 'invited@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[knownAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [knownAccountID]: {
+                        accountID: knownAccountID,
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: invitedEmail},
+                requestIndex: 15,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[knownAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[knownAccountID]?.login).toBe(invitedEmail);
+        });
+
+        test('OpenReport does not restore the invited login when the participant is already known with an explicitly empty one', async () => {
+            const optimisticReportID = '1234';
+            const knownAccountID = 333;
+            const invitedEmail = 'invited@example.com';
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}` as const]: {
+                    reportID: optimisticReportID,
+                    participants: {[knownAccountID]: {notificationPreference: 'always'}},
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [knownAccountID]: {
+                        accountID: knownAccountID,
+                        login: '',
+                        displayName: '',
+                    },
+                },
+            });
+
+            Request.addMiddleware(handleUnusedOptimisticID);
+            Request.addMiddleware(SaveResponseInOnyx);
+
+            SequentialQueue.push({
+                command: 'OpenReport',
+                data: {authToken: 'testToken', reportID: optimisticReportID, createdReportActionID: '5678', emailList: invitedEmail},
+                requestIndex: 16,
+            });
+
+            jest.spyOn(HttpUtils, 'xhr').mockResolvedValueOnce({
+                jsonCode: 200,
+                onyxData: [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE,
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`,
+                        value: {
+                            reportID: optimisticReportID,
+                            participants: {[knownAccountID]: {notificationPreference: 'always'}},
+                        },
+                    },
+                ],
+            });
+
+            SequentialQueue.unpause();
+            await SequentialQueue.waitForIdle();
+            await waitForBatchedUpdates();
+
+            const personalDetails = await new Promise<OnyxEntry<PersonalDetailsList>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                    callback: (data) => {
+                        Onyx.disconnect(connection);
+                        resolve(data);
+                    },
+                });
+            });
+            expect(personalDetails?.[knownAccountID]?.login).toBe('');
         });
     });
 });

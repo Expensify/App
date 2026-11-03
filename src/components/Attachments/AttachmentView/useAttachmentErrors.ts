@@ -1,5 +1,6 @@
-import {useCallback, useState} from 'react';
 import type {AttachmentSource} from '@components/Attachments/types';
+
+import {useState} from 'react';
 
 function convertSourceToString(source: AttachmentSource) {
     if (typeof source === 'string' || typeof source === 'number') {
@@ -25,7 +26,7 @@ function convertSourceToString(source: AttachmentSource) {
 function useAttachmentErrors() {
     const [attachmentErrors, setAttachmentErrors] = useState<Record<string, boolean>>({});
 
-    const setAttachmentError = useCallback((key: AttachmentSource, state = true) => {
+    const setAttachmentError = (key: AttachmentSource, state = true) => {
         const url = convertSourceToString(key);
         if (!url) {
             return;
@@ -34,13 +35,13 @@ function useAttachmentErrors() {
             ...prevState,
             [url]: state,
         }));
-    }, []);
+    };
 
-    const clearAttachmentErrors = useCallback(() => {
+    const clearAttachmentErrors = () => {
         setAttachmentErrors({});
-    }, []);
+    };
 
-    const isErrorInAttachment = useCallback((key: AttachmentSource) => attachmentErrors?.[convertSourceToString(key)], [attachmentErrors]);
+    const isErrorInAttachment = (key: AttachmentSource) => attachmentErrors?.[convertSourceToString(key)];
 
     return {setAttachmentError, clearAttachmentErrors, isErrorInAttachment};
 }

@@ -1,5 +1,6 @@
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 type AnchorForCommentsOnlyProps = ChildrenProps & {
     /** The URL to open */
@@ -13,10 +14,7 @@ type AnchorForCommentsOnlyProps = ChildrenProps & {
      This is unused in native, but is here for parity with web */
     target?: string;
 
-    /** Any additional styles to apply */
     style: StyleProp<TextStyle>;
-
-    /** Any additional styles to apply to the wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
 
     /** Press handler for the link, when not passed, default href is used to create a link like behaviour */

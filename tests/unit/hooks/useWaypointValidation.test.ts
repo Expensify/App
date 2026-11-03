@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useWaypointValidation, {isWaypointEmpty} from '@pages/iou/request/step/IOURequestStepDistance/hooks/useWaypointValidation';
+
 import type {Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 
 jest.mock('@libs/TransactionUtils', () => ({

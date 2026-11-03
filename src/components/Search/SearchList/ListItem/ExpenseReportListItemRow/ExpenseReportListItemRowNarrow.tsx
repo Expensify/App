@@ -1,48 +1,38 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
+import getExpenseReportRowDisplayValues from '@components/Search/SearchList/ListItem/getExpenseReportRowDisplayValues';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import DateUtils from '@libs/DateUtils';
+
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+import {getShiftKeyFromEvent} from '@libs/shiftRangeSelection';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {ExpenseReportListItemRowNarrowProps} from './types';
 
 function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSelectMultiple, isSelectAllChecked, isIndeterminate, isDisabledCheckbox}: ExpenseReportListItemRowNarrowProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
 
-    const currency = item.currency ?? CONST.CURRENCY.USD;
-    const {totalDisplaySpend = 0, isAllScanning: isScanning = false} = item;
-
-    const filteredTransactions = item.transactions?.filter((t) => t.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const expenseCount = (filteredTransactions?.length ? filteredTransactions.length : undefined) ?? item.transactionCount ?? 0;
-    const expenseCountText = translate('iou.expenseCount', {count: expenseCount});
-    const formattedDate = DateUtils.formatWithUTCTimeZone(
-        item.created ?? '',
-        DateUtils.doesDateBelongToAPastYear(item.created ?? '') ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
-    );
-
-    const amountText = isScanning ? translate('iou.receiptStatusTitle') : convertToDisplayString(totalDisplaySpend, currency);
-    const groupAccessibilityLabel = [item.reportName, amountText, formattedDate, expenseCountText].filter(Boolean).join(', ');
+    const {amount: amountText, date: formattedDate, expenseCountText} = getExpenseReportRowDisplayValues(item, {translate, dateFnsLocale, convertToDisplayString});
 
     return (
-        <View
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3]}
-            accessible
-            accessibilityLabel={groupAccessibilityLabel}
-            role={CONST.ROLE.BUTTON}
-        >
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pt3, styles.cursorPointer]}>
             {!!canSelectMultiple && (
                 <Checkbox
-                    onPress={onCheckboxPress}
+                    onPress={(event) => onCheckboxPress(getShiftKeyFromEvent(event))}
                     isChecked={isSelectAllChecked}
                     isIndeterminate={isIndeterminate}
                     containerStyle={styles.m0}
                     disabled={isDisabledCheckbox}
-                    accessibilityLabel={item.text ?? ''}
+                    accessibilityLabel={item.reportName ?? ''}
                     shouldStopMouseDownPropagation
                     style={[styles.cursorUnset, isDisabledCheckbox && styles.cursorDisabled]}
                     sentryLabel={CONST.SENTRY_LABEL.SEARCH.EXPENSE_REPORT_CHECKBOX}
@@ -50,17 +40,39 @@ function ExpenseReportListItemRowNarrow({item, onCheckboxPress = () => {}, canSe
             )}
             <View style={[styles.flexColumn, styles.gap1, styles.flex1]}>
                 <View style={[styles.flexRow, styles.gap2]}>
+                    <View style={styles.flex1}>
+                        <Text
+                            numberOfLines={2}
+                            style={[styles.lh20, styles.flex1]}
+                            selectable
+                            dataSet={COPYABLE_TEXT_DATA_SET}
+                        >
+                            {item.reportName ?? ''}
+                        </Text>
+                    </View>
                     <Text
-                        numberOfLines={2}
-                        style={[styles.lh20, styles.flex1]}
+                        style={[styles.lh20, styles.flexShrink0, styles.textAlignRight]}
+                        selectable
+                        dataSet={COPYABLE_TEXT_DATA_SET}
                     >
-                        {item.reportName ?? ''}
+                        {amountText}
                     </Text>
-                    <Text style={[styles.lh20, styles.flexShrink0, styles.textAlignRight]}>{amountText}</Text>
                 </View>
                 <View style={[styles.flexRow, styles.gap2]}>
-                    <Text style={[styles.mutedNormalTextLabel, styles.flex1]}>{formattedDate}</Text>
-                    <Text style={[styles.mutedNormalTextLabel, styles.flexShrink0, styles.textAlignRight]}>{expenseCountText}</Text>
+                    <Text
+                        style={[styles.mutedNormalTextLabel, styles.flex1]}
+                        selectable
+                        dataSet={COPYABLE_TEXT_DATA_SET}
+                    >
+                        {formattedDate}
+                    </Text>
+                    <Text
+                        style={[styles.mutedNormalTextLabel, styles.flexShrink0, styles.textAlignRight]}
+                        selectable
+                        dataSet={COPYABLE_TEXT_DATA_SET}
+                    >
+                        {expenseCountText}
+                    </Text>
                 </View>
             </View>
         </View>

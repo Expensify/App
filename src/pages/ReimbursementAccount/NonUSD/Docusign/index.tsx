@@ -1,13 +1,18 @@
-import React, {useEffect, useMemo} from 'react';
 import DocusignFullStep from '@components/SubStepForms/DocusignFullStep';
+
 import useOnyx from '@hooks/useOnyx';
+
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import {clearReimbursementAccountFinishCorpayBankAccountOnboarding, finishCorpayBankAccountOnboarding} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React, {useEffect} from 'react';
 
 const INPUT_KEYS = {
     PROVIDE_TRUTHFUL_INFORMATION: INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION,
@@ -15,12 +20,13 @@ const INPUT_KEYS = {
     CONSENT_TO_PRIVACY_NOTICE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.CONSENT_TO_PRIVACY_NOTICE,
     AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: INPUT_IDS.ADDITIONAL_DATA.CORPAY.AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT,
     ACH_AUTHORIZATION_FORM: INPUT_IDS.ADDITIONAL_DATA.CORPAY.ACH_AUTHORIZATION_FORM,
+    BANK_STATEMENT: INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT,
 };
 
 function Docusign({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPageProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const finalStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const finalStepValues = getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
     const submit = () => {
@@ -32,6 +38,7 @@ function Docusign({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPage
                 authorizedToBindClientToAgreement: finalStepValues.authorizedToBindClientToAgreement,
             }),
             achAuthorizationForm: finalStepValues.achAuthorizationForm.at(0),
+            bankStatement: finalStepValues.bankStatement.at(0),
             bankAccountID,
         });
     };

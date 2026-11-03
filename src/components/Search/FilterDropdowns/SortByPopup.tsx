@@ -1,7 +1,4 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import ListFilterWrapper from '@components/Search/FilterComponents/ListFilterViewWrapper';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import {useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -9,19 +6,31 @@ import type {SearchGroupBy, SearchQueryJSON, SearchSortBy} from '@components/Sea
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildSearchQueryString} from '@libs/SearchQueryUtils';
+import {buildSearchQueryString, queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getSortByOptions} from '@libs/SearchUIUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {columnsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 import BasePopup from './BasePopup';
 
 const DIVIDER_HEIGHT = 25;
@@ -44,13 +53,24 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const [policyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const isVendorColumnAvailable = useIsVendorColumnAvailable();
 
     const searchDataType = shouldUseLiveData ? CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT : searchResults?.search?.type;
+    const shouldReturnTripRooms = useShouldReturnTripRooms(searchDataType);
     const currentColumns = !searchResults?.data
         ? []
-        : getColumnsToShow({currentAccountID: accountID, data: searchResults.data, visibleColumns, type: searchDataType, groupBy: groupBy?.value, policyCategories});
-    const sortableColumns = getSortByOptions(currentColumns, translate);
+        : getColumnsToShow({
+              currentAccountID: accountID,
+              data: searchResults.data,
+              visibleColumns,
+              type: searchDataType,
+              groupBy: groupBy?.value,
+              sortBy: queryJSON.sortBy,
+              shouldShowViolationsColumn: queryHasViolationFilter(queryJSON),
+              isVendorColumnAvailable,
+              shouldReturnTripRooms,
+          });
+    const sortableColumns = getSortByOptions(currentColumns, translate, searchDataType);
     const sortOrder = queryJSON.sortOrder;
 
     const [selectedItem, setSelectedItem] = useState(queryJSON.sortBy);
@@ -103,11 +123,10 @@ function SortByPopup({searchResults, queryJSON, groupBy, onSort, onSortOrderPres
                 hasHeader
                 extraHeight={variables.optionRowHeight + DIVIDER_HEIGHT}
             >
-                <MenuItemWithTopDescription
-                    shouldShowRightIcon
-                    description={translate('search.display.sortOrder')}
-                    title={sortOrder ? translate(`search.filters.sortOrder.${sortOrder}`) : undefined}
+                <MenuItemField
+                    name={translate('search.display.sortOrder')}
                     onPress={onSortOrderPress}
+                    value={sortOrder ? translate(`search.filters.sortOrder.${sortOrder}`) : undefined}
                 />
                 <View style={styles.dividerLine} />
                 <SelectionList

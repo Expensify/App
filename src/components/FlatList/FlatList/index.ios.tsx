@@ -1,11 +1,15 @@
-import React, {useCallback, useRef, useState} from 'react';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import {FlatList} from 'react-native';
 import useFlatListHandle from '@components/FlatList/hooks/useFlatListHandle';
 import type {FlatListInnerRefType} from '@components/FlatList/hooks/useFlatListHandle';
 import KeyboardDismissibleFlatList from '@components/KeyboardDismissibleFlatList';
+
 import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+
+import React, {useRef, useState} from 'react';
+import {FlatList} from 'react-native';
+
 import type {CustomFlatListProps} from './types';
 
 // On iOS, we have to unset maintainVisibleContentPosition while the user is scrolling to prevent jumping to the beginning issue
@@ -22,30 +26,21 @@ function CustomFlatList<T>({
 }: CustomFlatListProps<T>) {
     const [isScrolling, setIsScrolling] = useState(false);
     const styles = useThemeStyles();
-    const handleScrollBegin = useCallback(
-        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            onMomentumScrollBegin?.(event);
-            setIsScrolling(true);
-        },
-        [onMomentumScrollBegin],
-    );
+    const handleScrollBegin = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        onMomentumScrollBegin?.(event);
+        setIsScrolling(true);
+    };
 
-    const handleScrollEnd = useCallback(
-        (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-            onMomentumScrollEnd?.(event);
-            setIsScrolling(false);
-        },
-        [onMomentumScrollEnd],
-    );
+    const handleScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        onMomentumScrollEnd?.(event);
+        setIsScrolling(false);
+    };
 
-    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: !enableAnimatedKeyboardDismissal, inverted: restProps.inverted});
-    const handleScroll = useCallback(
-        (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-            onScrollProp?.(e);
-            emitComposerScrollEvents();
-        },
-        [emitComposerScrollEvents, onScrollProp],
-    );
+    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: !enableAnimatedKeyboardDismissal && !!restProps.inverted});
+    const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+        onScrollProp?.(e);
+        emitComposerScrollEvents();
+    };
 
     const listRef = useRef<FlatListInnerRefType<T> | null>(null);
     useFlatListHandle<T>({

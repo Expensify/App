@@ -1,5 +1,6 @@
-import {TurboModuleRegistry} from 'react-native';
 import type {TurboModule} from 'react-native';
+
+import {TurboModuleRegistry} from 'react-native';
 
 type PlaidBridge = TurboModule & {
     continueFromRedirectUri: (urlString: string) => void;

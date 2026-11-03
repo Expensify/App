@@ -1,17 +1,26 @@
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {FullPolicySnapshot, Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {
+    isCollectingDepositAccountsSelector,
+    createIsInternationalCountrySelector,
     activeAdminPoliciesSelector,
     adminPoliciesConnectedToQBDSelector,
+    createHasAdminPolicyWithXeroConnectionSelector,
+    createHasWorkspaceToSubmitToSelector,
     createOwnedPaidPoliciesCountsSelector,
-    hasMultipleOutputCurrenciesSelector,
+    createTimeSensitiveAdminPoliciesSelector,
+    fullPolicySnapshotLastModifiedByPolicyIDSelector,
     hasOnlyPersonalPoliciesSelector,
-    hasPoliciesConnectedToQBDSelector,
     hasReusablePoliciesConnectedToSelector,
     reusablePoliciesConnectedToSelector,
 } from '@selectors/Policy';
-import type {OnyxCollection} from 'react-native-onyx';
-import CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
 
 const OWNER_ACCOUNT_ID = 1;
 
@@ -38,8 +47,8 @@ describe('createOwnedPaidPoliciesCountsSelector', () => {
         const policies: OnyxCollection<Policy> = {
             policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
             policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: null},
-            policy3: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.PERSONAL)},
-            policy4: {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM)},
+            policy3: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.PERSONAL), pendingAction: null},
+            policy4: {...createRandomPolicy(2, CONST.POLICY.TYPE.TEAM), pendingAction: null},
         };
         const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
         expect(selector(policies)).toEqual({total: 2, active: 2});
@@ -54,6 +63,53 @@ describe('createOwnedPaidPoliciesCountsSelector', () => {
         expect(selector(policies)).toEqual({total: 2, active: 1});
     });
 
+    it('excludes archived policies from both counts', () => {
+        // Given an owned paid workspace and an archived owned paid workspace
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2026-09-24 11:29:34.000'},
+        };
+
+        // When the counts are selected
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+
+        // Then the archived workspace is ignored, so the remaining one is still counted as the user's last paid workspace
+        expect(selector(policies)).toEqual({total: 1, active: 1});
+    });
+
+    it('excludes archived policies but keeps pending deletion in the total count', () => {
+        // Given an active, a pending delete and an archived owned paid workspace
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
+            policy2: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            policy3: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2026-09-24 11:29:34.000'},
+        };
+
+        // When the counts are selected
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+
+        // Then only the archived workspace drops out of the total, while the pending delete one is still excluded from the active count
+        expect(selector(policies)).toEqual({total: 2, active: 1});
+    });
+
+    it('excludes a policy that is being archived optimistically', () => {
+        // Given an owned paid workspace and another one mid-archive, which `archivePolicy` marks with `archivedDate` and a pending UPDATE rather than a pending DELETE
+        const policies: OnyxCollection<Policy> = {
+            policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: null},
+            policy2: {
+                ...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.CORPORATE),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                archivedDate: '2026-09-24 11:29:34.000',
+            },
+        };
+
+        // When the counts are selected
+        const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
+
+        // Then the workspace being archived is already excluded, so the pending UPDATE does not keep it in the counts
+        expect(selector(policies)).toEqual({total: 1, active: 1});
+    });
+
     it('returns zero active when all owned paid policies are pending deletion', () => {
         const policies: OnyxCollection<Policy> = {
             policy1: {...createRandomPolicy(OWNER_ACCOUNT_ID, CONST.POLICY.TYPE.TEAM), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
@@ -61,49 +117,6 @@ describe('createOwnedPaidPoliciesCountsSelector', () => {
         };
         const selector = createOwnedPaidPoliciesCountsSelector(OWNER_ACCOUNT_ID);
         expect(selector(policies)).toEqual({total: 2, active: 0});
-    });
-});
-
-describe('hasMultipleOutputCurrenciesSelector', () => {
-    it('returns false when paid group policies have the same output currency', () => {
-        const policies: OnyxCollection<Policy> = {
-            policy1: {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), outputCurrency: 'USD'},
-            policy2: {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), outputCurrency: 'USD'},
-        };
-
-        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(false);
-    });
-
-    it('returns true when paid group policies have different output currencies', () => {
-        const policies: OnyxCollection<Policy> = {
-            policy1: {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), outputCurrency: 'USD'},
-            policy2: {...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE), outputCurrency: 'EUR'},
-        };
-
-        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(true);
-    });
-
-    it('returns false when policies object is empty', () => {
-        const policies: OnyxCollection<Policy> = {};
-
-        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(false);
-    });
-
-    it('returns false when there are only personal policies', () => {
-        const policies: OnyxCollection<Policy> = {
-            policy1: {...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL), outputCurrency: 'USD'},
-            policy2: {...createRandomPolicy(2, CONST.POLICY.TYPE.PERSONAL), outputCurrency: 'EUR'},
-        };
-
-        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(false);
-    });
-
-    it('returns false when there is only a single paid group policy', () => {
-        const policies: OnyxCollection<Policy> = {
-            policy1: {...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM), outputCurrency: 'USD'},
-        };
-
-        expect(hasMultipleOutputCurrenciesSelector(policies)).toBe(false);
     });
 });
 
@@ -120,14 +133,14 @@ function buildSelectorPolicy(id: number, overrides: Partial<Policy>): Policy {
 function buildNetSuitePolicy(id: number, overrides: Partial<Policy> = {}): Policy {
     return buildSelectorPolicy(id, {
         role: CONST.POLICY.ROLE.ADMIN,
-        connections: {
+        connections: createMock<Policy['connections']>({
             netsuite: {
                 verified: true,
                 lastSync: {
                     isSuccessful: true,
                 },
             },
-        } as Policy['connections'],
+        }),
         ...overrides,
     });
 }
@@ -135,14 +148,14 @@ function buildNetSuitePolicy(id: number, overrides: Partial<Policy> = {}): Polic
 function buildSageIntacctPolicy(id: number, overrides: Partial<Policy> = {}): Policy {
     return buildSelectorPolicy(id, {
         role: CONST.POLICY.ROLE.ADMIN,
-        connections: {
+        connections: createMock<Policy['connections']>({
             intacct: {
                 lastSync: {
                     isConnected: true,
                     isSuccessful: true,
                 },
             },
-        } as Policy['connections'],
+        }),
         ...overrides,
     });
 }
@@ -195,10 +208,85 @@ describe('activeAdminPoliciesSelector', () => {
     });
 });
 
+describe('createHasAdminPolicyWithXeroConnectionSelector', () => {
+    const xeroConnections = createMock<Policy['connections']>({xero: {lastSync: {isSuccessful: true}}});
+
+    it('returns true when an administered workspace has a Xero connection', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN, connections: xeroConnections}),
+        };
+
+        expect(createHasAdminPolicyWithXeroConnectionSelector(TEST_LOGIN)(policies)).toBe(true);
+    });
+
+    it('returns false when the Xero-connected workspace is not administered by the user', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.USER, connections: xeroConnections}),
+        };
+
+        expect(createHasAdminPolicyWithXeroConnectionSelector(TEST_LOGIN)(policies)).toBe(false);
+    });
+
+    it('returns false when no workspace has a Xero connection', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN, connections: undefined}),
+        };
+
+        expect(createHasAdminPolicyWithXeroConnectionSelector(TEST_LOGIN)(policies)).toBe(false);
+    });
+});
+
+describe('createTimeSensitiveAdminPoliciesSelector', () => {
+    const brokenXero = createMock<Policy['connections']>({xero: {lastSync: {isSuccessful: false, errorDate: '2026-08-01'}}});
+
+    it('narrows each administered workspace to the fields the widgets read', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {id: 'policy1', role: CONST.POLICY.ROLE.ADMIN, connections: undefined}),
+        };
+
+        expect(Object.keys(createTimeSensitiveAdminPoliciesSelector(TEST_LOGIN, undefined)(policies).policies.at(0) ?? {}).sort()).toEqual(['achAccount', 'id', 'name', 'policyAccountID']);
+    });
+
+    it('reports the connection in an error state', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {id: 'policy1', name: 'Broken Xero', role: CONST.POLICY.ROLE.ADMIN, connections: brokenXero}),
+        };
+
+        expect(createTimeSensitiveAdminPoliciesSelector(TEST_LOGIN, undefined)(policies).brokenConnections).toEqual([
+            {policyID: 'policy1', policyName: 'Broken Xero', connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO, integrationName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.xero},
+        ]);
+    });
+
+    it('suppresses the error while a sync for that policy is in progress', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {id: 'policy1', name: 'Broken Xero', role: CONST.POLICY.ROLE.ADMIN, connections: brokenXero}),
+        };
+        const connectionSyncProgress = {
+            [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}policy1`]: {
+                stageInProgress: CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.XERO_SYNC_STEP,
+                connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
+                timestamp: new Date().toISOString(),
+            },
+        };
+
+        const result = createTimeSensitiveAdminPoliciesSelector(TEST_LOGIN, connectionSyncProgress)(policies);
+        expect(result.brokenConnections).toEqual([]);
+        expect(result.policies).toHaveLength(1);
+    });
+
+    it('ignores workspaces the user does not administer', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {id: 'policy1', role: CONST.POLICY.ROLE.USER, connections: brokenXero}),
+        };
+
+        expect(createTimeSensitiveAdminPoliciesSelector(TEST_LOGIN, undefined)(policies)).toEqual({policies: [], brokenConnections: []});
+    });
+});
+
 describe('adminPoliciesConnectedToQBDSelector', () => {
     it('returns admin policies with QBD connections', () => {
         const policies: OnyxCollection<Policy> = {
-            policy1: buildSelectorPolicy(1, {name: 'QBD Policy', role: CONST.POLICY.ROLE.ADMIN, connections: {quickbooksDesktop: {}} as Policy['connections']}),
+            policy1: buildSelectorPolicy(1, {name: 'QBD Policy', role: CONST.POLICY.ROLE.ADMIN, connections: createMock<Policy['connections']>({quickbooksDesktop: {}})}),
             policy2: buildSelectorPolicy(2, {name: 'No Connection', role: CONST.POLICY.ROLE.ADMIN}),
         };
 
@@ -209,7 +297,7 @@ describe('adminPoliciesConnectedToQBDSelector', () => {
 
     it('excludes non-admin policies with QBD connections', () => {
         const policies: OnyxCollection<Policy> = {
-            policy1: buildSelectorPolicy(1, {name: 'User QBD', role: CONST.POLICY.ROLE.USER, connections: {quickbooksDesktop: {}} as Policy['connections']}),
+            policy1: buildSelectorPolicy(1, {name: 'User QBD', role: CONST.POLICY.ROLE.USER, connections: createMock<Policy['connections']>({quickbooksDesktop: {}})}),
         };
 
         expect(adminPoliciesConnectedToQBDSelector(policies)).toHaveLength(0);
@@ -224,28 +312,6 @@ describe('adminPoliciesConnectedToQBDSelector', () => {
     });
 });
 
-describe('hasPoliciesConnectedToQBDSelector', () => {
-    it('returns true when admin policies with QBD connections exist', () => {
-        const policies: OnyxCollection<Policy> = {
-            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN, connections: {quickbooksDesktop: {}} as Policy['connections']}),
-        };
-
-        expect(hasPoliciesConnectedToQBDSelector(policies)).toBe(true);
-    });
-
-    it('returns false when no QBD connections exist', () => {
-        const policies: OnyxCollection<Policy> = {
-            policy1: buildSelectorPolicy(1, {role: CONST.POLICY.ROLE.ADMIN}),
-        };
-
-        expect(hasPoliciesConnectedToQBDSelector(policies)).toBe(false);
-    });
-
-    it('returns false for empty collection', () => {
-        expect(hasPoliciesConnectedToQBDSelector({})).toBe(false);
-    });
-});
-
 describe('reusablePoliciesConnectedToSelector for QBD', () => {
     it('includes healthy QBD admin workspaces from other policies', () => {
         const currentPolicyID = '1';
@@ -253,26 +319,26 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
             policy1: buildSelectorPolicy(1, {
                 name: 'Current Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {
+                connections: createMock<Policy['connections']>({
                     quickbooksDesktop: {
                         lastSync: {
                             isConnected: true,
                             isSuccessful: true,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
             policy2: buildSelectorPolicy(2, {
                 name: 'Healthy Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {
+                connections: createMock<Policy['connections']>({
                     quickbooksDesktop: {
                         lastSync: {
                             isConnected: true,
                             isSuccessful: true,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -288,14 +354,14 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
             policy1: buildSelectorPolicy(1, {
                 name: 'Current Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {
+                connections: createMock<Policy['connections']>({
                     quickbooksDesktop: {
                         lastSync: {
                             isConnected: true,
                             isSuccessful: true,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -312,7 +378,7 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
             policy2: buildSelectorPolicy(2, {
                 name: 'Unsynced Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {quickbooksDesktop: {}} as Policy['connections'],
+                connections: createMock<Policy['connections']>({quickbooksDesktop: {}}),
             }),
         };
 
@@ -326,7 +392,7 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
             policy2: buildSelectorPolicy(2, {
                 name: 'Errored Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {
+                connections: createMock<Policy['connections']>({
                     quickbooksDesktop: {
                         lastSync: {
                             errorDate: new Date().toISOString(),
@@ -334,7 +400,7 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
                             isSuccessful: false,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -350,7 +416,7 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
             policy2: buildSelectorPolicy(2, {
                 name: 'Retrying Workspace',
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {
+                connections: createMock<Policy['connections']>({
                     quickbooksDesktop: {
                         lastSync: {
                             errorDate: new Date().toISOString(),
@@ -358,7 +424,7 @@ describe('reusablePoliciesConnectedToSelector for QBD', () => {
                             isSuccessful: false,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -372,14 +438,14 @@ describe('hasReusablePoliciesConnectedToSelector for QBD', () => {
         const policies: OnyxCollection<Policy> = {
             policy1: buildSelectorPolicy(1, {
                 role: CONST.POLICY.ROLE.ADMIN,
-                connections: {
+                connections: createMock<Policy['connections']>({
                     quickbooksDesktop: {
                         lastSync: {
                             isConnected: true,
                             isSuccessful: true,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -409,7 +475,7 @@ describe('reusablePoliciesConnectedToSelector for NetSuite', () => {
             policy2: buildNetSuitePolicy(2, {name: 'Healthy Workspace'}),
             policy3: buildNetSuitePolicy(3, {
                 name: 'Broken Workspace',
-                connections: {
+                connections: createMock<Policy['connections']>({
                     netsuite: {
                         verified: true,
                         lastSync: {
@@ -417,15 +483,15 @@ describe('reusablePoliciesConnectedToSelector for NetSuite', () => {
                             isSuccessful: false,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
             policy4: buildNetSuitePolicy(4, {
                 name: 'Unverified Workspace',
-                connections: {
+                connections: createMock<Policy['connections']>({
                     netsuite: {
                         verified: false,
                     },
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -441,7 +507,7 @@ describe('reusablePoliciesConnectedToSelector for Sage Intacct', () => {
             policy2: buildSageIntacctPolicy(2, {name: 'Healthy Workspace'}),
             policy3: buildSageIntacctPolicy(3, {
                 name: 'Broken Workspace',
-                connections: {
+                connections: createMock<Policy['connections']>({
                     intacct: {
                         lastSync: {
                             errorDate: new Date().toISOString(),
@@ -449,13 +515,13 @@ describe('reusablePoliciesConnectedToSelector for Sage Intacct', () => {
                             isSuccessful: false,
                         },
                     },
-                } as Policy['connections'],
+                }),
             }),
             policy4: buildSageIntacctPolicy(4, {
                 name: 'Unverified Workspace',
-                connections: {
+                connections: createMock<Policy['connections']>({
                     intacct: {},
-                } as Policy['connections'],
+                }),
             }),
         };
 
@@ -480,5 +546,205 @@ describe('hasOnlyPersonalPoliciesSelector', () => {
         };
 
         expect(hasOnlyPersonalPoliciesSelector(policies)).toBe(false);
+    });
+});
+
+describe('createHasWorkspaceToSubmitToSelector', () => {
+    const USER_LOGIN = 'user@test.com';
+
+    it('returns false when there are no policies', () => {
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)({})).toBe(false);
+    });
+
+    it('returns false when policies are undefined', () => {
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(undefined)).toBe(false);
+    });
+
+    it('returns true when there is an active paid group policy the user has a role in', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(true);
+    });
+
+    it('returns false when the only policy is personal (not a paid group)', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.PERSONAL, role: CONST.POLICY.ROLE.ADMIN}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(false);
+    });
+
+    it('returns false when the only paid group policy is pending deletion', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.TEAM, role: CONST.POLICY.ROLE.ADMIN, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(false);
+    });
+
+    it('returns false when the user has no role in the paid group policy', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.TEAM, role: undefined, employeeList: {}}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(false);
+    });
+
+    it("resolves the user's access from the policy employeeList when no global role is set", () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                type: CONST.POLICY.TYPE.TEAM,
+                role: undefined,
+                employeeList: {[USER_LOGIN]: {email: USER_LOGIN, role: CONST.POLICY.ROLE.USER, submitsTo: ''}},
+            }),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(true);
+        expect(createHasWorkspaceToSubmitToSelector('other@test.com')(policies)).toBe(false);
+    });
+
+    it('returns false when login is undefined and policies rely on the employeeList', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {
+                type: CONST.POLICY.TYPE.TEAM,
+                role: undefined,
+                employeeList: {[USER_LOGIN]: {email: USER_LOGIN, role: CONST.POLICY.ROLE.USER, submitsTo: ''}},
+            }),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(undefined)(policies)).toBe(false);
+    });
+
+    it('returns true for a Submit (submit2026) workspace', () => {
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {type: CONST.POLICY.TYPE.SUBMIT, role: CONST.POLICY.ROLE.USER}),
+        };
+
+        expect(createHasWorkspaceToSubmitToSelector(USER_LOGIN)(policies)).toBe(true);
+    });
+});
+
+describe('isCollectingDepositAccountsSelector', () => {
+    it('returns true when any workspace collects deposit accounts', () => {
+        // Given one workspace that collects deposit accounts and one that does not
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false}),
+            policy2: buildSelectorPolicy(2, {isCollectDepositAccountsEnabled: true}),
+        };
+
+        // When checking whether the collect flow applies to the user
+        // Then it does, because the collecting workspace still wants the employee's details
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(true);
+    });
+
+    it('returns false when no workspace collects deposit accounts', () => {
+        // Given only workspaces that do not collect deposit accounts
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: false}),
+            policy2: buildSelectorPolicy(2, {}),
+        };
+
+        // When checking whether the collect flow applies to the user
+        // Then it is not offered, because nobody is asking the employee for their details
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(false);
+    });
+
+    it('returns false when the only collecting workspace is pending deletion', () => {
+        // Given a collecting workspace that is on its way out
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
+        };
+
+        // When checking whether the collect flow applies to the user
+        // Then it is not offered, because that workspace will never reimburse anyone
+        expect(isCollectingDepositAccountsSelector(policies)).toBe(false);
+    });
+});
+
+describe('createIsInternationalCountrySelector', () => {
+    const collectingGB: OnyxCollection<Policy> = {
+        policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, reimbursement: {countries: {GB: {}}}}),
+    };
+
+    it('returns false when every collecting workspace banks in that country', () => {
+        // Given a collecting workspace with a GB bank account
+        // When the employee adds a GB account
+        // Then local details are collected, because the employer can pay them domestically
+        expect(createIsInternationalCountrySelector('GB')(collectingGB)).toBe(false);
+    });
+
+    it('returns true when no collecting workspace banks in that country', () => {
+        // Given a collecting workspace that only banks in GB
+        // When the employee adds a DE account
+        // Then wire details are collected, because the money has to arrive from abroad
+        expect(createIsInternationalCountrySelector('DE')(collectingGB)).toBe(true);
+    });
+
+    it('returns true when only some collecting workspaces bank in that country', () => {
+        // Given one collecting workspace banking in GB and another banking in the US
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, reimbursement: {countries: {GB: {}}}}),
+            policy2: buildSelectorPolicy(2, {isCollectDepositAccountsEnabled: true, reimbursement: {countries: {US: {}}}}),
+        };
+
+        // When the employee adds a GB account
+        // Then wire details are collected, because the one account has to work for the US workspace too
+        expect(createIsInternationalCountrySelector('GB')(policies)).toBe(true);
+    });
+
+    it('ignores a workspace that is pending deletion', () => {
+        // Given a collecting workspace banking in GB and an archived one banking in the US
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, reimbursement: {countries: {GB: {}}}}),
+            policy2: buildSelectorPolicy(2, {
+                isCollectDepositAccountsEnabled: true,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                reimbursement: {countries: {US: {}}},
+            }),
+        };
+
+        // When the employee adds a GB account
+        // Then local details are collected, because the archived workspace will never pay them
+        expect(createIsInternationalCountrySelector('GB')(policies)).toBe(false);
+    });
+
+    it('ignores a workspace that does not collect deposit accounts', () => {
+        // Given a collecting workspace banking in GB and a non-collecting one banking in the US
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true, reimbursement: {countries: {GB: {}}}}),
+            policy2: buildSelectorPolicy(2, {isCollectDepositAccountsEnabled: false, reimbursement: {countries: {US: {}}}}),
+        };
+
+        // When the employee adds a GB account
+        // Then local details are collected, because that workspace says nothing about how they are paid
+        expect(createIsInternationalCountrySelector('GB')(policies)).toBe(false);
+    });
+
+    it('returns true for a collecting workspace that banks nowhere', () => {
+        // Given a collecting workspace with no bank account country yet
+        const policies: OnyxCollection<Policy> = {
+            policy1: buildSelectorPolicy(1, {isCollectDepositAccountsEnabled: true}),
+        };
+
+        // When the employee adds a GB account
+        // Then wire details are collected, because that workspace cannot pay anyone domestically
+        expect(createIsInternationalCountrySelector('GB')(policies)).toBe(true);
+    });
+});
+
+describe('fullPolicySnapshotLastModifiedByPolicyIDSelector', () => {
+    it('maps each policyID to the lastModified of its full policy snapshot', () => {
+        // Given full policy snapshots for two policies and a snapshot without a lastModified
+        const snapshots: OnyxCollection<FullPolicySnapshot> = {
+            [`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`]: {lastModified: 123},
+            [`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy2`]: {lastModified: 456},
+            [`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy3`]: {},
+        };
+
+        // When the snapshots are mapped by policy
+        // Then each policyID comes from its key, and the snapshot without a lastModified is left out so it is never sent to OpenReport
+        expect(fullPolicySnapshotLastModifiedByPolicyIDSelector(snapshots)).toEqual({policy1: 123, policy2: 456});
     });
 });

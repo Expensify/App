@@ -1,13 +1,17 @@
-import React, {useCallback} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import {getFieldRequiredErrors, isValidTaxIDEINNumber} from '@libs/ValidationUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React from 'react';
 
 type TaxIDEINNumberProps = SubPageProps;
 
@@ -23,18 +27,15 @@ function TaxIDEINNumber({onNext, onMove, isEditing}: TaxIDEINNumberProps) {
     const defaultValue = reimbursementAccount?.achData?.corpay?.[TAX_ID_EIN_NUMBER] ?? '';
     const businessStepCountryValue = reimbursementAccount?.achData?.corpay?.[COMPANY_COUNTRY_CODE] ?? reimbursementAccountDraft?.[COMPANY_COUNTRY_CODE] ?? '';
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
-            if (values[TAX_ID_EIN_NUMBER] && !isValidTaxIDEINNumber(values[TAX_ID_EIN_NUMBER], businessStepCountryValue)) {
-                errors[TAX_ID_EIN_NUMBER] = translate('businessInfoStep.error.taxIDEIN', businessStepCountryValue);
-            }
+        if (values[TAX_ID_EIN_NUMBER] && !isValidTaxIDEINNumber(values[TAX_ID_EIN_NUMBER], businessStepCountryValue)) {
+            errors[TAX_ID_EIN_NUMBER] = translate('businessInfoStep.error.taxIDEIN', businessStepCountryValue);
+        }
 
-            return errors;
-        },
-        [businessStepCountryValue, translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

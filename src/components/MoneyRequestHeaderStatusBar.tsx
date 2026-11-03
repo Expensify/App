@@ -1,7 +1,10 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ReactElement, ReactNode} from 'react';
+
 import React from 'react';
 import {View} from 'react-native';
-import useThemeStyles from '@hooks/useThemeStyles';
+
 import Text from './Text';
 
 type MoneyRequestHeaderStatusBarProps = {
@@ -11,7 +14,6 @@ type MoneyRequestHeaderStatusBarProps = {
     /** Banner Description */
     description: string | ReactElement;
 
-    /** Whether we style flex grow */
     shouldStyleFlexGrow?: boolean;
 };
 

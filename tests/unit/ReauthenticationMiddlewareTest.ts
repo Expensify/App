@@ -1,7 +1,7 @@
-import Onyx from 'react-native-onyx';
 import Reauthentication from '@libs/Middleware/Reauthentication';
 import SaveResponseInOnyx from '@libs/Middleware/SaveResponseInOnyx';
 import reauthenticate from '@libs/Reauthentication';
+
 import CONST from '@src/CONST';
 import * as PersistedRequests from '@src/libs/actions/PersistedRequests';
 import HttpsError from '@src/libs/Errors/HttpsError';
@@ -14,6 +14,9 @@ import {setHasRadio} from '@src/libs/NetworkState';
 import * as Request from '@src/libs/Request';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type OnyxRequest from '@src/types/onyx/Request';
+
+import Onyx from 'react-native-onyx';
+
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForNetworkPromises from '../utils/waitForNetworkPromises';
@@ -44,7 +47,7 @@ beforeEach(() => {
 
 describe('Reauthentication middleware', () => {
     test('clears original request failure updates when failed reauthentication redirects to sign-in', () => {
-        jest.mocked(reauthenticate).mockResolvedValueOnce(false);
+        jest.mocked(reauthenticate).mockResolvedValueOnce({wasSuccessful: false});
 
         const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
             command: 'TestCommand',
@@ -78,8 +81,43 @@ describe('Reauthentication middleware', () => {
         });
     });
 
+    test('preserves original request failure and finally data when reauthentication restores the original session', () => {
+        jest.mocked(reauthenticate).mockResolvedValueOnce({wasSuccessful: false, didRestoreOriginalSession: true});
+
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'TestCommand',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.MAKE_REQUEST_WITH_SIDE_EFFECTS},
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NETWORK,
+                    value: {shouldFailAllRequests: true},
+                },
+            ],
+            finallyData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NETWORK,
+                    value: {shouldForceOffline: true},
+                },
+            ],
+        };
+
+        return Reauthentication(
+            Promise.resolve({
+                jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+            }),
+            request,
+            false,
+        ).then((response) => {
+            expect(response?.jsonCode).toBe(CONST.JSON_CODE.NOT_AUTHENTICATED);
+            expect(request.failureData).toBeDefined();
+            expect(request.finallyData).toBeDefined();
+        });
+    });
+
     test('does not apply original request failure data after failed reauthentication redirects to sign-in', () => {
-        jest.mocked(reauthenticate).mockResolvedValueOnce(false);
+        jest.mocked(reauthenticate).mockResolvedValueOnce({wasSuccessful: false});
 
         let shouldFailAllRequests: boolean | undefined;
         let shouldForceOffline: boolean | undefined;
@@ -122,6 +160,64 @@ describe('Reauthentication middleware', () => {
             .then(() => {
                 expect(shouldFailAllRequests).toBeFalsy();
                 expect(shouldForceOffline).toBeFalsy();
+            });
+    });
+
+    test('rejects a queued write when reauthentication gives up so the queue keeps it', () => {
+        jest.mocked(reauthenticate).mockResolvedValueOnce({wasSuccessful: false});
+
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'TestCommand',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE},
+        };
+
+        return expect(
+            Reauthentication(
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                }),
+                request,
+                true,
+            ),
+        ).rejects.toThrow('Failed to reauthenticate');
+    });
+
+    test('keeps the failure updates of a queued write when reauthentication gives up and signs out', () => {
+        // Same mock as the abort case on purpose: the middleware cannot tell the two apart.
+        jest.mocked(reauthenticate).mockResolvedValueOnce({wasSuccessful: false});
+
+        const request: OnyxRequest<typeof ONYXKEYS.NETWORK> = {
+            command: 'TestCommand',
+            data: {apiRequestType: CONST.API_REQUEST_TYPE.WRITE},
+            failureData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NETWORK,
+                    value: {shouldFailAllRequests: true},
+                },
+            ],
+            finallyData: [
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: ONYXKEYS.NETWORK,
+                    value: {shouldForceOffline: true},
+                },
+            ],
+        };
+
+        return expect(
+            Reauthentication(
+                Promise.resolve({
+                    jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED,
+                }),
+                request,
+                true,
+            ),
+        )
+            .rejects.toThrow('Failed to reauthenticate')
+            .then(() => {
+                expect(request.failureData).toBeDefined();
+                expect(request.finallyData).toBeDefined();
             });
     });
 

@@ -1,19 +1,21 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {GestureResponderEvent} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type PrevNextButtonsProps = {
-    /** Should the previous button be disabled */
     isPrevButtonDisabled?: boolean;
-
-    /** Should the next button be disabled */
     isNextButtonDisabled?: boolean;
 
     /** Moves a user to the next item */

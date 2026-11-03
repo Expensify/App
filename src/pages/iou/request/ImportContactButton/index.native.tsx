@@ -1,18 +1,24 @@
-import React from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import useAccessibilityAnnouncement from '@hooks/useAccessibilityAnnouncement';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import goToSettings from '@libs/goToSettings';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type ImportContactButtonProps = {
     showImportContacts?: boolean;
     inputHelperText?: string;
     isInSearch?: boolean;
+
+    /** Called when the link is pressed. Defaults to opening the app's settings */
+    onPress?: () => void;
 };
 
-function ImportContactButton({showImportContacts, inputHelperText, isInSearch = false}: ImportContactButtonProps) {
+function ImportContactButton({showImportContacts, inputHelperText, isInSearch = false, onPress = goToSettings}: ImportContactButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const noResultsFoundText = translate('common.noResultsFound');
@@ -26,7 +32,7 @@ function ImportContactButton({showImportContacts, inputHelperText, isInSearch = 
                 {isInSearch ? `${noResultsFoundText}. ` : null}
                 <Text
                     style={[styles.textLabel, styles.minHeight5, styles.link]}
-                    onPress={goToSettings}
+                    onPress={onPress}
                 >
                     {translate('contact.importContactsTitle')}
                 </Text>{' '}

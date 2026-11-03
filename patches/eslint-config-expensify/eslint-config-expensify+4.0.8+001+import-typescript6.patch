@@ -1,0 +1,12 @@
+diff --git a/node_modules/eslint-config-expensify/eslint-plugin-expensify/utils/typeUtil.js b/node_modules/eslint-config-expensify/eslint-plugin-expensify/utils/typeUtil.js
+index ef2c36f..b56e340 100644
+--- a/node_modules/eslint-config-expensify/eslint-plugin-expensify/utils/typeUtil.js
++++ b/node_modules/eslint-config-expensify/eslint-plugin-expensify/utils/typeUtil.js
+@@ -1,6 +1,6 @@
+ /* eslint-disable no-bitwise */
+ import _ from 'underscore';
+-import ts from 'typescript';
++import ts from '@typescript/typescript6';
+ 
+ function isBoolean(type) {
+     if ((type.flags & (ts.TypeFlags.Boolean | ts.TypeFlags.BooleanLike | ts.TypeFlags.BooleanLiteral)) !== 0) {

@@ -1,14 +1,15 @@
-#!/usr/bin/env ts-node
-/* eslint-disable @typescript-eslint/naming-convention */
-import * as core from '@actions/core';
-import {format} from 'date-fns/format';
-import fs from 'fs';
+#!/usr/bin/env bun
 import CONST from '@github/libs/CONST';
 import {generateDeployChecklistBodyAndAssignees, getDeployChecklistData} from '@github/libs/DeployChecklistUtils';
 import type {ChecklistItem, DeployChecklistData} from '@github/libs/DeployChecklistUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 import type {MergedPR, SubmoduleUpdate} from '@github/libs/GitUtils';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import * as core from '@actions/core';
+import {format} from 'date-fns/format';
+import fs from 'fs';
 
 type IssuesCreateResponse = Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'];
 
@@ -228,7 +229,8 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const {mergedPRs: mergedPREntries, submoduleUpdates} = await GitUtils.getMergedPRsDeployedBetween(previousChecklistData.tag, newStagingTag, CONST.APP_REPO);
         const mergedPRs = mergedPREntries.map((pr) => pr.prNumber).sort((a, b) => a - b);
 
-        const previousPRNumbers = new Set(previousChecklistData.PRList.map((pr) => pr.number));
+        // Previous PRs should include PRs and internalQA items
+        const previousPRNumbers = new Set([...previousChecklistData.PRList, ...previousChecklistData.internalQAPRList].map((pr) => pr.number));
         const previousMobileExpensifyPRNumbers = new Set(previousChecklistData.PRListMobileExpensify.map((pr) => pr.number));
         core.startGroup('Filtering PRs:');
         core.info('mergedPRs includes cherry-picked PRs that have already been released with previous checklist, so we need to filter these out');
@@ -333,7 +335,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
     }
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

@@ -5,7 +5,7 @@ keywords: [New Expensify, join workspace, set up profile, add expense, enable tw
 ---
 
 
-Welcome to Expensify! If you've received an invite to join your company's workspace, this guide walks you through setting up your account and getting started.
+Welcome to Expensify! Whether you've received an invite to join your company's workspace or need to instruct your admin to send you one, this guide walks you through setting up your account and getting started.
 
 ---
 
@@ -18,6 +18,14 @@ Ask one of your company's Expensify workspace admins to send you an invite using
 3. Click **Members** > **Invite member**
 
 Now, check your email inbox for the invite to join your company's workspace. If you don't see it, check your **Spam** and **Archive** folders.
+
+If you're creating your Expensify account, you can also find your company's workspace yourself:
+
+1. When asked **What do you want to do today?**, choose **Join my company workspace**.
+2. If prompted, add your work email and enter the code sent to it.
+3. Select **Join now** next to your company's workspace, or **Ask to join** if it needs admin approval.
+
+If you select **Skip** during these steps, Concierge sends you a task so you can finish later.
 
 ---
 
@@ -72,12 +80,12 @@ You can upload a receipt with **SmartScan** or enter the details manually.
 
 ## Manually add an expense
 
-1. Click the **+** icon > **Submit expense**
+1. Click the **➕ Create** button > **Create expense**
 2. Select **Manual**
-3. Enter the amount and click **Next**
-4. Select the workspace or person
-5. Add the merchant and optional details like description, category, or tags
-6. Click **Submit**
+3. Confirm or change the workspace or person the expense is going to
+4. Enter the amount and select the currency
+5. Add the merchant, date, and optional details like description, category, or tags
+6. Click **Create expense**
 
 ---
 

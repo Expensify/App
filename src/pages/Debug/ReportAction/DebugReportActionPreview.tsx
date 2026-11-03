@@ -1,11 +1,18 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ScrollView from '@components/ScrollView';
+
 import useOnyx from '@hooks/useOnyx';
+import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+
 import ReportActionItem from '@pages/inbox/report/ReportActionItem';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type DebugReportActionPreviewProps = {
     /** The report action to be previewed. */
@@ -19,6 +26,7 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportAction?.childReportID}`);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
+    const reportsParentHierarchy = useReportsParentHierarchy(reportID);
 
     return (
         <ScrollView>
@@ -32,6 +40,7 @@ function DebugReportActionPreview({reportAction, reportID}: DebugReportActionPre
                 shouldDisplayNewMarker={false}
                 isFirstVisibleReportAction={false}
                 shouldDisplayContextMenu={false}
+                reportsParentHierarchy={reportsParentHierarchy}
             />
         </ScrollView>
     );

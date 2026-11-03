@@ -1,6 +1,7 @@
-import TaskManager from '@expensify/react-native-background-task';
 import Log from '@libs/Log';
 import {flush} from '@libs/Network/SequentialQueue';
+
+import TaskManager from '@expensify/react-native-background-task';
 
 const BACKGROUND_FETCH_TASK = 'FLUSH-SEQUENTIAL-QUEUE-BACKGROUND-FETCH';
 

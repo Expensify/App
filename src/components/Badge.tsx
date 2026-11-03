@@ -1,20 +1,22 @@
-import React, {useCallback} from 'react';
-import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {GestureResponderEvent, PressableStateCallbackType, StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 
 type BadgeProps = {
-    /** Is Success type */
     success?: boolean;
-
-    /** Is Error type */
     error?: boolean;
 
     /** Whether badge uses strong (filled) style instead of outlined */
@@ -32,10 +34,7 @@ type BadgeProps = {
     /** Text to display in the Badge */
     environment?: string;
 
-    /** Styles for Badge */
     badgeStyles?: StyleProp<ViewStyle>;
-
-    /** Styles for Badge Text */
     textStyles?: StyleProp<TextStyle>;
 
     /** Callback to be called on onPress */
@@ -84,17 +83,14 @@ function Badge({
 
     const iconSize = isCondensed || shouldUseXXSmallIcon ? variables.iconSizeXXSmall : variables.iconSizeExtraSmall;
 
-    const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = useCallback(
-        ({pressed}) => [
-            styles.defaultBadge,
-            isCondensed && styles.condensedBadge,
-            styles.alignSelfCenter,
-            styles.ml2,
-            StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
-            badgeStyles,
-        ],
-        [styles.defaultBadge, styles.condensedBadge, styles.alignSelfCenter, styles.ml2, StyleUtils, success, error, environment, badgeStyles, isCondensed, isStrong],
-    );
+    const wrapperStyles: (state: PressableStateCallbackType) => StyleProp<ViewStyle> = ({pressed}) => [
+        styles.defaultBadge,
+        isCondensed && styles.condensedBadge,
+        styles.alignSelfCenter,
+        styles.ml2,
+        StyleUtils.getBadgeColorStyle(success, error, pressed, environment === CONST.ENVIRONMENT.ADHOC, isStrong),
+        badgeStyles,
+    ];
 
     if (!text && !icon) {
         return null;
@@ -106,11 +102,18 @@ function Badge({
             onPress={onPress}
             role={pressable ? CONST.ROLE.BUTTON : CONST.ROLE.PRESENTATION}
             accessibilityLabel={pressable ? text : undefined}
-            aria-label={!pressable ? text : undefined}
+            // Deliberately no aria-label here for the non-pressable case: a global ARIA property makes the browser
+            // ignore role="presentation", which exposes the wrapper as an extra screen reader stop on top of the text
+            // node that already provides the accessible name.
             accessible={false}
         >
             {!!icon && (
-                <View style={[!!text && styles.mr1, iconStyles]}>
+                // The icon is decorative whenever the badge has text. aria-hidden covers both platforms: react-native-web
+                // forwards it to the DOM, and React Native maps it to accessibilityElementsHidden/importantForAccessibility.
+                <View
+                    style={[!!text && styles.mr1, iconStyles]}
+                    aria-hidden={!!text || undefined}
+                >
                     <Icon
                         width={iconSize}
                         height={iconSize}

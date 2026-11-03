@@ -1,8 +1,13 @@
-import React, {useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import TextInput from '@components/TextInput';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+
 import BasePopup from './BasePopup';
 
 type TextInputPopupProps = {
@@ -37,6 +42,7 @@ function TextInputPopup({style, defaultValue, label, placeholder, onBackButtonPr
             onBackButtonPress={onBackButtonPress}
             resetSentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_RESET_TEXT_INPUT}
             applySentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_POPUP_APPLY_TEXT_INPUT}
+            shouldSubmitOnEnter
             style={style}
         >
             <TextInput

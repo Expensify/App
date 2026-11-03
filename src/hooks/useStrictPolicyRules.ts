@@ -1,6 +1,4 @@
-import {Str} from 'expensify-common';
-import ONYXKEYS from '@src/ONYXKEYS';
-import useOnyx from './useOnyx';
+import useUserSecurityGroup from './useUserSecurityGroup';
 
 type UseStrictPolicyRulesResult = {
     /** Whether the user's domain has strict policy rules enabled (strictly enforce workspace rules) */
@@ -12,19 +10,7 @@ type UseStrictPolicyRulesResult = {
  * When enabled, users cannot submit reports that have policy violations.
  */
 function useStrictPolicyRules(): UseStrictPolicyRulesResult {
-    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
-    const [securityGroups] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-
-    // Get the user's domain from their email
-    const userDomain = session?.email ? Str.extractEmailDomain(session.email) : undefined;
-
-    // Get the security group ID for the user's domain
-    const securityGroupID = userDomain && myDomainSecurityGroups?.[userDomain];
-
-    // Get the security group details
-    const securityGroupKey = `${ONYXKEYS.COLLECTION.SECURITY_GROUP}${securityGroupID}`;
-    const securityGroup = securityGroupID ? securityGroups?.[securityGroupKey] : null;
+    const {securityGroup} = useUserSecurityGroup();
 
     // Check if strict policy rules are enabled
     const areStrictPolicyRulesEnabled = securityGroup?.enableStrictPolicyRules === true;

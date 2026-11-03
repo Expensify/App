@@ -1,13 +1,17 @@
 import {describe, expect, test} from 'bun:test';
+
 import type {TNode} from 'react-native-render-html';
+
+import createMock from 'tests/utils/createMock';
+
 import resolveCanvasSize from '../src/resolveCanvasSize';
 
 function makeChartNode(attributes: TNode['attributes'], children: TNode[] = []): TNode {
-    return {
+    return createMock<TNode>({
         tagName: 'victorychart',
         attributes,
         children,
-    } as unknown as TNode;
+    });
 }
 
 describe('resolveCanvasSize', () => {
@@ -28,11 +32,11 @@ describe('resolveCanvasSize', () => {
     describe('validation errors', () => {
         test('throws when overlays exist without chart dimensions', () => {
             const tnode = makeChartNode({}, [
-                {
+                createMock<TNode>({
                     tagName: 'victorylabel',
                     attributes: {x: '10', y: '20', text: 'Title'},
                     children: [],
-                } as unknown as TNode,
+                }),
             ]);
 
             expect(() => resolveCanvasSize(tnode)).toThrow('require explicit width and height');
@@ -58,11 +62,11 @@ describe('resolveCanvasSize', () => {
 
         test('throws when overlay has non-numeric coordinates and chart dimensions are missing', () => {
             const tnode = makeChartNode({}, [
-                {
+                createMock<TNode>({
                     tagName: 'victorylabel',
                     attributes: {x: 'not-a-number', y: '20', text: 'Title'},
                     children: [],
-                } as unknown as TNode,
+                }),
             ]);
 
             expect(() => resolveCanvasSize(tnode)).toThrow('require explicit width and height');

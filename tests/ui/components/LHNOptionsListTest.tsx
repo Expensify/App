@@ -1,18 +1,27 @@
-import {NavigationContainer} from '@react-navigation/native';
-import type * as ReactNavigation from '@react-navigation/native';
 import {act, render, screen, userEvent, waitFor} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
+import UserAvatar from '@components/Avatar/UserAvatar';
 import ComposeProviders from '@components/ComposeProviders';
 import LHNOptionsList from '@components/LHNOptionsList/LHNOptionsList';
 import type {LHNOptionsListProps} from '@components/LHNOptionsList/types';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {setHasRadio} from '@libs/NetworkState';
+
 import {showContextMenu} from '@pages/inbox/report/ContextMenu/ReportActionContextMenu';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportAction} from '@src/types/onyx';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
 import {getFakeReport} from '../../utils/LHNTestUtils';
 
 // Mock dynamic imports that break without --experimental-vm-modules
@@ -28,6 +37,7 @@ jest.mock('@src/languages/IntlStore', () => {
         __esModule: true,
         default: {
             getCurrentLocale: () => 'en',
+            getDateFnsLocale: () => undefined,
             load: () => Promise.resolve(),
             get: (key: string, locale?: string) => {
                 const translations = cache.get(locale ?? 'en');
@@ -80,7 +90,7 @@ describe('LHNOptionsList', () => {
     const mockReport = getFakeReport([1, 2], 0, false);
 
     const defaultProps: LHNOptionsListProps = {
-        data: [mockReport],
+        data: [mockReport.reportID],
         onSelectRow: jest.fn(),
         optionMode: CONST.OPTION_MODE.DEFAULT,
         onFirstItemRendered: jest.fn(),
@@ -108,11 +118,15 @@ describe('LHNOptionsList', () => {
         );
     };
 
-    beforeEach(() => {
+    beforeEach(async () => {
         act(() => {
             Onyx.init({
                 keys: ONYXKEYS,
             });
+        });
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
         });
 
         jest.clearAllMocks();
@@ -214,12 +228,12 @@ describe('LHNOptionsList', () => {
             const reportID = 'dewTestReport';
             const accountID1 = 1;
             const accountID2 = 2;
-            const policy: Policy = {
+            const policy = createMock<Policy>({
                 id: policyID,
                 name: 'DEW Test Policy',
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
-            } as Policy;
+            });
             const report: Report = {
                 reportID,
                 reportName: 'DEW Test Report',
@@ -255,7 +269,7 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList is rendered
-            render(getLHNOptionsListElement({data: [report]}));
+            render(getLHNOptionsListElement({data: [report.reportID]}));
 
             // Then the queued message should be displayed because DEW submissions are processed async and the user needs feedback
             const reportItem = await waitFor(() => getReportItem(reportID));
@@ -272,12 +286,12 @@ describe('LHNOptionsList', () => {
             const accountID1 = 1;
             const accountID2 = 2;
             const expectedLastMessage = 'Expense for lunch meeting';
-            const policy: Policy = {
+            const policy = createMock<Policy>({
                 id: policyID,
                 name: 'DEW Test Policy',
                 type: CONST.POLICY.TYPE.CORPORATE,
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
-            } as Policy;
+            });
             const report: Report = {
                 reportID,
                 reportName: 'DEW Test Report',
@@ -312,7 +326,7 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList is rendered
-            render(getLHNOptionsListElement({data: [report]}));
+            render(getLHNOptionsListElement({data: [report.reportID]}));
 
             // Then the queued message should NOT appear because the server processes DEW submissions immediately when online
             const reportItem = await waitFor(() => getReportItem(reportID));
@@ -335,11 +349,11 @@ describe('LHNOptionsList', () => {
             const accountID1 = 1;
             const accountID2 = 2;
 
-            const policy: Policy = {
+            const policy = createMock<Policy>({
                 id: policyID,
                 name: 'Thread Test Policy',
                 type: CONST.POLICY.TYPE.TEAM,
-            } as Policy;
+            });
 
             const parentReport: Report = {
                 reportID: parentReportID,
@@ -379,11 +393,11 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList renders the workspace thread
-            render(getLHNOptionsListElement({data: [threadReport]}));
+            render(getLHNOptionsListElement({data: [threadReport.reportID]}));
 
             // Then it should render a single avatar, not a diagonal (multiple) avatar
             await waitFor(() => {
-                expect(screen.getByTestId('ReportActionAvatars-SingleAvatar')).toBeTruthy();
+                expect(screen.getByTestId('SingleAvatar')).toBeTruthy();
                 expect(screen.queryByTestId('ReportActionAvatars-MultipleAvatars')).toBeNull();
             });
         });
@@ -401,11 +415,11 @@ describe('LHNOptionsList', () => {
             const accountID1 = 1;
             const accountID2 = 2;
 
-            const policy: Policy = {
+            const policy = createMock<Policy>({
                 id: policyID,
                 name: 'Expense Request Policy',
                 type: CONST.POLICY.TYPE.TEAM,
-            } as Policy;
+            });
 
             const parentReport: Report = {
                 reportID: parentReportID,
@@ -430,7 +444,7 @@ describe('LHNOptionsList', () => {
                 reportID,
                 reportName: 'Expense Request Thread',
                 type: CONST.REPORT.TYPE.CHAT,
-                chatType: '' as Report['chatType'],
+                chatType: undefined,
                 policyID,
                 parentReportID,
                 parentReportActionID: parentActionID,
@@ -455,7 +469,7 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList renders the expense request thread
-            render(getLHNOptionsListElement({data: [threadReport]}));
+            render(getLHNOptionsListElement({data: [threadReport.reportID]}));
 
             // Then it should render a subscript avatar (workspace expense requests preserve subscript)
             await waitFor(() => {
@@ -465,21 +479,21 @@ describe('LHNOptionsList', () => {
     });
 
     describe('Task report avatar rendering', () => {
-        it('should render a subscript avatar for a workspace task report (owner + workspace)', async () => {
+        it('should render a single avatar for a workspace task report (owner only)', async () => {
             // Given a task report inside a workspace (chatType policyExpenseChat).
-            // shouldReportShowSubscript returns true, and workspace tasks are excluded
-            // from taskSuppression. The icons show subscript (Large User + Small Workspace).
+            // A task always shows its owner alone, like the task header, even when it
+            // was assigned in a workspace chat.
             const policyID = 'taskTestPolicy';
             const parentReportID = 'taskParentReport';
             const reportID = 'taskTestReport';
             const accountID1 = 1;
             const accountID2 = 2;
 
-            const policy: Policy = {
+            const policy = createMock<Policy>({
                 id: policyID,
                 name: 'Task Test Policy',
                 type: CONST.POLICY.TYPE.CORPORATE,
-            } as Policy;
+            });
 
             const parentReport: Report = {
                 reportID: parentReportID,
@@ -520,12 +534,88 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList renders the task report
-            render(getLHNOptionsListElement({data: [taskReport]}));
+            render(getLHNOptionsListElement({data: [taskReport.reportID]}));
 
-            // Then it should render a subscript avatar (Large User + Small Workspace)
+            // Then it should render the owner alone, without the workspace subscript
             await waitFor(() => {
-                expect(screen.getByTestId('ReportActionAvatars-Subscript')).toBeTruthy();
+                expect(screen.getByTestId('SingleAvatar')).toBeTruthy();
             });
+            expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
+        });
+
+        it('should render the copilot avatar for a workspace task a copilot created, even without chatReportID', async () => {
+            // Given a workspace task created offline by a copilot: an optimistic task has no chatReportID
+            // and links to its chat only through parentReportID, where the action carries the copilot.
+            const policyID = 'copilotTaskPolicy';
+            const parentReportID = 'copilotTaskParentReport';
+            const parentActionID = 'copilotTaskParentAction';
+            const reportID = 'copilotTaskReport';
+            const ownerAccountID = 1;
+            const copilotAccountID = 3;
+
+            const policy = createMock<Policy>({
+                id: policyID,
+                name: 'Copilot Task Policy',
+                type: CONST.POLICY.TYPE.CORPORATE,
+            });
+
+            const parentReport: Report = {
+                reportID: parentReportID,
+                reportName: 'Workspace Chat',
+                type: CONST.REPORT.TYPE.CHAT,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                policyID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            const parentAction: ReportAction = {
+                reportActionID: parentActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2024-01-01 00:00:00',
+                actorAccountID: ownerAccountID,
+                delegateAccountID: copilotAccountID,
+                message: [{type: 'COMMENT', text: 'task'}],
+            };
+
+            const taskReport: Report = {
+                reportID,
+                reportName: 'Copilot Task',
+                type: CONST.REPORT.TYPE.TASK,
+                policyID,
+                parentReportID,
+                parentReportActionID: parentActionID,
+                ownerAccountID,
+                participants: {
+                    [ownerAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            };
+
+            mockUseIsFocused.mockReturnValue(true);
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, taskReport);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {
+                    [parentActionID]: parentAction,
+                });
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ownerAccountID]: {accountID: ownerAccountID, login: 'owner@test.com', displayName: 'Owner', avatar: 'owner-avatar'},
+                    [copilotAccountID]: {accountID: copilotAccountID, login: 'copilot@test.com', displayName: 'Copilot', avatar: 'copilot-avatar'},
+                });
+            });
+
+            // When the LHNOptionsList renders the task report
+            render(getLHNOptionsListElement({data: [taskReport.reportID]}));
+
+            // Then the row shows the copilot alone, badged as acting for the owner, like the task header
+            await waitFor(() => {
+                expect(screen.getByTestId('SingleAvatar')).toBeTruthy();
+            });
+            const avatar = screen.UNSAFE_getByType(UserAvatar);
+            expect(avatar.props.accountID).toBe(copilotAccountID);
+            expect(avatar.props.source).toBe('copilot-avatar');
         });
     });
 
@@ -539,11 +629,11 @@ describe('LHNOptionsList', () => {
             const accountID1 = 1;
             const accountID2 = 2;
 
-            const invoicePolicy: Policy = {
+            const invoicePolicy = createMock<Policy>({
                 id: policyID,
                 name: 'Invoice Test Policy',
                 type: CONST.POLICY.TYPE.TEAM,
-            } as Policy;
+            });
 
             const invoiceRoom: Report = {
                 reportID: invoiceRoomID,
@@ -584,7 +674,7 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList renders the invoice report
-            render(getLHNOptionsListElement({data: [invoiceReport]}));
+            render(getLHNOptionsListElement({data: [invoiceReport.reportID]}));
 
             // Then it should render a subscript avatar (workspace icon + user avatar)
             await waitFor(() => {
@@ -603,11 +693,11 @@ describe('LHNOptionsList', () => {
             const ownerAccountID = 1;
             const managerAccountID = 2;
 
-            const policy: Policy = {
+            const policy = createMock<Policy>({
                 id: policyID,
                 name: 'IOU Test Policy',
                 type: CONST.POLICY.TYPE.TEAM,
-            } as Policy;
+            });
 
             const report: Report = {
                 reportID,
@@ -633,12 +723,12 @@ describe('LHNOptionsList', () => {
             });
 
             // When the LHNOptionsList renders the IOU report
-            render(getLHNOptionsListElement({data: [report]}));
+            render(getLHNOptionsListElement({data: [report.reportID]}));
 
             // Then it should render diagonal (multiple) avatars
             await waitFor(() => {
                 expect(screen.getByTestId('ReportActionAvatars-MultipleAvatars')).toBeTruthy();
-                expect(screen.queryByTestId('ReportActionAvatars-SingleAvatar')).toBeNull();
+                expect(screen.queryByTestId('SingleAvatar')).toBeNull();
                 expect(screen.queryByTestId('ReportActionAvatars-Subscript')).toBeNull();
             });
         });

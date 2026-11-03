@@ -1,19 +1,29 @@
-import type {OnyxKey} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import alert from '@components/Alert';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+
+import type {fetch as nitroFetch} from 'react-native-nitro-fetch';
+import type {OnyxKey} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
 import {setLoadTestParameters} from './Network/LoadTestState';
+import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
+import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
+import {cancelSpan, endSpan, endSpanWithAttributes} from './telemetry/activeSpans';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
+import getRequestPhaseSpanNames, {getNextRequestPhaseAttempt} from './telemetry/measuredRequestPhaseCommands';
+import startRequestPhaseSpan, {getRequestPhaseSpanId} from './telemetry/startRequestPhaseSpan';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -22,6 +32,7 @@ const ABORT_COMMANDS = {
     All: 'All',
     [READ_COMMANDS.SEARCH_FOR_REPORTS]: READ_COMMANDS.SEARCH_FOR_REPORTS,
     [READ_COMMANDS.SEARCH_FOR_USERS]: READ_COMMANDS.SEARCH_FOR_USERS,
+    [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE]: SIDE_EFFECT_REQUEST_COMMANDS.OPEN_SEARCH_TAG_FILTERS_PAGE,
 } as const;
 
 type AbortCommand = keyof typeof ABORT_COMMANDS;
@@ -43,6 +54,7 @@ const abortControllerMap = new Map<AbortCommand, AbortController>();
 abortControllerMap.set(ABORT_COMMANDS.All, new AbortController());
 abortControllerMap.set(ABORT_COMMANDS.SearchForReports, new AbortController());
 abortControllerMap.set(ABORT_COMMANDS.SearchForUsers, new AbortController());
+abortControllerMap.set(ABORT_COMMANDS.OpenSearchTagFiltersPage, new AbortController());
 
 /**
  * The API commands that require the skew calculation
@@ -52,8 +64,11 @@ const addSkewList = new Set<string>([WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQ
 /**
  * Per-command server response messages we recognize as the PHP-wrapped "AlreadyCreated" error.
  * Add new variants here as we discover them for other non-idempotent commands.
+ *
+ * DUPLICATE_RECORD is also listed here because the API layer can re-wrap Auth's 400 as a 666. Without it,
+ * that form matches neither guard and a record that already exists on the server gets rolled back.
  */
-const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION]);
+const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREATED_TRANSACTION, CONST.ERROR_TITLE.ALREADY_PAID, CONST.ERROR_TITLE.DUPLICATE_RECORD]);
 
 /**
  * Regex to get API command from the command
@@ -69,25 +84,50 @@ function processHTTPRequest<TKey extends OnyxKey>(
     method: RequestType = 'get',
     body: FormData | null = null,
     abortSignal: AbortSignal | undefined = undefined,
+    shouldSkipPrefetch = false,
 ): Promise<Response<TKey>> {
     const startTime = new Date().valueOf();
 
     const command = url.match(APICommandRegex)?.[1];
 
-    return fetch(url, {
+    const {prefetchKey, prefetchHeaders} = shouldSkipPrefetch ? {prefetchKey: undefined, prefetchHeaders: undefined} : preparePrefetchRequest(command);
+    let isPrefetchedResponse = false;
+
+    const fetchParams: NonNullable<Parameters<typeof nitroFetch>[1]> = {
         // We hook requests to the same Controller signal, so we can cancel them all at once
         signal: abortSignal,
         method,
         body,
+        headers: prefetchHeaders,
         // On Web fetch already defaults to 'omit' for credentials, but it seems that this is not the case for the ReactNative implementation
         // so to avoid sending cookies with the request we set it to 'omit' explicitly
         // this avoids us sending specially the expensifyWeb cookie, which makes a CSRF token required
         // more on that here: https://stackoverflowteams.com/c/expensify/questions/93
         credentials: 'omit',
-    })
+    };
+
+    registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
+
+    // Mirrors the "Waiting" / "Content Download" split Chrome shows for this request.
+    const phaseSpanNames = getRequestPhaseSpanNames(command);
+    const attempt = phaseSpanNames ? getNextRequestPhaseAttempt(phaseSpanNames.WAIT) : 0;
+    const waitSpanId = phaseSpanNames ? getRequestPhaseSpanId(phaseSpanNames.WAIT, attempt) : '';
+    const downloadSpanId = phaseSpanNames ? getRequestPhaseSpanId(phaseSpanNames.DOWNLOAD, attempt) : '';
+    if (phaseSpanNames && command) {
+        startRequestPhaseSpan(phaseSpanNames.WAIT, attempt, command);
+    }
+
+    return fetch(url, fetchParams)
         .then((response) => {
+            if (phaseSpanNames && command) {
+                endSpan(waitSpanId);
+                startRequestPhaseSpan(phaseSpanNames.DOWNLOAD, attempt, command, {
+                    [CONST.TELEMETRY.ATTRIBUTE_CONTENT_LENGTH]: response.headers?.get('content-length') ?? undefined,
+                });
+            }
             if (response.headers) {
                 setLoadTestParameters(response.headers.get('X-Load-Test'));
+                isPrefetchedResponse = response.headers.get('nitroPrefetched') === 'true';
             }
 
             // We are calculating the skew to minimize the delay when posting the messages
@@ -139,7 +179,21 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 });
             }
 
-            return response.json() as Promise<Response<TKey>>;
+            const parsedResponse = response.json() as Promise<Response<TKey>>;
+            if (!phaseSpanNames) {
+                return parsedResponse;
+            }
+            // The server's requestID only exists once the body is parsed, which is exactly when this phase ends. It ties every phase of one attempt together in Sentry.
+            return parsedResponse.then(
+                (parsedBody) => {
+                    endSpanWithAttributes(downloadSpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: parsedBody?.requestID});
+                    return parsedBody;
+                },
+                (error: unknown) => {
+                    endSpan(downloadSpanId);
+                    throw error;
+                },
+            );
         })
         .then((response) => {
             // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
@@ -171,6 +225,16 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 });
             }
 
+            // The server sheds writes during instability with an app-level 503, which asks us to try again shortly
+            if (response.jsonCode === CONST.JSON_CODE.SERVICE_UNAVAILABLE) {
+                throw new HttpsError({
+                    message: CONST.ERROR.SERVICE_UNAVAILABLE,
+                    status: CONST.JSON_CODE.SERVICE_UNAVAILABLE.toString(),
+                    title: CONST.ERROR_TITLE.SERVICE_UNAVAILABLE,
+                    requestID: response.requestID,
+                });
+            }
+
             if (response.data && (response.data?.authWriteCommands?.length ?? 0)) {
                 const {phpCommandName, authWriteCommands} = response.data;
                 const message = `The API command ${phpCommandName} is doing too many Auth writes. Count ${authWriteCommands.length}, commands: ${authWriteCommands.join(
@@ -179,10 +243,23 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 alert('Too many auth writes', message);
             }
             if (response.jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
+                // A prefetched response can come from a body saved by the previous build, so it carries that build's appversion.
+                // https://github.com/Expensify/App/pull/103842 leaves appversion out of saved bodies, but bodies saved by older builds still have it.
+                // Retry without the prefetchKey, because nitro-fetch can serve the same cached response again for a few seconds.
+                if (isPrefetchedResponse) {
+                    return processHTTPRequest<TKey>(url, method, body, abortSignal, true);
+                }
+
                 // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue
                 alertUser();
             }
             return response;
+        })
+        .catch((error: unknown) => {
+            // A rejected fetch skips the success path above, leaving these spans open to record everything until something else tears them down.
+            cancelSpan(waitSpanId);
+            cancelSpan(downloadSpanId);
+            throw error;
         })
         .finally(() => markAppStartupNetworkRequestEnd(command));
 }

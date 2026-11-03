@@ -1,6 +1,8 @@
-import {useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useRef} from 'react';
 
 /**
  * Returns a ref that tracks whether the currently-open report is an own workspace chat.

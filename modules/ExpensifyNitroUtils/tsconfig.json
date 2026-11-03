@@ -1,6 +1,10 @@
 {
-    "extends": "../../tsconfig.json",
+    // The app project, not the root solution: the solution owns no compiler options.
+    "extends": "../../tsconfig.app.json",
     "compilerOptions": {
+        // Without this the app project's build info path is inherited and this module would write
+        // over it.
+        "tsBuildInfoFile": "./tsconfig.ts7.tsbuildinfo",
         "outDir": "./lib"
     },
     "include": ["src/**/*"]

@@ -1,17 +1,21 @@
-import type {CONST as COMMON_CONST} from 'expensify-common';
-import isObject from 'lodash/isObject';
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {ConnectPolicyToNetSuiteParams} from '@libs/API/parameters';
-import {WRITE_COMMANDS} from '@libs/API/types';
+import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getCommandURL} from '@libs/ApiUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {Connections, NetSuiteCustomFormID, NetSuiteCustomList, NetSuiteCustomSegment, NetSuiteMappingValues} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {CONST as COMMON_CONST} from 'expensify-common';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import isObject from 'lodash/isObject';
+import Onyx from 'react-native-onyx';
 
 type SubsidiaryParam = {
     subsidiaryID: string;
@@ -44,6 +48,15 @@ function writeNetSuiteCredentials(
 function connectPolicyToNetSuite(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
     writeNetSuiteCredentials(WRITE_COMMANDS.CONNECT_POLICY_TO_NETSUITE, policyID, credentials);
 }
+
+const getNetSuiteSetupLink = (policyID: string, accountID: string, isMigration?: boolean) => {
+    const commandURL = getCommandURL({command: READ_COMMANDS.CONNECT_POLICY_TO_NETSUITE_OAUTH, shouldSkipWebProxy: true});
+    const searchParams = new URLSearchParams({policyID, netSuiteAccountID: accountID});
+    if (isMigration) {
+        searchParams.set('isMigration', 'true');
+    }
+    return commandURL + searchParams.toString();
+};
 
 function updateNetSuiteTokens(policyID: string, credentials: Omit<ConnectPolicyToNetSuiteParams, 'policyID'>) {
     writeNetSuiteCredentials(WRITE_COMMANDS.UPDATE_NETSUITE_TOKENS, policyID, credentials);
@@ -695,6 +708,16 @@ function updateNetSuiteDefaultVendor(policyID: string, vendorID: string, oldVend
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_DEFAULT_VENDOR, parameters, onyxData);
 }
 
+function updateNetSuiteCreditCardAccount(policyID: string, bankAccountID: string, oldBankAccountID?: string) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.CREDIT_CARD_ACCOUNT, bankAccountID, oldBankAccountID);
+
+    const parameters = {
+        policyID,
+        bankAccountID,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_CREDIT_CARD_ACCOUNT, parameters, onyxData);
+}
+
 function updateNetSuiteReimbursablePayableAccount(policyID: string, bankAccountID: string, oldBankAccountID: string) {
     const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.REIMBURSABLE_PAYABLE_ACCOUNT, bankAccountID, oldBankAccountID);
 
@@ -801,6 +824,16 @@ function updateNetSuiteExportToNextOpenPeriod(policyID: string, value: boolean, 
         enabled: value,
     };
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD, parameters, onyxData);
+}
+
+function updateNetSuiteSplitExportsByPostingPeriod(policyID: string, value: boolean, oldValue: boolean) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.SPLIT_EXPORTS_BY_POSTING_PERIOD, value, oldValue);
+
+    const parameters = {
+        policyID,
+        enabled: value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_SPLIT_EXPORTS_BY_POSTING_PERIOD, parameters, onyxData);
 }
 
 function updateNetSuiteAutoSync(policyID: string | undefined, value: boolean) {
@@ -1033,6 +1066,16 @@ function updateNetSuiteApprovalAccount(policyID: string, value: string, oldValue
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT, parameters, onyxData);
 }
 
+function updateNetSuiteFxExpenseAccount(policyID: string, value: string, oldValue?: string) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.FX_EXPENSE_ACCOUNT, value, oldValue);
+
+    const parameters = {
+        policyID,
+        value,
+    };
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_FX_EXPENSE_ACCOUNT, parameters, onyxData);
+}
+
 function updateNetSuiteCustomFormIDOptions(
     policyID: string,
     value: string,
@@ -1060,30 +1103,31 @@ function updateNetSuiteCustomFormIDOptions(
     API.write(commandName, parameters, onyxData);
 }
 
-function updateNetSuiteTravelInvoicingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
-    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, accountID, oldAccountID);
+function updateNetSuiteTravelBillingPayableAccount(policyID: string, accountID: string, oldAccountID?: string) {
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT, accountID, oldAccountID);
     const parameters = {
         policyID,
         bankAccountID: accountID,
     };
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_BILLING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
-function updateNetSuiteTravelInvoicingJournalPostingPreference(
+function updateNetSuiteTravelBillingJournalPostingPreference(
     policyID: string,
     postingPreference: ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>,
     oldPostingPreference?: ValueOf<typeof CONST.NETSUITE_JOURNAL_POSTING_PREFERENCE>,
 ) {
-    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE, postingPreference, oldPostingPreference);
+    const onyxData = updateNetSuiteOnyxData(policyID, CONST.NETSUITE_CONFIG.TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE, postingPreference, oldPostingPreference);
     const parameters = {
         policyID,
         value: postingPreference,
     };
-    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_NETSUITE_TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE, parameters, onyxData);
 }
 
 export {
     connectPolicyToNetSuite,
+    getNetSuiteSetupLink,
     updateNetSuiteTokens,
     updateNetSuiteSubsidiary,
     updateNetSuiteSyncTaxConfiguration,
@@ -1092,6 +1136,7 @@ export {
     updateNetSuiteReimbursableExpensesExportDestination,
     updateNetSuiteNonReimbursableExpensesExportDestination,
     updateNetSuiteDefaultVendor,
+    updateNetSuiteCreditCardAccount,
     updateNetSuiteReimbursablePayableAccount,
     updateNetSuitePayableAcct,
     updateNetSuiteJournalPostingPreference,
@@ -1102,6 +1147,7 @@ export {
     updateNetSuiteProvincialTaxPostingAccount,
     updateNetSuiteAllowForeignCurrency,
     updateNetSuiteExportToNextOpenPeriod,
+    updateNetSuiteSplitExportsByPostingPeriod,
     updateNetSuiteImportMapping,
     updateNetSuiteCrossSubsidiaryCustomersConfiguration,
     updateNetSuiteCustomSegments,
@@ -1118,9 +1164,10 @@ export {
     updateNetSuiteExportVendorBillsTo,
     updateNetSuiteExportJournalsTo,
     updateNetSuiteApprovalAccount,
+    updateNetSuiteFxExpenseAccount,
     updateNetSuiteCustomFormIDOptions,
     updateNetSuiteCustomersJobsMapping,
     updateNetSuiteAccountingMethod,
-    updateNetSuiteTravelInvoicingPayableAccount,
-    updateNetSuiteTravelInvoicingJournalPostingPreference,
+    updateNetSuiteTravelBillingPayableAccount,
+    updateNetSuiteTravelBillingJournalPostingPreference,
 };

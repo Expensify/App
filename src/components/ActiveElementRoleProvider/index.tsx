@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+
 import type {ActiveElementRoleContextValue, ActiveElementRoleProps} from './types';
 
 const ActiveElementRoleContext = React.createContext<ActiveElementRoleContextValue>({
@@ -26,12 +27,9 @@ function ActiveElementRoleProvider({children}: ActiveElementRoleProps) {
         };
     }, []);
 
-    const value = React.useMemo(
-        () => ({
-            role: activeRoleRef,
-        }),
-        [activeRoleRef],
-    );
+    const value = {
+        role: activeRoleRef,
+    };
 
     return <ActiveElementRoleContext.Provider value={value}>{children}</ActiveElementRoleContext.Provider>;
 }

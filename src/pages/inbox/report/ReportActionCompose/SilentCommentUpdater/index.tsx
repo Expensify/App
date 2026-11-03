@@ -1,9 +1,12 @@
-import {useEffect} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {useEffect} from 'react';
+
 import type SilentCommentUpdaterProps from './types';
 
 /**

@@ -1,19 +1,19 @@
-import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
-import React, {useCallback, useEffect} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SettlementAccountSelector, {BankAccountListItemLeftElement} from '@components/SettlementAccountSelector';
 import type {BankAccountListItem} from '@components/SettlementAccountSelector';
 import Text from '@components/Text';
+
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useEnvironment from '@hooks/useEnvironment';
+import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
 import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {openPolicyAccountingPage} from '@libs/actions/PolicyConnections';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
@@ -21,16 +21,24 @@ import {getCardProgramKey, getCardSettings, getEligibleBankAccountsForCard, getE
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
+import {appendParam} from '@libs/Url';
+
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {updateSettlementAccount as updateSettlementAccountCard} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
-import type {BankName} from '@src/types/onyx/Bank';
-import type {ConnectionName} from '@src/types/onyx/Policy';
+import SCREENS from '@src/SCREENS';
+
+import {useNavigationState} from '@react-navigation/native';
+import {isExpensifyCardContinuousReconciliationEnabledSelector} from '@selectors/Card';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceSettlementAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT>;
 
@@ -43,11 +51,17 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
     const policyID = route.params?.policyID;
-    const defaultFundID = useDefaultFundID(policyID);
+    const fundIDFromRoute = Number(route.params?.fundID);
+    const defaultFundIDFromCardPages = useDefaultFundID(policyID);
+    const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policyID);
+    const isFundIDFromRouteValid = !!fundIDFromRoute && !Number.isNaN(fundIDFromRoute) && allFeeds.some((entry) => entry.fundID === fundIDFromRoute);
+    const defaultFundID = isFundIDFromRouteValid ? fundIDFromRoute : defaultFundIDFromCardPages;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path);
+    const isOpenedFromReconciliationAccount = useNavigationState((state) => state.routes.at(state.index - 1)?.name === SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_RECONCILIATION_ACCOUNT_SETTINGS);
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const programKey = getCardProgramKey(cardSettings);
     const settings = getCardSettings(cardSettings, programKey);
@@ -64,7 +78,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
 
     const getEligibleBankAccounts = () => {
         if (isUkEuCurrencySupported) {
-            return getEligibleBankAccountsForUkEuCard(bankAccountsList, policy?.outputCurrency);
+            return getEligibleBankAccountsForUkEuCard(bankAccountsList, supportedCountriesByCurrency, policy?.outputCurrency);
         }
         return getEligibleBankAccountsForCard(bankAccountsList);
     };
@@ -73,12 +87,12 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     const domainName = settings?.domainName ?? getDomainNameForPolicy(policyID);
     const hasActiveAccountingConnection = !!(policy?.connections && Object.keys(policy.connections).length > 0);
 
-    const fetchPolicyAccountingData = useCallback(() => {
+    const fetchPolicyAccountingData = () => {
         if (!policyID) {
             return;
         }
         openPolicyAccountingPage(policyID);
-    }, [policyID]);
+    };
 
     useEffect(() => {
         if (!cardSettings || !hasActiveAccountingConnection || continuousReconciliation !== undefined || reconciliationConnection !== undefined) {
@@ -88,7 +102,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     }, [cardSettings, hasActiveAccountingConnection, continuousReconciliation, reconciliationConnection, fetchPolicyAccountingData]);
 
     const eligibleBankAccountsOptions: BankAccountListItem[] = eligibleBankAccounts.map((bankAccount) => {
-        const bankName = (bankAccount.accountData?.addressName ?? '') as BankName;
+        const bankName = bankAccount.accountData?.addressName ?? '';
         const bankAccountNumber = bankAccount.accountData?.accountNumber ?? '';
         const bankAccountID = bankAccount.accountData?.bankAccountID ?? bankAccount.methodID;
 
@@ -105,7 +119,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
     const fallbackBankAccountOption: BankAccountListItem = {
         value: paymentBankAccountID,
         text: paymentBankAccountAddressName ?? '',
-        leftElement: <BankAccountListItemLeftElement bankName={(paymentBankAccountAddressName ?? '') as BankName} />,
+        leftElement: <BankAccountListItemLeftElement bankName={paymentBankAccountAddressName ?? ''} />,
         alternateText: `${translate('workspace.expensifyCard.accountEndingIn')} ${getLastFourDigits(paymentBankAccountNumberFromCardSettings ?? '')}`,
         keyForList: paymentBankAccountID?.toString() ?? '',
         isSelected: true,
@@ -118,13 +132,14 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
             Log.alert('[WorkspaceSettlementAccountPage] handleSelectAccount called without a detected card program key');
             return;
         }
-        updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID);
+        // Only Travel Billing sets this root pending field, its error must survive for its rollback
+        const isTravelSettlementAccountPending = !!cardSettings?.pendingFields?.paymentBankAccountID;
+        updateSettlementAccountCard(domainName, defaultFundID, policyID, programKey, value, paymentBankAccountID, isTravelSettlementAccountPending);
         Navigation.goBack();
     };
 
     const getCustomListHeaderContent = () => {
-        const connectionName = reconciliationConnection ?? '';
-        const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
+        const connectionParam = reconciliationConnection ? getRouteParamForConnection(reconciliationConnection) : undefined;
 
         return (
             <>
@@ -134,9 +149,10 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
                         <RenderHTML
                             html={translate(
                                 'workspace.expensifyCard.settlementAccountInfo',
-                                `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}`,
+                                `${environmentURL}/${appendParam(`${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}`, 'fundID', defaultFundID.toString())}`,
                                 `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
                             )}
+                            onLinkPress={isOpenedFromReconciliationAccount ? () => Navigation.goBack(backPath) : undefined}
                         />
                     </View>
                 )}
@@ -175,3 +191,4 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
 }
 
 export default DynamicWorkspaceSettlementAccountPage;
+export type {WorkspaceSettlementAccountPageProps};

@@ -1,21 +1,20 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useSelectionListKeyboardFocus from '@components/SelectionList/hooks/useSelectionListKeyboardFocus';
+
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+
 import {addKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
-import {isFocusRestoreInProgress} from '@libs/NavigationFocusReturn';
+
 import CONST from '@src/CONST';
 
 jest.mock('@hooks/useArrowKeyFocusManager', () => jest.fn());
-jest.mock('@libs/NavigationFocusReturn', () => ({
-    isFocusRestoreInProgress: jest.fn(() => false),
-}));
 jest.mock('@libs/KeyboardShortcut/KeyDownPressListener', () => ({
     addKeyDownPressListener: jest.fn(),
     removeKeyDownPressListener: jest.fn(),
 }));
 
 const mockUseArrowKeyFocusManager = jest.mocked(useArrowKeyFocusManager);
-const mockIsFocusRestoreInProgress = jest.mocked(isFocusRestoreInProgress);
 const mockAddKeyDownPressListener = jest.mocked(addKeyDownPressListener);
 
 const FOCUSED_INDEX = 3;
@@ -30,6 +29,8 @@ type Overrides = {
     shouldScrollToFocusedIndex?: boolean;
     shouldDebounceScrolling?: boolean;
     initialFocusedIndex?: number;
+    shouldAllowArrowUpToSearchInput?: boolean;
+    onArrowUpToSearchInput?: () => void;
 };
 
 function renderKeyboardFocus(overrides: Overrides = {}) {
@@ -61,7 +62,6 @@ function renderKeyboardFocus(overrides: Overrides = {}) {
 describe('useSelectionListKeyboardFocus', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockIsFocusRestoreInProgress.mockReturnValue(false);
         mockUseArrowKeyFocusManager.mockImplementation((config) => {
             capturedConfig = config;
             return [FOCUSED_INDEX, mockSetFocusedIndex];
@@ -76,80 +76,67 @@ describe('useSelectionListKeyboardFocus', () => {
     });
 
     describe('onFocusedIndexChange (scroll on cursor move)', () => {
-        it('scrolls to the new index', () => {
+        it('scrolls to the new index when shouldScrollHint is true', () => {
             const {scrollToIndex} = renderKeyboardFocus();
-            capturedConfig.onFocusedIndexChange?.(5);
+            capturedConfig.onFocusedIndexChange?.(5, true);
             expect(scrollToIndex).toHaveBeenCalledWith(5);
+        });
+
+        it('does not scroll when shouldScrollHint is false', () => {
+            const {scrollToIndex} = renderKeyboardFocus();
+            capturedConfig.onFocusedIndexChange?.(5, false);
+            expect(scrollToIndex).not.toHaveBeenCalled();
         });
 
         it('does not scroll when shouldScrollToFocusedIndex is false', () => {
             const {scrollToIndex} = renderKeyboardFocus({shouldScrollToFocusedIndex: false});
-            capturedConfig.onFocusedIndexChange?.(5);
+            capturedConfig.onFocusedIndexChange?.(5, true);
             expect(scrollToIndex).not.toHaveBeenCalled();
         });
 
         it('uses the debounced scroll when shouldDebounceScrolling is true', () => {
             const {scrollToIndex, debouncedScrollToIndex} = renderKeyboardFocus({shouldDebounceScrolling: true});
-            capturedConfig.onFocusedIndexChange?.(5);
+            capturedConfig.onFocusedIndexChange?.(5, true);
             expect(debouncedScrollToIndex).toHaveBeenCalledWith(5);
             expect(scrollToIndex).not.toHaveBeenCalled();
         });
     });
 
-    describe('suppressNextFocusScroll', () => {
-        it('suppresses exactly one subsequent scroll', () => {
-            const {result, scrollToIndex} = renderKeyboardFocus();
-            result.current.suppressNextFocusScroll();
+    describe('onArrowUpToSearchInput', () => {
+        it('is called when ArrowUp moves the focused index to the search input', () => {
+            // Given a list that lets ArrowUp leave the first row for the search input
+            const onArrowUpToSearchInput = jest.fn();
+            renderKeyboardFocus({shouldAllowArrowUpToSearchInput: true, onArrowUpToSearchInput});
 
-            capturedConfig.onFocusedIndexChange?.(5);
-            expect(scrollToIndex).not.toHaveBeenCalled();
+            // When an arrow-key move sets the focused index to -1
+            capturedConfig.onFocusedIndexChange?.(-1, true);
 
-            capturedConfig.onFocusedIndexChange?.(6);
-            expect(scrollToIndex).toHaveBeenCalledWith(6);
-        });
-    });
-
-    describe('setFocusedIndexWithoutScrollOnChange', () => {
-        it('moves the cursor and suppresses the scroll when the index changes', () => {
-            const {result, scrollToIndex} = renderKeyboardFocus();
-            result.current.setFocusedIndexWithoutScrollOnChange(5);
-
-            expect(mockSetFocusedIndex).toHaveBeenCalledWith(5);
-            capturedConfig.onFocusedIndexChange?.(5);
-            expect(scrollToIndex).not.toHaveBeenCalled();
+            // Then the list is told to move DOM focus to the search input, since a Tab-focused row would otherwise keep it
+            expect(onArrowUpToSearchInput).toHaveBeenCalledTimes(1);
         });
 
-        it('does not arm suppression when the index is unchanged', () => {
-            const {result, scrollToIndex} = renderKeyboardFocus();
-            result.current.setFocusedIndexWithoutScrollOnChange(FOCUSED_INDEX);
+        it('is not called when the focused index is cleared without an arrow key', () => {
+            // Given a list that lets ArrowUp leave the first row for the search input
+            const onArrowUpToSearchInput = jest.fn();
+            renderKeyboardFocus({shouldAllowArrowUpToSearchInput: true, onArrowUpToSearchInput});
 
-            expect(mockSetFocusedIndex).toHaveBeenCalledWith(FOCUSED_INDEX);
-            capturedConfig.onFocusedIndexChange?.(FOCUSED_INDEX);
-            expect(scrollToIndex).toHaveBeenCalledWith(FOCUSED_INDEX);
-        });
-    });
+            // When the focused index is cleared externally, for example by pressing the search input
+            capturedConfig.onFocusedIndexChange?.(-1, false);
 
-    describe('setFocusedIndexFromRowFocus', () => {
-        it('suppresses the scroll while a focus restore is in progress', () => {
-            mockIsFocusRestoreInProgress.mockReturnValue(true);
-            const {result, scrollToIndex} = renderKeyboardFocus();
-
-            result.current.setFocusedIndexFromRowFocus(5);
-
-            expect(mockSetFocusedIndex).toHaveBeenCalledWith(5);
-            capturedConfig.onFocusedIndexChange?.(5);
-            expect(scrollToIndex).not.toHaveBeenCalled();
+            // Then focus is left alone, because the search input already holds it
+            expect(onArrowUpToSearchInput).not.toHaveBeenCalled();
         });
 
-        it('moves the cursor and scrolls normally when no restore is in progress', () => {
-            mockIsFocusRestoreInProgress.mockReturnValue(false);
-            const {result, scrollToIndex} = renderKeyboardFocus();
+        it('is not called when the list does not opt in', () => {
+            // Given a list that keeps the default ArrowUp behavior
+            const onArrowUpToSearchInput = jest.fn();
+            renderKeyboardFocus({onArrowUpToSearchInput});
 
-            result.current.setFocusedIndexFromRowFocus(5);
+            // When an arrow-key move sets the focused index to -1
+            capturedConfig.onFocusedIndexChange?.(-1, true);
 
-            expect(mockSetFocusedIndex).toHaveBeenCalledWith(5);
-            capturedConfig.onFocusedIndexChange?.(5);
-            expect(scrollToIndex).toHaveBeenCalledWith(5);
+            // Then DOM focus is not moved, preserving existing behavior for other lists
+            expect(onArrowUpToSearchInput).not.toHaveBeenCalled();
         });
     });
 

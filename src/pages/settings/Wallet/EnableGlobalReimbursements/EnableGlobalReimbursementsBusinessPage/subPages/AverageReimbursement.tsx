@@ -1,12 +1,16 @@
-import React, {useMemo} from 'react';
 import PushRowFieldsStep from '@components/SubStepForms/PushRowFieldsStep';
+
 import useEnableGlobalReimbursementsStepFormSubmit from '@hooks/useEnableGlobalReimbursementsStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import getListOptionsFromCorpayPicklist from '@pages/ReimbursementAccount/NonUSD/utils/getListOptionsFromCorpayPicklist';
 import type {BusinessInfoSubPageProps} from '@pages/settings/Wallet/EnableGlobalReimbursements/EnableGlobalReimbursementsBusinessPage/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnableGlobalReimbursementsForm';
+
+import React from 'react';
 
 const {TRADE_VOLUME} = INPUT_IDS;
 const STEP_FIELDS = [TRADE_VOLUME];
@@ -16,24 +20,18 @@ function AverageReimbursements({onNext, onMove, isEditing, currency}: BusinessIn
     const [enableGlobalReimbursementsDraft] = useOnyx(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
     const [corpayOnboardingFields] = useOnyx(ONYXKEYS.CORPAY_ONBOARDING_FIELDS);
 
-    const tradeVolumeRangeListOptions = useMemo(
-        () => getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange),
-        [corpayOnboardingFields?.picklists.TradeVolumeRange],
-    );
+    const tradeVolumeRangeListOptions = getListOptionsFromCorpayPicklist(corpayOnboardingFields?.picklists.TradeVolumeRange);
 
-    const pushRowFields = useMemo(
-        () => [
-            {
-                inputID: TRADE_VOLUME,
-                defaultValue: enableGlobalReimbursementsDraft?.[TRADE_VOLUME] ?? '',
-                options: tradeVolumeRangeListOptions,
-                description: translate('businessInfoStep.averageReimbursementAmountInCurrency', currency),
-                modalHeaderTitle: translate('businessInfoStep.selectAverageReimbursement'),
-                searchInputTitle: translate('businessInfoStep.findAverageReimbursement'),
-            },
-        ],
-        [enableGlobalReimbursementsDraft, currency, tradeVolumeRangeListOptions, translate],
-    );
+    const pushRowFields = [
+        {
+            inputID: TRADE_VOLUME,
+            defaultValue: enableGlobalReimbursementsDraft?.[TRADE_VOLUME] ?? '',
+            options: tradeVolumeRangeListOptions,
+            description: translate('businessInfoStep.averageReimbursementAmountInCurrency', currency),
+            modalHeaderTitle: translate('businessInfoStep.selectAverageReimbursement'),
+            searchInputTitle: translate('businessInfoStep.findAverageReimbursement'),
+        },
+    ];
 
     const handleSubmit = useEnableGlobalReimbursementsStepFormSubmit({
         fieldIds: STEP_FIELDS,

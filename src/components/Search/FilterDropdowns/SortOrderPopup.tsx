@@ -1,11 +1,15 @@
-import React from 'react';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {SearchQueryJSON, SortOrder} from '@components/Search/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildSearchQueryString} from '@libs/SearchQueryUtils';
 import {getSortOrderOptions} from '@libs/SearchUIUtils';
+
+import React from 'react';
+
 import SingleSelectPopup from './SingleSelectPopup';
 
 type SortOrderPopupProps = {

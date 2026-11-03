@@ -1,12 +1,17 @@
-import React, {useMemo} from 'react';
-import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Log from '@libs/Log';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import type {ImageProps, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
-import RESIZE_MODES from './Image/resizeModes';
 import type {ImageObjectPosition} from './Image/types';
+
+import RESIZE_MODES from './Image/resizeModes';
 import ImageWithLoading from './ImageWithLoading';
 
 type OnMeasure = (args: {width: number; height: number}) => void;
@@ -19,13 +24,8 @@ type OnLoadNativeEvent = {
 };
 
 type ImageWithSizeCalculationProps = {
-    /** Url for image to display */
     url: string | ImageSourcePropType;
-
-    /** alt text for the image */
     altText?: string;
-
-    /** Any additional styles to apply */
     style?: StyleProp<ViewStyle>;
 
     /** Callback fired when the image has been measured. */
@@ -36,26 +36,20 @@ type ImageWithSizeCalculationProps = {
     /** Whether the image requires an authToken */
     isAuthTokenRequired: boolean;
 
-    /** The object position of image */
     objectPosition?: ImageObjectPosition;
-
-    /** The size of the loading indicator */
     loadingIconSize?: FullScreenLoadingIndicatorIconSize;
-
-    /** The style of the loading indicator */
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
 
     /** Callback to be called when the image loads */
     onLoad?: (event: {nativeEvent: {width: number; height: number}}) => void;
 
-    /** The resize mode of the image */
-    resizeMode?: ImageResizeMode;
-
-    /** Reason attributes for skeleton span telemetry */
-    reasonAttributes?: SkeletonSpanReasonAttributes;
+    resizeMode?: ImageProps['resizeMode'];
 
     /** Low-resolution URI shown as a placeholder while the full image loads */
     previewUri?: string;
+
+    /** Identity of the picture for the native image view, see BaseImageProps */
+    recyclingKey?: string;
 };
 
 /**
@@ -76,12 +70,12 @@ function ImageWithSizeCalculation({
     loadingIndicatorStyles,
     onLoad,
     resizeMode,
-    reasonAttributes,
     previewUri,
+    recyclingKey,
 }: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
-    const source = useMemo(() => (typeof url === 'string' ? {uri: url} : url), [url]);
+    const source = typeof url === 'string' ? {uri: url} : url;
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url});
@@ -89,6 +83,7 @@ function ImageWithSizeCalculation({
     };
 
     return (
+        // Thumbnails are sized for the image alone, so the Retry notice would be clipped inside them.
         <ImageWithLoading
             containerStyles={[styles.w100, styles.h100, style]}
             style={[styles.w100, styles.h100]}
@@ -107,12 +102,13 @@ function ImageWithSizeCalculation({
             objectPosition={objectPosition}
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
-            reasonAttributes={reasonAttributes}
             previewUri={previewUri}
+            recyclingKey={recyclingKey}
+            shouldShowTimeoutNotice={false}
         />
     );
 }
 
 ImageWithSizeCalculation.displayName = 'ImageWithSizeCalculation';
 
-export default React.memo(ImageWithSizeCalculation);
+export default ImageWithSizeCalculation;

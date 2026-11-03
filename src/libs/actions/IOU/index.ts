@@ -1,22 +1,18 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+import {getAllPersonalDetails as getAllPersonalDetailsFromStore, getPersonalDetail} from '@libs/PersonalDetailsStore';
+import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type {Attendee} from '@src/types/onyx/IOU';
 
-let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        allPersonalDetails = value ?? {};
-    },
-});
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             allTransactions = {};
@@ -30,7 +26,6 @@ Onyx.connect({
 let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allTransactionDrafts = value ?? {};
     },
@@ -40,7 +35,6 @@ Onyx.connect({
 let allTransactionViolations: NonNullable<OnyxCollection<OnyxTypes.TransactionViolations>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         if (!value) {
             allTransactionViolations = {};
@@ -51,23 +45,9 @@ Onyx.connect({
     },
 });
 
-let allPolicyTags: OnyxCollection<OnyxTypes.PolicyTagLists> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.POLICY_TAGS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            allPolicyTags = {};
-            return;
-        }
-        allPolicyTags = value;
-    },
-});
-
 let allReports: OnyxCollection<OnyxTypes.Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -76,7 +56,6 @@ Onyx.connect({
 let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReportNameValuePairs = value;
     },
@@ -90,18 +69,9 @@ Onyx.connect({
     },
 });
 
-let deprecatedCurrentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
-Onyx.connect({
-    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-    callback: (value) => {
-        deprecatedCurrentUserPersonalDetails = value?.[deprecatedUserAccountID] ?? undefined;
-    },
-});
-
 let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-    waitForCollectionCallback: true,
     callback: (actions) => {
         if (!actions) {
             return;
@@ -117,8 +87,17 @@ Onyx.connectWithoutView({
     callback: (value) => (recentAttendees = value),
 });
 
+let allSnapshots: OnyxCollection<OnyxTypes.SearchResults> = {};
+// Expense actions run outside React and use this cache to optimistically update loaded searches without a view subscription.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+    callback: (value) => {
+        allSnapshots = value ?? {};
+    },
+});
+
 function getAllPersonalDetails(): OnyxTypes.PersonalDetailsList {
-    return allPersonalDetails;
+    return getAllPersonalDetailsFromStore();
 }
 
 function getAllTransactions(): NonNullable<OnyxCollection<OnyxTypes.Transaction>> {
@@ -150,70 +129,25 @@ function getAllTransactionDrafts(): NonNullable<OnyxCollection<OnyxTypes.Transac
 }
 
 function getCurrentUserPersonalDetails(): OnyxEntry<OnyxTypes.PersonalDetails> {
-    return deprecatedCurrentUserPersonalDetails;
+    return getPersonalDetail(deprecatedUserAccountID);
+}
+
+function getCurrentUserAccountIDFromSession(): number {
+    return deprecatedUserAccountID;
 }
 
 function getRecentAttendees(): OnyxEntry<Attendee[]> {
     return recentAttendees;
 }
 
-/**
- * This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72721)
- * All usages of this function should be replaced with params passed to the functions or useOnyx hook in React components.
- */
-function getPolicyTags(): OnyxCollection<OnyxTypes.PolicyTagLists> {
-    return allPolicyTags;
+function getAllSnapshots(): OnyxCollection<OnyxTypes.SearchResults> {
+    return allSnapshots;
 }
 
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `buildParticipantsPolicyTags` from this file (https://github.com/Expensify/App/issues/72721)
- * All usages of this function should be replaced with params passed to the functions or useOnyx hook in React components.
- */
-function buildParticipantsPolicyTags(participants: Participant[]): Record<string, OnyxTypes.PolicyTagLists> {
-    return participants.reduce<Record<string, OnyxTypes.PolicyTagLists>>((acc, participant) => {
-        if (participant.policyID) {
-            const tags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${participant.policyID}`];
-            if (tags) {
-                acc[participant.policyID] = tags;
-            }
-        }
-        return acc;
-    }, {});
-}
-
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getPolicyTagsData` from this file (https://github.com/Expensify/App/issues/72721)
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getPolicyTagsData(policyID: string | undefined) {
-    return allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {};
-}
-
-/**
- * @deprecated This function uses Onyx.connect and should be replaced with useOnyx for reactive data access.
- * TODO: remove `getMoneyRequestPolicyTags` from this file (https://github.com/Expensify/App/issues/72721)
- * All usages of this function should be replaced with useOnyx hook in React components.
- */
-function getMoneyRequestPolicyTags({
-    existingIOUReport,
-    moneyRequestReportID,
-    parentChatReport,
-    participant,
-}: {
-    existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
-    moneyRequestReportID?: string;
-    parentChatReport: OnyxEntry<OnyxTypes.Report>;
-    participant: Participant;
-}): OnyxTypes.PolicyTagLists {
-    const iouReportPolicyID =
-        existingIOUReport?.policyID ??
-        (moneyRequestReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`]?.policyID : undefined) ??
-        parentChatReport?.policyID ??
-        allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`]?.policyID;
-    return getPolicyTagsData(iouReportPolicyID) ?? {};
+function getIOUAndChatReportForIOUAction(reportAction: OnyxEntry<OnyxTypes.ReportAction>, reports: OnyxCollection<OnyxTypes.Report>) {
+    const iouReportID = isMoneyRequestAction(reportAction) ? reportAction.reportID : undefined;
+    const iouReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`];
+    return {iouReport, chatReport: reports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`]};
 }
 
 export {
@@ -226,11 +160,8 @@ export {
     getAllReportNameValuePairs,
     getAllTransactionDrafts,
     getCurrentUserPersonalDetails,
+    getCurrentUserAccountIDFromSession,
     getRecentAttendees,
-    // eslint-disable-next-line @typescript-eslint/no-deprecated
-    buildParticipantsPolicyTags,
-    // TODO: Replace getPolicyTagsData (https://github.com/Expensify/App/issues/72721) and getPolicyRecentlyUsedTagsData (https://github.com/Expensify/App/issues/71491) with useOnyx hook
-    getPolicyTagsData,
-    getPolicyTags,
-    getMoneyRequestPolicyTags,
+    getAllSnapshots,
+    getIOUAndChatReportForIOUAction,
 };

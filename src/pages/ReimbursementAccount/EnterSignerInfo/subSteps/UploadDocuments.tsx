@@ -1,5 +1,3 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormProvider from '@components/Form/FormProvider';
@@ -7,24 +5,32 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
+
 import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/utils/getNeededDocumentsStatusForSignerInfo';
 import WhyLink from '@pages/ReimbursementAccount/WhyLink';
+
 import {clearErrorFields, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import {openExternalLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-type UploadDocumentsProps = SubStepProps & {policyID: string};
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
+type UploadDocumentsProps = SubPageProps & {policyID: string};
 
 function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
     const {translate} = useLocalize();
@@ -62,18 +68,11 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
         getEnvironmentURL().then(setEnvironmentUrl);
     }, []);
 
-    const STEP_FIELDS = useMemo(
-        (): Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>> => [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
-        [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID],
-    );
+    const STEP_FIELDS: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>> = [copyOfIDInputID, addressProofInputID, directorsProofInputID, codiceFiscaleInputID];
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
-            setIsPDSandFSGDownloadedTouched(true);
-            return getFieldRequiredErrors(values, STEP_FIELDS, translate);
-        },
-        [STEP_FIELDS, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
+        return getFieldRequiredErrors(values, STEP_FIELDS, translate);
+    };
 
     const handleSubmit = useEnterSignerInfoStepFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -109,7 +108,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
         setErrorFields(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {[inputID]: {onUpload: error}});
     };
 
-    const handleDownload = () => {
+    const downloadPDSAndFSG = () => {
         openExternalLink(`${environmentUrl}/pdfs/PDSAndFSG.pdf`);
         setIsPDSandFSGDownloadedTouched(true);
         setDraftValues(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM, {[INPUT_IDS.DOWNLOADED_PDS_AND_FSG]: true});
@@ -120,6 +119,7 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
             formID={ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM}
             submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
             onSubmit={handleSubmitWithDownload}
+            onBeforeSubmit={() => setIsPDSandFSGDownloadedTouched(true)}
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
@@ -235,10 +235,9 @@ function UploadDocuments({onNext, isEditing, policyID}: UploadDocumentsProps) {
             {isDocumentNeededStatus.isPRDAndFSGNeeded && (
                 <View style={[styles.alignItemsStart]}>
                     <Text style={[styles.mutedTextLabel, styles.mb3]}>{translate('signerInfoStep.PDSandFSG')}</Text>
-                    <Button
-                        onPress={handleDownload}
-                        text={translate('common.download')}
-                    />
+                    <Button onPress={downloadPDSAndFSG}>
+                        <Button.Text>{translate('common.download')}</Button.Text>
+                    </Button>
                     {!isPDSandFSGDownloaded && isPDSandFSGDownloadedTouched && (
                         <DotIndicatorMessage
                             style={[styles.formError, styles.mt3]}

@@ -26,10 +26,21 @@ describe('Column availability single source of truth', () => {
         TABLE_COLUMNS.COMMENTS,
         // Task search view.
         TABLE_COLUMNS.ASSIGNEE,
+        // Trip search view.
+        TABLE_COLUMNS.START_DATE,
+        TABLE_COLUMNS.END_DATE,
+        TABLE_COLUMNS.TRIP_NAME,
+        TABLE_COLUMNS.TRAVELER,
         TABLE_COLUMNS.IN,
         // Expense-report (report list) view.
         TABLE_COLUMNS.REIMBURSABLE_TOTAL,
         TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
+        TABLE_COLUMNS.FIRST_APPROVER,
+        TABLE_COLUMNS.FIRST_APPROVED,
+        TABLE_COLUMNS.PAID_BY,
+        TABLE_COLUMNS.PAID_STATUS,
+        TABLE_COLUMNS.AMOUNT_DEBITED,
+        TABLE_COLUMNS.AMOUNT_REIMBURSED,
         // Grouped search views.
         TABLE_COLUMNS.EXPENSES,
         TABLE_COLUMNS.FEED,
@@ -46,11 +57,15 @@ describe('Column availability single source of truth', () => {
         TABLE_COLUMNS.GROUP_CATEGORY,
         TABLE_COLUMNS.GROUP_MERCHANT,
         TABLE_COLUMNS.GROUP_TAG,
+        TABLE_COLUMNS.GROUP_DAY,
         TABLE_COLUMNS.GROUP_MONTH,
         TABLE_COLUMNS.GROUP_WEEK,
         TABLE_COLUMNS.GROUP_YEAR,
         TABLE_COLUMNS.GROUP_QUARTER,
         TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
+        TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+        TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
+        TABLE_COLUMNS.GROUP_APPROVER,
     ]);
 
     test('every TABLE_COLUMNS value is classified in COLUMN_AVAILABILITY or owned by another surface', () => {
@@ -105,8 +120,10 @@ describe('Column availability single source of truth', () => {
         const reportColumns = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS);
         const reportLevelColumns = [
             TABLE_COLUMNS.STATUS,
+            TABLE_COLUMNS.PAID_STATUS,
             TABLE_COLUMNS.SUBMITTED,
             TABLE_COLUMNS.APPROVED,
+            TABLE_COLUMNS.PAID,
             TABLE_COLUMNS.EXPORTED,
             TABLE_COLUMNS.EXPORTED_TO,
             TABLE_COLUMNS.FROM,

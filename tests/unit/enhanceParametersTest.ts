@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import Onyx from 'react-native-onyx';
+
 import pkg from '../../package.json';
 import CONFIG from '../../src/CONFIG';
 import enhanceParameters from '../../src/libs/Network/enhanceParameters';

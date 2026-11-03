@@ -1,22 +1,30 @@
-import React, {useCallback, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
-import {Linking, View} from 'react-native';
 import BookTravelButton from '@components/BookTravelButton';
 import Button from '@components/Button';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
 import ScrollView from '@components/ScrollView';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView as RNScrollView} from 'react-native';
+
+import React, {useRef, useState} from 'react';
+import {Linking, View} from 'react-native';
 
 type ManageTripsProps = {
     policyID: string;
@@ -46,16 +54,16 @@ function ManageTrips({policyID}: ManageTripsProps) {
         Linking.openURL(CONST.BOOK_TRAVEL_DEMO_URL);
     };
 
-    const scrollViewRef = useRef<RNScrollView>(null);
+    const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
 
-    const handleOnContentSizeChange = useCallback(() => {
+    const handleOnContentSizeChange = () => {
         if (!shouldScrollToBottom) {
             return;
         }
 
         scrollViewRef.current?.scrollToEnd({animated: true});
         setShouldScrollToBottom(false);
-    }, [shouldScrollToBottom]);
+    };
 
     return (
         <AccessOrNotFoundWrapper policyID={policyID}>
@@ -77,12 +85,13 @@ function ManageTrips({policyID}: ManageTripsProps) {
                         footer={
                             <>
                                 <Button
-                                    text={translate('travel.bookDemo')}
                                     onPress={navigateToBookTravelDemo}
                                     accessibilityLabel={translate('travel.bookDemo')}
                                     style={[styles.w100, styles.mb3]}
-                                    large
-                                />
+                                    size={CONST.BUTTON_SIZE.LARGE}
+                                >
+                                    <Button.Text>{translate('travel.bookDemo')}</Button.Text>
+                                </Button>
                                 <BookTravelButton
                                     text={translate('travel.bookTravel')}
                                     shouldRenderErrorMessageBelowButton

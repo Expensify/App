@@ -1,28 +1,34 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import SearchBar from '@components/SearchBar';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {getPolicyByCustomUnitID, sortWorkspacesBySelected} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
+
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 
 type WorkspaceListItem = ListItem & {
@@ -38,7 +44,6 @@ type BaseRequestStepWorkspaceProps = WithFullTransactionOrNotFoundProps<typeof S
 };
 
 function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}: BaseRequestStepWorkspaceProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['FallbackWorkspaceAvatar']);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
 
@@ -47,6 +52,7 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    useOpenRecipientPicker();
     const selectedWorkspace = transaction?.participants?.[0];
     const customUnitPolicy = getPolicyByCustomUnitID(transaction, allPolicies);
     const initiallyFocusedKey = selectedWorkspace?.policyID ?? customUnitPolicy?.id;
@@ -60,15 +66,6 @@ function BaseRequestStepWorkspace({transaction, getPolicies, onSelectWorkspace}:
             text: policy.name,
             policyID: policy.id,
             keyForList: policy.id,
-            icons: [
-                {
-                    id: policy.id,
-                    source: policy?.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-                    fallbackIcon: icons.FallbackWorkspaceAvatar,
-                    name: policy.name,
-                    type: CONST.ICON_TYPE_WORKSPACE,
-                },
-            ],
             isSelected: initiallyFocusedKey === policy.id,
         }));
 

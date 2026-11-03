@@ -1,9 +1,3 @@
-import {cardByIdSelector} from '@selectors/Card';
-import {format, parseISO, subDays} from 'date-fns';
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import DatePicker from '@components/DatePicker';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,30 +5,45 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
+
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {updateAssignedCardTransactionStartDate} from '@userActions/Card';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CardList} from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {cardByIdSelector} from '@selectors/Card';
+import {format, parseISO, subDays} from 'date-fns';
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
 type DateOption = ValueOf<typeof CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS>;
-type PersonalCardEditTransactionStartDatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE>;
+type PersonalCardEditTransactionStartDatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_PERSONAL_CARD_EDIT_TRANSACTION_START_DATE>;
 
 function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTransactionStartDatePageProps) {
     const {cardID} = route.params;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PERSONAL_CARD_EDIT_TRANSACTION_START_DATE.path);
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const cardSelector = useCallback((cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList), [cardID]);
+    const cardSelector = (cardList: OnyxEntry<CardList>) => cardByIdSelector(cardID)(cardList);
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardSelector});
     const currentStartDate = card?.scrapeMinDate;
 
@@ -77,7 +86,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
         if (currentStartDate !== newStartDate) {
             updateAssignedCardTransactionStartDate(cardID, newStartDate, currentStartDate);
         }
-        Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID));
+        Navigation.goBack(backPath);
     };
 
     const dateOptions = [
@@ -102,7 +111,7 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
         >
             <HeaderWithBackButton
                 title={translate('workspace.moreFeatures.companyCards.transactionStartDate')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_PERSONAL_CARD_DETAILS.getRoute(cardID))}
+                onBackButtonPress={() => Navigation.goBack(backPath)}
             />
             <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.startDateDescription')}</Text>
             <View style={styles.flex1}>
@@ -116,12 +125,13 @@ function PersonalCardEditTransactionStartDatePage({route}: PersonalCardEditTrans
                     addBottomSafeAreaPadding
                     footerContent={
                         <Button
-                            success
-                            large
-                            pressOnEnter
-                            text={translate('common.save')}
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
+                            size={CONST.BUTTON_SIZE.LARGE}
                             onPress={submit}
-                        />
+                        >
+                            <Button.KeyboardShortcut />
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                        </Button>
                     }
                     listFooterContent={
                         dateOptionSelected === CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.CUSTOM ? (

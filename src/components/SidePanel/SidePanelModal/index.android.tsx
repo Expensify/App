@@ -1,8 +1,11 @@
+import Modal from '@components/Modal';
+
+import CONST from '@src/CONST';
+
 import {useFocusEffect} from '@react-navigation/native';
 import React from 'react';
 import {BackHandler} from 'react-native';
-import Modal from '@components/Modal';
-import CONST from '@src/CONST';
+
 import type SidePanelModalProps from './types';
 
 function SidePanelModal({shouldHideSidePanel, closeSidePanel, children}: SidePanelModalProps) {

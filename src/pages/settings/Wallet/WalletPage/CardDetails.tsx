@@ -1,16 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getTranslationKeyForLimitType} from '@libs/CardUtils';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
+
+import React from 'react';
+import {View} from 'react-native';
 
 const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
     addresses: [
@@ -37,10 +43,7 @@ type CardDetailsProps = {
     /** Callback to navigate to update address page */
     onUpdateAddressPress?: () => void;
 
-    /** Card limit type */
     limitType?: CardLimitType;
-
-    /** Hint text for the card */
     cardHintText?: string;
 };
 
@@ -62,12 +65,13 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
                 />
             )}
             {!!limitType && (
-                <MenuItemWithTopDescription
-                    description={translate('workspace.card.issueNewCard.limitType')}
-                    title={translate(getTranslationKeyForLimitType(limitType))}
-                    interactive={false}
-                    hintText={cardHintText}
-                />
+                <MenuItem.Root>
+                    <MenuItemField.Row
+                        name={translate('workspace.card.issueNewCard.limitType')}
+                        value={translate(getTranslationKeyForLimitType(limitType))}
+                    />
+                    {!!cardHintText && <MenuItem.HelpText message={cardHintText} />}
+                </MenuItem.Root>
             )}
             {expiration?.length > 0 && (
                 <MenuItemWithTopDescription
@@ -91,8 +95,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', onUpdateAddressPress,
                 <>
                     <MenuItemWithTopDescription
                         description={translate('cardPage.cardDetails.address')}
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        title={getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
+                        title={getFormattedAddress(privatePersonalDetails ?? defaultPrivatePersonalDetails)}
                         interactive={false}
                         copyable
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}

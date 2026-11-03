@@ -1,6 +1,8 @@
-import {createContext} from 'react';
-import type {AccessibilityState, GestureResponderEvent} from 'react-native';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
+
+import type {AccessibilityState, GestureResponderEvent} from 'react-native';
+
+import {createContext} from 'react';
 
 type SecondaryInteractionHandler = (event: GestureResponderEvent | MouseEvent) => void;
 

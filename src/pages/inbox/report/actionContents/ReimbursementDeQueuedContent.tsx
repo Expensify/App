@@ -1,10 +1,16 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+
 import {getReimbursementDeQueuedOrCanceledActionMessage} from '@libs/ReportUtils';
+
 import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBasicMessage';
+
 import type CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type ReimbursementDeQueuedContentProps = {
     action: ReportAction;
@@ -12,11 +18,14 @@ type ReimbursementDeQueuedContentProps = {
 };
 
 function ReimbursementDeQueuedContent({action, reportOwnerAccountID}: ReimbursementDeQueuedContentProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
+    const {convertToDisplayString} = useCurrencyListActions();
     const message = getReimbursementDeQueuedOrCanceledActionMessage(
         translate,
+        formatPhoneNumber,
         action as OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
         reportOwnerAccountID,
+        convertToDisplayString,
     );
 
     return <ReportActionItemBasicMessage message={message} />;

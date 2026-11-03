@@ -1,7 +1,5 @@
 import {act, renderHook} from '@testing-library/react-native';
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import type {SharedValue} from 'react-native-reanimated';
+
 import {
     AttachmentCarouselPagerActionsContext,
     AttachmentCarouselPagerStateContext,
@@ -21,22 +19,11 @@ import {useMultifactorAuthenticationActions} from '@components/MultifactorAuthen
 import {DEFAULT_STATE, MultifactorAuthenticationStateProvider} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationComposedContextProviders';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context/MultifactorAuthenticationStateContext';
 
-/**
- * Creates a mock SharedValue that satisfies the SharedValue<T> interface used in reanimated.
- */
-function createMockSharedValue<T>(initialValue: T): SharedValue<T> {
-    let current = initialValue;
-    return {
-        value: initialValue,
-        get: () => current,
-        set: (newValue: T | ((val: T) => T)) => {
-            current = typeof newValue === 'function' ? (newValue as (val: T) => T)(current) : newValue;
-        },
-        addListener: () => -1,
-        removeListener: () => {},
-        modify: () => {},
-    } as unknown as SharedValue<T>;
-}
+import type {PropsWithChildren} from 'react';
+
+import React from 'react';
+
+import createSharedValueMock from '../../utils/createSharedValueMock';
 
 describe('Split context hooks', () => {
     describe('AttachmentCarouselPager context hooks', () => {
@@ -52,8 +39,8 @@ describe('Split context hooks', () => {
             const mockState: AttachmentCarouselPagerStateContextType = {
                 pagerItems: [],
                 activePage: 2,
-                isPagerScrolling: createMockSharedValue(false),
-                isScrollEnabled: createMockSharedValue(true),
+                isPagerScrolling: createSharedValueMock(false),
+                isScrollEnabled: createSharedValueMock(true),
             };
 
             function wrapper({children}: PropsWithChildren) {
@@ -92,8 +79,8 @@ describe('Split context hooks', () => {
             const mockState: AttachmentCarouselPagerStateContextType = {
                 pagerItems: [],
                 activePage: 0,
-                isPagerScrolling: createMockSharedValue(false),
-                isScrollEnabled: createMockSharedValue(true),
+                isPagerScrolling: createSharedValueMock(false),
+                isScrollEnabled: createSharedValueMock(true),
             };
 
             function stateOnlyWrapper({children}: PropsWithChildren) {
@@ -205,7 +192,7 @@ describe('Split context hooks', () => {
 
     describe('MultifactorAuthentication context hooks', () => {
         it('throws when used outside provider', () => {
-            jest.spyOn(console, 'error').mockImplementation(() => {});
+            const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
             expect(() => {
                 renderHook(() => useMultifactorAuthenticationState());
@@ -215,7 +202,7 @@ describe('Split context hooks', () => {
                 renderHook(() => useMultifactorAuthenticationActions());
             }).toThrow('useMultifactorAuthenticationActions must be used within a MultifactorAuthenticationStateProvider');
 
-            (console.error as jest.Mock).mockRestore();
+            consoleErrorSpy.mockRestore();
         });
 
         it('returns default state when wrapped in provider', () => {

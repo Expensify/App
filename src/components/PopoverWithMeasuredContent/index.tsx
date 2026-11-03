@@ -1,10 +1,14 @@
-import {circularDeepEqual} from 'fast-equals';
-import React, {useEffect, useState, useTransition} from 'react';
 import Modal from '@components/Modal';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import CONST from '@src/CONST';
-import PopoverWithMeasuredContentBase from './PopoverWithMeasuredContentBase';
+
+import React, {useEffect, useState, useTransition} from 'react';
+
 import type PopoverWithMeasuredContentProps from './types';
+
+import PopoverWithMeasuredContentBase from './PopoverWithMeasuredContentBase';
 
 /**
  * Logic for PopoverWithMeasuredContent is in PopoverWithMeasuredContentBase.
@@ -36,6 +40,8 @@ function PopoverWithMeasuredContent({shouldWrapModalChildrenInScrollViewIfBottom
                 animationIn="slideInUp"
                 animationOut="slideOutDown"
                 shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode}
+                // The anchor is the launcher fallback for triggers that blur themselves before opening.
+                launcherRef={props.anchorRef}
             />
         );
     }
@@ -49,9 +55,4 @@ function PopoverWithMeasuredContent({shouldWrapModalChildrenInScrollViewIfBottom
 
 PopoverWithMeasuredContent.displayName = 'PopoverWithMeasuredContent';
 
-export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => {
-    if (prevProps.isVisible === nextProps.isVisible && nextProps.isVisible === false) {
-        return true;
-    }
-    return circularDeepEqual(prevProps, nextProps);
-});
+export default PopoverWithMeasuredContent;

@@ -1,25 +1,28 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDecodedLeafCategoryName} from '@libs/CategoryUtils';
+
+import {getDecodedFullCategoryName} from '@libs/CategoryUtils';
 import {getCommaSeparatedTagNameWithSanitizedColons} from '@libs/PolicyUtils';
+
+import {fontScale, lineHeightScale} from '@styles/typography';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {GroupedTransactions} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
-type MoneyRequestReportGroupHeaderProps = {
-    /** The grouped transaction data */
-    group: GroupedTransactions;
+import React from 'react';
+import {View} from 'react-native';
 
-    /** The group key for toggle callback */
+type MoneyRequestReportGroupHeaderProps = {
+    group: GroupedTransactions;
     groupKey: string;
 
     /** Currency code for amount formatting */
@@ -46,7 +49,6 @@ type MoneyRequestReportGroupHeaderProps = {
     /** Pending action for offline feedback styling (Pattern B - Optimistic WITH Feedback) */
     pendingAction?: PendingAction;
 
-    /** Whether to use narrow layout */
     shouldUseNarrowLayout?: boolean;
 };
 
@@ -70,12 +72,12 @@ function MoneyRequestReportGroupHeader({
     const {shouldUseNarrowLayout: shouldUseNarrowLayoutHook} = useResponsiveLayoutOnWideRHP();
     const shouldUseNarrowLayout = shouldUseNarrowLayoutProp ?? shouldUseNarrowLayoutHook;
 
-    const cleanedGroupName = isGroupedByTag && group.groupName ? getCommaSeparatedTagNameWithSanitizedColons(group.groupName) : getDecodedLeafCategoryName(group.groupName);
+    const cleanedGroupName = isGroupedByTag && group.groupName ? getCommaSeparatedTagNameWithSanitizedColons(group.groupName) : getDecodedFullCategoryName(group.groupName);
     const displayName = cleanedGroupName || translate(isGroupedByTag ? 'reportLayout.noTag' : 'reportLayout.uncategorized');
     const formattedAmount = convertToDisplayString(group.subTotalAmount, currency);
     const shouldShowCheckbox = isSelectionModeEnabled || !shouldUseNarrowLayout;
 
-    const textStyle = shouldUseNarrowLayout ? {fontSize: variables.fontSizeLabel, lineHeight: 16} : [styles.labelStrong];
+    const textStyle = shouldUseNarrowLayout ? {fontSize: fontScale.label, lineHeight: lineHeightScale.label} : [styles.labelStrong];
 
     const handleToggleSelection = () => {
         onToggleSelection?.(groupKey);

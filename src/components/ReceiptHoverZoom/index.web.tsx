@@ -1,6 +1,9 @@
-import React from 'react';
 import CONST from '@src/CONST';
+
+import React from 'react';
+
 import type ReceiptHoverZoomProps from './types';
+
 import useReceiptHoverZoom from './useReceiptHoverZoom';
 
 const DEFAULT_SCALE = CONST.RECEIPT.HOVER_ZOOM_SCALE;

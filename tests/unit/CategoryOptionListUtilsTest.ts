@@ -1,12 +1,25 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {getCategoryListSections, getCategoryOptionTree, sortCategories} from '@libs/CategoryOptionListUtils';
 import type {Category, CategoryTreeSection} from '@libs/CategoryOptionListUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import type {PolicyCategories} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+
 import {localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+const makeCategory = (name: string, glCode: string): PolicyCategories[string] => ({
+    enabled: true,
+    name,
+    unencodedName: name,
+    areCommentsRequired: false,
+    'GL Code': glCode,
+    externalID: '',
+    origin: '',
+    pendingAction: undefined,
+});
 
 describe('CategoryOptionListUtils', () => {
     beforeAll(() => {
@@ -352,6 +365,7 @@ describe('CategoryOptionListUtils', () => {
                         isDisabled: true,
                         isSelected: false,
                         pendingAction: undefined,
+                        shouldHideSelectionButton: true,
                     },
                     {
                         text: '    Audi',
@@ -433,6 +447,7 @@ describe('CategoryOptionListUtils', () => {
                         isDisabled: true,
                         isSelected: false,
                         pendingAction: undefined,
+                        shouldHideSelectionButton: true,
                     },
                     {
                         text: '    Meals',
@@ -720,6 +735,7 @@ describe('CategoryOptionListUtils', () => {
                 isDisabled: true,
                 isSelected: false,
                 pendingAction: undefined,
+                shouldHideSelectionButton: true,
             },
             {
                 text: '    Audi',
@@ -747,6 +763,7 @@ describe('CategoryOptionListUtils', () => {
                 isDisabled: true,
                 isSelected: false,
                 pendingAction: undefined,
+                shouldHideSelectionButton: true,
             },
             {
                 text: '    Meals',
@@ -810,6 +827,7 @@ describe('CategoryOptionListUtils', () => {
                 isDisabled: true,
                 isSelected: false,
                 pendingAction: undefined,
+                shouldHideSelectionButton: true,
             },
             {
                 text: '    B',
@@ -819,6 +837,7 @@ describe('CategoryOptionListUtils', () => {
                 isDisabled: true,
                 isSelected: false,
                 pendingAction: undefined,
+                shouldHideSelectionButton: true,
             },
             {
                 text: '        C',
@@ -837,6 +856,7 @@ describe('CategoryOptionListUtils', () => {
                 isDisabled: true,
                 isSelected: false,
                 pendingAction: undefined,
+                shouldHideSelectionButton: true,
             },
             {
                 text: '                E',
@@ -1264,6 +1284,50 @@ describe('CategoryOptionListUtils', () => {
         expect(sortCategories(categoriesIncorrectOrdering3, localeCompare)).toStrictEqual(result3);
     });
 
+    it('hides the selection button for a synthesized parent row that has no backing category (e.g. a recently used subcategory)', () => {
+        // When only the child "Parent: Child" is passed in (as in the Recent section), the tree builder
+        // synthesizes a "Parent" header row. That row has no backing category, so it is a structural header
+        // and must not render a selection control (radio), while the real "Parent: Child" leaf still does.
+        const recentlyUsedCategories = [{name: 'Parent: Child', enabled: true}];
+
+        const result = getCategoryOptionTree(recentlyUsedCategories);
+
+        expect(result).toStrictEqual([
+            {
+                text: 'Parent',
+                keyForList: 'Parent',
+                searchText: 'Parent',
+                tooltipText: 'Parent',
+                isDisabled: true,
+                isSelected: false,
+                pendingAction: undefined,
+                shouldHideSelectionButton: true,
+            },
+            {
+                text: '    Child',
+                keyForList: 'Parent: Child',
+                searchText: 'Parent: Child',
+                tooltipText: 'Parent: Child',
+                isDisabled: false,
+                isSelected: false,
+                pendingAction: undefined,
+            },
+        ]);
+    });
+
+    it('keeps the selection button for a real parent category (structural header only hides it)', () => {
+        // When the parent "Parent" is a real backing category (as in the All section), its row is a genuine,
+        // selectable category and must keep its selection control - even though it may be disabled.
+        const categories = {
+            Parent: {enabled: true, name: 'Parent'},
+            'Parent: Child': {enabled: true, name: 'Parent: Child'},
+        };
+
+        const result = getCategoryOptionTree(categories);
+
+        expect(result.at(0)?.shouldHideSelectionButton).toBeUndefined();
+    });
+
     it('sortCategories keeps colon‑only categories', () => {
         const categories = {
             ':': {enabled: true, name: ':'},
@@ -1276,5 +1340,170 @@ describe('CategoryOptionListUtils', () => {
             {name: '::', enabled: true, pendingAction: undefined},
             {name: 'Normal:Category', enabled: true, pendingAction: undefined},
         ]);
+    });
+
+    it('sortCategories skips categories without a name', () => {
+        // Given a categories map with a partial entry that has no name, as left behind by an Onyx merge keyed by a renamed or deleted category
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the malformed entry is the point of the test
+        const categories = {
+            Ghost: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            Taxi: {enabled: true, name: 'Taxi'},
+        } as unknown as Record<string, Category>;
+
+        // When the categories are sorted
+        const sorted = sortCategories(categories, localeCompare);
+
+        // Then the nameless entry is dropped instead of crashing, and valid categories are kept
+        expect(sorted).toEqual([{name: 'Taxi', enabled: true, pendingAction: undefined}]);
+    });
+
+    it('getCategoryListSections does not crash when a category has no name', () => {
+        // Given policy categories with a partial entry that has no name
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: the malformed entry is the point of the test
+        const categories = {
+            Ghost: {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            Taxi: {enabled: true, name: 'Taxi'},
+        } as unknown as PolicyCategories;
+
+        // When the category picker sections are built
+        const sections = getCategoryListSections({categories, localeCompare, translate: translateLocal});
+
+        // Then only the valid category is listed
+        const rows = sections.flatMap((section) => section.data);
+        expect(rows.map((row) => row.searchText)).toEqual(['Taxi']);
+    });
+
+    it('shows the GL code only on the subcategory row when searching for a subcategory', () => {
+        const categories: PolicyCategories = {
+            Lunch: makeCategory('Lunch', '4100'),
+            'Lunch: Sushi': makeCategory('Lunch: Sushi', '4200'),
+        };
+
+        const sections = getCategoryListSections({
+            categories,
+            searchValue: 'sushi',
+            localeCompare,
+            translate: translateLocal,
+            shouldShowGLCode: true,
+        });
+        const rows = sections.flatMap((section) => section.data);
+        const parentRow = rows.find((row) => row.searchText === 'Lunch');
+        const childRow = rows.find((row) => row.searchText === 'Lunch: Sushi');
+
+        expect(parentRow?.alternateText).toBeUndefined();
+        expect(childRow?.alternateText).toBe('4200');
+    });
+
+    it('shows GL codes for both parent and child categories in the full list (no search)', () => {
+        const categories: PolicyCategories = {
+            Lunch: makeCategory('Lunch', '4100'),
+            'Lunch: Sushi': makeCategory('Lunch: Sushi', '4200'),
+        };
+
+        const sections = getCategoryListSections({
+            categories,
+            localeCompare,
+            translate: translateLocal,
+            shouldShowGLCode: true,
+        });
+        const rows = sections.flatMap((section) => section.data);
+
+        expect(rows.find((row) => row.searchText === 'Lunch')?.alternateText).toBe('4100');
+        expect(rows.find((row) => row.searchText === 'Lunch: Sushi')?.alternateText).toBe('4200');
+    });
+
+    it('shows the GL code on the recently used subcategory but not on its synthesized parent header', () => {
+        const categories: PolicyCategories = {'Lunch: Sushi': makeCategory('Lunch: Sushi', '4200'), Lunch: makeCategory('Lunch', '4100')};
+        for (let index = 0; index < CONST.STANDARD_LIST_ITEM_LIMIT; index++) {
+            categories[`Category ${index}`] = makeCategory(`Category ${index}`, `${1000 + index}`);
+        }
+
+        const sections = getCategoryListSections({
+            categories,
+            recentlyUsedCategories: ['Lunch: Sushi'],
+            localeCompare,
+            translate: translateLocal,
+            shouldShowGLCode: true,
+        });
+        const recentRows = sections.find((section) => section.title === translateLocal('common.recent'))?.data ?? [];
+
+        expect(recentRows.find((row) => row.searchText === 'Lunch')?.alternateText).toBeUndefined();
+        expect(recentRows.find((row) => row.searchText === 'Lunch: Sushi')?.alternateText).toBe('4200');
+    });
+
+    it('marks a selected category that is also enabled and keeps its GL code', () => {
+        const categories: PolicyCategories = {
+            Food: makeCategory('Food', '5000'),
+            Travel: makeCategory('Travel', '6000'),
+        };
+        const selectedOptions: Category[] = [{name: 'Food', enabled: true}];
+
+        const sections = getCategoryListSections({
+            categories,
+            selectedOptions,
+            localeCompare,
+            translate: translateLocal,
+            shouldShowGLCode: true,
+        });
+        const rows = sections.flatMap((section) => section.data);
+        const foodRow = rows.find((row) => row.searchText === 'Food');
+
+        expect(foodRow?.isSelected).toBe(true);
+        expect(foodRow?.alternateText).toBe('5000');
+    });
+
+    it('deduplicates a category that is both selected and enabled in search results', () => {
+        const categories: PolicyCategories = {
+            Food: makeCategory('Food', '5000'),
+            'Food: Meat': makeCategory('Food: Meat', '5100'),
+        };
+        const selectedOptions: Category[] = [{name: 'Food', enabled: true}];
+
+        const sections = getCategoryListSections({
+            categories,
+            selectedOptions,
+            searchValue: 'Food',
+            localeCompare,
+            translate: translateLocal,
+            shouldShowGLCode: true,
+        });
+        const foodRows = sections.flatMap((section) => section.data).filter((row) => row.searchText === 'Food');
+
+        expect(foodRows).toHaveLength(1);
+        expect(foodRows.at(0)?.alternateText).toBe('5000');
+    });
+
+    it('does not show GL codes when the shouldShowGLCode flag is disabled', () => {
+        const categories: PolicyCategories = {
+            Lunch: makeCategory('Lunch', '4100'),
+            'Lunch: Sushi': makeCategory('Lunch: Sushi', '4200'),
+        };
+
+        const sections = getCategoryListSections({
+            categories,
+            searchValue: 'sushi',
+            localeCompare,
+            translate: translateLocal,
+        });
+        const rows = sections.flatMap((section) => section.data);
+
+        expect(rows.every((row) => row.alternateText === undefined)).toBe(true);
+    });
+
+    it('groups categories into Recent and All sections once the count reaches a custom searchInputThreshold', () => {
+        // Given fewer enabled categories than the default limit, but as many as the custom threshold
+        const categories: PolicyCategories = {
+            Food: makeCategory('Food', '5000'),
+            Travel: makeCategory('Travel', '6000'),
+            Lodging: makeCategory('Lodging', '7000'),
+        };
+
+        // When building sections with the default threshold and with a threshold matching the category count
+        const defaultSections = getCategoryListSections({categories, recentlyUsedCategories: ['Food'], localeCompare, translate: translateLocal});
+        const customSections = getCategoryListSections({categories, recentlyUsedCategories: ['Food'], localeCompare, translate: translateLocal, searchInputThreshold: 3});
+
+        // Then the default keeps a single untitled list, while the custom threshold splits it so the list matches the visible search input
+        expect(defaultSections.map((section) => section.title)).toEqual(['']);
+        expect(customSections.map((section) => section.title)).toEqual([translateLocal('common.recent'), translateLocal('common.all')]);
     });
 });

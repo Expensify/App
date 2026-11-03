@@ -1,7 +1,16 @@
 import CONST from '@src/CONST';
 
-function moveInitialSelectionToTop<T extends {value: string}>(items: T[], initialSelectedValues: string[]): T[] {
-    if (initialSelectedValues.length === 0 || items.length <= CONST.MOVE_SELECTED_ITEMS_TO_TOP_OF_LIST_THRESHOLD) {
+/** Whether a list of `itemCount` items is long enough for the initial selection to be pinned to the top. */
+function shouldMoveInitialSelectionToTop(itemCount: number): boolean {
+    return itemCount >= CONST.STANDARD_LIST_ITEM_LIMIT;
+}
+
+/**
+ * Moves the pre-selected items to the top of the list, keeping the rest in their original order.
+ * No-ops for short lists (below the item-limit threshold) or when nothing is pre-selected.
+ */
+function moveInitialSelectionToTop<T extends {value?: number | string}>(items: T[], initialSelectedValues: string[]): T[] {
+    if (initialSelectedValues.length === 0 || !shouldMoveInitialSelectionToTop(items.length)) {
         return items;
     }
 
@@ -10,7 +19,7 @@ function moveInitialSelectionToTop<T extends {value: string}>(items: T[], initia
     const remaining: T[] = [];
 
     for (const item of items) {
-        if (selectedValues.has(item.value)) {
+        if (item.value !== undefined && selectedValues.has(String(item.value))) {
             selected.push(item);
             continue;
         }
@@ -22,3 +31,4 @@ function moveInitialSelectionToTop<T extends {value: string}>(items: T[], initia
 }
 
 export default moveInitialSelectionToTop;
+export {shouldMoveInitialSelectionToTop};

@@ -1,57 +1,58 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemFieldHTML from '@components/MenuItem/presets/MenuItemFieldHTML';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setMoneyRequestDescription} from '@libs/actions/IOU/MoneyRequest';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+
 import variables from '@styles/variables';
+
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+
 import CONST from '@src/CONST';
-import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {ComponentRef} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
+import ExpenseFieldRow from './ExpenseFieldRow';
+import {useExpenseFormLayout} from './ExpenseFormLayoutContext';
 import {descriptionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
 type DescriptionFieldProps = {
-    isNewManualExpenseFlowEnabled: boolean;
-    isReadOnly: boolean;
-    didConfirm: boolean;
     isDescriptionRequired: boolean;
-    transactionID: string | undefined;
-    action: IOUAction;
-    iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
-    reportID: string;
-    reportActionID: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
-    onSubmitForm?: () => void;
+
+    /** The selected category's description hint, shown below the input */
+    descriptionHint?: string;
 };
 
-function DescriptionField({
-    isNewManualExpenseFlowEnabled,
-    isReadOnly,
-    didConfirm,
-    isDescriptionRequired,
-    transactionID,
-    action,
-    iouType,
-    reportID,
-    reportActionID,
-    policy,
-    onSubmitForm,
-}: DescriptionFieldProps) {
-    const {isEditingSplitBill} = useConfirmationFields();
+function DescriptionField({isDescriptionRequired, policy, descriptionHint = ''}: DescriptionFieldProps) {
+    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm, isReadOnly, didConfirm, transactionID, action, iouType, reportID, reportActionID} = useConfirmationFields();
+    const {shouldUseDropdownRows} = useExpenseFormLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    // Ref on the field's outer container (the bordered box), so scrolling brings the whole field — including its
+    // top border and label — into view rather than just the inner text area.
+    const fieldContainerRef = useRef<ComponentRef<typeof View>>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -77,6 +78,12 @@ function DescriptionField({
 
     const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
 
+    // This is a multi-line input, so Enter must insert a new line. On touch devices that's the only way to add one,
+    // so we never let Enter submit there (otherwise it's impossible to type a multi-line description — see #94258).
+    // On hardware-keyboard setups Shift+Enter still inserts a new line, so we keep Enter-to-confirm, matching the
+    // dedicated description step page (which gets `blurAndSubmit` from InputWrapper for the same reason).
+    const canUseHardwareKeyboard = !canUseTouchScreen();
+
     const handleDescriptionInputChange = (newDescription: string) => {
         if (!transactionID) {
             return;
@@ -87,58 +94,78 @@ function DescriptionField({
         // Trimming is deferred to submission time, not during keystrokes, to avoid
         // silently stripping trailing spaces as the user types.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {comment: newDescription});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {comment: newDescription}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
         setMoneyRequestDescription(transactionID, newDescription, true, transactionHasReceipt);
     };
 
+    const openDescriptionPage = () => {
+        if (!transactionID) {
+            return;
+        }
+
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, reportActionID)));
+    };
+
+    // Only the read-only rows render HTML, so the editable input doesn't re-parse the description on every keystroke
+    const descriptionHTML = isReadOnly && iouComment ? Parser.replace(iouComment, {disabledRules: !policy ? ['reportMentions'] : []}) : undefined;
+
+    // On the bordered form the editable description is a text input, so a locked one has to read as a disabled input
+    // too rather than as a push row, or the same screen answers "this field can't be changed" two different ways.
+    const readOnlyDescription = shouldUseDropdownRows ? (
+        <ExpenseFieldRow
+            name={translate('common.description')}
+            valueComponent={descriptionHTML ? <MenuItem.FieldValueHTML isMuted>{descriptionHTML}</MenuItem.FieldValueHTML> : undefined}
+            hasValueComponent={!!descriptionHTML}
+            accessibilityLabel={descriptionHTML ? `${translate('common.description')}, ${Parser.htmlToText(descriptionHTML)}` : undefined}
+            rightLabel={isDescriptionRequired ? translate('common.required') : ''}
+            onPress={openDescriptionPage}
+            isDisabled={didConfirm}
+            isInteractive={false}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+        />
+    ) : (
+        <MenuItemFieldHTML
+            name={translate('common.description')}
+            value={descriptionHTML}
+            isDisabled={didConfirm}
+            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
+        >
+            {!iouComment && isDescriptionRequired && <MenuItem.RightLabel>{translate('common.required')}</MenuItem.RightLabel>}
+        </MenuItemFieldHTML>
+    );
+
     return (
         <View>
             <ShowContextMenuStateContext.Provider value={contextMenuStateValue}>
                 <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                     <MentionReportContext.Provider value={mentionReportContextValue}>
-                        {isNewManualExpenseFlowEnabled && !isReadOnly ? (
-                            <View style={[styles.mh4, styles.mv2]}>
+                        {!isReadOnly ? (
+                            <View
+                                ref={fieldContainerRef}
+                                style={[styles.mh4, styles.mv2]}
+                            >
                                 <TextInput
                                     value={iouComment ?? ''}
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
-                                    submitBehavior="blurAndSubmit"
-                                    onSubmitEditing={onSubmitForm}
+                                    onFocus={() => scrollFocusedInputIntoView?.(fieldContainerRef.current)}
+                                    submitBehavior={canUseHardwareKeyboard ? 'blurAndSubmit' : 'newline'}
+                                    onSubmitEditing={canUseHardwareKeyboard ? onSubmitForm : undefined}
                                     label={translate('common.description')}
                                     accessibilityLabel={translate('common.description')}
                                     autoGrowHeight
                                     maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                                     type="markdown"
                                     excludedMarkdownStyles={!policy ? ['mentionReport'] : []}
+                                    hint={descriptionHint}
+                                    shouldRenderHintAsHTML={!!descriptionHint}
                                 />
                             </View>
                         ) : (
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={!isReadOnly}
-                                shouldParseTitle
-                                excludedMarkdownRules={!policy ? ['reportMentions'] : []}
-                                title={iouComment}
-                                description={translate('common.description')}
-                                onPress={() => {
-                                    if (!transactionID) {
-                                        return;
-                                    }
-
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                                    );
-                                }}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
-                                disabled={didConfirm}
-                                interactive={!isReadOnly}
-                                numberOfLinesTitle={2}
-                                rightLabel={isDescriptionRequired ? translate('common.required') : ''}
-                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.DESCRIPTION_FIELD}
-                            />
+                            readOnlyDescription
                         )}
                     </MentionReportContext.Provider>
                 </ShowContextMenuActionsContext.Provider>

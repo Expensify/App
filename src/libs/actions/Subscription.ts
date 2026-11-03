@@ -1,5 +1,3 @@
-import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import type {
     CancelBillingSubscriptionParams,
@@ -10,11 +8,18 @@ import type {
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import type {FeedbackSurveyOptionID, SubscriptionType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {BillingGraceEndPeriod} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
+
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
+import {getVerify3dsSubscriptionSourceData, prepareCardAuthentication} from './PaymentMethods';
 
 /**
  * Fetches data when the user opens the SubscriptionSettingsPage
@@ -70,6 +75,29 @@ function openSubscriptionPage(currentGracePeriods?: OnyxCollection<BillingGraceE
     }
 
     API.read(READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE, null, {optimisticData, successData, failureData});
+}
+
+/**
+ * Fetches the full purchase history when the user opens the payment history page.
+ */
+function openPaymentHistoryPage() {
+    API.read(READ_COMMANDS.OPEN_PAYMENT_HISTORY_PAGE, null);
+}
+
+function openPaymentDetailsPage(purchaseID: number) {
+    const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.PURCHASES>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PURCHASES,
+            value: {
+                [purchaseID]: {
+                    isLoaded: true,
+                },
+            },
+        },
+    ];
+
+    API.read(READ_COMMANDS.OPEN_PAYMENT_DETAILS_PAGE, {purchaseID}, {finallyData});
 }
 
 /**
@@ -341,9 +369,16 @@ function clearUpdateSubscriptionSizeError() {
     });
 }
 
-function clearOutstandingBalance() {
+/**
+ * An SCA card that needs 3DS fails this charge with a 409 whose onyxData sets verify3dsSubscription to a new 3DS link.
+ */
+function clearOutstandingBalance(source: string) {
+    prepareCardAuthentication(source);
     const onyxData: OnyxData<
-        typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED
+        | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING
+        | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL
+        | typeof ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED
+        | typeof ONYXKEYS.VERIFY_3DS_SUBSCRIPTION_SOURCE
     > = {
         optimisticData: [
             {
@@ -385,6 +420,7 @@ function clearOutstandingBalance() {
                 key: ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_FAILED,
                 value: true,
             },
+            ...getVerify3dsSubscriptionSourceData(source),
         ],
     };
 
@@ -480,6 +516,8 @@ function applyExpensifyCode(promoCode: string) {
 
 export {
     openSubscriptionPage,
+    openPaymentDetailsPage,
+    openPaymentHistoryPage,
     openSaveTheWorldPage,
     updateSubscriptionAutoRenew,
     updateSubscriptionAddNewUsersAutomatically,

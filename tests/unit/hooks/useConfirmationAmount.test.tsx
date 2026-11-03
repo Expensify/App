@@ -1,11 +1,18 @@
 import {renderHook} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import useConfirmationAmount from '@components/MoneyRequestConfirmationList/hooks/useConfirmationAmount';
+
+import type * as PerDiem from '@libs/actions/IOU/PerDiem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useCurrencyList', () => ({
@@ -17,13 +24,13 @@ jest.mock('@hooks/useCurrencyList', () => ({
 }));
 
 jest.mock('@libs/actions/IOU/PerDiem', () => ({
-    computePerDiemExpenseAmount: ({subRates}: {subRates: Array<{amount: number}>}) => subRates.reduce((sum, r) => sum + (r.amount ?? 0), 0),
+    computePerDiemExpenseAmount: ({subRates}: Parameters<typeof PerDiem.computePerDiemExpenseAmount>[0]) => (subRates ?? []).reduce((sum, {quantity, rate}) => sum + quantity * rate, 0),
 }));
 
 type Params = Parameters<typeof useConfirmationAmount>[0];
 
 const baseParams: Params = {
-    transaction: {transactionID: 'txn1', amount: 100, comment: {}} as unknown as OnyxTypes.Transaction,
+    transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', amount: 100, comment: {}}),
     iouAmount: 100,
     iouCurrencyCode: 'USD',
     iouAttendees: [],
@@ -33,8 +40,6 @@ const baseParams: Params = {
     distanceRequestAmount: 250,
     distanceCurrency: 'USD',
     isPerDiemRequest: false,
-    prevCurrency: 'USD',
-    currency: 'USD',
     prevSubRates: [],
 };
 
@@ -61,7 +66,10 @@ describe('useConfirmationAmount', () => {
     });
 
     it('per-diem overrides iouAmount when sub-rates change', () => {
-        const subRates = [{amount: 30}, {amount: 70}];
+        const subRates = [
+            createMock<Params['prevSubRates'][number]>({id: 'subRate1', quantity: 1, name: 'Breakfast', rate: 30}),
+            createMock<Params['prevSubRates'][number]>({id: 'subRate2', quantity: 1, name: 'Dinner', rate: 70}),
+        ];
         const {result} = renderHook(
             () =>
                 useConfirmationAmount({
@@ -69,7 +77,7 @@ describe('useConfirmationAmount', () => {
                     iouAmount: 0,
                     isPerDiemRequest: true,
                     prevSubRates: [],
-                    transaction: {transactionID: 'txn1', amount: 0, comment: {customUnit: {subRates}}} as unknown as OnyxTypes.Transaction,
+                    transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', amount: 0, comment: {customUnit: {subRates}}}),
                 }),
             {wrapper: Wrapper},
         );
@@ -83,10 +91,50 @@ describe('useConfirmationAmount', () => {
     });
 
     it('divides amount by attendee count for per-attendee total', () => {
-        const {result} = renderHook(() => useConfirmationAmount({...baseParams, iouAttendees: [{accountID: 1}, {accountID: 2}, {accountID: 3}, {accountID: 4}] as Params['iouAttendees']}), {
+        const iouAttendees = Array.from({length: 4}, () => createMock<Params['iouAttendees'][number]>({}));
+        const {result} = renderHook(() => useConfirmationAmount({...baseParams, iouAttendees}), {
             wrapper: Wrapper,
         });
         // 100 / 4 = 25
         expect(result.current.formattedAmountPerAttendee).toContain('25.00');
+    });
+
+    it('formattedAmount is empty string for a failed-scan amount placeholder', () => {
+        const {result} = renderHook(
+            () =>
+                useConfirmationAmount({
+                    ...baseParams,
+                    iouAmount: 0,
+                    transaction: createMock<OnyxTypes.Transaction>({
+                        transactionID: 'txn1',
+                        amount: 0,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                        comment: {},
+                    }),
+                }),
+            {wrapper: Wrapper},
+        );
+        expect(result.current.formattedAmount).toBe('');
+    });
+
+    it('formattedAmount is not blanked once the failed-scan amount is confirmed', () => {
+        const {result} = renderHook(
+            () =>
+                useConfirmationAmount({
+                    ...baseParams,
+                    iouAmount: 0,
+                    transaction: createMock<OnyxTypes.Transaction>({
+                        transactionID: 'txn1',
+                        amount: 0,
+                        modifiedAmount: 0,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED},
+                        comment: {},
+                    }),
+                }),
+            {wrapper: Wrapper},
+        );
+        expect(result.current.formattedAmount).toContain('0.00');
     });
 });

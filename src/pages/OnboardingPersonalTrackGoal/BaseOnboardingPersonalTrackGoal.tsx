@@ -1,27 +1,38 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
 import Button from '@components/Button';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import OnboardingHeader from '@components/OnboardingHeader';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoCreateTrackWorkspace from '@hooks/useAutoCreateTrackWorkspace';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldFooterBeInsideList from '@hooks/useShouldFooterBeInsideList';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+import scrollFocusedInputToTop from '@libs/scrollFocusedInputToTop';
+
 import variables from '@styles/variables';
+
 import {setOnboardingPersonalTrackGoal} from '@userActions/Welcome';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+
+import type {ComponentRef} from 'react';
+
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type {BaseOnboardingPersonalTrackGoalProps} from './types';
 
 const personalTrackGoalOptions = Object.values(CONST.ONBOARDING_PERSONAL_TRACK_GOALS);
@@ -30,10 +41,14 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PERSONAL_TRACK_GOAL);
+    const shouldFooterBeInsideScrollView = useShouldFooterBeInsideList();
     const [selectedGoalOverride, setSelectedGoalOverride] = useState<string | null>(null);
     const [somethingElseTextOverride, setSomethingElseTextOverride] = useState<string | null>(null);
     const [inputError, setInputError] = useState('');
+    const [shouldScrollToSomethingElseInput, setShouldScrollToSomethingElseInput] = useState(false);
+    const scrollViewRef = useRef<ComponentRef<typeof ScrollView>>(null);
+    const scrollContentRef = useRef<View>(null);
+    const inputRef = useRef<AnimatedTextInputRef>(null);
     const illustrations = useMemoizedLazyIllustrations(['RealEstate', 'HouseMoney', 'TargetWithArrow', 'Binoculars']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -61,6 +76,23 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
         Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(route.params?.backTo));
     };
 
+    const submitSomethingElseGoal = () => {
+        if (!somethingElseText.trim()) {
+            setInputError(translate('common.error.fieldRequired'));
+            return;
+        }
+        completeTrackGoalSelection(somethingElseText.trim());
+    };
+
+    const handleContentSizeChange = () => {
+        if (!shouldScrollToSomethingElseInput) {
+            return;
+        }
+
+        scrollViewRef.current?.scrollToEnd({animated: false});
+        setShouldScrollToSomethingElseInput(false);
+    };
+
     const menuIcons = {
         [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.INVESTMENT_TRACKING]: illustrations.RealEstate,
         [CONST.ONBOARDING_PERSONAL_TRACK_GOALS.HOUSEHOLD_TRACKING]: illustrations.HouseMoney,
@@ -70,25 +102,43 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
 
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
+    const continueButton = (
+        <View style={[styles.w100, styles.mb5, styles.mh0, !shouldFooterBeInsideScrollView ? paddingHorizontal : undefined]}>
+            <Button
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
+                onPress={submitSomethingElseGoal}
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.continue')}</Button.Text>
+            </Button>
+        </View>
+    );
+
     return (
         <ScreenWrapper
             testID="BaseOnboardingPersonalTrackGoal"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <HeaderWithBackButton
-                shouldShowBackButton
-                stepCounter={onboardingStep?.stepCounter}
-                progressBarPercentage={onboardingStep?.progressBarPercentage}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
-                }}
-                shouldDisplayHelpButton={false}
-            />
+            <CollapsibleHeaderOnKeyboard>
+                <OnboardingHeader
+                    shouldShowBackButton
+                    onBackButtonPress={() => {
+                        Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+                    }}
+                />
+            </CollapsibleHeaderOnKeyboard>
             <ScrollView
+                ref={scrollViewRef}
+                onLayout={() => scrollFocusedInputToTop(scrollViewRef, scrollContentRef, inputRef)}
                 style={[styles.flex1, styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, paddingHorizontal]}
+                onContentSizeChange={handleContentSizeChange}
                 keyboardShouldPersistTaps="handled"
             >
-                <View style={styles.flex1}>
+                <View
+                    ref={scrollContentRef}
+                    style={styles.flex1}
+                >
                     <View style={[onboardingIsMediumOrLargerScreenWidth ? styles.flexRow : styles.flexColumn, styles.mb5]}>
                         <Text
                             style={styles.textHeadlineH1}
@@ -118,6 +168,7 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                                 onPress={() => {
                                     setSelectedGoalOverride(goal);
                                     setInputError('');
+                                    setShouldScrollToSomethingElseInput(goal === CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE);
                                     if (goal !== CONST.ONBOARDING_PERSONAL_TRACK_GOALS.SOMETHING_ELSE) {
                                         completeTrackGoalSelection(goal);
                                     }
@@ -126,8 +177,9 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                         );
                     })}
                     {isSomethingElseSelected && (
-                        <View style={styles.mt4}>
+                        <View style={[styles.mt4, styles.mb5]}>
                             <TextInput
+                                ref={inputRef}
                                 autoFocus
                                 accessibilityLabel={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
                                 label={translate('onboarding.personalTrackGoal.somethingElsePlaceholder')}
@@ -146,25 +198,11 @@ function BaseOnboardingPersonalTrackGoal({shouldUseNativeStyles, route}: BaseOnb
                             )}
                         </View>
                     )}
+
+                    {isSomethingElseSelected && shouldFooterBeInsideScrollView && continueButton}
                 </View>
             </ScrollView>
-            {isSomethingElseSelected && (
-                <View style={[styles.w100, styles.mb5, styles.mh0, paddingHorizontal]}>
-                    <Button
-                        success
-                        large
-                        text={translate('common.continue')}
-                        onPress={() => {
-                            if (!somethingElseText.trim()) {
-                                setInputError(translate('common.error.fieldRequired'));
-                                return;
-                            }
-                            completeTrackGoalSelection(somethingElseText.trim());
-                        }}
-                        pressOnEnter
-                    />
-                </View>
-            )}
+            {isSomethingElseSelected && !shouldFooterBeInsideScrollView && continueButton}
         </ScreenWrapper>
     );
 }

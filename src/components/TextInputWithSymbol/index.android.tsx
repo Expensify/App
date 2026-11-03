@@ -1,7 +1,10 @@
-import React, {useState} from 'react';
 import type {TextInputSelectionChangeEvent} from 'react-native';
-import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
+
+import React, {useState} from 'react';
+
 import type {TextInputWithSymbolProps} from './types';
+
+import BaseTextInputWithSymbol from './BaseTextInputWithSymbol';
 
 function TextInputWithSymbol({onSelectionChange = () => {}, ref, ...props}: TextInputWithSymbolProps) {
     const [acknowledgedAmount, setAcknowledgedAmount] = useState(props.formattedAmount);

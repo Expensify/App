@@ -1,22 +1,28 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
+import CollapsibleHeaderOnKeyboardGroupMember from '@components/CollapsibleHeaderOnKeyboard/GroupMember';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
+
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
+
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
+
 import Text from '@src/components/Text';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CorpayFormField} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function getInputComponent(field: CorpayFormField) {
     if ((field.valueSet ?? []).length > 0) {
@@ -48,28 +54,22 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubPa
         shouldSaveDraft: true,
     });
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION], translate);
-        },
-        [fieldsMap, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
+        return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION], translate);
+    };
 
-    const getStyle = useCallback(
-        (field: CorpayFormField, index: number) => {
-            if ((field.valueSet ?? []).length > 0) {
-                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
-            }
-            if (CONST.CORPAY_FIELDS.SPECIAL_LIST_REGION_KEYS.includes(field.id)) {
-                return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
-            }
-            if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
-                return [index === 0 ? styles.pb2 : styles.pv2];
-            }
+    const getStyle = (field: CorpayFormField, index: number) => {
+        if ((field.valueSet ?? []).length > 0) {
+            return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
+        }
+        if (CONST.CORPAY_FIELDS.SPECIAL_LIST_REGION_KEYS.includes(field.id)) {
+            return [styles.mhn5, index === 0 ? styles.pb1 : styles.pv1];
+        }
+        if (CONST.CORPAY_FIELDS.SPECIAL_LIST_ADDRESS_KEYS.includes(field.id)) {
             return [index === 0 ? styles.pb2 : styles.pv2];
-        },
-        [styles.mhn5, styles.pb1, styles.pb2, styles.pv1, styles.pv2],
-    );
+        }
+        return [index === 0 ? styles.pb2 : styles.pv2];
+    };
 
     return (
         <FormProvider
@@ -82,7 +82,9 @@ function BankInformation({isEditing, onNext, formValues, fieldsMap}: CustomSubPa
             enabledWhenOffline
         >
             <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.bankInformationStepHeader')}</Text>
+                <CollapsibleHeaderOnKeyboardGroupMember>
+                    <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('addPersonalBankAccount.bankInformationStepHeader')}</Text>
+                </CollapsibleHeaderOnKeyboardGroupMember>
                 {Object.values(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.BANK_INFORMATION] ?? {})
                     .sort((a, b) => CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(a.id) - CONST.CORPAY_FIELDS.BANK_INFORMATION_FIELDS.indexOf(b.id))
                     .map((field, index) => {

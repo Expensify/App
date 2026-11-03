@@ -1,8 +1,12 @@
-import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getTaxAmount, getCurrency as getTransactionCurrency} from '@libs/TransactionUtils';
+
+import React from 'react';
+
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 function TaxCell({transactionItem, shouldShowTooltip}: TransactionDataCellProps) {
@@ -17,6 +21,7 @@ function TaxCell({transactionItem, shouldShowTooltip}: TransactionDataCellProps)
             shouldShowTooltip={shouldShowTooltip}
             text={convertToDisplayString(taxAmount, currency)}
             style={[styles.optionDisplayName, styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, styles.textAlignRight]}
+            isSelectable
         />
     );
 }

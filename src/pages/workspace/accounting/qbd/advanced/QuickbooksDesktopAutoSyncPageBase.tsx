@@ -1,23 +1,30 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateQuickbooksDesktopAutoSync} from '@libs/actions/connections/QuickbooksDesktop';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React from 'react';
 
 type QuickbooksDesktopAutoSyncPageBaseParams = {
     policy: OnyxEntry<Policy>;
@@ -34,9 +41,12 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
     const pendingAction =
         settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC], pendingFields) ?? settingsPendingAction([CONST.QUICKBOOKS_DESKTOP_CONFIG.ACCOUNTING_METHOD], pendingFields);
 
-    const goBack = useCallback(() => {
-        Navigation.goBack(navigateBackTo ?? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, ROUTES.POLICY_ACCOUNTING.getRoute(policyID)));
-    }, [policyID, navigateBackTo]);
+    const goBack = () => {
+        Navigation.goBack(
+            navigateBackTo ??
+                (policyID ? createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED.path, ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID)) : undefined),
+        );
+    };
 
     return (
         <ConnectionLayout
@@ -65,19 +75,18 @@ function QuickbooksDesktopAutoSyncPageBase({policy, navigateBackTo}: QuickbooksD
                     updateQuickbooksDesktopAutoSync(policyID, !autoSync?.enabled);
                 }}
                 pendingAction={pendingAction}
-                errors={getLatestErrorField(config ?? {}, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC_ENABLED)}
-                onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC_ENABLED)}
+                errors={getLatestErrorField(config ?? {}, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC)}
+                onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.AUTO_SYNC)}
             />
             {!!autoSync?.enabled && (
                 <OfflineWithFeedback pendingAction={pendingAction}>
-                    <MenuItemWithTopDescription
-                        title={
+                    <MenuItemField
+                        value={
                             accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
                                 ? translate(`workspace.qbd.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
                                 : translate(`workspace.qbd.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
                         }
-                        description={translate('workspace.qbd.accountingMethods.label')}
-                        shouldShowRightIcon
+                        name={translate('workspace.qbd.accountingMethods.label')}
                         onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_ACCOUNTING_METHOD.getRoute(policyID))}
                     />
                 </OfflineWithFeedback>

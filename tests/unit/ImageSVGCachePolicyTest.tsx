@@ -1,18 +1,20 @@
 import {render} from '@testing-library/react-native';
+
+import type {ImageProps as ExpoImageProps} from 'expo-image';
+
 import React from 'react';
+
 import ImageSVGAndroid from '../../src/components/ImageSVG/index.android';
 import ImageSVGiOS from '../../src/components/ImageSVG/index.ios';
 
-type MockImageType = jest.Mock & {clearMemoryCache: jest.Mock};
-
 const mockClearMemoryCache = jest.fn(() => Promise.resolve(true));
 
-const mockImageComponent: MockImageType = Object.assign(
-    jest.fn(() => null),
+const mockImageComponent = Object.assign(
+    jest.fn<null, [props: ExpoImageProps]>(() => null),
     {
         clearMemoryCache: mockClearMemoryCache,
     },
-) as MockImageType;
+);
 
 jest.mock('expo-image', () => ({
     get Image() {
@@ -25,8 +27,8 @@ jest.mock('@libs/getImageRecyclingKey', () =>
         if (typeof source === 'number') {
             return String(source);
         }
-        if (typeof source === 'object' && source !== null && 'uri' in source) {
-            return (source as {uri: string}).uri;
+        if (typeof source === 'object' && source !== null && 'uri' in source && typeof source.uri === 'string') {
+            return source.uri;
         }
         return undefined;
     }),
@@ -34,9 +36,12 @@ jest.mock('@libs/getImageRecyclingKey', () =>
 
 const MOCK_STATIC_SOURCE = 42;
 
-function getFirstCallProps(): Record<string, unknown> {
-    const firstCall = mockImageComponent.mock.calls.at(0) as unknown[] | undefined;
-    return firstCall?.at(0) as Record<string, unknown>;
+function getFirstCallProps(): ExpoImageProps {
+    const firstCall = mockImageComponent.mock.calls.at(0);
+    if (!firstCall) {
+        throw new Error('Expected Expo Image to be called');
+    }
+    return firstCall[0];
 }
 
 describe('ImageSVG cache policy', () => {

@@ -1,16 +1,24 @@
-import {setYear} from 'date-fns';
-import React, {useEffect, useRef, useState} from 'react';
-import type {View} from 'react-native';
-import {isInternalPopstateInProgress} from '@components/Modal/internalPopstateGuard';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import getPlatform from '@libs/getPlatform';
+
+import DateUtils from '@libs/DateUtils';
+
 import {setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
-import CalendarPicker from './CalendarPicker';
+
+import type {ComponentRef} from 'react';
+import type {View} from 'react-native';
+
+import {format} from 'date-fns';
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {DatePickerProps} from './types';
+
+import CalendarPicker from './CalendarPicker';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -22,12 +30,19 @@ const popoverDimensions = {
     width: CONST.POPOVER_DATE_WIDTH,
 };
 
+// A zero height makes the popover measure the calendar's rendered height.
+const measuredPopoverDimensions = {
+    height: 0,
+    width: CONST.POPOVER_DATE_WIDTH,
+};
+
 function DatePickerModal({
     value,
     defaultValue,
     inputID,
-    minDate = setYear(new Date(), CONST.CALENDAR_PICKER.MIN_YEAR),
-    maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
+    minDate,
+    maxDate,
+    isDateSelectable,
     onInputChange,
     onTouched,
     shouldSaveDraft = false,
@@ -41,40 +56,17 @@ function DatePickerModal({
     shouldPositionFromTop = false,
     forwardedFSClass,
     shouldEnableMonthYearBackdropInNarrowPane = false,
+    shouldMeasureContentHeight = false,
+    windowMargin,
+    shouldSwitchPositionIfOverflow = true,
 }: DatePickerProps) {
-    const [selectedDate, setSelectedDate] = useState(value ?? defaultValue ?? undefined);
-    const anchorRef = useRef<View>(null);
+    const [selectedDate, setSelectedDate] = useState(value);
+    const anchorRef = useRef<ComponentRef<typeof View>>(null);
     const styles = useThemeStyles();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to distinguish RHL and narrow layout
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-
-    useEffect(() => {
-        if (
-            getPlatform() !== CONST.PLATFORM.WEB ||
-            !isSmallScreenWidth ||
-            !isVisible ||
-            !shouldCloseWhenBrowserNavigationChanged ||
-            typeof window === 'undefined' ||
-            typeof window.addEventListener !== 'function'
-        ) {
-            return;
-        }
-
-        const listener = () => {
-            if (isInternalPopstateInProgress()) {
-                return;
-            }
-
-            onClose?.();
-        };
-
-        window.addEventListener('popstate', listener);
-        return () => {
-            window.removeEventListener('popstate', listener);
-        };
-    }, [isSmallScreenWidth, isVisible, onClose, shouldCloseWhenBrowserNavigationChanged]);
 
     useEffect(() => {
         if (shouldSaveDraft && formID) {
@@ -85,7 +77,8 @@ function DatePickerModal({
         }
     }, [formID, inputID, selectedDate, shouldSaveDraft, value]);
 
-    const handleDateSelection = (newValue: string) => {
+    const handleDateSelection = (date: Date) => {
+        const newValue = format(date, CONST.DATE.FNS_FORMAT_STRING);
         onSelected?.(newValue);
         onTouched?.();
         onInputChange?.(newValue);
@@ -104,12 +97,13 @@ function DatePickerModal({
             isVisible={isVisible}
             onClose={onClose}
             anchorPosition={anchorPosition}
-            popoverDimensions={popoverDimensions}
+            popoverDimensions={shouldMeasureContentHeight ? measuredPopoverDimensions : popoverDimensions}
+            windowMargin={windowMargin}
             shouldCloseWhenBrowserNavigationChanged={shouldCloseWhenBrowserNavigationChanged}
             innerContainerStyle={isSmallScreenWidth ? styles.w100 : {width: CONST.POPOVER_DATE_WIDTH}}
             anchorAlignment={anchorAlignment}
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldSwitchPositionIfOverflow
+            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
             shouldReturnFocus={false}
             shouldMeasureAnchorPositionFromTop={shouldPositionFromTop}
             shouldSkipRemeasurement
@@ -120,7 +114,9 @@ function DatePickerModal({
             <CalendarPicker
                 minDate={minDate}
                 maxDate={maxDate}
-                value={selectedDate}
+                isDateSelectable={isDateSelectable}
+                value={DateUtils.parseCalendarDate(selectedDate)}
+                defaultMonth={DateUtils.parseCalendarDate(defaultValue)}
                 onSelected={handleDateSelection}
                 containerStyle={bottomSafeAreaPaddingStyle}
                 shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}

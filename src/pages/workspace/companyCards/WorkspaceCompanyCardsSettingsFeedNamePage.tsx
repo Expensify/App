@@ -1,5 +1,4 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
+import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
@@ -8,20 +7,24 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {setWorkspaceCompanyCardFeedName} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -29,6 +32,9 @@ import type SCREENS from '@src/SCREENS';
 import type {WorkspaceCompanyCardFeedName} from '@src/types/form/WorkspaceCompanyCardFeedName';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxCustomName';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCompanyCardsSettingsFeedNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_FEED_NAME>;
 
@@ -50,21 +56,18 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     const feedName = selectedFeed ? getCustomOrFormattedFeedName(translate, feed, cardFeeds?.[selectedFeed]?.customFeedName) : undefined;
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeed ? companyFeeds[selectedFeed] : undefined);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME> = {};
-            const value = values[INPUT_IDS.NAME];
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME> = {};
+        const value = values[INPUT_IDS.NAME];
 
-            if (!isRequiredFulfilled(value)) {
-                errors.name = translate('workspace.moreFeatures.companyCards.error.feedNameRequired');
-            } else if (value.length > CONST.NAME.MAX_LENGTH) {
-                errors.name = translate('common.error.characterLimitExceedCounter', value.length, CONST.NAME.MAX_LENGTH);
-            }
+        if (!isRequiredFulfilled(value)) {
+            errors.name = translate('workspace.moreFeatures.companyCards.error.feedNameRequired');
+        } else if (value.length > CONST.NAME.MAX_LENGTH) {
+            errors.name = translate('common.error.characterLimitExceedCounter', value.length, CONST.NAME.MAX_LENGTH);
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     const submit = ({name}: WorkspaceCompanyCardFeedName) => {
         if (feed) {
@@ -74,12 +77,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
     };
 
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'WorkspaceCompanyCardsSettingsFeedNamePage',
-            isCardFeedsLoading: isLoadingOnyxValue(cardFeedsResult),
-            isLastSelectedFeedLoading: isLoadingOnyxValue(lastSelectedFeedResult),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
@@ -96,10 +94,12 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
                 testID="WorkspaceCompanyCardsSettingsFeedNamePage"
                 style={styles.defaultModalContainer}
             >
-                <HeaderWithBackButton title={translate('workspace.moreFeatures.companyCards.cardFeedName')} />
-                <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
-                    <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.moreFeatures.companyCards.setFeedNameDescription')}</Text>
-                </Text>
+                <CollapsibleHeaderOnKeyboard>
+                    <HeaderWithBackButton title={translate('workspace.moreFeatures.companyCards.cardFeedName')} />
+                    <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mt3, styles.mh5, styles.mb5]}>
+                        <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.moreFeatures.companyCards.setFeedNameDescription')}</Text>
+                    </Text>
+                </CollapsibleHeaderOnKeyboard>
                 <FormProvider
                     formID={ONYXKEYS.FORMS.WORKSPACE_COMPANY_CARD_FEED_NAME}
                     submitButtonText={translate('workspace.editor.save')}

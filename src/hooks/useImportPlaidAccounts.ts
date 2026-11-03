@@ -1,7 +1,9 @@
-import {useCallback} from 'react';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
+
 import {importPlaidAccounts} from '@userActions/Plaid';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
 import useOnyx from './useOnyx';
 
 export default function useImportPlaidAccounts(policyID?: string) {
@@ -14,10 +16,10 @@ export default function useImportPlaidAccounts(policyID?: string) {
     const plaidAccounts = addNewCard?.data?.plaidAccounts ?? assignCard?.cardToAssign?.plaidAccounts;
     const country = addNewCard?.data?.selectedCountry;
 
-    return useCallback(() => {
+    return () => {
         if (!policyID || !plaidToken || !plaidFeed || !plaidFeedName || !country || !plaidAccounts?.length) {
             return;
         }
         importPlaidAccounts(plaidToken, plaidFeed, plaidFeedName, country, getDomainNameForPolicy(policyID), JSON.stringify(plaidAccounts), '');
-    }, [country, plaidAccounts, plaidFeed, plaidFeedName, plaidToken, policyID]);
+    };
 }

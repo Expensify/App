@@ -1,9 +1,14 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
 import {PressableWithFeedback} from './Pressable';
@@ -11,16 +16,9 @@ import SearchInputSelectionSkeleton from './Skeletons/SearchInputSelectionSkelet
 import Text from './Text';
 
 type Props = {
-    /** Function to call when the feed is selected */
     onFeedSelect: () => void;
-
-    /** Icon for the card */
     CardFeedIcon: React.ReactNode;
-
-    /** Feed name */
     feedName?: string;
-
-    /** Supporting text */
     supportingText?: string;
 
     /** Whether the RBR indicator should be shown */
@@ -29,7 +27,6 @@ type Props = {
     /** Whether the feed selector should render a loading skeleton */
     isLoading?: boolean;
 
-    /** Style for the wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
 };
 
@@ -39,7 +36,7 @@ function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, sho
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
     if (isLoading) {
-        return <SearchInputSelectionSkeleton reasonAttributes={{context: 'FeedSelector', isLoading}} />;
+        return <SearchInputSelectionSkeleton />;
     }
 
     return (
@@ -47,7 +44,8 @@ function FeedSelector({onFeedSelect, CardFeedIcon, feedName, supportingText, sho
             onPress={onFeedSelect}
             wrapperStyle={[styles.flexShrink1, wrapperStyle]}
             style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}
-            accessibilityLabel={feedName ?? ''}
+            accessibilityLabel={[feedName, supportingText].filter(Boolean).join(', ')}
+            role={CONST.ROLE.BUTTON}
             sentryLabel="FeedSelector"
         >
             {CardFeedIcon}

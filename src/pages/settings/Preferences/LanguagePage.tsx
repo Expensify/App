@@ -1,15 +1,20 @@
-import React, {useMemo, useRef} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {setLocale} from '@userActions/App';
+
 import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import type Locale from '@src/types/onyx/Locale';
+
+import React, {useState} from 'react';
 
 type LanguageEntry = ListItem & {
     value: Locale;
@@ -17,34 +22,37 @@ type LanguageEntry = ListItem & {
 
 function LanguagePage() {
     const {translate, preferredLocale} = useLocalize();
-    const isOptionSelected = useRef(false);
 
-    const locales = useMemo(() => {
-        const sortedLocales = preferredLocale ? [preferredLocale, ...SORTED_LOCALES.filter((locale) => locale !== preferredLocale)] : SORTED_LOCALES;
+    const [draftLocale, setDraftLocale] = useState<Locale>();
+    const selectedLocale = draftLocale ?? preferredLocale;
 
-        return sortedLocales.map((locale) => ({
-            value: locale,
-            text: LOCALE_TO_LANGUAGE_STRING[locale],
-            accessibilityLabel: LOCALE_TO_LANGUAGE_STRING[locale],
-            keyForList: locale,
-            isSelected: preferredLocale === locale,
-            lang: locale,
-        }));
-    }, [preferredLocale]);
+    const sortedLocales = preferredLocale ? [preferredLocale, ...SORTED_LOCALES.filter((locale) => locale !== preferredLocale)] : SORTED_LOCALES;
+    const locales = sortedLocales.map((locale) => ({
+        value: locale,
+        text: LOCALE_TO_LANGUAGE_STRING[locale],
+        accessibilityLabel: LOCALE_TO_LANGUAGE_STRING[locale],
+        keyForList: locale,
+        isSelected: selectedLocale === locale,
+        lang: locale,
+    }));
 
-    const updateLanguage = (selectedLanguage: LanguageEntry) => {
-        if (isOptionSelected.current) {
-            return;
+    const saveAndGoBack = () => {
+        if (selectedLocale && selectedLocale !== preferredLocale) {
+            setLocale(selectedLocale, preferredLocale);
         }
-        isOptionSelected.current = true;
-
-        setLocale(selectedLanguage.value, preferredLocale);
         Navigation.goBack();
+    };
+
+    const confirmButtonOptions = {
+        showButton: true,
+        text: translate('common.save'),
+        onConfirm: saveAndGoBack,
+        isDisabled: selectedLocale === preferredLocale,
     };
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="LanguagePage"
         >
             <HeaderWithBackButton
@@ -55,9 +63,11 @@ function LanguagePage() {
                 <SelectionList
                     data={locales}
                     ListItem={SingleSelectListItem}
-                    onSelectRow={updateLanguage}
+                    onSelectRow={(item: LanguageEntry) => setDraftLocale(item.value)}
+                    confirmButtonOptions={confirmButtonOptions}
                     shouldSingleExecuteRowSelect
-                    initiallyFocusedItemKey={locales.find((locale) => locale.isSelected)?.keyForList}
+                    initiallyFocusedItemKey={preferredLocale}
+                    addBottomSafeAreaPadding
                 />
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

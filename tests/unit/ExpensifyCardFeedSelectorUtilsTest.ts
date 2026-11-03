@@ -1,8 +1,11 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import {getAdminExpensifyCardFeedEntries, getExpensifyCardFeedDescription} from '@libs/ExpensifyCardFeedSelectorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardList, Domain, ExpensifyCardSettings, Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import {createRandomExpensifyCard} from '../utils/collections/card';
 
 const fundID = 5555;
@@ -31,13 +34,20 @@ function createAdminPolicy(overrides: Partial<Policy> & Pick<Policy, 'id'>): Pol
         type: CONST.POLICY.TYPE.TEAM,
         owner: 'admin@workspace.com',
         outputCurrency: 'USD',
-        isPolicyExpenseChatEnabled: false,
         ...overrides,
     };
 }
 
 function createPolicyCollection(policies: Policy[]): OnyxCollection<Policy> {
     return Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id.toUpperCase()}`, policy]));
+}
+
+function configuredFeedSettings(overrides: Partial<ExpensifyCardSettings> = {}): ExpensifyCardSettings {
+    return {
+        hasOnceLoaded: true,
+        [CONST.COUNTRY.US]: {paymentBankAccountID: 23242},
+        ...overrides,
+    };
 }
 
 describe('getExpensifyCardFeedDescription', () => {
@@ -92,52 +102,149 @@ describe('getExpensifyCardFeedDescription', () => {
 
 describe('getAdminExpensifyCardFeedEntries', () => {
     const currentUserAccountID = 999;
-    const orphanFundID = 1234;
-    const orphanFeedSettings: ExpensifyCardSettings = {isEnabled: true, hasOnceLoaded: true};
+    const feedFundID = 1234;
+    const feedSettings: ExpensifyCardSettings = configuredFeedSettings({isEnabled: true});
     const cardSettingsCollection: OnyxCollection<ExpensifyCardSettings> = {
-        [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${orphanFundID}`]: orphanFeedSettings,
+        [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${feedFundID}`]: feedSettings,
     };
     const adminPolicyForFund = createPolicyCollection([
         createAdminPolicy({
             id: workspacePolicyID,
-            policyAccountID: orphanFundID,
+            policyAccountID: feedFundID,
         }),
     ]);
 
-    it('shows an orphan feed when the fund has an issued Expensify Card', () => {
-        const cardList = createCardList(createRandomExpensifyCard(1, {fundID: orphanFundID.toString()}));
+    function createAdminDomain(accountID: number, adminAccountID: number): Domain {
+        return {
+            ...createDomain('+@company.com', accountID),
+            // Computed Onyx admin-permission key (e.g. expensify_adminPermissions_0).
+            [`${CONST.DOMAIN.EXPENSIFY_ADMIN_ACCESS_PREFIX}0`]: adminAccountID,
+        };
+    }
 
-        const entries = getAdminExpensifyCardFeedEntries(cardSettingsCollection, adminPolicyForFund, {}, currentUserAccountID, cardList);
+    it('shows a feed when the user is an admin of a policy whose policyAccountID matches the fundID (no issued card required)', () => {
+        const entries = getAdminExpensifyCardFeedEntries(cardSettingsCollection, adminPolicyForFund, {}, currentUserAccountID);
 
         expect(entries).toHaveLength(1);
-        expect(entries.at(0)?.fundID).toBe(orphanFundID);
+        expect(entries.at(0)?.fundID).toBe(feedFundID);
     });
 
-    it('hides an orphan feed when the fund has no issued Expensify Card', () => {
-        const cardList: CardList = {};
+    it('shows a feed when the user is a domain admin for the fund (no issued card required)', () => {
+        const domains: OnyxCollection<Domain> = {
+            [`${ONYXKEYS.COLLECTION.DOMAIN}${feedFundID}`]: createAdminDomain(feedFundID, currentUserAccountID),
+        };
 
-        const entries = getAdminExpensifyCardFeedEntries(cardSettingsCollection, adminPolicyForFund, {}, currentUserAccountID, cardList);
+        const entries = getAdminExpensifyCardFeedEntries(cardSettingsCollection, {}, domains, currentUserAccountID);
+
+        expect(entries).toHaveLength(1);
+        expect(entries.at(0)?.fundID).toBe(feedFundID);
+    });
+
+    it('hides a feed when settings only contain loading metadata', () => {
+        const loadingOnlySettings: OnyxCollection<ExpensifyCardSettings> = {
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${feedFundID}`]: {isLoading: false, hasOnceLoaded: true},
+        };
+
+        const entries = getAdminExpensifyCardFeedEntries(loadingOnlySettings, adminPolicyForFund, {}, currentUserAccountID);
 
         expect(entries).toHaveLength(0);
     });
 
-    it('still shows a feed with a preferredPolicy even when the fund has no issued Expensify Card', () => {
-        const settingsWithPreferredPolicy: OnyxCollection<ExpensifyCardSettings> = {
-            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${orphanFundID}`]: {...orphanFeedSettings, preferredPolicy: workspacePolicyID},
+    it('shows a feed when US program block has paymentBankAccountID', () => {
+        const usConfiguredSettings: OnyxCollection<ExpensifyCardSettings> = {
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${feedFundID}`]: {
+                [CONST.COUNTRY.US]: {paymentBankAccountID: 23242},
+            },
         };
 
-        const entries = getAdminExpensifyCardFeedEntries(settingsWithPreferredPolicy, adminPolicyForFund, {}, currentUserAccountID, {});
+        const entries = getAdminExpensifyCardFeedEntries(usConfiguredSettings, adminPolicyForFund, {}, currentUserAccountID);
 
         expect(entries).toHaveLength(1);
+        expect(entries.at(0)?.fundID).toBe(feedFundID);
     });
 
-    it('still shows a feed with linkedPolicyIDs even when the fund has no issued Expensify Card', () => {
-        const settingsWithLinkedPolicies: OnyxCollection<ExpensifyCardSettings> = {
-            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${orphanFundID}`]: {...orphanFeedSettings, linkedPolicyIDs: [workspacePolicyID]},
+    it('shows a feed when GB program block has paymentBankAccountID', () => {
+        const gbConfiguredSettings: OnyxCollection<ExpensifyCardSettings> = {
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${feedFundID}`]: {
+                [CONST.COUNTRY.GB]: {paymentBankAccountID: 23242},
+            },
         };
 
-        const entries = getAdminExpensifyCardFeedEntries(settingsWithLinkedPolicies, adminPolicyForFund, {}, currentUserAccountID, {});
+        const entries = getAdminExpensifyCardFeedEntries(gbConfiguredSettings, adminPolicyForFund, {}, currentUserAccountID);
 
         expect(entries).toHaveLength(1);
+        expect(entries.at(0)?.fundID).toBe(feedFundID);
+    });
+
+    it('hides an un-nested pre-2024 feed by default and shows it when CURRENT is requested', () => {
+        // Given a pre-2024 feed stored un-nested, with its settlement account on the settings root
+        const unNestedSettings: OnyxCollection<ExpensifyCardSettings> = {
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${feedFundID}`]: {paymentBankAccountID: 23242},
+        };
+
+        // When the entries are listed with the default programs, and then with CURRENT included
+        const defaultEntries = getAdminExpensifyCardFeedEntries(unNestedSettings, adminPolicyForFund, {}, currentUserAccountID);
+        const currentEntries = getAdminExpensifyCardFeedEntries(unNestedSettings, adminPolicyForFund, {}, currentUserAccountID, [
+            CONST.COUNTRY.US,
+            CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT,
+            CONST.COUNTRY.GB,
+        ]);
+
+        // Then the selectors, which only list US and GB, keep hiding it, while callers that request CURRENT see it
+        expect(defaultEntries).toHaveLength(0);
+        expect(currentEntries.map((entry) => entry.fundID)).toEqual([feedFundID]);
+    });
+
+    it('hides a travel feed that was turned off', () => {
+        // Given a travel feed that keeps its settlement account after Consolidated Travel Billing is turned off
+        const travelSettings = (isEnabled: boolean): OnyxCollection<ExpensifyCardSettings> => ({
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${feedFundID}`]: {
+                [CONST.TRAVEL.PROGRAM_TRAVEL_US]: {paymentBankAccountID: 23242, isEnabled},
+            },
+        });
+
+        // When the travel feeds are listed for the off and on states
+        const disabledEntries = getAdminExpensifyCardFeedEntries(travelSettings(false), adminPolicyForFund, {}, currentUserAccountID, [CONST.TRAVEL.PROGRAM_TRAVEL_US]);
+        const enabledEntries = getAdminExpensifyCardFeedEntries(travelSettings(true), adminPolicyForFund, {}, currentUserAccountID, [CONST.TRAVEL.PROGRAM_TRAVEL_US]);
+
+        // Then only the enabled feed is offered, because linking a disabled one would leave the toggle off
+        expect(disabledEntries).toHaveLength(0);
+        expect(enabledEntries.map((entry) => entry.fundID)).toEqual([feedFundID]);
+    });
+
+    it('hides a feed when the user is neither a domain admin nor a workspace admin for the fund', () => {
+        const nonAdminPolicy = createPolicyCollection([createAdminPolicy({id: workspacePolicyID, policyAccountID: 9999})]);
+
+        const entries = getAdminExpensifyCardFeedEntries(cardSettingsCollection, nonAdminPolicy, {}, currentUserAccountID);
+
+        expect(entries).toHaveLength(0);
+    });
+
+    it('does not use preferredPolicy for visibility', () => {
+        const settingsWithPreferredPolicyOnly: OnyxCollection<ExpensifyCardSettings> = {
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${feedFundID}`]: {...feedSettings, preferredPolicy: workspacePolicyID},
+        };
+        // The admin policy here does not back this fund (policyAccountID mismatch), so preferredPolicy alone must not surface the feed.
+        const unrelatedAdminPolicy = createPolicyCollection([createAdminPolicy({id: workspacePolicyID, policyAccountID: 9999})]);
+
+        const entries = getAdminExpensifyCardFeedEntries(settingsWithPreferredPolicyOnly, unrelatedAdminPolicy, {}, currentUserAccountID);
+
+        expect(entries).toHaveLength(0);
+    });
+
+    it('keeps distinct feeds when domainName differs', () => {
+        const distinctDomainCardSettings: OnyxCollection<ExpensifyCardSettings> = {
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}3001`]: configuredFeedSettings({domainName: 'alpha.com', isEnabled: true}),
+            [`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}3002`]: configuredFeedSettings({domainName: 'beta.com', isEnabled: true}),
+        };
+        const policies = createPolicyCollection([createAdminPolicy({id: 'WS1', policyAccountID: 3001}), createAdminPolicy({id: 'WS2', policyAccountID: 3002})]);
+        const domains: OnyxCollection<Domain> = {
+            [`${ONYXKEYS.COLLECTION.DOMAIN}3001`]: createAdminDomain(3001, currentUserAccountID),
+            [`${ONYXKEYS.COLLECTION.DOMAIN}3002`]: createAdminDomain(3002, currentUserAccountID),
+        };
+
+        const entries = getAdminExpensifyCardFeedEntries(distinctDomainCardSettings, policies, domains, currentUserAccountID);
+
+        expect(entries).toHaveLength(2);
     });
 });

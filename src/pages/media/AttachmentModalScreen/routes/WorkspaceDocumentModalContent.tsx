@@ -1,13 +1,18 @@
-import React, {useMemo} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
 import {getRulesDocumentSourceURL} from '@libs/PolicyUtils';
+
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function WorkspaceDocumentModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.WORKSPACE_DOCUMENT>) {
@@ -23,26 +28,20 @@ function WorkspaceDocumentModalContent({navigation, route}: AttachmentModalScree
     const isDocumentAvailable = (policyKeysLength > 0 || !!isLoadingApp) && !!policy?.rulesDocumentURL;
     const isLoading = policyKeysLength === 0 && !!isLoadingApp;
 
-    const rulesDocumentSourceURL = useMemo(
-        () => getRulesDocumentSourceURL(policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken ?? ''),
-        [policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken],
-    );
+    const rulesDocumentSourceURL = getRulesDocumentSourceURL(policy?.rulesDocumentURL, policyID, session?.encryptedAuthToken ?? '');
 
     const onDownloadAttachment = useDownloadAttachment();
 
-    const contentProps = useMemo<AttachmentModalBaseContentProps>(
-        () => ({
-            source: rulesDocumentSourceURL,
-            headerTitle: translate('workspace.rules.customRules.policyDocument'),
-            originalFileName: `${policyID}-policy-document.pdf`,
-            shouldShowNotFoundPage: !isDocumentAvailable,
-            isLoading,
-            onDownloadAttachment,
-            shouldAllowDownloadOutsideReportContext: true,
-            shouldCloseOnSwipeDown: true,
-        }),
-        [rulesDocumentSourceURL, translate, policyID, isDocumentAvailable, isLoading, onDownloadAttachment],
-    );
+    const contentProps: AttachmentModalBaseContentProps = {
+        source: rulesDocumentSourceURL,
+        headerTitle: translate('workspace.rules.customRules.policyDocument'),
+        originalFileName: `${policyID}-policy-document.pdf`,
+        shouldShowNotFoundPage: !isDocumentAvailable,
+        isLoading,
+        onDownloadAttachment,
+        shouldAllowDownloadOutsideReportContext: true,
+        shouldCloseOnSwipeDown: true,
+    };
 
     return (
         <AttachmentModalContainer

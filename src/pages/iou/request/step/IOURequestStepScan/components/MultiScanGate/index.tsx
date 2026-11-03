@@ -1,6 +1,8 @@
-import React from 'react';
 import {isMobile} from '@libs/Browser';
+
 import {MultiScanProvider} from '@pages/iou/request/step/IOURequestStepScan/components/MultiScanContext';
+
+import React from 'react';
 
 type MultiScanGateProps = {
     children: React.ReactNode;

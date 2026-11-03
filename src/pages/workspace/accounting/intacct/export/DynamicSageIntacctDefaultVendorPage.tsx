@@ -1,31 +1,41 @@
-import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearSageIntacctErrorField} from '@libs/actions/Policy/Policy';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getSageIntacctNonReimbursableActiveDefaultVendor, getSageIntacctVendors, settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import variables from '@styles/variables';
+
 import {updateSageIntacctDefaultVendor} from '@userActions/connections/SageIntacct';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Connections} from '@src/types/onyx/Policy';
 
+import {useRoute} from '@react-navigation/native';
+import React from 'react';
+import {View} from 'react-native';
+
+// Sage Intacct's default-vendor fields hold a raw vendor ID; sending this empty string clears the default.
+const CLEAR_DEFAULT_VENDOR = '';
+
 function DynamicSageIntacctDefaultVendorPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, localeCompare} = useLocalize();
 
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_DEFAULT_VENDOR>>();
     const policyID = route.params.policyID;
@@ -38,9 +48,9 @@ function DynamicSageIntacctDefaultVendorPage() {
     const reimbursableMode =
         route.params.reimbursable ?? (backPath.includes('/reimbursable') ? CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE : CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE.toLowerCase());
     const isReimbursable = reimbursableMode === CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE;
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     let defaultVendor;
     let settingName: keyof Connections['intacct']['config']['export'];
@@ -57,39 +67,45 @@ function DynamicSageIntacctDefaultVendorPage() {
         settingName = CONST.SAGE_INTACCT_CONFIG.REIMBURSABLE_VENDOR;
     }
 
-    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctVendors(policy, defaultVendor), [defaultVendor, policy]);
+    // Only the non-reimbursable credit-card-charge path treats a blank vendor as a valid state (falls back to "Credit Card Misc"), so we only offer a "None" row on that setting.
+    const canClear = settingName === CONST.SAGE_INTACCT_CONFIG.NON_REIMBURSABLE_CREDIT_CARD_VENDOR;
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.sageIntacct.defaultVendorDescription', isReimbursable)}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal, isReimbursable],
+    const vendorOptions: SelectorType[] = getSageIntacctVendors(policy, defaultVendor, localeCompare);
+    const clearOption: SelectorType = {
+        value: CLEAR_DEFAULT_VENDOR,
+        text: translate('common.none'),
+        keyForList: CLEAR_DEFAULT_VENDOR,
+        isSelected: !defaultVendor,
+    };
+    const shouldShowClearOption = canClear && (!!defaultVendor || vendorOptions.length > 0);
+    const vendorSelectorOptions: SelectorType[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
+
+    const listHeaderComponent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>
+                {isReimbursable ? translate('workspace.sageIntacct.defaultVendorDescription', true) : translate('workspace.accounting.defaultVendorSelectHeader')}
+            </Text>
+        </View>
     );
 
-    const updateDefaultVendor = useCallback(
-        ({value}: SelectorType) => {
-            if (value !== defaultVendor) {
-                updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
-            }
-            goBack();
-        },
-        [defaultVendor, policyID, settingName, goBack],
-    );
+    const updateDefaultVendor = ({value}: SelectorType) => {
+        const isAlreadySelected = value === defaultVendor || (!value && !defaultVendor);
+        if (isAlreadySelected) {
+            return;
+        }
+        updateSageIntacctDefaultVendor(policyID, settingName, value, defaultVendor);
+        goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.sageIntacct.noAccountsFound')}
-                subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [translate, styles.pb10, illustrations.Telescope],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.sageIntacct.noAccountsFound')}
+            subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

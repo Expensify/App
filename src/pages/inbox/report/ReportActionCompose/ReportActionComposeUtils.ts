@@ -1,7 +1,10 @@
-import type {RefObject} from 'react';
 import type {ComposerRef} from '@components/Composer/types';
+
 import getPlatform from '@libs/getPlatform';
+
 import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
 
 const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 
@@ -14,7 +17,7 @@ const updateNativeSelectionValue = (composerRef: RefObject<ComposerRef | null>, 
     requestIdleCallback(() => {
         // note: this implementation is only available on non-web RN, thus the wrapping
         // 'if' block contains a redundant (since the ref is only used on iOS) platform check
-        composerRef.current?.setSelection(start, end);
+        composerRef.current?.setSelection?.(start, end);
     });
 };
 

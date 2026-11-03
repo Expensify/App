@@ -12,6 +12,8 @@ const BASE_SNAPSHOT: SubmitNavigationSnapshot = {
     isReportTopmostSplit: false,
     isSearchTopmostFullScreen: false,
     isDestinationReportLoaded: false,
+    isLookingAroundUser: false,
+    isSelfDMDestination: false,
 };
 
 function snap(overrides: Partial<SubmitNavigationSnapshot>): SubmitNavigationSnapshot {
@@ -99,6 +101,57 @@ describe('getSubmitHandler', () => {
                 }),
             ),
         ).toBe(SUBMIT_HANDLER.SEARCH_DISMISS);
+    });
+
+    it('returns SEARCH_DISMISS for a LOOKING_AROUND user creating from global create on Home when the expense lands in their self-DM, instead of DISMISS_MODAL', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    isLookingAroundUser: true,
+                    isSelfDMDestination: true,
+                    canDismissFromSearch: true,
+                    navigatesToDestinationReport: true,
+                    isReportTopmostSplit: true,
+                    destinationReportID: '123',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.SEARCH_DISMISS);
+    });
+
+    it('does not divert a LOOKING_AROUND user to SEARCH_DISMISS when the destination is a real report (not the self-DM)', () => {
+        // A LOOKING_AROUND user who later has a workspace and submits to a real report must dismiss to that report, not Search.
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    isLookingAroundUser: true,
+                    isSelfDMDestination: false,
+                    canDismissFromSearch: true,
+                    navigatesToDestinationReport: true,
+                    isReportTopmostSplit: true,
+                    destinationReportID: '123',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DISMISS_MODAL);
+    });
+
+    it('does not divert to SEARCH_DISMISS for a LOOKING_AROUND user when the expense is not from global create', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: false,
+                    isLookingAroundUser: true,
+                    isSelfDMDestination: true,
+                    canDismissFromSearch: true,
+                    isReportTopmostSplit: true,
+                    destinationReportID: '123',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DISMISS_MODAL);
     });
 
     it('returns DISMISS_MODAL (not SEARCH_DISMISS) when global create + search on top + report topmost split (dismiss fast path takes priority)', () => {
@@ -293,6 +346,61 @@ describe('getSubmitHandler', () => {
                 }),
             ),
         ).toBe(SUBMIT_HANDLER.DEFAULT);
+    });
+
+    it('returns SEARCH_DISMISS for global create on unrecognized tab (neither Search nor Report topmost)', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: true,
+                    isSearchTopmostFullScreen: false,
+                    isReportTopmostSplit: false,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.SEARCH_DISMISS);
+    });
+
+    it('returns DEFAULT for global create on unrecognized tab when canDismissFromSearch is false (SPLIT/PAY)', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: false,
+                    isSearchTopmostFullScreen: false,
+                    isReportTopmostSplit: false,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DEFAULT);
+    });
+
+    it('returns DEFAULT for destination-report flows (TRACK) from unrecognized tab even with canDismissFromSearch', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: true,
+                    navigatesToDestinationReport: true,
+                    isSearchTopmostFullScreen: false,
+                    isReportTopmostSplit: false,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DEFAULT);
+    });
+
+    it('does not use unrecognized-tab fallback when report is topmost split', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: true,
+                    isSearchTopmostFullScreen: false,
+                    isReportTopmostSplit: true,
+                    destinationReportID: '123',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DISMISS_MODAL);
     });
 });
 

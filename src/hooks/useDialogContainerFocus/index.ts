@@ -1,57 +1,79 @@
-import {useEffect} from 'react';
+import claimInitialFocus, {claimDialogFocus} from '@libs/claimInitialFocus';
 import FOCUSABLE_SELECTOR from '@libs/focusableSelector';
 import hasFocusableAttributes from '@libs/focusGuards';
 import getHadTabNavigation from '@libs/hadTabNavigation';
+import isHTMLElement from '@libs/isHTMLElement';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {Priorities, tryClaim} from '@libs/ScreenFocusArbiter';
+
+import {useEffect} from 'react';
+
 import type UseDialogContainerFocus from './types';
 
+/**
+ * Moves focus into an open RHP after the transition.
+ *
+ * Dialog title/role are announced via aria-live (see Header) — not by focusing the heading — so JAWS/NVDA
+ * get a clean "{title}, dialog" without nested "group / and N more items" chrome.
+ *
+ * Still steals focus from the activator into the first interactive control (APG modal) after keyboard open
+ * (Tab / Space / Enter). Mouse-open (no prior Tab) skips the steal: landing on Back made a later Enter
+ * close the RHP (Chrome, screen reader off) on both Mac and Windows. JAWS/NVDA users typically Tab, so
+ * they still get the focus move; the live-region title announce covers dialog naming either way.
+ * If the user already moved focus into the dialog, leave it alone.
+ */
 function focusFirstInteractiveElement(container: HTMLElement | null): boolean {
-    if (!getHadTabNavigation() || !container || (document.activeElement && document.activeElement !== document.body)) {
+    if (!container) {
         return false;
     }
+
+    const activeElement = document.activeElement;
+    if (activeElement instanceof Node && container.contains(activeElement)) {
+        return false;
+    }
+
     const targets = container.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
     const target = Array.from(targets).find(hasFocusableAttributes);
-    if (!target) {
+
+    if (container.getAttribute('role') === 'dialog') {
+        // Mouse (no Tab): do not land on Back — Enter would activate it and close the RHP.
+        if (!getHadTabNavigation()) {
+            return false;
+        }
+        const focusTarget = target ?? container;
+        // No ring unless the user is already keyboard-navigating (WCAG 2.4.7).
+        return claimDialogFocus(focusTarget, {focusVisible: true});
+    }
+
+    // Non-dialog screens: keep keyboard-only initial focus.
+    if (!getHadTabNavigation() || !target) {
         return false;
     }
-    // Arbitrated so a concurrent RETURN restore wins over this dialog's initial focus.
-    if (!tryClaim(Priorities.INITIAL)) {
-        return false;
-    }
-    target.focus({preventScroll: true, focusVisible: true});
-    return true;
+    return claimInitialFocus(target, {focusVisible: true});
 }
 
-/** Focuses the first interactive element inside the dialog after the RHP transition for screen reader announcement. */
-const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimInitialFocus, skipDialogContainerFocus = false) => {
+/** Moves focus into the RHP after the transition (dialog name is announced separately via aria-live). */
+const useDialogContainerFocus: UseDialogContainerFocus = (ref, isReady, claimInitialFocusGate, skipDialogContainerFocus = false) => {
     useEffect(() => {
-        if (!isReady || !claimInitialFocus?.() || skipDialogContainerFocus) {
+        if (!isReady || skipDialogContainerFocus || !claimInitialFocusGate?.()) {
             return;
         }
-        let cancelled = false;
-        let frameId: number;
-        // Deferred past useAutoFocusInput's InteractionManager + Promise chain.
-        const interactionHandle = TransitionTracker.runAfterTransitions({
+        let rafId: number | null = null;
+        const handle = TransitionTracker.runAfterTransitions({
             callback: () => {
-                if (cancelled) {
-                    return;
-                }
-                frameId = requestAnimationFrame(() => {
-                    if (cancelled) {
-                        return;
-                    }
-                    const container = ref.current as unknown as HTMLElement | null;
+                // runAfterTransitions fires synchronously when no transition is active; defer one frame so late-mounted RHP content is queryable.
+                rafId = requestAnimationFrame(() => {
+                    const container = isHTMLElement(ref.current) ? ref.current : null;
                     focusFirstInteractiveElement(container);
                 });
             },
         });
         return () => {
-            cancelled = true;
-            interactionHandle.cancel();
-            cancelAnimationFrame(frameId);
+            handle.cancel();
+            if (rafId !== null) {
+                cancelAnimationFrame(rafId);
+            }
         };
-    }, [isReady, ref, claimInitialFocus, skipDialogContainerFocus]);
+    }, [isReady, ref, claimInitialFocusGate, skipDialogContainerFocus]);
 };
 
 export default useDialogContainerFocus;

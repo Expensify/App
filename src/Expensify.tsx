@@ -1,9 +1,14 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app';
 import type * as Sentry from '@sentry/react-native';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {NativeEventSubscription} from 'react-native';
+
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {AppState, Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
+
+import type {BootsplashGateStatus} from './libs/telemetry/bootsplashTelemetry';
+import type {Route} from './ROUTES';
+
 import {useInitialURLActions} from './components/InitialURLContextProvider';
 import AppleAuthWrapper from './components/SignInButtons/AppleAuthWrapper';
 import SplashScreenHider from './components/SplashScreenHider';
@@ -12,30 +17,32 @@ import CONST from './CONST';
 import DeepLinkHandler from './DeepLinkHandler';
 import DelegateAccessHandler from './DelegateAccessHandler';
 import FullstoryInitHandler from './FullstoryInitHandler';
+import FullstoryUserContextHandler from './FullstoryUserContextHandler';
 import GlobalModals from './GlobalModals';
 import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
+import useSaveMarketingAttribution from './hooks/useSaveMarketingAttribution';
 import {updateLastRoute} from './libs/actions/App';
 import {initReconnect} from './libs/actions/Reconnect';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import Log from './libs/Log';
 import migrateOnyx from './libs/migrateOnyx';
-import Navigation from './libs/Navigation/Navigation';
-import NavigationRoot from './libs/Navigation/NavigationRoot';
 // This lib needs to be imported for its module-level NetInfo and Onyx subscriptions
 import './libs/NetworkState';
+import Navigation from './libs/Navigation/Navigation';
+import NavigationRoot from './libs/Navigation/NavigationRoot';
 import PushNotification from './libs/Notification/PushNotification';
 import {endSpan, getSpan, startSpan} from './libs/telemetry/activeSpans';
-import type {BootsplashGateStatus} from './libs/telemetry/bootsplashTelemetry';
 import {startBootsplashMonitor} from './libs/telemetry/bootsplashTelemetry';
-import {cleanupMemoryTrackingTelemetry, initializeMemoryTrackingTelemetry} from './libs/telemetry/TelemetrySynchronizer';
+import {scheduleInitialDatabaseSizeMeasurement} from './libs/telemetry/databaseSizeTracker';
+import reportFullyDrawn from './libs/telemetry/reportFullyDrawn';
+import {cleanupTelemetryTrackers, initializeTelemetryTrackers} from './libs/telemetry/TelemetrySynchronizer';
 import Visibility from './libs/Visibility';
 import ONYXKEYS from './ONYXKEYS';
 import PriorityModeHandler from './PriorityModeHandler';
-import type {Route} from './ROUTES';
 import {useSplashScreenActions, useSplashScreenState} from './SplashScreenStateContext';
 
 Onyx.registerLogger(({level, message, parameters}) => {
@@ -62,17 +69,18 @@ function Expensify() {
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
     useDebugShortcut();
+    useSaveMarketingAttribution();
 
     useEffect(() => {
-        initializeMemoryTrackingTelemetry();
+        initializeTelemetryTrackers();
         return () => {
-            cleanupMemoryTrackingTelemetry();
+            cleanupTelemetryTrackers();
         };
     }, []);
 
     const bootsplashSpan = useRef<Sentry.Span>(null);
 
-    const [initialUrl, setInitialUrl] = useState<Route | null | undefined>(undefined);
+    const [initialUrl, setInitialUrl] = useState<string | null | undefined>(undefined);
     const {setIsAuthenticatedAtStartup} = useInitialURLActions();
 
     useEffect(() => {
@@ -202,8 +210,10 @@ function Expensify() {
         setSplashScreenState(CONST.BOOT_SPLASH_STATE.HIDDEN);
         endSpan(CONST.TELEMETRY.SPAN_OD_ND_TRANSITION);
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
+        reportFullyDrawn();
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.ROOT);
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.SPLASH_HIDER);
+        scheduleInitialDatabaseSizeMeasurement();
     }, [setSplashScreenState]);
 
     useLayoutEffect(() => {
@@ -265,7 +275,16 @@ function Expensify() {
             return;
         }
         updateLastRoute('');
-        Navigation.navigate(lastRoute as Route);
+
+        // On iOS, changing the Contacts permission in Settings forces the app to reload (see `goToSettings`).
+        // Restoring a deep RHP route (e.g. the money-request participant selector) directly on the boot frame
+        // kicks the react-navigation card's native-driver entering animation while the tree is still hydrating,
+        // which can crash with "Unable to find node on an unmounted component" when the card unmounts mid-transition.
+        // Defer the restore by one frame so the card is not mounted-then-unmounted mid-animation.
+        const restoreAnimationFrame = requestAnimationFrame(() => {
+            Navigation.navigate(lastRoute as Route);
+        });
+        return () => cancelAnimationFrame(restoreAnimationFrame);
         // Disabling this rule because we only want it to run on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isNavigationReady]);
@@ -285,6 +304,7 @@ function Expensify() {
             <PriorityModeHandler />
             <DelegateAccessHandler />
             <FullstoryInitHandler />
+            <FullstoryUserContextHandler />
             <DeepLinkHandler onInitialUrl={setInitialUrl} />
             <AppleAuthWrapper />
             {/* Wait for the initial URL to resolve before mounting NavigationRoot, because its initialState

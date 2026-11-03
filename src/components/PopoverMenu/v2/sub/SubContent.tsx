@@ -1,5 +1,7 @@
-import type {ReactNode} from 'react';
 import {useContentNavigation} from '@components/PopoverMenu/v2/content/ContentContext';
+
+import type {ReactNode} from 'react';
+
 import {useSubContext} from './SubContext';
 
 type SubContentProps = {

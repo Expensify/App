@@ -1,25 +1,33 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, isOptimisticPersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {memo, useMemo} from 'react';
-import {View} from 'react-native';
+import ReportAvatar from '@components/Avatar/connected/ReportAvatar';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportWelcomeText from '@components/ReportWelcomeText';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOptimisticPersonalDetails from '@hooks/useOptimisticPersonalDetails';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
+
+import {hasPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
 import {isChatReport, isCurrentUserInvoiceReceiver, isInvoiceRoom, navigateToDetailsPage, shouldDisableDetailPage as shouldDisableDetailPageReportUtils} from '@libs/ReportUtils';
+
 import {clearCreateChatError} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {isPersonalDetailOptimistic} from '@selectors/PersonalDetails';
+import React from 'react';
+import {View} from 'react-native';
+
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 
 type ReportActionItemCreatedProps = {
-    /** The id of the report */
     reportID: string | undefined;
 
     /** The id of the policy */
@@ -30,24 +38,26 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     const styles = useThemeStyles();
 
     const {translate} = useLocalize();
+    const isInSidePanel = useIsInSidePanel();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const currentUserPersonalDetail = useCurrentUserPersonalDetails();
     const {accountID: currentUserAccountID} = currentUserPersonalDetail;
-    const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
-    const reportOwnerSelector = useMemo(() => personalDetailsSelector(report?.ownerAccountID), [report?.ownerAccountID]);
-    const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: reportOwnerSelector}, [reportOwnerSelector]);
+    const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
+    const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
+    const optimisticPersonalDetails = useOptimisticPersonalDetails();
 
     const otherParticipantAccountID =
         Object.keys(report?.participants ?? {})
             .map(Number)
             .find((id) => id !== currentUserAccountID) ?? CONST.DEFAULT_NUMBER_ID;
-    const [isParticipantOptimistic = true] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: isOptimisticPersonalDetailSelector(otherParticipantAccountID)});
+    const [isParticipantOptimistic = true] = usePersonalDetail(otherParticipantAccountID, isPersonalDetailOptimistic);
 
     if (!isChatReport(report)) {
         return null;
@@ -59,51 +69,52 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
         <OfflineWithFeedback
             pendingAction={report?.pendingFields?.addWorkspaceRoom ?? report?.pendingFields?.createChat}
             errors={report?.errorFields?.addWorkspaceRoom ?? report?.errorFields?.createChat}
-            errorRowStyles={[styles.ml10, styles.mr2, styles.mb2]}
+            errorRowStyles={[styles.ml10, styles.mb2]}
             onClose={() =>
-                clearCreateChatError(
+                clearCreateChatError({
                     report,
                     conciergeReportID,
                     introSelected,
                     currentUserAccountID,
-                    betas,
                     isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
                     reportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
-                )
+                    optimisticPersonalDetails,
+                })
             }
         >
             <View style={[styles.pRelative]}>
-                {/* hasDeferredWriteForReport is non-reactive (reads a module-level Map, not tracked by React).
-                   This is intentional: we only suppress the animation on the initial render while a
-                   DISMISS_MODAL write targeting THIS report is pending. The animation re-appears on the
+                {/* hasPendingSubmitWriteForReport is non-reactive (reads module-level state, not tracked by
+                   React). This is intentional: we only suppress the animation on the initial render while a
+                   submit write targeting THIS report is pending. The animation re-appears on the
                    next organic re-render (e.g. Onyx updates after the API write resolves). The check is
                    scoped to `report.reportID` so an unrelated submit flow's dismiss doesn't suppress the
                    animation here. */}
-                {!hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID) && <AnimatedEmptyStateBackground />}
+                {!hasPendingSubmitWriteForReport(report?.reportID) && <AnimatedEmptyStateBackground />}
                 <View
                     accessibilityLabel={translate('accessibilityHints.chatWelcomeMessage')}
                     style={[styles.p5]}
                 >
                     <OfflineWithFeedback pendingAction={report?.pendingFields?.avatar}>
                         <PressableWithoutFeedback
-                            onPress={() => navigateToDetailsPage(report)}
+                            onPress={() => navigateToDetailsPage(report, isInSidePanel)}
                             style={[styles.mh5, styles.mb3, styles.alignSelfStart, shouldDisableDetailPage && styles.cursorDefault]}
                             accessibilityLabel={translate('common.details')}
                             role={CONST.ROLE.BUTTON}
                             disabled={shouldDisableDetailPage}
                             sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_CREATED}
                         >
-                            <ReportActionAvatars
+                            <ReportAvatar
                                 reportID={reportID}
-                                size={CONST.AVATAR_SIZE.X_LARGE}
+                                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                 horizontalStacking={{
-                                    displayInRows: shouldUseNarrowLayout,
-                                    maxAvatarsInRow: shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN,
+                                    maxRows: shouldUseNarrowLayout ? 2 : 1,
+                                    maxAvatarsPerRow: shouldUseNarrowLayout ? CONST.AVATAR_ROW_SIZE.DEFAULT : CONST.AVATAR_ROW_SIZE.LARGE_SCREEN,
                                     overlapDivider: 4,
-                                    sort: isInvoiceRoom(report) && isCurrentUserInvoiceReceiver(report) ? CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE : undefined,
                                 }}
+                                sort={isInvoiceRoom(report) && isCurrentUserInvoiceReceiver(report) ? CONST.REPORT_ACTION_AVATARS.SORT_BY.REVERSE : undefined}
                             />
                         </PressableWithoutFeedback>
                     </OfflineWithFeedback>
@@ -119,4 +130,4 @@ function ReportActionItemCreated({reportID, policyID}: ReportActionItemCreatedPr
     );
 }
 
-export default memo(ReportActionItemCreated);
+export default ReportActionItemCreated;

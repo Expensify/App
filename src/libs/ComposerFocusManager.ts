@@ -1,11 +1,15 @@
-import {TextInput} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+import type {ValueOf} from 'type-fest';
+
+import {TextInput} from 'react-native';
+
 import isWindowReadyToFocus from './isWindowReadyToFocus';
 
 type ModalId = number | undefined;
 
-type InputElement = (TextInput & HTMLElement) | null;
+type InputElement = (ComponentRef<typeof TextInput> & HTMLElement) | null;
 
 type RestoreFocusType = ValueOf<typeof CONST.MODAL.RESTORE_FOCUS_TYPE> | undefined;
 
@@ -77,6 +81,10 @@ function releaseInput(input: InputElement) {
         }
         focusMap.delete(key);
     }
+}
+
+function blurActiveInput() {
+    getActiveInput()?.blur();
 }
 
 function getId() {
@@ -223,6 +231,8 @@ function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType
 }
 
 export default {
+    blurActiveInput,
+    getActiveInput,
     getId,
     saveFocusedInput,
     clearFocusedInput,

@@ -1,9 +1,13 @@
-import type {RefObject} from 'react';
-import {useRef} from 'react';
-import type {TextInputKeyPressEvent} from 'react-native';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
+
 import CONST from '@src/CONST';
+
+import type {RefObject} from 'react';
+import type {TextInputKeyPressEvent} from 'react-native';
+
+import {useRef} from 'react';
 
 type UseSelectionListTextInputResult = {
     innerTextInputRef: RefObject<BaseTextInputRef | null>;

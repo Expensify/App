@@ -1,5 +1,7 @@
 import {act, renderHook} from '@testing-library/react-native';
+
 import useSearchResults from '@hooks/useSearchResults';
+
 import CONST from '@src/CONST';
 
 type Item = {id: number; name: string};
@@ -51,6 +53,8 @@ describe('useSearchResults', () => {
 
         act(() => {
             result.current[1]('item-2');
+        });
+        act(() => {
             jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
         });
         expect(result.current[2]).toHaveLength(1);
@@ -86,6 +90,8 @@ describe('useSearchResults', () => {
 
         act(() => {
             result.current[1]('apple');
+        });
+        act(() => {
             jest.advanceTimersByTime(CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME);
         });
         expect(result.current[2].map((i) => i.id)).toEqual([1]);

@@ -10,7 +10,11 @@ function runScript(input: string): unknown[] {
     const result = execSync(`ruby ${SCRIPT_PATH} '${input}'`, {
         encoding: 'utf-8',
     });
-    return JSON.parse(result) as unknown[];
+    const parsed: unknown = JSON.parse(result);
+    if (!Array.isArray(parsed)) {
+        throw new Error('Expected parseAndCollectJSONs.rb to return a JSON array');
+    }
+    return parsed;
 }
 
 describe('Test if parseAndCollectJSONs works correctly', () => {

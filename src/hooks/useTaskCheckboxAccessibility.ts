@@ -1,6 +1,8 @@
-import {useState} from 'react';
 import Accessibility from '@libs/Accessibility';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
+
+import {useState} from 'react';
+
 import useAccessibilityAnnouncement from './useAccessibilityAnnouncement';
 import useLocalize from './useLocalize';
 

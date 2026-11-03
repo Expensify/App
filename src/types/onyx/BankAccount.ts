@@ -1,8 +1,12 @@
 import type CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {ValueOf} from 'type-fest';
+
 import type AccountData from './AccountData';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
+import type {WiseBusinessOnboarding} from './ReimbursementAccount';
 
 /** Model of additional bank account data */
 type BankAccountAdditionalData = {
@@ -12,32 +16,29 @@ type BankAccountAdditionalData = {
     /** Owners that can benefit from this bank account */
     beneficialOwners?: string[];
 
-    /** In which currency is the bank account */
     currency?: string;
-
-    /** In which bank is the bank account */
     bankName?: BankName;
-
-    /** Plaid account id */
     plaidAccountID?: string;
 
     /** Whether the bank account details were obtained for local transfer or international wire */
     fieldsType?: string;
 
-    /** In which country is the bank account */
     country?: string;
-
-    /** Is billing card */
     isBillingCard?: boolean;
-
-    /** ID of related policy */
     policyID?: string;
-
-    /** Corpay fields */
     corpay?: {
         /** Powerform files */
         achAuthorizationForm?: FileObject[];
     };
+
+    /** Global reimbursement provider, derived by the server */
+    globalReimbursementProvider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>;
+
+    /** The business's Wise onboarding as every holder of the account sees it: the status only, the answers are the admin's */
+    wise?: Pick<WiseBusinessOnboarding, 'status'>;
+
+    /** Whether the account is set up for global reimbursements. The backend rejects payments from a USD business account where this is false */
+    isGlobalReimbursementEnabled?: boolean;
 
     /** First name of the bank account owner (OldDot field name) */
     firstName?: string;
@@ -65,11 +66,25 @@ type BankAccountAdditionalData = {
 
     /** Phone number of the bank account owner */
     companyPhone?: string;
+
+    /** External API verification results attached to the bank account */
+    verifications?: {
+        /** Responses from external verification APIs */
+        externalApiResponses?: {
+            /** Plaid assets verification state */
+            plaidAssets?: {
+                /** Whether the Plaid connection is broken and requires re-linking */
+                needsFixing?: boolean;
+            };
+        };
+
+        /** Present once the account is set up with Corpay for Global Reimbursement */
+        corpay?: Record<string, unknown>;
+    };
 };
 
 /** Model of bank account */
 type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
-    /** The bank account type */
     accountType?: typeof CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT;
 
     /** string like 'Account ending in XXXX' */
@@ -105,8 +120,14 @@ type BankAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Country code related to the bank account */
     bankCountry: string;
 
+    /** Whether an async action on this bank account is in flight (e.g. Plaid connect/fix) */
+    isLoading?: boolean;
+
     /** Any additional error message to show */
     errors?: OnyxCommon.Errors;
+
+    /** Errors keyed by the field they belong to */
+    errorFields?: OnyxCommon.ErrorFields;
 }>;
 
 /** Record of bank accounts, indexed by bankAccountID */

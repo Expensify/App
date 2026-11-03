@@ -1,6 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
 import BulletList from '@components/BulletList';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -11,23 +8,34 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getTitleFieldWithFallback} from '@libs/ReportUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import variables from '@styles/variables';
+
 import {clearPolicyTitleFieldError, setPolicyDefaultReportTitle} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReportsDefaultTitleModalForm';
+
+import {Str} from 'expensify-common';
+import React, {useRef} from 'react';
+import {View} from 'react-native';
 
 type RulesCustomNamePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.REPORTS_DEFAULT_TITLE>;
 
@@ -37,6 +45,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
 
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const isInputInitializedRef = useRef(false);
     const RULE_EXAMPLE_BULLET_POINTS = [
         translate('workspace.reports.customNameEmailPhoneExample'),
@@ -49,18 +58,15 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     const titleField = getTitleFieldWithFallback(policy);
     const customNameDefaultValue = Str.htmlDecode(titleField?.defaultValue ?? '');
 
-    const validateCustomName = useCallback(
-        ({defaultTitle}: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM> = {};
-            if (!defaultTitle) {
-                errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.fieldRequired');
-            } else if (defaultTitle.length > CONST.REPORT_TITLE_FORMULA_LIMIT) {
-                errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.characterLimitExceedCounter', defaultTitle.length, CONST.REPORT_TITLE_FORMULA_LIMIT);
-            }
-            return errors;
-        },
-        [translate],
-    );
+    const validateCustomName = ({defaultTitle}: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM> = {};
+        if (!defaultTitle) {
+            errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.fieldRequired');
+        } else if (defaultTitle.length > CONST.REPORT_TITLE_FORMULA_LIMIT) {
+            errors[INPUT_IDS.DEFAULT_TITLE] = translate('common.error.characterLimitExceedCounter', defaultTitle.length, CONST.REPORT_TITLE_FORMULA_LIMIT);
+        }
+        return errors;
+    };
 
     const clearTitleFieldError = () => {
         clearPolicyTitleFieldError(policyID);
@@ -72,7 +78,7 @@ function ReportsDefaultTitlePage({route}: RulesCustomNamePageProps) {
     });
 
     const submitForm = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REPORTS_DEFAULT_TITLE_MODAL_FORM>) => {
-        setPolicyDefaultReportTitle(policyID, values.defaultTitle, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE]);
+        setPolicyDefaultReportTitle(policyID, values.defaultTitle, policy?.fieldList?.[CONST.POLICY.FIELDS.FIELD_LIST_TITLE], getReviewWorkspaceSettingsTaskCompletion());
         Navigation.goBack();
     };
 

@@ -1,19 +1,21 @@
-import {reportVisibleActionsSelector} from '@selectors/ReportAction';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import {isCreatedAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
+import {isCreatedAction, isCurrentUserPendingAddAction, isDeletedParentAction, isIOUActionMatchingTransactionList, isReportActionVisible} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
-import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
+
+import {reportVisibleActionsSelector} from '@selectors/ReportAction';
+
 import useConciergeSidePanelReportActions from './useConciergeSidePanelReportActions';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useIsInSidePanel from './useIsInSidePanel';
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import useReportTransactionsCollection from './useReportTransactionsCollection';
 import useSidePanelState from './useSidePanelState';
-import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 type UseReportActionsVisibilityParams = {
     reportID: string | undefined;
@@ -22,18 +24,13 @@ type UseReportActionsVisibilityParams = {
     canPerformWriteAction: boolean;
     hasOlderActions: boolean;
     loadOlderChats: (force?: boolean) => void;
-    mainDMSessionStartTime?: string | null;
-    conciergeShowFullHistory?: boolean;
     setConciergeShowFullHistory?: (show: boolean) => void;
-    conciergeHadMessagesAtSessionStart?: boolean;
-    setConciergeHadMessagesAtSessionStart?: (value: boolean) => void;
 };
 
 type UseReportActionsVisibilityResult = {
     sortedReportActions: ReportAction[];
     sortedVisibleReportActions: ReportAction[];
     isConciergeSidePanel: boolean;
-    isConciergeMainDM: boolean;
     isConciergeHiddenHistory: boolean;
     showConciergeSidePanelWelcome: boolean;
     showFullHistory: boolean;
@@ -48,11 +45,7 @@ function useReportActionsVisibility({
     canPerformWriteAction,
     hasOlderActions,
     loadOlderChats,
-    mainDMSessionStartTime,
-    conciergeShowFullHistory,
     setConciergeShowFullHistory,
-    conciergeHadMessagesAtSessionStart,
-    setConciergeHadMessagesAtSessionStart,
 }: UseReportActionsVisibilityParams): UseReportActionsVisibilityResult {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
@@ -60,25 +53,31 @@ function useReportActionsVisibility({
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [reportVisibleActions] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS, {
         selector: reportVisibleActionsSelector(reportID),
     });
-    const visibleReportActionsData: VisibleReportActionsDerivedValue | undefined = reportID && reportVisibleActions ? {[reportID]: reportVisibleActions} : undefined;
 
     const isInSidePanel = useIsInSidePanel();
     const isConciergeSidePanel = isInSidePanel && isConciergeChatReport(report, conciergeReportID);
     const isConciergeMainDM = !isInSidePanel && isConciergeChatReport(report, conciergeReportID);
-    const isConciergeHiddenHistory = isConciergeSidePanel || isConciergeMainDM;
+    const isConciergeHiddenHistory = isConciergeSidePanel;
 
-    const {sessionStartTime: sidePanelSessionStartTime} = useSidePanelState();
-    const sessionStartTime = isConciergeSidePanel ? sidePanelSessionStartTime : (mainDMSessionStartTime ?? null);
+    const {sessionStartTime} = useSidePanelState();
 
     const hasUserSentMessage =
         isConciergeHiddenHistory && sessionStartTime
-            ? allReportActions.some((action) => !isCreatedAction(action) && action.actorAccountID === currentUserAccountID && action.created >= sessionStartTime)
+            ? allReportActions.some(
+                  (action) =>
+                      !isCreatedAction(action) &&
+                      action.actorAccountID === currentUserAccountID &&
+                      (isCurrentUserPendingAddAction(action, currentUserAccountID) || action.created >= sessionStartTime),
+              )
             : false;
 
-    const {transactions: reportTransactions, isLoaded: areTransactionsLoaded} = useTransactionsAndViolationsForReport(reportID);
+    const reportTransactions = useReportTransactionsCollection(reportID);
+    const [areTransactionsLoaded] = useOnyx(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS, {
+        selector: (data) => data !== undefined,
+    });
     // When transactions haven't loaded yet, pass undefined to skip IOU filtering entirely
     // (undefined = "don't filter" in isIOUActionMatchingTransactionList).
     // Once loaded, filter normally — even if transactions is empty (genuinely no transactions).
@@ -115,23 +114,22 @@ function useReportActionsVisibility({
             currentUserAccountID,
             greetingText: translate('common.concierge.greeting'),
             loadOlderChats,
-            isConciergeMainDM,
-            showFullHistory: isConciergeMainDM ? conciergeShowFullHistory : undefined,
-            onSetShowFullHistory: isConciergeMainDM ? setConciergeShowFullHistory : undefined,
-            hadMessagesAtSessionStart: isConciergeMainDM ? conciergeHadMessagesAtSessionStart : undefined,
-            onSetHadMessagesAtSessionStart: isConciergeMainDM ? setConciergeHadMessagesAtSessionStart : undefined,
         });
+
+    const showConciergeMainDMHistory = () => {
+        setConciergeShowFullHistory?.(true);
+        loadOlderChats(true);
+    };
 
     return {
         sortedReportActions: filteredReportActions,
         sortedVisibleReportActions: filteredVisibleActions,
         isConciergeSidePanel,
-        isConciergeMainDM,
         isConciergeHiddenHistory,
         showConciergeSidePanelWelcome,
         showFullHistory,
         hasPreviousMessages,
-        handleShowPreviousMessages,
+        handleShowPreviousMessages: isConciergeMainDM ? showConciergeMainDMHistory : handleShowPreviousMessages,
     };
 }
 

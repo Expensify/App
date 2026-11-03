@@ -1,18 +1,18 @@
-import React, {Activity, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
-import type {ForwardedRef, RefObject} from 'react';
-import {Dimensions, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+
 import {Actions, useActionSheetAwareScrollViewActions} from '@components/ActionSheetAwareScrollView';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withViewportOffsetTop from '@components/withViewportOffsetTop';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
 import type {AnchorOrigin, EmojiPickerOnModalHide, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, ShowEmojiPickerOptions} from '@libs/actions/EmojiPickerAction';
 import {isMobileChrome} from '@libs/Browser';
@@ -21,9 +21,17 @@ import DomUtils from '@libs/DomUtils';
 import refocusComposerAfterPreventFirstResponder from '@libs/refocusComposerAfterPreventFirstResponder';
 import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
+
 import {close} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
 import KeyboardUtils from '@src/utils/keyboard';
+
+import type {ForwardedRef} from 'react';
+
+import React, {Activity, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {Dimensions, View} from 'react-native';
+
 import EmojiPickerMenu from './EmojiPickerMenu';
 
 const DEFAULT_ANCHOR_ORIGIN = {
@@ -50,6 +58,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
     const [isWithoutOverlay, setIsWithoutOverlay] = useState(true);
     const [activeID, setActiveID] = useState<string | null>();
     const emojiPopoverAnchorRef = useRef<EmojiPopoverAnchor | null>(null);
+    const emptyEmojiPopoverAnchor = useRef<EmojiPopoverAnchor['current']>(null);
     const emojiAnchorDimension = useRef({
         width: 0,
         height: 0,
@@ -70,7 +79,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
      *
      * Don't directly get the ref from emojiPopoverAnchorRef, instead use getEmojiPopoverAnchor()
      */
-    const getEmojiPopoverAnchor = useCallback(() => emojiPopoverAnchorRef.current ?? (emojiPopoverAnchorRef as EmojiPopoverAnchor), []);
+    const getEmojiPopoverAnchor = useCallback(() => emojiPopoverAnchorRef.current ?? emptyEmojiPopoverAnchor, []);
 
     /**
      * Show the emoji picker menu.
@@ -258,7 +267,7 @@ function EmojiPicker({viewportOffsetTop, ref}: EmojiPickerProps) {
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
             }}
-            anchorRef={getEmojiPopoverAnchor() as RefObject<View | HTMLDivElement>}
+            anchorRef={getEmojiPopoverAnchor()}
             withoutOverlay={isWithoutOverlay}
             popoverDimensions={{
                 width: CONST.EMOJI_PICKER_SIZE.WIDTH,

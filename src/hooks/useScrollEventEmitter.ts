@@ -1,6 +1,7 @@
-import {useCallback, useEffect, useRef} from 'react';
-import {DeviceEventEmitter} from 'react-native';
 import CONST from '@src/CONST';
+
+import {useEffect, useRef} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 
 /**
  * This hook tracks scroll events and emits a "scrolling" event when scrolling starts and ends.
@@ -9,7 +10,7 @@ const useScrollEventEmitter = () => {
     const isScrollingRef = useRef<boolean>(false);
     const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-    const triggerScrollEvent = useCallback(() => {
+    const triggerScrollEvent = () => {
         const emitScrolling = (isScrolling: boolean) => {
             DeviceEventEmitter.emit(CONST.EVENTS.SCROLLING, isScrolling);
         };
@@ -29,7 +30,7 @@ const useScrollEventEmitter = () => {
             emitScrolling(false);
             isScrollingRef.current = false;
         }, 250);
-    }, []);
+    };
 
     // Cleanup timeout on unmount
     useEffect(() => {

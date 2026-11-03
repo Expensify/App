@@ -1,18 +1,24 @@
-import React, {useCallback} from 'react';
-import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomSegmentFormSubmit from '@hooks/useNetSuiteImportAddCustomSegmentForm';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import NetSuiteCustomSegmentMappingPicker from '@pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteCustomSegmentMappingPicker';
 import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
 
 const STEP_FIELDS = [INPUT_IDS.SEGMENT_TYPE];
 
@@ -20,18 +26,15 @@ function ChooseSegmentTypeStep({onNext, setCustomSegmentType, isEditing, netSuit
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> = {};
 
-            if (!isRequiredFulfilled(values[INPUT_IDS.SEGMENT_TYPE])) {
-                errors[INPUT_IDS.SEGMENT_TYPE] = translate('common.error.pleaseSelectOne');
-            }
+        if (!isRequiredFulfilled(values[INPUT_IDS.SEGMENT_TYPE])) {
+            errors[INPUT_IDS.SEGMENT_TYPE] = translate('common.error.pleaseSelectOne');
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useNetSuiteImportAddCustomSegmentFormSubmit({
         fieldIds: STEP_FIELDS,

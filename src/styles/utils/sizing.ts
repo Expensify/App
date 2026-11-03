@@ -17,8 +17,16 @@ export default {
         height: 28,
     },
 
+    h8: {
+        height: 32,
+    },
+
     h10: {
         height: 40,
+    },
+
+    h11: {
+        height: 44,
     },
 
     h68: {
@@ -27,6 +35,10 @@ export default {
 
     h13: {
         height: 52,
+    },
+
+    h42: {
+        height: 168,
     },
 
     w15: {
@@ -74,6 +86,10 @@ export default {
 
     mnh13: {
         minHeight: 52,
+    },
+
+    mnh16: {
+        minHeight: 64,
     },
 
     mnw0: {

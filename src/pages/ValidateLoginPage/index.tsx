@@ -1,11 +1,17 @@
-import React, {useEffect} from 'react';
+import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
+
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import {handleExitToNavigation, signInWithValidateCodeAndNavigate} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect} from 'react';
+
 import type ValidateLoginPageProps from './types';
 
 function ValidateLoginPage({
@@ -28,7 +34,7 @@ function ValidateLoginPage({
                 }
                 Navigation.goBack();
             } else {
-                signInWithValidateCodeAndNavigate(Number(accountID), validateCode, preferredLocale, '', exitTo);
+                signInWithValidateCodeAndNavigate(Number(accountID), validateCode, preferredLocale, exitTo);
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -44,10 +50,13 @@ function ValidateLoginPage({
         });
     }, [session?.autoAuthState]);
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'ValidateLoginPage',
-    };
-    return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    // Offline, the sign-in request waits in the queue until the network returns, so show why instead of a bare spinner.
+    return (
+        <FullPageOfflineBlockingView>
+            {/* No "Go Back" button: this is a deep-link entry point, so there is usually no history to pop back to. */}
+            <FullScreenLoadingIndicator shouldUseGoBackButton={false} />
+        </FullPageOfflineBlockingView>
+    );
 }
 
 export default ValidateLoginPage;

@@ -1,13 +1,20 @@
+import CONST from '@src/CONST';
+import type {BankAccountList, Policy, Report, ReportMetadata, Rule, Transaction, TransactionViolation} from '@src/types/onyx';
+
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import CONST from '@src/CONST';
-import type {BankAccountList, Policy, Report, ReportMetadata, Transaction, TransactionViolation} from '@src/types/onyx';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+
 import {
     arePaymentsEnabled,
+    canAdminPayReport,
+    getIntegrationAccountingMethod,
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isArchivedOrPendingDeletePolicy,
     isPreferredExporter,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
@@ -16,32 +23,37 @@ import {isAddExpenseAction} from './ReportPrimaryActionUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
-    getReportTransactions,
     hasExportError as hasExportErrorUtil,
     hasOnlyNonReimbursableTransactions,
+    isCardOnlyReport,
+    hasSettledZeroReimbursableSpend,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
     isInvoiceReport,
     isIOUReport,
     isOpenReport,
+    isPayBlocked,
     isPayer,
     isProcessingReport,
     isReportApproved,
     isSettled,
 } from './ReportUtils';
-import {hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
+import {hasOnlyPendingCardTransactions, hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
-    isReportArchived: boolean,
     currentUserAccountID: number,
     currentUserEmail: string,
+    ownerLogin: string | undefined,
+    rules: OnyxCollection<Rule>,
     violations?: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
     transactions?: Transaction[],
 ) {
-    if (isReportArchived) {
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -55,20 +67,31 @@ function canSubmit(
         return false;
     }
 
-    if (transactions?.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, policy))) {
+    if (hasOnlyPendingCardTransactions(transactions ?? [])) {
         return false;
     }
 
-    const submitToAccountID = getSubmitToAccountID(policy, report);
+    if (transactions?.some((transaction) => hasSubmissionBlockingViolations(transaction, violations, currentUserEmail, currentUserAccountID, report, ownerLogin, policy))) {
+        return false;
+    }
 
-    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+    const submitToAccountID = getSubmitToAccountID(policy, report, ownerLogin, rules);
+
+    // Mirrors the header's isSubmitAction gate: prevented self-approval hides Submit from everyone EXCEPT the submitter,
+    // who still gets the action so SubmitActionButton can mount and render it disabled. Dropping the !isSubmitter
+    // qualifier here would hide the preview's Submit entirely while the header shows a disabled one for the same report.
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval && !isSubmitter) {
         return false;
     }
 
     return isExpense && isSubmitter && isOpen && !isAnyReceiptBeingScanned && !!transactions && transactions.length > 0;
 }
 
-function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
+function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy: Policy | undefined, transactions: Transaction[]) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
+        return false;
+    }
+
     if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
         return false;
     }
@@ -78,14 +101,13 @@ function canApprove(report: Report, currentUserAccountID: number, reportMetadata
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
     const managerID = report.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const isCurrentUserManager = managerID === currentUserAccountID;
-    const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
-    const isAnyReceiptBeingScanned = transactions?.some((transaction) => isScanning(transaction));
+    const isAnyReceiptBeingScanned = transactions.some((transaction) => isScanning(transaction));
 
     if (isAnyReceiptBeingScanned) {
         return false;
     }
 
-    if (reportTransactions.length > 0 && reportTransactions.every((transaction) => isPending(transaction))) {
+    if (transactions.length > 0 && transactions.every((transaction) => isPending(transaction))) {
         return false;
     }
 
@@ -101,7 +123,7 @@ function canApprove(report: Report, currentUserAccountID: number, reportMetadata
         return false;
     }
 
-    return isExpense && isProcessing && !!isApprovalEnabled && reportTransactions.length > 0 && isCurrentUserManager;
+    return isExpense && isProcessing && !!isApprovalEnabled && transactions.length > 0 && isCurrentUserManager;
 }
 
 function canPay(
@@ -114,12 +136,16 @@ function canPay(
     policy?: Policy,
     invoiceReceiverPolicy?: Policy,
 ) {
-    if (isReportArchived) {
+    const isExpense = isExpenseReport(report);
+
+    if (isPayBlocked(report, policy, isReportArchived)) {
         return false;
     }
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
-    const isExpense = isExpenseReport(report);
+
+    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
+    const canPayReport = isReportPayer || canAdminPayReport(policy, currentUserLogin);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
@@ -127,7 +153,8 @@ function canPay(
     const isApproved = isReportApproved({report}) || isSubmittedWithoutApprovalsEnabled;
     const isClosed = isClosedReport(report);
     const isReportFinished = (isApproved || isClosed) && !report.isWaitingOnBankAccount;
-    const {reimbursableSpend, nonReimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const spendBreakdown = getMoneyRequestSpendBreakdown(report);
+    const {reimbursableSpend, nonReimbursableSpend} = spendBreakdown;
     const isReimbursed = isSettled(report);
 
     const isExported = report.isExportedToIntegration ?? false;
@@ -136,10 +163,12 @@ function canPay(
 
     if (
         isExpense &&
-        isReportPayer &&
+        canPayReport &&
         isPaymentsEnabled &&
         isReportFinished &&
-        (reimbursableSpend !== 0 || (nonReimbursableSpend !== 0 && hasOnlyNonReimbursableTransactions(report?.reportID, transactions)))
+        (reimbursableSpend !== 0 ||
+            ((nonReimbursableSpend !== 0 || hasSettledZeroReimbursableSpend(spendBreakdown, report, transactions)) &&
+                !(policy?.preventPayoutNonReimbursableReports && hasOnlyNonReimbursableTransactions(report?.reportID, transactions))))
     ) {
         return !didExportFail;
     }
@@ -150,7 +179,7 @@ function canPay(
 
     const isIOU = isIOUReport(report);
 
-    if (isIOU && isReportPayer && !isReimbursed && reimbursableSpend > 0) {
+    if (isIOU && canPayReport && !isReimbursed && reimbursableSpend > 0) {
         return true;
     }
 
@@ -168,7 +197,7 @@ function canPay(
     return invoiceReceiverPolicy?.role === CONST.POLICY.ROLE.ADMIN && reimbursableSpend > 0;
 }
 
-function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
+function canExport(report: Report, currentUserLogin: string, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPreferredExporter(policy, currentUserLogin) : false;
     const isReimbursed = isSettled(report);
@@ -195,6 +224,10 @@ function canExport(report: Report, currentUserLogin: string, policy?: Policy) {
         return false;
     }
 
+    if (getIntegrationAccountingMethod(policy, connectedIntegration) === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH) {
+        return isReimbursed || ((isApproved || isClosed) && isCardOnlyReport(report, transactions));
+    }
+
     return isApproved || isReimbursed || isClosed;
 }
 
@@ -213,6 +246,8 @@ function getReportPreviewAction({
     isDEWSubmitPending,
     violationsData,
     reportMetadata,
+    ownerLogin,
+    rules,
 }: {
     isReportArchived: boolean;
     currentUserAccountID: number;
@@ -228,6 +263,8 @@ function getReportPreviewAction({
     isDEWSubmitPending?: boolean;
     violationsData?: OnyxCollection<TransactionViolation[]>;
     reportMetadata: OnyxEntry<ReportMetadata>;
+    ownerLogin: string | undefined;
+    rules: OnyxCollection<Rule>;
 }): ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS> {
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
@@ -242,7 +279,7 @@ function getReportPreviewAction({
     if (isSubmittingAnimationRunning) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
-    if (isAddExpenseAction(report, transactions ?? [], isReportArchived)) {
+    if (isAddExpenseAction(report, transactions ?? [], isReportArchived, rules)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.ADD_EXPENSE;
     }
 
@@ -250,7 +287,7 @@ function getReportPreviewAction({
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
-    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserLogin, violationsData, policy, transactions)) {
+    if (canSubmit(report, currentUserAccountID, currentUserLogin, ownerLogin, rules, violationsData, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, reportMetadata, policy, transactions)) {
@@ -259,7 +296,7 @@ function getReportPreviewAction({
     if (canPay(report, isReportArchived, currentUserAccountID, currentUserLogin, bankAccountList, transactions, policy, invoiceReceiverPolicy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
-    if (canExport(report, currentUserLogin, policy)) {
+    if (canExport(report, currentUserLogin, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
 

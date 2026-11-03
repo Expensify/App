@@ -6,7 +6,7 @@ const defaultMockPaymentContextValue = {
     email: 'test@example.com',
     localCurrencyCode: 'USD',
     introSelected: undefined,
-    betas: undefined,
+    isASAPSubmitBetaEnabled: false,
     isSelfTourViewed: false,
     activePolicyID: undefined,
     activePolicy: undefined,
@@ -15,6 +15,7 @@ const defaultMockPaymentContextValue = {
     userBillingGracePeriodEnds: undefined,
     amountOwed: undefined,
     ownerBillingGracePeriodEnd: undefined,
+    delegateEmail: undefined,
 };
 
 function createMockUsePaymentContextModule(overrides: MockPaymentContextOverrides = {}) {

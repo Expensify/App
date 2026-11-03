@@ -1,6 +1,7 @@
+import {SUBMIT_FEATURE_IDS} from '@src/CONST';
+
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback, useEffect, useRef} from 'react';
-import {SUBMIT_FEATURE_IDS} from '@src/CONST';
 
 type UseWorkspaceUpgradeConfirmationParams = {
     policyID: string | undefined;
@@ -29,7 +30,7 @@ function useWorkspaceUpgradeConfirmation({policyID, isUpgraded, canPerformUpgrad
         isPendingUpgrade,
     });
 
-    const confirmSubmitUpgradeIfNeeded = useCallback(() => {
+    const confirmSubmitUpgradeIfNeeded = () => {
         const {
             isUpgraded: currentIsUpgraded,
             canPerformUpgrade: currentCanPerformUpgrade,
@@ -52,7 +53,7 @@ function useWorkspaceUpgradeConfirmation({policyID, isUpgraded, canPerformUpgrad
 
         hasConfirmedSubmitUpgradeRef.current = true;
         confirmUpgradeRef.current();
-    }, []);
+    };
 
     useEffect(() => {
         hasConfirmedSubmitUpgradeRef.current = false;

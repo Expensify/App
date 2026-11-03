@@ -1,5 +1,7 @@
-import type {SimplifiedKeyboardEvent} from '@src/utils/keyboard';
+import type * as KeyboardModule from '@src/utils/keyboard';
 import type {DismissKeyboardOptions} from '@src/utils/keyboard/types';
+
+type SimplifiedKeyboardEvent = KeyboardModule.SimplifiedKeyboardEvent;
 
 const mockKeyboardListeners: Record<string, Array<(e: SimplifiedKeyboardEvent) => void>> = {};
 const mockKeyboardControllerListeners: Record<string, Array<(e: SimplifiedKeyboardEvent) => void>> = {};
@@ -65,11 +67,7 @@ describe('Keyboard utils: general native', () => {
         // Clear module cache and reimport to reset isVisible state
         jest.resetModules();
 
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-        utils = require('@src/utils/keyboard').default as {
-            dismiss: (options?: DismissKeyboardOptions) => Promise<void>;
-            dismissKeyboardAndExecute: (cb: () => void) => Promise<void>;
-        };
+        utils = jest.requireActual<typeof KeyboardModule>('@src/utils/keyboard').default;
     });
 
     describe('dismiss', () => {

@@ -1,11 +1,7 @@
-import React, {useCallback, useEffect} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import LottieAnimations from '@components/LottieAnimations';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -13,29 +9,47 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
+import useChangeBankAccount from '@hooks/useChangeBankAccount';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useResetBankAccountModal from '@hooks/useResetBankAccountModal';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestError, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasActiveAdminWorkspaces} from '@libs/PolicyUtils';
-import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
+
 import {goToWithdrawalAccountSetupStep, openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {setDraftValues} from '@userActions/FormActions';
 import {openExternalLink} from '@userActions/Link';
-import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep, setReimbursementAccountOptionPressed, updateReimbursementAccount} from '@userActions/ReimbursementAccount';
+import {
+    prepareNewBankAccountSetup,
+    requestResetBankAccount,
+    resetReimbursementAccount,
+    setBankAccountSubStep,
+    setReimbursementAccountOptionPressed,
+    updateReimbursementAccount,
+} from '@userActions/ReimbursementAccount';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type VerifiedBankAccountFlowEntryPointProps = {
     /** Bank account currently in setup */
@@ -53,7 +67,6 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Back to url passed from page */
     backTo?: Route;
 
-    /** Should show the continue setup button */
     shouldShowContinueSetupButton: boolean | null;
 
     /** Whether the workspace currency is set to non USD currency */
@@ -65,8 +78,10 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Method to set the state of shouldShowContinueSetupButton */
     setShouldShowContinueSetupButton?: (shouldShowContinueSetupButton: boolean) => void;
 
-    /** Whether the user is coming from the expensify card */
     isComingFromExpensifyCard?: boolean;
+
+    /** Whether this instance is starting a fresh setup from a "change bank account" flow */
+    isChangingBankAccount?: boolean;
 };
 
 const bankInfoStepKeys = INPUT_IDS.BANK_INFO_STEP;
@@ -82,11 +97,11 @@ function VerifiedBankAccountFlowEntryPoint({
     setUSDBankAccountStep,
     setShouldShowContinueSetupButton,
     isComingFromExpensifyCard,
+    isChangingBankAccount,
 }: VerifiedBankAccountFlowEntryPointProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock', 'RotateLeft']);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -103,7 +118,18 @@ function VerifiedBankAccountFlowEntryPoint({
 
     const personalBankAccounts = bankAccountList ? Object.keys(bankAccountList).filter((key) => bankAccountList[key].accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) : [];
 
-    const removeExistingBankAccountDetails = useCallback(() => {
+    const currency = reimbursementAccount?.achData?.currency;
+    // The "Change bank account" option is only offered when opening a partially setup account from the Workflows > Payments section
+    const isComingFromWorkflowsPayments = !!policyID && backTo === ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID);
+    const shouldShowChangeBankAccount = shouldShowContinueSetupButton === true && isComingFromWorkflowsPayments;
+    const handleChangeBankAccount = useChangeBankAccount(policyID, currency, reimbursementAccount?.achData?.bankAccountID);
+
+    const removeExistingBankAccountDetails = () => {
+        // In a "change bank account" flow, start a completely fresh setup so the new account's steps aren't prefilled.
+        if (isChangingBankAccount && currency) {
+            prepareNewBankAccountSetup(currency, reimbursementAccount);
+            return;
+        }
         const bankAccountData: Partial<ReimbursementAccountForm> = {
             [bankInfoStepKeys.ROUTING_NUMBER]: '',
             [bankInfoStepKeys.ACCOUNT_NUMBER]: '',
@@ -115,23 +141,21 @@ function VerifiedBankAccountFlowEntryPoint({
         };
         updateReimbursementAccountDraft(bankAccountData);
         updateReimbursementAccount({bankAccountID: 0});
-    }, []);
+    };
 
     /**
      * Prepares and redirects user to next step in the USD flow
      */
-    const prepareNextStep = useCallback(
-        (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) => {
-            setBankAccountSubStep(setupType);
-            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY, backTo}));
-        },
-        [policyID, backTo],
-    );
+    const prepareNextStep = (setupType: ValueOf<typeof CONST.BANK_ACCOUNT.SETUP_TYPE>) => {
+        setBankAccountSubStep(setupType);
+        goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
+        Navigation.navigate(ROUTES.BANK_ACCOUNT_USD_SETUP.getRoute({policyID, page: CONST.BANK_ACCOUNT.PAGE_NAMES.COUNTRY, backTo}));
+    };
 
     /**
      * optionPressed ref indicates what user selected before modal to validate account was displayed
-     * In this hook we check if account was validated and then proceed with the option user selected
+     * In this hook we check if account was validated and then prepare the data for the option user selected.
+     * Navigation to the next step is done by DynamicReimbursementAccountVerifyAccountPage.
      * note: non USD accounts only have manual option available
      */
     useEffect(() => {
@@ -140,32 +164,35 @@ function VerifiedBankAccountFlowEntryPoint({
         }
 
         if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL) {
+            removeExistingBankAccountDetails();
             if (isNonUSDWorkspace) {
                 if (isComingFromExpensifyCard) {
                     setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {isComingFromExpensifyCard});
                 }
-                Navigation.navigate(ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: CONST.NON_USD_BANK_ACCOUNT.PAGE_NAME.CURRENCY_AND_COUNTRY, backTo}));
                 setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
                 return;
             }
 
-            removeExistingBankAccountDetails();
-            prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         } else if (reimbursementAccountOptionPressed === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID) {
             removeExistingBankAccountDetails();
             openPlaidView();
-            prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+            setBankAccountSubStep(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
+            goToWithdrawalAccountSetupStep(CONST.BANK_ACCOUNT.STEP.COUNTRY);
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.NONE);
         }
-    }, [isAccountValidated, isNonUSDWorkspace, prepareNextStep, reimbursementAccountOptionPressed, policyID, isComingFromExpensifyCard, backTo, removeExistingBankAccountDetails]);
+    }, [isAccountValidated, isNonUSDWorkspace, reimbursementAccountOptionPressed, isComingFromExpensifyCard, removeExistingBankAccountDetails]);
 
     const handleConnectManually = () => {
         if (!isAccountValidated) {
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(policyID, backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL, isNonUSDWorkspace)));
             return;
         }
+
+        removeExistingBankAccountDetails();
 
         if (isNonUSDWorkspace) {
             if (isComingFromExpensifyCard) {
@@ -175,7 +202,6 @@ function VerifiedBankAccountFlowEntryPoint({
             return;
         }
 
-        removeExistingBankAccountDetails();
         prepareNextStep(CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL);
     };
 
@@ -186,7 +212,7 @@ function VerifiedBankAccountFlowEntryPoint({
 
         if (!isAccountValidated) {
             setReimbursementAccountOptionPressed(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID);
-            Navigation.navigate(ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(policyID, backTo));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_VERIFY_ACCOUNT.getRoute(CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID)));
             return;
         }
 
@@ -201,6 +227,15 @@ function VerifiedBankAccountFlowEntryPoint({
         }
         Navigation.goBack(isCurrentUserPolicyAdmin ? ROUTES.SETTINGS_BANK_ACCOUNT_PURPOSE : ROUTES.SETTINGS_WALLET);
     };
+
+    useResetBankAccountModal({
+        reimbursementAccount,
+        isNonUSDWorkspace,
+        setUSDBankAccountStep,
+        setShouldShowContinueSetupButton,
+        navigateAfterReset,
+        backTo,
+    });
 
     return (
         <ScreenWrapper
@@ -231,7 +266,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 src={expensifyIcons.Lightbulb}
                                 fill={theme.icon}
                                 additionalStyles={styles.mr2}
-                                medium
+                                size={CONST.ICON_SIZE.MEDIUM}
                             />
                             <Text
                                 style={[styles.textLabelSupportingNormal, styles.flex1]}
@@ -249,45 +284,46 @@ function VerifiedBankAccountFlowEntryPoint({
                                 }
                                 errorRowStyles={styles.mt2}
                                 shouldShowErrorMessages
+                                contentContainerStyle={styles.mhn5}
                                 onClose={reimbursementAccount?.maxAttemptsReached ? undefined : resetReimbursementAccount}
                             >
-                                <MenuItem
+                                <MenuItemNavigation
                                     title={translate('workspace.bankAccount.continueWithSetup')}
                                     icon={expensifyIcons.Connect}
                                     onPress={onContinuePress}
-                                    shouldShowRightIcon
-                                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                                    disabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
+                                    isDisabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
                                 />
-                                <MenuItem
+                                {shouldShowChangeBankAccount && (
+                                    <MenuItemNavigation
+                                        title={translate('workspace.bankAccount.changeBankAccount')}
+                                        icon={expensifyIcons.Bank}
+                                        onPress={handleChangeBankAccount}
+                                        isDisabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
+                                    />
+                                )}
+                                <MenuItemNavigation
                                     title={translate('workspace.bankAccount.startOver')}
                                     icon={expensifyIcons.RotateLeft}
                                     onPress={requestResetBankAccount}
-                                    shouldShowRightIcon
-                                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                                    disabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
+                                    isDisabled={!!pendingAction || (!isEmptyObject(errors) && !reimbursementAccount?.maxAttemptsReached)}
                                 />
                             </OfflineWithFeedback>
                         ) : (
-                            <>
+                            <View style={styles.mhn5}>
                                 {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
-                                    <MenuItem
+                                    <MenuItemNavigation
                                         title={translate('bankAccount.connectOnlineWithPlaid')}
                                         icon={expensifyIcons.Bank}
-                                        disabled={!!isPlaidDisabled}
+                                        isDisabled={!!isPlaidDisabled}
                                         onPress={handleConnectPlaid}
-                                        shouldShowRightIcon
-                                        outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                                     />
                                 )}
-                                <MenuItem
+                                <MenuItemNavigation
                                     title={translate('bankAccount.connectManually')}
                                     icon={expensifyIcons.Connect}
                                     onPress={handleConnectManually}
-                                    shouldShowRightIcon
-                                    outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
                                 />
-                            </>
+                            </View>
                         )}
                     </View>
                 </Section>
@@ -309,17 +345,6 @@ function VerifiedBankAccountFlowEntryPoint({
                     </PressableWithoutFeedback>
                 </View>
             </ScrollView>
-
-            {!!reimbursementAccount?.shouldShowResetModal && (
-                <WorkspaceResetBankAccountModal
-                    reimbursementAccount={reimbursementAccount}
-                    isNonUSDWorkspace={isNonUSDWorkspace}
-                    setUSDBankAccountStep={setUSDBankAccountStep}
-                    setShouldShowContinueSetupButton={setShouldShowContinueSetupButton}
-                    navigateAfterReset={navigateAfterReset}
-                    backTo={backTo}
-                />
-            )}
         </ScreenWrapper>
     );
 }

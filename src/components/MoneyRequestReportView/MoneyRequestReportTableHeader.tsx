@@ -1,17 +1,22 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import SortableTableHeader from '@components/Search/SortableTableHeader';
 import type {SearchColumnType, SearchSortBy, SortOrder, TableColumnSize} from '@components/Search/types';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isSortableColumnName} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SearchTableHeaderProps = {
     sortBy?: SearchSortBy;
     sortOrder?: SortOrder;
     onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     dateColumnSize: TableColumnSize;
+    postedColumnSize: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
@@ -23,6 +28,7 @@ function MoneyRequestReportTableHeader({
     sortOrder,
     onSortPress,
     dateColumnSize,
+    postedColumnSize,
     shouldShowSorting,
     columns,
     amountColumnSize,
@@ -31,29 +37,24 @@ function MoneyRequestReportTableHeader({
 }: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
-    const columnConfig = useMemo(
-        () => [
-            ...getExpenseHeaders().map((header) => ({
-                ...header,
-                isColumnSortable: isSortableColumnName(header.columnName),
-            })),
-            {
-                columnName: CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
-                translationKey: undefined,
-                isColumnSortable: false,
-            },
-        ],
-        [],
-    );
+    const columnConfig = [
+        ...getExpenseHeaders().map((header) => ({
+            ...header,
+            isColumnSortable: isSortableColumnName(header.columnName),
+        })),
+        {
+            columnName: CONST.SEARCH.TABLE_COLUMNS.COMMENTS,
+            translationKey: undefined,
+            isColumnSortable: false,
+        },
+    ];
 
-    const orderedColumnConfig = useMemo(() => {
-        if (columns.length === 0) {
-            return columnConfig;
-        }
-
+    let orderedColumnConfig;
+    if (columns.length === 0) {
+        orderedColumnConfig = columnConfig;
+    } else {
         const configMap = new Map(columnConfig.map((config) => [config.columnName, config]));
         const ordered: typeof columnConfig = [];
-
         for (const columnName of columns) {
             const config = configMap.get(columnName);
             if (config) {
@@ -61,27 +62,23 @@ function MoneyRequestReportTableHeader({
                 configMap.delete(columnName);
             }
         }
-
         for (const config of configMap.values()) {
             ordered.push(config);
         }
+        orderedColumnConfig = ordered;
+    }
 
-        return ordered;
-    }, [columns, columnConfig]);
-
-    const shouldShowColumn = useCallback(
-        (columnName: SearchColumnType) => {
-            return columns.includes(columnName);
-        },
-        [columns],
-    );
+    const shouldShowColumn = (columnName: SearchColumnType) => {
+        return columns.includes(columnName);
+    };
 
     return (
-        <View style={[styles.dFlex, styles.flex5]}>
+        <View style={[styles.dFlex, styles.flex5, styles.alignSelfStretch]}>
             <SortableTableHeader
                 columns={orderedColumnConfig}
                 shouldShowColumn={shouldShowColumn}
                 dateColumnSize={dateColumnSize}
+                postedColumnSize={postedColumnSize}
                 amountColumnSize={amountColumnSize}
                 taxAmountColumnSize={taxAmountColumnSize}
                 shouldShowSorting={shouldShowSorting}

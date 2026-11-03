@@ -1,15 +1,20 @@
-import React from 'react';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {requestUnlockAccount} from '@userActions/User';
+
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 function UnlockAccountPage() {
     const {translate} = useLocalize();
@@ -27,18 +32,16 @@ function UnlockAccountPage() {
                 title={translate('unlockAccountPage.accountLocked')}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     illustration={icons.EmptyStateSpyPigeon}
                     heading={translate('unlockAccountPage.yourAccountIsLocked')}
                     description={translate('unlockAccountPage.chatToConciergeToUnlock')}
-                    shouldShowButton
                     descriptionStyle={styles.colorMuted}
                     buttonText={translate('unlockAccountPage.chatWithConcierge')}
                     onButtonPress={() => {
                         requestUnlockAccount(currentUserPersonalDetails.accountID);
                         Navigation.navigate(ROUTES.CONCIERGE);
                     }}
-                    containerStyle={styles.h100}
                 />
             </ScrollView>
         </ScreenWrapper>

@@ -1,15 +1,17 @@
-import React from 'react';
-import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 
+import React from 'react';
+import {View} from 'react-native';
+
 type SelectAllCheckboxProps = {
-    /** Whether the checkbox is checked/selected */
     isSelectAllChecked: boolean;
 
     /** Whether the button is in the indeterminate ("mixed") state */

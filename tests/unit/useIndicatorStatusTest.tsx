@@ -1,13 +1,23 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
+
 // eslint-disable-next-line no-restricted-imports
 import {defaultTheme} from '@styles/theme';
+
 import CONST from '@src/CONST';
 import initWithOnyxDerivedValues from '@src/libs/actions/OnyxDerived';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
+import type IndicatorStatus from '@src/types/utils/IndicatorStatus';
+
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import type {IndicatorTestCase} from '../utils/IndicatorTestUtils';
+
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const userID = 'johndoe12@expensify.com';
@@ -31,6 +41,13 @@ const cardFeedErrorTestCases = {
         status: CONST.INDICATOR_STATUS.HAS_EMPLOYEE_CARD_FEED_ERRORS,
     },
 } as const satisfies Record<'admin' | 'employee', IndicatorTestCase>;
+
+const brokenPlaidConnectionTestCase = {
+    name: 'has a bank account with a broken Plaid connection',
+    indicatorColor: defaultTheme.danger,
+    status: CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR,
+    indicatorPolicyID: undefined,
+} as const satisfies IndicatorTestCase;
 
 const TEST_CASES = {
     hasPolicyErrors: {
@@ -69,6 +86,7 @@ const TEST_CASES = {
         status: CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR,
         indicatorPolicyID: undefined,
     },
+    hasBrokenPlaidConnection: brokenPlaidConnectionTestCase,
     hasSubscriptionErrors: {
         name: 'has subscription errors',
         indicatorColor: defaultTheme.danger,
@@ -144,8 +162,18 @@ const TEST_CASES_NON_ADMIN = {
     hasEmployeeCardFeedErrors: cardFeedErrorTestCases.employee,
 } as const satisfies Record<string, IndicatorTestCase>;
 
+const getMockBankAccountData = (name: string, status: IndicatorStatus | undefined) => {
+    if (status === CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT) {
+        return {state: CONST.BANK_ACCOUNT.STATE.LOCKED};
+    }
+    if (name === brokenPlaidConnectionTestCase.name) {
+        return {additionalData: {verifications: {externalApiResponses: {plaidAssets: {needsFixing: true}}}}};
+    }
+    return undefined;
+};
+
 const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean) =>
-    ({
+    createMock<OnyxMultiSetInput>({
         [`${ONYXKEYS.COLLECTION.POLICY}1` as const]: {
             id: '1',
             name: 'Workspace 1',
@@ -155,9 +183,7 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
             customUnits:
                 status === CONST.INDICATOR_STATUS.HAS_CUSTOM_UNITS_ERROR
                     ? {
-                          errors: {
-                              error: 'Something went wrong',
-                          },
+                          errors: createMock<Errors>({error: 'Something went wrong'}),
                       }
                     : undefined,
         },
@@ -212,17 +238,12 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
             12345: {
                 methodID: 12345,
                 errors:
-                    status === CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR
+                    status === CONST.INDICATOR_STATUS.HAS_PAYMENT_METHOD_ERROR && name !== brokenPlaidConnectionTestCase.name
                         ? {
                               error: 'Something went wrong',
                           }
                         : undefined,
-                accountData:
-                    status === CONST.INDICATOR_STATUS.HAS_LOCKED_BANK_ACCOUNT
-                        ? {
-                              state: CONST.BANK_ACCOUNT.STATE.LOCKED,
-                          }
-                        : undefined,
+                accountData: getMockBankAccountData(name, status),
             },
         },
         [ONYXKEYS.USER_WALLET]: {
@@ -245,17 +266,9 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
         [ONYXKEYS.LOGINS]: {
             [`1_${userID}`]: {
                 partnerID: 1,
-                partnerName: 'John Doe',
                 partnerUserID: userID,
                 validatedDate: status !== CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_INFO ? new Date().toISOString() : undefined,
-                errorFields:
-                    status === CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR
-                        ? {
-                              field: {
-                                  error: 'Something went wrong',
-                              },
-                          }
-                        : undefined,
+                errorFields: status === CONST.INDICATOR_STATUS.HAS_LOGIN_LIST_ERROR ? createMock<ErrorFields>({field: {error: 'Something went wrong'}}) : undefined,
             },
         },
         [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: {
@@ -296,7 +309,7 @@ const getMockForTestCase = ({name, status}: IndicatorTestCase, isAdmin: boolean)
                 },
             ],
         },
-    }) as OnyxMultiSetInput;
+    });
 
 describe('useIndicatorStatusTest', () => {
     beforeAll(() => {

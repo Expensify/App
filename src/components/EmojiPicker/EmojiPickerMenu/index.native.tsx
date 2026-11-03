@@ -1,29 +1,39 @@
-import type {ListRenderItem} from '@shopify/flash-list';
-import lodashDebounce from 'lodash/debounce';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {AccessibilityInfo, View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+
 import EmojiPickerMenuItem from '@components/EmojiPicker/EmojiPickerMenuItem';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import type {EmojiPickerList, EmojiPickerListItem} from '@libs/EmojiUtils';
 import {getRemovedSkinToneEmoji} from '@libs/EmojiUtils';
+
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
-import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
+
+import type {ListRenderItem} from '@shopify/flash-list';
+import type {ComponentRef} from 'react';
+
+import lodashDebounce from 'lodash/debounce';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {AccessibilityInfo, View} from 'react-native';
+
 import type EmojiPickerMenuProps from './types';
+
+import BaseEmojiPickerMenu from './BaseEmojiPickerMenu';
 import useEmojiPickerMenu from './useEmojiPickerMenu';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuProps) {
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -47,13 +57,13 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
     const {paddingLeft: safeAreaPaddingLeft, paddingRight: safeAreaPaddingRight} = StyleUtils.getPlatformSafeAreaPadding(insets);
     const [searchText, setSearchText] = useState('');
 
-    const headerRefs = useRef<Record<number, React.RefObject<View | null>>>({});
+    const headerRefs = useRef<Record<number, React.RefObject<ComponentRef<typeof View> | null>>>({});
     const pendingHeaderFocusIndexRef = useRef<number | null>(null);
     const [selectedHeaderIndex, setSelectedHeaderIndex] = useState<number | null>(null);
 
     const getHeaderRef = useCallback((index: number) => {
         if (!headerRefs.current[index]) {
-            headerRefs.current[index] = React.createRef<View>();
+            headerRefs.current[index] = React.createRef<ComponentRef<typeof View>>();
         }
         return headerRefs.current[index];
     }, []);
@@ -150,11 +160,11 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
                         ref={getHeaderRef(index)}
                         accessible
                         accessibilityRole="header"
-                        accessibilityLabel={translate(`emojiPicker.headers.${code}` as TranslationPaths)}
+                        accessibilityLabel={translate(`emojiPicker.headers.${item.code}`)}
                         style={[styles.emojiHeaderContainer, target === 'StickyHeader' ? styles.mh4 : {width: windowWidth}]}
                         onLayout={() => handleHeaderLayout(index)}
                     >
-                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${code}` as TranslationPaths)}</Text>
+                        <Text style={styles.textLabelSupporting}>{translate(`emojiPicker.headers.${item.code}`)}</Text>
                     </View>
                 );
             }
@@ -182,13 +192,19 @@ function EmojiPickerMenu({onEmojiSelected, activeEmoji, ref}: EmojiPickerMenuPro
         <View style={[styles.emojiPickerContainer, StyleUtils.getEmojiPickerStyle(shouldUseNarrowLayout)]}>
             <View style={[styles.p4, styles.pb3]}>
                 <TextInput
-                    label={translate('common.search')}
+                    placeholder={translate('common.search')}
+                    placeholderTextColor={theme.textSupporting}
                     accessibilityLabel={translate('common.search')}
                     role={CONST.ROLE.PRESENTATION}
+                    touchableInputWrapperStyle={styles.listSearchInputNarrowWrapper}
+                    textInputContainerStyles={[styles.pb0, styles.ph3]}
+                    inputStyle={[styles.lineHeightUndefined]}
                     onChangeText={(text: string) => {
                         setSearchText(text);
                         filterEmojis(text);
                     }}
+                    value={searchText}
+                    shouldHideClearButton={false}
                     submitBehavior={filteredEmojis.length > 0 ? 'blurAndSubmit' : 'submit'}
                     sentryLabel={CONST.SENTRY_LABEL.EMOJI_PICKER.SEARCH_INPUT}
                 />

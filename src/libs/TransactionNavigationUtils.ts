@@ -1,5 +1,6 @@
 import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Report, ReportAction, ReportLoadingState} from '@src/types/onyx';
+
 import {isDeletedAction} from './ReportActionsUtils';
 
 type ParentReportActionDeletionStatusParams = {

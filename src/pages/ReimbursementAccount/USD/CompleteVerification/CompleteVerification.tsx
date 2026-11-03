@@ -1,18 +1,24 @@
-import React, {useCallback, useMemo} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountSubmitCallback from '@hooks/useReimbursementAccountSubmitCallback';
+
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
+
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import {acceptACHContractForBankAccount} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React from 'react';
+
 import ConfirmAgreements from './subSteps/ConfirmAgreements';
 
 type CompleteVerificationProps = {
-    /** Handles back button press */
     onBackButtonPress: () => void;
 
     /** Handles submit button press (URL-based navigation) */
@@ -28,12 +34,12 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [lastPaymentMethod] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
 
-    const values = useMemo(() => getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const values = getSubStepValues(COMPLETE_VERIFICATION_KEYS, reimbursementAccountDraft, reimbursementAccount);
     const policyID = reimbursementAccount?.achData?.policyID;
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
     const markSubmitting = useReimbursementAccountSubmitCallback(onSubmit);
 
-    const submit = useCallback(() => {
+    const submit = () => {
         acceptACHContractForBankAccount(
             bankAccountID,
             {
@@ -45,16 +51,7 @@ function CompleteVerification({onBackButtonPress, onSubmit}: CompleteVerificatio
             policyID ? lastPaymentMethod?.[policyID] : undefined,
         );
         markSubmitting();
-    }, [
-        bankAccountID,
-        values.isAuthorizedToUseBankAccount,
-        values.certifyTrueInformation,
-        values.acceptTermsAndConditions,
-        reimbursementAccount?.achData?.acceptTerms,
-        policyID,
-        lastPaymentMethod,
-        markSubmitting,
-    ]);
+    };
 
     return (
         <InteractiveStepWrapper

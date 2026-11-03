@@ -1,8 +1,10 @@
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import type {ForwardedRef, ReactNode} from 'react';
+import type {EdgeInsets, useSafeAreaFrame as LibUseSafeAreaFrame, WithSafeAreaInsetsProps} from 'react-native-safe-area-context';
+
 import React from 'react';
 import {View} from 'react-native';
-import type {EdgeInsets, useSafeAreaFrame as LibUseSafeAreaFrame, WithSafeAreaInsetsProps} from 'react-native-safe-area-context';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SafeAreaProviderProps = ChildrenProps;
 type SafeAreaConsumerProps = {

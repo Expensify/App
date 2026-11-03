@@ -1,0 +1,67 @@
+diff --git a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
+index ac3127f..9e8900c 100644
+--- a/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
++++ b/node_modules/@shopify/react-native-skia/cpp/jsi/RuntimeAwareCache.h
+@@ -89,7 +89,18 @@ class RuntimeAwareCache : public BaseRuntimeAwareCache,
+ 
+ public:
+   void onRuntimeDestroyed(jsi::Runtime *rt) override {
+-    if (getMainJsRuntime() != rt) {
++    if (getMainJsRuntime() == rt) {
++      // Release the primary cache here, while the runtime is still valid, instead
++      // of in ~RuntimeAwareCache which may run later (main queue) after the
++      // runtime is freed -> UAF. Reset by move-assigning a fresh T: this is the
++      // same point in the runtime's lifecycle at which the secondary branch below
++      // erases its entries. See patches/@shopify/react-native-skia.
++      std::lock_guard<std::mutex> lock(_primaryCacheMutex);
++      if (!_primaryCacheHandled) {
++        _primaryCache = T{};
++        _primaryCacheHandled = true;
++      }
++    } else {
+       // We are removing a secondary runtime. This is invoked by
+       // RuntimeLifecycleMonitor on the destroyed runtime's thread, which may
+       // run concurrently with get() on another runtime's thread.
+@@ -99,6 +110,17 @@ public:
+   }
+ 
+   ~RuntimeAwareCache() {
++    {
++      // Claim the primary cache so a concurrent onRuntimeDestroyed can't release
++      // it while members are destructed here. If it hasn't been handled yet, the
++      // primary runtime is still alive, so deregistering the listener here is
++      // safe (and destroying the cache is too).
++      std::lock_guard<std::mutex> lock(_primaryCacheMutex);
++      if (_primaryRuntime != nullptr && !_primaryCacheHandled) {
++        RuntimeLifecycleMonitor::removeListener(*_primaryRuntime, this);
++      }
++      _primaryCacheHandled = true;
++    }
+     for (auto &cache : _secondaryRuntimeCaches) {
+       RuntimeLifecycleMonitor::removeListener(
+           *static_cast<jsi::Runtime *>(cache.first), this);
+@@ -110,6 +132,13 @@ public:
+     // to avoid us having to lookup by runtime for caches that only has a single
+     // runtime
+     if (getMainJsRuntime() == &rt) {
++      // Listen for the primary runtime's destruction so onRuntimeDestroyed can
++      // release the cache safely. Safe to register here: this branch only runs on
++      // the primary runtime's own (JS) thread. See patches/@shopify/react-native-skia.
++      if (_primaryRuntime == nullptr) {
++        _primaryRuntime = &rt;
++        RuntimeLifecycleMonitor::addListener(rt, this);
++      }
+       return _primaryCache;
+     } else {
+       // Guard the secondary map: it can be mutated concurrently by get()
+@@ -139,6 +168,10 @@ public:
+ 
+ private:
+   std::mutex _secondaryCachesMutex;
++  // Declared before _primaryCache so it outlives it during member destruction.
++  std::mutex _primaryCacheMutex;
++  jsi::Runtime *_primaryRuntime = nullptr;
++  bool _primaryCacheHandled = false;
+   std::unordered_map<void *, T> _secondaryRuntimeCaches;
+   T _primaryCache;
+ };

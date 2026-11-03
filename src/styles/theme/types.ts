@@ -1,9 +1,12 @@
-import type {ValueOf} from 'type-fest';
 import type {NavBarButtonStyle} from '@libs/NavBarManager/types';
-import type CONST from '@src/CONST';
-import type {ColorScheme, StatusBarStyle} from '..';
 
-type Color = string;
+import type CONST from '@src/CONST';
+
+import type {ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import type {ColorScheme, StatusBarStyle} from '..';
+import type {Color} from './colors';
 
 type ThemePreference = ValueOf<typeof CONST.THEME>;
 type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM | typeof CONST.THEME.SYSTEM_CONTRAST>;
@@ -33,8 +36,11 @@ type ThemeColors = {
     syntax: Color;
     link: Color;
     linkHover: Color;
+    linkReversed: Color;
     buttonDefaultBG: Color;
     buttonHoveredBG: Color;
+    /** Hover background for buttons rendered on an inverse-colored surface (e.g. the growl notification). */
+    buttonHoveredBGReversed: Color;
     buttonPressedBG: Color;
     buttonSuccessText: Color;
     buttonDangerText: Color;
@@ -60,6 +66,10 @@ type ThemeColors = {
     signInSidebar: Color;
     sidebar: Color;
     sidebarHover: Color;
+    floatingTabBarSelectedBG: Color;
+    androidTabBarActiveIndicatorBG: Color;
+    /** A CSS box-shadow, not a color. */
+    androidTabBarShadow: NonNullable<ViewStyle['boxShadow']>;
     heading: Color;
     textLight: Color;
     textDark: Color;
@@ -67,6 +77,7 @@ type ThemeColors = {
     textBackground: Color;
     textMutedReversed: Color;
     textError: Color;
+    textSuccess: Color;
     offline: Color;
     modalBackground: Color;
     cardBG: Color;
@@ -89,6 +100,8 @@ type ThemeColors = {
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
     reactionActiveBackground: Color;
+    /** Background of a selected option among mutually exclusive choices */
+    selectedOptionBG: Color;
     reactionActiveText: Color;
     badgeDefaultBG: Color;
     badgeSuccessBG: Color;
@@ -97,6 +110,8 @@ type ThemeColors = {
     badgeDangerText: Color;
     badgeAdHoc: Color;
     badgeAdHocHover: Color;
+    badgeOfferBG: Color;
+    badgeOfferText: Color;
     bordersBold: Color;
     buttonIcon: Color;
     mentionText: Color;
@@ -137,6 +152,9 @@ type ThemeColors = {
     navigationBarButtonsStyle: NavBarButtonStyle;
     translucentNavigationBarBackgroundColor: Color;
     colorScheme: ColorScheme;
+
+    /** Whether this is a high-contrast theme (light-contrast / dark-contrast). Used to underline links for WCAG 1.4.1. */
+    isHighContrast?: boolean;
 };
 
 export {type ThemePreferenceWithoutSystem, type ThemeColors, type Color};

@@ -1,6 +1,7 @@
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
-import {getMatchingFullScreenRoute} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import getMatchingFullScreenRoute from '@libs/Navigation/helpers/getMatchingFullScreenRoute';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 
@@ -9,22 +10,28 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
         DynamicScreen: {path: 'suffix-a'},
     },
     screensWithOnyxTabNavigator: new Set(),
-}));
-
-jest.mock('@libs/ReportUtils', () => ({
-    getReportOrDraftReport: jest.fn(),
+    dynamicTabPatternToTabPaths: new Map(),
 }));
 
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard', () => jest.fn());
 
 jest.mock('@libs/Navigation/linkingConfig/RELATIONS', () => {
+    const SCREENS_MOCK = jest.requireActual<{default: typeof SCREENS}>('@src/SCREENS').default;
     const SIDEBAR_TO_SPLIT = {SETTINGS_ROOT: 'SettingsSplitNavigator'};
     const SPLIT_TO_SIDEBAR = {SettingsSplitNavigator: 'SETTINGS_ROOT'};
     return {
         RHP_TO_DOMAIN: {},
         RHP_TO_HOME: {Home: 'home'},
         RHP_TO_SEARCH: {},
+        // Deeplink-only mapping: create-flow entry points resolve to the Search fullscreen under the RHP.
+        RHP_TO_SEARCH_DEEPLINK: {
+            [SCREENS_MOCK.MONEY_REQUEST.CREATE]: SCREENS_MOCK.SEARCH.ROOT,
+            [SCREENS_MOCK.MONEY_REQUEST.DISTANCE_CREATE]: SCREENS_MOCK.SEARCH.ROOT,
+            [SCREENS_MOCK.MONEY_REQUEST.START]: SCREENS_MOCK.SEARCH.ROOT,
+            [SCREENS_MOCK.SUBMIT_EXPENSE]: SCREENS_MOCK.SEARCH.ROOT,
+            [SCREENS_MOCK.TRACK_EXPENSE]: SCREENS_MOCK.SEARCH.ROOT,
+        },
         RHP_TO_SETTINGS: {},
         RHP_TO_SIDEBAR: {},
         RHP_TO_WORKSPACE: {},
@@ -44,8 +51,8 @@ jest.mock('@src/ROUTES', () => ({
 }));
 
 describe('getMatchingFullScreenRoute - dynamic suffix', () => {
-    const mockGetStateFromPath = getStateFromPath as jest.Mock;
-    const mockFindFocusedRouteWithOnyxTabGuard = findFocusedRouteWithOnyxTabGuard as jest.Mock;
+    const mockGetStateFromPath = jest.mocked(getStateFromPath);
+    const mockFindFocusedRouteWithOnyxTabGuard = jest.mocked(findFocusedRouteWithOnyxTabGuard);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -61,8 +68,14 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             routes: [{name: 'BaseScreen'}, fullScreenRoute],
             index: 1,
         };
+        const expectedStrippedPath = '/base';
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base' ? basePathState : undefined));
+        mockGetStateFromPath.mockImplementation((path) => {
+            if (String(path) !== expectedStrippedPath) {
+                throw new Error(`Unexpected path: ${path}`);
+            }
+            return basePathState;
+        });
 
         const result = getMatchingFullScreenRoute(route);
 
@@ -80,8 +93,14 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             routes: [{name: 'BaseScreen'}, fullScreenRoute],
             index: 1,
         };
+        const expectedStrippedPath = '/base/suffix-a';
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base/suffix-a' ? basePathState : undefined));
+        mockGetStateFromPath.mockImplementation((path) => {
+            if (String(path) !== expectedStrippedPath) {
+                throw new Error(`Unexpected path: ${path}`);
+            }
+            return basePathState;
+        });
 
         const result = getMatchingFullScreenRoute(route);
 
@@ -100,8 +119,14 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             routes: [{name: 'BaseScreen'}, fullScreenRoute],
             index: 1,
         };
+        const expectedStrippedPath = '/base/deep/suffix-a';
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base/deep/suffix-a' ? basePathState : undefined));
+        mockGetStateFromPath.mockImplementation((path) => {
+            if (String(path) !== expectedStrippedPath) {
+                throw new Error(`Unexpected path: ${path}`);
+            }
+            return basePathState;
+        });
 
         const result = getMatchingFullScreenRoute(route);
 
@@ -128,8 +153,14 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             ],
             index: 0,
         };
+        const expectedStrippedPath = '/base';
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base' ? basePathState : undefined));
+        mockGetStateFromPath.mockImplementation((path) => {
+            if (String(path) !== expectedStrippedPath) {
+                throw new Error(`Unexpected path: ${path}`);
+            }
+            return basePathState;
+        });
         mockFindFocusedRouteWithOnyxTabGuard.mockReturnValue(nestedFocusedRoute);
 
         const result = getMatchingFullScreenRoute(route);
@@ -149,8 +180,14 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             routes: [{name: SCREENS.NOT_FOUND, path: '/invalid/base/suffix-a'}],
             index: 0,
         };
+        const expectedStrippedPath = '/invalid/base/suffix-a';
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/invalid/base/suffix-a' ? invalidRouteState : undefined));
+        mockGetStateFromPath.mockImplementation((path) => {
+            if (String(path) !== expectedStrippedPath) {
+                throw new Error(`Unexpected path: ${path}`);
+            }
+            return invalidRouteState;
+        });
 
         const result = getMatchingFullScreenRoute(route);
 
@@ -170,12 +207,29 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
         expect(result).toBeUndefined();
     });
 
+    it('should not treat a static screen as dynamic when its path ends like a dynamic suffix', () => {
+        // Given a static screen whose own path happens to end with a registered dynamic suffix, like `settings/card/:cardID` and `card/:cardID`
+        const route = {
+            name: 'StaticScreen',
+            path: '/settings/suffix-a',
+        };
+        mockGetStateFromPath.mockReturnValue({routes: [{name: 'BaseScreen'}, {name: SCREENS.HOME}], index: 1});
+
+        // When the full screen route under it is looked up during in-app navigation
+        const result = getMatchingFullScreenRoute(route);
+
+        // Then nothing is matched, so the page the user came from stays under the RHP instead of being swapped for the stripped base path
+        expect(mockGetStateFromPath).not.toHaveBeenCalled();
+        expect(result).toBeUndefined();
+    });
+
     it('should return undefined when path has dynamic suffix but base path state is undefined', () => {
         const route = {
             name: 'DynamicScreen',
             path: '/broken/path/suffix-a/suffix-b',
         };
 
+        // @ts-expect-error -- Intentionally exercise the consumer's defensive handling of an invalid undefined producer result.
         mockGetStateFromPath.mockReturnValue(undefined);
 
         const result = getMatchingFullScreenRoute(route);
@@ -195,9 +249,10 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             routes: [{name: 'BaseScreen'}, fullScreenRoute],
             index: 1,
         };
+        const expectedStrippedPath = '/base';
 
-        mockGetStateFromPath.mockImplementation((path: string) => {
-            if (path === '/base') {
+        mockGetStateFromPath.mockImplementation((path) => {
+            if (String(path) === expectedStrippedPath) {
                 return basePathState;
             }
             return {routes: [{name: 'WrongScreen'}], index: 0};
@@ -209,4 +264,43 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
         expect(mockGetStateFromPath).not.toHaveBeenCalledWith('/some/other/path');
         expect(result).toEqual(fullScreenRoute);
     });
+});
+
+describe('getMatchingFullScreenRoute - deeplink-only search relations', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    // Digs out the focused SearchFullscreenNavigator route from the built tab navigator state.
+    const getSearchRoute = (result: ReturnType<typeof getMatchingFullScreenRoute>) => {
+        if (!result || !('state' in result) || !result.state) {
+            return undefined;
+        }
+        return result.state.routes.find((r) => r.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    };
+
+    it.each([SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DISTANCE_CREATE, SCREENS.MONEY_REQUEST.START, SCREENS.SUBMIT_EXPENSE, SCREENS.TRACK_EXPENSE])(
+        'resolves %s to the Search fullscreen when built from a path (isDeeplink=true)',
+        (screenName) => {
+            const route = {name: screenName};
+
+            const result = getMatchingFullScreenRoute(route, true);
+
+            expect(result?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
+            const searchRoute = getSearchRoute(result);
+            expect(searchRoute).toBeDefined();
+            expect(searchRoute?.state?.routes.at(0)?.name).toBe(SCREENS.SEARCH.ROOT);
+        },
+    );
+
+    it.each([SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.DISTANCE_CREATE, SCREENS.MONEY_REQUEST.START, SCREENS.SUBMIT_EXPENSE, SCREENS.TRACK_EXPENSE])(
+        'does not resolve %s to a fullscreen for in-app navigation (isDeeplink=false)',
+        (screenName) => {
+            const route = {name: screenName};
+
+            const result = getMatchingFullScreenRoute(route);
+
+            expect(result).toBeUndefined();
+        },
+    );
 });

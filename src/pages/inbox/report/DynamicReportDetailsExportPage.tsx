@@ -1,27 +1,33 @@
-import React, {useCallback} from 'react';
-import type {ValueOf} from 'type-fest';
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SingleSelectWithAvatarListItem from '@components/SelectionList/ListItem/SingleSelectWithAvatarListItem';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {canBeExported as canBeExportedUtil, getIntegrationIcon, isExported as isExportedUtil} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
 
 type DynamicReportDetailsExportPageProps = PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_EXPORT>;
 
@@ -36,48 +42,58 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
     const policyID = report?.policyID;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'GustoSquare']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'XeroSquare',
+        'QBOSquare',
+        'IntuitSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+        'CampfireSquare',
+        'ZohoBooksSquare',
+        'BusinessCentralSquare',
+        'GustoSquare',
+    ]);
 
-    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
+    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons, policy);
     const canBeExported = canBeExportedUtil(report);
     const isExported = isExportedUtil(reportActions, report);
+    const connectionNameFriendly = getAccountingIntegrationDisplayName(policy, connectionName, translate);
 
-    const confirmExport = useCallback(
-        (type: ExportType) => {
-            if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
-                exportToIntegration(reportID, connectionName);
-            } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
-                markAsManuallyExported([reportID], connectionName);
-            }
-            Navigation.dismissModal();
-        },
-        [connectionName, reportID],
-    );
+    const confirmExport = (type: ExportType) => {
+        if (type === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
+            exportToIntegration(reportID, connectionName, policy);
+        } else if (type === CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED) {
+            markAsManuallyExported([reportID], connectionName, policy);
+        }
+        Navigation.dismissModal();
+    };
 
-    const showExportAgainModal = useCallback(
-        async (type: ExportType) => {
-            const result = await showConfirmModal({
-                title: translate('workspace.exportAgainModal.title'),
-                prompt: translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName}),
-                confirmText: translate('workspace.exportAgainModal.confirmText'),
-                cancelText: translate('workspace.exportAgainModal.cancelText'),
-            });
-            if (result.action === ModalActions.CONFIRM) {
-                confirmExport(type);
-            }
-        },
-        [showConfirmModal, translate, report?.reportName, connectionName, confirmExport],
-    );
+    const showExportAgainModal = async (type: ExportType) => {
+        const result = await showConfirmModal({
+            title: translate('workspace.exportAgainModal.title'),
+            prompt: translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName, connectionNameFriendly}),
+            confirmText: translate('workspace.exportAgainModal.confirmText'),
+            cancelText: translate('workspace.exportAgainModal.cancelText'),
+        });
+        if (result.action === ModalActions.CONFIRM) {
+            confirmExport(type);
+        }
+    };
 
     const exportSelectorOptions: ExportSelectorType[] = [
         {
             value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-            text: translate('workspace.common.exportIntegrationSelected', {connectionName}),
+            text: translate('workspace.common.exportIntegrationSelected', {connectionName, connectionNameFriendly}),
             icons: [
                 {
                     source: iconToDisplay ?? '',
@@ -108,11 +124,10 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
                     title={translate('common.export')}
                     onBackButtonPress={() => Navigation.goBack(navigateBackFromExportPath)}
                 />
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     illustration={lazyIllustrations.LaptopWithSecondScreenAndHourglass}
                     heading={translate('workspace.export.notReadyHeading')}
                     description={translate('workspace.export.notReadyDescription')}
-                    shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={() => Navigation.goBack()}
                     illustrationStyle={{width: 233, height: 162}}
@@ -135,7 +150,11 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
             title="common.export"
             connectionName={connectionName}
             onSelectRow={({value}) => {
-                if (isExported) {
+                // Only the real "Export to integration" option can push the report into the external accounting
+                // company again, so it is the only one that should warn about re-exporting. "Mark as exported"
+                // just logs a per-report exported marker through MarkAsExported and never sends anything to e.g.
+                // QuickBooks Online, so warning about it there is wrong and blocks re-marking exported reports.
+                if (isExported && value === CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION) {
                     showExportAgainModal(value);
                 } else {
                     confirmExport(value);

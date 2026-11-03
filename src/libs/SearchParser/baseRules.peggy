@@ -29,30 +29,48 @@ groupCurrency
   / "group-currency"i { return "groupCurrency"; }
 tag = "tag"i { return "tag"; }
 category = "category"i { return "category"; }
+vendor = "vendor"i { return "vendor"; }
 to = "to"i { return "to"; }
 exporter = "exporter"i { return "exporter"; }
 payer = "payer"i { return "payer"; }
+paidBy
+  = "paidBy"
+  / "paid-by"i { return "paidBy"; }
 taxRate
   = "taxRate"i
   / "tax-rate"i { return "taxRate"; }
 cardID
   = "cardID"
   / "card"i { return "cardID"; }
+bankAccount
+  = "bankAccount"
+  / "bank-account"i { return "bankAccount"; }
 from = "from"i { return "from"; }
 attendee = "attendee"i {return "attendee"}
 expenseType
   = "expenseType"
   / "expense-type"i { return "expenseType"; }
+receiptType
+  = "receiptType"
+  / "receipt-type"i { return "receiptType"; }
+transactionStatus
+  = "transactionStatus"
+  / "transaction-status"i { return "transactionStatus"; }
 withdrawalType
   = "withdrawalType"
   / "withdrawal-type"i { return "withdrawalType"; }
 withdrawalStatus
   = "withdrawalStatus"
   / "withdrawal-status"i { return "withdrawalStatus"; }
+paidStatus
+  = "paidStatus"
+  / "paid-status"i { return "paidStatus"; }
 withdrawalID
   = "withdrawalID"i
   / "withdrawal-id"i { return "withdrawalID"; }
 billable = "billable"i { return "billable"; }
+declined = "declined"i { return "declined"; }
+held = "held"i { return "held"; }
 reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
 status = "status"i { return "status"; }
@@ -67,6 +85,9 @@ policyID
   / "workspace"i { return "policyID"; }
 submitted = "submitted"i { return "submitted"; }
 approved = "approved"i { return "approved"; }
+anyApproval
+  = "anyApproval"i { return "anyApproval"; }
+  / "any-approval"i { return "anyApproval"; }
 paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
@@ -75,6 +96,10 @@ groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 limit = "limit"i { return "limit"; }
 feed = "feed"i { return "feed"; }
 title = "title"i { return "title"; }
+submitterUserID = "submitterUserID"i / "submitter-user-id"i { return "submitterUserID"; }
+submitterPayrollID = "submitterPayrollID"i / "submitter-payroll-id"i { return "submitterPayrollID"; }
+orderDealNumbers = "orderDealNumbers"i / "order-deal-numbers"i { return "orderDealNumbers"; }
+approver = "approver"i { return "approver"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
@@ -83,11 +108,14 @@ has = "has"i {return "has"; }
 is = "is"i {return "is"; }
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
+amountDebited = "amountDebited"i / "amount-debited"i {return "amountDebited"}
+amountReimbursed = "amountReimbursed"i / "amount-reimbursed"i {return "amountReimbursed"}
 columns = "columns"i {
   isColumnsContext = true;
   return "columns";
 }
 view = "view"i {return "view"}
+compare = "compare"i {return "compare"}
 
 // Value transformation rules
 values
@@ -101,7 +129,7 @@ columnsValues
   / taxAmount
   / policyName
   / withdrawalId
-  / bankAccount
+  / bankAccountColumn
   / reportId
   / base62ReportId
   / exportedToColumnValue
@@ -116,22 +144,28 @@ columnsValues
   / groupBankAccount
   / groupWithdrawn
   / groupWithdrawalId
+  / groupAmountDebited
+  / groupAmountReimbursed
+  / amountDebitedColumn
+  / amountReimbursedColumn
   / groupCategory
   / groupTag
   / groupMerchant
+  / groupDay
   / groupMonth
   / groupWeek
   / groupYear
   / groupQuarter
+  / groupApprover
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
-originalAmount          = "original-amount"i &wordBoundary          { return "originalamount"; }
+originalAmount          = "purchase-amount"i &wordBoundary          { return "originalamount"; }
 taxAmount               = "tax"i &wordBoundary                      { return "taxAmount"; }
 taxRateValue            = "tax-rate"i &wordBoundary                 { return "taxrate"; }
 policyName              = "policy-name"i &wordBoundary              { return "policyname"; }
 withdrawalId            = "withdrawal-id"i &wordBoundary            { return "withdrawalID"; }
-bankAccount             = "bank-account"i &wordBoundary             { return "bankAccount"; }
+bankAccountColumn       = "bank-account"i &wordBoundary             { return "bankAccount"; }
 reportId                = "long-report-id"i &wordBoundary           { return "reportID"; }
 base62ReportId          = "report-id"i &wordBoundary                { return "base62ReportID"; }
 exportedToColumnValue   = "exported-to"i &wordBoundary              { return "exportedto"; }
@@ -150,17 +184,24 @@ groupFeed               = "group-feed"i &wordBoundary               { return "gr
 groupBankAccount        = "group-bank-account"i &wordBoundary       { return "groupBankAccount"; }
 groupWithdrawn          = "group-withdrawn"i &wordBoundary          { return "groupWithdrawn"; }
 groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "groupWithdrawalID"; }
+groupAmountDebited      = "group-amount-debited"i &wordBoundary     { return "groupAmountDebited"; }
+groupAmountReimbursed   = "group-amount-reimbursed"i &wordBoundary  { return "groupAmountReimbursed"; }
+amountDebitedColumn     = "amount-debited"i &wordBoundary           { return "amountDebited"; }
+amountReimbursedColumn  = "amount-reimbursed"i &wordBoundary        { return "amountReimbursed"; }
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
 groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
 groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }
+groupDay                = "group-day"i &wordBoundary               { return "groupday"; }
 groupMonth              = "group-month"i &wordBoundary              { return "groupmonth"; }
 groupWeek               = "group-week"i &wordBoundary               { return "groupweek"; }
 groupYear               = "group-year"i &wordBoundary               { return "groupyear"; }
 groupQuarter            = "group-quarter"i &wordBoundary            { return "groupquarter"; }
+groupApprover           = "group-approver"i &wordBoundary           { return "groupApprover"; }
 
 
 operator "operator"
-  = (":" / "=") { return "eq"; }
+  = "*:" { return "contains"; }
+  / (":" / "=") { return "eq"; }
   / "!=" { return "neq"; }
   / ">=" { return "gte"; }
   / ">" { return "gt"; }
@@ -170,15 +211,19 @@ operator "operator"
 filterOperator
   = o:operator {
       if (nameOperator) {
-        expectingNestedQuote = (o === "eq"); // Use simple parser if no valid operator is found
+        expectingNestedQuote = (o === "eq" || o === "contains");
       }
       isColumnsContext = false;
       return o;
   }
 
-alphanumeric "word" = chars:[^ ,\t\n\r\xA0]+ { return chars.join("").trim(); } //handle no-breaking space
+// A backslash only escapes the characters the grammar would otherwise consume. Anything else keeps the backslash
+// as a literal, so values already persisted in saved searches and shared URLs still parse the way they used to.
+escapedChar = "\\" c:[,"”“\\] { return c; }
 
-logicalAnd = _ { 
+alphanumeric "word" = chars:(escapedChar / [^ ,\t\n\r\xA0])+ { return chars.join("").trim(); } //handle no-breaking space
+
+logicalAnd = _ {
   isColumnsContext = false;
   return "and";
 }
@@ -191,13 +236,14 @@ quotedString
   / simpleQuotedString
 
 simpleQuotedString "quote"
-  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:[^"”“\r\n]* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
+  = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”") inner:(escapedChar / [^"”“\r\n])* ("“" / "\"" / "”") end:[^ ,\t\n\r\xA0]* { //handle no-breaking space
       return [...start, '"', ...inner, '"', ...end].join("");
     }
 
 nestedQuotedString "quote"
   = start:[^ ,"”“\t\n\r\xA0]* ("“" / "\"" / "”")    // Opening quote
-    inner:([^"”“\r\n]
+    inner:(escapedChar
+    / [^"”“\r\n]
     / (!closingQuote "“" {return "“"}) / (!closingQuote "”" {return "”"}) / (!closingQuote "\"" {return "\""} )
     )*                                              // Allow anything inside, but exclude true closing quotes
     end:closingQuote                                // Detect the actual closing quote
@@ -216,3 +262,8 @@ validClosingCondition
 wordBoundary
   = [ \t\n\r\xA0,]  // whitespace or comma
   / !.              // or end of input
+
+// Spend footer display selections. Root keys, not filters: they change what the footer shows, never which rows match.
+footerCount = ("footerCount"i / "footer-count"i) { return "footerCount"; }
+footerCurrency = ("footerCurrency"i / "footer-currency"i) { return "footerCurrency"; }
+footerTotal = ("footerTotal"i / "footer-total"i) { return "footerTotal"; }

@@ -1,15 +1,20 @@
-import React, {useCallback, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
 import CarouselButtons from '@components/Attachments/AttachmentCarousel/CarouselButtons';
 import AttachmentCarouselPager from '@components/Attachments/AttachmentCarousel/Pager';
 import type {AttachmentCarouselPagerHandle} from '@components/Attachments/AttachmentCarousel/Pager';
 import type {AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
+
 import variables from '@styles/variables';
+
+import React, {useRef, useState} from 'react';
+import {Keyboard, View} from 'react-native';
+
 import type AttachmentCarouselViewProps from './types';
 
 function AttachmentCarouselView({
@@ -36,41 +41,35 @@ function AttachmentCarouselView({
     const pagerRef = useRef<AttachmentCarouselPagerHandle>(null);
 
     /** Updates the page state when the user navigates between attachments */
-    const updatePage = useCallback(
-        (newPageIndex: number) => {
-            Keyboard.dismiss();
-            setShouldShowArrows(true);
+    const updatePage = (newPageIndex: number) => {
+        Keyboard.dismiss();
+        setShouldShowArrows(true);
 
-            const item = attachments.at(newPageIndex);
+        const item = attachments.at(newPageIndex);
 
-            setPage(newPageIndex);
-            if (newPageIndex >= 0 && item) {
-                setActiveAttachmentID(item.attachmentID ?? item.source);
-                if (onNavigate) {
-                    onNavigate(item);
-                }
+        setPage(newPageIndex);
+        if (newPageIndex >= 0 && item) {
+            setActiveAttachmentID(item.attachmentID ?? item.source);
+            if (onNavigate) {
+                onNavigate(item);
             }
-        },
-        [setShouldShowArrows, attachments, setPage, onNavigate],
-    );
+        }
+    };
 
     /**
      * Increments or decrements the index to get another selected item
-     * @param {Number} deltaSlide
+     * @param deltaSlide
      */
-    const cycleThroughAttachments = useCallback(
-        (deltaSlide: number) => {
-            if (page === undefined) {
-                return;
-            }
-            const nextPageIndex = page + deltaSlide;
-            updatePage(nextPageIndex);
-            pagerRef.current?.setPage(nextPageIndex);
+    const cycleThroughAttachments = (deltaSlide: number) => {
+        if (page === undefined) {
+            return;
+        }
+        const nextPageIndex = page + deltaSlide;
+        updatePage(nextPageIndex);
+        pagerRef.current?.setPage(nextPageIndex);
 
-            autoHideArrows();
-        },
-        [autoHideArrows, page, updatePage],
-    );
+        autoHideArrows();
+    };
 
     return (
         <View

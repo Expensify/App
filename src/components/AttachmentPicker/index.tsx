@@ -1,9 +1,13 @@
-import React, {useRef} from 'react';
-import type {ValueOf} from 'type-fest';
 import {isMobileChrome} from '@libs/Browser';
 import Visibility from '@libs/Visibility';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {ValueOf} from 'type-fest';
+
+import React, {useRef} from 'react';
+
 import type AttachmentPickerProps from './types';
 
 /**

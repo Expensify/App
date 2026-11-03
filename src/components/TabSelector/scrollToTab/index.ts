@@ -1,4 +1,5 @@
 import variables from '@styles/variables';
+
 import type {ScrollToTabProps} from './types';
 
 function scrollToTab({containerX, tabX, tabWidth, animated = true, containerRef, containerWidth}: ScrollToTabProps) {

@@ -1,11 +1,20 @@
-import type {KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
-import React from 'react';
-import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openLink as openLinkUtil} from '@userActions/Link';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {KeyboardEvent, KeyboardEventHandler, MouseEventHandler} from 'react';
+import type {GestureResponderEvent, StyleProp, TextStyle} from 'react-native';
+
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
+
 import type {TextProps} from './Text';
+
 import Text from './Text';
 
 type LinkProps = {
@@ -24,25 +33,23 @@ type PressProps = {
 
 type TextLinkProps = (LinkProps | PressProps) &
     TextProps & {
-        /** Additional style props */
         style?: StyleProp<TextStyle>;
-
-        /** Callback that is called when mousedown is triggered */
         onMouseDown?: MouseEventHandler;
-
-        /** Whether to suppress the default link style */
         suppressDefaultStyle?: boolean;
     };
 
-function TextLink({href, onPress, children, style, onMouseDown = (event) => event.preventDefault(), suppressDefaultStyle = false, ref, ...rest}: TextLinkProps) {
+const defaultOnMouseDown: MouseEventHandler = (event) => event.preventDefault();
+
+function TextLink({href, onPress, children, style, onMouseDown = defaultOnMouseDown, suppressDefaultStyle = false, ref, ...rest}: TextLinkProps) {
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
 
     const openLink = (event: GestureResponderEvent | KeyboardEvent) => {
         if (onPress) {
             onPress(event);
         } else {
-            openLinkUtil(href, environmentURL);
+            openLinkUtil(href, environmentURL, false, session);
         }
     };
 

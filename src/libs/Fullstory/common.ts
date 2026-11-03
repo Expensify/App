@@ -1,11 +1,15 @@
-import {Str} from 'expensify-common';
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
-import {chatIncludesConcierge} from '@libs/ReportUtils';
+import {chatIncludesConcierge, isInvoiceReport, isMoneyRequestReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {Str} from 'expensify-common';
+import Onyx from 'react-native-onyx';
+
 import type {GetChatFSClass, ShouldInitialize} from './types';
 
 // This data is only used for Fullstory to determine if a chat-related element should be
@@ -14,7 +18,6 @@ import type {GetChatFSClass, ShouldInitialize} from './types';
 let allReports: OnyxCollection<Report>;
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
     callback: (value) => {
         allReports = value;
     },
@@ -27,7 +30,11 @@ const allowedReportChatTypes = new Set<ValueOf<typeof CONST.REPORT.CHAT_TYPE>>([
     CONST.REPORT.CHAT_TYPE.INVOICE,
 ]);
 
-const allowedReportTypes = new Set<ValueOf<typeof CONST.REPORT.TYPE>>([CONST.REPORT.TYPE.IOU, CONST.REPORT.TYPE.EXPENSE, CONST.REPORT.TYPE.INVOICE]);
+type FullstoryPropertyValue = string | number | boolean | Date | null | undefined;
+
+type NormalizeFullstoryPropertiesForNativeOptions = {
+    preserveKeys?: readonly string[];
+};
 
 const getChatFSClass: GetChatFSClass = (report) => {
     if (!report) {
@@ -45,13 +52,13 @@ const getChatFSClass: GetChatFSClass = (report) => {
     }
 
     // IOUs, expenses and invoices should be unmasked.
-    if (report.type && allowedReportTypes.has(report.type as ValueOf<typeof CONST.REPORT.TYPE>)) {
+    if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
     // If the report doesn't meet the condition above we check if the parent report is an IOU, expense or invoice.
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`];
-    if (parentReport?.type && allowedReportTypes.has(parentReport.type as ValueOf<typeof CONST.REPORT.TYPE>)) {
+    if (isMoneyRequestReport(parentReport) || isInvoiceReport(parentReport)) {
         return CONST.FULLSTORY.CLASS.UNMASK;
     }
 
@@ -73,4 +80,38 @@ const shouldInitializeFullstory: ShouldInitialize = (userMetadata, envName) => {
     return true;
 };
 
-export {getChatFSClass, shouldInitializeFullstory};
+function normalizeFullstoryPropertiesForNative(
+    properties: Record<string, FullstoryPropertyValue>,
+    {preserveKeys = []}: NormalizeFullstoryPropertiesForNativeOptions = {},
+): Record<string, string | number | boolean> {
+    const normalizedProperties: Record<string, string | number | boolean> = {};
+    const preservedKeys = new Set(preserveKeys);
+
+    for (const [key, value] of Object.entries(properties)) {
+        if (value === undefined || value === null) {
+            continue;
+        }
+
+        if (preservedKeys.has(key)) {
+            normalizedProperties[key] = value instanceof Date ? value.toISOString() : value;
+            continue;
+        }
+
+        if (value instanceof Date) {
+            normalizedProperties[`${key}_date`] = value.toISOString();
+            continue;
+        }
+
+        if (typeof value === 'string') {
+            normalizedProperties[`${key}_str`] = value;
+        } else if (typeof value === 'number') {
+            normalizedProperties[`${key}_real`] = value;
+        } else if (typeof value === 'boolean') {
+            normalizedProperties[`${key}_bool`] = value;
+        }
+    }
+
+    return normalizedProperties;
+}
+
+export {getChatFSClass, normalizeFullstoryPropertiesForNative, shouldInitializeFullstory};

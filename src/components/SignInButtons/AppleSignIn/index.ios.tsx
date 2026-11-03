@@ -1,12 +1,19 @@
-import appleAuth from '@invertase/react-native-apple-authentication';
-import type {AppleError} from '@invertase/react-native-apple-authentication';
-import React from 'react';
 import IconButton from '@components/SignInButtons/IconButton';
+
 import useOnyx from '@hooks/useOnyx';
+
 import Log from '@libs/Log';
+
 import {beginAppleSignIn} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {AppleError} from '@invertase/react-native-apple-authentication';
+
+import appleAuth from '@invertase/react-native-apple-authentication';
+import React from 'react';
+
 import type {AppleSignInProps} from '.';
 
 /**

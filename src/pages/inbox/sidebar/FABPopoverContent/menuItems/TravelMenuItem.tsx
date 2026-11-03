@@ -1,44 +1,59 @@
-import {Str} from 'expensify-common';
-import React from 'react';
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink, shouldOpenTravelDotLinkWeb} from '@libs/openTravelDotLink';
-import Permissions from '@libs/Permissions';
-import {isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {hasAcceptedTravelTerms, isPaidGroupPolicy} from '@libs/PolicyUtils';
+
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
+import {createHasTravelEnabledPolicySelector} from '@src/selectors/Policy';
 import {emailSelector} from '@src/selectors/Session';
+
+import {Str} from 'expensify-common';
+import React from 'react';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.TRAVEL;
 
 function TravelMenuItem() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Suitcase', 'NewWindow']);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
-    const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
+    const hasTravelEnabledPolicySelector = createHasTravelEnabledPolicySelector(sessionEmail);
+    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasTravelEnabledPolicySelector});
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup: false});
+    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const isVisible = !!activePolicy?.isTravelEnabled;
+    const isVisible = !!hasTravelEnabledPolicy;
 
-    const isPolicyProvisioned = isWorkspaceProvisionedForTravel(activePolicy?.travelSettings);
     const isTravelEnabled =
         !isBlockedFromSpotnanaTravel &&
         !!primaryContactMethod &&
         !Str.isSMSLogin(primaryContactMethod) &&
         isPaidGroupPolicy(activePolicy) &&
-        (activePolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned));
+        hasAcceptedTravelTerms(activePolicy, travelSettings);
 
     const openTravel = () => {
+        if (blockIfDefaultWorkspaceLacksTravel()) {
+            return;
+        }
+
         if (isTravelEnabled) {
             openTravelDotLink(activePolicy?.id);
             return;
@@ -55,7 +70,8 @@ function TravelMenuItem() {
             title={translate('travel.bookTravel')}
             iconRight={isTravelEnabled && shouldOpenTravelDotLinkWeb() ? icons.NewWindow : undefined}
             shouldShowRightIcon={!!(isTravelEnabled && shouldOpenTravelDotLinkWeb())}
-            onPress={() => interceptAnonymousUser(() => openTravel())}
+            onPress={() => interceptAnonymousUser(() => openTravel(), session)}
+            shouldCallAfterModalHide={shouldUseNarrowLayout}
         />
     );
 }

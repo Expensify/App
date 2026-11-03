@@ -74,7 +74,7 @@ describe('ErrorUtils', () => {
 
         test('should create an error object with microsecond timestamp and translation key', () => {
             const mockMicroseconds = 1234567890123;
-            (DateUtils.getMicroseconds as jest.Mock).mockReturnValue(mockMicroseconds);
+            jest.mocked(DateUtils.getMicroseconds).mockReturnValue(mockMicroseconds);
 
             const result = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('passwordForm.error.incorrectLoginOrPassword');
 
@@ -96,7 +96,7 @@ describe('ErrorUtils', () => {
 
         test('should handle different translation keys', () => {
             const mockMicroseconds = 1111111111111;
-            (DateUtils.getMicroseconds as jest.Mock).mockReturnValue(mockMicroseconds);
+            jest.mocked(DateUtils.getMicroseconds).mockReturnValue(mockMicroseconds);
 
             const result = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('passwordForm.error.incorrectLoginOrPassword');
 
@@ -160,7 +160,7 @@ describe('ErrorUtils', () => {
 
         test('should create translation error objects that are correctly identified by isTranslationKeyError', () => {
             const mockMicroseconds = 1234567890123;
-            (DateUtils.getMicroseconds as jest.Mock).mockReturnValue(mockMicroseconds);
+            jest.mocked(DateUtils.getMicroseconds).mockReturnValue(mockMicroseconds);
 
             const errorObject = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('passwordForm.error.incorrectLoginOrPassword');
 
@@ -189,7 +189,7 @@ describe('ErrorUtils', () => {
             const mockMicroseconds1 = 1111111111111;
             const mockMicroseconds2 = 2222222222222;
 
-            (DateUtils.getMicroseconds as jest.Mock).mockReturnValueOnce(mockMicroseconds1).mockReturnValueOnce(mockMicroseconds2);
+            jest.mocked(DateUtils.getMicroseconds).mockReturnValueOnce(mockMicroseconds1).mockReturnValueOnce(mockMicroseconds2);
 
             const error1 = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('passwordForm.error.incorrectLoginOrPassword');
             const error2 = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('session.offlineMessageRetry');
@@ -205,7 +205,7 @@ describe('ErrorUtils', () => {
 
         test('should verify the structure of created translation key errors', () => {
             const mockMicroseconds = 5555555555555;
-            (DateUtils.getMicroseconds as jest.Mock).mockReturnValue(mockMicroseconds);
+            jest.mocked(DateUtils.getMicroseconds).mockReturnValue(mockMicroseconds);
 
             const errorObject = ErrorUtils.getMicroSecondTranslationErrorWithTranslationKey('passwordForm.error.twoFactorAuthenticationEnabled');
             const errorValue = errorObject[mockMicroseconds];

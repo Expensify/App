@@ -1,13 +1,15 @@
-import type {RefObject} from 'react';
-import type {View} from 'react-native';
 import {useContentNavigation, useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 import useFocusableRow from '@components/PopoverMenu/v2/rows/useFocusableRow';
+
+import type {ComponentRef, RefObject} from 'react';
+import type {View} from 'react-native';
+
 import {useSubContext} from './SubContext';
 
 const HOOK_NAME = 'useSubTrigger';
 
 type UseSubTriggerResult = {
-    ref: RefObject<View | null>;
+    ref: RefObject<ComponentRef<typeof View> | null>;
     onPress: () => void;
     onFocus: () => void;
     focused: boolean;

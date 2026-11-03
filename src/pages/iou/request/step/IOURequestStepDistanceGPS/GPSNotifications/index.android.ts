@@ -1,8 +1,10 @@
-import {NativeModules} from 'react-native';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import {NativeModules} from 'react-native';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function startGpsTripNotification(translate: LocalizedTranslate, reportID: string, unit: Unit, distanceInMeters?: number) {

@@ -1,8 +1,10 @@
-import React from 'react';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
 
 type TotalCellProps = {
     total: number;
@@ -21,6 +23,7 @@ function TotalCell({total, currency, isScanning = false}: TotalCellProps) {
             shouldShowTooltip
             text={displayText}
             style={[styles.optionDisplayName, styles.pre, styles.justifyContentCenter, styles.textBold, styles.textAlignRight, styles.fontWeightNormal]}
+            isSelectable
         />
     );
 }

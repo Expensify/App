@@ -1,10 +1,8 @@
-import lodashPick from 'lodash/pick';
-import React, {memo, useCallback, useEffect, useMemo} from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {Section} from '@components/SelectionList/SelectionListWithSections/types';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
@@ -12,16 +10,22 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailOptions from '@hooks/usePersonalDetailOptions';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import memoize from '@libs/memoize';
 import {getHeaderMessage, getValidOptions} from '@libs/PersonalDetailOptionsListUtils';
 import type {OptionData} from '@libs/PersonalDetailOptionsListUtils/types';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import {searchUserInServer} from '@userActions/Report';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Accountant} from '@src/types/onyx/IOU';
+
+import lodashPick from 'lodash/pick';
+import React, {useEffect} from 'react';
 
 const memoizedGetValidOptions = memoize(getValidOptions, {maxSize: 5, monitoringName: 'MoneyRequestAccountantSelector.getValidOptions'});
 
@@ -49,7 +53,7 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
     const {isOffline} = useNetwork();
     const {didScreenTransitionEnd} = useScreenWrapperTransitionStatus();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [isSearchingForReports] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_REPORTS);
+    const [isSearchingForUsers] = useOnyx(ONYXKEYS.RAM_ONLY_IS_SEARCHING_FOR_USERS);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
@@ -61,26 +65,21 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         searchUserInServer(debouncedSearchTerm.trim());
     }, [debouncedSearchTerm]);
 
-    const optionsList = useMemo(() => {
-        if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            return defaultListOptions;
-        }
+    const optionsList =
+        !areOptionsInitialized || !didScreenTransitionEnd
+            ? defaultListOptions
+            : memoizedGetValidOptions(personalDetailOptions ?? [], currentUserEmail, formatPhoneNumber, countryCode, loginList, {
+                  excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
+                  searchString: debouncedSearchTerm,
+                  includeUserToInvite: true,
+              });
 
-        return memoizedGetValidOptions(personalDetailOptions ?? [], currentUserEmail, formatPhoneNumber, countryCode, loginList, {
-            excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-            searchString: debouncedSearchTerm,
-            includeUserToInvite: true,
-        });
-    }, [areOptionsInitialized, didScreenTransitionEnd, personalDetailOptions, currentUserEmail, formatPhoneNumber, countryCode, loginList, debouncedSearchTerm]);
-
-    const sections = useMemo(() => {
-        const newSections: Array<Section<OptionData>> = [];
-        if (!areOptionsInitialized || !didScreenTransitionEnd) {
-            return newSections;
-        }
-
+    let sections;
+    const newSections: Array<Section<OptionData>> = [];
+    if (!areOptionsInitialized || !didScreenTransitionEnd) {
+        sections = newSections;
+    } else {
         let sectionIndex = 0;
-
         if (optionsList.recentOptions.length > 0) {
             newSections.push({
                 title: translate('common.recents'),
@@ -88,7 +87,6 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 sectionIndex: sectionIndex++,
             });
         }
-
         if (optionsList.personalDetails.length > 0) {
             newSections.push({
                 title: translate('common.contacts'),
@@ -96,35 +94,19 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
                 sectionIndex: sectionIndex++,
             });
         }
-
         if (optionsList.userToInvite) {
             newSections.push({
                 data: [optionsList.userToInvite],
                 sectionIndex: sectionIndex++,
             });
         }
+        sections = newSections;
+    }
 
-        return newSections;
-    }, [areOptionsInitialized, didScreenTransitionEnd, optionsList.recentOptions, optionsList.personalDetails, optionsList.userToInvite, translate]);
-
-    const selectAccountant = useCallback(
-        (option: Accountant) => {
-            onAccountantSelected(lodashPick(option, 'accountID', 'login'));
-            onFinish();
-        },
-        [onAccountantSelected, onFinish],
-    );
-
-    const handleConfirmSelection = useCallback(
-        (keyEvent?: GestureResponderEvent | KeyboardEvent, option?: Accountant) => {
-            if (!option) {
-                return;
-            }
-
-            selectAccountant(option);
-        },
-        [selectAccountant],
-    );
+    const selectAccountant = (option: Accountant) => {
+        onAccountantSelected(lodashPick(option, 'accountID', 'login'));
+        onFinish();
+    };
 
     const getHeaderMessageText = () => {
         if (sections.length > 0) {
@@ -137,16 +119,11 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
         return getHeaderMessage(translate, debouncedSearchTerm, countryCode);
     };
 
-    const shouldShowLoadingPlaceholder = useMemo(() => !areOptionsInitialized || !didScreenTransitionEnd, [areOptionsInitialized, didScreenTransitionEnd]);
+    const shouldShowLoadingPlaceholder = !areOptionsInitialized || !didScreenTransitionEnd;
 
-    const optionLength = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return 0;
-        }
-        return sections.reduce((acc, section) => acc + section.data.length, 0);
-    }, [areOptionsInitialized, sections]);
+    const optionLength = !areOptionsInitialized ? 0 : sections.reduce((acc, section) => acc + section.data.length, 0);
 
-    const shouldShowListEmptyContent = useMemo(() => optionLength === 0 && !shouldShowLoadingPlaceholder, [optionLength, shouldShowLoadingPlaceholder]);
+    const shouldShowListEmptyContent = optionLength === 0 && !shouldShowLoadingPlaceholder;
 
     const textInputOptions = {
         value: searchTerm,
@@ -163,17 +140,17 @@ function MoneyRequestAccountantSelector({onFinish, onAccountantSelected, iouType
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
             onSelectRow={selectAccountant}
             confirmButtonOptions={{
-                onConfirm: handleConfirmSelection,
+                onConfirmFocusedOption: selectAccountant,
             }}
             shouldShowTextInput
             shouldSingleExecuteRowSelect
             textInputOptions={textInputOptions}
             listEmptyContent={<EmptySelectionListContent contentType={iouType} />}
             shouldShowLoadingPlaceholder={shouldShowLoadingPlaceholder}
-            isLoadingNewOptions={!!isSearchingForReports}
+            isLoadingNewOptions={!!isSearchingForUsers}
             shouldShowListEmptyContent={shouldShowListEmptyContent}
         />
     );
 }
 
-export default memo(MoneyRequestAccountantSelector, (prevProps, nextProps) => prevProps.iouType === nextProps.iouType);
+export default MoneyRequestAccountantSelector;

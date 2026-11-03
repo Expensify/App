@@ -1,19 +1,20 @@
-import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {FormRef} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+
 import {updateNetSuiteCustomSegments} from '@userActions/connections/NetSuiteCommands';
 import {clearDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +22,13 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import {getCustomSegmentInitialSubstep, getSubstepValues} from './customUtils';
 import ChooseSegmentTypeStep from './subPages/ChooseSegmentTypeStep';
 import ConfirmCustomSegmentStep from './subPages/ConfirmCustomSegmentList';
@@ -51,11 +59,11 @@ function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValu
     const formRef = useRef<FormRef | null>(null);
 
     const config = policy?.connections?.netsuite?.options?.config;
-    const customSegments = useMemo(() => config?.syncOptions?.customSegments ?? [], [config?.syncOptions]);
+    const customSegments = config?.syncOptions?.customSegments ?? [];
     const [customSegmentType, setCustomSegmentType] = useState<ValueOf<typeof CONST.NETSUITE_CUSTOM_RECORD_TYPES> | undefined>();
-    const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
-    const startFrom = useMemo(() => getCustomSegmentInitialSubstep(values), [values]);
-    const handleFinishStep = useCallback(() => {
+    const values = getSubstepValues(draftValues);
+    const startFrom = getCustomSegmentInitialSubstep(values);
+    const handleFinishStep = () => {
         const updatedCustomSegments = customSegments.concat([
             {
                 segmentName: values[INPUT_IDS.SEGMENT_NAME],
@@ -74,7 +82,7 @@ function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValu
         clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM);
 
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_SEGMENTS));
-    }, [values, customSegments, policyID]);
+    };
 
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomFieldSubPageWithPolicy>({
         pages,
@@ -103,18 +111,18 @@ function NetSuiteImportAddCustomSegmentContent({policy, policyIDParam, draftValu
         prevPage();
     };
 
-    const handleNextScreen = useCallback(() => {
+    const handleNextScreen = () => {
         if (isEditing) {
             goBackToConfirmStep();
             return;
         }
         nextPage();
-    }, [goBackToConfirmStep, isEditing, nextPage]);
+    };
 
     if (isRedirecting) {
         return (
             <ScreenWrapper testID="NetSuiteImportAddCustomSegmentContent">
-                <FullScreenLoadingIndicator reasonAttributes={{context: 'NetSuiteImportAddCustomSegmentContent'}} />
+                <FullScreenLoadingIndicator />
             </ScreenWrapper>
         );
     }

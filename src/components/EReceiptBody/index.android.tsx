@@ -1,7 +1,9 @@
-import React from 'react';
 import ImageSVG from '@components/ImageSVG';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
+
+import React from 'react';
 
 // On Android, applying the fill color directly to the SVG doesn't work,
 // so the color is passed via the fill prop (expo-image's tintColor) instead.

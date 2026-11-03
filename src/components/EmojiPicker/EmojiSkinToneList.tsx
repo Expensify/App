@@ -1,12 +1,17 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
 import * as Emojis from '@assets/emojis';
+
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import usePreferredEmojiSkinTone from '@hooks/usePreferredEmojiSkinTone';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import EmojiPickerMenuItem from './EmojiPickerMenuItem';
 import getSkinToneEmojiFromIndex from './getSkinToneEmojiFromIndex';
 
@@ -21,9 +26,9 @@ function EmojiSkinToneList() {
     const {translate} = useLocalize();
     const [preferredSkinTone, setPreferredSkinTone] = usePreferredEmojiSkinTone();
 
-    const toggleIsSkinToneListVisible = useCallback(() => {
+    const toggleIsSkinToneListVisible = () => {
         setIsSkinToneListVisible((prev) => !prev);
-    }, []);
+    };
 
     /**
      * Set the preferred skin tone in Onyx and close the skin tone picker

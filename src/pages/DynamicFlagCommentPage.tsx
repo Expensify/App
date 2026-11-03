@@ -1,7 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {SvgProps} from 'react-native-svg';
-import type {ValueOf} from 'type-fest';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
@@ -9,22 +5,37 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
+
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import {canFlagReportAction, getOriginalReportID, isChatThread, shouldShowFlagComment} from '@libs/ReportUtils';
+
 import {flagComment as flagCommentUtil} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type IconAsset from '@src/types/utils/IconAsset';
-import withReportAndReportActionOrNotFound from './inbox/report/withReportAndReportActionOrNotFound';
+
+import type {SvgProps} from 'react-native-svg';
+import type {ValueOf} from 'type-fest';
+
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
+import {View} from 'react-native';
+
 import type {WithReportAndReportActionOrNotFoundProps} from './inbox/report/withReportAndReportActionOrNotFound';
+
+import withReportAndReportActionOrNotFound from './inbox/report/withReportAndReportActionOrNotFound';
 
 type DynamicFlagCommentPageProps = WithReportAndReportActionOrNotFoundProps;
 
@@ -42,8 +53,11 @@ type SeverityItem = {
 type SeverityItemList = SeverityItem[];
 
 function DynamicFlagCommentPage({parentReportAction, report, parentReport, reportAction}: DynamicFlagCommentPageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.FLAG_COMMENT.path);
     const isReportArchived = useReportIsArchived(report?.reportID);
     let reportID: string | undefined = report?.reportID;
@@ -53,7 +67,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
         reportID = parentReport?.reportID;
     }
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
-    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions);
+    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, isOffline);
     const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
     const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -111,8 +125,8 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
     ];
 
     const flagComment = (severity: Severity) => {
-        if (reportAction && canFlagReportAction(reportAction, reportID)) {
-            flagCommentUtil(reportAction, severity, originalReport, isOriginalReportArchived);
+        if (reportAction && canFlagReportAction(reportAction, reportID, currentUserAccountID)) {
+            flagCommentUtil(reportAction, severity, originalReport, isOriginalReportArchived, currentUserAccountID);
         }
 
         if (superWideRHPRouteKeys.length > 0 || wideRHPRouteKeys.length > 0) {
@@ -128,7 +142,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
             shouldShowRightIcon
             title={item.name}
             description={item.description}
-            onPress={callFunctionIfActionIsAllowed(() => flagComment(item.severity))}
+            onPress={callFunctionIfActionIsAllowed(() => flagComment(item.severity), false, session)}
             style={[styles.pt2, styles.pb4, styles.ph5, styles.flexRow]}
             furtherDetails={item.furtherDetails}
             furtherDetailsIcon={item.furtherDetailsIcon}
@@ -141,7 +155,7 @@ function DynamicFlagCommentPage({parentReportAction, report, parentReport, repor
             testID="DynamicFlagCommentPage"
         >
             {({safeAreaPaddingBottomStyle}) => (
-                <FullPageNotFoundView shouldShow={!shouldShowFlagComment(reportAction, report, conciergeReportID, isReportArchived)}>
+                <FullPageNotFoundView shouldShow={!shouldShowFlagComment(reportAction, report, conciergeReportID, isReportArchived, currentUserAccountID)}>
                     <HeaderWithBackButton
                         title={translate('reportActionContextMenu.flagAsOffensive')}
                         onBackButtonPress={() => Navigation.goBack(backPath)}

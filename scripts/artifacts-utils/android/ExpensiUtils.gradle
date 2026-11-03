@@ -1,0 +1,53 @@
+import groovy.json.JsonSlurper
+import java.util.concurrent.TimeUnit
+
+ext.ExpensiLog = new Object() {
+    private final String BLUE = "[34m"
+    private final String YELLOW = "[33m"
+    private final String RED = "[31m"
+    private final String RESET = "[0m"
+
+    private String prefix = ""
+    void setPrefix(String newPrefix) { this.prefix = newPrefix }
+
+    private String format(String color, String message) {
+        return "${color}[${prefix}] ${message}${this.RESET}"
+    }
+
+    void lifecycle(String message) { logger.lifecycle(format(this.BLUE, message)) }
+    void warn(String message)      { logger.warn(format(this.YELLOW, message)) }
+    void error(String message)     { logger.error(format(this.RED, message)) }
+}
+
+ext.ExpensiUtils = new Object() {
+    Map runCommand(List command, long timeoutSeconds = 10, File workingDir = null) {
+        def process = workingDir ? command.execute(null, workingDir) : command.execute()
+        process.waitFor(timeoutSeconds, TimeUnit.SECONDS)
+        return [output: process.in.text?.trim(), exitCode: process.exitValue()]
+    }
+
+    // The Hermes tag file react-native builds (and we publish) against for the given flag. Mirrors hermesVersionProvider
+    // in ReactAndroid/hermes-engine/build.gradle.kts, which is project-phase code the settings phase cannot reach.
+    String hermesVersionFile(String newDotRootDir, boolean hermesV1Enabled) {
+        return "${newDotRootDir}/node_modules/react-native/sdks/${hermesV1Enabled ? '.hermesv1version' : '.hermesversion'}"
+    }
+
+    // Returns [buildFromSource, version, githubUsername, githubToken]; any failure -> build from source.
+    Map resolveArtifacts(String newDotRootDir, boolean isHybrid, String hermesVersionFile) {
+        def cmd = [
+            "bun", "${newDotRootDir}/scripts/artifacts-utils/resolve-artifacts.ts",
+            "--platform=android", "--hybrid=${isHybrid}", "--new-dot-root=${newDotRootDir}", "--hermes-version-file=${hermesVersionFile}"
+        ]
+        try {
+            def result = runCommand(cmd, 120, new File(newDotRootDir))
+            if (result.exitCode != 0) {
+                ExpensiLog.error("Artifacts resolver failed (exit ${result.exitCode}). Building react-native from source.")
+                return [buildFromSource: true, version: null]
+            }
+            return new JsonSlurper().parseText(result.output)
+        } catch (Exception e) {
+            ExpensiLog.error("Artifacts resolver error: ${e}. Building react-native from source.")
+            return [buildFromSource: true, version: null]
+        }
+    }
+}

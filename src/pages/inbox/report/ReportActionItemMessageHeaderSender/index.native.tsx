@@ -1,13 +1,17 @@
-import React, {useMemo} from 'react';
 import Text from '@components/Text';
 import UserDetailsTooltip from '@components/UserDetailsTooltip';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getProcessedText, splitTextWithEmojis} from '@libs/EmojiUtils';
+
+import React from 'react';
+
 import type ReportActionItemMessageHeaderSenderProps from './types';
 
 function ReportActionItemMessageHeaderSender({fragmentText, accountID, delegateAccountID, actorIcon, isSingleLine}: ReportActionItemMessageHeaderSenderProps) {
     const styles = useThemeStyles();
-    const processedTextArray = useMemo(() => splitTextWithEmojis(fragmentText), [fragmentText]);
+    const processedTextArray = splitTextWithEmojis(fragmentText);
 
     return (
         <UserDetailsTooltip

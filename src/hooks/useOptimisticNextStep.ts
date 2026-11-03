@@ -1,13 +1,7 @@
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {
-    buildOptimisticNextStepForDEWOffline,
-    buildOptimisticNextStepForDynamicExternalWorkflowApproveError,
-    buildOptimisticNextStepForDynamicExternalWorkflowSubmitError,
-    buildOptimisticNextStepForStrictPolicyRuleViolations,
-    getReportNextStep,
-} from '@libs/NextStepUtils';
-import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
-import {getFilteredReportActionsForReportView, hasPendingDEWApprove, hasPendingDEWSubmit} from '@libs/ReportActionsUtils';
+import {buildOptimisticFixIssueNextStep, shouldShowDynamicExternalWorkflowApproveErrorNextStep, getReportNextStep} from '@libs/NextStepUtils';
+import {hasDynamicExternalWorkflow, isArchivedPolicy} from '@libs/PolicyUtils';
+import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {
     getAllReportActionsErrorsAndReportActionThatRequiresAttention,
     getReasonAndReportActionThatRequiresAttention,
@@ -15,29 +9,32 @@ import {
     isReportOwner,
     shouldBlockSubmitDueToStrictPolicyRules,
 } from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import {loginSelector} from '@selectors/PersonalDetails';
+import {pendingExpenseActionSelector} from '@selectors/ReportMetaData';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
+import {usePersonalDetail} from './usePersonalDetails';
 import useReportIsArchived from './useReportIsArchived';
 import useStrictPolicyRules from './useStrictPolicyRules';
-import useTheme from './useTheme';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
 
 function useOptimisticNextStep(reportID: string | undefined) {
-    const theme = useTheme();
-    const {isOffline} = useNetwork();
     const {accountID, email, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const {areStrictPolicyRulesEnabled} = useStrictPolicyRules();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [ownerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
+    const [pendingExpenseActionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingExpenseActionSelector});
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
@@ -57,7 +54,21 @@ function useOptimisticNextStep(reportID: string | undefined) {
         transactions,
     );
 
-    let optimisticNextStep = getReportNextStep(nextStep, moneyRequestReport, transactions, policy, allTransactionViolations, email ?? '', accountID);
+    let optimisticNextStep = getReportNextStep({
+        moneyRequestReport,
+        moneyRequestReportOwnerLogin: ownerLogin,
+        transactions,
+        policy,
+        transactionViolations: allTransactionViolations,
+        currentUserEmail: email ?? '',
+        currentUserAccountID: accountID,
+        rules,
+    });
+
+    // Archived workspaces always show the change workspace next step, so skip the fix-issue overrides below
+    if (isArchivedPolicy(policy)) {
+        return optimisticNextStep;
+    }
 
     if (isDEWPolicy && (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN || moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED)) {
         if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
@@ -67,27 +78,29 @@ function useOptimisticNextStep(reportID: string | undefined) {
                 }
                 return acc;
             }, {});
-            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject, reportTransactions);
+            const {errors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(moneyRequestReport, reportActionsObject, reportTransactions, accountID);
 
             if (errors?.dewSubmitFailed) {
-                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowSubmitError(theme.danger);
-            } else if (isOffline && hasPendingDEWSubmit(reportMetadata, isDEWPolicy)) {
-                optimisticNextStep = buildOptimisticNextStepForDEWOffline();
+                optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
             }
         } else if (moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
-            const gbrResult = getReasonAndReportActionThatRequiresAttention(moneyRequestReport, currentUserLogin ?? '', accountID, undefined, isArchivedReport);
+            const gbrResult = getReasonAndReportActionThatRequiresAttention({
+                optionOrReport: moneyRequestReport,
+                currentUserLogin: currentUserLogin ?? '',
+                currentUserAccountID: accountID,
+                transactionViolations: allTransactionViolations,
+                isReportArchived: isArchivedReport,
+                reportMetadata: pendingExpenseActionMetadata,
+            });
             const hasDEWApproveFailed = gbrResult?.reason === CONST.REQUIRES_ATTENTION_REASONS.HAS_DEW_APPROVE_FAILED;
-            const isCurrentUserTheApprover = moneyRequestReport?.managerID === accountID;
-            if (hasDEWApproveFailed && isCurrentUserTheApprover) {
-                optimisticNextStep = buildOptimisticNextStepForDynamicExternalWorkflowApproveError(theme.danger);
-            } else if (isOffline && hasPendingDEWApprove(reportMetadata, isDEWPolicy)) {
-                optimisticNextStep = buildOptimisticNextStepForDEWOffline();
+            if (shouldShowDynamicExternalWorkflowApproveErrorNextStep(gbrResult?.reportAction, hasDEWApproveFailed)) {
+                optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
             }
         }
     }
 
     if (isBlockSubmitDueToStrictPolicyRules && isReportOwner(moneyRequestReport) && isOpenExpenseReport(moneyRequestReport)) {
-        optimisticNextStep = buildOptimisticNextStepForStrictPolicyRuleViolations();
+        optimisticNextStep = buildOptimisticFixIssueNextStep(moneyRequestReport?.ownerAccountID ?? CONST.DEFAULT_MISSING_ID);
     }
 
     return optimisticNextStep;

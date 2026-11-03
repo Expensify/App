@@ -1,5 +1,6 @@
-import type {SharedValue} from 'react-native-reanimated';
 import type {Dimensions} from '@src/types/utils/Layout';
+
+import type {SharedValue} from 'react-native-reanimated';
 
 /** Range of zoom that can be applied to the content by pinching or double tapping. */
 type ZoomRange = {
@@ -24,6 +25,7 @@ type MultiGestureCanvasVariables = {
     minContentScale: number;
     maxContentScale: number;
     shouldDisableTransformationGestures: SharedValue<boolean>;
+    isTransformGestureActive: SharedValue<boolean>;
     isSwipingDownToClose: SharedValue<boolean>;
     zoomScale: SharedValue<number>;
     totalScale: SharedValue<number>;
@@ -36,6 +38,7 @@ type MultiGestureCanvasVariables = {
     pinchTranslateY: SharedValue<number>;
     stopAnimation: () => void;
     reset: (animated: boolean, callback: () => void) => void;
+    shouldDisableSwipeDownToClose: boolean;
     onTap: OnTapCallback | undefined;
     onScaleChanged: OnScaleChangedCallback | undefined;
     onSwipeDown: OnSwipeDownCallback | undefined;

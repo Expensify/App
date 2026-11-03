@@ -1,68 +1,53 @@
-import {useRef} from 'react';
 import {importPlaidAccounts} from '@libs/actions/Plaid';
-import {
-    getCompanyCardFeed,
-    getCompanyFeeds,
-    getDefaultCardName,
-    getDomainOrWorkspaceAccountID,
-    getPlaidCountry,
-    getPlaidInstitutionId,
-    isCustomFeed,
-    isSelectedFeedExpired,
-} from '@libs/CardUtils';
+import {getCompanyCardFeed, getCompanyFeeds, getDefaultCardName, getPlaidCountry, getPlaidInstitutionId, isCSVUploadFeed, isCustomFeed, isSelectedFeedExpired} from '@libs/CardUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getDomainNameForPolicy, getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
-import {clearAddNewCardFlow, clearAssignCardStepAndData, openPolicyCompanyCardsPage, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+import {getDomainNameForPolicy, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+
+import {clearAddNewCardFlow, clearAssignCardStepAndData, setAddNewCompanyCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {AssignCardData, AssignCardStep} from '@src/types/onyx/AssignCard';
+
+import {useRef} from 'react';
+
+import type {CombinedCardFeed} from './useCardFeeds';
+
 import useCardFeedErrors from './useCardFeedErrors';
 import useCardFeeds from './useCardFeeds';
-import type {CombinedCardFeed} from './useCardFeeds';
 import {useCurrencyListState} from './useCurrencyList';
 import useIsAllowedToIssueCompanyCard from './useIsAllowedToIssueCompanyCard';
-import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
+import {usePersonalDetailsByLogins} from './usePersonalDetailByLogin';
 import usePolicy from './usePolicy';
 
 type UseAssignCardProps = {
-    /** The currently selected card feed */
     feedName: CompanyCardFeedWithDomainID | undefined;
 
     /** The ID of the workspace/policy */
     policyID: string;
 
-    /** Callback to show/hide the offline modal */
-    setShouldShowOfflineModal: (shouldShow: boolean) => void;
+    /** Called when the user tries to assign a card from a direct feed while offline */
+    onOfflineAssign: () => void;
 };
 
-function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssignCardProps) {
+function useAssignCard({feedName, policyID, onOfflineAssign}: UseAssignCardProps) {
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const currentFeedData = feedName ? companyFeeds?.[feedName] : ({} as CombinedCardFeed);
-    const {translate} = useLocalize();
 
-    const policy = usePolicy(policyID);
-    const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
-
-    const companyCards = getCompanyFeeds(cardFeeds);
-    const selectedFeedData = feedName && companyCards[feedName];
-    const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
-
-    const fetchCompanyCards = () => {
-        const emailList = Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList));
-        openPolicyCompanyCardsPage(policyID, domainOrWorkspaceAccountID, emailList, translate);
-    };
-
-    const {isOffline} = useNetwork({onReconnect: fetchCompanyCards});
+    const {isOffline} = useNetwork();
 
     const {cardFeedErrors} = useCardFeedErrors();
     const feedErrors = feedName ? cardFeedErrors[feedName] : undefined;
-    const isSelectedFeedConnectionBroken = !!feedErrors?.isFeedConnectionBroken || !!feedErrors?.hasFeedErrors;
+    // Keyed on the prompting flag rather than `isFeedConnectionBroken`: once a broken connection is past the grace period we
+    // stop blocking assignment. Otherwise a single long-dead card would disable assigning on the whole feed forever, and a
+    // commercial/CSV feed cannot be reconnected at all, so there would be no way out.
+    const isSelectedFeedConnectionBroken = !!feedErrors?.shouldPromptBrokenConnection || !!feedErrors?.hasFeedErrors;
 
     const isAllowedToIssueCompanyCard = useIsAllowedToIssueCompanyCard({policyID});
     const isAssigningCardDisabled = !currentFeedData || !!currentFeedData?.pending || isSelectedFeedConnectionBroken || !isAllowedToIssueCompanyCard;
@@ -86,7 +71,7 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
         // If the feed is a direct feed (not a commercial feed) and the user is offline,
         // show the offline alert modal to inform them of the connectivity issue.
         if (!isCommercialFeed && isOffline) {
-            setShouldShowOfflineModal(true);
+            onOfflineAssign();
             return;
         }
 
@@ -111,7 +96,9 @@ function useAssignCard({feedName, policyID, setShouldShowOfflineModal}: UseAssig
                     break;
                 case CONST.COMPANY_CARD.STEP.ASSIGNEE:
                 default:
-                    Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute({policyID, feed: feedName, cardID}));
+                    Navigation.navigate(
+                        createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE.getRoute(feedName, cardID), ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)),
+                    );
                     break;
             }
         });
@@ -135,6 +122,7 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
     const {currencyList} = useCurrencyListState();
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(policy?.employeeList ?? {}));
 
     const [cardFeeds] = useCardFeeds(policyID);
     const companyCards = getCompanyFeeds(cardFeeds);
@@ -159,6 +147,14 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
             cardName,
             encryptedCardNumber: cardID,
         };
+
+        // We assume admins only put the transactions they want in a CSV file, so there's no need to limit by date.
+        // Import all of them by default.
+        // Direct feeds keep today as the default because the bank can return months of history.
+        if (isCSVUploadFeed(selectedFeed)) {
+            cardToAssign.dateOption = CONST.COMPANY_CARD.TRANSACTION_START_DATE_OPTIONS.FROM_BEGINNING;
+            cardToAssign.startDate = '';
+        }
 
         // Refetch plaid card list
         if (!isFeedExpired && plaidAccessToken && !hasImportedPlaidAccounts.current) {
@@ -189,11 +185,11 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
             };
         }
 
-        const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
-        if (employeeList.length === 1) {
-            const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
+        const activeEmployees = Object.entries(policy?.employeeList ?? {}).filter(([, employee]) => !isDeletedPolicyEmployee(employee, isOffline));
+        if (activeEmployees.length === 1) {
+            const userEmail = activeEmployees.at(0)?.[0] ?? '';
             cardToAssign.email = userEmail;
-            const personalDetails = getPersonalDetailByEmail(userEmail);
+            const personalDetails = employeePersonalDetails[userEmail];
             const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;
             cardToAssign.customCardName = getDefaultCardName(memberName);
 

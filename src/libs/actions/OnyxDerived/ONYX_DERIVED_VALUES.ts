@@ -1,16 +1,21 @@
-import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import type {OnyxDerivedValueConfig} from './types';
+
 import cardFeedErrorsConfig from './configs/cardFeedErrors';
-import flaggedExpensesConfig from './configs/flaggedExpenses';
+import guideAccountIDsConfig from './configs/guideAccountIDs';
+import loginToAccountIDMapConfig from './configs/loginToAccountIDMap';
 import nonPersonalAndWorkspaceCardListConfig from './configs/nonPersonalAndWorkspaceCardList';
+import oneOnOneChatReportIDsConfig from './configs/oneOnOneChatReportIDs';
 import outstandingReportsByPolicyIDConfig from './configs/outstandingReportsByPolicyID';
 import personalAndWorkspaceCardListConfig from './configs/personalAndWorkspaceCardList';
 import reportAttributesConfig from './configs/reportAttributes';
 import reportTransactionsAndViolationsConfig from './configs/reportTransactionsAndViolations';
 import sortedReportActionsConfig from './configs/sortedReportActions';
-import todosConfig from './configs/todos';
+import spendDataSignatureConfig from './configs/spendDataSignature';
 import visibleReportActionsConfig from './configs/visibleReportActions';
-import type {OnyxDerivedValueConfig} from './types';
 
 /**
  * Global map of derived configs.
@@ -24,9 +29,11 @@ const ONYX_DERIVED_VALUES = {
     [ONYXKEYS.DERIVED.NON_PERSONAL_AND_WORKSPACE_CARD_LIST]: nonPersonalAndWorkspaceCardListConfig,
     [ONYXKEYS.DERIVED.PERSONAL_AND_WORKSPACE_CARD_LIST]: personalAndWorkspaceCardListConfig,
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: cardFeedErrorsConfig,
-    [ONYXKEYS.DERIVED.TODOS]: todosConfig,
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: sortedReportActionsConfig,
-    [ONYXKEYS.DERIVED.FLAGGED_EXPENSES]: flaggedExpensesConfig,
+    [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: loginToAccountIDMapConfig,
+    [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS]: guideAccountIDsConfig,
+    [ONYXKEYS.DERIVED.SPEND_DATA_SIGNATURE]: spendDataSignatureConfig,
+    [ONYXKEYS.DERIVED.ONE_ON_ONE_CHAT_REPORT_IDS]: oneOnOneChatReportIDsConfig,
 } as const satisfies {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [Key in ValueOf<typeof ONYXKEYS.DERIVED>]: OnyxDerivedValueConfig<Key, any>;

@@ -1,8 +1,11 @@
-import React, {useEffect, useImperativeHandle, useRef} from 'react';
 import AppStateMonitor from '@libs/AppStateMonitor';
-import BaseLoginForm from './BaseLoginForm';
+
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
+
 import type {InputHandle} from './types';
 import type LoginFormProps from './types';
+
+import BaseLoginForm from './BaseLoginForm';
 
 function LoginForm({scrollPageToTop, ref, ...rest}: LoginFormProps) {
     const loginFormRef = useRef<InputHandle>(null);

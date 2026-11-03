@@ -1,6 +1,8 @@
-import type {NonEmptyTuple, ValueOf} from 'type-fest';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type ONYXKEYS from '@src/ONYXKEYS';
+
+import type {NonEmptyTuple, ValueOf} from 'type-fest';
+
 import type {OnyxDerivedValueConfig} from './types';
 
 /**

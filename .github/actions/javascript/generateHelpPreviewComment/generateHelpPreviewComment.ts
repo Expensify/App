@@ -80,7 +80,7 @@ async function run(): Promise<void> {
     console.log(`Generated preview comment with ${routes.length} updated article(s)`);
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run();
 }
 

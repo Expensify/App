@@ -21,11 +21,11 @@ namespace margelo::nitro::utils {
   using namespace facebook;
 
   /**
-   * The C++ JNI bridge between the C++ struct "Contact" and the the Kotlin data class "Contact".
+   * The C++ JNI bridge between the C++ struct "Contact" and the Kotlin data class "Contact".
    */
   struct JContact final: public jni::JavaClass<JContact> {
   public:
-    static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/utils/Contact;";
+    static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/Contact;";
 
   public:
     /**
@@ -48,26 +48,26 @@ namespace margelo::nitro::utils {
       return Contact(
         firstName != nullptr ? std::make_optional(firstName->toStdString()) : std::nullopt,
         lastName != nullptr ? std::make_optional(lastName->toStdString()) : std::nullopt,
-        phoneNumbers != nullptr ? std::make_optional([&]() {
-          size_t __size = phoneNumbers->size();
+        phoneNumbers != nullptr ? std::make_optional([&](auto&& __input) {
+          size_t __size = __input->size();
           std::vector<StringHolder> __vector;
           __vector.reserve(__size);
           for (size_t __i = 0; __i < __size; __i++) {
-            auto __element = phoneNumbers->getElement(__i);
+            auto __element = __input->getElement(__i);
             __vector.push_back(__element->toCpp());
           }
           return __vector;
-        }()) : std::nullopt,
-        emailAddresses != nullptr ? std::make_optional([&]() {
-          size_t __size = emailAddresses->size();
+        }(phoneNumbers)) : std::nullopt,
+        emailAddresses != nullptr ? std::make_optional([&](auto&& __input) {
+          size_t __size = __input->size();
           std::vector<StringHolder> __vector;
           __vector.reserve(__size);
           for (size_t __i = 0; __i < __size; __i++) {
-            auto __element = emailAddresses->getElement(__i);
+            auto __element = __input->getElement(__i);
             __vector.push_back(__element->toCpp());
           }
           return __vector;
-        }()) : std::nullopt,
+        }(emailAddresses)) : std::nullopt,
         imageData != nullptr ? std::make_optional(imageData->toStdString()) : std::nullopt
       );
     }
@@ -85,26 +85,26 @@ namespace margelo::nitro::utils {
         clazz,
         value.firstName.has_value() ? jni::make_jstring(value.firstName.value()) : nullptr,
         value.lastName.has_value() ? jni::make_jstring(value.lastName.value()) : nullptr,
-        value.phoneNumbers.has_value() ? [&]() {
-          size_t __size = value.phoneNumbers.value().size();
+        value.phoneNumbers.has_value() ? [&](auto&& __input) {
+          size_t __size = __input.size();
           jni::local_ref<jni::JArrayClass<JStringHolder>> __array = jni::JArrayClass<JStringHolder>::newArray(__size);
           for (size_t __i = 0; __i < __size; __i++) {
-            const auto& __element = value.phoneNumbers.value()[__i];
+            const auto& __element = __input[__i];
             auto __elementJni = JStringHolder::fromCpp(__element);
             __array->setElement(__i, *__elementJni);
           }
           return __array;
-        }() : nullptr,
-        value.emailAddresses.has_value() ? [&]() {
-          size_t __size = value.emailAddresses.value().size();
+        }(value.phoneNumbers.value()) : nullptr,
+        value.emailAddresses.has_value() ? [&](auto&& __input) {
+          size_t __size = __input.size();
           jni::local_ref<jni::JArrayClass<JStringHolder>> __array = jni::JArrayClass<JStringHolder>::newArray(__size);
           for (size_t __i = 0; __i < __size; __i++) {
-            const auto& __element = value.emailAddresses.value()[__i];
+            const auto& __element = __input[__i];
             auto __elementJni = JStringHolder::fromCpp(__element);
             __array->setElement(__i, *__elementJni);
           }
           return __array;
-        }() : nullptr,
+        }(value.emailAddresses.value()) : nullptr,
         value.imageData.has_value() ? jni::make_jstring(value.imageData.value()) : nullptr
       );
     }

@@ -1,9 +1,10 @@
-import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
-import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
+import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import getPathFromState from '@libs/Navigation/helpers/getPathFromState';
 import type {State} from '@libs/Navigation/types';
+
 import type {DynamicRouteSuffix, Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+
 import useRootNavigationState from './useRootNavigationState';
 
 /**
@@ -15,11 +16,13 @@ import useRootNavigationState from './useRootNavigationState';
  * If the suffix doesn't match the tail of the current path, returns the path as-is.
  *
  * @param dynamicRouteSuffix - The dynamic route pattern to remove from the current URL.
+ * @param isEnabled - Pass false from a caller that discards the result, to skip the work behind it. Serializing the
+ * navigation tree and matching every suffix against it runs on each navigation event, for each mounted caller.
  * @returns The back path for the dynamic route.
  */
-function useDynamicBackPath(dynamicRouteSuffix: DynamicRouteSuffix): Route {
+function useDynamicBackPath(dynamicRouteSuffix: DynamicRouteSuffix, isEnabled = true): Route {
     const path = useRootNavigationState((state) => {
-        if (!state) {
+        if (!isEnabled || !state) {
             return undefined;
         }
 
@@ -30,13 +33,7 @@ function useDynamicBackPath(dynamicRouteSuffix: DynamicRouteSuffix): Route {
         return ROUTES.HOME;
     }
 
-    const pathWithoutLeadingSlash = path.replaceAll(/^\/+/g, '');
-    const match = findAllMatchingDynamicSuffixes(pathWithoutLeadingSlash).find((m) => m.pattern === dynamicRouteSuffix);
-    if (match) {
-        return getPathWithoutDynamicSuffix(pathWithoutLeadingSlash, match.actualSuffix, match.pattern);
-    }
-
-    return pathWithoutLeadingSlash as Route;
+    return stripDynamicRouteSuffixFromPath(path, dynamicRouteSuffix);
 }
 
 export default useDynamicBackPath;

@@ -1,3 +1,7 @@
+import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import DateUtils from './DateUtils';
 
 /**
@@ -9,6 +13,22 @@ import DateUtils from './DateUtils';
  * date strings from DateUtils.getDBTime(), which sort in the same order as the dates they represent,
  * so comparing them as strings is correct.
  */
+
+// The cutoff the client currently holds. Consumers that only need the value (not the change event,
+// which subscribeToFullReconnect owns) read it through getServerReconnectCutoff instead of opening
+// their own connection. Nothing in the UI shows it, so connectWithoutView is correct here. Do not
+// copy this into a component: use useOnyx there so the UI updates when the value changes.
+let currentServerReconnectCutoff = '';
+Onyx.connectWithoutView({
+    key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE,
+    callback: (value) => {
+        currentServerReconnectCutoff = value ?? '';
+    },
+});
+
+function getServerReconnectCutoff(): string {
+    return currentServerReconnectCutoff;
+}
 
 /**
  * An empty last reconnect time means the app has never reconnected, so this returns true. An empty
@@ -32,4 +52,4 @@ function getLastFullReconnectTimeToRecord(serverReconnectCutoff: string): string
     return now >= serverReconnectCutoff ? now : serverReconnectCutoff;
 }
 
-export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord};
+export {shouldTriggerFullReconnect, getLastFullReconnectTimeToRecord, getServerReconnectCutoff};

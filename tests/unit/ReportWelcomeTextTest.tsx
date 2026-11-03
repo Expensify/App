@@ -1,11 +1,18 @@
 import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
+
 import ReportWelcomeText from '@components/ReportWelcomeText';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
+
+import type ReactNative from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useLocalize', () =>
@@ -59,8 +66,7 @@ jest.mock('@hooks/usePreferredPolicy', () =>
 jest.mock('@hooks/useReportIsArchived', () => jest.fn(() => false));
 
 jest.mock('@components/RenderHTML', () => {
-    const ReactNative = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
-    const {Text} = ReactNative;
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
     function MockRenderHTML({html}: {html: string}) {
         return <Text>{html}</Text>;
     }
@@ -87,10 +93,12 @@ const personalDetails: Record<string, PersonalDetails> = {
 
 function renderComponent(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy>) {
     return render(
-        <ReportWelcomeText
-            report={report}
-            policy={policy ?? undefined}
-        />,
+        <NavigationContainer>
+            <ReportWelcomeText
+                report={report}
+                policy={policy ?? undefined}
+            />
+        </NavigationContainer>,
     );
 }
 

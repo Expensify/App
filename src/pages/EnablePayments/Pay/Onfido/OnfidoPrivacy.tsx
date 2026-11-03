@@ -1,21 +1,28 @@
-import React, {useRef} from 'react';
-import {StyleSheet, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import type {ScrollView} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FixedFooter from '@components/FixedFooter';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormScrollView from '@components/FormScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import {openOnfidoFlow} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import type {WalletOnfido} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ComponentRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {ScrollView} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useRef} from 'react';
+import {StyleSheet, View} from 'react-native';
 
 const DEFAULT_WALLET_ONFIDO_DATA = {
     applicantID: '',
@@ -29,16 +36,19 @@ const DEFAULT_WALLET_ONFIDO_DATA = {
 type OnfidoPrivacyProps = {
     /** Stores various information used to build the UI and call any APIs */
     walletOnfidoData: OnyxEntry<WalletOnfido>;
+
+    /** Called when the user taps Continue, so the parent knows it can mount Onfido once the new token is ready */
+    onProceedToVerification?: () => void;
 };
 
-function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPrivacyProps) {
+function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA, onProceedToVerification}: OnfidoPrivacyProps) {
     const {translate} = useLocalize();
-    const formRef = useRef<ScrollView>(null);
+    const formRef = useRef<ComponentRef<typeof ScrollView>>(null);
     const styles = useThemeStyles();
     if (!walletOnfidoData) {
         return;
     }
-    const {isLoading = false, hasAcceptedPrivacyPolicy} = walletOnfidoData;
+    const {isLoading = false} = walletOnfidoData;
 
     const onfidoError = getLatestErrorMessage(walletOnfidoData) ?? '';
     const onfidoFixableErrors = walletOnfidoData?.fixableErrors ?? [];
@@ -46,9 +56,14 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
         onfidoError[0] += !isEmptyObject(onfidoFixableErrors) ? `\n${onfidoFixableErrors.join('\n')}` : '';
     }
 
+    // The parent shows this screen until the new token is ready, so show a spinner here while it loads.
     return (
         <View style={[styles.flex1, styles.justifyContentBetween]}>
-            {!hasAcceptedPrivacyPolicy ? (
+            {isLoading ? (
+                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
+            ) : (
                 <>
                     <FormScrollView ref={formRef}>
                         <View style={[styles.mh5, styles.justifyContentCenter]}>
@@ -65,30 +80,21 @@ function OnfidoPrivacy({walletOnfidoData = DEFAULT_WALLET_ONFIDO_DATA}: OnfidoPr
                     <FixedFooter>
                         <FormAlertWithSubmitButton
                             isAlertVisible={!!onfidoError}
-                            onSubmit={openOnfidoFlow}
+                            onSubmit={() => {
+                                onProceedToVerification?.();
+                                openOnfidoFlow();
+                            }}
                             onFixTheErrorsLinkPressed={() => {
                                 formRef.current?.scrollTo({y: 0, animated: true});
                             }}
                             message={onfidoError}
                             isLoading={isLoading}
-                            buttonText={onfidoError ? translate('onfidoStep.tryAgain') : translate('common.continue')}
+                            buttonText={translate(onfidoError ? 'common.tryAgain' : 'common.continue')}
                             containerStyles={[styles.mh0, styles.mv0, styles.mb0]}
                         />
                     </FixedFooter>
                 </>
-            ) : null}
-            {hasAcceptedPrivacyPolicy && isLoading ? (
-                <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{
-                            context: 'OnfidoPrivacy',
-                            hasAcceptedPrivacyPolicy,
-                            isLoading,
-                        }}
-                    />
-                </View>
-            ) : null}
+            )}
         </View>
     );
 }

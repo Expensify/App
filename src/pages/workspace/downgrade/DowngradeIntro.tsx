@@ -1,19 +1,26 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
+
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
+import {View} from 'react-native';
 
 type Props = {
     buttonDisabled?: boolean;
@@ -27,6 +34,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
 
     const illustrations = useMemoizedLazyIllustrations(['Mailbox']);
@@ -58,7 +66,7 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
     const benefitsListHTML = `<muted-text>${listItems}</muted-text>`;
 
     const handleLinkPress = () => {
-        openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL);
+        openLink(CONST.PLAN_TYPES_AND_PRICING_HELP_URL, environmentURL, false, session);
     };
 
     return (
@@ -97,19 +105,21 @@ function DowngradeIntro({onDowngrade, buttonDisabled, loading, policyID, backTo}
             {policyID ? (
                 <Button
                     isLoading={loading}
-                    text={translate('common.downgradeWorkspace')}
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={onDowngrade}
                     isDisabled={buttonDisabled}
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('common.downgradeWorkspace')}</Button.Text>
+                </Button>
             ) : (
                 <Button
-                    text={translate('workspace.common.goToWorkspaces')}
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(backTo ?? Navigation.getActiveRoute()), {forceReplace: true})}
-                    large
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('workspace.common.goToWorkspaces')}</Button.Text>
+                </Button>
             )}
         </View>
     );

@@ -1,7 +1,3 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import AppleSignIn from '@components/SignInButtons/AppleSignIn';
@@ -12,15 +8,18 @@ import isTextInputFocused from '@components/TextInput/BaseTextInput/isTextInputF
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import withToggleVisibilityView from '@components/withToggleVisibilityView';
 import type {WithToggleVisibilityViewProps} from '@components/withToggleVisibilityView';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobileWebKit} from '@libs/Browser';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import getPlatform from '@libs/getPlatform';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
@@ -28,18 +27,32 @@ import {isAgentEmail} from '@libs/SessionUtils';
 import StringUtils from '@libs/StringUtils';
 import {isNumericWithSpecialChars, isValidEmailWithTLD} from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
+
 import {useLoginActions, useLoginState} from '@pages/signin/SignInLoginContext';
+
 import {setDefaultData} from '@userActions/CloseAccount';
 import {beginSignIn, clearAccountMessages, clearSignInData} from '@userActions/Session';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
 import viewRef from '@src/types/utils/viewRef';
+
+import type {ComponentRef} from 'react';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import type LoginFormProps from './types';
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
+
+// Adhoc web builds are served from a per-PR origin that isn't registered with Apple or Google, so both
+// buttons can only fail there. Native adhoc builds are unaffected, so they keep the buttons.
+const isAdhocWeb = CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.ADHOC && getPlatform() === CONST.PLATFORM.WEB;
 
 function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFormProps) {
     const {login} = useLoginState();
@@ -62,53 +75,47 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
     /**
      * Validate the input value and set the error for formError
      */
-    const validate = useCallback(
-        (value: string) => {
-            const loginTrim = StringUtils.removeInvisibleCharacters(value.trim());
-            if (!loginTrim) {
-                setFormError('common.pleaseEnterEmailOrPhoneNumber');
-                return false;
+    const validate = (value: string) => {
+        const loginTrim = StringUtils.removeInvisibleCharacters(value.trim());
+        if (!loginTrim) {
+            setFormError('common.pleaseEnterEmailOrPhoneNumber');
+            return false;
+        }
+
+        const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+
+        if (!isValidEmailWithTLD(loginTrim) && !parsedPhoneNumber.possible) {
+            if (isNumericWithSpecialChars(loginTrim)) {
+                setFormError('common.error.phoneNumber');
+            } else {
+                setFormError('loginForm.error.invalidFormatEmailLogin');
             }
+            return false;
+        }
 
-            const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
-            const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
-
-            if (!isValidEmailWithTLD(loginTrim) && !parsedPhoneNumber.possible) {
-                if (isNumericWithSpecialChars(loginTrim)) {
-                    setFormError('common.error.phoneNumber');
-                } else {
-                    setFormError('loginForm.error.invalidFormatEmailLogin');
-                }
-                return false;
-            }
-
-            setFormError(undefined);
-            return true;
-        },
-        [setFormError, countryCode],
-    );
+        setFormError(undefined);
+        return true;
+    };
 
     /**
      * Handle text input and validate the text input if it is blurred
      */
-    const onTextInput = useCallback(
-        (text: string) => {
-            setLogin(text);
-            if (firstBlurred.current) {
-                validate(text);
-            }
+    const onTextInput = (text: string) => {
+        setLogin(text);
+        if (firstBlurred.current) {
+            validate(text);
+        }
 
-            if (!!account?.errors || !!account?.message) {
-                clearAccountMessages();
-            }
+        if (!!account?.errors || !!account?.message) {
+            clearAccountMessages();
+        }
 
-            // Clear the "Account successfully closed" message when the user starts typing
-            if (closeAccount?.success && !isInputAutoFilled(input.current)) {
-                setDefaultData();
-            }
-        },
-        [account?.errors, account?.message, closeAccount?.success, input, setLogin, validate],
-    );
+        // Clear the "Account successfully closed" message when the user starts typing
+        if (closeAccount?.success && !isInputAutoFilled(input.current)) {
+            setDefaultData();
+        }
+    };
 
     function getSignInWithStyles() {
         return shouldUseNarrowLayout ? [styles.mt1] : [styles.mt5, styles.mb5];
@@ -117,7 +124,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    const validateAndSubmitForm = useCallback(() => {
+    const validateAndSubmitForm = () => {
         if (!!isOffline || !!account?.isLoading || isLoading.current) {
             return;
         }
@@ -152,14 +159,19 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
 
         // Check if this login has an account associated with it or not
         beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
-    }, [login, account?.isLoading, closeAccount?.success, isOffline, validate, countryCode]);
+    };
 
     useEffect(() => {
         // Call clearAccountMessages on the login page (home route).
         // When the user is in the transition route and not yet authenticated, this component will also be mounted,
         // resetting account.isLoading will cause the app to briefly display the session expiration page.
 
-        if (isFocused && isVisible) {
+        // UnlinkLoginPage resets the stack to the sign-in page as soon as the unlink settles, so this mount is
+        // the one that has to render the result. unlinkLogin has just written the whole account object, so there
+        // is no stale state here for clearAccountMessages to clean up.
+        const hasJustUnlinkedLogin = account?.message === 'unlinkLoginForm.successfullyUnlinkedLogin';
+
+        if (isFocused && isVisible && !hasJustUnlinkedLogin) {
             clearAccountMessages();
         }
         if (!canFocusInputOnScreenFocus() || !input.current || !isVisible || !isFocused) {
@@ -212,23 +224,24 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
         },
     }));
 
-    const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
+    const serverErrorText = account ? getLatestErrorMessage(account) : '';
     const shouldShowServerError = !!serverErrorText && !formError;
     const isSigningWithAppleOrGoogle = useRef(false);
-    const setIsSigningWithAppleOrGoogle = useCallback((isPressed: boolean) => (isSigningWithAppleOrGoogle.current = isPressed), []);
+    const setIsSigningWithAppleOrGoogle = (isPressed: boolean) => (isSigningWithAppleOrGoogle.current = isPressed);
 
-    const submitContainerRef = useRef<View | HTMLDivElement>(null);
-    const handleFocus = useCallback(() => {
+    const submitContainerRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
+    const handleFocus = () => {
         if (!isMobileWebKit()) {
             return;
         }
         // On mobile WebKit browsers, when an input field gains focus, the keyboard appears and the virtual viewport is resized and scrolled to make the input field visible.
         // This occurs even when there is enough space to display both the input field and the submit button in the current view.
         // so this change to correct the scroll position when the input field gains focus.
-        InteractionManager.runAfterInteractions(() => {
-            htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({behavior: 'smooth', block: 'end'});
+        htmlDivElementRef(submitContainerRef).current?.scrollIntoView?.({
+            behavior: 'smooth',
+            block: 'end',
         });
-    }, []);
+    };
 
     const handleSignIn = () => setIsSigningWithAppleOrGoogle(true);
 
@@ -279,8 +292,10 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                 <DotIndicatorMessage
                     style={[styles.mv2]}
                     type="success"
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: closeAccount?.success ? closeAccount.success : accountMessage}}
+                    messages={{
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        0: closeAccount?.success ? closeAccount.success : accountMessage,
+                    }}
                 />
             )}
             {
@@ -294,6 +309,8 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                         <FormAlertWithSubmitButton
                             buttonText={translate('common.continue')}
                             isLoading={account?.isLoading && account?.loadingForm === CONST.FORMS.LOGIN_FORM}
+                            // `beginSignIn` sets `isLoading` in Onyx the moment it's dispatched, so this `isLoading` shows the spinner immediately on press on its own
+                            shouldShowLoadingImmediatelyOnPress={false}
                             onSubmit={validateAndSubmitForm}
                             message={serverErrorText}
                             isAlertVisible={shouldShowServerError}
@@ -306,7 +323,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
                             // for developers about possible regressions, we won't render buttons in development mode.
                             // For more information about these differences and how to test in development mode,
                             // see`Expensify/App/contributingGuides/APPLE_GOOGLE_SIGNIN.md`
-                            CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && (
+                            CONFIG.ENVIRONMENT !== CONST.ENVIRONMENT.DEV && !isAdhocWeb && (
                                 <View style={[getSignInWithStyles()]}>
                                     <Text
                                         accessibilityElementsHidden

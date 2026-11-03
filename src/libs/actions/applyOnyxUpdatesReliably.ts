@@ -1,8 +1,11 @@
-import type {OnyxKey} from 'react-native-onyx';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+
 import CONST from '@src/CONST';
 import type {OnyxUpdatesFromServer} from '@src/types/onyx';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import {handleMissingOnyxUpdates} from './OnyxUpdateManager';
 import {doesClientNeedToBeUpdated, apply as onyxApply, saveUpdateInformation} from './OnyxUpdates';
 
@@ -45,7 +48,7 @@ export default function applyOnyxUpdatesReliably<TKey extends OnyxKey>(
     }
 
     const previousUpdateID = Number(updates.previousUpdateID) ?? CONST.DEFAULT_NUMBER_ID;
-    if (!doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID})) {
+    if (!doesClientNeedToBeUpdated({previousUpdateID, clientLastUpdateID, updateType: updates.type})) {
         return onyxApply(updates).then();
     }
 

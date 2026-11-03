@@ -1,9 +1,13 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import type {NotificationPermissionStatus} from '@libs/Notification/notificationPermission/types';
+
 import useShouldShowEnableNotificationsBanner from '@pages/inbox/report/useShouldShowEnableNotificationsBanner';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
 
 const CONCIERGE_REPORT_ID = '1';
 const OTHER_REPORT_ID = '2';
@@ -16,6 +20,7 @@ let mockCurrentPermission: NotificationPermissionStatus = 'default';
 jest.mock('@libs/Notification/notificationPermission', () => ({
     __esModule: true,
     default: {
+        getStatusSync: () => mockCurrentPermission,
         getStatus: () => Promise.resolve(mockCurrentPermission),
         request: () => Promise.resolve(mockCurrentPermission),
     },
@@ -64,5 +69,16 @@ describe('useShouldShowEnableNotificationsBanner', () => {
     it('returns true in the Concierge report when permission is default and not dismissed', async () => {
         const {result} = renderHook(() => useShouldShowEnableNotificationsBanner(conciergeReport));
         await waitFor(() => expect(result.current).toBe(true));
+    });
+
+    it('shows the Concierge banner on the initial render so the chat opens with its final viewport height', () => {
+        // Given notification permission has not been decided and the Concierge report is already known.
+        mockCurrentPermission = 'default';
+
+        // When Concierge opens, the list and footer measure their initial layout together.
+        const {result} = renderHook(() => useShouldShowEnableNotificationsBanner(conciergeReport));
+
+        // Then the banner must occupy space before the list positions itself at the latest message.
+        expect(result.current).toBe(true);
     });
 });

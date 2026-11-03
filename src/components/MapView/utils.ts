@@ -1,7 +1,66 @@
-import type {Coordinate} from './MapViewTypes';
+import {LOCALES} from '@src/CONST/LOCALES';
+import type {Locale} from '@src/CONST/LOCALES';
+
+import type {CameraPadding} from '@rnmapbox/maps';
+
+import type {AlternateDirection, Coordinate, WayPoint} from './MapViewTypes';
+
+/** App locales whose value isn't already the BCP-47 code Mapbox expects for label localization. */
+const LOCALE_TO_MAPBOX_LANGUAGE: Partial<Record<Locale, string>> = {
+    [LOCALES.PT_BR]: 'pt',
+    [LOCALES.ZH_HANS]: 'zh-Hans',
+};
+
+/**
+ * Languages the native Mapbox Maps SDKs can localize labels to, i.e. the Mapbox Streets v8 `name_*` fields.
+ * Unlike mapbox-gl on web, the native SDKs reject any other language: iOS throws and Android logs a warning on every map load.
+ */
+const NATIVE_MAPBOX_SUPPORTED_LANGUAGES = new Set(['ar', 'en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'vi', 'zh-Hans', 'zh-Hant']);
+
+/**
+ * Maps an app locale to the BCP-47 language code Mapbox uses to localize map labels.
+ * Most app locales are already valid Mapbox codes, so only a couple need remapping.
+ * On web, unsupported codes fall back to each label's local language on the Mapbox side.
+ */
+function getMapboxLanguage(locale: Locale | undefined): string | undefined {
+    if (!locale) {
+        return undefined;
+    }
+    return LOCALE_TO_MAPBOX_LANGUAGE[locale] ?? locale;
+}
+
+/**
+ * Maps an app locale to the language the native Mapbox SDKs localize labels to, or undefined when they can't.
+ * Leaving the language unset keeps the style's default labels instead of raising a native error.
+ */
+function getNativeMapboxLanguage(locale: Locale | undefined): string | undefined {
+    const language = getMapboxLanguage(locale);
+    return language && NATIVE_MAPBOX_SUPPORTED_LANGUAGES.has(language) ? language : undefined;
+}
+
+/** A worldview is an ISO 3166-1 alpha-2 country code, so anything that isn't two letters can't be one. */
+const ISO_ALPHA_2_COUNTRY = /^[A-Z]{2}$/;
+
+/**
+ * Maps the user's country to the Mapbox worldview used to draw disputed borders.
+ * Mapbox only defines a worldview for the handful of countries that dispute borders and falls back to the
+ * style's default for every other country code, so the country is passed straight through rather than
+ * matched against a list that would go stale as Mapbox adds worldviews. Anything that isn't a country code
+ * is dropped, because Mapbox raises an error for codes it can't parse.
+ */
+function getMapboxWorldview(country: string | undefined): string | undefined {
+    if (!country || !ISO_ALPHA_2_COUNTRY.test(country)) {
+        return undefined;
+    }
+    return country;
+}
 
 /** A geographic point as a plain longitude/latitude pair. Mapbox's `LngLat` became a class in mapbox-gl 3.x, but these helpers only read `.lng`/`.lat`, so a literal shape is all that's needed. */
 type LngLatLiteral = {lng: number; lat: number};
+
+/** Where along its own route each distance symbol sits, as a share of the route length */
+const PRIMARY_ROUTE_FRACTION = 0.33;
+const ALTERNATE_ROUTE_FRACTION = 0.66;
 
 function isSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][]): directionCoordinates is Coordinate[] {
     const firstElement = directionCoordinates.at(0);
@@ -26,15 +85,15 @@ function getBounds(waypoints: Coordinate[], directionCoordinates: undefined | Co
 }
 
 /**
- * Calculates the distance between two points on the Earth's surface given their latitude and longitude coordinates.
+ * Calculates the distance between two points on the Earth's surface given their [longitude, latitude] coordinates.
  */
 function haversineDistance(coordinate1: Coordinate, coordinate2: Coordinate) {
     // Radius of the Earth in meters
     const R = 6371e3;
-    const lat1 = ((coordinate1.at(0) ?? 0) * Math.PI) / 180;
-    const lat2 = ((coordinate2.at(0) ?? 0) * Math.PI) / 180;
-    const deltaLat = (((coordinate2.at(0) ?? 0) - (coordinate1.at(0) ?? 0)) * Math.PI) / 180;
-    const deltaLon = (((coordinate2.at(1) ?? 0) - (coordinate1.at(1) ?? 0)) * Math.PI) / 180;
+    const lat1 = ((coordinate1.at(1) ?? 0) * Math.PI) / 180;
+    const lat2 = ((coordinate2.at(1) ?? 0) * Math.PI) / 180;
+    const deltaLat = (((coordinate2.at(1) ?? 0) - (coordinate1.at(1) ?? 0)) * Math.PI) / 180;
+    const deltaLon = (((coordinate2.at(0) ?? 0) - (coordinate1.at(0) ?? 0)) * Math.PI) / 180;
 
     // The square of half the chord length between the points
     const halfChordLengthSq = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
@@ -122,28 +181,154 @@ function areCoordinatesEqual(coordinate1: Coordinate | undefined, coordinate2: C
     return coordinate1[0] === coordinate2[0] && coordinate1[1] === coordinate2[1];
 }
 
-function interpolateCoordinate(start: Coordinate, end: Coordinate, progress: number): Coordinate {
+/** The coordinate that every waypoint and direction coordinate shares, or undefined when they span an area. Bounds around a single point have no area to fit a camera to. */
+function getSinglePointCoordinate(waypoints: Coordinate[], directionCoordinates: Coordinate[] | undefined): Coordinate | undefined {
+    const {southWest, northEast} = getBounds(waypoints, directionCoordinates);
+
+    return areCoordinatesEqual(southWest, northEast) ? southWest : undefined;
+}
+
+// Simple linear interpolation of a coordinate between two points
+function simpleInterpolateCoordinate(start: Coordinate, end: Coordinate, progress: number): Coordinate {
     return [start[0] + (end[0] - start[0]) * progress, start[1] + (end[1] - start[1]) * progress];
 }
 
 function getBoundsCenter(bounds: {southWest: Coordinate; northEast: Coordinate}) {
     const {
-        southWest: [south, west],
-        northEast: [north, east],
+        southWest: [west, south],
+        northEast: [east, north],
     } = bounds;
 
     const latitudeCenter = (north + south) / 2;
     const longitudeCenter = (east + west) / 2;
 
-    return {lng: latitudeCenter, lat: longitudeCenter};
+    return {lng: longitudeCenter, lat: latitudeCenter};
+}
+
+/** Coordinate that lies `fraction` of the way along a route, measured by length rather than by index, as the density of the coordinates varies along a route. */
+function findCoordinateAtRouteFraction(lineCoordinates: Coordinate[], fraction: number): Coordinate | null {
+    let totalLength = 0;
+
+    for (let i = 0; i < lineCoordinates.length - 1; i++) {
+        const startPoint = lineCoordinates.at(i);
+        const endPoint = lineCoordinates.at(i + 1);
+
+        if (!startPoint || !endPoint) {
+            break;
+        }
+
+        totalLength += haversineDistance(startPoint, endPoint);
+    }
+
+    const targetLength = totalLength * fraction;
+    let walkedLength = 0;
+
+    for (let i = 0; i < lineCoordinates.length - 1; i++) {
+        const startPoint = lineCoordinates.at(i);
+        const endPoint = lineCoordinates.at(i + 1);
+
+        if (!startPoint || !endPoint) {
+            break;
+        }
+
+        const segmentLength = haversineDistance(startPoint, endPoint);
+
+        if (walkedLength + segmentLength >= targetLength) {
+            return simpleInterpolateCoordinate(startPoint, endPoint, segmentLength > 0 ? (targetLength - walkedLength) / segmentLength : 0);
+        }
+
+        walkedLength += segmentLength;
+    }
+
+    return lineCoordinates.at(-1) ?? null;
+}
+
+/**
+ * Coordinates at which the distance symbols of the primary and the alternate route should be anchored.
+ * Each symbol is anchored at a different share of its own route, so that the two always sit at a
+ * different point of the trip.
+ */
+function getDistanceSymbolCoordinates(
+    waypoints: Coordinate[],
+    primaryRouteCoordinates: Coordinate[] | undefined,
+    alternateRouteCoordinates: Coordinate[] | undefined,
+): {primary: Coordinate | null; alternate: Coordinate | null} {
+    const primaryRoute = primaryRouteCoordinates ?? [];
+    const alternateRoute = alternateRouteCoordinates ?? [];
+
+    if (!waypoints.length || primaryRoute.length < 2) {
+        return {primary: null, alternate: null};
+    }
+
+    // A single set of bounds is shared by both symbols, so that they are placed relative to the same map.
+    const bounds = getBounds(waypoints, [...primaryRoute, ...alternateRoute]);
+    const center = getBoundsCenter(bounds);
+
+    // A lone symbol has nothing to overlap with, so it stays at the point of its route closest to the center of the map.
+    if (alternateRoute.length < 2) {
+        return {primary: findClosestCoordinateOnLineFromCenter(center, primaryRoute), alternate: null};
+    }
+
+    return {
+        primary: findCoordinateAtRouteFraction(primaryRoute, PRIMARY_ROUTE_FRACTION),
+        alternate: findCoordinateAtRouteFraction(alternateRoute, ALTERNATE_ROUTE_FRACTION),
+    };
+}
+
+/** Flattens a route made of several segments into a single list of coordinates, leaving a single segment route as is. */
+function convertSegmentedRouteToSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][]): Coordinate[];
+function convertSegmentedRouteToSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][] | undefined): Coordinate[] | undefined;
+function convertSegmentedRouteToSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][] | undefined) {
+    return !directionCoordinates || isSingleSegmentRoute(directionCoordinates) ? directionCoordinates : directionCoordinates.flat();
+}
+
+function getCoordinatesFromAllDirections(directionCoordinates: Coordinate[] | Coordinate[][] | undefined, alternateDirection: AlternateDirection | undefined) {
+    const directionCoordinatesFlattened = convertSegmentedRouteToSingleSegmentRoute(directionCoordinates);
+
+    const alternateDirectionCoordinates = alternateDirection?.coordinates;
+    const alternateDirectionCoordinatesFlattened = convertSegmentedRouteToSingleSegmentRoute(alternateDirectionCoordinates);
+
+    return [...(directionCoordinatesFlattened ?? []), ...(alternateDirectionCoordinatesFlattened ?? [])];
+}
+
+/** Applies the same padding to every side of the native camera viewport */
+function getCameraPadding(padding: number | undefined): CameraPadding | undefined {
+    if (padding === undefined) {
+        return undefined;
+    }
+    return {paddingLeft: padding, paddingRight: padding, paddingTop: padding, paddingBottom: padding};
+}
+
+/** Resolves what the center button can move the camera to: the waypoints (a fitted route or a lone waypoint) and/or the current position */
+function getCenterTargets(waypoints: WayPoint[] | undefined, directionCoordinates: Coordinate[] | undefined, currentPosition: Coordinate | undefined) {
+    const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
+    const hasRoute = waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1;
+
+    // With a single waypoint there is no route to fit yet, so that lone waypoint is what the button alternates with.
+    const singleWaypointCoordinate = !hasRoute ? waypointCoordinates.at(0) : undefined;
+
+    // A lone waypoint at the current position is the same target, so there is nothing to alternate with.
+    const isSingleWaypointAtCurrentPosition = !!singleWaypointCoordinate && !!currentPosition && areSameCoordinate(singleWaypointCoordinate, currentPosition);
+    const hasWaypointsTarget = hasRoute || (!!singleWaypointCoordinate && !isSingleWaypointAtCurrentPosition);
+
+    return {waypointCoordinates, singleWaypointCoordinate, hasWaypointsTarget};
 }
 
 export default {
     getBounds,
+    getCameraPadding,
+    getCenterTargets,
     areSameCoordinate,
     areCoordinatesEqual,
+    getSinglePointCoordinate,
     findClosestCoordinateOnLineFromCenter,
     getBoundsCenter,
-    interpolateCoordinate,
+    getDistanceSymbolCoordinates,
+    simpleInterpolateCoordinate,
     isSingleSegmentRoute,
+    convertSegmentedRouteToSingleSegmentRoute,
+    getCoordinatesFromAllDirections,
+    getMapboxLanguage,
+    getNativeMapboxLanguage,
+    getMapboxWorldview,
 };

@@ -1,6 +1,7 @@
 type BaseTransactionParams = {
     amount: number;
     modifiedAmount?: number;
+    modifiedMerchant?: string;
     currency: string;
     created: string;
     merchant: string;

@@ -1,21 +1,29 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateNetSuiteExportJournalsTo} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type MenuListItem = ListItem & {
     value: ValueOf<typeof CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL>;
@@ -33,24 +41,18 @@ function NetSuiteJournalEntryApprovalLevelSelectPage({policy}: WithPolicyConnect
         isSelected: config?.syncOptions.exportJournalsTo === approvalType,
     }));
 
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.exportJournalsTo.description')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.exportJournalsTo.description')}</Text>
+        </View>
     );
 
-    const selectJournalApprovalLevel = useCallback(
-        (row: MenuListItem) => {
-            if (row.value !== config?.syncOptions.exportJournalsTo && policyID) {
-                updateNetSuiteExportJournalsTo(policyID, row.value, config?.syncOptions.exportJournalsTo ?? CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED_NONE);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
-        },
-        [config?.syncOptions.exportJournalsTo, policyID],
-    );
+    const selectJournalApprovalLevel = (row: MenuListItem) => {
+        if (row.value !== config?.syncOptions.exportJournalsTo && policyID) {
+            updateNetSuiteExportJournalsTo(policyID, row.value, config?.syncOptions.exportJournalsTo ?? CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL.JOURNALS_APPROVED_NONE);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen

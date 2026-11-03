@@ -1,4 +1,5 @@
 import type {TurboModule} from 'react-native';
+
 import {TurboModuleRegistry} from 'react-native';
 
 // eslint-disable-next-line rulesdir/no-inline-named-export, @typescript-eslint/consistent-type-definitions

@@ -15,6 +15,7 @@ Every article must:
 - Solve one primary workflow only
 - Match real user search intent
 - Use exact UI terminology
+- Follow the naming, navigation, and capitalization rules in docs/HELPSITE_NAMING_CONVENTIONS.md
 - Follow strict heading rules
 - Be optimized for semantic retrieval
 - Be concise and actionable
@@ -46,10 +47,19 @@ If multiple workflows are detected → split into multiple articles.
   - Explicit
   - Feature-specific
 
+## Capitalization
+
+- Use title case for the article title (the metadata `title` and the `#` title).
+- Use sentence case for every `##` heading.
+- Capitalize proper nouns, product names, plan names, and acronyms. Write `# FAQ` in all caps.
+- Lowercase roles and generic terms (for example, workspace admin, workspace, expense report) unless quoting a UI label.
+
+Full capitalization rules are in docs/HELPSITE_NAMING_CONVENTIONS.md.
+
 **Valid Examples**
 
-# Who can connect a business bank account in Expensify
-## Where to enable ACH reimbursements in a Workspace
+# Who Can Connect a Business Bank Account in Expensify
+## Where to enable ACH reimbursements in a workspace
 ## How to troubleshoot bank connection errors in Expensify
 ## How to enable Expensify Card notifications on iPhone
 
@@ -69,7 +79,7 @@ Every article must begin with:
 
 ```yaml
 ---
-title: Clear task-based title using feature name
+title: Clear Task-Based Title Using Feature Name (title case)
 description: 1–2 sentence summary of outcome
 keywords: [primary task phrase, feature name, relevant roles]
 internalScope: Audience is [target role(s), covers [included workflow], does not cover [explicit exclusions]
@@ -105,6 +115,11 @@ Step instructions must be:
 - Clear
 - Action-oriented
 - Aligned with actual UI flow
+
+Step instructions must also follow docs/HELPSITE_NAMING_CONVENTIONS.md:
+- Use **select** for interacting with UI elements and **choose** only for decisions between options. Do not use click, tap, hit, press, or push.
+- Start navigation in the navigation tabs and use a bolded navigation path, such as **Workspaces > [workspace name] > Members**.
+- Combine web and mobile instructions when navigation is the same. Use separate "On web:" and "On mobile:" instructions when it differs.
 
 ---
 
@@ -209,31 +224,61 @@ Do not use this section as a directory or feature hub.
 
 ---
 
-# 8. Screenshot Placeholder Format (Non-Rendered)
+# 8. Screenshot Guidelines
 
-Screenshot suggestions must use HTML comments so they are invisible in the rendered HelpDot article.
+Only suggest screenshots when they meaningfully improve a member's understanding of the article. Screenshots are optional—not every article or workflow requires them.
+
+## Screenshot Decision Criteria
+
+Suggest a screenshot only if it accomplishes one or more of the following:
+
+* Helps members orient themselves within an interface by confirming they are on the correct page or screen
+* Clarifies a complex or highly visual workflow
+* Highlights an important setting, filter, configuration option, decision point, or UI element
+* Demonstrates a feature or capability that is easier to understand visually
+* Shows a confirmation state or error message that members should recognize
+* Shows a critical step that cannot be adequately described through text alone, particularly when members must locate a specific page, setting, or control
+* Addresses an area that is likely to generate member confusion or support questions
+* Guides members through a workflow in a connected third-party platform, where a screenshot can help them locate the correct page, setting, or control. 
+
+The interface may be Expensify or a connected third-party platform.
+
+Do **not** suggest a screenshot if it would:
+
+* Replace written instructions instead of supporting them
+* Document every step of a workflow
+* Simply mirror or duplicate the surrounding text
+* Show a simple, obvious interface that members can easily identify from the instructions alone
+* Add maintenance overhead without significantly improving comprehension
+
+Before suggesting a screenshot, ask:
+
+> **What specific confusion would this screenshot prevent or resolve?**
+
+If there is no clear answer, do not suggest a screenshot.
+
+## Screenshot Placeholder Format (Non-Rendered)
+
+Screenshot suggestions must use HTML comments so they remain invisible in the rendered HelpDot article.
 
 Use this exact structure:
 
+```html
 <!-- SCREENSHOT:
-Suggestion: [Clear description of UI state]
-Location: [Where it appears in article]
-Purpose: [Why this screenshot helps]
+Suggestion: [Describe the exact UI state to capture]
+Location: [Where it should appear in the article]
+Purpose: [What specific confusion this screenshot prevents or resolves]
 -->
+```
 
 Rules:
- - Must begin with <!-- SCREENSHOT:
- - Must end with -->
- - Must not appear inline in a sentence
- - Place immediately after the section or step it supports
- - Keep description specific and UI-based
 
-Prioritize screenshots for:
- - Navigation flows
- - Settings pages
- - Filters
- - Confirmation states
- - Error messages
+* Must begin with `<!-- SCREENSHOT:`
+* Must end with `-->`
+* Must not appear inline within a sentence
+* Place immediately after the section or step it supports
+* Describe the exact UI state to capture rather than the general page
+* The **Purpose** must explain the unique value of the screenshot. Do not use generic statements such as "Provides a visual reference."
 
 ---
 
@@ -247,10 +292,21 @@ Before outputting an article, confirm:
  - No noun-only, topic-only, or platform-only headings
  - No generic headings (Overview, Introduction, Notes, Setup, Options, Step 1)
  - Feature names match UI
+ - Article title uses title case; every ## heading uses sentence case
+ - UI references follow docs/HELPSITE_NAMING_CONVENTIONS.md, including:
+   - **select** (or **choose** for decisions) instead of click or tap
+   - Navigation tabs, bolded navigation paths with lowercase placeholders, and the navigation menu
+   - **More (⋮)** for the three dots menu
+   - **field** for text-entry controls and "selection bar" for the bulk actions menu
+   - "Enable" or "disable" for toggles
+   - Color used only as a secondary descriptor
+   - Lowercase roles and generic terms; capitalized plan names with lowercase "plan"
+   - "This feature is only available on web/mobile" for platform limitations
  - Metadata aligns with search intent
  - Navigation included (if applicable)
  - Single workflow only
  - Includes at least one "How to" heading
  - Cross-links follow Cross-Linking Standards
+ - Every suggested screenshot has a clear purpose that prevents or resolves a specific member confusion
 
 If any condition fails → regenerate.

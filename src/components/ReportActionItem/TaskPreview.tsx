@@ -1,18 +1,13 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Avatar from '@components/Avatar';
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Checkbox from '@components/Checkbox';
 import Icon from '@components/Icon';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import RenderHTML from '@components/RenderHTML';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
+import {useMentionedAccountIDToNameMap} from '@hooks/useAccountIDToNameMap';
 import useHasOutstandingChildTask from '@hooks/useHasOutstandingChildTask';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -24,6 +19,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTaskCheckboxAccessibility from '@hooks/useTaskCheckboxAccessibility';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {canActionTask, completeTask, getTaskAssigneeAccountID, reopenTask} from '@libs/actions/Task';
 import ControlSelection from '@libs/ControlSelection';
@@ -35,10 +31,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
+import {View} from 'react-native';
 
 type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
     /** The ID of the associated policy */
@@ -59,7 +64,8 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
 };
 
 function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovered = false, style}: TaskPreviewProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator', 'FallbackAvatar']);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'DotIndicator']);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -72,6 +78,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const taskReportID = taskReport?.reportID ?? action?.childReportID;
     // Prefer the live task report name so offline title edits are reflected immediately.
     const taskTitle = taskReport?.reportName ?? action?.childReportName ?? '';
+    const accountIDToName = useMentionedAccountIDToNameMap(taskTitle);
     const taskContextReport =
         taskReport ??
         ({
@@ -84,7 +91,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
             statusNum: action?.childStatusNum,
         } as Report);
 
-    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
+    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle, {accountIDToName}), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
 
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
@@ -93,7 +100,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
 
-    const taskTitlePlainText = Parser.htmlToText(taskTitle);
+    const taskTitlePlainText = Parser.htmlToText(taskTitle, {accountIDToName});
     const {
         isCompleted: isTaskCompleted,
         shouldSplitTaskAccessibilityTargets,
@@ -112,8 +119,6 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTaskActionable = canActionTask(taskContextReport, parentReportAction, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
     const hasAssignee = taskAssigneeAccountID > 0;
-    const personalDetails = usePersonalDetails();
-    const avatar = personalDetails?.[taskAssigneeAccountID]?.avatar ?? icons.FallbackAvatar;
     const avatarSize = CONST.AVATAR_SIZE.SMALL;
     const isDeletedParentAction = isCanceledTaskReport(taskReport, action);
     const iconWrapperStyle = StyleUtils.getTaskPreviewIconWrapper(hasAssignee ? avatarSize : undefined);
@@ -134,17 +139,11 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
     const taskPreviewContent = (
         <>
             {hasAssignee && (
-                <UserDetailsTooltip accountID={taskAssigneeAccountID}>
-                    <View>
-                        <Avatar
-                            containerStyles={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
-                            source={avatar}
-                            size={avatarSize}
-                            avatarID={taskAssigneeAccountID}
-                            type={CONST.ICON_TYPE_AVATAR}
-                        />
-                    </View>
-                </UserDetailsTooltip>
+                <AccountAvatar
+                    accountID={taskAssigneeAccountID}
+                    size={avatarSize}
+                    containerStyle={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
+                />
             )}
             <View style={[styles.alignSelfCenter, styles.flex1, styles.textAlignLeft]}>
                 <RenderHTML html={getTaskHTML()} />
@@ -180,14 +179,25 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                             isChecked={isTaskCompleted}
                             disabled={!isTaskActionable}
                             shouldSelectOnPressEnter
-                            onPress={callFunctionIfActionIsAllowed(() => {
-                                updateTaskCheckboxStateForAccessibility(isTaskCompleted);
-                                if (isTaskCompleted) {
-                                    reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
-                                } else {
-                                    completeTask(taskContextReport, parentReport?.hasOutstandingChildTask ?? false, hasOutstandingChildTask, parentReportAction, delegateEmail, taskReportID);
-                                }
-                            })}
+                            onPress={callFunctionIfActionIsAllowed(
+                                () => {
+                                    updateTaskCheckboxStateForAccessibility(isTaskCompleted);
+                                    if (isTaskCompleted) {
+                                        reopenTask(taskContextReport, parentReport, currentUserPersonalDetails.accountID, delegateEmail, taskReportID);
+                                    } else {
+                                        completeTask(
+                                            taskContextReport,
+                                            parentReport?.hasOutstandingChildTask ?? false,
+                                            hasOutstandingChildTask,
+                                            parentReportAction,
+                                            delegateEmail,
+                                            taskReportID,
+                                        );
+                                    }
+                                },
+                                false,
+                                session,
+                            )}
                             accessibilityLabel={taskCheckboxAccessibilityLabel}
                             accessibilityHint={taskCheckboxAccessibilityHint}
                             sentryLabel={CONST.SENTRY_LABEL.TASK.PREVIEW_CHECKBOX}
@@ -230,7 +240,7 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
                 )}
                 <Icon
                     src={icons.ArrowRight}
-                    fill={StyleUtils.getIconFillColor(getButtonState(isHovered))}
+                    fill={StyleUtils.getIconFillColor({buttonState: getButtonState({isActive: isHovered})})}
                     additionalStyles={iconWrapperStyle}
                 />
             </PressableWithoutFeedback>

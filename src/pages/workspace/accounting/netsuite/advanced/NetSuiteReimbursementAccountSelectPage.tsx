@@ -1,22 +1,30 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateNetSuiteReimbursementAccountID} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getNetSuiteReimbursableAccountOptions, settingsPendingAction} from '@libs/PolicyUtils';
+import {getNetSuiteReimbursableAccountOptions} from '@libs/NetSuiteUtils';
+import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import variables from '@styles/variables';
+
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -26,44 +34,32 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
     const config = policy?.connections?.netsuite?.options.config;
-    const netsuiteReimbursableAccountOptions = useMemo<SelectorType[]>(
-        () => getNetSuiteReimbursableAccountOptions(policy ?? undefined, config?.reimbursementAccountID),
-        [config?.reimbursementAccountID, policy],
+    const netsuiteReimbursableAccountOptions: SelectorType[] = getNetSuiteReimbursableAccountOptions(policy ?? undefined, config?.reimbursementAccountID);
+
+    const initiallyFocusedOptionKey = netsuiteReimbursableAccountOptions?.find((mode) => mode.isSelected)?.keyForList;
+
+    const updateReimbursementAccount = ({value}: SelectorType) => {
+        if (config?.reimbursementAccountID !== value && policyID) {
+            updateNetSuiteReimbursementAccountID(policyID, value, config?.reimbursementAccountID);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+    };
+
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.netsuite.noAccountsFound')}
+            subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
-    const initiallyFocusedOptionKey = useMemo(() => netsuiteReimbursableAccountOptions?.find((mode) => mode.isSelected)?.keyForList, [netsuiteReimbursableAccountOptions]);
-
-    const updateReimbursementAccount = useCallback(
-        ({value}: SelectorType) => {
-            if (config?.reimbursementAccountID !== value && policyID) {
-                updateNetSuiteReimbursementAccountID(policyID, value, config?.reimbursementAccountID);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
-        },
-        [policyID, config?.reimbursementAccountID],
-    );
-
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.netsuite.noAccountsFound')}
-                subtitle={translate('workspace.netsuite.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10],
-    );
-
-    const headerContent = useMemo(
-        () => (
-            <View>
-                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.reimbursementsAccountDescription')}</Text>
-            </View>
-        ),
-        [translate, styles.pb5, styles.ph5],
+    const headerContent = (
+        <View>
+            <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.netsuite.advancedConfig.reimbursementsAccountDescription')}</Text>
+        </View>
     );
 
     return (

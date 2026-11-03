@@ -1,16 +1,22 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
-import {StackActions, TabActions} from '@react-navigation/native';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import navigateToWorkspacesPage from '@libs/Navigation/helpers/navigateToWorkspacesPage';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import * as PolicyUtils from '@libs/PolicyUtils';
+
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Domain} from '@src/types/onyx';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
+
+import {StackActions, TabActions} from '@react-navigation/native';
+
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 
 jest.mock('@libs/Navigation/navigationRef');
 jest.mock('@libs/Navigation/Navigation');
@@ -33,12 +39,12 @@ const mockedDispatch = jest.mocked(navigationRef.dispatch);
 
 const fakePolicyID = '344559B2CCF2B6C1';
 const mockPolicy = {...createRandomPolicy(0), id: fakePolicyID};
-const baseParams = {currentUserLogin: 'test@example.com', shouldUseNarrowLayout: false, policy: mockPolicy};
+const baseParams = {currentUserLogin: 'test@example.com', shouldUseNarrowLayout: false, policy: mockPolicy, session: undefined};
 
 const TAB_NAV_STATE_KEY = 'tab-nav-key-123';
 const tabNavigatorRoute = {
     name: NAVIGATORS.TAB_NAVIGATOR,
-    state: {key: TAB_NAV_STATE_KEY} as PartialState<NavigationState>,
+    state: createMock<PartialState<NavigationState>>({key: TAB_NAV_STATE_KEY}),
 };
 
 describe('navigateToWorkspacesPage', () => {
@@ -47,7 +53,7 @@ describe('navigateToWorkspacesPage', () => {
     });
 
     function mockIntercept() {
-        (interceptAnonymousUser as jest.Mock).mockImplementation((callback: () => void) => {
+        jest.mocked(interceptAnonymousUser).mockImplementation((callback: () => void) => {
             callback();
         });
     }
@@ -85,8 +91,8 @@ describe('navigateToWorkspacesPage', () => {
     });
 
     it('dispatches jumpTo WORKSPACE_NAVIGATOR when a TAB_NAVIGATOR is already on top (workspace, wide layout)', () => {
-        (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(true);
-        (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(false);
+        jest.mocked(PolicyUtils.shouldShowPolicy).mockReturnValue(true);
+        jest.mocked(PolicyUtils.isPendingDeletePolicy).mockReturnValue(false);
         mockIntercept();
 
         navigateToWorkspacesPage({
@@ -103,8 +109,8 @@ describe('navigateToWorkspacesPage', () => {
     });
 
     it('pops workspace split to root then jumps to tab on narrow layout when a sub-page is focused (no flicker)', () => {
-        (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(true);
-        (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(false);
+        jest.mocked(PolicyUtils.shouldShowPolicy).mockReturnValue(true);
+        jest.mocked(PolicyUtils.isPendingDeletePolicy).mockReturnValue(false);
         mockIntercept();
 
         const WORKSPACE_SPLIT_STATE_KEY = 'workspace-split-state-key-456';
@@ -130,8 +136,8 @@ describe('navigateToWorkspacesPage', () => {
     });
 
     it('skips popToTop on narrow layout when WorkspaceInitialPage is already focused', () => {
-        (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(true);
-        (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(false);
+        jest.mocked(PolicyUtils.shouldShowPolicy).mockReturnValue(true);
+        jest.mocked(PolicyUtils.isPendingDeletePolicy).mockReturnValue(false);
         mockIntercept();
 
         const WORKSPACE_SPLIT_STATE_KEY = 'workspace-split-state-key-789';
@@ -160,7 +166,7 @@ describe('navigateToWorkspacesPage', () => {
 
         navigateToWorkspacesPage({
             ...baseParams,
-            domain: {accountID: 123} as unknown as Domain,
+            domain: createMock<Domain>({accountID: 123}),
             lastTabNavigatorRoute: tabNavigatorRoute,
             lastWorkspacesTabNavigatorRoute: {name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR},
         });
@@ -177,7 +183,7 @@ describe('navigateToWorkspacesPage', () => {
 
         navigateToWorkspacesPage({
             ...baseParams,
-            domain: {accountID: 123} as unknown as Domain,
+            domain: createMock<Domain>({accountID: 123}),
             // TAB_NAVIGATOR present but with no state (so no existingTabNavStateKey to jump to).
             lastTabNavigatorRoute: {name: NAVIGATORS.TAB_NAVIGATOR},
             lastWorkspacesTabNavigatorRoute: {name: NAVIGATORS.DOMAIN_SPLIT_NAVIGATOR},
@@ -188,8 +194,8 @@ describe('navigateToWorkspacesPage', () => {
     });
 
     it('navigates to WORKSPACES_LIST if policy is pending delete', () => {
-        (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(true);
-        (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(true);
+        jest.mocked(PolicyUtils.shouldShowPolicy).mockReturnValue(true);
+        jest.mocked(PolicyUtils.isPendingDeletePolicy).mockReturnValue(true);
 
         mockIntercept();
         navigateToWorkspacesPage({
@@ -202,8 +208,8 @@ describe('navigateToWorkspacesPage', () => {
     });
 
     it('navigates to WORKSPACES_LIST if shouldShowPolicy is false for the user', () => {
-        (PolicyUtils.shouldShowPolicy as jest.Mock).mockReturnValue(false);
-        (PolicyUtils.isPendingDeletePolicy as jest.Mock).mockReturnValue(false);
+        jest.mocked(PolicyUtils.shouldShowPolicy).mockReturnValue(false);
+        jest.mocked(PolicyUtils.isPendingDeletePolicy).mockReturnValue(false);
 
         mockIntercept();
         navigateToWorkspacesPage({
@@ -225,5 +231,21 @@ describe('navigateToWorkspacesPage', () => {
         });
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.WORKSPACES_LIST.route);
+    });
+
+    it('passes the session to interceptAnonymousUser', () => {
+        // Given an anonymous session passed in, which interceptAnonymousUser uses to decide whether to redirect to sign in
+        const session = {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS};
+
+        // When navigating to the Workspaces page from another tab
+        navigateToWorkspacesPage({
+            ...baseParams,
+            session,
+            lastTabNavigatorRoute: {name: NAVIGATORS.TAB_NAVIGATOR},
+            lastWorkspacesTabNavigatorRoute: undefined,
+        });
+
+        // Then the passed session is forwarded to interceptAnonymousUser
+        expect(interceptAnonymousUser).toHaveBeenCalledWith(expect.any(Function), session);
     });
 });

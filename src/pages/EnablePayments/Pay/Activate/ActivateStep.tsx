@@ -1,18 +1,23 @@
-import React, {useContext} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import LottieAnimations from '@components/LottieAnimations';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {continueSetup} from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {UserWallet} from '@src/types/onyx';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useContext} from 'react';
+
 type ActivateStepProps = {
-    /** The user's wallet */
     userWallet: OnyxEntry<UserWallet>;
 };
 
@@ -36,14 +41,21 @@ function ActivateStep({userWallet}: ActivateStepProps) {
     return (
         <>
             <HeaderWithBackButton title={translate('activateStep.headerTitle')} />
-            <ConfirmationPage
-                illustration={animation}
-                heading={translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Title`)}
-                description={translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Message`)}
-                shouldShowButton={isActivatedWallet}
-                buttonText={continueButtonText}
-                onButtonPress={() => continueSetup(kycWallRef)}
-            />
+            <ConfirmationPage>
+                <ConfirmationPage.Content>
+                    <ConfirmationPage.Illustration illustration={animation} />
+                    <ConfirmationPage.Heading>{translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Title`)}</ConfirmationPage.Heading>
+                    <ConfirmationPage.Description>{translate(`activateStep.${isActivatedWallet ? 'activated' : 'checkBackLater'}Message`)}</ConfirmationPage.Description>
+                </ConfirmationPage.Content>
+                {!!isActivatedWallet && (
+                    <FixedFooter>
+                        <ConfirmationPage.PrimaryButton
+                            text={continueButtonText}
+                            onPress={() => continueSetup(kycWallRef)}
+                        />
+                    </FixedFooter>
+                )}
+            </ConfirmationPage>
         </>
     );
 }

@@ -4,18 +4,24 @@
 
 [React Compiler](https://react.dev/learn/react-compiler) is a tool designed to enhance the performance of React applications by automatically memoizing components that lack optimizations.
 
-React Compiler is enabled in both the webpack (web) and metro (mobile) build pipelines via `babel-plugin-react-compiler`.
+React Compiler runs in every build lane via `oxc-transform-react` (the Rust React Compiler): the web build (Rsbuild), the native build (Re.Pack) and Jest all compile app source with it. They share one set of options, `config/babel/oxcReactCompilerConfig.js`, and the CI check and the lint pipeline use the same compiler through `config/reactCompiler/checkWithOxc.mjs`.
+
+## Manual memoization
+
+`rulesdir/no-manual-memoization` disallows `React.memo`, `useMemo`, and `useCallback` in files fully compiled and memoized by React Compiler. Derive values directly in render and use plain functions instead of maintaining dependency arrays. The lint pipeline allows manual memoization when the compiler cannot memoize the file.
+
+Callbacks passed to React Navigation's `useFocusEffect` are the exception: keep their `useCallback` wrapper because React Navigation requires a stable callback.
 
 ## React Compiler CI check
 
-A CI check runs on every PR that modifies `.ts` or `.tsx` files. It uses `@babel/core`'s `transformSync` with `babel-plugin-react-compiler` to check whether each changed file's components and hooks compile successfully.
+A CI check runs on every PR that modifies `.ts` or `.tsx` files. For each changed file it runs `oxc-transform-react` and reports whether the file compiles and whether it is actually memoized.
 
 ### What the CI check enforces
 
 The check enforces two rules:
 
-1. **New files must compile.** If you add a new file containing React components or hooks, they must all compile with React Compiler. This prevents new Rules of React violations from entering the codebase.
-2. **No regressions.** If a file already compiles on `main` and your PR breaks that, the check fails. This prevents introducing violations into files that were previously compliant.
+1. **New files must compile.** If you add a new file containing React components or hooks, they must all compile with the React Compiler. This prevents new Rules of React violations from entering the codebase.
+2. **No regressions.** If a file compiles on `main` and your PR breaks that, the check fails. This prevents introducing violations into files that were previously compliant.
 
 The check does **not** fail if:
 - A file has no React components or hooks (utilities, types, constants are silently skipped)
@@ -23,14 +29,14 @@ The check does **not** fail if:
 
 ### What to do when the check fails
 
-The CI output shows which files failed, with the compiler error reason, file path, and line number for each failure. Look for lines like:
+The CI output shows which files failed and the reason. Look for lines like:
 
 ```
 FAILED   src/components/MyComponent.tsx (new file must compile)
-    src/components/MyComponent.tsx:42:8: Hooks must always be called in a consistent order...
+    42:8: Hooks must always be called in a consistent order...
 ```
 
-The error messages come directly from React Compiler and describe which [Rule of React](https://react.dev/reference/rules) was violated. See the ["How to fix a particular problem?"](#how-to-fix-a-particular-problem) section below for common fixes.
+Compile-failure messages come directly from React Compiler and describe which [Rule of React](https://react.dev/reference/rules) was violated; see the ["How to fix a particular problem?"](#how-to-fix-a-particular-problem) section below for common fixes.
 
 ### Local usage
 
@@ -73,7 +79,7 @@ If you added a modification to `SharedValue`, you'll likely encounter this error
 
 ### Existing manual memoization could not be preserved. [...]
 
-These types of errors usually occur when the calls to `useMemo` that were made manually are too complex for react-compiler to understand. React compiler is still experimental so unfortunately this can happen.
+Remove the manual memoization and derive the value directly in render. This lets React Compiler infer dependencies and choose its own memoization boundaries. The examples below explain the historical errors in files that still need manual memoization because they do not compile on both platforms.
 
 Some specific cases of this error are described below.
 

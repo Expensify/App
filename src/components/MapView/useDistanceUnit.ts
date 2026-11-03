@@ -1,6 +1,7 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
 import CONST from '@src/CONST';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import {useEffect, useRef, useState} from 'react';
 
 /**
  * Manages distance unit state that syncs from a prop but can be overridden by user toggle.
@@ -17,12 +18,12 @@ function useDistanceUnit(unit: Unit | undefined) {
         setDistanceUnit(unit);
     }, [unit]);
 
-    const toggleDistanceUnit = useCallback(() => {
+    const toggleDistanceUnit = () => {
         userToggledUnit.current = true;
         setDistanceUnit((currentUnit) =>
             currentUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES : CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
         );
-    }, []);
+    };
 
     return {distanceUnit, toggleDistanceUnit};
 }

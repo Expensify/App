@@ -1,21 +1,39 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import {getDisplayNameOrDefault, getLoginByAccountID, getPersonalDetailsByID, getPersonalDetailsListByIDs, newGetPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
+
+import {
+    getLoginByAccountID,
+    getLoginsByAccountIDs,
+    getNewAccountIDsAndLogins,
+    getPersonalDetailsByID,
+    getPersonalDetailsListByIDs,
+    getPersonalDetailsByIDs,
+    temporaryGetDisplayNameOrDefault,
+} from '@libs/PersonalDetailsUtils';
+
 import CONST from '@src/CONST';
-import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
+import type {InvitedEmailsToAccountIDs, PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const personalDetailsSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByID(accountID, personalDetailsList);
 
-const multiPersonalDetailsSelector = (accountIDs: number[] | undefined) => (personalDetails: OnyxEntry<PersonalDetailsList>) => newGetPersonalDetailsByIDs(accountIDs, personalDetails);
+const multiPersonalDetailsSelector = (accountIDs: number[] | undefined) => (personalDetails: OnyxEntry<PersonalDetailsList>) => getPersonalDetailsByIDs(accountIDs, personalDetails);
 
 const personalDetailsListSelector = (accountIDs: Array<number | undefined> | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     getPersonalDetailsListByIDs(accountIDs, personalDetailsList);
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
-const personalDetailsDisplayNameSelector = (accountID: number) => (personalDetails: OnyxEntry<PersonalDetailsList>) => getDisplayNameOrDefault(personalDetails?.[accountID]);
+const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
 
-const conciergePersonalDetailSelector = personalDetailsSelector(CONST.ACCOUNT_ID.CONCIERGE);
+const personalDetailsDisplayNameSelector =
+    (accountID: number, translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => (personalDetails: OnyxEntry<PersonalDetailsList>) =>
+        temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: personalDetails?.[accountID],
+            translate,
+            formatPhoneNumber,
+        });
 
 type DisplayDetails = Pick<PersonalDetails, 'accountID' | 'displayName' | 'login' | 'avatar'>;
 
@@ -32,7 +50,12 @@ const createDisplayDetailsByAccountIDsSelector =
             if (!detail) {
                 continue;
             }
-            result[accountID] = {accountID: detail.accountID, displayName: detail.displayName, login: detail.login, avatar: detail.avatar};
+            result[accountID] = {
+                accountID: detail.accountID,
+                displayName: detail.displayName,
+                login: detail.login,
+                avatar: detail.avatar,
+            };
         }
         return result;
     };
@@ -57,24 +80,57 @@ function isPersonalDetailOptimistic(personalDetail: PersonalDetails | null | und
     return isEmptyObject(personalDetail) || !!personalDetail?.isOptimisticPersonalDetail;
 }
 
-const isOptimisticPersonalDetailSelector =
-    (accountID: number) =>
-    (personalDetailsList: OnyxEntry<PersonalDetailsList>): boolean => {
-        if (!personalDetailsList) {
-            return true;
+/**
+ * Returns only the personal details that were created optimistically. The optimistic set is tiny compared to the whole
+ * personal details list, so subscribers using it don't re-render every time an unrelated (server-backed) detail changes.
+ */
+const optimisticPersonalDetailsSelector = (personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetailsList => {
+    const optimisticPersonalDetails: PersonalDetailsList = {};
+    for (const [accountID, personalDetail] of Object.entries(personalDetailsList ?? {})) {
+        if (!personalDetail?.isOptimisticPersonalDetail) {
+            continue;
         }
-        return isPersonalDetailOptimistic(personalDetailsList[accountID]);
-    };
+        optimisticPersonalDetails[accountID] = personalDetail;
+    }
+    return optimisticPersonalDetails;
+};
+
+const newAccountIDsAndLoginsSelector = (invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
+    getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, personalDetailsList);
+
+const displayNameSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.displayName;
+
+const accountIDSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.accountID;
+
+const loginSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.login;
+
+const avatarStyleColorSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.avatarStyle?.color;
+
+const doesPersonalDetailExist = (personalDetails: PersonalDetails | undefined) => !!personalDetails;
+
+const firstNameSelector = (personalDetails: PersonalDetails | undefined) => (personalDetails?.firstName?.trim() ? personalDetails.firstName : undefined);
+
+const displayNameOrDefaultSelector = (translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => (personalDetails: PersonalDetails | undefined) =>
+    temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
 
 export {
+    avatarStyleColorSelector,
     personalDetailsSelector,
     multiPersonalDetailsSelector,
     personalDetailsListSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
-    conciergePersonalDetailSelector,
+    personalDetailsLoginsSelector,
     doesPersonalDetailExistSelector,
     accountIDToLoginSelector,
-    isOptimisticPersonalDetailSelector,
+    isPersonalDetailOptimistic,
+    optimisticPersonalDetailsSelector,
     createDisplayDetailsByAccountIDsSelector,
+    newAccountIDsAndLoginsSelector,
+    displayNameSelector,
+    accountIDSelector,
+    loginSelector,
+    firstNameSelector,
+    displayNameOrDefaultSelector,
+    doesPersonalDetailExist,
 };

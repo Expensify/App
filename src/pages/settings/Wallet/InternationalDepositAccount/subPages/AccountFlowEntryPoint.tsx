@@ -1,27 +1,35 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import LottieAnimations from '@components/LottieAnimations';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
 import Navigation from '@navigation/Navigation';
+
 import {clearPersonalBankAccount, updateAddPersonalBankAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 type AccountFlowEntryPointProps = {
     /** The workspace name */
@@ -35,27 +43,42 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardEdgeToEdge, cardMenuItemInset} = useLayoutSpacing();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bank', 'Connect', 'Lightbulb', 'Lock']);
 
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+    const [personalBankAccount, personalBankAccountResult] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
+    const isLoadingPersonalBankAccount = isLoadingOnyxValue(personalBankAccountResult);
+    const onSuccessFallbackRoute = personalBankAccount?.onSuccessFallbackRoute;
+    const exitReportID = personalBankAccount?.exitReportID;
 
     useEffect(() => {
-        clearPersonalBankAccount();
-    }, []);
+        if (isLoadingPersonalBankAccount) {
+            return;
+        }
+
+        // Clear stale flow state on entry but keep onSuccessFallbackRoute and exitReportID if they were set before.
+        // openPersonalBankAccountSetupView also resets state, but this handles direct navigation to this screen.
+        const preservedData = {
+            ...(onSuccessFallbackRoute ? {onSuccessFallbackRoute} : {}),
+            ...(exitReportID ? {exitReportID} : {}),
+        };
+        clearPersonalBankAccount(Object.keys(preservedData).length > 0 ? preservedData : undefined);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isLoadingPersonalBankAccount]);
 
     const handleConnectManually = () => {
         updateAddPersonalBankAccountDraft({
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL,
         });
-        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.MANUAL_BANK_ACCOUNT_DETAILS)));
     };
 
     const handleConnectPlaid = () => {
         updateAddPersonalBankAccountDraft({
             setupType: CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID,
         });
-        Navigation.navigate(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT);
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute(CONST.ADD_PERSONAL_BANK_ACCOUNT.SUB_PAGE_NAMES.PLAID_BANK_ACCOUNT)));
     };
 
     return (
@@ -85,7 +108,7 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                             src={expensifyIcons.Lightbulb}
                             fill={theme.icon}
                             additionalStyles={styles.mr2}
-                            medium
+                            size={CONST.ICON_SIZE.MEDIUM}
                         />
                         <Text
                             style={[styles.textLabelSupportingNormal, styles.flex1]}
@@ -94,22 +117,20 @@ function AccountFlowEntryPoint({policyName = '', onBackButtonPress}: AccountFlow
                             {translate('workspace.bankAccount.connectBankAccountNote')}
                         </Text>
                     </View>
-                    <View style={styles.mt4}>
-                        <MenuItem
-                            title={translate('bankAccount.connectOnlineWithPlaid')}
-                            icon={expensifyIcons.Bank}
-                            disabled={!!isPlaidDisabled}
-                            onPress={handleConnectPlaid}
-                            shouldShowRightIcon
-                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                        />
-                        <MenuItem
-                            title={translate('bankAccount.connectManually')}
-                            icon={expensifyIcons.Connect}
-                            onPress={handleConnectManually}
-                            shouldShowRightIcon
-                            outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
-                        />
+                    <View style={[styles.mt4, cardEdgeToEdge]}>
+                        <View style={cardMenuItemInset}>
+                            <MenuItemNavigation
+                                title={translate('bankAccount.connectOnlineWithPlaid')}
+                                icon={expensifyIcons.Bank}
+                                isDisabled={!!isPlaidDisabled}
+                                onPress={handleConnectPlaid}
+                            />
+                            <MenuItemNavigation
+                                title={translate('bankAccount.connectManually')}
+                                icon={expensifyIcons.Connect}
+                                onPress={handleConnectManually}
+                            />
+                        </View>
                     </View>
                 </Section>
                 <View style={[styles.mv0, styles.mh5, styles.flexRow, styles.justifyContentBetween]}>

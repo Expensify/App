@@ -1,17 +1,21 @@
-import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
-import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
+
 import {write} from '@libs/API';
 import type {AddEmojiReactionParams, RemoveEmojiReactionParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {findEmojiByCode, hasAccountIDEmojiReacted} from '@libs/EmojiUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import {getOriginalReportID} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
+import type {ReportAction, ReportActionReactions, ReportActions} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+
+import {format as timezoneFormat, toZonedTime} from 'date-fns-tz';
+import Onyx from 'react-native-onyx';
 
 /**
  * Adds a reaction to the report action.
@@ -93,6 +97,7 @@ function removeEmojiReaction(reportID: string, reportActionID: string, emoji: Em
 
 /**
  * Calls either addEmojiReaction or removeEmojiReaction depending on if the current user has reacted to the report action.
+ * When an opposite reaction is provided, it is removed before adding the selected reaction.
  * Uses the NEW FORMAT for "emojiReactions"
  */
 function toggleEmojiReaction(
@@ -102,9 +107,12 @@ function toggleEmojiReaction(
     existingReactions: OnyxEntry<ReportActionReactions>,
     paramSkinTone: number,
     currentUserAccountID: number,
+    reportActions: OnyxEntry<ReportActions>,
+    isOffline: boolean,
     ignoreSkinToneOnCompare = false,
+    oppositeReactionObject?: Emoji,
 ) {
-    const originalReportID = getOriginalReportID(reportID, reportAction, undefined);
+    const originalReportID = getOriginalReportID(reportID, reportAction, reportActions, isOffline);
 
     if (!originalReportID) {
         return;
@@ -144,8 +152,23 @@ function toggleEmojiReaction(
         return;
     }
 
+    if (oppositeReactionObject) {
+        const oppositeEmoji = findEmojiByCode(oppositeReactionObject.code);
+        const oppositeHexEntry = oppositeEmoji.hexcode ? existingReactions?.[oppositeEmoji.hexcode] : undefined;
+        const oppositeNameEntry = existingReactions?.[oppositeEmoji.name];
+        const userReactedWithOppositeUnderHex = !!oppositeHexEntry && hasAccountIDEmojiReacted(currentUserAccountID, oppositeHexEntry.users, skinToneToCheck);
+        const userReactedWithOppositeUnderName = !!oppositeNameEntry && hasAccountIDEmojiReacted(currentUserAccountID, oppositeNameEntry.users, skinToneToCheck);
+
+        // The same reaction may be stored under both its legacy name and its hexcode, so clear both before recording the new rating.
+        if (userReactedWithOppositeUnderHex && oppositeEmoji.hexcode) {
+            removeEmojiReaction(originalReportID, reportAction.reportActionID, oppositeEmoji, currentUserAccountID, oppositeEmoji.hexcode);
+        }
+        if (userReactedWithOppositeUnderName) {
+            removeEmojiReaction(originalReportID, reportAction.reportActionID, oppositeEmoji, currentUserAccountID, oppositeEmoji.name);
+        }
+    }
+
     addEmojiReaction(originalReportID, reportAction.reportActionID, emoji, skinTone, currentUserAccountID);
 }
 
-// eslint-disable-next-line import/prefer-default-export
-export {toggleEmojiReaction};
+export default toggleEmojiReaction;

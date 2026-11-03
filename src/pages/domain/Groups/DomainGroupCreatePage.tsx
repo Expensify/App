@@ -1,32 +1,40 @@
-import {defaultSecurityGroupIDSelector} from '@selectors/Domain';
-import {createAdminPoliciesSelector, policyNameSelector} from '@selectors/Policy';
-import React, {useEffect, useRef, useState} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useConfirmModal from '@hooks/useConfirmModal';
+import useIsDomainUsingCard from '@hooks/useIsDomainUsingCard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addErrorMessage} from '@libs/ErrorUtils';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import DomainNotFoundPageWrapper from '@pages/domain/DomainNotFoundPageWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {clearDomainGroupCreatePreferredPolicyID, createDomainSecurityGroup, setDomainGroupCreatePreferredPolicyID} from '@userActions/Domain';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/DomainGroupCreateForm';
+
+import {defaultSecurityGroupIDSelector} from '@selectors/Domain';
+import {createAdminPoliciesSelector, policyNameSelector} from '@selectors/Policy';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 type DomainGroupCreatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.DOMAIN.GROUP_CREATE>;
 
@@ -54,13 +62,17 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
         selector: defaultSecurityGroupIDSelector,
     });
     const [adminPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: createAdminPoliciesSelector()});
-    const [domainCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`);
-    const isDomainUsingExpensifyCard = !!domainCardSettings;
+    const {isDomainUsingCard, isLoading: isCardEligibilityLoading} = useIsDomainUsingCard(domainAccountID);
 
     const firstAdminPolicy = Object.values(adminPolicies ?? {})
         .sort((a, b) => localeCompare(a?.created ?? '', b?.created ?? ''))
         .at(0);
     const hasAdminPolicies = !!firstAdminPolicy;
+    const preferredWorkspaceName = preferredPolicyName ?? firstAdminPolicy?.name;
+
+    // A toggle's dependency can disappear while this page is open, so we keep its value and flag it on Create (see onSubmit).
+    const canEnablePreferredWorkspace = hasAdminPolicies;
+    const canEnableCardPreferredWorkspace = preferredWorkspace && isDomainUsingCard;
 
     useEffect(() => {
         return () => {
@@ -95,6 +107,26 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         return errors;
                     }}
                     onSubmit={(values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_GROUP_FORM>) => {
+                        // A dependency may have been removed from another device after the person enabled a toggle. Rather
+                        // than silently turning the toggle off, surface it here so it's clear why the choice can't be applied.
+                        if (preferredWorkspace && !hasAdminPolicies) {
+                            showConfirmModal({
+                                title: translate('workspace.distanceRates.oopsNotSoFast'),
+                                prompt: translate('domain.groups.noWorkspacesMessage'),
+                                confirmText: translate('common.buttonConfirm'),
+                                shouldShowCancelButton: false,
+                            });
+                            return;
+                        }
+                        if (expensifyCardPreferredWorkspace && !isDomainUsingCard) {
+                            showConfirmModal({
+                                title: translate('workspace.distanceRates.oopsNotSoFast'),
+                                prompt: translate('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'),
+                                confirmText: translate('common.buttonConfirm'),
+                                shouldShowCancelButton: false,
+                            });
+                            return;
+                        }
                         createDomainSecurityGroup(
                             domainAccountID,
                             {
@@ -172,7 +204,7 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         subtitle={translate('domain.groups.preferredWorkspaceDescription', preferredWorkspace)}
                         switchAccessibilityLabel={translate('domain.groups.preferredWorkspace')}
                         isActive={preferredWorkspace}
-                        disabled={!hasAdminPolicies}
+                        disabled={!canEnablePreferredWorkspace && !preferredWorkspace}
                         disabledAction={() => {
                             showConfirmModal({
                                 title: translate('workspace.distanceRates.oopsNotSoFast'),
@@ -196,12 +228,11 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         shouldPlaceSubtitleBelowSwitch
                     />
                     {hasAdminPolicies && (
-                        <MenuItemWithTopDescription
-                            description={translate('domain.groups.preferredWorkspace')}
-                            title={preferredPolicyName ?? firstAdminPolicy?.name}
-                            shouldShowRightIcon
+                        <MenuItemField
+                            name={translate('domain.groups.preferredWorkspace')}
                             onPress={() => Navigation.navigate(ROUTES.DOMAIN_GROUP_CREATE_PREFERRED_WORKSPACE.getRoute(domainAccountID))}
-                            disabled={!preferredWorkspace}
+                            isDisabled={!preferredWorkspace}
+                            value={preferredWorkspaceName}
                         />
                     )}
                     <ToggleSettingOptionRow
@@ -209,8 +240,12 @@ function DomainGroupCreatePage({route}: DomainGroupCreatePageProps) {
                         subtitle={translate('domain.groups.expensifyCardPreferredWorkspaceDescription')}
                         switchAccessibilityLabel={translate('domain.groups.expensifyCardPreferredWorkspace')}
                         isActive={expensifyCardPreferredWorkspace}
-                        disabled={!preferredWorkspace || !isDomainUsingExpensifyCard}
+                        disabled={!canEnableCardPreferredWorkspace && !expensifyCardPreferredWorkspace}
                         disabledAction={() => {
+                            // While card eligibility is still loading we keep the toggle disabled but skip the error, otherwise a domain that does have a feed would show the "no card feed" message on a cold load.
+                            if (isCardEligibilityLoading) {
+                                return;
+                            }
                             showConfirmModal({
                                 title: translate('workspace.distanceRates.oopsNotSoFast'),
                                 prompt: translate('domain.groups.expensifyCardPreferredWorkspaceDisabledMessage'),

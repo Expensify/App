@@ -1,8 +1,12 @@
 import {getChatByParticipants, getReportOrDraftReport, isDeprecatedGroupDM, isGroupChat, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
+
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import createMock from '../utils/createMock';
 
 jest.mock('@libs/ReportUtils', () => ({
     getChatByParticipants: jest.fn(),
@@ -27,23 +31,24 @@ const FALLBACK = 'fallback-optimistic-id';
 describe('resolveChatTargetForSubmitCleanup', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        (getChatByParticipants as jest.Mock).mockReturnValue(undefined);
-        (getReportOrDraftReport as jest.Mock).mockReturnValue({reportID: 'cached'});
-        (isMoneyRequestReport as jest.Mock).mockReturnValue(false);
-        (isPolicyExpenseChat as jest.Mock).mockReturnValue(false);
-        (isSelfDM as jest.Mock).mockReturnValue(false);
-        (isGroupChat as jest.Mock).mockReturnValue(false);
-        (isDeprecatedGroupDM as jest.Mock).mockReturnValue(false);
+        jest.mocked(getChatByParticipants).mockReturnValue(undefined);
+        jest.mocked(getReportOrDraftReport).mockReturnValue(createMock<Report>({reportID: 'cached'}));
+        jest.mocked(isMoneyRequestReport).mockReturnValue(false);
+        jest.mocked(isPolicyExpenseChat).mockReturnValue(false);
+        jest.mocked(isSelfDM).mockReturnValue(false);
+        jest.mocked(isGroupChat).mockReturnValue(false);
+        jest.mocked(isDeprecatedGroupDM).mockReturnValue(false);
     });
 
     it('should keep the source report when it is a money-request (IOU/expense) report so navigation lands back on it', () => {
         const participant: Participant = {accountID: PARTICIPANT_ACCOUNT_ID};
-        const report = {reportID: 'iou-report-1'} as Report;
-        (isMoneyRequestReport as jest.Mock).mockReturnValue(true);
+        const report = createMock<Report>({reportID: 'iou-report-1'});
+        jest.mocked(isMoneyRequestReport).mockReturnValue(true);
 
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -56,12 +61,13 @@ describe('resolveChatTargetForSubmitCleanup', () => {
 
     it('should keep the source report when participants match (action keeps parentChatReport even if getChatByParticipants returns no match)', () => {
         const participant: Participant = {accountID: PARTICIPANT_ACCOUNT_ID};
-        const report = {reportID: 'chat-A', participants: {[PARTICIPANT_ACCOUNT_ID]: {}, [CURRENT_USER_ACCOUNT_ID]: {}}} as unknown as Report;
-        (getChatByParticipants as jest.Mock).mockReturnValue(undefined);
+        const report = createMock<Report>({reportID: 'chat-A', participants: {[PARTICIPANT_ACCOUNT_ID]: {}, [CURRENT_USER_ACCOUNT_ID]: {}}});
+        jest.mocked(getChatByParticipants).mockReturnValue(undefined);
 
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -72,12 +78,13 @@ describe('resolveChatTargetForSubmitCleanup', () => {
 
     it('should keep the source report for special chat types (policyExpenseChat / selfDM / groupChat / deprecatedGroupDM) regardless of participant match', () => {
         const participant: Participant = {accountID: PARTICIPANT_ACCOUNT_ID};
-        const report = {reportID: 'self-dm-1'} as Report;
-        (isSelfDM as jest.Mock).mockReturnValue(true);
+        const report = createMock<Report>({reportID: 'self-dm-1'});
+        jest.mocked(isSelfDM).mockReturnValue(true);
 
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -88,11 +95,12 @@ describe('resolveChatTargetForSubmitCleanup', () => {
 
     it('should keep the source report when participant.isPolicyExpenseChat=true (action skips participant validation)', () => {
         const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-1'};
-        const report = {reportID: 'some-report'} as Report;
+        const report = createMock<Report>({reportID: 'some-report'});
 
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -107,6 +115,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report: undefined,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -115,13 +124,32 @@ describe('resolveChatTargetForSubmitCleanup', () => {
         expect(result).toEqual({report: undefined, chatReportID: 'workspace-1', optimisticChatReportID: undefined});
     });
 
+    // The participant's workspace chat can exist only as a draft (a workspace being created on the fly), so the
+    // caller has to hand that draft in rather than letting getReportOrDraftReport read the REPORT_DRAFT collection.
+    it('should forward the supplied participantReportDraft to getReportOrDraftReport', () => {
+        const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-draft-1'};
+        const participantReportDraft = createMock<Report>({reportID: 'workspace-draft-1'});
+
+        resolveChatTargetForSubmitCleanup({
+            participant,
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft,
+            report: undefined,
+            fallbackOptimisticChatReportID: FALLBACK,
+            action: CONST.IOU.ACTION.CREATE,
+        });
+
+        expect(getReportOrDraftReport).toHaveBeenCalledWith({reportID: 'workspace-draft-1', reportDraft: participantReportDraft});
+    });
+
     it('should fall back to optimisticChatReportID when participant.isPolicyExpenseChat targets a report not present in the Onyx cache (mirrors action behavior)', () => {
         const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-uncached'};
-        (getReportOrDraftReport as jest.Mock).mockReturnValue(undefined);
+        jest.mocked(getReportOrDraftReport).mockReturnValue(undefined);
 
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report: undefined,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -132,12 +160,13 @@ describe('resolveChatTargetForSubmitCleanup', () => {
 
     it('should resolve to the existing 1:1 DM via getChatByParticipants when participant differs from source report', () => {
         const participant: Participant = {accountID: OTHER_PARTICIPANT_ACCOUNT_ID};
-        const report = {reportID: 'chat-A', participants: {[PARTICIPANT_ACCOUNT_ID]: {}, [CURRENT_USER_ACCOUNT_ID]: {}}} as unknown as Report;
-        (getChatByParticipants as jest.Mock).mockReturnValue({reportID: 'chat-B'});
+        const report = createMock<Report>({reportID: 'chat-A', participants: {[PARTICIPANT_ACCOUNT_ID]: {}, [CURRENT_USER_ACCOUNT_ID]: {}}});
+        jest.mocked(getChatByParticipants).mockReturnValue(createMock<Report>({reportID: 'chat-B'}));
 
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -149,12 +178,13 @@ describe('resolveChatTargetForSubmitCleanup', () => {
 
     it('should fall back to optimisticChatReportID and discard report when participant changed to a brand-new contact (no existing chat)', () => {
         const participant: Participant = {accountID: OTHER_PARTICIPANT_ACCOUNT_ID};
-        const report = {reportID: 'chat-A', participants: {[PARTICIPANT_ACCOUNT_ID]: {}, [CURRENT_USER_ACCOUNT_ID]: {}}} as unknown as Report;
-        (getChatByParticipants as jest.Mock).mockReturnValue(undefined);
+        const report = createMock<Report>({reportID: 'chat-A', participants: {[PARTICIPANT_ACCOUNT_ID]: {}, [CURRENT_USER_ACCOUNT_ID]: {}}});
+        jest.mocked(getChatByParticipants).mockReturnValue(undefined);
 
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -169,6 +199,7 @@ describe('resolveChatTargetForSubmitCleanup', () => {
         const result = resolveChatTargetForSubmitCleanup({
             participant,
             currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            participantReportDraft: {},
             report: undefined,
             fallbackOptimisticChatReportID: FALLBACK,
             action: CONST.IOU.ACTION.CREATE,
@@ -180,13 +211,14 @@ describe('resolveChatTargetForSubmitCleanup', () => {
     describe('tracked-expense submit (action === SUBMIT)', () => {
         it('should NOT keep the self-DM source — the action writes to the participant 1:1 chat, not back to self-DM', () => {
             const participant: Participant = {accountID: PARTICIPANT_ACCOUNT_ID};
-            const report = {reportID: 'self-dm-1'} as Report;
-            (isSelfDM as jest.Mock).mockReturnValue(true);
-            (getChatByParticipants as jest.Mock).mockReturnValue({reportID: 'one-on-one-chat'});
+            const report = createMock<Report>({reportID: 'self-dm-1'});
+            jest.mocked(isSelfDM).mockReturnValue(true);
+            jest.mocked(getChatByParticipants).mockReturnValue(createMock<Report>({reportID: 'one-on-one-chat'}));
 
             const result = resolveChatTargetForSubmitCleanup({
                 participant,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                participantReportDraft: {},
                 report,
                 fallbackOptimisticChatReportID: FALLBACK,
                 action: CONST.IOU.ACTION.SUBMIT,
@@ -198,12 +230,13 @@ describe('resolveChatTargetForSubmitCleanup', () => {
 
         it('should resolve to the participant policy-expense chat (not the self-DM source) for a workspace submit', () => {
             const participant: Participant = {isPolicyExpenseChat: true, reportID: 'workspace-1'};
-            const report = {reportID: 'self-dm-1'} as Report;
-            (isSelfDM as jest.Mock).mockReturnValue(true);
+            const report = createMock<Report>({reportID: 'self-dm-1'});
+            jest.mocked(isSelfDM).mockReturnValue(true);
 
             const result = resolveChatTargetForSubmitCleanup({
                 participant,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                participantReportDraft: {},
                 report,
                 fallbackOptimisticChatReportID: FALLBACK,
                 action: CONST.IOU.ACTION.SUBMIT,
@@ -214,12 +247,13 @@ describe('resolveChatTargetForSubmitCleanup', () => {
 
         it('should still keep the source when it is a money-request report even for SUBMIT (mirrors action: isMoneyRequestReport ? report.reportID)', () => {
             const participant: Participant = {accountID: PARTICIPANT_ACCOUNT_ID};
-            const report = {reportID: 'iou-report-1'} as Report;
-            (isMoneyRequestReport as jest.Mock).mockReturnValue(true);
+            const report = createMock<Report>({reportID: 'iou-report-1'});
+            jest.mocked(isMoneyRequestReport).mockReturnValue(true);
 
             const result = resolveChatTargetForSubmitCleanup({
                 participant,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                participantReportDraft: {},
                 report,
                 fallbackOptimisticChatReportID: FALLBACK,
                 action: CONST.IOU.ACTION.SUBMIT,

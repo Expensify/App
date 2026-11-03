@@ -1,7 +1,13 @@
-import React, {useContext, useMemo} from 'react';
 import Log from '@libs/Log';
+
 import SCREENS from '@src/SCREENS';
+
+import React, {useContext} from 'react';
+
+import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';
+
 import AttachmentModalContext from './AttachmentModalContext';
+import BillingReceiptModalContent from './routes/BillingReceiptModalContent';
 import ProfileAvatarModalContent from './routes/ProfileAvatarModalContent';
 import ReportAddAttachmentModalContent from './routes/report/ReportAddAttachmentModalContent';
 import ReportAttachmentModalContent from './routes/report/ReportAttachmentModalContent';
@@ -10,7 +16,6 @@ import ShareDetailsAttachmentModalContent from './routes/ShareDetailsAttachmentM
 import TransactionReceiptModalContent from './routes/TransactionReceiptModalContent';
 import WorkspaceAvatarModalContent from './routes/WorkspaceAvatarModalContent';
 import WorkspaceDocumentModalContent from './routes/WorkspaceDocumentModalContent';
-import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';
 
 type RouteType<Screen extends AttachmentModalScreenType> = AttachmentModalScreenProps<Screen>['route'];
 type NavigationType<Screen extends AttachmentModalScreenType> = AttachmentModalScreenProps<Screen>['navigation'];
@@ -21,14 +26,19 @@ type NavigationType<Screen extends AttachmentModalScreenType> = AttachmentModalS
  */
 function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route, navigation}: AttachmentModalScreenProps<Screen>) {
     const attachmentsContext = useContext(AttachmentModalContext);
-    const routeWithContext = useMemo(() => {
-        const currentAttachment = attachmentsContext.getCurrentAttachment<Screen>();
-
-        if (currentAttachment) {
-            return {...route, params: {...route.params, ...currentAttachment}};
-        }
-        return route;
-    }, [attachmentsContext, route]);
+    let routeWithContext;
+    const currentAttachment = attachmentsContext.getCurrentAttachment<Screen>();
+    if (currentAttachment) {
+        routeWithContext = {
+            ...route,
+            params: {
+                ...route.params,
+                ...currentAttachment,
+            },
+        };
+    } else {
+        routeWithContext = route;
+    }
 
     if (route.name === SCREENS.REPORT_ATTACHMENTS) {
         return (
@@ -82,6 +92,10 @@ function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route,
                 navigation={navigation as NavigationType<typeof SCREENS.WORKSPACE_DOCUMENT>}
             />
         );
+    }
+
+    if (route.name === SCREENS.BILLING_RECEIPT) {
+        return <BillingReceiptModalContent />;
     }
 
     if (route.name === SCREENS.REPORT_AVATAR) {

@@ -1,10 +1,10 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useFilterBankAccountValue from '@components/Search/hooks/useFilterBankAccountValue';
 import useFilterCardValue from '@components/Search/hooks/useFilterCardValue';
 import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
 import useFilterReportValue from '@components/Search/hooks/useFilterReportValue';
@@ -15,23 +15,37 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {saveSearch} from '@libs/actions/Search';
 import Navigation from '@libs/Navigation/Navigation';
-import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
+import {rand64} from '@libs/NumberUtils';
+import {savedSearchIDToSearchKey} from '@libs/SearchKeyUtils';
+import {getCustomColumnDefault, getFooterCountItems, getFooterTotalItems, getSearchColumnTranslationKey, getValidGroupBy, mapFiltersFormToLabelValueList} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
+import React from 'react';
+import {View} from 'react-native';
+
 type FilterValueProps = {
     value: SearchFilter['value'];
+};
+
+type ArrayFilterValueProps = {
+    value: Extract<SearchFilter['value'], string[]>;
 };
 
 type FilterValueWithKeyProps = FilterValueProps & {
@@ -46,28 +60,34 @@ function FilterWorkspaceValue({value}: FilterValueProps) {
     return useFilterWorkspaceValue(value);
 }
 
-function FilterFeedValue({value}: FilterValueProps) {
-    return useFilterFeedValue(value as string[]);
+function FilterFeedValue({value}: ArrayFilterValueProps) {
+    return useFilterFeedValue(value);
 }
 
 function FilterCardValue({value}: FilterValueProps) {
-    return useFilterCardValue(value as string[]);
+    return useFilterCardValue(Array.isArray(value) ? value : value.split(', '));
 }
 
-function FilterTaxRateValue({value}: FilterValueProps) {
-    return useFilterTaxRateValue(value as string[]);
+function FilterTaxRateValue({value}: ArrayFilterValueProps) {
+    return useFilterTaxRateValue(value);
 }
 
 function FilterReportValue({value}: FilterValueProps) {
     return useFilterReportValue(value);
 }
 
+function FilterBankAccountValue({value}: FilterValueProps) {
+    return useFilterBankAccountValue(value);
+}
+
 function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
     if (
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
-        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY
     ) {
         return <FilterUserValue value={value} />;
     }
@@ -76,7 +96,7 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
         return <FilterWorkspaceValue value={value} />;
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED && Array.isArray(value)) {
         return <FilterFeedValue value={value} />;
     }
 
@@ -84,7 +104,7 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
         return <FilterCardValue value={value} />;
     }
 
-    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE && Array.isArray(value)) {
         return <FilterTaxRateValue value={value} />;
     }
 
@@ -92,12 +112,21 @@ function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
         return <FilterReportValue value={value} />;
     }
 
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT) {
+        return <FilterBankAccountValue value={value} />;
+    }
+
     return value;
 }
 
-function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>, queryJSON: SearchQueryJSON | undefined, translate: LocalizedTranslate) {
+function getAppliedDisplays(
+    searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
+    queryJSON: SearchQueryJSON | undefined,
+    translate: LocalizedTranslate,
+    shouldReturnTripRooms: boolean,
+) {
     const appliedDisplays = [];
-    const groupBy = searchAdvancedFiltersForm.groupBy;
+    const groupBy = getValidGroupBy(searchAdvancedFiltersForm.groupBy);
     if (groupBy) {
         appliedDisplays.push({label: translate('search.display.groupBy'), value: translate(`search.filters.groupBy.${groupBy}`)});
     }
@@ -114,8 +143,24 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
         appliedDisplays.push({label: translate('search.view.label'), value: translate(`search.view.${searchAdvancedFiltersForm.view}`)});
     }
 
+    // The Spend footer's choices summarize the results rather than narrow them, so they sit with the display settings.
+    // The query leaves defaults out, so only a choice the user made shows here.
+    if (searchAdvancedFiltersForm.footerCount) {
+        const footerCount = searchAdvancedFiltersForm.footerCount;
+        appliedDisplays.push({label: translate('common.count'), value: getFooterCountItems(translate).find((item) => item.value === footerCount)?.text ?? footerCount});
+    }
+
+    if (searchAdvancedFiltersForm.footerTotal) {
+        const footerTotal = searchAdvancedFiltersForm.footerTotal;
+        appliedDisplays.push({label: translate('common.total'), value: getFooterTotalItems(translate).find((item) => item.value === footerTotal)?.text ?? footerTotal});
+    }
+
+    if (searchAdvancedFiltersForm.footerCurrency) {
+        appliedDisplays.push({label: translate('common.currency'), value: searchAdvancedFiltersForm.footerCurrency});
+    }
+
     if (queryJSON?.sortBy) {
-        appliedDisplays.push({label: translate('search.display.sortBy'), value: translate(getSearchColumnTranslationKey(queryJSON.sortBy))});
+        appliedDisplays.push({label: translate('search.display.sortBy'), value: translate(getSearchColumnTranslationKey(queryJSON.sortBy, queryJSON.type, shouldReturnTripRooms))});
     }
 
     if (queryJSON?.sortOrder) {
@@ -129,7 +174,7 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
 
         const isDefaultState = columns.length === defaultCustomColumns.length && columns.every((col, index) => col === defaultCustomColumns.at(index));
         if (!isDefaultState) {
-            appliedDisplays.push({label: translate('search.columns'), value: columns.map((column) => translate(getSearchColumnTranslationKey(column))).join(', ')});
+            appliedDisplays.push({label: translate('search.columns'), value: columns.map((column) => translate(getSearchColumnTranslationKey(column, queryType))).join(', ')});
         }
     }
 
@@ -138,26 +183,39 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
 
 function SearchSavePage() {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const [name, setName] = useState('');
 
-    const {currentSearchQueryJSON} = useSearchQueryContext();
+    const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
 
-    const onSaveSearch = () => {
+    const onSaveSearch = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>) => {
         if (!currentSearchQueryJSON) {
             Navigation.goBack();
             return;
         }
 
-        const newName = name.trim() || currentSearchQueryJSON?.inputQuery;
-        saveSearch({queryJSON: currentSearchQueryJSON, newName});
-        Navigation.goBack();
+        const id = rand64();
+        saveSearch({id, queryJSON: currentSearchQueryJSON, newName: values[INPUT_IDS.NAME].trim()});
+        // The query doesn't change, only the search key it now belongs to, so the param is set on the search
+        // screen once this RHP is gone and it's the focused route again.
+        Navigation.dismissModal({afterTransition: () => Navigation.setParams({searchKey: savedSearchIDToSearchKey(id)})});
     };
 
-    const appliedFilters = mapFiltersFormToLabelValueList(searchAdvancedFiltersForm, undefined, undefined, translate, localeCompare, convertToDisplayStringWithoutCurrency);
-    const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM> =>
+        getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
+
+    const appliedFilters = mapFiltersFormToLabelValueList(
+        searchAdvancedFiltersForm,
+        currentDefaultSearchQueryFilterKeys,
+        undefined,
+        translate,
+        dateFnsLocale,
+        localeCompare,
+        convertToDisplayStringWithoutCurrency,
+    );
+    const appliedDisplays = getAppliedDisplays(searchAdvancedFiltersForm, currentSearchQueryJSON, translate, shouldReturnTripRooms);
 
     const {inputCallbackRef} = useAutoFocusInput();
 
@@ -171,6 +229,7 @@ function SearchSavePage() {
                 formID={ONYXKEYS.FORMS.SEARCH_SAVE_FORM}
                 submitButtonText={translate('search.saveView')}
                 onSubmit={onSaveSearch}
+                validate={validate}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
@@ -180,8 +239,6 @@ function SearchSavePage() {
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME}
                     ref={inputCallbackRef}
-                    value={name}
-                    onChangeText={setName}
                     placeholder={translate('common.name')}
                     accessibilityLabel={translate('common.name')}
                     role={CONST.ROLE.PRESENTATION}
@@ -191,7 +248,7 @@ function SearchSavePage() {
                     appliedFilters.map((filter) => (
                         <View
                             style={[styles.flexRow]}
-                            key={filter.key}
+                            key={filter.id}
                         >
                             <Text style={[styles.label, styles.ph2]}>{CONST.DOT_SEPARATOR}</Text>
                             <Text style={[styles.label]}>

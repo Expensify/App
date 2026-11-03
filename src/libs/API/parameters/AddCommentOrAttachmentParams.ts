@@ -6,15 +6,20 @@ type AddCommentOrAttachmentParams = {
     commentReportActionID?: string | null;
     reportComment?: string;
     attachmentID?: string;
+    attachmentIDs?: string;
     file?: FileObject;
+    [additionalFileKey: `file_${number}`]: FileObject;
     timezone?: string;
     clientCreatedTime?: string;
     isOldDotConciergeChat?: boolean;
     idempotencyKey?: string;
     pageHTML?: string;
     optimisticConciergeReportActionID?: string;
+    optimisticConciergeCreated?: string;
     pregeneratedResponse?: string;
     sidePanelContext?: string;
+    conciergeThreadReportID?: string;
+    conciergeThreadCreatedReportActionID?: string;
 };
 
 export default AddCommentOrAttachmentParams;

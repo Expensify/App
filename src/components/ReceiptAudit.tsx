@@ -1,9 +1,13 @@
-import React from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -38,7 +42,12 @@ function ReceiptAudit({notes, shouldShowAuditResult, hasReceiptUploadError = fal
     return (
         <View style={[styles.ph5, styles.mbn1]}>
             <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                <Text style={[styles.textLabelSupporting]}>{translate('common.receipt')}</Text>
+                <Text
+                    style={[styles.textLabelSupporting, styles.userSelectNone]}
+                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                >
+                    {translate('common.receipt')}
+                </Text>
                 {!!auditText && (
                     <>
                         <Text style={[styles.textLabelSupporting]}>{` • ${auditText}`}</Text>

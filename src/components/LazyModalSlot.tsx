@@ -1,14 +1,15 @@
+import isChunkLoadError from '@libs/isChunkLoadError';
+import Log from '@libs/Log';
+
 import * as Sentry from '@sentry/react-native';
 import React, {Suspense} from 'react';
 import {ErrorBoundary as ReactErrorBoundary} from 'react-error-boundary';
-import isChunkLoadError from '@libs/isChunkLoadError';
-import Log from '@libs/Log';
 
 const logModalError = (error: Error, info: {componentStack?: string | null}) => {
     const componentStack = info.componentStack ?? undefined;
 
     if (isChunkLoadError(error)) {
-        /* Chunk-load failures are silent ({fallback: null}) and largely environmental
+        /* Chunk-load failures are silent (empty fallback) and largely environmental
          * (deploy churn, ad-blockers, flaky networks), so report as warning with a
          * fixed fingerprint to keep them in one Sentry issue instead of fragmenting
          * per slot/chunk. */
@@ -38,7 +39,7 @@ const logModalError = (error: Error, info: {componentStack?: string | null}) => 
 function LazyModalSlot({children}: {children: React.ReactNode}) {
     return (
         <ReactErrorBoundary
-            fallback={null}
+            fallbackRender={() => null}
             onError={logModalError}
         >
             <Suspense fallback={null}>{children}</Suspense>

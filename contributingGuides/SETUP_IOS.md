@@ -12,8 +12,8 @@ The following steps describe how to configure the project to fully utilize Rock.
 
 ### Running the mobile application 📱
 * To install project dependencies run: `npm install`
-* To start metro server run: `npm run start`
-**Note:** For now this is a required step — metro needs to be called manually in a separate terminal.
+* To start the dev server run: `npm run start`
+**Note:** For now this is a required step — the dev server needs to be started manually in a separate terminal.
 * To run application on a **Development Simulator**:
     - For standalone `npm run ios-standalone`
     - For hybrid app `npm run ios` 
@@ -82,6 +82,13 @@ If you want to run the app on an actual physical iOS device, please follow the i
 ### Expensify Employees
 - To point the **Development Simulator** at your local VM, follow [these steps](https://stackoverflow.com/c/expensify/questions/7699).
 - You must configure the local dev email account; follow [these instructions](https://stackoverflowteams.com/c/expensify/questions/23537/23538#23538).
+
+## Prebuilt React Native Artifacts
+
+HybridApp iOS builds download a prebuilt `react-native` from GitHub Packages instead of compiling it,
+which requires an authenticated GitHub CLI. See [Prebuilt React Native Artifacts](PREBUILT_REACT_NATIVE_ARTIFACTS.md)
+for the setup and for how to compile from source instead. Standalone NewDot is not supported yet and
+always compiles `react-native` from source.
 
 ## Push Notifications Setup
 

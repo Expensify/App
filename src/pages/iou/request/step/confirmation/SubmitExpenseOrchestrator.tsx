@@ -1,29 +1,45 @@
-import React, {useEffect, useRef, useState} from 'react';
-import LocationPermissionModal from '@components/LocationPermissionModal';
 import useOnyx from '@hooks/useOnyx';
-import DateUtils from '@libs/DateUtils';
-import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
+import type {AfterTransition} from '@hooks/usePreMountDestination';
+
+import {armTransitionBarrier} from '@libs/API';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import markPendingWriteForSearchPage from '@libs/Navigation/helpers/markPendingWriteForSearchPage';
+import runAfterClosingScreenUnmount from '@libs/Navigation/helpers/runAfterClosingScreenUnmount';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {holdPendingSearchWriteFlush, markPendingSearchWrite, releasePendingSearchWriteFlush} from '@libs/pendingSearchWrite';
+import {trackPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
+import type {PendingSubmitWrite} from '@libs/pendingSubmitWrite';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
+import {getSearchKeyForDataType} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
-import {updateLastLocationPermissionPrompt} from '@userActions/IOU/MoneyRequest';
+
+import hasLocationPermission from '@pages/iou/request/step/IOURequestStepScan/LocationPermission/hasLocationPermission';
+
+import {IMMEDIATE, markBarrierAsImmediate} from '@userActions/IOU/resolveWriteBarrier';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {Receipt} from '@src/types/onyx/Transaction';
-import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
+
+import type React from 'react';
+
+import {useEffect, useRef, useState} from 'react';
+
 import type {SubmitHandler, SubmitNavigationSnapshot} from './getSubmitHandler';
+import type {CreateTransactionParams} from './submission/types';
+
+import getSubmitExpenseSearchType from './getSubmitExpenseSearchType';
+import {getSubmitHandler, SUBMIT_HANDLER} from './getSubmitHandler';
 import {dismissOnly, dismissRHPToReport, dismissSuperWideRHP, dismissWideToNewSearchType, executeDismissModalStrategy} from './submitDismissStrategies';
 
 type SubmitExpenseOrchestratorRenderProps = {
@@ -32,8 +48,13 @@ type SubmitExpenseOrchestratorRenderProps = {
 };
 
 type SubmitExpenseOrchestratorProps = {
-    /** Calls the appropriate IOU action (requestMoney, trackExpense, etc.) to create the transaction. */
-    createTransaction: (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean) => void;
+    /**
+     * Calls the appropriate IOU action (requestMoney, trackExpense, etc.) to create the transaction.
+     * `writeBarrier`, when given, is what the resulting API write waits on before applying its
+     * optimistic data - so the re-render wave lands after the dismiss animation instead of during it.
+     * Returns true when the write is still coming after the call returns (e.g. handed off to a GPS lookup).
+     */
+    createTransaction: (params: CreateTransactionParams) => boolean;
 
     /** Report that the expense will land on (undefined when destination is unknown, e.g. global create to Search). */
     destinationReportID: string | undefined;
@@ -44,6 +65,19 @@ type SubmitExpenseOrchestratorProps = {
     /** Current IOU type (request, split, track, send, invoice, etc.). */
     iouType: IOUType;
 
+    /**
+     * Whether the sole recipient resolves to the current user's self-DM while the route iouType is still CREATE
+     * (new manual expense flow). Such a submit is routed through trackExpense, so it must navigate to the self-DM
+     * report like a TRACK expense instead of taking the global-create Search path.
+     */
+    isSelfDMDestination: boolean;
+
+    /**
+     * Whether the user onboarded as "Something else" (LOOKING_AROUND). Such users have no workspace, so a global-create
+     * expense is routed to Spend > Expenses (Search) instead of dismissing into their self-DM report.
+     */
+    isLookingAroundUser: boolean;
+
     /** Request sub-type (manual, scan, distance). Used for telemetry scenario derivation. */
     requestType: string | undefined;
 
@@ -52,9 +86,6 @@ type SubmitExpenseOrchestratorProps = {
 
     /** Whether the distance request requires GPS permission before submitting. */
     gpsRequired: boolean;
-
-    /** ISO timestamp of the last GPS permission prompt (for throttling re-prompts). */
-    lastLocationPermissionPrompt: string | undefined;
 
     /** True when the transaction is a distance (mileage) request. */
     isDistanceRequest: boolean;
@@ -85,31 +116,16 @@ type SubmitExpenseOrchestratorProps = {
 
     /** Render prop receiving onConfirm and isConfirming. */
     children: (props: SubmitExpenseOrchestratorRenderProps) => React.ReactNode;
+
+    /** Reveals the pre-mounted destination behind the confirmation RHP and dismisses the modal. */
+    revealPreMountDestination: (afterTransition?: AfterTransition) => void;
 };
-
-function getFocusedReportsSplitReportID(rootState: ReturnType<typeof navigationRef.getRootState>): string | undefined {
-    const topmostTabNavigatorRoute = rootState?.routes.findLast((route) => route.name === NAVIGATORS.TAB_NAVIGATOR);
-    const tabState = topmostTabNavigatorRoute?.state;
-    const activeTabRoute = tabState?.routes.at(tabState.index ?? 0);
-    if (activeTabRoute?.name !== NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || !activeTabRoute.state) {
-        return undefined;
-    }
-
-    const focusedRoute = activeTabRoute.state.routes.at(activeTabRoute.state.index ?? 0);
-    const reportID = focusedRoute?.name === SCREENS.REPORT && focusedRoute.params && 'reportID' in focusedRoute.params ? focusedRoute.params.reportID : undefined;
-    return typeof reportID === 'string' ? reportID : undefined;
-}
 
 /**
  * Encapsulates the submit-expense navigation orchestration: telemetry lifecycle,
- * dismiss animation coordination, deferred writes, and the GPS permission flow.
+ * dismiss animation coordination and deferred writes.
  * Exposes `onConfirm` and `isConfirming` via a render prop so the parent only
  * needs to wire them to `MoneyRequestConfirmationList`.
- *
- * A render-prop component (rather than a hook) is used because this wrapper
- * needs to render `LocationPermissionModal` conditionally. A hook cannot own
- * JSX, so we'd need to return the modal element and have the caller place it
- * - which spreads the concern across two files again.
  *
  * The decision tree (which handler to invoke) is extracted into the pure
  * `getSubmitHandler()` function (see getSubmitHandler.ts) for isolated
@@ -121,10 +137,11 @@ function SubmitExpenseOrchestrator({
     destinationReportID,
     isFromGlobalCreate,
     iouType,
+    isSelfDMDestination,
+    isLookingAroundUser,
     requestType,
     canDismissFromSearch,
     gpsRequired,
-    lastLocationPermissionPrompt,
     isDistanceRequest,
     isMovingTransactionFromTrackExpense,
     isUnreported,
@@ -134,11 +151,12 @@ function SubmitExpenseOrchestrator({
     receiptFiles,
     isFromGlobalCreateOnTransaction,
     isFromFloatingActionButtonOnTransaction,
+    revealPreMountDestination,
     children,
 }: SubmitExpenseOrchestratorProps) {
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`);
+    const [destinationReportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${destinationReportID}`);
     const [isConfirming, setIsConfirming] = useState(false);
-    const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const confirmingSafetyTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
     useEffect(() => {
@@ -193,68 +211,75 @@ function SubmitExpenseOrchestrator({
             isReportPreInserted: isPreInserted && Navigation.getPreInsertedFullscreenRouteName() === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
             isFromGlobalCreate: isFromGlobalCreateForNavigation,
             canDismissFromSearch,
-            navigatesToDestinationReport: iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK,
+            navigatesToDestinationReport: iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK || isSelfDMDestination,
             destinationReportID,
             isReportInRHP: isReportOpenInRHP(rootState),
             isReportTopmostSplit: isReportTopmostSplitNavigator(),
             isSearchTopmostFullScreen: isSearchTopmostFullScreenRoute(),
-            isDestinationReportLoaded: !!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport)?.reportID,
+            isDestinationReportLoaded: !!destinationReportID && !!getReportOrDraftReport({reportID: destinationReportID, report: destinationReport})?.reportID,
+            isLookingAroundUser,
+            isSelfDMDestination,
         };
     };
 
     // Fast-path handlers defer createTransaction until after the dismiss animation completes
     // via dismissModal's afterTransition callback (backed by TransitionTracker). This prevents
     // heavy optimistic Onyx writes from blocking the JS thread during the RHP slide-out animation.
-    const handleSearchPreInsert = (locationPermissionGranted = false) => {
+    const handleSearchPreInsert = (locationPermissionGranted: boolean) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
-        Navigation.clearFullscreenPreInsertedFlag();
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        Navigation.dismissModal({
-            afterTransition: () => {
-                // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
-                // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
-                // post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
-                createTransaction(locationPermissionGranted);
-                setIsConfirming(false);
-            },
-        });
-    };
-
-    const dismissAfterEnsuringDestinationReportIsPreInserted = (reportID: string | undefined, afterTransition: () => void) => {
-        if (!reportID) {
-            Navigation.dismissModal({afterTransition});
-            return;
-        }
-
-        // Only trust the pre-inserted report if it is the focused child of the Reports tab.
-        // A stale report route can still exist behind Inbox in the Reports stack.
-        if (getFocusedReportsSplitReportID(navigationRef.getRootState()) === reportID) {
-            Navigation.dismissModal({afterTransition});
-            return;
-        }
-
-        Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(reportID), {afterTransition});
-    };
-
-    const handleReportPreInsert = (locationPermissionGranted = false) => {
-        setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
-        Navigation.clearFullscreenPreInsertedFlag();
-        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
-        dismissAfterEnsuringDestinationReportIsPreInserted(destinationReportID, () => {
-            createTransaction(locationPermissionGranted, false);
+        markPendingSearchWrite();
+        revealPreMountDestination(() => {
+            // The Search screen was pre-inserted before the modal opened, so the nav stack is already correct and
+            // createTransaction's post-create cleanup (navigateAfterExpenseCreate) finishes the flow.
+            createTransaction({locationPermissionGranted, shouldHandleNavigation: true});
             setIsConfirming(false);
         });
     };
 
-    const handleDismissModalFastPath = (locationPermissionGranted = false) => {
+    const handleReportPreInsert = (locationPermissionGranted: boolean) => {
+        setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
+        setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
+        // Armed before the reveal, so the barrier attaches to the transition that reveal starts. The pending-write
+        // signal clears from the barrier, once the write attaches, not when createTransaction returns.
+        const armedBarrier = armTransitionBarrier();
+        const pendingWrite = trackPendingSubmitWriteForReport(destinationReportID, armedBarrier.barrier, armedBarrier.cancel);
+
+        const afterTransition = () => {
+            const isWriteStillComing = createTransaction({locationPermissionGranted, shouldHandleNavigation: false, writeBarrier: pendingWrite.barrier});
+            pendingWrite.settleAfterSubmit(isWriteStillComing);
+            setIsConfirming(false);
+        };
+
+        // No duplicate-route guard is needed here: getSubmitExpensePreMountDestinationRoute only yields a report route (and thus
+        // getSubmitHandler only selects REPORT_PRE_INSERT) when the report is NOT already the topmost fullscreen, so reveal()
+        // dismisses over this hook's own pre-inserted route rather than pushing a second copy.
+        revealPreMountDestination(afterTransition);
+    };
+
+    const handleDismissModalFastPath = (locationPermissionGranted: boolean) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const shouldPreserveSearchWithPlaceholder = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK) && isSearchTopmostFullScreenRoute();
-        reserveDeferredWriteChannel(shouldPreserveSearchWithPlaceholder ? CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH : CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
+
+        let pendingWrite: PendingSubmitWrite | undefined;
+
+        if (shouldPreserveSearchWithPlaceholder) {
+            // Search-destined submissions release on Search's own content layout, not on this dismiss
+            // transition, so they take Search's barrier instead of an armed transition one. The signal
+            // has to go up here, before the write exists, because Search's placeholder reads it on mount.
+            markPendingSearchWrite();
+        } else {
+            // Armed here, not inside the dismiss callbacks below: the barrier has to attach while this
+            // dismiss transition is starting, otherwise it would wait out an unrelated later one.
+            // The pending-write signal clears from the barrier once the write attaches, so a GPS lookup
+            // between dismiss and write keeps it up.
+            const armedBarrier = armTransitionBarrier();
+            pendingWrite = trackPendingSubmitWriteForReport(destinationReportID, armedBarrier.barrier, armedBarrier.cancel);
+        }
 
         const runAfterDismiss = () => {
-            createTransaction(locationPermissionGranted, false);
+            const isWriteStillComing = createTransaction({locationPermissionGranted, shouldHandleNavigation: false, writeBarrier: pendingWrite?.barrier});
+            pendingWrite?.settleAfterSubmit(isWriteStillComing);
             setIsConfirming(false);
         };
 
@@ -272,16 +297,23 @@ function SubmitExpenseOrchestrator({
     // Wide: always the handler
     // Narrow: only runs if the user submitted before the pre-insert timer (300ms)
     // elapsed - SEARCH_PRE_INSERT is the primary narrow handler.
-    const handleSearchDismiss = (locationPermissionGranted = false) => {
+    const handleSearchDismiss = (locationPermissionGranted: boolean) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
-        const searchType = iouType === CONST.IOU.TYPE.INVOICE ? CONST.SEARCH.DATA_TYPES.INVOICE : CONST.SEARCH.DATA_TYPES.EXPENSE;
+        const searchType = getSubmitExpenseSearchType(iouType);
         const isSameType = getCurrentSearchQueryJSON()?.type === searchType;
         const isNarrow = getIsNarrowLayout();
-        setPendingSubmitFollowUpAction(isSameType ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        // When the query type matches AND Search is already visible, a simple dismiss suffices.
+        // When Search is not visible (e.g. submitting from Home/Settings), we must navigate there.
+        const isSearchVisible = isSearchTopmostFullScreenRoute();
+        const shouldNavigateToSearch = !isSameType || !isSearchVisible;
+        // forceReplace resolves to a no-op for SEARCH.ROOT (it stays on the submitting tab), so skip it for the
+        // LOOKING_AROUND self-DM flow to make the navigation to Search actually happen. Other callers keep forceReplace.
+        const shouldSkipForceReplace = isFromGlobalCreateForNavigation && isLookingAroundUser && isSelfDMDestination;
+        setPendingSubmitFollowUpAction(shouldNavigateToSearch ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+        markPendingSearchWrite();
 
         const runAfterDismiss = () => {
-            createTransaction(locationPermissionGranted, false);
+            createTransaction({locationPermissionGranted, shouldHandleNavigation: false});
             setIsConfirming(false);
         };
 
@@ -302,26 +334,33 @@ function SubmitExpenseOrchestrator({
             });
         };
 
-        if (!isSameType && !isNarrow) {
+        if (shouldNavigateToSearch && !isNarrow) {
             dismissWideToNewSearchType(searchType, runAfterDismiss);
             return;
         }
 
+        // Wide Search refocuses mid-slide and its write re-renders the whole list, so the release is deferred until the RHP is closed
+        if (!isNarrow) {
+            holdPendingSearchWriteFlush();
+        }
         Navigation.dismissModal({
             afterTransition: () => {
+                if (!isNarrow) {
+                    runAfterClosingScreenUnmount(releasePendingSearchWriteFlush);
+                }
                 runAfterSearchDismissRecovery(() => {
-                    // Narrow fallback: pre-insert timer didn't fire, navigate after dismiss.
-                    if (isSameType) {
+                    if (!shouldNavigateToSearch) {
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})}), {forceReplace: true});
+                    const searchKey = getSearchKeyForDataType(searchType);
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType}), searchKey}), {forceReplace: !shouldSkipForceReplace});
                 });
             },
         });
     };
 
-    const handleDismissToReport = (locationPermissionGranted = false) => {
+    const handleDismissToReport = (locationPermissionGranted: boolean) => {
         if (!destinationReportID) {
             // Tracking already started in onSubmit; just override the fast path label.
             Log.warn('[SubmitExpenseOrchestrator] handleDismissToReport reached without destinationReportID - falling back to default submit');
@@ -333,7 +372,7 @@ function SubmitExpenseOrchestrator({
             // is intentionally the same approach used in handleDefaultSubmit so
             // this fallback behaves identically to the standard submit path.
             requestAnimationFrame(() => {
-                createTransaction(locationPermissionGranted);
+                createTransaction({locationPermissionGranted, shouldHandleNavigation: true});
                 requestAnimationFrame(() => {
                     setIsConfirming(false);
                 });
@@ -344,27 +383,29 @@ function SubmitExpenseOrchestrator({
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_TO_REPORT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
 
+        const report = getReportOrDraftReport({reportID: destinationReportID, report: destinationReport});
+        const isDestinationEmpty = !!report && isMoneyRequestReport(report) && !report.transactionCount;
+        // The write runs after the reveal transition, so there is nothing to wait on. The barrier only exists so the
+        // pending-write signal clears when the write attaches, which a GPS lookup can push seconds past createTransaction.
+        const pendingWrite = isDestinationEmpty ? trackPendingSubmitWriteForReport(destinationReportID, IMMEDIATE) : undefined;
+        if (pendingWrite) {
+            markBarrierAsImmediate(pendingWrite.barrier);
+        }
+
         Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(destinationReportID), {
             afterTransition: () => {
-                createTransaction(locationPermissionGranted, false);
+                const isWriteStillComing = createTransaction({locationPermissionGranted, shouldHandleNavigation: false, writeBarrier: pendingWrite?.barrier});
+                pendingWrite?.settleAfterSubmit(isWriteStillComing);
                 setIsConfirming(false);
             },
         });
     };
 
-    // A global-create submit off the inbox lands on Search — reserve the channel so the optimistic write defers behind the skeleton.
-    const reserveSearchChannelIfGlobalCreate = () => {
-        if (!isFromGlobalCreateForNavigation || isReportTopmostSplitNavigator()) {
-            return;
-        }
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-    };
-
-    const handleDefaultSubmit = (locationPermissionGranted = false) => {
+    const handleDefaultSubmit = (locationPermissionGranted: boolean) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-        reserveSearchChannelIfGlobalCreate();
+        markPendingWriteForSearchPage(isFromGlobalCreateForNavigation);
         requestAnimationFrame(() => {
-            createTransaction(locationPermissionGranted);
+            createTransaction({locationPermissionGranted, shouldHandleNavigation: true});
             requestAnimationFrame(() => {
                 setIsConfirming(false);
             });
@@ -372,28 +413,28 @@ function SubmitExpenseOrchestrator({
     };
 
     // The createTransaction call runs inside runAfterDismiss (after the transition completes).
-    // When the destination report is empty we reserve a DISMISS_MODAL deferred-write channel
-    // so that MoneyRequestReportActionsList can show a loading skeleton instead of the
-    // "no expenses" empty state while the dismiss animation plays.
-    const handleReportInRHPDismiss = (locationPermissionGranted = false) => {
+    // When the destination report is empty we raise the pending-write signal so that
+    // MoneyRequestReportActionsList shows a loading skeleton instead of the "no expenses"
+    // empty state while the dismiss animation plays.
+    //
+    // Deliberately no transition barrier here: this handler's write executes immediately, so gating it
+    // on a transition would only delay it.
+    const handleReportInRHPDismiss = (locationPermissionGranted: boolean) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_IN_RHP_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const rootState = navigationRef.getRootState();
 
-        const report = destinationReportID ? getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport) : undefined;
+        const report = destinationReportID ? getReportOrDraftReport({reportID: destinationReportID, report: destinationReport}) : undefined;
         const isDestinationEmpty = !!report && isMoneyRequestReport(report) && !report.transactionCount;
-        if (isDestinationEmpty) {
-            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
+        // No wait here, the barrier resolves at once. It exists so the pending-write signal clears when the write
+        // actually goes out, which can be seconds later if a GPS lookup runs first.
+        const pendingWrite = isDestinationEmpty ? trackPendingSubmitWriteForReport(destinationReportID, IMMEDIATE) : undefined;
+        if (pendingWrite) {
+            markBarrierAsImmediate(pendingWrite.barrier);
         }
 
         const runAfterDismiss = () => {
-            // Flush signals readiness on the reserved channel. Since no real write was
-            // registered, the channel transitions to flushRequested. When createTransaction
-            // below calls deferOrExecuteWrite, it sees the flushed channel and executes
-            // the write immediately instead of deferring.
-            if (isDestinationEmpty) {
-                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-            }
-            createTransaction(locationPermissionGranted, false);
+            const isWriteStillComing = createTransaction({locationPermissionGranted, shouldHandleNavigation: false, writeBarrier: pendingWrite?.barrier});
+            pendingWrite?.settleAfterSubmit(isWriteStillComing);
             setIsConfirming(false);
         };
 
@@ -403,18 +444,15 @@ function SubmitExpenseOrchestrator({
         }
 
         if (destinationReportID) {
-            dismissRHPToReport(destinationReportID, runAfterDismiss);
+            dismissRHPToReport(destinationReportID, runAfterDismiss, destinationReportDraft ?? {});
             return;
         }
 
         Log.warn('[SubmitExpenseOrchestrator] handleReportInRHPDismiss reached without destinationReportID - falling back to default submit');
-        if (isDestinationEmpty) {
-            cancelDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-        }
         handleDefaultSubmit(locationPermissionGranted);
     };
 
-    const dispatchSubmitHandler = (locationPermissionGranted = false) => {
+    const dispatchSubmitHandler = (locationPermissionGranted: boolean) => {
         startSubmitSpans();
         const rootState = navigationRef.getRootState();
         const snapshot = buildNavigationSnapshot(rootState);
@@ -439,47 +477,15 @@ function SubmitExpenseOrchestrator({
     // memoizing every handler + all their captured props for no measurable gain.
     const onConfirm = () => {
         setIsConfirming(true);
-
-        if (gpsRequired) {
-            const shouldStartPermissionFlow =
-                !lastLocationPermissionPrompt ||
-                (DateUtils.isValidDateString(lastLocationPermissionPrompt) &&
-                    DateUtils.getDifferenceInDaysFromNow(new Date(lastLocationPermissionPrompt)) > CONST.IOU.LOCATION_PERMISSION_PROMPT_THRESHOLD_DAYS);
-
-            if (shouldStartPermissionFlow) {
-                setStartLocationPermissionFlow(true);
-                return;
-            }
+        if (!gpsRequired) {
+            dispatchSubmitHandler(false);
+            return;
         }
-
-        dispatchSubmitHandler();
+        hasLocationPermission().then((isGranted) => dispatchSubmitHandler(isGranted));
     };
 
-    return (
-        <>
-            {!!gpsRequired && (
-                <LocationPermissionModal
-                    startPermissionFlow={startLocationPermissionFlow}
-                    resetPermissionFlow={() => {
-                        setStartLocationPermissionFlow(false);
-                    }}
-                    onGrant={() => {
-                        dispatchSubmitHandler(true);
-                    }}
-                    onDeny={(wasUserInitiated) => {
-                        if (wasUserInitiated) {
-                            updateLastLocationPermissionPrompt();
-                        }
-                        dispatchSubmitHandler(false);
-                    }}
-                    onInitialGetLocationCompleted={() => {
-                        setIsConfirming(false);
-                    }}
-                />
-            )}
-            {children({onConfirm, isConfirming})}
-        </>
-    );
+    return children({onConfirm, isConfirming});
 }
 
 export default SubmitExpenseOrchestrator;
+export type {SubmitExpenseOrchestratorProps};

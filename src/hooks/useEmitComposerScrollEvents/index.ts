@@ -1,22 +1,20 @@
+import CONST from '@src/CONST';
+
 import {useRef} from 'react';
 import {DeviceEventEmitter} from 'react-native';
-import CONST from '@src/CONST';
 
 type UseEmitComposerScrollEventsOptions = {
     enabled?: boolean;
-    inverted: boolean | null | undefined;
 };
 
 /**
  * This is used to trigger scroll behavior in the composer on web. On native, this is a no-op.
- * The scroll events are only emitted when the list is inverted, since it is only used in the report screen in combination with the composer.
  * Since our custom FlatList implementation can either be a `KeyboardDismissibleFlatList` or a regular `FlatList`,
  * we need to emit the scroll events inside the scroll handler of the specific implementation.
- * @param inverted - Whether the list is inverted.
  * @returns A function that can be used to emit the scroll events.
  */
 function useEmitComposerScrollEvents(options?: UseEmitComposerScrollEventsOptions) {
-    const {enabled = true, inverted} = options ?? {};
+    const {enabled = true} = options ?? {};
 
     const lastScrollEvent = useRef<number | null>(null);
     const scrollEndTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -27,7 +25,7 @@ function useEmitComposerScrollEvents(options?: UseEmitComposerScrollEventsOption
      * invokes the onScroll callback function from props.
      */
     const onScroll = () => {
-        if (!enabled || !inverted) {
+        if (!enabled) {
             return;
         }
 
@@ -43,7 +41,7 @@ function useEmitComposerScrollEvents(options?: UseEmitComposerScrollEventsOption
      * Emits when the scrolling has ended.
      */
     const onScrollEnd = () => {
-        if (!enabled || !inverted) {
+        if (!enabled) {
             return;
         }
 
@@ -66,7 +64,7 @@ function useEmitComposerScrollEvents(options?: UseEmitComposerScrollEventsOption
      *
      */
     const emitComposerScrollEvents = () => {
-        if (!enabled || !inverted) {
+        if (!enabled) {
             return;
         }
 

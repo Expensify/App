@@ -1,11 +1,15 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import CONST from '@src/CONST';
 import type {LoginList, PersonalDetails} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import type {DeviceContact, StringHolder} from './ContactImport/types';
 import type {SearchOption} from './OptionsListUtils';
-import {getContactOption} from './PersonalDetailOptionsListUtils';
 import type {OptionData} from './PersonalDetailOptionsListUtils';
+
+import {getContactOption} from './PersonalDetailOptionsListUtils';
 import RandomAvatarUtils from './RandomAvatarUtils';
 
 function sortEmailObjects(emails: StringHolder[], localeCompare: LocaleContextProps['localeCompare']): string[] {
@@ -40,7 +44,6 @@ function getContacts(
     return deviceContacts
         .map((contact) => {
             const email = sortEmailObjects(contact?.emailAddresses ?? [], localeCompare)?.at(0) ?? '';
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             const avatarSource = (contact?.imageData || RandomAvatarUtils.getAvatarForContact(`${contact?.firstName}${email}${contact?.lastName}`)) ?? '';
             const phoneNumber = contact.phoneNumbers?.[0]?.value ?? '';
             const firstName = contact?.firstName ?? '';

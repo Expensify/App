@@ -1,12 +1,18 @@
-import React from 'react';
 import VideoPlayer from '@components/VideoPlayer';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+
 import type {AttachmentViewProps} from '..';
 
 type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovered'> & {
     /** Video file source URL */
     source: string;
+
+    /** Original file name of the video, used to name the file saved by the player's Download action */
+    fileName?: string;
 
     shouldUseSharedVideoElement?: boolean;
 
@@ -17,13 +23,14 @@ type AttachmentViewVideoProps = Pick<AttachmentViewProps, 'duration' | 'isHovere
     onTap?: (shouldShowArrows?: boolean) => void;
 };
 
-function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoElement = false, duration = 0, reportID, onTap}: AttachmentViewVideoProps) {
+function AttachmentViewVideo({source, fileName, isHovered = false, shouldUseSharedVideoElement = false, duration = 0, reportID, onTap}: AttachmentViewVideoProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
 
     return (
         <VideoPlayer
             url={source}
+            fileName={fileName}
             shouldUseSharedVideoElement={shouldUseSharedVideoElement && !shouldUseNarrowLayout}
             isVideoHovered={isHovered}
             videoDuration={duration}
@@ -36,4 +43,4 @@ function AttachmentViewVideo({source, isHovered = false, shouldUseSharedVideoEle
 
 AttachmentViewVideo.displayName = 'AttachmentViewVideo';
 
-export default React.memo(AttachmentViewVideo);
+export default AttachmentViewVideo;

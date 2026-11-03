@@ -1,5 +1,7 @@
-import React from 'react';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+
 import type EmbeddedDemoProps from './types';
 
 function EmbeddedDemo({url, iframeTitle, iframeProps}: EmbeddedDemoProps) {

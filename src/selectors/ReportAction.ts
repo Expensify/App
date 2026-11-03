@@ -1,14 +1,32 @@
-import lodashFindLast from 'lodash/findLast';
-import type {OnyxEntry} from 'react-native-onyx';
-import {filterOutDeprecatedReportActions, getLinkedTransactionID, getSortedReportActions, isActionOfType} from '@libs/ReportActionsUtils';
+import {
+    filterOutDeprecatedReportActions,
+    getIOUActionForTransactionID,
+    getLatestConciergeFeedbackActionIDFromReportActions,
+    getLinkedTransactionID,
+    getOriginalMessage,
+    getSortedReportActions,
+    isActionOfType,
+} from '@libs/ReportActionsUtils';
+import {hasReportBeenForwardedSinceLastSubmit} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, ReportActions} from '@src/types/onyx';
 import type {VisibleReportActionsDerivedValue} from '@src/types/onyx/DerivedValues';
 
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import lodashFindLast from 'lodash/findLast';
+
+type NewestReportAction = Pick<ReportAction, 'reportActionID' | 'actorAccountID' | 'actionName'>;
+
 /**
- * Module-level selector factory that scopes the VISIBLE_REPORT_ACTIONS derived value to a single report
+ * Scopes VISIBLE_REPORT_ACTIONS to one report, pre-wrapped in the `{[reportID]: slice}` shape
+ * `isReportActionVisible` expects. Built here (not inline in the hook) so the consumer has no computed-key
+ * literal, which the React Compiler won't memoize; `useOnyx` returns a stable ref while the slice is unchanged.
  */
-const reportVisibleActionsSelector = (reportID: string | undefined) => (data: VisibleReportActionsDerivedValue | undefined) => (reportID ? data?.[reportID] : undefined);
+const reportVisibleActionsSelector = (reportID: string | undefined) => (data: VisibleReportActionsDerivedValue | undefined) =>
+    reportID && data?.[reportID] ? {[reportID]: data[reportID]} : undefined;
 
 function getParentReportActionSelector(parentReportActions: OnyxEntry<ReportActions>, parentReportActionID?: string): OnyxEntry<ReportAction> {
     if (!parentReportActions || !parentReportActionID) {
@@ -43,6 +61,47 @@ function getReportActionByIDSelector(reportActions: OnyxEntry<ReportActions>, re
         return;
     }
     return reportActions[reportActionID];
+}
+
+function getReimbursedExpectedDateSelector(reportActions: OnyxEntry<ReportActions>, paymentCreated: string): string | undefined {
+    let latestReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> | undefined;
+    for (const reportAction of Object.values(reportActions ?? {})) {
+        if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSED) || reportAction.created > paymentCreated) {
+            continue;
+        }
+        if (!latestReimbursedAction || reportAction.created > latestReimbursedAction.created) {
+            latestReimbursedAction = reportAction;
+        }
+    }
+    return getOriginalMessage(latestReimbursedAction)?.expectedDate;
+}
+
+/**
+ * Selector that extracts the newest report action's identifying fields.
+ *
+ * Sorts by `created` timestamp (ISO strings compare chronologically), with reportActionID as a
+ * tiebreaker. reportActionID alone is unreliable because optimistic actions use random IDs, so
+ * a purely numeric comparison can rank them ahead of real server actions.
+ */
+function getNewestReportActionSelector(reportActions: OnyxEntry<ReportActions>): NewestReportAction | undefined {
+    const actions = Object.values(reportActions ?? {}).filter(Boolean);
+    if (actions.length === 0) {
+        return undefined;
+    }
+    const newest = actions.reduce((a, b) => {
+        const createdA = a.created ?? '';
+        const createdB = b.created ?? '';
+        if (createdA !== createdB) {
+            return createdA > createdB ? a : b;
+        }
+        return a.reportActionID > b.reportActionID ? a : b;
+    });
+
+    return {
+        reportActionID: newest.reportActionID,
+        actorAccountID: newest.actorAccountID,
+        actionName: newest.actionName,
+    };
 }
 
 /**
@@ -89,4 +148,55 @@ function getReceiptScanFailedIOUActionDataSelector(
     };
 }
 
-export {getParentReportActionSelector, getLastClosedReportAction, getReportActionByIDSelector, getReceiptScanFailedIOUActionDataSelector, reportVisibleActionsSelector};
+/** Returns the transaction thread reportID (childReportID of the transaction's IOU action) from the expense report's actions. */
+const transactionThreadReportIDSelector = (transactionID: string | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
+    transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
+
+/** Returns the ID of the author's newest comment in the report that can show the feedback prompt. */
+const getLatestFeedbackActionIDByAuthorSelector = (authorAccountID: number | undefined) => (reportActions: OnyxEntry<ReportActions>) =>
+    authorAccountID ? getLatestConciergeFeedbackActionIDFromReportActions(reportActions, authorAccountID) : undefined;
+
+// IDs of reports forwarded since their last submit, so re-renders only happen on a yes/no flip per report.
+function forwardedSinceLastSubmitReportIDsSelector(allReportActions: OnyxCollection<ReportActions>): Record<string, true> | undefined {
+    if (!allReportActions) {
+        return undefined;
+    }
+
+    const result: Record<string, true> = {};
+    for (const key of Object.keys(allReportActions)) {
+        const reportID = key.slice(ONYXKEYS.COLLECTION.REPORT_ACTIONS.length);
+        if (hasReportBeenForwardedSinceLastSubmit({reportID}, allReportActions[key] ?? {})) {
+            result[reportID] = true;
+        }
+    }
+    return result;
+}
+
+type ThreadReplyCounterFields = 'childVisibleActionCount' | 'childCommenterCount' | 'childLastVisibleActionCreated' | 'childOldestFourAccountIDs';
+
+type ReportActionWithoutThreadReplyCounters = Omit<ReportAction, ThreadReplyCounterFields>;
+
+/** Strips the reply counters, which change on every reply in the thread, so components that only show the parent message don't re-render for each reply. */
+function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: OnyxEntry<ReportActions>, parentReportActionID?: string): ReportActionWithoutThreadReplyCounters | undefined {
+    const parentReportAction = getParentReportActionSelector(parentReportActions, parentReportActionID);
+    if (!parentReportAction) {
+        return undefined;
+    }
+    const {childVisibleActionCount, childCommenterCount, childLastVisibleActionCreated, childOldestFourAccountIDs, ...parentReportActionWithoutThreadReplies} = parentReportAction;
+    return parentReportActionWithoutThreadReplies;
+}
+
+export {
+    getLatestFeedbackActionIDByAuthorSelector,
+    getParentReportActionSelector,
+    getLastClosedReportAction,
+    getNewestReportActionSelector,
+    getReimbursedExpectedDateSelector,
+    getReportActionByIDSelector,
+    getReceiptScanFailedIOUActionDataSelector,
+    reportVisibleActionsSelector,
+    forwardedSinceLastSubmitReportIDsSelector,
+    transactionThreadReportIDSelector,
+    getParentReportActionWithoutThreadRepliesSelector,
+};
+export type {NewestReportAction, ReportActionWithoutThreadReplyCounters};

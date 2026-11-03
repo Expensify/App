@@ -1,23 +1,21 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import {compareAsc, parse} from 'date-fns';
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {useSession} from '@components/OnyxListItemProvider';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getGuideCallAvailabilitySchedule, saveBookingDraft, sendScheduleCallNudge} from '@libs/actions/ScheduleCall';
 import DateUtils from '@libs/DateUtils';
 import {getLatestError} from '@libs/ErrorUtils';
@@ -25,12 +23,19 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ScheduleCallParamList} from '@libs/Navigation/types';
 import {isAdminRoom, isTaskReport} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReportNameValuePairs} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {compareAsc, format} from 'date-fns';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import AvailableBookingDay from './AvailableBookingDay';
 
 type TimeSlot = {
@@ -46,7 +51,7 @@ const adminReportNameValuePairsSelector = (data?: ReportNameValuePairs) => ({
 
 function ScheduleCallPage() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const route = useRoute<PlatformStackRouteProp<ScheduleCallParamList, typeof SCREENS.SCHEDULE_CALL.BOOK>>();
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -76,11 +81,9 @@ function ScheduleCallPage() {
     }, [adminsRoomReportID]);
 
     // Clear selected time when user comes back to the selection screen
-    useFocusEffect(
-        useCallback(() => {
-            saveBookingDraft({timeSlot: null});
-        }, []),
-    );
+    useFocusEffect(() => {
+        saveBookingDraft({timeSlot: null});
+    });
 
     useEffect(() => {
         return () => {
@@ -89,11 +92,11 @@ function ScheduleCallPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const loadTimeSlotsAndSaveDate = useCallback((date: string) => {
-        saveBookingDraft({date});
-    }, []);
+    const loadTimeSlotsAndSaveDate = (date: Date) => {
+        saveBookingDraft({date: format(date, CONST.DATE.FNS_FORMAT_STRING)});
+    };
 
-    const timeSlotDateMap: Record<string, TimeSlot[]> = useMemo(() => {
+    const timeSlotDateMap: Record<string, TimeSlot[]> = (() => {
         if (!calendlySchedule?.data) {
             return {};
         }
@@ -117,7 +120,7 @@ function ScheduleCallPage() {
         // Group time slots by date to render per day slots on calendar
         const timeSlotMap: Record<string, TimeSlot[]> = {};
         for (const timeSlot of allTimeSlots) {
-            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING);
+            const timeSlotDate = DateUtils.formatInTimeZoneWithFallback(new Date(timeSlot?.startTime), userTimezone, CONST.DATE.FNS_FORMAT_STRING, {locale: dateFnsLocale});
             if (!timeSlotMap[timeSlotDate]) {
                 timeSlotMap[timeSlotDate] = [];
             }
@@ -130,13 +133,13 @@ function ScheduleCallPage() {
         }
 
         return timeSlotMap;
-    }, [calendlySchedule?.data, userTimezone]);
+    })();
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate = selectableDates.at(0);
     const lastDate = selectableDates.at(selectableDates.length - 1);
-    const minDate = firstDate ? parse(firstDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
-    const maxDate = lastDate ? parse(lastDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
+    const minDate = DateUtils.parseCalendarDate(firstDate);
+    const maxDate = DateUtils.parseCalendarDate(lastDate);
     const timeSlotsForSelectedData = scheduleCallDraft?.date ? (timeSlotDateMap?.[scheduleCallDraft?.date] ?? []) : [];
 
     useEffect(() => {
@@ -147,12 +150,8 @@ function ScheduleCallPage() {
     }, [firstDate, calendlySchedule?.isLoading, scheduleCallDraft?.date]);
 
     // When there is only one time slot on the row, it will take full width of the row, use a hidden filler item to keep 2 columns
-    const timeFillerItem = useMemo(() => {
-        if (timeSlotsForSelectedData.length % 2 === 0) {
-            return null;
-        }
-
-        return (
+    const timeFillerItem =
+        timeSlotsForSelectedData.length % 2 === 0 ? null : (
             <View
                 key="time-filler-col"
                 aria-hidden
@@ -160,7 +159,6 @@ function ScheduleCallPage() {
                 style={[styles.twoColumnLayoutCol, styles.visibilityHidden]}
             />
         );
-    }, [styles.twoColumnLayoutCol, styles.visibilityHidden, timeSlotsForSelectedData.length]);
 
     return (
         <ScreenWrapper
@@ -174,10 +172,7 @@ function ScheduleCallPage() {
             <FullPageOfflineBlockingView>
                 {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={{context: 'ScheduleCallPage', isLoading: !!adminReportNameValuePairs?.calendlySchedule?.isLoading}}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <ScrollView style={styles.flexGrow1}>
@@ -188,21 +183,21 @@ function ScheduleCallPage() {
                                 collapsable={false}
                             >
                                 <CalendarPicker
-                                    value={scheduleCallDraft?.date}
+                                    value={DateUtils.parseCalendarDate(scheduleCallDraft?.date)}
                                     minDate={minDate}
                                     maxDate={maxDate}
-                                    selectableDates={Object.keys(timeSlotDateMap)}
+                                    isDateSelectable={(date) => !!timeSlotDateMap[format(date, CONST.DATE.FNS_FORMAT_STRING)]}
                                     DayComponent={AvailableBookingDay}
                                     onSelected={loadTimeSlotsAndSaveDate}
                                 />
                             </View>
                         </View>
-                        <MenuItemWithTopDescription
-                            interactive={false}
-                            title={userTimezone}
-                            description={translate('timezonePage.timezone')}
-                            style={[styles.mt3, styles.mb3]}
-                        />
+                        <View style={[styles.mt3, styles.mb3]}>
+                            <MenuItemField
+                                name={translate('timezonePage.timezone')}
+                                value={userTimezone}
+                            />
+                        </View>
                         {!isEmptyObject(adminReportNameValuePairs?.calendlySchedule?.errors) && (
                             <DotIndicatorMessage
                                 type="error"
@@ -215,7 +210,7 @@ function ScheduleCallPage() {
                                 <Text style={[styles.mb5]}>
                                     <RenderHTML
                                         html={translate('scheduledCall.book.slots', {
-                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT),
+                                            date: DateUtils.formatInTimeZoneWithFallback(scheduleCallDraft.date, userTimezone, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale}),
                                         })}
                                     />
                                 </Text>
@@ -223,8 +218,8 @@ function ScheduleCallPage() {
                                     {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
                                         <Button
                                             key={`time-slot-${timeSlot.startTime}`}
-                                            large
-                                            success={scheduleCallDraft?.timeSlot === timeSlot.startTime}
+                                            size={CONST.BUTTON_SIZE.LARGE}
+                                            variant={scheduleCallDraft?.timeSlot === timeSlot.startTime ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                                             onPress={() => {
                                                 saveBookingDraft({
                                                     timeSlot: timeSlot.startTime,
@@ -237,10 +232,13 @@ function ScheduleCallPage() {
                                                 });
                                                 Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATION.getRoute(reportID));
                                             }}
-                                            shouldEnableHapticFeedback
+                                            enableHapticFeedback
                                             style={styles.twoColumnLayoutCol}
-                                            text={DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)}
-                                        />
+                                        >
+                                            <Button.Text>
+                                                {DateUtils.formatInTimeZoneWithFallback(timeSlot.startTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}
+                                            </Button.Text>
+                                        </Button>
                                     ))}
                                     {timeFillerItem}
                                 </View>

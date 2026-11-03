@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+
 import type Form from './Form';
 
 const INPUT_IDS = {
@@ -11,6 +12,7 @@ type OnboardingWorkEmailForm = Form<
     InputID,
     {
         [INPUT_IDS.ONBOARDING_WORK_EMAIL]: string;
+        completedTaskReportActionID?: string;
     }
 >;
 

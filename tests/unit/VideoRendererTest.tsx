@@ -1,11 +1,15 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import {AttachmentContext} from '@components/AttachmentContext';
 import VideoRenderer from '@components/HTMLEngineProvider/HTMLRenderers/VideoRenderer';
-import type PressableProps from '@components/Pressable/GenericPressable/types';
+import type * as PressableModule from '@components/Pressable';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRouteWithoutParams: jest.fn(() => ''),
@@ -17,9 +21,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@components/VideoPlayerPreview', () => {
     return ({onShowModalPress, fileName}: {onShowModalPress: () => void; fileName: string}) => {
         // Get PressableWithoutFeedback inside the component to avoid Jest mock issues
-        const {PressableWithoutFeedback} = require('@components/Pressable') as {
-            PressableWithoutFeedback: React.ComponentType<PressableProps>;
-        };
+        const {PressableWithoutFeedback} = jest.requireActual<typeof PressableModule>('@components/Pressable');
 
         const handlePress = () => {
             onShowModalPress?.();
@@ -84,5 +86,41 @@ describe('VideoRenderer', () => {
         const firstCall = mockNavigate.mock.calls.at(0);
         const navigateArgs = firstCall?.at(0);
         expect(navigateArgs).toContain('isAuthTokenRequired=true');
+    });
+
+    it('should use the inner text as the file name when data-name is missing', () => {
+        // Given a server-rendered video tag that carries the original file name only as its inner text
+        render(
+            <ShowContextMenuStateContext.Provider value={mockShowContextMenuStateValue}>
+                <ShowContextMenuActionsContext.Provider value={mockShowContextMenuActionsValue}>
+                    <AttachmentContext.Provider value={{type: CONST.ATTACHMENT_TYPE.SEARCH}}>
+                        {/* @ts-expect-error - Ignoring type errors for testing purposes */}
+                        <VideoRenderer tnode={{attributes: mockTNodeAttributes, domNode: {children: [{data: 'clip.mp4'}]}}} />
+                    </AttachmentContext.Provider>
+                </ShowContextMenuActionsContext.Provider>
+            </ShowContextMenuStateContext.Provider>,
+        );
+
+        // When the video preview renders
+        // Then it should receive the original file name instead of the storage key from the URL
+        expect(screen.getByLabelText('clip.mp4')).toBeTruthy();
+    });
+
+    it('should fall back to the URL file name when data-name and inner text are missing', () => {
+        // Given a video tag with neither data-name nor inner text
+        render(
+            <ShowContextMenuStateContext.Provider value={mockShowContextMenuStateValue}>
+                <ShowContextMenuActionsContext.Provider value={mockShowContextMenuActionsValue}>
+                    <AttachmentContext.Provider value={{type: CONST.ATTACHMENT_TYPE.SEARCH}}>
+                        {/* @ts-expect-error - Ignoring type errors for testing purposes */}
+                        <VideoRenderer tnode={{attributes: mockTNodeAttributes}} />
+                    </AttachmentContext.Provider>
+                </ShowContextMenuActionsContext.Provider>
+            </ShowContextMenuStateContext.Provider>,
+        );
+
+        // When the video preview renders
+        // Then it should use the last part of the source URL, since there is no other name to use
+        expect(screen.getByLabelText('test.mp4')).toBeTruthy();
     });
 });

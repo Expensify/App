@@ -1,18 +1,25 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import AccountUtils from '@libs/AccountUtils';
+
 import variables from '@styles/variables';
+
 import {setLocale} from '@userActions/App';
+
 import {LOCALE_TO_LANGUAGE_STRING, SORTED_LOCALES} from '@src/CONST/LOCALES';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {PickerSize} from './Picker/types';
+
 import Icon from './Icon';
 import Picker from './Picker';
-import type {PickerSize} from './Picker/types';
 
 type LocalePickerProps = {
     /** Indicates size of a picker component and whether to render the label or not */
@@ -27,15 +34,13 @@ function LocalePicker({size = 'normal'}: LocalePickerProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const icons = useMemoizedLazyExpensifyIcons(['Globe']);
 
-    const locales = useMemo(() => {
-        const sortedLocales = SORTED_LOCALES;
-        return sortedLocales.map((locale) => ({
-            value: locale,
-            label: LOCALE_TO_LANGUAGE_STRING[locale],
-            keyForList: locale,
-            isSelected: preferredLocale === locale,
-        }));
-    }, [preferredLocale]);
+    const sortedLocales = SORTED_LOCALES;
+    const locales = sortedLocales.map((locale) => ({
+        value: locale,
+        label: LOCALE_TO_LANGUAGE_STRING[locale],
+        keyForList: locale,
+        isSelected: preferredLocale === locale,
+    }));
 
     const shouldDisablePicker = AccountUtils.isValidateCodeFormSubmitting(account);
 

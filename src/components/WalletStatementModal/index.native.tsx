@@ -1,15 +1,23 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useRef} from 'react';
-import {StyleSheet, View} from 'react-native';
-import type {WebViewMessageEvent, WebViewNavigation} from 'react-native-webview';
-import {WebView} from 'react-native-webview';
-import type {ValueOf} from 'type-fest';
 import ActivityIndicator from '@components/ActivityIndicator';
+
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {WebViewMessageEvent, WebViewNavigation} from 'react-native-webview';
+import type {ValueOf} from 'type-fest';
+
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React, {useRef} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {WebView} from 'react-native-webview';
+
 import type {WalletStatementProps} from './types';
+
 import handleWalletStatementNavigation from './walletNavigationUtils';
 
 type WebViewMessageType = ValueOf<typeof CONST.WALLET.WEB_MESSAGE_TYPE>;
@@ -21,8 +29,11 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const delegateAccountID = useDelegateAccountID();
 
     const webViewRef = useRef<WebView>(null);
 
@@ -30,10 +41,7 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
 
     const renderLoading = () => (
         <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={{context: 'WalletStatementModal'}}
-            />
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
         </View>
     );
 
@@ -48,7 +56,17 @@ function WalletStatementModal({statementPageURL}: WalletStatementProps) {
         if (!webViewRef.current || !parsedData) {
             return;
         }
-        handleWalletStatementNavigation(conciergeReportID, introSelected, session?.accountID, isSelfTourViewed, betas, parsedData.type, parsedData.url);
+        handleWalletStatementNavigation(
+            conciergeReportID,
+            introSelected,
+            session?.accountID,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+            conciergePersonalDetails,
+            delegateAccountID,
+            parsedData.type,
+            parsedData.url,
+        );
     };
 
     return (

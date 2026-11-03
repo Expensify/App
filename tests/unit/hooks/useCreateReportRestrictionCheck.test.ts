@@ -1,6 +1,10 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useCreateReportRestrictionCheck from '@pages/iou/request/step/IOURequestStepReport/hooks/useCreateReportRestrictionCheck';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import createMock from '../../utils/createMock';
 
 const mockShouldRestrict = jest.fn<boolean, unknown[]>();
 
@@ -24,8 +28,8 @@ jest.mock('@hooks/useOnyx', () => ({
     },
 }));
 
-const session = {accountID: 42} as unknown as OnyxTypes.Session;
-const restrictedPolicy = {id: 'p1'} as unknown as OnyxTypes.Policy;
+const session = createMock<OnyxTypes.Session>({accountID: 42});
+const restrictedPolicy = createMock<OnyxTypes.Policy>({id: 'p1'});
 
 describe('useCreateReportRestrictionCheck', () => {
     beforeEach(() => {

@@ -1,8 +1,9 @@
-import * as core from '@actions/core';
-import * as github from '@actions/github';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import isTeamMember from '@github/libs/isTeamMember';
+
+import * as core from '@actions/core';
+import * as github from '@actions/github';
 
 const AUTHORIZED_ASSOCIATIONS = new Set(['MEMBER', 'OWNER', 'CONTRIBUTOR', 'COLLABORATOR']);
 const CONTRIBUTOR_PLUS_TEAM_SLUG = 'contributor-plus';
@@ -155,7 +156,7 @@ async function run(): Promise<void> {
     core.setOutput('IS_INTERNAL', isInternal);
 }
 
-if (require.main === module) {
+if (import.meta.main) {
     run().catch((error: unknown) => {
         const message = error instanceof Error ? error.message : String(error);
         core.setFailed(message);

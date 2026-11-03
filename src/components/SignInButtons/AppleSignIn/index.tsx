@@ -1,16 +1,23 @@
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
-import type {NativeConfig} from 'react-native-config';
-import Config from 'react-native-config';
 import useOnyx from '@hooks/useOnyx';
+
 import {beginAppleSignIn} from '@libs/actions/Session';
 import {getDevicePreferredLocale} from '@libs/Localize';
 import Log from '@libs/Log';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AppleIDSignInOnFailureEvent, AppleIDSignInOnSuccessEvent} from '@src/types/modules/dom';
 import type Locale from '@src/types/onyx/Locale';
+import type {StoredMarketingAttribution} from '@src/types/onyx/MarketingAttribution';
+
+import type {NativeConfig} from 'react-native-config';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import Config from 'react-native-config';
+
 import MAP_EXFY_LOCALE_TO_APPLE_LOCALE from './AppleSignInLocales';
 
 // react-native-config doesn't trim whitespace on iOS for some reason so we
@@ -48,9 +55,9 @@ const config = {
  * Apple Sign In success and failure listeners.
  */
 
-const successListener = (event: AppleIDSignInOnSuccessEvent, preferredLocale?: Locale) => {
+const successListener = (event: AppleIDSignInOnSuccessEvent, preferredLocale?: Locale, marketingAttribution?: OnyxEntry<StoredMarketingAttribution>) => {
     const token = event.detail.authorization.id_token;
-    beginAppleSignIn(token, preferredLocale);
+    beginAppleSignIn(token, preferredLocale, marketingAttribution);
 };
 
 const failureListener = (event: AppleIDSignInOnFailureEvent) => {
@@ -65,6 +72,7 @@ const failureListener = (event: AppleIDSignInOnFailureEvent) => {
  */
 function AppleSignInDiv({isDesktopFlow, onPointerDown}: AppleSignInDivProps) {
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [marketingAttribution] = useOnyx(ONYXKEYS.MARKETING_ATTRIBUTION);
     useEffect(() => {
         // `init` renders the button, so it must be called after the div is
         // first mounted.
@@ -72,14 +80,17 @@ function AppleSignInDiv({isDesktopFlow, onPointerDown}: AppleSignInDivProps) {
     }, []);
     //  Result listeners need to live within the focused item to avoid duplicate
     //  side effects on success and failure.
+    //  The success listener is kept in a variable so the cleanup removes the same function, otherwise a re-run of this effect would
+    //  leave the previous listener attached and sign in twice.
     React.useEffect(() => {
-        document.addEventListener('AppleIDSignInOnSuccess', (event) => successListener(event, preferredLocale));
+        const onSuccess = (event: AppleIDSignInOnSuccessEvent) => successListener(event, preferredLocale, marketingAttribution);
+        document.addEventListener('AppleIDSignInOnSuccess', onSuccess);
         document.addEventListener('AppleIDSignInOnFailure', failureListener);
         return () => {
-            document.removeEventListener('AppleIDSignInOnSuccess', (event) => successListener(event, preferredLocale));
+            document.removeEventListener('AppleIDSignInOnSuccess', onSuccess);
             document.removeEventListener('AppleIDSignInOnFailure', failureListener);
         };
-    }, [preferredLocale]);
+    }, [preferredLocale, marketingAttribution]);
 
     return isDesktopFlow ? (
         <div

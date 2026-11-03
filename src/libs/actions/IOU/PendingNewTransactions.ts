@@ -1,7 +1,8 @@
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import Onyx from 'react-native-onyx';
 
 // The 1→2 transaction transition causes MoneyRequestReportActionsList to fresh-mount, breaking diff-based new transaction detection.
 // This helper detects that transition so callers can register pending IDs for the fallback highlight path.

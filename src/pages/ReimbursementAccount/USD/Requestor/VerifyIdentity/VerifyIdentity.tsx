@@ -1,16 +1,21 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
 import ScrollView from '@components/ScrollView';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Growl from '@libs/Growl';
+
 import {clearOnfidoToken, updateReimbursementAccountDraft, verifyIdentityForBankAccount} from '@userActions/BankAccounts';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useEffect, useRef, useState} from 'react';
 
 type VerifyIdentityProps = {
     /** Goes to the previous step */
@@ -45,18 +50,15 @@ function VerifyIdentity({onBackButtonPress, onSubmit}: VerifyIdentityProps) {
         onSubmitRef.current?.();
     }, []);
 
-    const handleOnfidoSuccess = useCallback(
-        (onfidoData: OnfidoData) => {
-            verifyIdentityForBankAccount(Number(bankAccountID), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
-            updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
-            onSubmit?.();
-        },
-        [bankAccountID, onfidoApplicantID, policyID, onSubmit],
-    );
+    const handleOnfidoSuccess = (onfidoData: OnfidoData) => {
+        verifyIdentityForBankAccount(Number(bankAccountID), {...onfidoData, applicantID: onfidoApplicantID}, policyID);
+        updateReimbursementAccountDraft({isOnfidoSetupComplete: true});
+        onSubmit?.();
+    };
 
     const handleOnfidoError = () => {
         // In case of any unexpected error we log it to the server, show a growl, and return the user back to the requestor step so they can try again.
-        Growl.error(translate('onfidoStep.genericError'), ONFIDO_ERROR_DISPLAY_DURATION);
+        Growl.error({bodyText: translate('onfidoStep.genericError'), duration: ONFIDO_ERROR_DISPLAY_DURATION});
         clearOnfidoToken();
         onBackButtonPress();
     };

@@ -1,4 +1,3 @@
-import React, {useCallback, useRef, useState} from 'react';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -6,31 +5,36 @@ import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@comp
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import Text from '@components/Text';
 import UploadFile from '@components/UploadFile';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import mapCurrencyToCountry from '@libs/mapCurrencyToCountry';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import {clearErrorFields, clearErrors, setDraftValues, setErrorFields} from '@userActions/FormActions';
 import {openLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useRef, useState} from 'react';
 
 type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Default value for file upload input */
     defaultValue: FileObject[];
 
-    /** The ID of the form */
     formID: TFormID;
-
-    /** ID of the input in the form */
     inputID: FormOnyxKeys<TFormID>;
 
     /** Indicates that action is being processed */
     isLoading: boolean;
 
-    /** Handles back button press */
     onBackButtonPress: () => void;
 
     /** Handles submit button press */
@@ -39,38 +43,31 @@ type DocusignFullStepProps<TFormID extends keyof OnyxFormValuesMapping> = {
     /** Currency of related account */
     currency: string;
 
-    /** Array of step names */
     stepNames?: readonly string[];
 
     /** Index of currently active step in header */
     startStepIndex: number;
 };
 
-function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
-    defaultValue,
-    formID,
-    inputID,
-    isLoading,
-    onBackButtonPress,
-    onSubmit,
-    currency,
-    startStepIndex,
-    stepNames,
-}: DocusignFullStepProps<TFormID>) {
+type DocusignFullStepPropsWidened = Omit<DocusignFullStepProps<keyof OnyxFormValuesMapping>, never>;
+
+/**
+ * Non-generic implementation so OXC's React Compiler can memoize the component.
+ * OXC bails on type params inside components ("Unsupported declaration type for hoisting").
+ */
+function DocusignFullStepImpl({defaultValue, formID, inputID, isLoading, onBackButtonPress, onSubmit, currency, startStepIndex, stepNames}: DocusignFullStepPropsWidened) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
 
     const formRef = useRef<FormRef | null>(null);
 
     const [uploadedFiles, setUploadedFiles] = useState<FileObject[]>(defaultValue);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            return getFieldRequiredErrors(values, [inputID], translate);
-        },
-        [inputID, translate],
-    );
+    const validate = (values: FormOnyxValues<keyof OnyxFormValuesMapping>): FormInputErrors<keyof OnyxFormValuesMapping> => {
+        return getFieldRequiredErrors(values, [inputID], translate);
+    };
 
     const handleSelectFile = (files: FileObject[]) => {
         setDraftValues(formID, {[inputID]: [...uploadedFiles, ...files]});
@@ -130,14 +127,15 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
                     </>
                 )}
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100, styles.mb15]}
                     onPress={() => {
-                        openLink(CONST.DOCUSIGN_POWERFORM_LINK[country as 'CA' | 'AU' | 'US'], environmentURL);
+                        openLink(CONST.DOCUSIGN_POWERFORM_LINK[country as 'CA' | 'AU' | 'US'], environmentURL, false, session);
                     }}
-                    text={translate('docusignStep.takeMeTo')}
-                />
+                >
+                    <Button.Text>{translate('docusignStep.takeMeTo')}</Button.Text>
+                </Button>
                 {(country === CONST.COUNTRY.CA || country === CONST.COUNTRY.US) && (
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('docusignStep.uploadAdditional')}</Text>
                 )}
@@ -165,6 +163,10 @@ function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>({
             </FormProvider>
         </InteractiveStepWrapper>
     );
+}
+
+function DocusignFullStep<TFormID extends keyof OnyxFormValuesMapping>(props: DocusignFullStepProps<TFormID>) {
+    return <DocusignFullStepImpl {...(props as unknown as DocusignFullStepPropsWidened)} />;
 }
 
 export default DocusignFullStep;

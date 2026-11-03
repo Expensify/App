@@ -1,28 +1,26 @@
-import React, {useCallback, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
 import {ListFilterHeightContextProvider} from '@components/Search/FilterComponents/ListFilterHeightContext';
 import type {SingleSelectItem} from '@components/Search/FilterComponents/SingleSelect';
 import SingleSelect from '@components/Search/FilterComponents/SingleSelect';
 import type {SelectionListStyle} from '@components/SelectionList/types';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React, {useState} from 'react';
+
 import BasePopup from './BasePopup';
 
 type SingleSelectPopupProps<T> = {
+    showLabel?: boolean;
+
     /** The label to show when in an overlay on mobile */
     label?: string;
 
-    /** The list of all items to show up in the list */
     items: Array<SingleSelectItem<T>>;
-
-    /** The currently selected item */
     value: SingleSelectItem<T> | undefined;
-
     onBackButtonPress?: () => void;
-
-    /** Function to call to close the overlay when changes are applied */
     closeOverlay: () => void;
-
-    /** Function to call when changes are applied */
     onChange: (item: SingleSelectItem<T> | undefined) => void;
 
     /** Whether the search input should be displayed */
@@ -35,8 +33,6 @@ type SingleSelectPopupProps<T> = {
     defaultValue?: string;
 
     style?: StyleProp<ViewStyle>;
-
-    /** Custom styles for the SelectionList */
     selectionListStyle?: SelectionListStyle;
 
     /** Custom height for each item in the list. Overrides the default row height and adjusts the popover size accordingly. */
@@ -62,24 +58,26 @@ function SingleSelectPopup<T extends string>({
     style,
     selectionListStyle,
     itemHeight,
+    showLabel,
     shouldShowList = true,
     shouldUseFixedPopoverHeight,
 }: SingleSelectPopupProps<T>) {
     const [selectedItem, setSelectedItem] = useState(value);
 
-    const applyChanges = useCallback(() => {
+    const applyChanges = () => {
         onChange(selectedItem);
         closeOverlay();
-    }, [closeOverlay, onChange, selectedItem]);
+    };
 
-    const resetChanges = useCallback(() => {
+    const resetChanges = () => {
         onChange(items.find((item) => item.value === defaultValue));
         closeOverlay();
-    }, [closeOverlay, onChange, defaultValue, items]);
+    };
 
     return (
         <BasePopup
             label={label}
+            showLabel={showLabel}
             onReset={resetChanges}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}

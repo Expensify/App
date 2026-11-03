@@ -1,21 +1,23 @@
-import {adminAccountIDsSelector} from '@selectors/Domain';
-import React, {useEffect} from 'react';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import Navigation from '@navigation/Navigation';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type DomainNotFoundPageWrapperProps = {
-    /** AccountID of the domain */
-    domainAccountID: number;
+import {adminAccountIDsSelector} from '@selectors/Domain';
+import React, {useEffect} from 'react';
 
-    /** The children to render */
+type DomainNotFoundPageWrapperProps = {
+    domainAccountID: number;
     children: React.ReactNode;
 
     /** Props for customizing fallback pages */
@@ -32,6 +34,7 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     });
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const isAdmin = adminAccountIDs?.includes(currentUserAccountID);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const shouldShowFullScreenLoadingIndicator = isLoadingOnyxValue(domainMetadata);
     const shouldShowNotFoundPage = !domain || !isAdmin || shouldBeBlocked;
@@ -45,11 +48,7 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
 
     if (shouldShowFullScreenLoadingIndicator) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'DomainNotFoundPageWrapper',
-            shouldShowFullScreenLoadingIndicator,
-        };
-        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullscreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
 
     if (shouldShowNotFoundPage) {

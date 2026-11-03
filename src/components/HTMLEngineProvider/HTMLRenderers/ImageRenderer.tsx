@@ -1,30 +1,35 @@
-import React, {memo} from 'react';
-import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import {AttachmentContext} from '@components/AttachmentContext';
-import {getButtonRole} from '@components/Button/utils';
 import {isDeletedNode} from '@components/HTMLEngineProvider/htmlEngineUtils';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
+
+import useCachedAttachmentSource from '@hooks/useCachedAttachmentSource';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getFileName, getFileType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {CustomRendererProps, TBlock} from 'react-native-render-html';
+
+import React from 'react';
 
 function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     const icons = useMemoizedLazyExpensifyIcons(['Document', 'GalleryNotFound']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    // Re-render this component when account.shouldUseStagingServer changes
-    useOnyx(ONYXKEYS.SHOULD_USE_STAGING_SERVER);
+    // Re-render this component when the active server changes
+    useOnyx(ONYXKEYS.ACTIVE_SERVER);
 
     const htmlAttribs = tnode.attributes;
     const isDeleted = isDeletedNode(tnode);
@@ -49,6 +54,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     const attachmentSourceAttribute =
         htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE] ?? (new RegExp(CONST.ATTACHMENT_OR_RECEIPT_LOCAL_URL, 'i').test(htmlAttribs.src) ? htmlAttribs.src : null);
     const isAttachmentOrReceipt = !!attachmentSourceAttribute;
+    const isUploadedAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
     const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE];
 
     // Files created/uploaded/hosted by App should resolve from API ROOT. Other URLs aren't modified
@@ -58,6 +64,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     // For other image formats, we retain the thumbnail as is to avoid unnecessary modifications.
     const processedPreviewSource = typeof previewSource === 'string' ? previewSource.replaceAll(/\.png\.(1024|320)\.jpg$/g, '.png') : previewSource;
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
+    const cachedPreviewSource = useCachedAttachmentSource(attachmentID, processedPreviewSource);
 
     const alt = htmlAttribs.alt;
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
@@ -76,7 +83,10 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
 
     const thumbnailImageComponent = (
         <ThumbnailImage
-            previewSourceURL={processedPreviewSource}
+            previewSourceURL={cachedPreviewSource ?? processedPreviewSource}
+            // Only an uploaded attachment's ID names one picture. Markdown images, Expensify-hosted ones included, get
+            // a positional ID from getHtmlWithAttachmentID, and an edit can put a different picture at the same position.
+            recyclingKey={isUploadedAttachment ? attachmentID : undefined}
             style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             fallbackIcon={fallbackIcon}
@@ -126,7 +136,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
                     }}
                     isNested
                     shouldUseHapticsOnLongPress
-                    role={getButtonRole(true)}
+                    role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                     sentryLabel={CONST.SENTRY_LABEL.HTML_RENDERER.IMAGE}
                 >
@@ -137,4 +147,4 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     );
 }
 
-export default memo(ImageRenderer, (prevProps, nextProps) => prevProps.tnode.attributes === nextProps.tnode.attributes);
+export default ImageRenderer;

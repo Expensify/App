@@ -1,20 +1,29 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
-import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
+import ListItemComposed from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import FS from '@libs/Fullstory';
+
 import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
-import TaskListItemRow from './TaskListItemRow';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {TaskListItemProps, TaskListItemType} from './types';
+
+import TaskListItemRow from './TaskListItemRow';
 
 /**
  * A task row in search results showing date, title, description, creator, assignee,
@@ -22,7 +31,6 @@ import type {TaskListItemProps, TaskListItemType} from './types';
  */
 function TaskListItem<TItem extends ListItem>({
     item,
-    isFocused,
     showTooltip,
     isDisabled,
     canSelectMultiple,
@@ -33,16 +41,18 @@ function TaskListItem<TItem extends ListItem>({
     allReports,
     isLastItem,
 }: TaskListItemProps<TItem>) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const taskItem = item as unknown as TaskListItemType;
     const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskItem?.parentReportID}`];
     const parentReportID = taskItem?.parentReportID;
-    const parentReportAttributeNameSelector = (value: OnyxEntry<ReportAttributesDerivedValue>) => (parentReportID ? value?.reports?.[parentReportID]?.reportName : undefined);
-    const [liveParentReportAttributeName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: parentReportAttributeNameSelector}, [parentReportID]);
+    const [liveParentReportAttributeName] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {
+        selector: (value: OnyxEntry<ReportAttributesDerivedValue>) => (parentReportID ? value?.reports?.[parentReportID]?.reportName : undefined),
+    });
     const liveTaskItem: TaskListItemType =
         liveParentReportAttributeName && liveParentReportAttributeName !== taskItem.parentReportName ? {...taskItem, parentReportName: liveParentReportAttributeName} : taskItem;
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const StyleUtils = useStyleUtils();
-    const theme = useTheme();
 
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {isSelected} = useRowSelection(item.keyForList);
@@ -51,7 +61,7 @@ function TaskListItem<TItem extends ListItem>({
         styles.selectionListPressableItemWrapper,
         styles.pv3,
         styles.ph3,
-        // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+        // Background is applied on the parent wrapper, so keep this transparent
         styles.bgTransparent,
         isSelected && styles.activeComponentBG,
         styles.mh0,
@@ -64,41 +74,40 @@ function TaskListItem<TItem extends ListItem>({
         isLargeScreenWidth ? {...styles.flexRow, ...styles.justifyContentBetween, ...styles.alignItemsCenter} : {...styles.flexColumn, ...styles.alignItemsStretch},
     ];
 
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: StyleUtils.getSearchTableHighlightBorderRadius(isLargeScreenWidth),
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: theme.highlightBG,
-        shouldApplyOtherStyles: !isLargeScreenWidth,
-    });
-
     const fsClass = FS.getChatFSClass(parentReport);
 
     return (
-        <BaseListItem
+        <ListItemComposed
             item={item}
+            shouldAllowTextSelection
             pressableStyle={listItemPressableStyle}
-            wrapperStyle={listItemWrapperStyle}
-            containerStyle={!isLargeScreenWidth && [styles.mb2]}
+            containerStyle={!isLargeScreenWidth && styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
-            showTooltip={showTooltip}
+            shouldShowTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
-            pendingAction={item.pendingAction}
-            keyForList={item.keyForList}
             onFocus={onFocus}
             onLongPressRow={onLongPressRow}
             shouldSyncFocus={shouldSyncFocus}
             hoverStyle={isSelected && styles.activeComponentBG}
-            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle, isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
-            forwardedFSClass={fsClass}
+            pressableWrapperStyle={[
+                pageGutterMargin,
+                StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                !isLargeScreenWidth && styles.br2,
+                isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
+            ]}
         >
-            <TaskListItemRow
-                item={liveTaskItem}
-                showTooltip={showTooltip}
-            />
-        </BaseListItem>
+            <View
+                style={listItemWrapperStyle}
+                fsClass={fsClass}
+            >
+                <TaskListItemRow
+                    item={liveTaskItem}
+                    showTooltip={showTooltip}
+                />
+            </View>
+        </ListItemComposed>
     );
 }
 

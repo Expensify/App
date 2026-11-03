@@ -1,15 +1,19 @@
-import React, {createContext, useContext, useEffect, useRef} from 'react';
+import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
+
+import React, {createContext, useContext, useEffect, useRef} from 'react';
+
+import type {TabSelectorActionsContextType, TabSelectorContextProviderProps, TabSelectorStateContextType} from './types.context';
+
 import {defaultTabSelectorActionsContextValue, defaultTabSelectorStateContextValue} from './default';
 import scrollToTabUtil from './scrollToTab';
-import type {TabSelectorActionsContextType, TabSelectorContextProviderProps, TabSelectorStateContextType} from './types.context';
 
 const TabSelectorStateContext = createContext<TabSelectorStateContextType>(defaultTabSelectorStateContextValue);
 const TabSelectorActionsContext = createContext<TabSelectorActionsContextType>(defaultTabSelectorActionsContextValue);
 
 function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContextProviderProps) {
-    const containerRef = useRef<RNScrollView>(null);
+    const containerRef = useRef<ComponentRef<typeof RNScrollView>>(null);
     const containerLayoutRef = useRef<{x: number; width: number}>({x: 0, width: 0});
     const tabsRef = useRef<Record<string, {width: number; x: number}>>({});
     const lastScrolledToTab = useRef('');
@@ -18,7 +22,7 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
         const width = event.nativeEvent.layout.width;
         containerLayoutRef.current.width = width;
 
-        const tabData = tabsRef.current[activeTabKey];
+        const tabData = activeTabKey ? tabsRef.current[activeTabKey] : undefined;
 
         if (!tabData) {
             return;
@@ -61,13 +65,13 @@ function TabSelectorContextProvider({children, activeTabKey}: TabSelectorContext
 
     // Sync scroll position when the active tab changes externally (e.g. back/forward browser history buttons, not user tap)
     useEffect(() => {
-        if (!lastScrolledToTab.current || activeTabKey === lastScrolledToTab.current) {
+        if (!lastScrolledToTab.current || !activeTabKey || activeTabKey === lastScrolledToTab.current) {
             return;
         }
 
         lastScrolledToTab.current = activeTabKey;
 
-        const tabData = tabsRef.current[activeTabKey];
+        const tabData = activeTabKey ? tabsRef.current[activeTabKey] : undefined;
 
         if (!tabData) {
             return;

@@ -1,11 +1,5 @@
-import {
-    applyConciergeDraftEvent,
-    getCachedDraft,
-    getNextVisibleConciergeDraftBodyMarkdown,
-    getNextVisibleConciergeDraftMarkdown,
-    setCachedDraft,
-    stripIncompleteMarkdown,
-} from '@pages/inbox/conciergeDraftState';
+import {applyConciergeDraftEvent, getCachedDraft, getNextVisibleConciergeDraftMarkdown, setCachedDraft, stripIncompleteMarkdown} from '@pages/inbox/conciergeDraftState';
+
 import CONST from '@src/CONST';
 
 const REPORT_ID = '123';
@@ -48,7 +42,7 @@ function getFirstMessageText(draft: ReturnType<typeof applyConciergeDraftEvent>)
 
 describe('conciergeDraftState', () => {
     it('should create a synthetic Concierge draft action from the first streamed snapshot', () => {
-        const draft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID);
+        const draft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID, false);
 
         expect(draft?.bodyMarkdown).toBe('Hello, **world**!');
         expect(draft?.reportAction.reportActionID).toBe(REPORT_ACTION_ID);
@@ -59,7 +53,7 @@ describe('conciergeDraftState', () => {
     });
 
     it('should update the same draft session when a newer sequence arrives', () => {
-        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID);
+        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID, false);
         const updatedDraft = applyConciergeDraftEvent(
             initialDraft,
             createDraftEvent({
@@ -68,6 +62,7 @@ describe('conciergeDraftState', () => {
                 bodyMarkdown: 'Hello, **streaming** world!',
             }),
             REPORT_ID,
+            false,
         );
 
         expect(updatedDraft?.sequence).toBe(2);
@@ -76,14 +71,90 @@ describe('conciergeDraftState', () => {
     });
 
     it('should render streamed Common Markdown single-star emphasis as italic', () => {
-        const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Hello, *streaming* world!'}), REPORT_ID);
+        const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Hello, *streaming* world!'}), REPORT_ID, false);
 
         expect(getFirstMessageHTML(draft)).toContain('<em>streaming</em>');
         expect(getFirstMessageHTML(draft)).not.toContain('<strong>streaming</strong>');
     });
 
+    it('keeps canonical entity Markdown while displaying only the prefix until final HTML arrives', () => {
+        // Given an entity split across streamed snapshots
+        const bodyMarkdown = '**Lunch** &copy client &lt;client team&gt; &#42;alpha&#42; &amp;lt;literal&amp;gt;';
+        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: '**Lunch** &'}), REPORT_ID, false);
+        expect(getFirstMessageText(initialDraft)).toBe('Lunch ');
+
+        // When the complete source arrives, the draft must not display double-escaped entities
+        const updatedDraft = applyConciergeDraftEvent(initialDraft, createDraftEvent({sequence: 2, status: 'updated', bodyMarkdown}), REPORT_ID, false);
+        expect(updatedDraft?.bodyMarkdown).toBe(bodyMarkdown);
+        expect(updatedDraft?.sequence).toBe(2);
+        expect(updatedDraft?.streamSessionID).toBe(STREAM_SESSION_ID);
+        expect(updatedDraft?.reportAction.reportActionID).toBe(REPORT_ACTION_ID);
+        expect(getFirstMessageHTML(updatedDraft)).toContain('<strong>Lunch</strong>');
+        expect(getFirstMessageText(updatedDraft)).toBe('Lunch ');
+
+        // Then server-rendered HTML reveals the exact literal text in the same action
+        const finalRenderedHTML = '<comment><strong>Lunch</strong> &copy client &lt;client team&gt; &#42;alpha&#42; &amp;lt;literal&amp;gt;</comment>';
+        const completedDraft = applyConciergeDraftEvent(updatedDraft, createDraftEvent({sequence: 3, status: 'completed', bodyMarkdown, finalRenderedHTML}), REPORT_ID, false);
+        expect(completedDraft?.bodyMarkdown).toBe(bodyMarkdown);
+        expect(completedDraft?.status).toBe('completed');
+        expect(completedDraft?.reportAction.reportActionID).toBe(REPORT_ACTION_ID);
+        expect(getFirstMessageHTML(completedDraft)).toBe(finalRenderedHTML);
+        expect(getFirstMessageText(completedDraft)).toBe('Lunch © client <client team> *alpha* &lt;literal&gt;');
+    });
+
+    it('waits for final HTML when an entity starts the draft', () => {
+        // Given a draft whose first character could start an encoded literal
+        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: '&'}), REPORT_ID, false);
+        expect(initialDraft).toBeNull();
+
+        // When the entity completes, there is still no prefix that the client can safely render
+        const bodyMarkdown = '&lt;client team&gt;';
+        const updatedDraft = applyConciergeDraftEvent(initialDraft, createDraftEvent({sequence: 2, status: 'updated', bodyMarkdown}), REPORT_ID, false);
+        expect(updatedDraft).toBeNull();
+
+        // Then final HTML creates the intended action without displaying entity syntax
+        const finalRenderedHTML = '<comment>&lt;client team&gt;</comment>';
+        const completedDraft = applyConciergeDraftEvent(updatedDraft, createDraftEvent({sequence: 3, status: 'completed', bodyMarkdown, finalRenderedHTML}), REPORT_ID, false);
+        expect(completedDraft?.reportAction.reportActionID).toBe(REPORT_ACTION_ID);
+        expect(getFirstMessageHTML(completedDraft)).toBe(finalRenderedHTML);
+        expect(getFirstMessageText(completedDraft)).toBe('<client team>');
+    });
+
+    it('resumes a draft when later text resolves a trailing ampersand', () => {
+        // Given a draft ending with a possible entity opener
+        const initial = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Manufacturing &'}), REPORT_ID, false);
+        expect(getFirstMessageText(initial)).toBe('Manufacturing ');
+
+        // When later snapshots identify literal text and a query-string ampersand
+        const bodyMarkdown = 'Manufacturing & Wholesale, R&D; review it tomorrow: https://example.com/?one=1&two=2';
+        const updated = applyConciergeDraftEvent(initial, createDraftEvent({sequence: 2, status: 'updated', bodyMarkdown}), REPORT_ID, false);
+
+        // Then the whole draft is visible before the completed event
+        expect(getFirstMessageText(updated)).toBe(bodyMarkdown);
+        expect(updated?.status).toBe('updated');
+    });
+
+    it('continues past an ordinary ampersand before final HTML arrives', () => {
+        // Given an ordinary draft that contains an ampersand rather than an entity
+        const bodyMarkdown = 'Lunch & dinner';
+
+        // When rendering Markdown, the following space identifies the ampersand as literal text
+        const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown}), REPORT_ID, false);
+        expect(draft?.bodyMarkdown).toBe(bodyMarkdown);
+        expect(getFirstMessageText(draft)).toBe('Lunch & dinner');
+
+        // Then final HTML reveals the complete text without truncation
+        const completedDraft = applyConciergeDraftEvent(
+            draft,
+            createDraftEvent({sequence: 2, status: 'completed', bodyMarkdown, finalRenderedHTML: '<comment>Lunch &amp; dinner</comment>'}),
+            REPORT_ID,
+            false,
+        );
+        expect(getFirstMessageText(completedDraft)).toBe(bodyMarkdown);
+    });
+
     it('should ignore stale events from the same stream session', () => {
-        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent({sequence: 3}), REPORT_ID);
+        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent({sequence: 3}), REPORT_ID, false);
         const staleDraft = applyConciergeDraftEvent(
             initialDraft,
             createDraftEvent({
@@ -92,6 +163,7 @@ describe('conciergeDraftState', () => {
                 bodyMarkdown: 'This should be ignored',
             }),
             REPORT_ID,
+            false,
         );
 
         expect(staleDraft).toBe(initialDraft);
@@ -99,7 +171,7 @@ describe('conciergeDraftState', () => {
     });
 
     it('should keep the draft visible through completion and prefer finalRenderedHTML when provided', () => {
-        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID);
+        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID, false);
         const completedDraft = applyConciergeDraftEvent(
             initialDraft,
             createDraftEvent({
@@ -109,6 +181,7 @@ describe('conciergeDraftState', () => {
                 bodyMarkdown: undefined,
             }),
             REPORT_ID,
+            false,
         );
 
         expect(completedDraft?.status).toBe('completed');
@@ -117,7 +190,7 @@ describe('conciergeDraftState', () => {
     });
 
     it('should clear the active draft when the same stream session fails', () => {
-        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID);
+        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID, false);
         const failedDraft = applyConciergeDraftEvent(
             initialDraft,
             createDraftEvent({
@@ -127,13 +200,14 @@ describe('conciergeDraftState', () => {
                 bodyMarkdown: undefined,
             }),
             REPORT_ID,
+            false,
         );
 
         expect(failedDraft).toBeNull();
     });
 
     it('should ignore events for a different report', () => {
-        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID);
+        const initialDraft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID, false);
         const otherReportDraft = applyConciergeDraftEvent(
             initialDraft,
             createDraftEvent({
@@ -143,30 +217,10 @@ describe('conciergeDraftState', () => {
                 bodyMarkdown: 'Different report',
             }),
             REPORT_ID,
+            false,
         );
 
         expect(otherReportDraft).toBe(initialDraft);
-    });
-
-    describe('getNextVisibleConciergeDraftBodyMarkdown', () => {
-        it('handles normal reveal, code points, and corrections', () => {
-            // Given representative pacing inputs
-            const longTarget = 'a'.repeat(200);
-
-            // When calculating the next visible body
-            const firstSlice = getNextVisibleConciergeDraftBodyMarkdown('', 'Hello');
-            const secondSlice = getNextVisibleConciergeDraftBodyMarkdown('H', 'Hello');
-            const emojiSlice = getNextVisibleConciergeDraftBodyMarkdown('Hi ', 'Hi 😃 there');
-            const longBacklogSlice = getNextVisibleConciergeDraftBodyMarkdown('', longTarget);
-            const correctedSlice = getNextVisibleConciergeDraftBodyMarkdown('Old draft', 'New draft');
-
-            // Then each pacing path preserves its expected reveal behavior
-            expect(firstSlice).toBe('H');
-            expect(secondSlice).toBe('He');
-            expect(emojiSlice).toBe('Hi 😃');
-            expect(longBacklogSlice).toBe('a');
-            expect(correctedSlice).toBe('New draft');
-        });
     });
 
     describe('getNextVisibleConciergeDraftMarkdown', () => {
@@ -182,7 +236,7 @@ describe('conciergeDraftState', () => {
 
         it('keeps temporary bold markup valid when the visible content ends in whitespace', () => {
             const spaceSlice = getNextVisibleConciergeDraftMarkdown('Hello **QuickBooks**', 'Hello **QuickBooks Online**', 'Hello **QuickBooks'.length, 'Hello **QuickBooks');
-            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: spaceSlice.bodyMarkdown}), REPORT_ID);
+            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: spaceSlice.bodyMarkdown}), REPORT_ID, false);
 
             expect(spaceSlice.bodyMarkdown).toBe('Hello **QuickBooks** ');
             expect(spaceSlice.sourceMarkdown).toBe('Hello **QuickBooks ');
@@ -355,14 +409,14 @@ describe('conciergeDraftState', () => {
 
         // --- Streaming integration ---
         it('keeps complete double-delimiter bold styled without showing raw delimiters during streaming', () => {
-            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Hello **bold**!'}), REPORT_ID);
+            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Hello **bold**!'}), REPORT_ID, false);
 
             expect(getFirstMessageHTML(draft)).toContain('<strong>bold</strong>');
             expect(getFirstMessageHTML(draft)).not.toContain('*');
         });
 
         it('keeps complete single-delimiter italic styled without rendering it as bold during streaming', () => {
-            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Hello *italic*!'}), REPORT_ID);
+            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Hello *italic*!'}), REPORT_ID, false);
 
             expect(getFirstMessageHTML(draft)).toContain('<em>italic</em>');
             expect(getFirstMessageHTML(draft)).not.toContain('<strong>italic</strong>');
@@ -370,7 +424,7 @@ describe('conciergeDraftState', () => {
         });
 
         it('strips incomplete markdown during a streaming draft event', () => {
-            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Check [this link'}), REPORT_ID);
+            const draft = applyConciergeDraftEvent(null, createDraftEvent({bodyMarkdown: 'Check [this link'}), REPORT_ID, false);
             // The raw '[this link' syntax should NOT appear in the rendered HTML
             expect(getFirstMessageHTML(draft)).not.toContain('[this link');
         });
@@ -387,7 +441,7 @@ describe('conciergeDraftState', () => {
         });
 
         it('persists a draft across set/get and survives across calls (the remount survival contract)', () => {
-            const draft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID);
+            const draft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID, false);
             expect(draft).not.toBeNull();
             setCachedDraft(REPORT_ID, draft);
             expect(getCachedDraft(REPORT_ID)).toBe(draft);
@@ -396,7 +450,7 @@ describe('conciergeDraftState', () => {
         });
 
         it('evicts when set to null (completed/failed/cleared reducer return)', () => {
-            const draft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID);
+            const draft = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID, false);
             setCachedDraft(REPORT_ID, draft);
             expect(getCachedDraft(REPORT_ID)).not.toBeNull();
             setCachedDraft(REPORT_ID, null);
@@ -404,8 +458,8 @@ describe('conciergeDraftState', () => {
         });
 
         it('keeps entries scoped per reportID (no cross-talk)', () => {
-            const draftA = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID);
-            const draftB = applyConciergeDraftEvent(null, createDraftEvent({reportID: 'other'}), 'other');
+            const draftA = applyConciergeDraftEvent(null, createDraftEvent(), REPORT_ID, false);
+            const draftB = applyConciergeDraftEvent(null, createDraftEvent({reportID: 'other'}), 'other', false);
             setCachedDraft(REPORT_ID, draftA);
             setCachedDraft('other', draftB);
             expect(getCachedDraft(REPORT_ID)).toBe(draftA);

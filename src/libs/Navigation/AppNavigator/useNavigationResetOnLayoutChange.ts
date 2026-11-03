@@ -1,8 +1,11 @@
-import type {ParamListBase} from '@react-navigation/native';
-import {useEffect} from 'react';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
+import type {ParamListBase} from '@react-navigation/native';
+
+import {useEffect} from 'react';
 
 /**
  * This hook resets the navigation root state when changing the layout size, resetting the state calls the getRehydratedState method in CustomFullScreenRouter.tsx.

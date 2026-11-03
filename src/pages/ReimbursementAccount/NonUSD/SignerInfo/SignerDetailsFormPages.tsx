@@ -1,15 +1,21 @@
-import React, {useCallback} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {clearErrors} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import React from 'react';
+
 import Address from './subSteps/Address';
 import Confirmation from './subSteps/Confirmation';
 import DateOfBirth from './subSteps/DateOfBirth';
@@ -37,7 +43,6 @@ type SignerDetailsFormPagesProps = {
     /** Array of step names for the progress indicator */
     stepNames?: readonly string[];
 
-    /** ID of current policy */
     policyID?: string;
 
     /** Callback triggered after the last form page is completed */
@@ -55,10 +60,7 @@ function SignerDetailsFormPages({onBackToIsDirector, stepNames, policyID, onFini
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
     const skipPages: string[] = isUserOwner ? [SUB_PAGE_NAMES.NAME, SUB_PAGE_NAMES.DATE_OF_BIRTH, SUB_PAGE_NAMES.ADDRESS] : [];
 
-    const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: pageName, action, backTo}),
-        [policyID, backTo],
-    );
+    const buildRoute = (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.SIGNER_INFO, subPage: pageName, action, backTo});
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage({
         pages,
@@ -68,7 +70,7 @@ function SignerDetailsFormPages({onBackToIsDirector, stepNames, policyID, onFini
         skipPages,
     });
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM);
         if (isEditing) {
             Navigation.goBack(buildRoute(SUB_PAGE_NAMES.CONFIRMATION));
@@ -86,10 +88,10 @@ function SignerDetailsFormPages({onBackToIsDirector, stepNames, policyID, onFini
         } else {
             prevPage();
         }
-    }, [buildRoute, isEditing, onBackToIsDirector, pageIndex, prevPage, skipPages]);
+    };
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'SignerDetailsFormPages', isRedirecting}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

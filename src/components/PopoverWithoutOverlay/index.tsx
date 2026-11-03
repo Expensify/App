@@ -1,14 +1,20 @@
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import {usePopoverActions} from '@components/PopoverProvider';
+import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
+
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import {onModalDidClose, setCloseModal, willAlertModalBecomeVisible} from '@libs/actions/Modal';
+
 import CONST from '@src/CONST';
 import viewRef from '@src/types/utils/viewRef';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import type PopoverWithoutOverlayProps from './types';
 
 const NOOP = () => {};
@@ -75,50 +81,39 @@ function PopoverWithoutOverlay({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isVisible]);
 
-    const modalPaddingStyles = useMemo(
-        () =>
-            StyleUtils.getModalPaddingStyles({
-                shouldAddBottomSafeAreaMargin,
-                shouldAddTopSafeAreaMargin,
-                shouldAddBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding === undefined && shouldAddBottomSafeAreaPadding,
-                shouldAddTopSafeAreaPadding,
-                modalContainerStyle,
-                insets,
-            }),
-        [
-            StyleUtils,
-            enableEdgeToEdgeBottomSafeAreaPadding,
-            insets,
-            modalContainerStyle,
-            shouldAddBottomSafeAreaMargin,
-            shouldAddBottomSafeAreaPadding,
-            shouldAddTopSafeAreaMargin,
-            shouldAddTopSafeAreaPadding,
-        ],
-    );
+    const modalPaddingStyles = StyleUtils.getModalPaddingStyles({
+        shouldAddBottomSafeAreaMargin,
+        shouldAddTopSafeAreaMargin,
+        shouldAddBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding === undefined && shouldAddBottomSafeAreaPadding,
+        shouldAddTopSafeAreaPadding,
+        modalContainerStyle,
+        insets,
+    });
 
     if (!isVisible) {
         return null;
     }
 
     return (
-        <View
-            style={modalStyle}
-            ref={viewRef(withoutOverlayRef)}
-            // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
-            onClick={(e) => e.stopPropagation()}
-            dataSet={{dragArea: false}}
-        >
+        <ScreenWrapperOfflineIndicatorContext.Provider value={{}}>
             <View
-                style={{
-                    ...styles.defaultModalContainer,
-                    ...modalContainerStyle,
-                    ...modalPaddingStyles,
-                }}
+                style={modalStyle}
+                ref={viewRef(withoutOverlayRef)}
+                // Prevent the parent element to capture a click. This is useful when the modal component is put inside a pressable.
+                onClick={(e) => e.stopPropagation()}
+                dataSet={{dragArea: false}}
             >
-                <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                <View
+                    style={{
+                        ...styles.defaultModalContainer,
+                        ...modalContainerStyle,
+                        ...modalPaddingStyles,
+                    }}
+                >
+                    <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
+                </View>
             </View>
-        </View>
+        </ScreenWrapperOfflineIndicatorContext.Provider>
     );
 }
 

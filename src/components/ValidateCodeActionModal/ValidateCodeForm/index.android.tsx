@@ -1,8 +1,11 @@
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import CONST from '@src/CONST';
-import BaseValidateCodeForm from './BaseValidateCodeForm';
+
 import type {ValidateCodeFormProps} from './BaseValidateCodeForm';
+
+import BaseValidateCodeForm from './BaseValidateCodeForm';
 
 function ValidateCodeForm(props: ValidateCodeFormProps) {
     return (

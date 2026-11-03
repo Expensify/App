@@ -1,8 +1,13 @@
+import type {IncomingMessage, ServerResponse} from 'http';
+
 import dotenv from 'dotenv';
 import http from 'http';
-import type {IncomingMessage, ServerResponse} from 'http';
 import https from 'https';
+
 import proxyConfig from '../config/proxyConfig';
+// The Worker is a separately installed package that the App does not depend on, so it can only be reached by path.
+// eslint-disable-next-line import/no-relative-packages
+import {API_PROXY_PORT} from './cloudflare-worker/src/developmentAPIProxy';
 
 dotenv.config();
 
@@ -85,7 +90,7 @@ const server = http.createServer((request: IncomingMessage, response: ServerResp
     });
 });
 
-server.listen(9000, () => {
+server.listen(API_PROXY_PORT, () => {
     /* eslint-disable-next-line no-console */
-    console.log('Proxy server listening at http://localhost:9000');
+    console.log(`Proxy server listening at http://localhost:${API_PROXY_PORT}`);
 });

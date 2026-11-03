@@ -1,10 +1,16 @@
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
+import CONST from '@src/CONST';
+import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction, TransactionViolations} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
-import CONST from '@src/CONST';
-import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingState, Transaction} from '@src/types/onyx';
-import {hasDeferredWriteForReport} from './deferredLayoutWrite';
+
+import {getLatestErrorField} from './ErrorUtils';
+import {hasPendingSubmitWriteForReport} from './pendingSubmitWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -19,14 +25,37 @@ import {
     isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
-import {getReimbursable, isTransactionPendingDelete} from './TransactionUtils';
+import {getSupersededPendingCardTransactionIDs, getVisibleTransactionViolations, isTransactionPendingDelete} from './TransactionUtils';
+
+/**
+ * The key of a reject the backend recorded against an expense it has already moved. It reports those under the
+ * expense's own `reject` field rather than the generic `errors`, and it is what disables the row.
+ */
+function getTransactionRejectErrorKey(transaction: OnyxEntry<Transaction>): string | undefined {
+    return Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
+}
+
+/** Whether a row can be selected. A click, Select All and a shift+click range all use this, so they agree on which rows are selectable. */
+function isSelectableReportTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return !isTransactionPendingDelete(transaction) && !getTransactionRejectErrorKey(transaction);
+}
+
+/**
+ * Whether every selectable transaction on the report is selected, which is when the report-level actions (Submit, Approve,
+ * Pay) are offered. Only selectable rows count: an expense the backend refused to reject stays on the report until its error
+ * is dismissed, and its checkbox is disabled, so counting it would hide those actions for good.
+ */
+function isEveryReportTransactionSelected(transactions: Transaction[], selectedTransactionIDs: string[]): boolean {
+    const selectableTransactions = transactions.filter(isSelectableReportTransaction);
+    if (selectedTransactionIDs.length === 0 || selectableTransactions.length === 0) {
+        return false;
+    }
+    const selectedTransactionIDSet = new Set(selectedTransactionIDs);
+    return selectableTransactions.every((transaction) => selectedTransactionIDSet.has(transaction.transactionID));
+}
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
     return !!policy && isPaidGroupPolicy(policy) && policy.disabledFields?.defaultBillable !== true;
-}
-
-function hasNonReimbursableTransactions(transactions: Transaction[]): boolean {
-    return transactions.some((transaction) => !getReimbursable(transaction));
 }
 
 /**
@@ -86,12 +115,17 @@ function getReportIDForTransaction(transactionItem: TransactionListItemType, IOU
  * Filters all available transactions and returns the ones that belong to not removed action and not removed parent action.
  */
 function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>, reportActions: ReportAction[], isOffline = false, includeOrphanedTransactions = false) {
-    return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
+    const nonDeletedTransactions = Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
         if (!transaction) {
             return false;
         }
 
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+            return true;
+        }
+
+        // A reject the server refused leaves the expense on the report with an error the user has to dismiss.
+        if (!isEmptyObject(transaction.errorFields?.reject ?? {})) {
             return true;
         }
 
@@ -104,6 +138,14 @@ function getAllNonDeletedTransactions(transactions: OnyxCollection<Transaction>,
         }
         return !isDeletedParentAction(action) && (reportActions.length === 0 || !isDeletedAction(action));
     });
+
+    // Hide a pending Expensify Card auth once its posted counterpart from the same auth chain is present, so a stale
+    // pending row left in local Onyx after settlement does not render as a duplicate alongside the posted row.
+    const supersededPendingCardTransactionIDs = getSupersededPendingCardTransactionIDs(nonDeletedTransactions);
+    if (supersededPendingCardTransactionIDs.size === 0) {
+        return nonDeletedTransactions;
+    }
+    return nonDeletedTransactions.filter((transaction) => !supersededPendingCardTransactionIDs.has(transaction.transactionID));
 }
 
 /**
@@ -130,19 +172,23 @@ function shouldDisplayReportTableView(report: OnyxEntry<Report>, transactions: T
     return !isReportTransactionThread(report) && !isSingleTransactionReport(report, transactions);
 }
 
-function shouldWaitForTransactions(report: OnyxEntry<Report>, transactions: Transaction[] | undefined, reportLoadingState: OnyxEntry<ReportLoadingState>, isOffline = false) {
+function shouldWaitForTransactions(
+    report: OnyxEntry<Report>,
+    transactions: Transaction[] | undefined,
+    reportLoadingState: OnyxEntry<ReportLoadingState>,
+    isReportLoadPending: boolean,
+    isOffline = false,
+) {
     if (isOffline) {
         return false;
     }
 
     const isTransactionDataReady = transactions !== undefined;
     const isTransactionThreadView = isReportTransactionThread(report);
-    // Scope the dismiss-write check to *this* report so an unrelated submit flow that's
-    // mid-dismiss doesn't make every empty money-request/invoice report look like it's loading.
-    const hasPendingDismissWrite = hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
-    const isStillLoadingData =
-        transactions?.length === 0 &&
-        ((!!reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingDismissWrite);
+    // Scope the pending-submit-write check to *this* report so an unrelated submit flow that's
+    // mid-submit doesn't make every empty money-request/invoice report look like it's loading.
+    const hasPendingSubmitWrite = hasPendingSubmitWriteForReport(report?.reportID);
+    const isStillLoadingData = transactions?.length === 0 && ((isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingSubmitWrite);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&
         (!isTransactionDataReady || isStillLoadingData) &&
@@ -168,7 +214,7 @@ const getTotalAmountForIOUReportPreviewButton = (
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
 ) => {
     // Determine whether the non-held amount is appropriate to display for the PAY button.
-    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions);
+    const {nonHeldAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(report, reportPreviewAction === CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY, transactions, convertToDisplayString);
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const canAllowSettlement = hasUpdatedTotal(report, policy);
 
@@ -199,7 +245,31 @@ const getTotalAmountForIOUReportPreviewButton = (
     return convertToDisplayString(totalDisplaySpend, report?.currency);
 };
 
+const EMPTY_VIOLATIONS: TransactionViolations = [];
+
+/**
+ * Returns the violations of a report row's transaction that the current user can see. Returns the stable
+ * EMPTY_VIOLATIONS reference for the common no-violations case so the row's props stay referentially stable.
+ */
+function getVisibleReportRowViolations(
+    transaction: Transaction,
+    violations: OnyxEntry<TransactionViolations>,
+    email: string,
+    accountID: number,
+    report: OnyxEntry<Report>,
+    ownerLogin: string | undefined,
+    policy: OnyxEntry<Policy>,
+): TransactionViolations {
+    if (!violations?.length) {
+        return EMPTY_VIOLATIONS;
+    }
+    const visibleViolations = getVisibleTransactionViolations(transaction, violations, email, accountID, report, ownerLogin, policy);
+    return visibleViolations.length === 0 ? EMPTY_VIOLATIONS : visibleViolations;
+}
+
 export {
+    EMPTY_VIOLATIONS,
+    getVisibleReportRowViolations,
     isActionVisibleOnMoneyRequestReport,
     getThreadReportIDsForTransactions,
     getReportIDForTransaction,
@@ -209,5 +279,7 @@ export {
     shouldDisplayReportTableView,
     shouldWaitForTransactions,
     isBillableEnabledOnPolicy,
-    hasNonReimbursableTransactions,
+    getTransactionRejectErrorKey,
+    isSelectableReportTransaction,
+    isEveryReportTransactionSelected,
 };

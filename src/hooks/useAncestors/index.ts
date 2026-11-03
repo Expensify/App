@@ -1,10 +1,12 @@
-import {useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import useOnyx from '@hooks/useOnyx';
+
 import type {Ancestor} from '@libs/ReportUtils';
 import {getAncestors} from '@libs/ReportUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 /**
  * Fetches ancestor reports and their associated actions for a given report.
@@ -18,9 +20,7 @@ function useAncestors(report: OnyxEntry<Report>, shouldExcludeAncestorReportActi
     const [reportCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [reportDraftCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
     const [reportActionsCollection] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    return useMemo(() => {
-        return getAncestors(report, reportCollection, reportDraftCollection, reportActionsCollection, shouldExcludeAncestorReportActionCallback);
-    }, [report, reportCollection, reportDraftCollection, reportActionsCollection, shouldExcludeAncestorReportActionCallback]);
+    return getAncestors(report, reportCollection, reportDraftCollection, reportActionsCollection, shouldExcludeAncestorReportActionCallback);
 }
 
 export default useAncestors;

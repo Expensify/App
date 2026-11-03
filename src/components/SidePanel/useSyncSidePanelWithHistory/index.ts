@@ -1,12 +1,16 @@
-import {useNavigationState} from '@react-navigation/native';
-import {useEffect} from 'react';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelActions from '@hooks/useSidePanelActions';
 import useSidePanelState from '@hooks/useSidePanelState';
+
+import {asCustomHistory, isModalHistorySentinel} from '@libs/Navigation/AppNavigator/routerExtensions/addRootHistoryRouterExtensionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import CONST from '@src/CONST';
+
+import {useNavigationState} from '@react-navigation/native';
+import {useEffect} from 'react';
 
 function toggleSidePanelWithHistory(isVisible: boolean) {
     Navigation.isNavigationReady().then(() => {
@@ -21,7 +25,9 @@ export default function useSyncSidePanelWithHistory() {
     const {shouldHideSidePanel} = useSidePanelState();
     const {closeSidePanel, openSidePanel} = useSidePanelActions();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
-    const lastHistoryEntry = useNavigationState((state) => state?.history?.at(-1));
+    // Modals with `shouldHandleNavigationBack` push their own back-guard entry after the Side Panel's, so skip those:
+    // a modal opened from the panel must not read as the panel having been closed.
+    const lastHistoryEntry = useNavigationState((state) => asCustomHistory(state?.history)?.findLast((entry) => !isModalHistorySentinel(entry)));
     const previousLastHistoryEntry = usePrevious(lastHistoryEntry);
 
     useEffect(() => {

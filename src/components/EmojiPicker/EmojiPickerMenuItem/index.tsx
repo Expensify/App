@@ -1,13 +1,20 @@
-import React, {useEffect, useRef, useState} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text as RNText, View} from 'react-native';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobile, isMobileChrome} from '@libs/Browser';
 import getButtonState from '@libs/getButtonState';
+
 import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {Text as RNText, View} from 'react-native';
+
+import React, {useEffect, useRef, useState} from 'react';
+
 import type EmojiPickerMenuItemProps from './types';
 
 function EmojiPickerMenuItem({
@@ -21,7 +28,7 @@ function EmojiPickerMenuItem({
     isHighlighted = false,
 }: EmojiPickerMenuItemProps) {
     const [isHovered, setIsHovered] = useState(false);
-    const ref = useRef<HTMLDivElement | View | RNText | null>(null);
+    const ref = useRef<HTMLDivElement | ComponentRef<typeof View> | ComponentRef<typeof RNText> | null>(null);
     const StyleUtils = useStyleUtils();
     const themeStyles = useThemeStyles();
 
@@ -69,7 +76,7 @@ function EmojiPickerMenuItem({
             }}
             style={({pressed}) => [
                 isFocused || isHovered || isHighlighted ? themeStyles.emojiItemHighlighted : {},
-                isMobile() && StyleUtils.getButtonBackgroundColorStyle(getButtonState(false, pressed)),
+                isMobile() && StyleUtils.getButtonBackgroundColorStyle(getButtonState({isPressed: pressed})),
                 themeStyles.emojiItem,
             ]}
             accessibilityLabel={emoji}
@@ -85,7 +92,4 @@ EmojiPickerMenuItem.displayName = 'EmojiPickerMenuItem';
 
 // Significantly speeds up re-renders of the EmojiPickerMenu's FlatList
 // by only re-rendering at most two EmojiPickerMenuItems that are highlighted/un-highlighted per user action.
-export default React.memo(
-    EmojiPickerMenuItem,
-    (prevProps, nextProps) => prevProps.isFocused === nextProps.isFocused && prevProps.isHighlighted === nextProps.isHighlighted && prevProps.emoji === nextProps.emoji,
-);
+export default EmojiPickerMenuItem;

@@ -1,4 +1,5 @@
 import type {DomainSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import SCREENS from '@src/SCREENS';
 
 // This file is used to define relation between domain split navigator's central screens and RHP screens.
@@ -13,6 +14,7 @@ const DOMAIN_TO_RHP: Partial<Record<keyof DomainSplitNavigatorParamList, string[
         SCREENS.DOMAIN.MEMBERS_SETTINGS,
         SCREENS.DOMAIN.MEMBERS_SETTINGS_TWO_FACTOR_AUTH,
         SCREENS.DOMAIN.VACATION_DELEGATE,
+        SCREENS.DOMAIN.VACATION_DELEGATE_SELECT,
         SCREENS.DOMAIN.MEMBER_FORCE_TWO_FACTOR_AUTH,
         SCREENS.DOMAIN.MEMBER_RESET_TWO_FACTOR_AUTH,
         SCREENS.DOMAIN.MEMBER_LOCK_ACCOUNT,

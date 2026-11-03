@@ -1,15 +1,22 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import tokenizedSearch from '@libs/tokenizedSearch';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import variables from '@styles/variables';
-import CONST from '@src/CONST';
+
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+
+import React from 'react';
+
 import WorkspaceTagsTableRow from './WorkspaceTagsTableRow';
 
 type WorkspaceTagTableColumnKey = 'name' | 'glCode' | 'approver' | 'tagCount' | 'enabled' | 'required' | 'actions';
@@ -28,13 +35,17 @@ type WorkspaceTagTableRowData = TableData & {
     disabled?: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    /** Whether the enabled toggle has an optimistic update in flight (shows a spinner on the Switch) */
+    pending?: boolean;
     isLocked: boolean;
     isSwitchDisabled?: boolean;
     showEnabledSwitch: boolean;
-    showRequiredSwitch: boolean;
+    /** Only single-level tags opt in. */
+    canEditName?: boolean;
     action: () => void;
     onToggleEnabled?: (enabled: boolean) => void;
-    onToggleRequired?: (required: boolean) => void;
+    /** Provided only when `canEditName` is supported. */
+    onRenameName?: (newName: string) => void;
     onClose: () => void;
 };
 
@@ -47,11 +58,13 @@ type WorkspaceTagsTableProps = {
     hasDependentTags: boolean;
     shouldShowGLCodeColumn: boolean;
     shouldShowApproverColumn: boolean;
-    EmptyStateComponent: React.ReactElement;
+    emptyState: TableEmptyStateProps;
+    headerComponent?: React.ReactElement;
 };
 
 export default function WorkspaceTagsTable({
     tags,
+    emptyState,
     selectionEnabled,
     selectedKeys,
     onRowSelectionChange,
@@ -59,7 +72,7 @@ export default function WorkspaceTagsTable({
     hasDependentTags,
     shouldShowGLCodeColumn,
     shouldShowApproverColumn,
-    EmptyStateComponent,
+    headerComponent,
 }: WorkspaceTagsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
@@ -68,13 +81,17 @@ export default function WorkspaceTagsTable({
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
     const shouldShowTagCountColumn = isMultiLevelTags && !shouldUseNarrowTableLayout;
     const shouldShowEnabledColumn = !isMultiLevelTags;
-    const shouldShowRequiredColumn = isMultiLevelTags && !hasDependentTags;
 
     const tagTableColumns: Array<TableColumn<WorkspaceTagTableColumnKey>> = [
         {
             key: 'name',
             label: translate('common.name'),
-            sortable: true,
+            // Multi-level tag levels keep the order they were imported in, so they can't be re-sorted.
+            sortable: !isMultiLevelTags,
+            styling: {
+                // editableCellHeader matches the padded name cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
         },
         ...(shouldShowGLCodeColumn
             ? [
@@ -99,7 +116,7 @@ export default function WorkspaceTagsTable({
                   {
                       key: 'tagCount' as const,
                       label: translate('common.count'),
-                      sortable: true,
+                      sortable: false,
                       width: variables.workspaceTagsTableCountColumnWidth,
                   },
               ]
@@ -109,19 +126,6 @@ export default function WorkspaceTagsTable({
                   {
                       key: 'enabled' as const,
                       label: translate('common.enabled'),
-                      sortable: true,
-                      width: variables.tableSwitchColumnWidth,
-                      styling: {
-                          containerStyles: [styles.justifyContentEnd],
-                      },
-                  },
-              ]
-            : []),
-        ...(shouldShowRequiredColumn
-            ? [
-                  {
-                      key: 'required' as const,
-                      label: translate('common.required'),
                       sortable: true,
                       width: variables.tableSwitchColumnWidth,
                       styling: {
@@ -169,7 +173,7 @@ export default function WorkspaceTagsTable({
             return localeCompare(glCode1, glCode2) * orderMultiplier;
         }
 
-        if (hasDependentTags || isMultiLevelTags) {
+        if (hasDependentTags) {
             return ((item1.orderWeight ?? 0) - (item2.orderWeight ?? 0)) * orderMultiplier;
         }
 
@@ -192,12 +196,16 @@ export default function WorkspaceTagsTable({
         />
     );
 
-    const isEmpty = tags.length === 0;
+    const searchBarComponent = <Table.FilterBar label={translate('workspace.tags.findTag')} />;
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
+            // useSorting reads initialSortColumn only on mount, so remount the table when switching between single- and multi-level tags.
+            key={isMultiLevelTags ? 'multiLevelTags' : 'singleLevelTags'}
             data={tags}
-            initialSortColumn="name"
+            // Without a sort column, multi-level tags keep their orderWeight (import) order from getTagLists.
+            initialSortColumn={isMultiLevelTags ? undefined : 'name'}
             selectionEnabled={selectionEnabled}
             title={translate('workspace.common.tags')}
             columns={tagTableColumns}
@@ -208,14 +216,11 @@ export default function WorkspaceTagsTable({
             keyExtractor={(tag) => tag.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            {isEmpty && EmptyStateComponent}
-            {!isEmpty && (
-                <>
-                    {tags.length >= CONST.STANDARD_LIST_ITEM_LIMIT && <Table.SearchBar label={translate('workspace.tags.findTag')} />}
-                    <Table.Header />
-                    <Table.Body />
-                </>
-            )}
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
+            <Table.EmptyState {...emptyState} />
+            <Table.NoResultsState />
+            <Table.Header />
+            <Table.Body />
         </Table>
     );
 }

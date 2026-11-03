@@ -1,11 +1,16 @@
-import React from 'react';
 import DateOfBirthStep from '@components/SubStepForms/DateOfBirthStep';
+
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
+
 import {isValidPastDate, meetsMaximumAgeRequirement, meetsMinimumAgeRequirement} from '@libs/ValidationUtils';
+
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+
+import React from 'react';
 
 const STEP_FIELDS = [INPUT_IDS.DATE_OF_BIRTH];
 

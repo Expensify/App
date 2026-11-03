@@ -1,8 +1,13 @@
-import type {StoryFn} from '@storybook/react-webpack5';
-import React, {useMemo} from 'react';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {ButtonWithDropdownMenuProps} from '@components/ButtonWithDropdownMenu/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
+import CONST from '@src/CONST';
+
+import type {StoryFn} from 'storybook-react-rsbuild';
+
+import React from 'react';
 
 type ButtonWithDropdownMenuStory = StoryFn<typeof ButtonWithDropdownMenu>;
 
@@ -19,16 +24,14 @@ const story = {
 function Template(props: ButtonWithDropdownMenuProps<unknown>) {
     const icons = useMemoizedLazyExpensifyIcons(['Wallet']);
 
-    const options = useMemo(
-        () => [
-            {value: 'One', text: 'One', icon: icons.Wallet},
-            {value: 'Two', text: 'Two', icon: icons.Wallet},
-        ],
-        [icons.Wallet],
-    );
+    const options = [
+        {value: 'One', text: 'One', icon: icons.Wallet},
+        {value: 'Two', text: 'Two', icon: icons.Wallet},
+    ];
 
     return (
         <ButtonWithDropdownMenu
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             {...props}
             options={options}
         />

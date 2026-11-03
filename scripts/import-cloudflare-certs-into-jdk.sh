@@ -70,7 +70,7 @@ function stop_gradle_daemons() {
 }
 
 function find_java_installations() {
-    JAVA_HOMES=$(/usr/libexec/java_home -V 2>&1 | grep -E "^\s+[0-9]" | awk '{print $NF}')
+    JAVA_HOMES=$(/usr/libexec/java_home -V 2>&1 | awk '/^[[:space:]]+[0-9]/ {print $NF}')
 
     if [[ -z "${JAVA_HOMES}" ]]; then
         error "No Java installations found"

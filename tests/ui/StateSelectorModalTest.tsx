@@ -1,11 +1,15 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React from 'react';
+
 import SelectionList from '@components/SelectionList';
 import StateSelectorModal from '@components/StatePicker/StateSelectorModal';
+
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React from 'react';
 
 const mockUseState = React.useState;
 const mockStates = COMMON_CONST.STATES;
@@ -38,7 +42,11 @@ jest.mock('@hooks/useLocalize', () =>
             }
 
             const [, stateKey, property] = key.split('.');
-            const state = mockStates[stateKey as keyof typeof mockStates];
+            const stateEntry = Object.entries(mockStates).find(([keyName]) => keyName === stateKey);
+            if (!stateEntry) {
+                throw new Error(`Unknown state key: ${stateKey}`);
+            }
+            const state = stateEntry[1];
 
             if (property === 'stateName') {
                 return state.stateName;
@@ -103,12 +111,12 @@ describe('StateSelectorModal', () => {
         const searchedProps = mockedSelectionList.mock.lastCall?.[0];
         const expectedSearchResults = searchOptions(
             'New',
-            Object.keys(mockStates).map((state) => ({
-                value: mockStates[state as keyof typeof mockStates].stateISO,
-                keyForList: mockStates[state as keyof typeof mockStates].stateISO,
-                text: mockStates[state as keyof typeof mockStates].stateName,
-                isSelected: mockStates[state as keyof typeof mockStates].stateISO === 'NY',
-                searchValue: StringUtils.sanitizeString(`${mockStates[state as keyof typeof mockStates].stateISO}${mockStates[state as keyof typeof mockStates].stateName}`),
+            Object.values(mockStates).map((state) => ({
+                value: state.stateISO,
+                keyForList: state.stateISO,
+                text: state.stateName,
+                isSelected: state.stateISO === 'NY',
+                searchValue: StringUtils.sanitizeString(`${state.stateISO}${state.stateName}`),
             })),
         );
 

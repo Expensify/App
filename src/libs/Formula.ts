@@ -1,15 +1,23 @@
-import {endOfDay, endOfMonth, endOfWeek, getDay, lastDayOfMonth, set, startOfMonth, startOfWeek, subDays} from 'date-fns';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import CONST from '@src/CONST';
 import type {PersonalDetails, Policy, PolicyReportField, Report, Transaction} from '@src/types/onyx';
+import type {AutoReportingOffset} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {convertToDisplayString, convertToDisplayStringWithoutCurrency, isValidCurrencyCode} from './CurrencyUtils';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import {addDays, addMonths, endOfDay, endOfMonth, getDay, lastDayOfMonth, set, startOfDay, startOfMonth, subDays, subMonths} from 'date-fns';
+
+import {convertToDisplayStringEnLocale, convertToDisplayStringWithoutCurrencyEnLocale, isValidCurrencyCode} from './CurrencyUtils';
+import {getCurrentUserEmail} from './CurrentUserStore';
 import formatDate from './FormulaDatetime';
 import getBase62ReportID from './getBase62ReportID';
 import Log from './Log';
 import {getAllReportActions} from './ReportActionsUtils';
 import {getHumanReadableStatus, getMoneyRequestSpendBreakdown, getReportTransactions} from './ReportUtils';
+import {getAutoReportingOffsetsForFrequency, sortSemiMonthlyOffsets} from './SubmissionScheduleUtils';
 import {getCreated, isPartialTransaction, isTransactionPendingDelete} from './TransactionUtils';
 
 type FormulaPart = {
@@ -26,11 +34,13 @@ type FormulaPart = {
     functions: string[];
 };
 
-type MinimalTransaction = Pick<Transaction, 'transactionID' | 'reportID' | 'created' | 'amount' | 'currency' | 'merchant' | 'pendingAction'>;
+// Minimal shape callers build for optimistic-title formula computation.
+type MinimalTransaction = Pick<Transaction, 'transactionID' | 'reportID' | 'created' | 'amount' | 'currency' | 'merchant'>;
 
 type FormulaContext = {
     report: Report;
     policy: OnyxEntry<Policy>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     transaction?: Transaction;
     submitterPersonalDetails?: PersonalDetails;
     managerPersonalDetails?: PersonalDetails;
@@ -273,18 +283,17 @@ function isSubmissionInfoPart(part: FormulaPart): boolean {
 }
 
 /**
- * Compute the value of a formula given a context
+ * Compute a formula and report whether any tokenized part fell back to its raw `{...}` definition.
+ * Callers doing optimistic recomputes use the flag to discard outputs the BE will render better.
  */
-function compute(formula?: string, context?: FormulaContext): string {
-    if (!formula || typeof formula !== 'string') {
-        return '';
-    }
-    if (!context) {
-        return '';
+function computeWithMetadata(formula?: string, context?: FormulaContext): {value: string; hasUnresolvedTokens: boolean} {
+    if (!formula || typeof formula !== 'string' || !context) {
+        return {value: '', hasUnresolvedTokens: false};
     }
 
     const parts = parse(formula);
     let result = '';
+    let hasUnresolvedTokens = false;
 
     for (const part of parts) {
         let value = '';
@@ -312,12 +321,24 @@ function compute(formula?: string, context?: FormulaContext): string {
                 value = part.definition;
         }
 
+        // A tokenized part that yields its own raw {…} definition is unresolved — the BE renders it.
+        if (part.type !== FORMULA_PART_TYPES.FREETEXT && value === part.definition) {
+            hasUnresolvedTokens = true;
+        }
+
         // Apply any functions to the computed value
         value = applyFunctions(value, part.functions);
         result += value;
     }
 
-    return result;
+    return {value: result, hasUnresolvedTokens};
+}
+
+/**
+ * Compute the value of a formula given a context.
+ */
+function compute(formula?: string, context?: FormulaContext): string {
+    return computeWithMetadata(formula, context).value;
 }
 
 /**
@@ -330,7 +351,7 @@ function computeAutoReportingInfo(part: FormulaPart, context: FormulaContext, su
         return part.definition;
     }
 
-    const {startDate, endDate} = getAutoReportingDates(policy, report);
+    const {startDate, endDate} = getAutoReportingDates(policy, report, new Date(), context);
 
     switch (subField.toLowerCase()) {
         case 'start':
@@ -366,16 +387,16 @@ function computeReportPart(part: FormulaPart, context: FormulaContext): string {
         case 'type':
             return formatType(report.type);
         case 'startdate':
-            return formatDate(getOldestTransactionDate(report.reportID, context), format);
+            return formatDate(getOldestTransactionDate(report.reportID, context) ?? new Date().toISOString(), format);
         case 'enddate':
-            return formatDate(getNewestTransactionDate(report.reportID, context), format);
+            return formatDate(getNewestTransactionDate(report.reportID, context) ?? new Date().toISOString(), format);
         case 'total': {
-            const formattedAmount = formatAmount(report.total, report.currency, format);
+            const formattedAmount = formatAmount(report.total, report.currency, format, context.getCurrencyDecimals);
             // Return empty string when conversion needed (formatAmount returns null for unavailable conversions)
             return formattedAmount ?? '';
         }
         case 'reimbursable': {
-            const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format);
+            const formattedAmount = formatAmount(getMoneyRequestSpendBreakdown(report).reimbursableSpend, report.currency, format, context.getCurrencyDecimals);
             return formattedAmount ?? '';
         }
         case 'currency':
@@ -480,8 +501,12 @@ function computeFieldPart(part: FormulaPart, context?: FormulaContext): string {
  * Compute the value of a user formula part
  */
 function computeUserPart(part: FormulaPart): string {
-    // User computation will be implemented later
-    return part.definition;
+    // Only {user:email} resolves client-side; modifiers like |frontPart run later in applyFunctions.
+    const [field] = part.fieldPath;
+    if (field?.toLowerCase() !== 'email') {
+        return part.definition;
+    }
+    return getCurrentUserEmail() ?? '';
 }
 
 /**
@@ -559,7 +584,12 @@ function getSubstring(value: string, args: string[]): string {
  * Format an amount value
  * @returns The formatted amount string, or null if currency conversion is needed (unavailable on frontend)
  */
-function formatAmount(amount: number | undefined, currency: string | undefined, displayCurrency?: string): string | null {
+function formatAmount(
+    amount: number | undefined,
+    currency: string | undefined,
+    displayCurrency: string | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+): string | null {
     if (amount === undefined) {
         return '';
     }
@@ -571,7 +601,7 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
         const trimmedDisplayCurrency = displayCurrency?.trim().toUpperCase();
         if (trimmedDisplayCurrency) {
             if (trimmedDisplayCurrency === 'NOSYMBOL') {
-                return convertToDisplayStringWithoutCurrency(absoluteAmount, trimmedCurrency);
+                return convertToDisplayStringWithoutCurrencyEnLocale(absoluteAmount, trimmedCurrency, getCurrencyDecimals);
             }
 
             // If a currency conversion is needed (displayCurrency differs from the source),
@@ -586,7 +616,7 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
                 return '';
             }
 
-            return convertToDisplayString(absoluteAmount, trimmedDisplayCurrency);
+            return convertToDisplayStringEnLocale(absoluteAmount, trimmedDisplayCurrency, getCurrencyDecimals);
         }
 
         if (trimmedCurrency) {
@@ -594,10 +624,10 @@ function formatAmount(amount: number | undefined, currency: string | undefined, 
             if (!isValidCurrencyCode(trimmedCurrency)) {
                 return '';
             }
-            return convertToDisplayString(absoluteAmount, trimmedCurrency, true);
+            return convertToDisplayStringEnLocale(absoluteAmount, trimmedCurrency, getCurrencyDecimals);
         }
 
-        return convertToDisplayStringWithoutCurrency(absoluteAmount, currency);
+        return convertToDisplayStringWithoutCurrencyEnLocale(absoluteAmount, currency, getCurrencyDecimals);
     } catch (error) {
         Log.hmmm('[Formula] formatAmount failed', {error, amount, currency, displayCurrency});
         return '';
@@ -663,13 +693,36 @@ function getAllReportTransactionsWithContext(reportID: string, context?: Formula
     const transactions = [...getReportTransactions(reportID)];
     const contextTransaction = context?.transaction;
 
-    if (contextTransaction?.transactionID && contextTransaction.reportID === reportID) {
-        const transactionIndex = transactions.findIndex((transaction) => transaction?.transactionID === contextTransaction.transactionID);
-        if (transactionIndex >= 0) {
-            transactions[transactionIndex] = contextTransaction;
-        } else {
-            transactions.push(contextTransaction);
+    const indexByTransactionID = new Map<string, number>();
+    for (const [i, transaction] of transactions.entries()) {
+        if (!transaction?.transactionID) {
+            continue;
         }
+        indexByTransactionID.set(transaction.transactionID, i);
+    }
+
+    const upsert = (transaction: Transaction) => {
+        const existingIndex = indexByTransactionID.get(transaction.transactionID);
+        if (existingIndex !== undefined) {
+            transactions[existingIndex] = transaction;
+        } else {
+            indexByTransactionID.set(transaction.transactionID, transactions.length);
+            transactions.push(transaction);
+        }
+    };
+
+    if (context?.allTransactions) {
+        for (const ctxTransaction of Object.values(context.allTransactions)) {
+            if (!ctxTransaction?.transactionID) {
+                continue;
+            }
+            upsert(ctxTransaction);
+        }
+    }
+
+    // context.transaction takes precedence over allTransactions on ID collision.
+    if (contextTransaction?.transactionID) {
+        upsert(contextTransaction);
     }
 
     return transactions;
@@ -709,6 +762,39 @@ function getOldestTransactionDate(reportID: string, context?: FormulaContext): s
     }
 
     return oldestDate;
+}
+
+/**
+ * Calculate twice a month reporting period, where each period ends on one of the two submission days
+ */
+function getSemiMonthlyReportingPeriod(currentDate: Date, firstOffset: AutoReportingOffset | undefined, secondOffset: AutoReportingOffset | undefined): {startDate: Date; endDate: Date} {
+    const {offset, secondOffset: sortedSecondOffset} = sortSemiMonthlyOffsets(
+        getAutoReportingOffsetsForFrequency(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY, {offset: firstOffset, secondOffset}),
+    );
+
+    // A day past the end of a short month resolves to its last day
+    const getSubmissionDate = (monthDate: Date, day: AutoReportingOffset | undefined) => {
+        const monthDays = lastDayOfMonth(monthDate).getDate();
+        return set(monthDate, {date: typeof day === 'number' ? Math.min(day, monthDays) : monthDays});
+    };
+
+    const firstSubmissionDate = getSubmissionDate(currentDate, offset);
+    const secondSubmissionDate = getSubmissionDate(currentDate, sortedSecondOffset);
+
+    let previousSubmissionDate = secondSubmissionDate;
+    let nextSubmissionDate = getSubmissionDate(addMonths(currentDate, 1), offset);
+    if (currentDate.getDate() <= firstSubmissionDate.getDate()) {
+        previousSubmissionDate = getSubmissionDate(subMonths(currentDate, 1), sortedSecondOffset);
+        nextSubmissionDate = firstSubmissionDate;
+    } else if (currentDate.getDate() <= secondSubmissionDate.getDate()) {
+        previousSubmissionDate = firstSubmissionDate;
+        nextSubmissionDate = secondSubmissionDate;
+    }
+
+    return {
+        startDate: startOfDay(addDays(previousSubmissionDate, 1)),
+        endDate: endOfDay(nextSubmissionDate),
+    };
 }
 
 /**
@@ -774,7 +860,7 @@ function getMonthlyLastBusinessDayPeriod(currentDate: Date): {startDate: Date; e
 /**
  * Calculate the start and end dates for auto-reporting based on the frequency and current date
  */
-function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date()): {startDate: Date | undefined; endDate: Date | undefined} {
+function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, currentDate = new Date(), context?: FormulaContext): {startDate: Date | undefined; endDate: Date | undefined} {
     const frequency = policy?.autoReportingFrequency;
     const offset = policy?.autoReportingOffset;
 
@@ -788,23 +874,19 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
 
     switch (frequency) {
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY: {
-            // Weekly: use the app's configured week start convention (Monday)
-            const weekStartsOn = CONST.WEEK_STARTS_ON;
-            startDate = startOfWeek(currentDate, {weekStartsOn});
-            endDate = endOfWeek(currentDate, {weekStartsOn});
+            // The period is the 7 days ending on the next submission day, so it starts 6 days before that day.
+            // The offset counts Sunday as 7 while getDay counts it as 0, which the modulo reconciles.
+            const {offset: submissionWeekday} = getAutoReportingOffsetsForFrequency(frequency, {offset});
+            const daysUntilSubmission = (Number(submissionWeekday) - getDay(currentDate) + 7) % 7;
+            endDate = endOfDay(addDays(currentDate, daysUntilSubmission));
+            startDate = startOfDay(subDays(endDate, 6));
             break;
         }
 
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY: {
-            // Semi-monthly: 1st-15th or 16th-end of month
-            const dayOfMonth = currentDate.getDate();
-            if (dayOfMonth <= 15) {
-                startDate = startOfMonth(currentDate);
-                endDate = set(currentDate, {date: 15, hours: 23, minutes: 59, seconds: 59, milliseconds: 999});
-            } else {
-                startDate = set(currentDate, {date: 16, hours: 0, minutes: 0, seconds: 0, milliseconds: 0});
-                endDate = endOfMonth(currentDate);
-            }
+            const period = getSemiMonthlyReportingPeriod(currentDate, offset, policy.autoReportingOffsetSecondSemiMonthly);
+            startDate = period.startDate;
+            endDate = period.endDate;
             break;
         }
 
@@ -827,10 +909,10 @@ function getAutoReportingDates(policy: OnyxEntry<Policy>, report: Report, curren
         }
 
         case CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP: {
-            // For trip-based, use oldest transaction as start
-            const oldestTransactionDateString = getOldestTransactionDate(report.reportID);
+            const oldestTransactionDateString = getOldestTransactionDate(report.reportID, context);
+            const newestTransactionDateString = getNewestTransactionDate(report.reportID, context);
             startDate = oldestTransactionDateString ? new Date(oldestTransactionDateString) : currentDate;
-            endDate = currentDate;
+            endDate = newestTransactionDateString ? new Date(newestTransactionDateString) : currentDate;
             break;
         }
 
@@ -920,13 +1002,10 @@ function computePersonalDetailsField(path: string[], personalDetails: PersonalDe
 
     switch (field.toLowerCase()) {
         case 'firstname':
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return personalDetails.firstName || personalDetails.login || '';
         case 'lastname':
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return personalDetails.lastName || personalDetails.login || '';
         case 'fullname':
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return personalDetails.displayName || personalDetails.login || '';
         case 'email':
             return personalDetails.login ?? '';
@@ -966,6 +1045,7 @@ function resolveReportFieldValue(
     policy: OnyxEntry<Policy>,
     fieldValues: Record<string, string>,
     fieldsByName: Record<string, PolicyReportField>,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): string {
     const fieldValue = field.value ?? field.defaultValue ?? '';
 
@@ -973,9 +1053,9 @@ function resolveReportFieldValue(
         return fieldValue;
     }
 
-    return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName});
+    return compute(field.defaultValue, {report, policy, fieldValues, fieldsByName, getCurrencyDecimals});
 }
 
-export {FORMULA_PART_TYPES, compute, parse, hasCircularReferences, resolveReportFieldValue};
+export {FORMULA_PART_TYPES, compute, computeWithMetadata, parse, hasCircularReferences, resolveReportFieldValue};
 
 export type {FormulaContext, FieldList, FormulaPart, MinimalTransaction};

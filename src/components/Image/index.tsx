@@ -1,14 +1,20 @@
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import LoadingIndicator from '@components/LoadingIndicator';
 import {useSession} from '@components/OnyxListItemProvider';
+
 import useNetwork from '@hooks/useNetwork';
+
 import {isExpiredSession} from '@libs/actions/Session';
 import activateReauthenticator from '@libs/actions/Session/AttachmentImageReauthenticator';
+
 import CONST from '@src/CONST';
+
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+
+import type {ImageOnLoadEvent, ImageProps} from './types';
+
 import BaseImage from './BaseImage';
 import getImageSource from './getImageSource';
 import {ImageBehaviorContext} from './ImageBehaviorContextProvider';
-import type {ImageOnLoadEvent, ImageProps} from './types';
 
 function Image({
     source: propsSource,
@@ -172,5 +178,6 @@ Image.displayName = 'Image';
 
 export default React.memo(
     Image,
-    (prevProps: ImageProps, nextProps: ImageProps) => prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight,
+    (prevProps: ImageProps, nextProps: ImageProps) =>
+        prevProps.source === nextProps.source && prevProps.imageWidthToCalculateHeight === nextProps.imageWidthToCalculateHeight && prevProps.recyclingKey === nextProps.recyclingKey,
 );

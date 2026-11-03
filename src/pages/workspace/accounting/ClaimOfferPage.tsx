@@ -1,6 +1,5 @@
-import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
+import ButtonDisabledWhenOffline from '@components/Button/composed/ButtonDisabledWhenOffline';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -8,24 +7,33 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useGetReceiptPartnersIntegrationData from '@hooks/useGetReceiptPartnersIntegrationData';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openExternalLink} from '@libs/actions/Link';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
+import {enablePolicyFeatureForConnection} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyFeatureName} from '@src/types/onyx/Policy';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import {AccountingContextProvider, useAccountingActions} from './AccountingContext';
 
 type IntegrationType = typeof CONST.POLICY.CONNECTIONS.NAME.XERO | typeof CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER;
@@ -37,7 +45,6 @@ type IntegrationConfig = {
     claimOfferLink?: string;
     connectButtonText: string;
     connectionName: string;
-    featureName: PolicyFeatureName;
     onConnect: () => void;
 };
 
@@ -47,7 +54,6 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const {integration, policyID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const {startIntegrationFlow} = useAccountingActions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['TreasureChestGreenWithSparkle']);
     const integrations = policy?.receiptPartners;
@@ -58,15 +64,10 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const syncingAccountingIntegration = accountingIntegrations.find((integrationName) => integrationName === connectionSyncProgress?.connectionName);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? syncingAccountingIntegration;
 
-    const isConnectedToIntegration = useMemo(() => {
-        if (integration === CONST.POLICY.CONNECTIONS.NAME.XERO) {
-            return connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO;
-        }
-        if (integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER) {
-            return isUberConnected;
-        }
-        return false;
-    }, [connectedIntegration, integration, isUberConnected]);
+    const isConnectedToIntegration =
+        integration === CONST.POLICY.CONNECTIONS.NAME.XERO
+            ? connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.XERO
+            : integration === CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER && isUberConnected;
 
     const integrationConfig: Record<IntegrationType, IntegrationConfig> = {
         xero: {
@@ -76,7 +77,6 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             claimOfferLink: CONST.XERO_PARTNER_LINK,
             connectButtonText: translate('workspace.accounting.claimOffer.xero.connectButton'),
             connectionName: CONST.POLICY.CONNECTIONS.NAME.XERO,
-            featureName: CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED,
             onConnect: () => {
                 startIntegrationFlow({name: CONST.POLICY.CONNECTIONS.NAME.XERO});
             },
@@ -87,8 +87,9 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
             descriptionHtml: translate('workspace.accounting.claimOffer.uber.description'),
             connectButtonText: translate('workspace.accounting.claimOffer.uber.connectButton'),
             connectionName: CONST.POLICY.RECEIPT_PARTNERS.NAME.UBER,
-            featureName: CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED,
             onConnect: () => {
+                // Connections offers Uber before Receipt partners is on, so the feature is turned on as Uber connects
+                enablePolicyFeatureForConnection(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED);
                 openExternalLink(`${CONST.UBER_CONNECT_URL}?${integrations?.uber?.connectFormData}`);
             },
         },
@@ -117,20 +118,20 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
     const buttons = (
         <FixedFooter style={[styles.mtAuto, styles.gap3]}>
             {!!config.claimOfferLink && (
-                <Button
-                    text={translate('subscription.billingBanner.earlyDiscount.claimOffer')}
+                <ButtonDisabledWhenOffline
                     onPress={handleClaimOffer}
-                    large
-                    isDisabled={isOffline}
-                />
+                    size={CONST.BUTTON_SIZE.LARGE}
+                >
+                    <Button.Text>{translate('subscription.billingBanner.earlyDiscount.claimOffer')}</Button.Text>
+                </ButtonDisabledWhenOffline>
             )}
-            <Button
-                text={config.connectButtonText}
+            <ButtonDisabledWhenOffline
                 onPress={handleConnect}
-                success
-                large
-                isDisabled={isOffline}
-            />
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
+            >
+                <Button.Text>{config.connectButtonText}</Button.Text>
+            </ButtonDisabledWhenOffline>
         </FixedFooter>
     );
 
@@ -138,7 +139,9 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
         <AccessOrNotFoundWrapper
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
-            featureName={config.featureName}
+            // Connections shows offers whether or not their feature is on, so only the write access check applies
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
             shouldBeBlocked={!config}
         >
             <ScreenWrapper
@@ -162,7 +165,7 @@ function ClaimOfferPage({route, policy}: ClaimOfferPageProps) {
                         </View>
                         <View>
                             <Text style={[styles.textHeadlineH1, styles.textAlignCenter, styles.mb3]}>{config.headline}</Text>
-                            <View style={[styles.renderHTML]}>
+                            <View style={[styles.renderHTML, styles.textAlignCenter, styles.alignItemsCenter]}>
                                 <RenderHTML html={config.descriptionHtml} />
                             </View>
                         </View>

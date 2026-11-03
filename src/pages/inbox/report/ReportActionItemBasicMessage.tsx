@@ -1,10 +1,17 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {containsCustomEmoji, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
+
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import TextWithEmojiFragment from './comment/TextWithEmojiFragment';
 
 type ReportActionItemBasicMessageProps = Partial<ChildrenProps> & {
@@ -13,19 +20,21 @@ type ReportActionItemBasicMessageProps = Partial<ChildrenProps> & {
 
 function ReportActionItemBasicMessage({message, children}: ReportActionItemBasicMessageProps) {
     const styles = useThemeStyles();
-    const messageContainsCustomEmojiWithText = useMemo(() => containsCustomEmoji(message) && !containsOnlyCustomEmoji(message), [message]);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const messageContainsCustomEmojiWithText = containsCustomEmoji(message) && !containsOnlyCustomEmoji(message);
+    const selectableStyle = !canUseTouchScreen() || !shouldUseNarrowLayout ? styles.userSelectText : styles.userSelectNone;
 
     return (
-        <View>
+        <View style={styles.renderHTML}>
             {!!message &&
                 (messageContainsCustomEmojiWithText ? (
                     <TextWithEmojiFragment
                         message={Str.htmlDecode(message)}
-                        style={[styles.chatItemMessage, styles.colorMuted]}
+                        style={[styles.chatItemMessage, styles.colorMuted, selectableStyle]}
                         alignCustomEmoji
                     />
                 ) : (
-                    <Text style={[styles.chatItemMessage, styles.colorMuted]}>{Str.htmlDecode(message)}</Text>
+                    <Text style={[styles.chatItemMessage, styles.colorMuted, selectableStyle]}>{Str.htmlDecode(message)}</Text>
                 ))}
             {children}
         </View>

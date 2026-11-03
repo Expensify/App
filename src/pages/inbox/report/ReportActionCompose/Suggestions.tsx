@@ -1,12 +1,16 @@
-import type {ForwardedRef} from 'react';
-import React, {useEffect, useImperativeHandle, useRef} from 'react';
-import type {TextInputSelectionChangeEvent} from 'react-native';
-import {View} from 'react-native';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
-import type {TextSelection} from '@components/Composer/types';
+import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useDragAndDropState} from '@components/DragAndDrop/Provider';
+
 import usePrevious from '@hooks/usePrevious';
+
+import type {ForwardedRef} from 'react';
+
+import React, {useEffect, useImperativeHandle, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {SuggestionsRef} from './ReportActionCompose';
+
 import SuggestionEmoji from './SuggestionEmoji';
 import SuggestionMention from './SuggestionMention';
 
@@ -14,10 +18,7 @@ type SuggestionProps = {
     /** The current input value */
     value: string;
 
-    /** The current selection value */
     selection: TextSelection;
-
-    /** Callback to update the current selection */
     setSelection: (newSelection: TextSelection) => void;
 
     /** Callback to update the comment draft */
@@ -29,13 +30,8 @@ type SuggestionProps = {
     /** Report composer focus state */
     isComposerFocused?: boolean;
 
-    /** Callback to reset the keyboard input */
     resetKeyboardInput?: () => void;
-
-    /** Whether the auto suggestion picker is large */
     isAutoSuggestionPickerLarge?: boolean;
-
-    /** The height of the composer */
     composerHeight?: number;
 
     /** If current composer is connected with report from group policy */
@@ -44,7 +40,6 @@ type SuggestionProps = {
     /** The policyID of the report connected to current composer */
     policyID?: string;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<SuggestionsRef>;
 };
 
@@ -106,7 +101,7 @@ function Suggestions({
         return emojiHandler ?? mentionHandler;
     };
 
-    const onSelectionChange = (e: TextInputSelectionChangeEvent) => {
+    const onSelectionChange = (e: CustomSelectionChangeEvent) => {
         const emojiHandler = suggestionEmojiRef.current?.onSelectionChange?.(e);
         suggestionMentionRef.current?.onSelectionChange?.(e);
         return emojiHandler;

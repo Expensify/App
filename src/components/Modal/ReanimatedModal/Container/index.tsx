@@ -1,12 +1,16 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
-import Animated, {Keyframe} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
 import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {View} from 'react-native';
+import Animated, {Keyframe} from 'react-native-reanimated';
+import {scheduleOnRN} from 'react-native-worklets';
+
 import GestureHandler from './GestureHandler';
 
 function Container({
@@ -25,25 +29,19 @@ function Container({
 }: Partial<ReanimatedModalProps> & ContainerProps) {
     const styles = useThemeStyles();
 
-    const Entering = useMemo(() => {
-        const AnimationIn = new Keyframe(getModalInAnimation(animationIn));
+    const AnimationIn = new Keyframe(getModalInAnimation(animationIn));
+    const Entering = AnimationIn.duration(animationInTiming).withCallback(() => {
+        'worklet';
 
-        return AnimationIn.duration(animationInTiming).withCallback(() => {
-            'worklet';
+        scheduleOnRN(onOpenCallBack);
+    });
 
-            scheduleOnRN(onOpenCallBack);
-        });
-    }, [animationIn, animationInTiming, onOpenCallBack]);
+    const AnimationOut = new Keyframe(getModalOutAnimation(animationOut));
+    const Exiting = AnimationOut.duration(animationOutTiming).withCallback(() => {
+        'worklet';
 
-    const Exiting = useMemo(() => {
-        const AnimationOut = new Keyframe(getModalOutAnimation(animationOut));
-
-        return AnimationOut.duration(animationOutTiming).withCallback(() => {
-            'worklet';
-
-            scheduleOnRN(onCloseCallBack);
-        });
-    }, [animationOutTiming, onCloseCallBack, animationOut]);
+        scheduleOnRN(onCloseCallBack);
+    });
 
     return (
         <View

@@ -1,11 +1,16 @@
-import type {RefObject} from 'react';
-import React from 'react';
+import type {Emoji} from '@assets/emojis/types';
+
+import type {CloseContextMenuCallback} from '@components/Reactions/QuickEmojiReactions/types';
+
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
+
+import type CONST from '@src/CONST';
+
+import type {ComponentRef, RefObject} from 'react';
 import type {TextInput, View} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {Emoji} from '@assets/emojis/types';
-import type {CloseContextMenuCallback} from '@components/Reactions/QuickEmojiReactions/types';
-import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
-import type CONST from '@src/CONST';
+
+import React from 'react';
 
 type AnchorOrigin = {
     horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
@@ -13,7 +18,7 @@ type AnchorOrigin = {
     shiftVertical?: number;
 };
 
-type EmojiPopoverAnchor = RefObject<View | HTMLDivElement | TextInput | null>;
+type EmojiPopoverAnchor = RefObject<ComponentRef<typeof View> | HTMLDivElement | ComponentRef<typeof TextInput> | null>;
 
 type EmojiPickerOnWillShow = (callback?: CloseContextMenuCallback) => void;
 

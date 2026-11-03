@@ -1,10 +1,8 @@
-import type {ReactElement} from 'react';
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {
     getOriginalMessage,
     getReportActionMessage,
@@ -13,12 +11,19 @@ import {
     isApprovedOrSubmittedReportAction as isApprovedOrSubmittedReportActionUtils,
     isThreadParentMessage,
 } from '@libs/ReportActionsUtils';
+
 import ReportActionItemFragment from '@pages/inbox/report/ReportActionItemFragment';
+
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
+import type {ReactElement} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 type ReportActionMessageContentProps = {
-    /** The report action */
     action: ReportAction;
 
     /** Should the comment have the appearance of being grouped with the previous comment? */
@@ -30,19 +35,21 @@ type ReportActionMessageContentProps = {
     /** Whether or not the message is hidden by moderation */
     isHidden?: boolean;
 
-    /** The ID of the report */
     reportID: string | undefined;
 
     /** Optional IOU display message passed into each fragment */
     iouMessage?: string;
+
+    /** Whether this action belongs to a support ticket */
+    isSupportTicketReport?: boolean;
 };
 
-function ReportActionMessageContent({action, displayAsGroup, reportID, style, isHidden = false, iouMessage}: ReportActionMessageContentProps) {
+function ReportActionMessageContent({action, displayAsGroup, reportID, style, isHidden = false, iouMessage, isSupportTicketReport = false}: ReportActionMessageContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isApprovedOrSubmittedReportAction = isApprovedOrSubmittedReportActionUtils(action);
     const isHoldReportAction = [CONST.REPORT.ACTIONS.TYPE.HOLD, CONST.REPORT.ACTIONS.TYPE.UNHOLD].some((type) => type === action.actionName);
-    const fragments = getReportActionMessageFragments(translate, action);
+    const fragments = getReportActionMessageFragments(translate, action, isSupportTicketReport);
 
     const renderReportActionItemFragments = (shouldWrapInText: boolean): ReactElement | ReactElement[] => {
         const reportActionItemFragments = fragments.map((fragment, index) => (

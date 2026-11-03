@@ -1,7 +1,11 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 describe('useActionLoadingReportIDs', () => {
@@ -87,5 +91,25 @@ describe('useActionLoadingReportIDs', () => {
         await waitFor(() => {
             expect(result.current).toEqual(new Set([`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}1`]));
         });
+    });
+
+    it('should keep the same set when only another loading flag changes', async () => {
+        // Given a report whose actions are loading
+        await Onyx.set(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}1`, {isActionLoading: true});
+        await waitForBatchedUpdates();
+
+        const {result} = renderHook(() => useActionLoadingReportIDs());
+
+        await waitFor(() => {
+            expect(result.current).toEqual(new Set([`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}1`]));
+        });
+        const initialSet = result.current;
+
+        // When OpenReport toggles a different flag on another report
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}2`, {isLoadingInitialReportActions: true});
+        await waitForBatchedUpdates();
+
+        // Then Search gets the same set back, so it doesn't rebuild every row
+        expect(result.current).toBe(initialSet);
     });
 });

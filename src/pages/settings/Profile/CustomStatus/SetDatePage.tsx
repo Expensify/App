@@ -1,4 +1,3 @@
-import React, {useCallback} from 'react';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -6,18 +5,23 @@ import type {FormOnyxValues} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getDatePassedError, getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import {updateStatusDraftCustomClearAfterDate} from '@userActions/User';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/SettingsStatusClearDateForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React from 'react';
 
 type DateTime = {
     dateTime: string;
@@ -33,28 +37,21 @@ function SetDatePage() {
         Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER);
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM>) => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.DATE_TIME], translate);
-            const dateError = getDatePassedError(translate, values.dateTime);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_CLEAR_DATE_FORM>) => {
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.DATE_TIME], translate);
+        const dateError = getDatePassedError(translate, values.dateTime);
 
-            if (values.dateTime && dateError) {
-                errors.dateTime = dateError;
-            }
+        if (values.dateTime && dateError) {
+            errors.dateTime = dateError;
+        }
 
-            return errors;
-        },
-        [translate],
-    );
-
-    const isLoadingStatusDraft = isLoadingOnyxValue(statusDraftCustomClearAfterDateMetaData);
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'SetDatePage',
-        isLoadingStatusDraft,
+        return errors;
     };
 
+    const isLoadingStatusDraft = isLoadingOnyxValue(statusDraftCustomClearAfterDateMetaData);
+
     if (isLoadingStatusDraft) {
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator onGoBack={() => Navigation.goBack(ROUTES.SETTINGS_STATUS_CLEAR_AFTER)} />;
     }
 
     return (

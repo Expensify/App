@@ -1,0 +1,143 @@
+diff --git a/node_modules/@typescript-eslint/type-utils/dist/builtinSymbolLikes.js b/node_modules/@typescript-eslint/type-utils/dist/builtinSymbolLikes.js
+index 75bbc56..014ceb7 100644
+--- a/node_modules/@typescript-eslint/type-utils/dist/builtinSymbolLikes.js
++++ b/node_modules/@typescript-eslint/type-utils/dist/builtinSymbolLikes.js
+@@ -42,7 +42,7 @@ exports.isBuiltinTypeAliasLike = isBuiltinTypeAliasLike;
+ exports.isBuiltinSymbolLike = isBuiltinSymbolLike;
+ exports.isBuiltinSymbolLikeRecurser = isBuiltinSymbolLikeRecurser;
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const isSymbolFromDefaultLibrary_1 = require("./isSymbolFromDefaultLibrary");
+ /**
+  * @example
+diff --git a/node_modules/@typescript-eslint/type-utils/dist/containsAllTypesByName.js b/node_modules/@typescript-eslint/type-utils/dist/containsAllTypesByName.js
+index 3307970..5b07eb4 100644
+--- a/node_modules/@typescript-eslint/type-utils/dist/containsAllTypesByName.js
++++ b/node_modules/@typescript-eslint/type-utils/dist/containsAllTypesByName.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.containsAllTypesByName = containsAllTypesByName;
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const typeFlagUtils_1 = require("./typeFlagUtils");
+ /**
+  * @param type Type being checked by name.
+diff --git a/node_modules/@typescript-eslint/type-utils/dist/getContextualType.js b/node_modules/@typescript-eslint/type-utils/dist/getContextualType.js
+index b67ef76..53ffd76 100644
+--- a/node_modules/@typescript-eslint/type-utils/dist/getContextualType.js
++++ b/node_modules/@typescript-eslint/type-utils/dist/getContextualType.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.getContextualType = getContextualType;
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ /**
+  * Returns the contextual type of a given node.
+  * Contextual type is the type of the target the node is going into.
+diff --git a/node_modules/@typescript-eslint/type-utils/dist/getSourceFileOfNode.js b/node_modules/@typescript-eslint/type-utils/dist/getSourceFileOfNode.js
+index 3842a6b..ff90a66 100644
+--- a/node_modules/@typescript-eslint/type-utils/dist/getSourceFileOfNode.js
++++ b/node_modules/@typescript-eslint/type-utils/dist/getSourceFileOfNode.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.getSourceFileOfNode = getSourceFileOfNode;
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ /**
+  * @deprecated
+  * Gets the source file for a given node
+diff --git a/node_modules/@typescript-eslint/type-utils/dist/getTypeName.js b/node_modules/@typescript-eslint/type-utils/dist/getTypeName.js
+index 7803902..c7ffd9b 100644
+--- a/node_modules/@typescript-eslint/type-utils/dist/getTypeName.js
++++ b/node_modules/@typescript-eslint/type-utils/dist/getTypeName.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.getTypeName = getTypeName;
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ /**
+  * Get the type name of a given type.
+  * @param typeChecker The context sensitive TypeScript TypeChecker.
+diff --git a/node_modules/@typescript-eslint/type-utils/dist/isTypeBrandedLiteralLike.js b/node_modules/@typescript-eslint/type-utils/dist/isTypeBrandedLiteralLike.js
+index 8368cb1..e827f18 100644
+--- a/node_modules/@typescript-eslint/type-utils/dist/isTypeBrandedLiteralLike.js
++++ b/node_modules/@typescript-eslint/type-utils/dist/isTypeBrandedLiteralLike.js
+@@ -35,7 +35,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.isTypeBrandedLiteralLike = isTypeBrandedLiteralLike;
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ function isLiteralOrTaggablePrimitiveLike(type) {
+     return (type.isLiteral() ||
+         tsutils.isTypeFlagSet(type, ts.TypeFlags.BigInt |
+diff --git a/node_modules/@typescript-eslint/type-utils/dist/isTypeReadonly.js b/node_modules/@typescript-eslint/type-utils/dist/isTypeReadonly.js
+index 1b348a9..436e7b6 100644
+--- a/node_modules/@typescript-eslint/type-utils/dist/isTypeReadonly.js
++++ b/node_modules/@typescript-eslint/type-utils/dist/isTypeReadonly.js
+@@ -37,7 +37,7 @@ exports.readonlynessOptionsDefaults = exports.readonlynessOptionsSchema = void 0
+ exports.isTypeReadonly = isTypeReadonly;
+ const utils_1 = require("@typescript-eslint/utils");
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const propertyTypes_1 = require("./propertyTypes");
+ const TypeOrValueSpecifier_1 = require("./TypeOrValueSpecifier");
+ var Readonlyness;
+diff --git a/node_modules/@typescript-eslint/type-utils/dist/predicates.js b/node_modules/@typescript-eslint/type-utils/dist/predicates.js
+index d76294b..5a0e358 100644
+--- a/node_modules/@typescript-eslint/type-utils/dist/predicates.js
++++ b/node_modules/@typescript-eslint/type-utils/dist/predicates.js
+@@ -49,7 +49,7 @@ exports.isTypeBigIntLiteralType = isTypeBigIntLiteralType;
+ exports.isTypeTemplateLiteralType = isTypeTemplateLiteralType;
+ const debug_1 = __importDefault(require("debug"));
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const typeFlagUtils_1 = require("./typeFlagUtils");
+ const log = (0, debug_1.default)('typescript-eslint:type-utils:predicates');
+ /**
+diff --git a/node_modules/@typescript-eslint/type-utils/dist/requiresQuoting.js b/node_modules/@typescript-eslint/type-utils/dist/requiresQuoting.js
+index 1f2b379..686e249 100644
+--- a/node_modules/@typescript-eslint/type-utils/dist/requiresQuoting.js
++++ b/node_modules/@typescript-eslint/type-utils/dist/requiresQuoting.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.requiresQuoting = requiresQuoting;
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ /*** Indicates whether identifiers require the use of quotation marks when accessing property definitions and dot notation. */
+ function requiresQuoting(name, target = ts.ScriptTarget.ESNext) {
+     if (name.length === 0) {
+diff --git a/node_modules/@typescript-eslint/type-utils/dist/typeFlagUtils.js b/node_modules/@typescript-eslint/type-utils/dist/typeFlagUtils.js
+index 6310209..09ad541 100644
+--- a/node_modules/@typescript-eslint/type-utils/dist/typeFlagUtils.js
++++ b/node_modules/@typescript-eslint/type-utils/dist/typeFlagUtils.js
+@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.getTypeFlags = getTypeFlags;
+ exports.isTypeFlagSet = isTypeFlagSet;
+ const tsutils = __importStar(require("ts-api-utils"));
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ const ANY_OR_UNKNOWN = ts.TypeFlags.Any | ts.TypeFlags.Unknown;
+ /**
+  * Gets all of the type flags in a type, iterating through unions automatically.
+diff --git a/node_modules/@typescript-eslint/type-utils/dist/typeOrValueSpecifiers/typeDeclaredInPackageDeclarationFile.js b/node_modules/@typescript-eslint/type-utils/dist/typeOrValueSpecifiers/typeDeclaredInPackageDeclarationFile.js
+index f51b2a1..2224630 100644
+--- a/node_modules/@typescript-eslint/type-utils/dist/typeOrValueSpecifiers/typeDeclaredInPackageDeclarationFile.js
++++ b/node_modules/@typescript-eslint/type-utils/dist/typeOrValueSpecifiers/typeDeclaredInPackageDeclarationFile.js
+@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
+ })();
+ Object.defineProperty(exports, "__esModule", { value: true });
+ exports.typeDeclaredInPackageDeclarationFile = typeDeclaredInPackageDeclarationFile;
+-const ts = __importStar(require("typescript"));
++const ts = __importStar(require("@typescript/typescript6"));
+ function findParentModuleDeclaration(node) {
+     switch (node.kind) {
+         case ts.SyntaxKind.ModuleDeclaration:

@@ -1,18 +1,22 @@
-import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
-import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useEffect, useRef} from 'react';
-import {View} from 'react-native';
-import Animated, {useSharedValue} from 'react-native-reanimated';
 import useLandscapeOnBlurProxy from '@hooks/useLandscapeOnBlurProxy';
 import useShortMentionsList from '@hooks/useShortMentionsList';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import toggleSelectionFormat from '@libs/FormatSelectionUtils';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import {parseExpensiMarkWithShortMentions} from '@libs/ParsingUtils';
 import scheduleOnLiveMarkdownRuntime from '@libs/scheduleOnLiveMarkdownRuntime';
+
 import CONST from '@src/CONST';
+
+import type {MarkdownTextInputProps} from '@expensify/react-native-live-markdown';
+import type {ForwardedRef} from 'react';
+
+import {MarkdownTextInput} from '@expensify/react-native-live-markdown';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+import Animated, {useSharedValue} from 'react-native-reanimated';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
 const AnimatedMarkdownTextInput = Animated.createAnimatedComponent(MarkdownTextInput);
@@ -55,18 +59,15 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
     }, [props.value, isCursorAtEnd]);
 
     // If `parser` prop was passed down we use it directly, otherwise we default to parsing with ExpensiMark
-    const parserWorklet = useCallback(
-        (text: string) => {
-            'worklet';
+    const parserWorklet = (text: string) => {
+        'worklet';
 
-            if (parser) {
-                return parser(text);
-            }
+        if (parser) {
+            return parser(text);
+        }
 
-            return parseExpensiMarkWithShortMentions(text, mentionsSharedVal.get(), currentUserMentions);
-        },
-        [currentUserMentions, mentionsSharedVal, parser],
-    );
+        return parseExpensiMarkWithShortMentions(text, mentionsSharedVal.get(), currentUserMentions);
+    };
 
     useEffect(() => {
         scheduleOnLiveMarkdownRuntime(() => {
@@ -93,7 +94,6 @@ function RNMarkdownTextInputWithRef({maxLength, parser, ref, forwardedFSClass = 
                 formatSelection={toggleSelectionFormat}
                 // eslint-disable-next-line react/forbid-component-props
                 fsClass={forwardedFSClass}
-                // eslint-disable-next-line
                 {...props}
                 /**
                  * If maxLength is not set, we should set it to CONST.MAX_COMMENT_LENGTH + 1, to avoid parsing markdown for large text

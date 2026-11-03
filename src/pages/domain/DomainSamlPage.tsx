@@ -1,6 +1,3 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
@@ -10,6 +7,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import SectionSubtitleHTML from '@components/SectionSubtitleHTML';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDomainDocumentTitle from '@hooks/useDomainDocumentTitle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -17,16 +15,23 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DomainSplitNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import colors from '@styles/theme/colors';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {domainMemberSettingsSelector, isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
+
 import SamlConfigurationDetailsSectionContent from './Saml/SamlConfigurationDetailsSectionContent';
 import SamlLoginSectionContent from './Saml/SamlLoginSectionContent';
 
@@ -52,31 +57,23 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
     useDomainDocumentTitle(domainName, 'domain.saml');
     const doesDomainExist = !!domain;
 
-    const samlFeatures: FeatureListItem[] = useMemo(
-        () => [
-            {
-                icon: illustrations.OpenSafe,
-                translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
-            },
-            {
-                icon: illustrations.ShieldYellow,
-                translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
-            },
-            {
-                icon: illustrations.LockClosed,
-                translationKey: 'domain.samlFeatureList.onePasswordForAnything',
-            },
-        ],
-        [illustrations.OpenSafe, illustrations.ShieldYellow, illustrations.LockClosed],
-    );
+    const samlFeatures: FeatureListItem[] = [
+        {
+            icon: illustrations.OpenSafe,
+            translationKey: 'domain.samlFeatureList.fasterAndEasierLogin',
+        },
+        {
+            icon: illustrations.ShieldYellow,
+            translationKey: 'domain.samlFeatureList.moreSecurityAndControl',
+        },
+        {
+            icon: illustrations.LockClosed,
+            translationKey: 'domain.samlFeatureList.onePasswordForAnything',
+        },
+    ];
 
     if (isLoadingOnyxValue(domainResults, domainSettingsResults)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'DomainSamlPage',
-            isLoadingDomain: isLoadingOnyxValue(domainResults),
-            isLoadingDomainSettings: isLoadingOnyxValue(domainSettingsResults),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator shouldUseGoBackButton={shouldUseNarrowLayout} />;
     }
 
     return (
@@ -94,8 +91,8 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('domain.saml')}
+                    shouldUseHeadlineHeader
                     onBackButtonPress={Navigation.goBack}
-                    icon={illustrations.LockClosed}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplayHelpButton
                 />
@@ -131,7 +128,7 @@ function DomainSamlPage({route}: DomainSamlPageProps) {
                                         subtitleMuted
                                         isCentralPane
                                         titleStyles={styles.accountSettingsSectionTitle}
-                                        childrenStyles={[styles.gap6, styles.pt6]}
+                                        childrenStyles={[styles.pt6]}
                                     >
                                         <SamlConfigurationDetailsSectionContent
                                             accountID={domainAccountID}

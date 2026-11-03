@@ -1,12 +1,18 @@
-import React from 'react';
-import type {GestureResponderEvent} from 'react-native';
 import MenuItem from '@components/MenuItem';
 import {useContentSubActions} from '@components/PopoverMenu/v2/content/ContentContext';
 import type {MenuItemForwardProps} from '@components/PopoverMenu/v2/rows/types';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {GestureResponderEvent} from 'react-native';
+
+import React from 'react';
+
 import {useSubContext} from './SubContext';
 import useSubTrigger from './useSubTrigger';
 

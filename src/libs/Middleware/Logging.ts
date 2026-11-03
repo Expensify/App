@@ -1,11 +1,14 @@
-import type {OnyxKey} from 'react-native-onyx';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import type HttpsError from '@libs/Errors/HttpsError';
 import Log from '@libs/Log';
 import sanitizeLogParams from '@libs/sanitizeLogParams';
+
 import CONST from '@src/CONST';
 import type Request from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import type Middleware from './types';
 
 function getCircularReplacer() {
@@ -147,11 +150,17 @@ const Logging: Middleware = (response, request) => {
                 // Expensify site is down completely OR
                 // Auth (database connection) is down / bedrock has timed out while making a request. We currently can't tell the difference between Auth down and bedrock timing out.
                 Log.hmmm('[Network] API request error: Expensify service interrupted or timed out', logParams);
+            } else if (error.message === CONST.ERROR.SERVICE_UNAVAILABLE) {
+                // The server is shedding writes during instability and asked us to retry, so this is expected and handled.
+                Log.hmmm('[Network] API request error: Expensify API is temporarily unavailable', logParams);
             } else if (error.message === CONST.ERROR.THROTTLED) {
                 Log.hmmm('[Network] API request error: Expensify API throttled the request', logParams);
             } else if (error.message === CONST.ERROR.DUPLICATE_RECORD) {
                 // Duplicate records can happen when a large upload is interrupted and we need to retry to see if the original request completed
                 Log.info('[Network] API request error: A record already exists with this ID', false, logParams);
+            } else if (error.message === CONST.ERROR.ALREADY_CREATED) {
+                // The record already exists server side, e.g. a retry after a lost success response. It is treated as a success upstream.
+                Log.info('[Network] API request error: The resource was already created', false, logParams);
             } else {
                 // If we get any error that is not known log an alert so we can learn more about it and document it here.
                 Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} unknown API request error caught while processing request`, logParams, false);

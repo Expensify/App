@@ -1,36 +1,45 @@
-import {Str} from 'expensify-common';
-import React from 'react';
-import type {ViewStyle} from 'react-native';
-import {StyleSheet, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmedRoute from '@components/ConfirmedRoute';
 import type {IconSize} from '@components/EReceiptThumbnail';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import type {ReceiptImageProps} from '@components/ReceiptImage';
 import ReceiptImage from '@components/ReceiptImage';
 import {useShowContextMenuState} from '@components/ShowContextMenuContext';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {
+    canOverlayReceiptPDF,
     hasEReceipt,
     hasPendingDistanceReceiptRegeneration,
     hasReceiptSource,
     isDistanceRequest,
     isManualDistanceRequest,
-    isMapBasedDistanceRequest,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {Str} from 'expensify-common';
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
+
+import deferReceiptNavigation from './deferReceiptNavigation';
 import ReceiptPDFOverlay from './ReceiptPDFOverlay';
 
 type ReportActionItemImageProps = {
@@ -48,10 +57,9 @@ type ReportActionItemImageProps = {
     /** URI for the image or local numeric reference for the image  */
     image?: string | number;
 
-    /** whether to enable the image preview modal */
     enablePreviewModal?: boolean;
 
-    /* The transaction associated with this image, if any. Passed for handling eReceipts. */
+    /** The transaction associated with this image, if any. Passed for handling eReceipts */
     transaction?: OnyxEntry<Transaction>;
 
     /** whether thumbnail is refer the local file or not */
@@ -90,6 +98,15 @@ type ReportActionItemImageProps = {
     /** Whether the receipt can be hover-zoomed. When true, remote PDFs render the actual PDF on top of the thumbnail so magnification stays sharp (web only). */
     canZoomReceipt?: boolean;
 
+    /** 1-indexed page of a multi-page PDF to show in the high-res overlay */
+    pdfPage?: number;
+
+    /** Called once the high-res PDF overlay has loaded its pages. Only fires when `pdfPage` is set. */
+    onPDFLoadSuccess?: () => void;
+
+    /** Called when the high-res PDF overlay fails, leaving only the thumbnail */
+    onPDFLoadFailure?: () => void;
+
     /** Callback to be called when the image loads */
     onLoad?: (event?: {nativeEvent: {width: number; height: number}}) => void;
 
@@ -122,6 +139,9 @@ function ReportActionItemImage({
     report: reportProp,
     shouldUseThumbnailImage,
     canZoomReceipt = false,
+    pdfPage,
+    onPDFLoadSuccess,
+    onPDFLoadFailure,
     onLoad,
     onLoadFailure,
 }: ReportActionItemImageProps) {
@@ -134,6 +154,18 @@ function ReportActionItemImage({
     // While the receipt is regenerating its stored URL is stale, so draw the live route from `routes.coordinates`
     // (via `ConfirmedRoute`) instead of loading the now-404'd image.
     const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction));
+    const navigateToReceipt = () => {
+        deferReceiptNavigation(() => {
+            Navigation.navigate(
+                ROUTES.TRANSACTION_RECEIPT.getRoute(
+                    transactionThreadReport?.reportID ?? contextReport?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
+                    transaction?.transactionID,
+                    readonly,
+                    mergeTransactionID,
+                ),
+            );
+        });
+    };
 
     if (showMapAsImage) {
         return (
@@ -150,7 +182,7 @@ function ReportActionItemImage({
         );
     }
 
-    const localSource = transaction?.receipt?.localSource;
+    const localSource = ReceiptStorage.resolve(transaction?.receipt?.localSource);
     const effectiveIsLocalFile = isLocalFile || !!localSource;
     const effectiveThumbnail = localSource ?? thumbnail;
     const receiptURIs = transaction ? getThumbnailAndImageURIs(transaction, null, null) : undefined;
@@ -171,7 +203,7 @@ function ReportActionItemImage({
         propsObj = {
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
 
-            source: thumbnailSource,
+            source: isPDF || shouldUseThumbnailImage !== false ? thumbnailSource : originalImageSource,
             fallbackIcon: icons.Receipt,
             fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
             isAuthTokenRequired: true,
@@ -188,6 +220,8 @@ function ReportActionItemImage({
             shouldUseThumbnailImage: shouldUseThumbnailImage ?? true,
             isAuthTokenRequired: false,
             source: shouldUseThumbnailImage ? (effectiveThumbnail ?? effectiveImage ?? '') : originalImageSource,
+            fallbackIcon: icons.Receipt,
+            fallbackIconSize: isSingleImage ? variables.iconSizeSuperLarge : variables.iconSizeExtraLarge,
 
             // If the image is full height, use initial position to make sure it will grow properly to fill the container
             shouldUseInitialObjectPosition: isMapDistanceRequest && !shouldUseFullHeight,
@@ -201,11 +235,10 @@ function ReportActionItemImage({
     // A remote PDF is shown as the server's low-resolution JPG thumbnail, which blurs when hover-zoomed.
     // Where zooming is available (web only), render the actual PDF on top of the thumbnail so the magnified
     // view stays sharp. The thumbnail stays underneath as an instant preview and as a fallback if the PDF fails.
-    // Map/route distance requests are excluded: their hover overlay is a DistanceEReceipt card, not the PDF.
-    // isMapBasedDistanceRequest covers map, GPS, and manual-typed transactions that still carry waypoints.
+    // Page navigation also needs the real PDF for local files, whose thumbnail only shows page 1.
     const pdfSourceURL = typeof originalImageSource === 'string' && !!originalImageSource ? originalImageSource : undefined;
-    const isRemotePDF = !!isPDF && !effectiveIsLocalFile && !isEReceipt && !isMapBasedDistanceRequest(transaction) && !!pdfSourceURL;
-    const shouldOverlayHighResPDF = canZoomReceipt && isRemotePDF && hasHoverSupport();
+    const canOverlayPDF = !!isPDF && canOverlayReceiptPDF(transaction) && !!pdfSourceURL;
+    const shouldOverlayHighResPDF = canZoomReceipt && canOverlayPDF && hasHoverSupport() && (!effectiveIsLocalFile || pdfPage !== undefined);
 
     const renderReceiptContent = (receiptImage: React.ReactNode) =>
         shouldOverlayHighResPDF ? (
@@ -217,7 +250,13 @@ function ReportActionItemImage({
                 >
                     <ReceiptPDFOverlay
                         sourceURL={pdfSourceURL}
-                        onLoadFailure={onLoadFailure}
+                        isAuthTokenRequired={!effectiveIsLocalFile}
+                        onLoadFailure={() => {
+                            onLoadFailure?.();
+                            onPDFLoadFailure?.();
+                        }}
+                        page={pdfPage}
+                        onLoadSuccess={onPDFLoadSuccess}
                     />
                 </View>
             </View>
@@ -229,16 +268,7 @@ function ReportActionItemImage({
         return (
             <PressableWithoutFocus
                 style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
-                onPress={() =>
-                    Navigation.navigate(
-                        ROUTES.TRANSACTION_RECEIPT.getRoute(
-                            transactionThreadReport?.reportID ?? contextReport?.reportID ?? reportProp?.reportID ?? getReportIDForExpense(transaction),
-                            transaction?.transactionID,
-                            readonly,
-                            mergeTransactionID,
-                        ),
-                    )
-                }
+                onPress={navigateToReceipt}
                 accessibilityLabel={translate('accessibilityHints.viewAttachment')}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 sentryLabel={CONST.SENTRY_LABEL.RECEIPT.IMAGE}

@@ -1,27 +1,48 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
+
 import {adjustRemainingSplitShares} from '@libs/actions/IOU/Split';
+
 import type {TranslationPaths} from '@src/languages/types';
 import type {Transaction} from '@src/types/onyx';
 import type {SplitShares} from '@src/types/onyx/Transaction';
 
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
+
 type SplitBillControllerProps = {
+    /** Transaction being confirmed */
     transaction: OnyxEntry<Transaction>;
+
+    /** Whether the expense is a split */
     isTypeSplit: boolean;
+
+    /** Amount of the expense */
     iouAmount: number;
-    iouCurrencyCode: string | undefined;
+
+    /** Currency of the expense */
+    iouCurrencyCode: string;
+
+    /** Account ID of the current user, the split bill creator */
     currentUserAccountID: number;
+
+    /** Whether the confirmation screen is focused */
     isFocused: boolean;
-    onFormError: (error: TranslationPaths | '') => void;
+
+    /** Raises a form error */
+    setFormError: (value: TranslationPaths | '') => void;
 };
 
 /**
  * Side-effect-only component that validates split share amounts
  * and adjusts remaining split shares when the transaction changes.
+ *
+ * Mounted only by the variants whose expense type can be split.
  */
-function SplitBillController({transaction, isTypeSplit, iouAmount, iouCurrencyCode, currentUserAccountID, isFocused, onFormError}: SplitBillControllerProps) {
+function SplitBillController({transaction, isTypeSplit, iouAmount, iouCurrencyCode, currentUserAccountID, isFocused, setFormError: onFormError}: SplitBillControllerProps) {
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     useEffect(() => {
         if (!isTypeSplit || !transaction?.splitShares || !isFocused) {
@@ -59,8 +80,8 @@ function SplitBillController({transaction, isTypeSplit, iouAmount, iouCurrencyCo
         if (!isTypeSplit || !transaction?.splitShares) {
             return;
         }
-        adjustRemainingSplitShares(transaction);
-    }, [isTypeSplit, transaction]);
+        adjustRemainingSplitShares(transaction, getCurrencyDecimals);
+    }, [isTypeSplit, transaction, getCurrencyDecimals]);
 
     return null;
 }
@@ -68,3 +89,4 @@ function SplitBillController({transaction, isTypeSplit, iouAmount, iouCurrencyCo
 SplitBillController.displayName = 'SplitBillController';
 
 export default SplitBillController;
+export type {SplitBillControllerProps};

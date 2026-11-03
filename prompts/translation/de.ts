@@ -1,4 +1,5 @@
-import dedent from '@libs/StringUtils/dedent';
+import {Str} from 'expensify-common';
+
 import Glossary from './Glossary';
 
 const germanGlossary = new Glossary([
@@ -6,7 +7,7 @@ const germanGlossary = new Glossary([
     {sourceTerm: 'Expensify Card', targetTerm: 'Expensify Karte', usage: 'Branded Expensify payment card'},
 ]);
 
-export default dedent(`
+export default Str.dedent(`
     When translating to German, follow these rules:
 
     - Use formal "Sie" for user-facing text unless the source explicitly uses informal tone.

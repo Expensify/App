@@ -1,5 +1,6 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import getFocusedLeafScreenName from '@libs/Navigation/helpers/getFocusedLeafScreenName';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 describe('getFocusedLeafScreenName', () => {
     it('returns undefined for undefined state', () => {
@@ -14,7 +15,7 @@ describe('getFocusedLeafScreenName', () => {
     });
 
     it('returns undefined when state has no routes', () => {
-        const state = {routes: []} as unknown as PartialState<NavigationState>;
+        const state: PartialState<NavigationState> = {routes: []};
         expect(getFocusedLeafScreenName(state)).toBeUndefined();
     });
 

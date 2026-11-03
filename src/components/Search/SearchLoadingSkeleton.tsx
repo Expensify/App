@@ -1,27 +1,27 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import Animated, {FadeIn, FadeOut} from 'react-native-reanimated';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {endSpanWithAttributes} from '@libs/telemetry/activeSpans';
 import {endNavigateToReportsFirstPaint} from '@libs/telemetry/navigateToReportsSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {StyleSheet, View} from 'react-native';
 
 type SearchLoadingSkeletonProps = {
     containerStyle?: StyleProp<ViewStyle>;
-    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function SearchLoadingSkeleton({containerStyle, reasonAttributes}: SearchLoadingSkeletonProps) {
+function SearchLoadingSkeleton({containerStyle}: SearchLoadingSkeletonProps) {
     const styles = useThemeStyles();
-    const skeletonReasonAttributes = reasonAttributes ?? {context: 'SearchLoadingSkeleton'};
 
     return (
-        <Animated.View
-            entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-            exiting={FadeOut.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
-            style={[styles.flex1]}
+        <View
+            style={[styles.flex1, StyleSheet.absoluteFill]}
             onLayout={() => {
                 endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: false});
                 endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.COLD);
@@ -30,9 +30,8 @@ function SearchLoadingSkeleton({containerStyle, reasonAttributes}: SearchLoading
             <SearchRowSkeleton
                 shouldAnimate
                 containerStyle={containerStyle}
-                reasonAttributes={skeletonReasonAttributes}
             />
-        </Animated.View>
+        </View>
     );
 }
 

@@ -1,26 +1,33 @@
-import React from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isAuthenticationError} from '@libs/actions/connections';
 import {connectPolicyToFinancialForce} from '@libs/actions/connections/FinancialForce';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
+import {View} from 'react-native';
+
 import CertiniaPrerequisitesStep from './prerequisites/CertiniaPrerequisitesStep';
 
 type CertiniaPrerequisitesStepExtraProps = SubPageProps & {
     onConnect: () => void;
+    isSandbox: boolean;
 };
 
 type CertiniaPrerequisitesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.CERTINIA_PREREQUISITES>;
@@ -35,20 +42,22 @@ function CertiniaPrerequisitesPage({route}: CertiniaPrerequisitesPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {environmentURL} = useEnvironment();
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const policyID: string = route.params.policyID;
+    const isSandbox = route.params.isSandbox === 'true';
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const config = policy?.connections?.financialforce?.config;
     const shouldBeBlocked = !!config?.isConfigured && !isAuthenticationError(policy, CONST.POLICY.CONNECTIONS.NAME.CERTINIA);
 
     const handleConnect = () => {
-        connectPolicyToFinancialForce(policyID, false, environmentURL);
+        connectPolicyToFinancialForce(policyID, isSandbox, environmentURL, session);
         Navigation.dismissModal();
     };
 
     const {CurrentPage, nextPage, prevPage, pageIndex, moveTo, currentPageName} = useSubPage<CertiniaPrerequisitesStepExtraProps>({
         pages,
         onFinished: handleConnect,
-        buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID, pageName),
+        buildRoute: (pageName) => ROUTES.POLICY_ACCOUNTING_CERTINIA_PREREQUISITES.getRoute(policyID, pageName, isSandbox || undefined),
     });
 
     const handleBackButtonPress = () => {
@@ -88,6 +97,7 @@ function CertiniaPrerequisitesPage({route}: CertiniaPrerequisitesPageProps) {
                 onMove={moveTo}
                 currentPageName={currentPageName}
                 onConnect={handleConnect}
+                isSandbox={isSandbox}
             />
         </ConnectionLayout>
     );

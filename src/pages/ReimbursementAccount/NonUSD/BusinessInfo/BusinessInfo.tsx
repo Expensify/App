@@ -1,22 +1,31 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+import ActivityIndicator from '@components/ActivityIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import {clearReimbursementAccountSaveCorpayOnboardingCompanyDetails, getCorpayOnboardingFields, saveCorpayOnboardingCompanyDetails} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import {Str} from 'expensify-common';
+import React, {useEffect, useRef} from 'react';
+import {View} from 'react-native';
+
 import Address from './subSteps/Address';
 import AverageReimbursement from './subSteps/AverageReimbursement';
 import BusinessType from './subSteps/BusinessType';
@@ -70,16 +79,17 @@ const INPUT_KEYS = {
 function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, stepNames, currentSubPage, backTo}: NonUSDPageProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
+    const styles = useThemeStyles();
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const policyID = policyIDProp ?? reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {country, currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
-    const businessInfoStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
+    const businessInfoStepValues = getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const startFrom = useMemo(() => getInitialSubStepForBusinessInfoStep(businessInfoStepValues), [businessInfoStepValues]);
+    const startFrom = getInitialSubStepForBusinessInfoStep(businessInfoStepValues);
     const initialTargetSubPage = pages.at(startFrom)?.pageName ?? SUB_PAGE_NAMES.NAME;
     const shouldRedirect = !currentSubPage;
 
@@ -97,7 +107,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
         getCorpayOnboardingFields(country);
     }, [country]);
 
-    const submit = useCallback(() => {
+    const submit = () => {
         isSubmittingRef.current = true;
         saveCorpayOnboardingCompanyDetails(
             {
@@ -112,7 +122,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
             },
             bankAccountID,
         );
-    }, [businessInfoStepValues, isProduction, country, currency, isBusinessTypeRequired, bankAccountID]);
+    };
 
     useEffect(() => {
         if (reimbursementAccount?.errors || reimbursementAccount?.isSavingCorpayOnboardingCompanyFields || !reimbursementAccount?.isSuccess) {
@@ -131,10 +141,7 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
         };
     }, [reimbursementAccount?.errors, reimbursementAccount?.isSavingCorpayOnboardingCompanyFields, reimbursementAccount?.isSuccess, onSubmit]);
 
-    const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BUSINESS_INFO, subPage: pageName, action, backTo}),
-        [backTo, policyID],
-    );
+    const buildRoute = (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BUSINESS_INFO, subPage: pageName, action, backTo});
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo} = useSubPage({pages, startFrom, onFinished: submit, buildRoute});
 
@@ -161,7 +168,9 @@ function BusinessInfo({onBackButtonPress, onSubmit, policyID: policyIDProp, step
             startStepIndex={2}
         >
             {shouldRedirect ? (
-                <FullScreenLoadingIndicator reasonAttributes={{context: 'BusinessInfo', shouldRedirect}} />
+                <View style={[styles.flex1, styles.fullScreenLoading]}>
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+                </View>
             ) : (
                 <CurrentPage
                     isEditing={isEditing}

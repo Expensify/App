@@ -1,24 +1,64 @@
-/* eslint-disable @typescript-eslint/naming-convention */
-import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import {act, renderHook} from '@testing-library/react-native';
+
+import useOnyx from '@hooks/useOnyx';
+
 import reportAttributes from '@libs/actions/OnyxDerived/configs/reportAttributes';
+import {isReportActionVisible} from '@libs/ReportActionsUtils';
+import * as ActiveSpans from '@libs/telemetry/activeSpans';
+
+import {KEYS_TO_PRESERVE_DELEGATE_ACCESS} from '@userActions/Delegate';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import * as OnyxDerivedUtils from '@userActions/OnyxDerived/utils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, Report, Transaction} from '@src/types/onyx';
-import type {ACHAccount} from '@src/types/onyx/Policy';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
+import type {PersonalDetailsList, Report, Transaction, TransactionViolation, ReportAction, ReportActions} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxUpdate} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
+
+/* eslint-disable @typescript-eslint/naming-convention */
+import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+
 import {createRandomCompanyCard, createRandomExpensifyCard} from '../utils/collections/card';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import getOnyxValue from '../utils/getOnyxValue';
+import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 const onyxDerivedTestSetup = () => {
     Onyx.init({keys: ONYXKEYS});
     initOnyxDerivedValues();
 };
+
+const GUIDE_ACCOUNT_ID = 8;
+const MEMBER_ACCOUNT_ID = 1;
+const NEW_GUIDE_ACCOUNT_ID = 9;
+const NEW_MEMBER_ACCOUNT_ID = 2;
+
+const PERSONAL_DETAILS: PersonalDetailsList = {
+    [GUIDE_ACCOUNT_ID]: {accountID: GUIDE_ACCOUNT_ID, login: `guide@${CONST.EMAIL.GUIDES_DOMAIN}`, displayName: 'Guide'},
+    [MEMBER_ACCOUNT_ID]: {accountID: MEMBER_ACCOUNT_ID, login: 'member@example.com', displayName: 'Member'},
+};
+
+const KEYS_READ_WITHOUT_SELECTOR = [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS, ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP] as const;
+
+function renderHookWithoutSelector<TKey extends TupleToUnion<typeof KEYS_READ_WITHOUT_SELECTOR> | typeof ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID>(key: TKey) {
+    let renderCount = 0;
+    const hook = renderHook(() => {
+        renderCount++;
+        return useOnyx(key);
+    });
+    return {hook, getRenderCount: () => renderCount};
+}
+
+function getGuideWrites(setDerivedValueSpy: jest.Spied<typeof OnyxDerivedUtils.setDerivedValue>) {
+    return setDerivedValueSpy.mock.calls.filter(([key]) => key === ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
+}
 
 describe('OnyxDerived', () => {
     beforeAll(async () => {
@@ -27,6 +67,132 @@ describe('OnyxDerived', () => {
 
     beforeEach(async () => {
         await Onyx.clear();
+    });
+
+    describe('visibleReportActions', () => {
+        it.each([
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED,
+            CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
+            CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+            CONST.REPORT.ACTIONS.TYPE.REOPENED,
+            CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+        ])('keeps a later reimbursement visible after %s even when the earlier PAY was cached', async (actionName) => {
+            const reportID = `reportWithHistoricalPay-${actionName}`;
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+            const markedReimbursed = getFakeReportAction(1, {
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                created: '2025-01-01 00:00:00.000',
+                originalMessage: {},
+            });
+            const pay = getFakeReportAction(2, {
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                created: '2025-01-01 00:00:01.000',
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            });
+            await Onyx.set(reportActionsKey, {[markedReimbursed.reportActionID]: markedReimbursed, [pay.reportActionID]: pay});
+            await waitForBatchedUpdates();
+
+            const initialVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(isReportActionVisible(markedReimbursed, reportID, true, initialVisibility)).toBe(false);
+
+            const cancellation = getFakeReportAction(3, {reportID, actionName, created: '2025-01-02 00:00:00.000'});
+            const laterReimbursement = {...markedReimbursed, reportActionID: '4', created: '2025-01-03 00:00:00.000'};
+            // History can arrive out of order: initially the earlier payment appears to cover this action too.
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {[reportActionsKey]: {[laterReimbursement.reportActionID]: laterReimbursement}});
+            await waitForBatchedUpdates();
+            const incompleteVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(isReportActionVisible(laterReimbursement, reportID, true, incompleteVisibility)).toBe(false);
+
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+                [reportActionsKey]: {[cancellation.reportActionID]: cancellation},
+            });
+            await waitForBatchedUpdates();
+
+            const updatedVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(isReportActionVisible(laterReimbursement, reportID, true, updatedVisibility)).toBe(true);
+            expect(isReportActionVisible(markedReimbursed, reportID, true, updatedVisibility)).toBe(false);
+
+            // A PAY belonging to the new payment attempt should still hide its duplicate when it arrives later.
+            const laterPay = {...pay, reportActionID: '5', created: '2025-01-03 00:00:01.000'};
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {[reportActionsKey]: {[laterPay.reportActionID]: laterPay}});
+            await waitForBatchedUpdates();
+
+            const finalVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(isReportActionVisible(laterReimbursement, reportID, true, finalVisibility)).toBe(false);
+        });
+
+        it.each([CONST.REPORT.ACTIONS.TYPE.RETRACTED, CONST.REPORT.ACTIONS.TYPE.REOPENED, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED])(
+            'does not retroactively hide a standalone reimbursement when PAY arrives after %s',
+            async (actionName) => {
+                const reportID = `reportWithFuturePay-${actionName}`;
+                const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+                const markedReimbursed = getFakeReportAction(1, {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                    created: '2025-01-01 00:00:00.000',
+                    originalMessage: {},
+                });
+                await Onyx.set(reportActionsKey, {[markedReimbursed.reportActionID]: markedReimbursed});
+                await waitForBatchedUpdates();
+                const initialVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+                expect(isReportActionVisible(markedReimbursed, reportID, true, initialVisibility)).toBe(true);
+
+                const boundary = getFakeReportAction(2, {actionName, created: '2025-02-01 00:00:00.000'});
+                const pay = getFakeReportAction(3, {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2025-06-01 00:00:00.000',
+                    originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+                });
+                const laterReimbursement = {...markedReimbursed, reportActionID: '4', created: '2025-06-01 00:00:01.000'};
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {
+                    [reportActionsKey]: {[boundary.reportActionID]: boundary, [pay.reportActionID]: pay, [laterReimbursement.reportActionID]: laterReimbursement},
+                });
+                await waitForBatchedUpdates();
+
+                const updatedVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+                expect(isReportActionVisible(markedReimbursed, reportID, true, updatedVisibility)).toBe(true);
+                expect(isReportActionVisible(laterReimbursement, reportID, true, updatedVisibility)).toBe(false);
+            },
+        );
+
+        it('uses the collection reportID to hide MARKED_REIMBURSED when its sibling PAY arrives later', async () => {
+            const reportID = 'reportWithLatePaySibling';
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+            const markedReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED> = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED,
+                reportActionID: '1',
+                created: '2025-01-01 00:00:00',
+                message: [{type: 'TEXT', style: 'normal', text: 'Marked as reimbursed'}],
+                originalMessage: {},
+            };
+            const payAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportActionID: '2',
+                created: '2025-01-01 00:00:01',
+                message: [{type: 'TEXT', style: 'normal', text: 'paid'}],
+                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.PAY, IOUReportID: reportID, amount: 100, currency: CONST.CURRENCY.USD},
+            } as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>;
+
+            await Onyx.set(reportActionsKey, {[markedReimbursedAction.reportActionID]: markedReimbursedAction});
+            await waitForBatchedUpdates();
+
+            const initialVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(initialVisibility?.[reportID]).toBeDefined();
+            expect(isReportActionVisible(markedReimbursedAction, reportID, true, initialVisibility)).toBe(true);
+
+            // Only PAY is included in this update, so derived visibility must not retain a stale result for its sibling.
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {[reportActionsKey]: {[payAction.reportActionID]: payAction}});
+            await waitForBatchedUpdates();
+
+            const updatedVisibility = await OnyxUtils.get(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
+            expect(updatedVisibility?.[reportID]?.[payAction.reportActionID]).toBe(true);
+            expect(isReportActionVisible(markedReimbursedAction, reportID, true, updatedVisibility)).toBe(false);
+            expect(isReportActionVisible(markedReimbursedAction, reportID, true)).toBe(false);
+            expect(isReportActionVisible(markedReimbursedAction, reportID, true, {})).toBe(false);
+            expect(isReportActionVisible({...markedReimbursedAction, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}, reportID, true, updatedVisibility)).toBe(false);
+        });
     });
 
     describe('reportAttributes', () => {
@@ -104,11 +270,73 @@ describe('OnyxDerived', () => {
         it('updates when locale changes', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
             await IntlStore.load(CONST.LOCALES.ES);
+            // Derived recomputes are coalesced onto a microtask; pump it so the locale change is applied.
+            await waitForBatchedUpdates();
 
             const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
 
             expect(derivedReportAttributes).toMatchObject({
                 locale: 'es',
+            });
+        });
+
+        describe('coalescing', () => {
+            // Each flush/recompute writes the derived value exactly once via setDerivedValue, so counting
+            // its calls for a given derived key = counting how many times that value was recomputed.
+            const countRecomputes = (spy: jest.SpyInstance, derivedKey: string) => spy.mock.calls.filter(([calledKey]) => calledKey === derivedKey).length;
+
+            it('coalesces the dependency changes from a single Onyx.update batch (without dropping any)', async () => {
+                // Prime so the derived value is populated and connections are warm.
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+                await waitForBatchedUpdates();
+
+                const setDerivedValueSpy = jest.spyOn(OnyxDerivedUtils, 'setDerivedValue');
+
+                // One logical update touching 3 different reportAttributes dependencies at once.
+                const updates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.REPORT_METADATA>> = [
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                        key: ONYXKEYS.COLLECTION.REPORT,
+                        value: {[`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`]: {reportName: 'Renamed report'}},
+                    },
+                    {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.TRANSACTION, value: {[`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createRandomTransaction(1)}},
+                    {
+                        onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                        key: ONYXKEYS.COLLECTION.REPORT_METADATA,
+                        value: {[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`]: {isOptimisticReport: false}},
+                    },
+                ];
+                await Onyx.update(updates);
+                await waitForBatchedUpdates();
+
+                // Microtask flushing coalesces the changes delivered within a synchronous broadcast burst, so
+                // this recomputes fewer times than one-per-changed-dependency (3). We assert it's reduced rather
+                // than a brittle exact count, because Onyx.update can span a couple of microtask turns and a
+                // microtask flush does not batch across Onyx's async pipeline.
+                expect(countRecomputes(setDerivedValueSpy, ONYXKEYS.DERIVED.REPORT_ATTRIBUTES)).toBeLessThan(3);
+
+                // And the coalesced compute must not drop any of the batched changes.
+                const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derived?.reports?.[mockReport.reportID]?.reportName).toBe('Renamed report');
+
+                setDerivedValueSpy.mockRestore();
+            });
+
+            it('applies every change from separate merges in the same tick without dropping any', async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, mockReport);
+                await waitForBatchedUpdates();
+
+                // Separate merges to different dependencies, fired synchronously (not awaited between). Microtask
+                // flushing intentionally does NOT batch these into a single recompute — batching across ticks would
+                // require deferring the flush past render, reintroducing stale-frame reads. The invariant that must
+                // hold is that no update is dropped: every change is reflected in the final derived value.
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${mockReport.reportID}`, {reportName: 'Renamed again'});
+                Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}1`, createRandomTransaction(1));
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`, {isOptimisticReport: false});
+                await waitForBatchedUpdates();
+
+                const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derived?.reports?.[mockReport.reportID]?.reportName).toBe('Renamed again');
             });
         });
 
@@ -124,9 +352,50 @@ describe('OnyxDerived', () => {
             const transaction = createRandomTransaction(1);
 
             // When the report attributes are recomputed with both report and transaction updates
-            reportAttributes.compute([reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined], {});
+            reportAttributes.compute(
+                [
+                    reports,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                ],
+                {},
+            );
             const reportAttributesComputedValue = reportAttributes.compute(
-                [reports, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined, undefined],
+                [
+                    reports,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                ],
                 {
                     sourceValues: {
                         [ONYXKEYS.COLLECTION.REPORT]: {
@@ -216,6 +485,104 @@ describe('OnyxDerived', () => {
 
             // The computed value should not be the same object (new computation happened)
             expect(derivedReportAttributesAfterDisplayNameChange).not.toBe(initialDerivedReportAttributes);
+        });
+
+        it('should only recompute reports that reference the changed accountID when a display name changes', () => {
+            // Two reports: one owned by account 2, the other owned by account 3.
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}ref_report`]: {...mockReport, reportID: 'ref_report', ownerAccountID: 2},
+                [`${ONYXKEYS.COLLECTION.REPORT}unrelated_report`]: {...mockReport, reportID: 'unrelated_report', policyID: '456', ownerAccountID: 3},
+            };
+            const personalDetails = {
+                '2': {accountID: 2, displayName: 'Alice', login: 'alice@example.com'},
+                '3': {accountID: 3, displayName: 'Bob', login: 'bob@example.com'},
+            };
+            const changedPersonalDetails = {...personalDetails, '2': {accountID: 2, displayName: 'Alice Smith', login: 'alice@example.com'}};
+
+            // PERSONAL_DETAILS_LIST is a valid runtime source key (hasKeyTriggeredCompute reads it), but the
+            // sourceValues type only models collection keys, so there's no representable type for this marker.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- non-collection source keys aren't modeled by DerivedSourceValues
+            const personalDetailsSource = {
+                sourceValues: {[ONYXKEYS.PERSONAL_DETAILS_LIST]: true},
+                triggeredKeys: new Set([ONYXKEYS.PERSONAL_DETAILS_LIST]),
+            } as unknown as Parameters<typeof reportAttributes.compute>[1];
+
+            // Reset the module-level diff baseline (no sourceValues clears it) so the seed below is deterministic.
+            reportAttributes.compute(
+                [
+                    reports,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    personalDetails,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                ],
+                {},
+            );
+            // First personal-details compute computes both reports (no prior currentValue) and seeds the baseline.
+            const initial = reportAttributes.compute(
+                [
+                    reports,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    personalDetails,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                ],
+                personalDetailsSource,
+            );
+            // Changing only account 2's display name should recompute just its report, carrying the other by reference.
+            const afterChange = reportAttributes.compute(
+                [
+                    reports,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    changedPersonalDetails,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                ],
+                {...personalDetailsSource, currentValue: initial},
+            );
+
+            // A recomputed report gets a brand-new object; an untouched report is carried over by reference.
+            expect(afterChange.reports.ref_report).not.toBe(initial.reports.ref_report);
+            expect(afterChange.reports.unrelated_report).toBe(initial.reports.unrelated_report);
         });
 
         describe('reportErrors', () => {
@@ -362,6 +729,30 @@ describe('OnyxDerived', () => {
             });
         });
 
+        describe('RBR handling for support tickets', () => {
+            it('does not show a Fix badge for a support ticket error', async () => {
+                const supportTicket = {
+                    ...createRandomReport(1, undefined),
+                    type: CONST.REPORT.TYPE.SUPPORT_TICKET,
+                    errorFields: {
+                        createReport: {
+                            '1234567890': 'Support ticket error',
+                        },
+                    },
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${supportTicket.reportID}`, supportTicket);
+                await waitForBatchedUpdates();
+
+                const derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[supportTicket.reportID]).toMatchObject({
+                    reportErrors: {'1234567890': 'Support ticket error'},
+                });
+                expect(derivedReportAttributes?.reports[supportTicket.reportID].brickRoadStatus).toBeUndefined();
+                expect(derivedReportAttributes?.reports[supportTicket.reportID].actionBadge).toBeUndefined();
+            });
+        });
+
         describe('RBR propagation for IOU reports', () => {
             it('should correctly propagate and resolve RBR for IOU reports', async () => {
                 const parentReport = createRandomReport(2, undefined);
@@ -398,6 +789,118 @@ describe('OnyxDerived', () => {
                 derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBeUndefined();
             });
+
+            it('should not propagate RBR from an IOU report whose preview action in the chat was deleted', async () => {
+                // Given a chat and an IOU report with an error, whose preview action in the chat was deleted
+                const parentReport = {...createRandomReport(3, undefined), reportID: '700', type: CONST.REPORT.TYPE.CHAT};
+                const previewAction = getFakeReportAction(701, {reportActionID: '701', actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, childReportID: '702'});
+                const deletedPreviewAction = {...previewAction, message: [{type: 'COMMENT', html: '', text: '', deleted: '2024-01-01 10:00:00'}]};
+                const iouReport = {
+                    ...createRandomReport(4, undefined),
+                    reportID: '702',
+                    chatReportID: parentReport.reportID,
+                    parentReportID: parentReport.reportID,
+                    parentReportActionID: previewAction.reportActionID,
+                    ownerAccountID: 1,
+                    type: CONST.REPORT.TYPE.IOU,
+                    errorFields: {generic: {'1234567890': 'Generic error'}},
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {[deletedPreviewAction.reportActionID]: deletedPreviewAction} as ReportActions);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, parentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`, iouReport);
+                await waitForBatchedUpdates();
+
+                // Then the chat does not show the error, since it has no surface left to fix it from
+                let derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBeUndefined();
+
+                // When the preview action is restored
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}`, {[previewAction.reportActionID]: previewAction} as ReportActions);
+                await waitForBatchedUpdates();
+
+                // Then the chat shows the child's error
+                derivedReportAttributes = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                expect(derivedReportAttributes?.reports[parentReport.reportID].brickRoadStatus).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+            });
+        });
+    });
+
+    describe('reportTransactionsAndViolations', () => {
+        it('keeps a violations-only change for one transaction when coalesced with a transaction change for another', async () => {
+            const transactionA: Transaction = {...createRandomTransaction(1), transactionID: 'A', reportID: 'rA', amount: 100};
+            const transactionB: Transaction = {...createRandomTransaction(2), transactionID: 'B', reportID: 'rB', amount: 200};
+
+            // Prime so both transactions are tracked and the connections are warm.
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}A` as const]: transactionA,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}B` as const]: transactionB,
+            });
+            await waitForBatchedUpdates();
+
+            const violation: TransactionViolation = {type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.MISSING_CATEGORY};
+
+            // One logical update: transaction A changes AND violations change for transaction B.
+            const updates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS>> = [
+                {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.TRANSACTION, value: {[`${ONYXKEYS.COLLECTION.TRANSACTION}A`]: {amount: 999}}},
+                {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, value: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}B`]: [violation]}},
+            ];
+            await Onyx.update(updates);
+            await waitForBatchedUpdates();
+
+            const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
+
+            // The batched violations change for B must not be dropped...
+            expect(derived?.rB?.violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}B`]).toEqual([violation]);
+            // ...and the transaction change for A must also land.
+            expect(derived?.rA?.transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}A`]?.amount).toBe(999);
+        });
+    });
+
+    describe('sortedReportActions', () => {
+        it('applies a REPORT change that is coalesced with a REPORT_ACTIONS change for another report', async () => {
+            const chatReportID = '10';
+            const expenseReportID = '20';
+            const parentChatReportID = '30';
+            const threadReportID = '40';
+
+            const iouAction = getFakeReportAction(100, {
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                childReportID: threadReportID,
+                reportID: expenseReportID,
+                originalMessage: {IOUTransactionID: 'txn1', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: 'USD'},
+            } as Partial<ReportAction>);
+
+            await Onyx.multiSet({
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}` as const]: createMockReport({reportID: chatReportID, type: CONST.REPORT.TYPE.CHAT}),
+                // The expense report starts as a CHAT, so its one-transaction thread does not resolve yet.
+                [`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}` as const]: createMockReport({reportID: expenseReportID, type: CONST.REPORT.TYPE.CHAT, chatReportID: parentChatReportID}),
+                [`${ONYXKEYS.COLLECTION.REPORT}${parentChatReportID}` as const]: createMockReport({reportID: parentChatReportID, type: CONST.REPORT.TYPE.CHAT}),
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}` as const]: {'1': getFakeReportAction(1, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}` as const]: {'100': iouAction},
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${threadReportID}` as const]: {'200': getFakeReportAction(200, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})},
+            });
+            await waitForBatchedUpdates();
+
+            // Precondition: while it is a CHAT, no transaction thread is resolved for the report.
+            let derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            expect(derived?.transactionThreadIDs?.[expenseReportID]).toBeUndefined();
+
+            // One logical update: flip the report to EXPENSE (a REPORT change that resolves its thread) batched
+            // with an unrelated REPORT_ACTIONS change to a different report.
+            const updates: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
+                {onyxMethod: Onyx.METHOD.MERGE_COLLECTION, key: ONYXKEYS.COLLECTION.REPORT, value: {[`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`]: {type: CONST.REPORT.TYPE.EXPENSE}}},
+                {
+                    onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    value: {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`]: {'2': getFakeReportAction(2, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT})}},
+                },
+            ];
+            await Onyx.update(updates);
+            await waitForBatchedUpdates();
+
+            // The batched REPORT change must be applied: the expense report's transaction thread now resolves.
+            derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            expect(derived?.transactionThreadIDs?.[expenseReportID]).toBe(threadReportID);
         });
     });
 
@@ -586,572 +1089,205 @@ describe('OnyxDerived', () => {
         });
     });
 
-    describe('todos', () => {
+    describe('skipping the write when compute returns the current value', () => {
+        beforeEach(async () => {
+            jest.restoreAllMocks();
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+            await waitForBatchedUpdates();
+        });
+
+        it('should not write to Onyx when compute returns the current value', async () => {
+            // Given the guide accountIDs have been computed and stored
+            const setDerivedValueSpy = jest.spyOn(OnyxDerivedUtils, 'setDerivedValue');
+
+            // When a member is renamed, which recomputes the guides to the value already held
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[MEMBER_ACCOUNT_ID]: {displayName: 'Renamed member'}});
+            await waitForBatchedUpdates();
+
+            // Then nothing is written, so subscribers aren't notified and the value isn't rewritten to disk
+            expect(getGuideWrites(setDerivedValueSpy)).toHaveLength(0);
+            expect(await getOnyxValue(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS)).toEqual([GUIDE_ACCOUNT_ID]);
+        });
+
+        it('should still end the compute span when the write is skipped', async () => {
+            // Given the compute span is observed
+            const endSpanSpy = jest.spyOn(ActiveSpans, 'endSpan');
+
+            // When a recompute returns the current value and skips the write
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[MEMBER_ACCOUNT_ID]: {displayName: 'Renamed member'}});
+            await waitForBatchedUpdates();
+
+            // Then the early return still goes through finally, so no compute span is left open
+            expect(endSpanSpy).toHaveBeenCalledWith(`${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS}`);
+        });
+
+        it('should rewrite the value after Onyx.clear', async () => {
+            // Given the guide accountIDs are stored and Onyx is then cleared, as on sign-out
+            await Onyx.clear();
+            await waitForBatchedUpdates();
+            const setDerivedValueSpy = jest.spyOn(OnyxDerivedUtils, 'setDerivedValue');
+
+            // When the same personal details come back, as on signing in again
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
+            await waitForBatchedUpdates();
+
+            // Then the engine writes the value again instead of treating the pre-clear value as current
+            expect(getGuideWrites(setDerivedValueSpy).length).toBeGreaterThan(0);
+            expect(await getOnyxValue(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS)).toEqual([GUIDE_ACCOUNT_ID]);
+        });
+
+        it('should restore derived keys after a clear that keeps PERSONAL_DETAILS_LIST', async () => {
+            // Given the derived keys are computed, and Onyx is cleared with the keep list the delegate switch uses.
+            // A preserved dependency is never notified, so the engine never resets and keeps the pre-clear value,
+            // while Onyx drops the derived keys because they are not preserved.
+            await Onyx.clear(KEYS_TO_PRESERVE_DELEGATE_ACCESS);
+            await waitForBatchedUpdates();
+
+            // When a personal details write changes a name but no login, as OpenApp does on return
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[MEMBER_ACCOUNT_ID]: {displayName: 'Renamed member'}});
+            await waitForBatchedUpdates();
+
+            // Then both derived keys are written again rather than staying empty until a login set changes
+            expect(await getOnyxValue(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP)).toEqual({
+                [`guide@${CONST.EMAIL.GUIDES_DOMAIN}`]: GUIDE_ACCOUNT_ID,
+                'member@example.com': MEMBER_ACCOUNT_ID,
+            });
+            expect(await getOnyxValue(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS)).toEqual([GUIDE_ACCOUNT_ID]);
+        });
+    });
+
+    describe('consumers without a selector on PERSONAL_DETAILS_LIST writes', () => {
         beforeAll(async () => {
-            // Initialize dependency keys so Onyx.clear() in beforeEach triggers derived value recomputation
-            await Onyx.set(ONYXKEYS.SESSION, {});
-            await waitForBatchedUpdates();
+            await IntlStore.load(CONST.LOCALES.EN);
         });
 
-        const CURRENT_USER_ACCOUNT_ID = 1;
-        const CURRENT_USER_EMAIL = 'tester@mail.com';
-        const OTHER_USER_ACCOUNT_ID = 2;
-
-        const POLICY_ID = 'policy123';
-        const POLICY_WITH_CONNECTION_ID = 'policy_with_connection';
-
-        // Helper functions that use collection utilities as base but allow precise control
-        const createMockReport = (reportID: string, overrides: Partial<Report> = {}): Report => {
-            return {
-                reportID,
-                chatReportID: `chat_${reportID}`,
-                policyID: POLICY_ID,
-                ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-                managerID: OTHER_USER_ACCOUNT_ID,
-                stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                type: CONST.REPORT.TYPE.EXPENSE,
-                parentReportID: '123',
-                parentReportActionID: '456',
-                reportName: 'Test Report',
-                currency: 'USD',
-                isOwnPolicyExpenseChat: false,
-                isPinned: false,
-                isWaitingOnBankAccount: false,
-                ...overrides,
-            };
-        };
-
-        const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): OnyxEntry<Policy> => {
-            return {
-                id: policyID,
-                name: 'Test Policy',
-                type: CONST.POLICY.TYPE.TEAM,
-                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                role: CONST.POLICY.ROLE.USER,
-                ...overrides,
-            } as Policy;
-        };
-
-        const createMockTransaction = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction => {
-            return {
-                transactionID,
-                reportID,
-                amount: 100,
-                modifiedAmount: 0,
-                reimbursable: true,
-                status: CONST.TRANSACTION.STATUS.POSTED,
-                currency: 'USD',
-                merchant: 'Test Merchant',
-                created: '2024-01-01',
-                ...overrides,
-            } as Transaction;
-        };
-
-        it('returns empty object when dependencies are not set', async () => {
-            await waitForBatchedUpdates();
-            const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-            expect(todos).toEqual({
-                reportsToSubmit: [],
-                reportsToApprove: [],
-                reportsToPay: [],
-                reportsToExport: [],
-                transactionsByReportID: {},
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
+                await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, PERSONAL_DETAILS);
             });
+            await waitForBatchedUpdatesWithAct();
         });
 
-        describe('excludes reports with all expenses on hold', () => {
-            const HELD_SUBMIT_REPORT_ID = 'held_submit_1';
-            const HELD_APPROVE_REPORT_ID = 'held_approve_1';
-            const HELD_PAY_REPORT_ID = 'held_pay_1';
+        it.each(KEYS_READ_WITHOUT_SELECTOR)('should keep the %s reference when an unrelated personal detail changes', async (key) => {
+            // Given a component that reads the derived value without a selector, the way 10 App sites do
+            const {hook, getRenderCount} = renderHookWithoutSelector(key);
+            await waitForBatchedUpdatesWithAct();
+            const [valueBefore] = hook.result.current;
+            const rendersBefore = getRenderCount();
 
-            beforeEach(async () => {
-                const submitReport = createMockReport(HELD_SUBMIT_REPORT_ID, {
+            // When a member renames themselves, which leaves both derived values with the same content
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[MEMBER_ACCOUNT_ID]: {displayName: 'Renamed member'}});
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the engine's fresh but equal result must not reach the consumer as a new reference or a re-render
+            expect(hook.result.current[0]).toBe(valueBefore);
+            expect(getRenderCount()).toBe(rendersBefore);
+        });
+
+        it('should return new guide accountIDs when a guide is added', async () => {
+            // Given a consumer of the guide accountIDs
+            const {hook} = renderHookWithoutSelector(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
+            await waitForBatchedUpdatesWithAct();
+            const [valueBefore] = hook.result.current;
+
+            // When a second guide's personal details arrive
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [NEW_GUIDE_ACCOUNT_ID]: {accountID: NEW_GUIDE_ACCOUNT_ID, login: `new.guide@${CONST.EMAIL.GUIDES_DOMAIN}`},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the consumer sees the change, so the stability check above is not passing on a frozen value
+            expect(hook.result.current[0]).not.toBe(valueBefore);
+            expect(hook.result.current[0]).toEqual([GUIDE_ACCOUNT_ID, NEW_GUIDE_ACCOUNT_ID]);
+        });
+
+        it('should return a new login map when a login is added', async () => {
+            // Given a consumer of the login to accountID map
+            const {hook} = renderHookWithoutSelector(ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP);
+            await waitForBatchedUpdatesWithAct();
+            const [valueBefore] = hook.result.current;
+
+            // When a new member's personal details arrive
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [NEW_MEMBER_ACCOUNT_ID]: {accountID: NEW_MEMBER_ACCOUNT_ID, login: 'new.member@example.com'},
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the consumer sees the new login
+            expect(hook.result.current[0]).not.toBe(valueBefore);
+            expect(hook.result.current[0]?.['new.member@example.com']).toBe(NEW_MEMBER_ACCOUNT_ID);
+        });
+    });
+
+    describe('consumers without a selector on REPORT writes', () => {
+        const CHAT_REPORT_ID = '100';
+        const EXPENSE_REPORT_ID = '200';
+        const POLICY_ID = 'policy1';
+
+        beforeAll(async () => {
+            await IntlStore.load(CONST.LOCALES.EN);
+        });
+
+        beforeEach(async () => {
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, false);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {
+                    ...createRandomReport(Number(CHAT_REPORT_ID)),
+                    type: CONST.REPORT.TYPE.CHAT,
+                    policyID: undefined,
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should keep the outstanding reports reference when a report with no outstanding expenses changes', async () => {
+            // Given a component that reads the derived value without a selector, the way 10 App sites do, on an
+            // account with no outstanding expense reports so every compute produces an equal but fresh empty object
+            const {hook, getRenderCount} = renderHookWithoutSelector(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+            await waitForBatchedUpdatesWithAct();
+            const [valueBefore] = hook.result.current;
+            const rendersBefore = getRenderCount();
+
+            // When chat reports are written, which the derived value does not list
+            await act(async () => {
+                for (let i = 0; i < 5; i++) {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${CHAT_REPORT_ID}`, {lastMessageText: `message ${i}`});
+                }
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the engine's fresh but equal result must not reach the consumer as a new reference or a re-render
+            expect(hook.result.current[0]).toBe(valueBefore);
+            expect(getRenderCount()).toBe(rendersBefore);
+        });
+
+        it('should return new outstanding reports when an outstanding expense report arrives', async () => {
+            // Given a consumer of the outstanding reports
+            const {hook} = renderHookWithoutSelector(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+            await waitForBatchedUpdatesWithAct();
+            const [valueBefore] = hook.result.current;
+
+            // When an open expense report on a workspace arrives
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`, {
+                    reportID: EXPENSE_REPORT_ID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    policyID: POLICY_ID,
                     stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
                 });
-                const approveReport = createMockReport(HELD_APPROVE_REPORT_ID, {
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                    ownerAccountID: OTHER_USER_ACCOUNT_ID,
-                    managerID: CURRENT_USER_ACCOUNT_ID,
-                });
-                const payReport = createMockReport(HELD_PAY_REPORT_ID, {
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                    ownerAccountID: OTHER_USER_ACCOUNT_ID,
-                    managerID: CURRENT_USER_ACCOUNT_ID,
-                    total: -100,
-                });
-
-                const policy = createMockPolicy(POLICY_ID, {
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                });
-
-                const heldOverride: Partial<Transaction> = {comment: {hold: 'HOLD_ACTION_ID'}};
-
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        email: CURRENT_USER_EMAIL,
-                        accountID: CURRENT_USER_ACCOUNT_ID,
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${HELD_SUBMIT_REPORT_ID}`]: submitReport,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${HELD_APPROVE_REPORT_ID}`]: approveReport,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${HELD_PAY_REPORT_ID}`]: payReport,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}trans_${HELD_SUBMIT_REPORT_ID}`]: createMockTransaction(`trans_${HELD_SUBMIT_REPORT_ID}`, HELD_SUBMIT_REPORT_ID, heldOverride),
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}trans_${HELD_APPROVE_REPORT_ID}`]: createMockTransaction(`trans_${HELD_APPROVE_REPORT_ID}`, HELD_APPROVE_REPORT_ID, heldOverride),
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}trans_${HELD_PAY_REPORT_ID}`]: createMockTransaction(`trans_${HELD_PAY_REPORT_ID}`, HELD_PAY_REPORT_ID, heldOverride),
-                } as OnyxMultiSetInput);
-
-                await waitForBatchedUpdates();
             });
-
-            it('excludes an all-held report from reportsToSubmit', async () => {
-                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-                expect(todos?.reportsToSubmit.map((r) => r.reportID)).not.toContain(HELD_SUBMIT_REPORT_ID);
-            });
-
-            it('excludes an all-held report from reportsToApprove', async () => {
-                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-                expect(todos?.reportsToApprove.map((r) => r.reportID)).not.toContain(HELD_APPROVE_REPORT_ID);
-            });
-
-            it('excludes an all-held report from reportsToPay', async () => {
-                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-                expect(todos?.reportsToPay.map((r) => r.reportID)).not.toContain(HELD_PAY_REPORT_ID);
-            });
-        });
-
-        describe('categorizes reports correctly', () => {
-            const SUBMIT_REPORT_IDS = ['submit_1', 'submit_2', 'submit_3', 'submit_4'];
-            const APPROVE_REPORT_IDS = ['approve_1', 'approve_2', 'approve_3'];
-            const PAY_REPORT_IDS = ['pay_1', 'pay_2'];
-            const EXPORT_REPORT_ID = 'export_1';
-            const EXCLUDED_REPORT_IDS = ['excluded_1', 'excluded_2'];
-
-            beforeEach(async () => {
-                // Create 4 reports that can be submitted (open, owned by current user, with transactions)
-                const reportsToSubmit = SUBMIT_REPORT_IDS.map((id) =>
-                    createMockReport(id, {
-                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                        ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-                    }),
-                );
-
-                // Create 3 reports that can be approved (submitted, current user is manager, with transactions)
-                const reportsToApprove = APPROVE_REPORT_IDS.map((id) =>
-                    createMockReport(id, {
-                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                        ownerAccountID: OTHER_USER_ACCOUNT_ID,
-                        managerID: CURRENT_USER_ACCOUNT_ID,
-                    }),
-                );
-
-                // Create 2 reports that can be paid (approved, current user is admin/payer, with reimbursable transactions)
-                const reportsToPay = PAY_REPORT_IDS.map((id) =>
-                    createMockReport(id, {
-                        stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                        statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                        ownerAccountID: OTHER_USER_ACCOUNT_ID,
-                        managerID: CURRENT_USER_ACCOUNT_ID,
-                        total: -100,
-                        isWaitingOnBankAccount: false,
-                    }),
-                );
-
-                // Create 1 report that can be exported:
-                // - Approved status
-                // - User is admin
-                // - Policy has a valid accounting connection with auto-sync disabled
-                // - Not waiting on bank account
-                const reportToExport = createMockReport(EXPORT_REPORT_ID, {
-                    policyID: POLICY_WITH_CONNECTION_ID,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                    ownerAccountID: OTHER_USER_ACCOUNT_ID,
-                    isWaitingOnBankAccount: false,
-                });
-
-                // Create 2 reports that don't fit any condition:
-                // 1. A chat report (not expense type)
-                // 2. An expense report owned by another user that's not submitted (can't submit, approve, pay, or export)
-                const excludedReports = [
-                    createMockReport(EXCLUDED_REPORT_IDS.at(0) ?? '', {
-                        type: CONST.REPORT.TYPE.CHAT,
-                    }),
-                    createMockReport(EXCLUDED_REPORT_IDS.at(1) ?? '', {
-                        stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                        statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                        ownerAccountID: OTHER_USER_ACCOUNT_ID,
-                        managerID: OTHER_USER_ACCOUNT_ID,
-                    }),
-                ];
-
-                // Create main policy (for submit, approve, pay reports)
-                const policy = createMockPolicy(POLICY_ID, {
-                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                });
-
-                // Create policy with accounting connection (for export report)
-                const policyWithConnection = {
-                    ...createMockPolicy(POLICY_WITH_CONNECTION_ID, {
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        exporter: CURRENT_USER_EMAIL,
-                    }),
-                    connections: {
-                        // QuickBooks Online connection with auto-sync disabled
-                        [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                            lastSync: {
-                                isConnected: true,
-                                isSuccessful: true,
-                                isAuthenticationError: false,
-                                source: 'DIRECT',
-                            },
-                            config: {
-                                autoSync: {
-                                    jobID: 'job123',
-                                    enabled: false, // Auto-sync disabled so manual export is available
-                                },
-                                export: {
-                                    exporter: CURRENT_USER_EMAIL,
-                                },
-                            },
-                        },
-                    },
-                } as Policy;
-
-                const transactions: OnyxCollection<Transaction> = {};
-
-                for (const reportID of SUBMIT_REPORT_IDS) {
-                    const transactionID = `trans_submit_${reportID}`;
-                    transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = createMockTransaction(transactionID, reportID);
-                }
-
-                for (const reportID of APPROVE_REPORT_IDS) {
-                    const transactionID = `trans_approve_${reportID}`;
-                    transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = createMockTransaction(transactionID, reportID);
-                }
-
-                for (const reportID of PAY_REPORT_IDS) {
-                    const transactionID = `trans_pay_${reportID}`;
-                    transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = createMockTransaction(transactionID, reportID);
-                }
-
-                const reports: OnyxCollection<Report> = {};
-                for (const report of [...reportsToSubmit, ...reportsToApprove, ...reportsToPay, reportToExport, ...excludedReports]) {
-                    reports[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
-                }
-
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        email: CURRENT_USER_EMAIL,
-                        accountID: CURRENT_USER_ACCOUNT_ID,
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
-                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_WITH_CONNECTION_ID}`]: policyWithConnection,
-                    ...reports,
-                    ...transactions,
-                } as OnyxMultiSetInput);
-
-                await waitForBatchedUpdates();
-            });
-
-            it('returns correct number of reports for each category', async () => {
-                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-
-                expect(todos?.reportsToSubmit).toHaveLength(4);
-                expect(todos?.reportsToApprove).toHaveLength(3);
-                expect(todos?.reportsToPay).toHaveLength(2);
-                expect(todos?.reportsToExport).toHaveLength(1);
-            });
-
-            it('includes correct report IDs in each category', async () => {
-                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-
-                const submitReportIDs = todos?.reportsToSubmit.map((r) => r.reportID) ?? [];
-                const approveReportIDs = todos?.reportsToApprove.map((r) => r.reportID) ?? [];
-                const payReportIDs = todos?.reportsToPay.map((r) => r.reportID) ?? [];
-                const exportReportIDs = todos?.reportsToExport.map((r) => r.reportID) ?? [];
-
-                expect(submitReportIDs).toEqual(expect.arrayContaining(SUBMIT_REPORT_IDS));
-                expect(approveReportIDs).toEqual(expect.arrayContaining(APPROVE_REPORT_IDS));
-                expect(payReportIDs).toEqual(expect.arrayContaining(PAY_REPORT_IDS));
-                expect(exportReportIDs).toContain(EXPORT_REPORT_ID);
-            });
-
-            it('excludes reports that do not match any category', async () => {
-                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-
-                const allReportIDs = [
-                    ...(todos?.reportsToSubmit.map((r) => r.reportID) ?? []),
-                    ...(todos?.reportsToApprove.map((r) => r.reportID) ?? []),
-                    ...(todos?.reportsToPay.map((r) => r.reportID) ?? []),
-                    ...(todos?.reportsToExport.map((r) => r.reportID) ?? []),
-                ];
-
-                expect(allReportIDs).not.toContain(EXCLUDED_REPORT_IDS.at(0));
-                expect(allReportIDs).not.toContain(EXCLUDED_REPORT_IDS.at(1));
-            });
-
-            it('builds transactionsByReportID mapping correctly', async () => {
-                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-
-                expect(todos?.transactionsByReportID).toBeDefined();
-                const firstSubmitReportID = SUBMIT_REPORT_IDS.at(0) ?? '';
-                expect(todos?.transactionsByReportID[firstSubmitReportID]).toHaveLength(1);
-                expect(todos?.transactionsByReportID[firstSubmitReportID]?.at(0)?.transactionID).toBe(`trans_submit_${firstSubmitReportID}`);
-                expect(todos?.transactionsByReportID[APPROVE_REPORT_IDS.at(0) ?? '']).toHaveLength(1);
-                expect(todos?.transactionsByReportID[PAY_REPORT_IDS.at(0) ?? '']).toHaveLength(1);
-            });
-
-            it('handles reports with multiple transactions', async () => {
-                // Add a second transaction to one of the submit reports
-                const reportID = SUBMIT_REPORT_IDS.at(0) ?? '';
-                const secondTransactionID = `trans_submit_${reportID}_2`;
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransactionID}`, createMockTransaction(secondTransactionID, reportID));
-                await waitForBatchedUpdates();
-
-                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-
-                expect(todos?.transactionsByReportID[reportID]).toHaveLength(2);
-                expect(todos?.transactionsByReportID[reportID]?.map((t) => t.transactionID)).toEqual(expect.arrayContaining([`trans_submit_${reportID}`, secondTransactionID]));
-            });
-
-            it('handles reports without transactions', async () => {
-                const reportWithoutTransactions = createMockReport('no_transactions_report', {
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-                });
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportWithoutTransactions.reportID}`, reportWithoutTransactions);
-                await waitForBatchedUpdates();
-
-                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-
-                // The report should still be categorized, but transactionsByReportID should be undefined
-                expect(todos?.transactionsByReportID[reportWithoutTransactions.reportID]).toBeUndefined();
-            });
-
-            it('updates when report state changes', async () => {
-                // Start with a report that can be submitted
-                const reportID = SUBMIT_REPORT_IDS.at(0);
-                let todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-                expect(todos?.reportsToSubmit.map((r) => r.reportID)).toContain(reportID);
-
-                // Change the report to submitted state
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
-                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-                });
-                await waitForBatchedUpdates();
-
-                todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-
-                // The report should no longer be in reportsToSubmit
-                expect(todos?.reportsToSubmit.map((r) => r.reportID)).not.toContain(reportID);
-            });
-
-            it('updates when transaction is added', async () => {
-                // Add a transaction to a report that previously had none
-                const reportID = 'new_report_with_transaction';
-                const report = createMockReport(reportID, {
-                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
-                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-                    ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-                });
-
-                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-                await waitForBatchedUpdates();
-
-                let todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-                expect(todos?.transactionsByReportID[reportID] ?? []).toEqual([]);
-
-                const transactionID = `trans_${reportID}`;
-                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, createMockTransaction(transactionID, reportID));
-                await waitForBatchedUpdates();
-
-                todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-                expect(todos?.transactionsByReportID[reportID]).toHaveLength(1);
-                expect(todos?.transactionsByReportID[reportID]?.at(0)?.transactionID).toBe(transactionID);
-            });
-        });
-
-        it('excludes export reports when user is connection-level exporter but not policy.exporter', async () => {
-            const EXPORT_POLICY_ID = 'policy_export_mismatch';
-            const reportID = 'export_mismatch_report';
-
-            const report = createMockReport(reportID, {
-                policyID: EXPORT_POLICY_ID,
-                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                ownerAccountID: OTHER_USER_ACCOUNT_ID,
-                isWaitingOnBankAccount: false,
-            });
-
-            const policy = {
-                ...createMockPolicy(EXPORT_POLICY_ID, {
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    exporter: 'someone-else@mail.com',
-                }),
-                connections: {
-                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
-                        lastSync: {
-                            isConnected: true,
-                            isSuccessful: true,
-                            isAuthenticationError: false,
-                            source: 'DIRECT',
-                        },
-                        config: {
-                            autoSync: {
-                                jobID: 'job123',
-                                enabled: false,
-                            },
-                            export: {
-                                exporter: CURRENT_USER_EMAIL,
-                            },
-                        },
-                    },
-                },
-            } as Policy;
-
-            await Onyx.set(ONYXKEYS.SESSION, {email: CURRENT_USER_EMAIL, accountID: CURRENT_USER_ACCOUNT_ID});
-            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${EXPORT_POLICY_ID}`, policy);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-
-            await waitForBatchedUpdates();
-            const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-
-            expect(todos?.reportsToExport).toHaveLength(0);
-        });
-
-        describe('uses primary login from personalDetailsList', () => {
-            const SECONDARY_LOGIN = '+15555551234'; // Phone number as secondary login
-            const PRIMARY_LOGIN = 'primary@example.com'; // Primary email
-
-            const createMockAchAccount = (reimburserLogin: string): ACHAccount => ({
-                reimburser: reimburserLogin,
-                bankAccountID: 1,
-                accountNumber: '1234567890',
-                routingNumber: '1234567890',
-                addressName: 'Test Address',
-                bankName: 'Test Bank',
-            });
-
-            const createPayableReport = (): Report =>
-                createMockReport('pay_report', {
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                    ownerAccountID: OTHER_USER_ACCOUNT_ID,
-                    managerID: CURRENT_USER_ACCOUNT_ID,
-                    total: -100,
-                    isWaitingOnBankAccount: false,
-                });
-
-            it('uses primary login from personalDetailsList instead of session email for role checks', async () => {
-                const policy = createMockPolicy(POLICY_ID, {
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                    achAccount: createMockAchAccount(PRIMARY_LOGIN),
-                });
-
-                const payReport = createPayableReport();
-                const transaction = createMockTransaction('trans_pay', 'pay_report');
-
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        email: SECONDARY_LOGIN, // User signed in with secondary login (phone)
-                        accountID: CURRENT_USER_ACCOUNT_ID,
-                    },
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                        [CURRENT_USER_ACCOUNT_ID]: {
-                            accountID: CURRENT_USER_ACCOUNT_ID,
-                            login: PRIMARY_LOGIN, // Primary login stored in personal details
-                            displayName: 'Test User',
-                        },
-                    },
-                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
-                } as OnyxMultiSetInput);
-
-                await waitForBatchedUpdates();
-
-                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-
-                // The report should appear in reportsToPay because primary login matches reimburser
-                expect(todos?.reportsToPay).toHaveLength(1);
-                expect(todos?.reportsToPay.at(0)?.reportID).toBe('pay_report');
-            });
-
-            it('falls back to session email when personalDetailsList is not available', async () => {
-                const policy = createMockPolicy(POLICY_ID, {
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                    achAccount: createMockAchAccount(CURRENT_USER_EMAIL),
-                });
-
-                const payReport = createPayableReport();
-                const transaction = createMockTransaction('trans_pay', 'pay_report');
-
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        email: CURRENT_USER_EMAIL,
-                        accountID: CURRENT_USER_ACCOUNT_ID,
-                    },
-                    // No PERSONAL_DETAILS_LIST set - should fall back to session email
-                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
-                } as OnyxMultiSetInput);
-
-                await waitForBatchedUpdates();
-
-                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-
-                // The report should still appear in reportsToPay using session email fallback
-                expect(todos?.reportsToPay).toHaveLength(1);
-                expect(todos?.reportsToPay.at(0)?.reportID).toBe('pay_report');
-            });
-
-            it('does not show pay todo when secondary login does not match reimburser and personalDetailsList is missing', async () => {
-                const policy = createMockPolicy(POLICY_ID, {
-                    role: CONST.POLICY.ROLE.ADMIN,
-                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
-                    achAccount: createMockAchAccount(PRIMARY_LOGIN),
-                });
-
-                const payReport = createPayableReport();
-                const transaction = createMockTransaction('trans_pay', 'pay_report');
-
-                await Onyx.multiSet({
-                    [ONYXKEYS.SESSION]: {
-                        email: SECONDARY_LOGIN, // Secondary login that doesn't match reimburser
-                        accountID: CURRENT_USER_ACCOUNT_ID,
-                    },
-                    // No PERSONAL_DETAILS_LIST - will fall back to session email which doesn't match
-                    [`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`]: policy,
-                    [`${ONYXKEYS.COLLECTION.REPORT}${payReport.reportID}`]: payReport,
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
-                } as OnyxMultiSetInput);
-
-                await waitForBatchedUpdates();
-
-                const todos = await OnyxUtils.get(ONYXKEYS.DERIVED.TODOS);
-
-                // The report should NOT appear in reportsToPay because secondary login doesn't match
-                expect(todos?.reportsToPay).toHaveLength(0);
-            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the consumer sees the change, so the stability check above is not passing on a frozen value
+            expect(hook.result.current[0]).not.toBe(valueBefore);
+            expect(hook.result.current[0]?.[POLICY_ID]?.[`${ONYXKEYS.COLLECTION.REPORT}${EXPENSE_REPORT_ID}`]).toBeTruthy();
         });
     });
 });

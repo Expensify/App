@@ -1,189 +1,153 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {Keyframe, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
-import {scheduleOnRN} from 'react-native-worklets';
 import Button from '@components/Button';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import {clearPendingExpenseAction} from '@userActions/IOU/ReportWorkflow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportMetadata} from '@src/types/onyx';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
-type AnimatedSubmitButtonProps = WithSentryLabel & {
-    // Whether to show the success state
-    success: boolean | undefined;
+import type {OnyxEntry} from 'react-native-onyx';
 
-    // Text to show on the button
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+import Animated, {css, useReducedMotion} from 'react-native-reanimated';
+
+type AnimatedSubmitButtonProps = WithSentryLabel & {
+    /** Submit buttons support the default and success styles; danger is not a valid submit state. */
+    variant?: typeof CONST.BUTTON_VARIANT.SUCCESS;
+
+    /** Text to show on the button */
     text: string;
 
-    // Function to call when the button is pressed
+    /** Function to call when the button is pressed */
     onPress: () => void;
 
-    // Whether the animation is running
     isSubmittingAnimationRunning: boolean;
-
-    // Function to call when the animation finishes
     onAnimationFinish: () => void;
-
-    // Whether the button should be disabled
     isDisabled?: boolean;
 
-    // Whether this is a DEW submission that needs backend validation before showing "Submitted"
+    /** Whether this is a DEW submission that needs backend validation before showing "Submitted" */
     isDEWSubmission?: boolean;
 
-    // The report id for which the button is displayed
+    /** The report id for which the button is displayed */
     reportID?: string;
 
     /** Whether to show "Mark as done" copy instead of "Submit" copy for track-intent users */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
 const pendingExpenseActionSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingExpenseAction;
 
-function AnimatedSubmitButton({
-    success,
-    text,
-    onPress,
-    isSubmittingAnimationRunning,
-    onAnimationFinish,
-    isDisabled,
-    sentryLabel,
-    isMarkAsDone,
-    isDEWSubmission,
-    reportID,
-}: AnimatedSubmitButtonProps) {
-    const styles = useThemeStyles();
+const hideAnimation = css.keyframes({
+    from: {opacity: 1, transform: [{scale: 1}]},
+    to: {opacity: 0, transform: [{scale: 0}]},
+});
+
+type SubmittingButtonProps = Pick<AnimatedSubmitButtonProps, 'variant' | 'text' | 'onAnimationFinish' | 'shouldShowMarkAsDoneCopy' | 'isDEWSubmission' | 'reportID'> & {
+    pendingExpenseAction: ReportMetadata['pendingExpenseAction'];
+};
+
+function SubmittingButton({variant, text, onAnimationFinish, shouldShowMarkAsDoneCopy, isDEWSubmission, reportID, pendingExpenseAction}: SubmittingButtonProps) {
     const {translate} = useLocalize();
-    const isAnimationRunning = isSubmittingAnimationRunning;
-    const buttonDuration = isSubmittingAnimationRunning ? CONST.ANIMATION_SUBMIT_DURATION : CONST.ANIMATION_SUBMITTED_DURATION;
-    const gap = styles.expenseAndReportPreviewTextButtonContainer.gap;
-    const buttonMarginTop = useSharedValue<number>(gap);
-    const height = useSharedValue<number>(variables.componentSizeNormal);
-    const [canShow, setCanShow] = useState(true);
-    const [minWidth, setMinWidth] = useState<number>(0);
-    const [isShowingLoading, setIsShowingLoading] = useState(false);
-    const viewRef = useRef<HTMLElement | null>(null);
-    const [pendingExpenseAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {selector: pendingExpenseActionSelector});
-    const isDEWSubmissionComplete = isDEWSubmission && isSubmittingAnimationRunning && !pendingExpenseAction;
+    const isReducedMotionEnabled = useReducedMotion();
+    const [isShowingLoading, setIsShowingLoading] = useState(true);
+    const [hasFailedSubmission, setHasFailedSubmission] = useState(false);
+    const didSubmissionFail = isDEWSubmission && pendingExpenseAction === CONST.EXPENSE_PENDING_ACTION.SUBMIT_FAILED;
 
-    const containerStyles = useAnimatedStyle(() => ({
-        height: height.get(),
-        justifyContent: 'center',
-    }));
+    // Remember the failure after its metadata is cleared, without rendering a stale Submitted phase first.
+    if (didSubmissionFail && !hasFailedSubmission) {
+        setHasFailedSubmission(true);
+    }
 
-    const stretchOutY = useCallback(() => {
-        'worklet';
-
-        if (canShow) {
-            scheduleOnRN(onAnimationFinish);
-            return;
-        }
-        height.set(withTiming(0, {duration: buttonDuration}, () => scheduleOnRN(onAnimationFinish)));
-    }, [buttonDuration, height, onAnimationFinish, canShow]);
-
-    const buttonAnimation = useMemo(
-        () =>
-            new Keyframe({
-                from: {
-                    opacity: 1,
-                    transform: [{scale: 1}],
-                },
-                to: {
-                    opacity: 0,
-                    transform: [{scale: 0}],
-                },
-            })
-                .duration(buttonDuration)
-                .withCallback(stretchOutY),
-        [buttonDuration, stretchOutY],
-    );
     const icons = useMemoizedLazyExpensifyIcons(['Send']);
-    const icon = isAnimationRunning ? icons.Send : null;
 
     useEffect(() => {
-        if (!isAnimationRunning) {
-            setMinWidth(0);
-            setCanShow(true);
-            setIsShowingLoading(false);
-            height.set(variables.componentSizeNormal);
-            buttonMarginTop.set(0);
-            return;
-        }
-
-        // For DEW submission the animation is controlled by the BE response.
+        // Synchronize the mounted loading phase with the clock; DEW submissions wait for the backend instead.
         if (isDEWSubmission) {
             return;
         }
-
-        setMinWidth(viewRef.current?.getBoundingClientRect?.().width ?? 0);
-        setIsShowingLoading(true);
 
         const timer = setTimeout(() => {
             setIsShowingLoading(false);
         }, CONST.ANIMATION_SUBMIT_LOADING_STATE_DURATION);
 
         return () => clearTimeout(timer);
-    }, [buttonMarginTop, gap, height, isAnimationRunning, isDEWSubmission]);
+    }, [isDEWSubmission]);
 
     useEffect(() => {
-        if (!isAnimationRunning || isShowingLoading || (isDEWSubmission && !isDEWSubmissionComplete)) {
+        // Clearing backend failure metadata writes to an external store, rather than deriving local display state.
+        if (!didSubmissionFail) {
             return;
         }
-
-        const timer = setTimeout(() => setCanShow(false), CONST.ANIMATION_SUBMIT_SUBMITTED_STATE_VISIBLE_DURATION);
-
-        return () => clearTimeout(timer);
-    }, [isAnimationRunning, isShowingLoading, isDEWSubmissionComplete, isDEWSubmission]);
-
-    useEffect(() => {
-        if (!isAnimationRunning || !isDEWSubmission || pendingExpenseAction !== CONST.EXPENSE_PENDING_ACTION.SUBMIT_FAILED) {
-            return;
-        }
-        // When pending submission fails we quit to avoid showing submitted animation.
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setCanShow(false);
         clearPendingExpenseAction(reportID);
-    }, [isAnimationRunning, pendingExpenseAction, reportID, isDEWSubmission]);
+    }, [didSubmissionFail, reportID]);
 
-    // eslint-disable-next-line react-hooks/refs
-    const showLoading = isShowingLoading || (isAnimationRunning && (!viewRef.current || (isDEWSubmission && !isDEWSubmissionComplete)));
+    const shouldShowLoading = !hasFailedSubmission && (isDEWSubmission ? !!pendingExpenseAction : isShowingLoading);
+    const shouldShowIcon = !shouldShowLoading && !hasFailedSubmission;
 
     return (
-        <Animated.View style={[containerStyles, {minWidth}]}>
-            {isAnimationRunning && canShow && (
-                <Animated.View
-                    ref={(el: View | null) => {
-                        viewRef.current = el as HTMLElement | null;
-                    }}
-                    exiting={buttonAnimation}
-                >
-                    <Button
-                        success={success}
-                        text={showLoading ? text : translate(isMarkAsDone ? 'common.markedAsDoneStatus' : 'common.submitted')}
-                        isLoading={showLoading}
-                        icon={!showLoading ? icon : undefined}
-                        isDisabled
-                        shouldStayNormalOnDisable
-                    />
-                </Animated.View>
-            )}
-            {!isAnimationRunning && (
+        <Animated.View
+            // Unlike an exiting layout animation, CSS animation never retains this view after cancellation.
+            style={{
+                animationName: shouldShowLoading ? 'none' : hideAnimation,
+                animationDelay: hasFailedSubmission ? 0 : CONST.ANIMATION_SUBMIT_SUBMITTED_STATE_VISIBLE_DURATION,
+                animationDuration: isReducedMotionEnabled ? 0 : CONST.ANIMATION_SUBMIT_DURATION,
+                animationTimingFunction: 'linear',
+                animationFillMode: 'forwards',
+            }}
+            onCSSAnimationEnd={({animationName}) => {
+                if (shouldShowLoading || animationName !== hideAnimation.name) {
+                    return;
+                }
+                onAnimationFinish();
+            }}
+        >
+            <Button
+                variant={variant}
+                isLoading={shouldShowLoading}
+                isDisabled
+                stayNormalOnDisable
+            >
+                {shouldShowIcon && <Button.Icon src={icons.Send} />}
+                <Button.Text>{shouldShowIcon ? translate(shouldShowMarkAsDoneCopy ? 'common.markedAsDoneStatus' : 'common.submitted') : text}</Button.Text>
+            </Button>
+        </Animated.View>
+    );
+}
+
+function AnimatedSubmitButton({isSubmittingAnimationRunning, onPress, isDisabled, sentryLabel, ...props}: AnimatedSubmitButtonProps) {
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+    const [pendingExpenseAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${props.reportID}`, {selector: pendingExpenseActionSelector});
+
+    return (
+        <View style={[styles.justifyContentCenter, StyleUtils.getHeight(variables.componentSizeNormal)]}>
+            {isSubmittingAnimationRunning ? (
+                <SubmittingButton
+                    key={`${props.reportID}:${props.isDEWSubmission ? 'dew' : 'standard'}`}
+                    {...props}
+                    pendingExpenseAction={pendingExpenseAction}
+                />
+            ) : (
                 <Button
-                    success={success}
-                    text={text}
+                    variant={props.variant}
                     onPress={onPress}
-                    icon={icon}
                     isDisabled={isDisabled}
                     sentryLabel={sentryLabel}
-                />
+                >
+                    <Button.Text>{props.text}</Button.Text>
+                </Button>
             )}
-        </Animated.View>
+        </View>
     );
 }
 

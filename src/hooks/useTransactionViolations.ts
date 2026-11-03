@@ -1,31 +1,44 @@
-import {useMemo} from 'react';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {TransactionViolation, TransactionViolations} from '@src/types/onyx';
-import getEmptyArray from '@src/types/utils/getEmptyArray';
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useOnyx from './useOnyx';
+import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
+import {getVisibleTransactionViolations, isDistanceRequest} from '@libs/TransactionUtils';
+import {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 
-function useTransactionViolations(transactionID?: string, shouldShowRterForSettledReport = true): TransactionViolations {
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {loginSelector} from '@selectors/PersonalDetails';
+
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
+import useOnyx from './useOnyx';
+import {usePersonalDetail} from './usePersonalDetails';
+
+function useTransactionViolations(transactionID?: string, shouldShowRterForSettledReport = true, policyOverride?: OnyxEntry<Policy>): TransactionViolations {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations = getEmptyArray<TransactionViolation>()] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
+    const [ownerLogin] = usePersonalDetail(iouReport?.ownerAccountID, loginSelector);
+    const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
+    const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
+    const shouldLookupDistancePolicy = !policyOverride && !!customUnitRateID && !getDistanceRateCustomUnitRate(reportPolicy, customUnitRateID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
+    const policy = policyOverride ?? distanceOriginalPolicy ?? reportPolicy;
     const currentUserDetails = useCurrentUserPersonalDetails();
 
-    return useMemo(
-        () =>
-            getVisibleTransactionViolations(
-                transaction,
-                transactionViolations,
-                currentUserDetails.email ?? '',
-                currentUserDetails.accountID,
-                iouReport,
-                policy,
-                shouldShowRterForSettledReport,
-            ),
-        [transaction, transactionViolations, iouReport, policy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID],
+    const syncedViolations = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+
+    return getVisibleTransactionViolations(
+        transaction,
+        syncedViolations,
+        currentUserDetails.email ?? '',
+        currentUserDetails.accountID,
+        iouReport,
+        ownerLogin,
+        policy,
+        shouldShowRterForSettledReport,
     );
 }
 

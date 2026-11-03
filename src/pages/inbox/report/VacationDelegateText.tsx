@@ -1,11 +1,16 @@
-import React from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsByLogin from '@hooks/usePersonalDetailsByLogin';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getManagerOnVacation, getOriginalMessage, getSubmittedTo, getVacationer} from '@libs/ReportActionsUtils';
+
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type VacationDelegateTextProps = {
     /** The action whose vacation context drives the labels. */

@@ -1,22 +1,26 @@
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isReceiptError} from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationKeyError} from '@src/types/onyx/OnyxCommon';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Tooltip from './Tooltip';
 
 type MessagesRowProps = {
-    /** The messages to display */
     messages: Record<string, string | ReceiptError | TranslationKeyError>;
 
     /** The type of message, 'error' shows a red dot, 'success' shows a green dot */
@@ -25,17 +29,14 @@ type MessagesRowProps = {
     /** A function to run when the X button next to the message is clicked */
     onDismiss?: () => void;
 
-    /** Additional style object for the container */
     containerStyles?: StyleProp<ViewStyle>;
-
-    /** Additional style object for the error text */
     errorTextStyles?: StyleProp<TextStyle>;
-
-    /** A function to dismiss error */
     dismissError?: () => void;
+
+    onRetryReceiptUpload?: () => void;
 };
 
-function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissError = () => {}, errorTextStyles}: MessagesRowProps) {
+function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissError = () => {}, errorTextStyles, onRetryReceiptUpload}: MessagesRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -54,6 +55,7 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
         <View style={[styles.flexRow, styles.alignItemsCenter, containerStyles]}>
             <DotIndicatorMessage
                 dismissError={dismissError}
+                onRetryReceiptUpload={onRetryReceiptUpload}
                 style={styles.flex1}
                 textStyles={errorTextStyles}
                 messages={messages}
@@ -63,6 +65,7 @@ function MessagesRow({messages = {}, type, onDismiss, containerStyles, dismissEr
                 <Tooltip text={dismissText}>
                     <PressableWithoutFeedback
                         onPress={onDismiss}
+                        style={styles.touchableButtonImage}
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={dismissText}
                         sentryLabel={CONST.SENTRY_LABEL.MESSAGES_ROW.DISMISS}

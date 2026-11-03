@@ -1,28 +1,41 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import Animated from 'react-native-reanimated';
+import {ReportSubmitToPopoverHost, SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT} from '@components/ReportSubmitToPopoverAnchor';
 import {useSearchQueryContext, useSearchResultsActions, useSearchResultsContext, useSearchSelectionActions} from '@components/Search/SearchContext';
-import type {SearchParams} from '@components/Search/types';
+import type {SearchParams, SearchQueryJSON} from '@components/Search/types';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
-import useConfirmReadyToOpenApp from '@hooks/useConfirmReadyToOpenApp';
+
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEndSubmitNavigationSpans from '@hooks/useEndSubmitNavigationSpans';
+import useHasFilterBars from '@hooks/useHasFilterBars';
+import useHasTabBeenShown from '@hooks/useHasTabBeenShown';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
-import useOnyx from '@hooks/useOnyx';
 import {PaymentContextProvider} from '@hooks/usePaymentContext';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReleaseOptionListCaches from '@hooks/useReleaseOptionListCaches';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchOverlay from '@hooks/useSearchOverlay';
 import useSearchPageSetup from '@hooks/useSearchPageSetup';
+import useSeedMyExpensesSearch from '@hooks/useSeedMyExpensesSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {searchInServer} from '@libs/actions/Report';
-import {search} from '@libs/actions/Search';
+import {clearFooterConversion, search} from '@libs/actions/Search';
+import {isStaleWideTabPreMountRouteKey} from '@libs/Navigation/helpers/wideTabPreMountRouteKey';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import ONYXKEYS from '@src/ONYXKEYS';
+import {isQueryARefinement} from '@libs/SearchQueryRefinement';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+
+import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import type SCREENS from '@src/SCREENS';
-import {hasFilterBarsSelector} from '@src/selectors/AdvancedSearchFiltersForm';
 import type {SearchResults} from '@src/types/onyx';
+
+import React, {useEffect, useState} from 'react';
+import Animated from 'react-native-reanimated';
+
 import SearchPageNarrow from './SearchPageNarrow';
 import SearchPageWide from './SearchPageWide';
 
@@ -39,12 +52,17 @@ function SearchPage({route}: SearchPageProps) {
     const {setLastSearchType} = useSearchResultsActions();
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode(clearSelectedTransactions);
-    const [hasFilterBars = false] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: hasFilterBarsSelector});
+    const hasFilterBars = useHasFilterBars();
+    const searchListContentContainerStyle = useSearchListContentContainerStyle(hasFilterBars);
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
-    useConfirmReadyToOpenApp();
-    useSearchPageSetup(currentSearchQueryJSON);
+    // Until Spend is first shown, it neither requests a search nor saves its default query over the latest search that the
+    // Spend tab reopens.
+    const hasSpendBeenShown = useHasTabBeenShown(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    useSearchPageSetup(hasSpendBeenShown ? currentSearchQueryJSON : undefined);
+    useSeedMyExpensesSearch();
+    useReleaseOptionListCaches();
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
     // render below (`searchResults = lastNonEmptySearchResults` when sorting), so a useEffect would
@@ -67,14 +85,15 @@ function SearchPage({route}: SearchPageProps) {
 
     const [isSorting, setIsSorting] = useState(false);
 
+    const isCurrentSearchResolved = isSearchDataLoaded(currentSearchResults, currentSearchQueryJSON);
     let searchResults: SearchResults | undefined;
-    if (currentSearchResults?.data != null || currentSearchResults?.errors) {
+    if (isCurrentSearchResolved && currentSearchResults?.search && currentSearchResults.data === undefined) {
+        searchResults = {...currentSearchResults, data: {}};
+    } else if (currentSearchResults?.data != null || currentSearchResults?.errors) {
         searchResults = currentSearchResults;
     } else if (isSorting) {
         searchResults = lastNonEmptySearchResults;
     }
-
-    const metadata = searchResults?.search;
 
     useEffect(() => {
         if (shouldUseNarrowLayout) {
@@ -90,6 +109,18 @@ function SearchPage({route}: SearchPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Converted footer totals are ephemeral, session-scoped display data, so drop them when leaving Search.
+    // A cancelled wide submit pre-mount was never shown, so its unmount must not drop the totals of the visible Search.
+    useEffect(
+        () => () => {
+            if (isStaleWideTabPreMountRouteKey(route.key)) {
+                return;
+            }
+            clearFooterConversion();
+        },
+        [route.key],
+    );
+
     const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
 
     useEffect(() => {
@@ -100,24 +131,54 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(false);
     }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
-    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
+    const [lastResolvedSearch, setLastResolvedSearch] = useState<{queryJSON: SearchQueryJSON; searchResults: SearchResults} | undefined>(undefined);
 
-    const handleSearchAction = useCallback((value: SearchParams | string) => {
+    // Changing a filter builds a query that has never been cached, so keying the results area on the requested
+    // query would mount it with no data and flash a skeleton in the middle of the fade. Key it on the last query
+    // that actually resolved instead: the current results stay on screen until the new ones arrive, then the area
+    // swaps once.
+    const isSearchResolvedForCurrentQuery = isCurrentSearchResolved && !!searchResults && !!currentSearchQueryJSON;
+    if (isSearchResolvedForCurrentQuery && currentSearchQueryJSON && searchResults && lastResolvedSearch?.searchResults !== searchResults) {
+        setLastResolvedSearch({queryJSON: currentSearchQueryJSON, searchResults});
+    }
+
+    // Allow showing skeleton when the query exceeds max hold time
+    const [staleHoldTimedOutHash, setStaleHoldTimedOutHash] = useState<number | undefined>(undefined);
+    const currentQueryHash = currentSearchQueryJSON?.hash;
+
+    useEffect(() => {
+        if (isSearchResolvedForCurrentQuery || currentQueryHash === undefined) {
+            return;
+        }
+
+        const timeoutID = setTimeout(() => setStaleHoldTimedOutHash(currentQueryHash), CONST.SEARCH.ANIMATION.MAX_STALE_HOLD_DURATION);
+        return () => clearTimeout(timeoutID);
+    }, [isSearchResolvedForCurrentQuery, currentQueryHash]);
+
+    const hasStaleHoldTimedOut = staleHoldTimedOutHash !== undefined && staleHoldTimedOutHash === currentQueryHash;
+
+    // Only a filter refinement is worth holding for. A sidebar item or saved search is a different search, so its
+    // results area starts from the skeleton rather than showing rows that belong to the query the user just left.
+    const shouldHoldLastResolvedSearch =
+        !shouldUseLiveData && !isSearchResolvedForCurrentQuery && !!lastResolvedSearch && !hasStaleHoldTimedOut && isQueryARefinement(currentSearchQueryJSON?.inputQuery);
+    const contentQueryJSON = shouldHoldLastResolvedSearch ? lastResolvedSearch.queryJSON : currentSearchQueryJSON;
+    const contentSearchResults = shouldHoldLastResolvedSearch ? lastResolvedSearch.searchResults : searchResults;
+
+    const {isBetaEnabled} = usePermissions();
+    const isTravelApprovalEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_APPROVAL);
+    const handleSearchAction = (value: SearchParams | string) => {
         if (typeof value === 'string') {
             searchInServer(value);
         } else {
-            setSearchRequestResponseStatusCode(null);
-            search(value)?.then((jsonCode) => {
-                setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
-            });
+            search({...value, shouldReturnTripRooms: isTravelApprovalEnabled});
         }
-    }, []);
+    };
 
-    const onSortPressedCallback = useCallback(() => {
+    const onSortPressedCallback = () => {
         setIsSorting(true);
-    }, []);
+    };
 
-    const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? styles.searchListContentContainerStyles(!!hasFilterBars) : undefined;
+    const overlayContentContainerStyle = !isMobileSelectionModeEnabled ? searchListContentContainerStyle : undefined;
     const overlayEndSubmitSpans = useEndSubmitNavigationSpans();
     const {searchOverlayContent, onSearchContentReady, isOverlayActive} = useSearchOverlay({
         searchResults,
@@ -130,38 +191,41 @@ function SearchPage({route}: SearchPageProps) {
     });
 
     return (
-        <PaymentContextProvider>
-            <Animated.View style={[styles.flex1]}>
-                {shouldUseNarrowLayout ? (
-                    <SearchPageNarrow
-                        queryJSON={currentSearchQueryJSON}
-                        metadata={metadata}
-                        searchResults={searchResults}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        onSortPressedCallback={onSortPressedCallback}
-                        searchOverlayContent={searchOverlayContent}
-                        onSearchContentReady={onSearchContentReady}
-                        hasFilterBars={hasFilterBars}
-                        isOverlayActive={isOverlayActive}
-                    />
-                ) : (
-                    <SearchPageWide
-                        queryJSON={currentSearchQueryJSON}
-                        searchResults={searchResults}
-                        searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                        isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
-                        handleSearchAction={handleSearchAction}
-                        onSortPressedCallback={onSortPressedCallback}
-                        route={route}
-                        searchOverlayContent={searchOverlayContent}
-                        onSearchContentReady={onSearchContentReady}
-                    />
-                )}
-            </Animated.View>
-        </PaymentContextProvider>
+        <ReportSubmitToPopoverHost anchorAlignment={SEARCH_REPORT_SUBMIT_TO_POPOVER_ANCHOR_ALIGNMENT}>
+            <PaymentContextProvider>
+                <Animated.View style={[styles.flex1]}>
+                    {shouldUseNarrowLayout ? (
+                        <SearchPageNarrow
+                            queryJSON={currentSearchQueryJSON}
+                            searchResults={searchResults}
+                            contentQueryJSON={contentQueryJSON}
+                            contentSearchResults={contentSearchResults}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            onSortPressedCallback={onSortPressedCallback}
+                            searchOverlayContent={searchOverlayContent}
+                            onSearchContentReady={onSearchContentReady}
+                            hasFilterBars={hasFilterBars}
+                            isOverlayActive={isOverlayActive}
+                        />
+                    ) : (
+                        <SearchPageWide
+                            queryJSON={currentSearchQueryJSON}
+                            searchResults={searchResults}
+                            contentQueryJSON={contentQueryJSON}
+                            contentSearchResults={contentSearchResults}
+                            isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
+                            handleSearchAction={handleSearchAction}
+                            onSortPressedCallback={onSortPressedCallback}
+                            route={route}
+                            searchOverlayContent={searchOverlayContent}
+                            onSearchContentReady={onSearchContentReady}
+                        />
+                    )}
+                </Animated.View>
+            </PaymentContextProvider>
+        </ReportSubmitToPopoverHost>
     );
 }
-
 SearchPage.whyDidYouRender = true;
 
 export default SearchPage;

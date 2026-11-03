@@ -1,22 +1,29 @@
-import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
-import {createNavigatorFactory} from '@react-navigation/native';
 import usePreserveNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import createPlatformStackNavigatorComponent from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent';
 import defaultPlatformStackScreenOptions from '@libs/Navigation/PlatformStackNavigation/defaultPlatformStackScreenOptions';
 import type {CustomEffectsHookProps, PlatformStackNavigationEventMap, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import NAVIGATORS from '@src/NAVIGATORS';
+
+import type {NavigationProp, NavigatorTypeBagBase, ParamListBase, StaticConfig, TypedNavigator} from '@react-navigation/native';
+
+import {createNavigatorFactory} from '@react-navigation/native';
+
 import WorkspaceRouter from './WorkspaceRouter';
 
-function useCustomEffects(props: CustomEffectsHookProps) {
+function WorkspaceNavigatorEffects(props: CustomEffectsHookProps) {
     useNavigationResetOnLayoutChange(props);
     usePreserveNavigatorState(props.state, props.parentRoute);
+    // Returning null makes Babel skip memoization for this Effects slot; an empty fragment is required.
+    // eslint-disable-next-line react/jsx-no-useless-fragment
+    return <></>;
 }
 
 const WorkspaceNavigatorComponent = createPlatformStackNavigatorComponent(NAVIGATORS.WORKSPACE_NAVIGATOR, {
     createRouter: WorkspaceRouter,
     defaultScreenOptions: defaultPlatformStackScreenOptions,
-    useCustomEffects,
+    Effects: WorkspaceNavigatorEffects,
 });
 
 function createWorkspaceNavigator<

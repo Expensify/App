@@ -1,16 +1,20 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import getGroupItemAccessibilityLabel from '@libs/Accessibility/getGroupItemAccessibilityLabel';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import FormHelpMessage from './FormHelpMessage';
 import * as Pressables from './Pressable';
 import RadioButton from './RadioButton';
 import Text from './Text';
 
 type RadioButtonWithLabelProps = ForwardedFSClassProps & {
-    /** Whether the radioButton is checked */
     isChecked: boolean;
 
     /** Called when the radioButton or label is pressed */
@@ -22,19 +26,18 @@ type RadioButtonWithLabelProps = ForwardedFSClassProps & {
     /** Text that appears next to check box */
     label?: string;
 
-    /** React element to display for the label */
     labelElement?: ReactNode;
 
     /** Specifies the accessibility label for the radio button. Falls back to label if not provided. */
     accessibilityLabel?: string;
 
+    /** The question of the group the button belongs to, read after the label on native */
+    groupAccessibilityLabel?: string;
+
     /** Should the input be styled for errors */
     hasError?: boolean;
 
-    /** Error text to display */
     errorText?: string;
-
-    /** Additional styles to apply to the wrapper */
     wrapperStyle?: StyleProp<ViewStyle>;
 
     /**
@@ -51,6 +54,7 @@ function RadioButtonWithLabel({
     style,
     label = '',
     accessibilityLabel,
+    groupAccessibilityLabel,
     hasError = false,
     errorText = '',
     isChecked,
@@ -71,7 +75,7 @@ function RadioButtonWithLabel({
                 <RadioButton
                     isChecked={isChecked}
                     onPress={onPress}
-                    accessibilityLabel={accessibilityLabel ?? label}
+                    accessibilityLabel={getGroupItemAccessibilityLabel(accessibilityLabel ?? label, groupAccessibilityLabel)}
                     hasError={hasError}
                 />
                 <PressableWithFeedback

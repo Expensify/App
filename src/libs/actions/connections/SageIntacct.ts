@@ -1,12 +1,9 @@
-import type {CONST as COMMON_CONST} from 'expensify-common';
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {ConnectPolicyToSageIntacctParams} from '@libs/API/parameters';
 import type UpdateSageIntacctAccountingMethodParams from '@libs/API/parameters/UpdateSageIntacctAccountingMethodParams';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
@@ -20,6 +17,12 @@ import type {
     SageIntacctMappingValue,
     SageIntacctOfflineStateKeys,
 } from '@src/types/onyx/Policy';
+
+import type {CONST as COMMON_CONST} from 'expensify-common';
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 type SageIntacctCredentials = {companyID: string; userID: string; password: string};
 
@@ -623,14 +626,14 @@ function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Sag
         updateSageIntacctNonreimbursableExpensesExportVendor(policyID, vendor, oldVendor);
     }
 }
-function updateSageIntacctTravelInvoicingPayableAccount(policyID: string, payableAccountName: string, oldPayableAccountName?: string) {
-    const onyxData = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT, payableAccountName, oldPayableAccountName);
+function updateSageIntacctTravelBillingPayableAccount(policyID: string, payableAccountName: string, oldPayableAccountName?: string) {
+    const onyxData = prepareOnyxDataForExportUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT, payableAccountName, oldPayableAccountName);
     const parameters = {
         policyID,
         creditCardAccountID: payableAccountName,
     };
 
-    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT, parameters, onyxData);
+    API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT, parameters, onyxData);
 }
 
 function clearSageIntacctErrorField(policyID: string | undefined, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
@@ -938,6 +941,23 @@ function updateSageIntacctSyncReimbursementAccountID(policyID: string | undefine
     API.write(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_REIMBURSEMENT_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 
+function updateSageIntacctFxExpenseAccount(policyID: string | undefined, expenseAccountID: string, oldExpenseAccountID?: string) {
+    if (!policyID || expenseAccountID === oldExpenseAccountID) {
+        return;
+    }
+
+    const parameters = {
+        policyID,
+        settingValue: JSON.stringify(expenseAccountID),
+    };
+
+    API.write(
+        WRITE_COMMANDS.UPDATE_SAGE_INTACCT_FX_EXPENSE_ACCOUNT,
+        parameters,
+        prepareOnyxDataForConfigUpdate(policyID, CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT, expenseAccountID, oldExpenseAccountID),
+    );
+}
+
 function updateSageIntacctEntity(policyID: string | undefined, entity: string, oldEntity: string) {
     if (!policyID) {
         return;
@@ -986,12 +1006,13 @@ export {
     updateSageIntacctNonreimbursableExpensesExportDestination,
     updateSageIntacctNonreimbursableExpensesExportAccount,
     updateSageIntacctDefaultVendor,
-    updateSageIntacctTravelInvoicingPayableAccount,
+    updateSageIntacctTravelBillingPayableAccount,
     updateSageIntacctAutoSync,
     updateSageIntacctImportEmployees,
     updateSageIntacctApprovalMode,
     updateSageIntacctSyncReimbursedReports,
     updateSageIntacctSyncReimbursementAccountID,
+    updateSageIntacctFxExpenseAccount,
     updateSageIntacctEntity,
     updateSageIntacctAccountingMethod,
     changeMappingsValueFromDefaultToTag,

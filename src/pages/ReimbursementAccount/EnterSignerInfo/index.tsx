@@ -1,17 +1,29 @@
-import React, {useCallback, useEffect} from 'react';
-import type {ComponentType} from 'react';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useSubStep from '@hooks/useSubStep';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import useSubPage from '@hooks/useSubPage';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountEnterSignerInfoNavigatorParamList} from '@navigation/types';
+
 import {clearEnterSignerInformationFormSave, saveCorpayOnboardingDirectorInformation} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {emailSelector} from '@selectors/Session';
+import React, {useEffect} from 'react';
+
 import Address from './subSteps/Address';
 import Confirmation from './subSteps/Confirmation';
 import DateOfBirth from './subSteps/DateOfBirth';
@@ -20,39 +32,54 @@ import Name from './subSteps/Name';
 import UploadDocuments from './subSteps/UploadDocuments';
 import getSignerDetailsAndSignerFiles from './utils/getSignerDetailsAndSignerFiles';
 
-type EnterSignerInfoProps = PlatformStackScreenProps<ReimbursementAccountEnterSignerInfoNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO>;
+type EnterSignerInfoProps = PlatformStackScreenProps<ReimbursementAccountEnterSignerInfoNavigatorParamList, typeof SCREENS.DYNAMIC_REIMBURSEMENT_ACCOUNT_ENTER_SIGNER_INFO>;
 
-type EnterSignerInfoFormSubStepProps = SubStepProps & {policyID: string};
+type EnterSignerInfoFormSubPageProps = SubPageProps & {policyID: string};
 
-const bodyContent: Array<ComponentType<EnterSignerInfoFormSubStepProps>> = [Name, JobTitle, DateOfBirth, Address, UploadDocuments, Confirmation];
+const SUB_PAGE_NAMES = CONST.ENTER_SIGNER_INFO.SUB_PAGE_NAMES;
+
+const pages = [
+    {pageName: SUB_PAGE_NAMES.NAME, component: Name},
+    {pageName: SUB_PAGE_NAMES.JOB_TITLE, component: JobTitle},
+    {pageName: SUB_PAGE_NAMES.DATE_OF_BIRTH, component: DateOfBirth},
+    {pageName: SUB_PAGE_NAMES.ADDRESS, component: Address},
+    {pageName: SUB_PAGE_NAMES.UPLOAD_DOCUMENTS, component: UploadDocuments},
+    {pageName: SUB_PAGE_NAMES.CONFIRMATION, component: Confirmation},
+];
+
+const confirmationIndex = pages.findIndex((page) => page.pageName === SUB_PAGE_NAMES.CONFIRMATION);
 
 function EnterSignerInfo({route}: EnterSignerInfoProps) {
     const {translate} = useLocalize();
     const bankAccountID = Number(route.params.bankAccountID);
     const policyID = route.params.policyID;
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [signerEmail = ''] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [enterSignerInfoForm] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
     const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
 
-    const submit = useCallback(() => {
-        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFiles(enterSignerInfoFormDraft, account?.primaryLogin ?? '');
+    const submit = () => {
+        const {signerDetails, signerFiles} = getSignerDetailsAndSignerFiles(enterSignerInfoFormDraft, signerEmail);
 
         saveCorpayOnboardingDirectorInformation({
             inputs: JSON.stringify(signerDetails),
             ...signerFiles,
             bankAccountID,
         });
-    }, [account?.primaryLogin, bankAccountID, enterSignerInfoFormDraft]);
+    };
+
+    const basePath = useDynamicBackPath(DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.path);
+    const buildRoute = (pageName: string, action?: 'edit') =>
+        createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_ENTER_SIGNER_INFO.getRoute(policyID, route.params.bankAccountID, route.params.isCompleted === 'true', pageName, action), basePath);
 
     const {
-        componentToRender: EnterSignerInfoForm,
+        CurrentPage: EnterSignerInfoForm,
         isEditing,
-        screenIndex,
-        nextScreen,
-        prevScreen,
+        pageIndex,
+        nextPage,
+        prevPage,
         moveTo,
-        goToTheLastStep,
-    } = useSubStep<EnterSignerInfoFormSubStepProps>({bodyContent, startFrom: 0, onFinished: submit});
+        isRedirecting,
+    } = useSubPage<EnterSignerInfoFormSubPageProps>({pages, startFrom: 0, onFinished: submit, buildRoute});
 
     useEffect(() => {
         if (enterSignerInfoForm?.errors || enterSignerInfoForm?.isSavingSignerInformation || !enterSignerInfoForm?.isSuccess) {
@@ -73,19 +100,23 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         return clearErrors(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
     }, []);
 
-    const handleBackButtonPress = useCallback(() => {
+    const handleBackButtonPress = () => {
         clearErrors(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM);
         if (isEditing) {
-            goToTheLastStep();
+            moveTo(confirmationIndex, false);
             return;
         }
 
-        if (screenIndex > 0) {
-            prevScreen();
+        if (pageIndex > 0) {
+            prevPage();
         } else {
-            Navigation.goBack();
+            Navigation.goBack(basePath);
         }
-    }, [goToTheLastStep, isEditing, prevScreen, screenIndex]);
+    };
+
+    if (isRedirecting) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <InteractiveStepWrapper
@@ -95,7 +126,7 @@ function EnterSignerInfo({route}: EnterSignerInfoProps) {
         >
             <EnterSignerInfoForm
                 isEditing={isEditing}
-                onNext={nextScreen}
+                onNext={nextPage}
                 onMove={moveTo}
                 policyID={policyID}
             />

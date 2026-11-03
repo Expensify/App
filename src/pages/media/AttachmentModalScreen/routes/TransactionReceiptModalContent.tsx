@@ -1,19 +1,21 @@
-import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {RotationDegrees} from 'react-fast-pdf';
-import {View} from 'react-native';
 import Button from '@components/Button';
-import ConfirmModal from '@components/ConfirmModal';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ReceiptCropView from '@components/ReceiptCropView';
 import type {CropRect} from '@components/ReceiptCropView';
+
 import useAllTransactions from '@hooks/useAllTransactions';
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {detachReceipt, navigateToStartStepIfScanFileCannotBeRead, replaceReceipt, setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
 import {removeMoneyRequestOdometerImage, setMoneyRequestOdometerImage} from '@libs/actions/OdometerTransactionUtils';
 import {openReport} from '@libs/actions/Report';
@@ -21,11 +23,13 @@ import cropOrRotateImage from '@libs/cropOrRotateImage';
 import fetchImage from '@libs/fetchImage';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import getPlatform from '@libs/getPlatform';
-import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
+import {resolveTransactionThreadReport, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport} from '@libs/ReportUtils';
+import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 import {
     getRequestType,
     hasEReceipt,
@@ -37,25 +41,39 @@ import {
     isReceiptBeingScanned,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
+
 import type {AttachmentModalBaseContentProps, ThreeDotsMenuItemFactory} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ReceiptSource} from '@src/types/onyx/Transaction';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import type {RotationDegrees} from 'react-fast-pdf';
+
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {getParentReportActionSelector, transactionThreadReportIDSelector} from '@selectors/ReportAction';
+import {Str} from 'expensify-common';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function TransactionReceiptModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.TRANSACTION_RECEIPT>) {
     const {reportID, transactionID, action, iouType: iouTypeParam, readonly: readonlyParam, mergeTransactionID, imageType, isEditingConfirmation, backToReport} = route.params;
 
     const {translate} = useLocalize();
+    const {isBetaEnabledOrUnknown} = usePermissions();
+    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
     const {isOffline} = useNetwork();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Camera', 'Download', 'Crop', 'Trashcan', 'Rotate', 'Close', 'Checkmark', 'AttachmentNotFound']);
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
     const allTransactions = useAllTransactions();
     const transactionMain = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -63,8 +81,14 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const policy = usePolicy(report?.policyID);
+    const delegateAccountID = useDelegateAccountID();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const platform = getPlatform();
     const isNative = platform === CONST.PLATFORM.ANDROID || platform === CONST.PLATFORM.IOS;
 
@@ -77,25 +101,26 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const draftTransactionID = isDraftTransaction ? transactionID : undefined;
 
     // Determine which transaction to use based on the scenario
-    const transaction = useMemo(() => {
-        if (isDraftTransaction) {
-            return transactionDraft;
-        }
-
-        if (mergeTransactionID && mergeTransaction && transactionMain) {
-            // If we have a merge transaction, we need to use the receipt from the merge transaction
-            return {
-                ...transactionMain,
-                receipt: mergeTransaction.receipt,
-            };
-        }
-
-        return transactionMain;
-    }, [isDraftTransaction, mergeTransaction, mergeTransactionID, transactionDraft, transactionMain]);
+    let transaction;
+    if (isDraftTransaction) {
+        transaction = transactionDraft;
+    } else if (mergeTransactionID && mergeTransaction && transactionMain) {
+        // If we have a merge transaction, we need to use the receipt from the merge transaction
+        transaction = {
+            ...transactionMain,
+            receipt: mergeTransaction.receipt,
+        };
+    } else {
+        transaction = transactionMain;
+    }
 
     useRestartOnOdometerImagesFailure(isDraftTransaction && isOdometerDistanceRequest(transaction) ? transaction : undefined, reportID, iouTypeParam ?? CONST.IOU.TYPE.SUBMIT, backToReport);
 
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [transactionThreadReportID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transaction?.reportID)}`, {
+        selector: transactionThreadReportIDSelector(transaction?.transactionID),
+    });
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
     const [transactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const receiptURIs = getThumbnailAndImageURIs(transaction);
     const isLocalFile = receiptURIs.isLocalFile;
@@ -143,18 +168,29 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     }, [isOdometerImage, odometerImage]);
 
     // Use odometer image if imageType is provided (it's present only when we display odometer image) otherwise use receipt
-    const receiptSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
+    const receiptSource = isDraftTransaction ? ReceiptStorage.resolve(transactionDraft?.receipt?.source) : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
     const source = isOdometerImage ? odometerImageSource : receiptSource;
     const [sourceUri, setSourceUri] = useState<ReceiptSource>('');
 
-    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-    const canEditReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, transaction});
-    const canDeleteReceipt = canEditFieldOfMoneyRequest({reportAction: parentReportAction, fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT, isDeleteAction: true, transaction});
+    const parentReportAction = getParentReportActionSelector(parentReportActions, report?.parentReportActionID);
+    const receiptFieldParams = {
+        reportAction: parentReportAction,
+        fieldToEdit: CONST.EDIT_REQUEST_FIELD.RECEIPT,
+        transaction,
+        rules,
+        reportNameValuePairs: undefined,
+        reportActions: parentReportActions,
+    };
+    const canEditReceipt = canEditFieldOfMoneyRequest(receiptFieldParams);
+    const transactionThread = resolveTransactionThreadReport(transaction, transactionThreadReport, report, parentReportAction);
+    const canDeleteReceipt = canEditFieldOfMoneyRequest({...receiptFieldParams, isDeleteAction: true});
 
     const receiptFilename = transaction?.receipt?.filename;
-    const isStitchedOdometerReceipt = isOdometerDistanceRequest(transaction) && !imageType;
+    // Odometer photos are stitched into the receipt only while the expense is a draft, so a created expense's receipt can be replaced like any other
+    const isStitchedOdometerReceipt = isDraftTransaction && isOdometerDistanceRequest(transaction) && !imageType;
 
-    const shouldShowReplaceReceiptButton = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt && !isStitchedOdometerReceipt;
+    const canEditReceiptButtons = ((canEditReceipt && !readonly) || isDraftTransaction) && !transaction?.receipt?.isTestDriveReceipt;
+    const shouldShowReplaceReceiptButton = canEditReceiptButtons && !isStitchedOdometerReceipt;
     const shouldShowDeleteReceiptButton = canDeleteReceipt && !readonly && !isDraftTransaction && !transaction?.receipt?.isTestDriveReceipt;
 
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
@@ -163,9 +199,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     const isPDF = !!fileName && Str.isPDF(fileName);
     const fileType = isOdometerImage ? odometerFileType : (transaction?.receipt?.type ?? CONST.IMAGE_FILE_FORMAT.JPEG);
     const isTrackExpenseActionValue = isTrackExpenseAction(parentReportAction);
-    const iouType = useMemo(() => iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseActionValue, iouTypeParam]);
+    const iouType = iouTypeParam ?? (isTrackExpenseActionValue ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT);
 
-    const [isDeleteReceiptConfirmModalVisible, setIsDeleteReceiptConfirmModalVisible] = useState(false);
+    const {showConfirmModal} = useConfirmModal();
     const [pdfRotation, setPdfRotation] = useState<RotationDegrees>(0);
     const [isRotating, setIsRotating] = useState(false);
     const [isCropping, setIsCropping] = useState(false);
@@ -177,7 +213,15 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
-        openReport({reportID, introSelected, betas});
+        openReport({
+            reportID,
+            introSelected,
+            conciergeChat,
+            hasReportActions,
+            currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
@@ -223,11 +267,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             receiptType,
             () =>
                 Navigation.goBack(
-                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                        CONST.IOU.ACTION.CREATE,
-                        iouType,
-                        transactionID,
-                        reportID,
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID),
+                        // The confirmation page is the explicit base so the scan step still goes back to it once the receipt is retaken.
                         ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID),
                     ),
                 ),
@@ -257,15 +299,26 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
     /**
      * Detach the receipt and close the modal.
      */
-    const deleteReceiptAndClose = useCallback(() => {
-        detachReceipt(transaction?.transactionID, policy, policyTagList, transactionViolations, policyCategories);
+    const deleteReceiptAndClose = () => {
+        detachReceipt({
+            transaction,
+            transactionPolicy: policy,
+            transactionPolicyTagList: policyTagList,
+            transactionViolations,
+            transactionReport,
+            isVendorMatchingBetaEnabled,
+            transactionThreadReport: transactionThread,
+            delegateAccountID,
+            currentUserPersonalDetails,
+            transactionPolicyCategories: policyCategories,
+        });
         navigation.goBack();
-    }, [navigation, transaction?.transactionID, policy, policyCategories, policyTagList, transactionViolations]);
+    };
 
     /**
      * Remove odometer image and close the modal.
      */
-    const deleteOdometerImageAndClose = useCallback(() => {
+    const deleteOdometerImageAndClose = () => {
         if (!transaction?.transactionID || !imageType) {
             return;
         }
@@ -276,7 +329,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 ? ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID)
                 : ROUTES.DISTANCE_REQUEST_CREATE_TAB_ODOMETER.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, backToReport));
         Navigation.goBack(odometerGoBackRoute || undefined);
-    }, [transaction, imageType, isDraftTransaction, isOdometerImage, isEditingConfirmation, action, iouType, transactionID, reportID, backToReport]);
+    };
 
     const onDownloadAttachment = useDownloadAttachment({
         isAuthTokenRequired,
@@ -285,12 +338,17 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
 
     const allowDownload = !isEReceipt;
 
-    const applyDurableReceipt = useCallback(
-        (imageUri: string, filename: string, file: File, isSameReceipt?: boolean) => {
-            if (!transaction?.transactionID) {
-                return Promise.resolve();
-            }
-            return moveReceiptToDurableStorage(imageUri, filename).then((durableUri) => {
+    const applyDurableReceipt = (imageUri: string, filename: string, file: File, isSameReceipt?: boolean) => {
+        if (!transaction?.transactionID) {
+            return Promise.resolve();
+        }
+        return ReceiptStorage.adopt(imageUri, filename)
+            .then((durableName) => ReceiptStorage.toLocalUri(durableName))
+            .catch((error: unknown) => {
+                logReceiptAdoptFailed({error, captureSource: 'replace'});
+                return imageUri;
+            })
+            .then((durableUri) => {
                 const durableFile = Object.assign(new File([file], file.name || filename, {type: file.type}), {uri: durableUri, source: durableUri});
                 if (isOdometerImage) {
                     setMoneyRequestOdometerImage(transaction, imageType, durableFile, isDraftTransaction, !isEditingConfirmation);
@@ -298,22 +356,25 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                     setMoneyRequestReceipt(transaction.transactionID, durableUri, filename, isDraftTransaction, fileType);
                 } else {
                     replaceReceipt({
-                        transactionID: transaction.transactionID,
+                        isVendorMatchingBetaEnabled,
+                        transaction,
                         file: durableFile,
                         source: durableUri,
                         transactionPolicyCategories: policyCategories,
                         transactionPolicy: policy,
                         transactionPolicyTagList: policyTagList,
                         transactionViolations,
+                        transactionReport,
+                        delegateAccountID,
+                        currentUserPersonalDetails,
+                        transactionThreadReport: transactionThread,
                         ...(isSameReceipt ? {state: transaction?.receipt?.state, isSameReceipt: true} : {}),
                     });
                 }
             });
-        },
-        [transaction, isDraftTransaction, isOdometerImage, isEditingConfirmation, imageType, fileType, policyCategories, policy, policyTagList, transactionViolations],
-    );
+    };
 
-    const rotateReceipt = useCallback(() => {
+    const rotateReceipt = () => {
         if (!transaction?.transactionID || !sourceUri || !isImage) {
             return;
         }
@@ -346,34 +407,31 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .catch(() => {
                 setIsRotating(false);
             });
-    }, [transaction?.transactionID, sourceUri, isImage, receiptFilename, fileName, fileType, applyDurableReceipt]);
+    };
 
-    const shouldShowRotateAndCropReceiptButton = useMemo(
-        () =>
-            shouldShowReplaceReceiptButton &&
-            transaction &&
-            (hasReceiptSource(transaction) || (isOdometerImage && hasOdometerImageSource(transaction, imageType))) &&
-            !isEReceipt &&
-            !transaction?.receipt?.isTestDriveReceipt &&
-            isImage,
-        [shouldShowReplaceReceiptButton, transaction, isEReceipt, isOdometerImage, imageType, isImage],
-    );
+    const shouldShowRotateAndCropReceiptButton =
+        canEditReceiptButtons &&
+        transaction &&
+        (hasReceiptSource(transaction) || (isOdometerImage && hasOdometerImageSource(transaction, imageType))) &&
+        !isEReceipt &&
+        !transaction?.receipt?.isTestDriveReceipt &&
+        isImage;
 
-    const enterCropMode = useCallback(() => {
+    const enterCropMode = () => {
         setIsCropping(true);
         setCropRect(null);
-    }, []);
+    };
 
-    const exitCropMode = useCallback(() => {
+    const exitCropMode = () => {
         setIsCropping(false);
         setCropRect(null);
-    }, []);
+    };
 
-    const handleCropChange = useCallback((crop: CropRect) => {
+    const handleCropChange = (crop: CropRect) => {
         setCropRect(crop);
-    }, []);
+    };
 
-    const saveCrop = useCallback(() => {
+    const saveCrop = () => {
         if (!transaction?.transactionID || !sourceUri || !isImage || !cropRect || cropRect.width < 1 || cropRect.height < 1) {
             exitCropMode();
             return;
@@ -413,7 +471,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
                 const file = croppedImage as File;
                 const croppedFilename = file.name ?? receiptFilename;
 
-                return applyDurableReceipt(imageUriResult, croppedFilename, file).then(() => {
+                return applyDurableReceipt(imageUriResult, croppedFilename, file, true).then(() => {
                     setIsCropSaving(false);
                     exitCropMode();
                 });
@@ -421,257 +479,178 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
             .catch(() => {
                 setIsCropSaving(false);
             });
-    }, [transaction?.transactionID, sourceUri, isImage, cropRect, receiptFilename, fileName, fileType, exitCropMode, applyDurableReceipt]);
+    };
 
-    const threeDotsMenuItems: ThreeDotsMenuItemFactory = useCallback(
-        ({file, source: innerSource, isLocalSource}) => {
-            const menuItems = [];
-            if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
-                menuItems.push({
-                    icon: expensifyIcons.Download,
-                    text: translate('common.download'),
-                    onSelected: () => onDownloadAttachment({source: innerSource, file}),
-                    sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.DOWNLOAD_RECEIPT,
-                });
-            }
+    const threeDotsMenuItems: ThreeDotsMenuItemFactory = ({file, source: innerSource, isLocalSource}) => {
+        const menuItems = [];
+        if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
+            menuItems.push({
+                icon: expensifyIcons.Download,
+                text: translate('common.download'),
+                onSelected: () => onDownloadAttachment({source: innerSource, file}),
+                sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.DOWNLOAD_RECEIPT,
+            });
+        }
 
-            const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
-            const isDeletableReceipt =
-                shouldShowDeleteReceiptButton &&
-                !hasOnlyEReceipt &&
-                hasReceipt(transaction) &&
-                !isReceiptBeingScanned(transaction) &&
-                !hasMissingSmartscanFields(transaction, transactionReport);
-            const isDraftOdometer = isOdometerImage && isDraftTransaction;
-            if (isDeletableReceipt || isDraftOdometer) {
-                menuItems.push({
-                    icon: expensifyIcons.Trashcan,
-                    text: isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt'),
-                    onSelected: () => setIsDeleteReceiptConfirmModalVisible?.(true),
-                    shouldCallAfterModalHide: true,
-                    sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.DELETE_RECEIPT,
-                });
-            }
-            return menuItems;
-        },
-        [
-            isOdometerImage,
-            isOffline,
-            allowDownload,
-            draftTransactionID,
-            transaction,
-            shouldShowDeleteReceiptButton,
-            transactionReport,
-            isDraftTransaction,
-            translate,
-            expensifyIcons,
-            onDownloadAttachment,
-        ],
-    );
+        const hasOnlyEReceipt = hasEReceipt(transaction) && !hasReceiptSource(transaction);
+        const isDeletableReceipt =
+            shouldShowDeleteReceiptButton && !hasOnlyEReceipt && hasReceipt(transaction) && !isReceiptBeingScanned(transaction) && !hasMissingSmartscanFields(transaction, transactionReport);
+        const isDraftOdometer = isOdometerImage && isDraftTransaction;
+        if (isDeletableReceipt || isDraftOdometer) {
+            menuItems.push({
+                icon: expensifyIcons.Trashcan,
+                text: isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt'),
+                onSelected: async () => {
+                    const result = await showConfirmModal({
+                        title: isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt'),
+                        prompt: isOdometerImage ? translate('distance.odometer.deleteOdometerPhotoConfirmation') : translate('receipt.deleteConfirmation'),
+                        confirmText: translate('common.delete'),
+                        cancelText: translate('common.cancel'),
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
+                    });
 
-    const ExtraContent = useMemo(
-        () => (
-            <ConfirmModal
-                title={isOdometerImage ? translate('distance.odometer.deleteOdometerPhoto') : translate('receipt.deleteReceipt')}
-                isVisible={isDeleteReceiptConfirmModalVisible}
-                onConfirm={() => {
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+
                     if (isOdometerImage) {
                         deleteOdometerImageAndClose();
                     } else {
                         deleteReceiptAndClose();
                     }
-                    setIsDeleteReceiptConfirmModalVisible(false);
-                }}
-                onCancel={() => setIsDeleteReceiptConfirmModalVisible?.(false)}
-                prompt={isOdometerImage ? translate('distance.odometer.deleteOdometerPhotoConfirmation') : translate('receipt.deleteConfirmation')}
-                confirmText={translate('common.delete')}
-                cancelText={translate('common.cancel')}
-                danger
-            />
-        ),
-        [deleteReceiptAndClose, deleteOdometerImageAndClose, isDeleteReceiptConfirmModalVisible, isOdometerImage, translate],
-    );
-
-    const footerActionButtons = useMemo(() => {
-        if (isCropping) {
-            return (
-                <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
-                    <Button
-                        onPress={exitCropMode}
-                        text={translate('common.cancel')}
-                        icon={expensifyIcons.Close}
-                        style={styles.transactionReceiptButton}
-                    />
-                    <Button
-                        success
-                        onPress={saveCrop}
-                        text={translate('common.save')}
-                        isLoading={isCropSaving}
-                        isDisabled={!cropRect || isCropSaving}
-                        icon={expensifyIcons.Checkmark}
-                        style={styles.transactionReceiptButton}
-                    />
-                </View>
-            );
+                },
+                shouldCallAfterModalHide: true,
+                sentryLabel: CONST.SENTRY_LABEL.RECEIPT_MODAL.DELETE_RECEIPT,
+            });
         }
+        return menuItems;
+    };
 
-        if (!shouldShowRotateAndCropReceiptButton && !shouldShowReplaceReceiptButton && !isOdometerImage) {
-            return null;
-        }
-
-        return (
+    let footerActionButtons;
+    if (isCropping) {
+        footerActionButtons = (
+            <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
+                <Button
+                    onPress={exitCropMode}
+                    style={styles.transactionReceiptButton}
+                >
+                    <Button.Icon src={expensifyIcons.Close} />
+                    <Button.Text>{translate('common.cancel')}</Button.Text>
+                </Button>
+                <Button
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    onPress={saveCrop}
+                    isLoading={isCropSaving}
+                    isDisabled={!cropRect || isCropSaving}
+                    style={styles.transactionReceiptButton}
+                >
+                    <Button.Icon src={expensifyIcons.Checkmark} />
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
+            </View>
+        );
+    } else if (!shouldShowRotateAndCropReceiptButton && !shouldShowReplaceReceiptButton && !isOdometerImage) {
+        footerActionButtons = null;
+    } else {
+        footerActionButtons = (
             <View style={[styles.flexRow, styles.gap2, styles.ph5, styles.pb5, styles.justifyContentCenter]}>
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
-                        icon={expensifyIcons.Rotate}
                         onPress={rotateReceipt}
-                        text={translate('common.rotate')}
                         isLoading={isRotating}
                         isDisabled={isRotating}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Rotate} />
+                        <Button.Text>{translate('common.rotate')}</Button.Text>
+                    </Button>
                 )}
                 {!!shouldShowRotateAndCropReceiptButton && (
                     <Button
-                        icon={expensifyIcons.Crop}
                         onPress={enterCropMode}
-                        text={translate('receipt.crop')}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Crop} />
+                        <Button.Text>{translate('receipt.crop')}</Button.Text>
+                    </Button>
                 )}
                 {isPDF && !isNative && (
                     <Button
-                        icon={expensifyIcons.Rotate}
                         onPress={() => setPdfRotation((prev) => ((prev + 270) % 360) as RotationDegrees)}
-                        text={translate('common.rotate')}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Rotate} />
+                        <Button.Text>{translate('common.rotate')}</Button.Text>
+                    </Button>
                 )}
                 {(shouldShowReplaceReceiptButton || isOdometerImage) && (
                     <Button
-                        icon={expensifyIcons.Camera}
                         onPress={() => {
                             const getDestinationRoute = () => {
                                 return isOdometerImage
                                     ? ROUTES.ODOMETER_IMAGE.getRoute(action ?? CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, imageType, isEditingConfirmation, backToReport)
-                                    : ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                          action ?? CONST.IOU.ACTION.EDIT,
-                                          iouType,
-                                          draftTransactionID ?? transaction?.transactionID,
-                                          report?.reportID,
-                                          Navigation.getActiveRoute(),
+                                    : // `getDestinationRoute` runs after the modal is dismissed, so the base is the screen underneath it.
+                                      createDynamicRoute(
+                                          DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                              action ?? CONST.IOU.ACTION.EDIT,
+                                              iouType,
+                                              draftTransactionID ?? transaction?.transactionID,
+                                              report?.reportID,
+                                          ),
                                       );
                             };
-
                             Navigation.dismissModal({
                                 afterTransition: () => Navigation.navigate(getDestinationRoute()),
                             });
                         }}
-                        text={translate('common.replace')}
                         style={styles.transactionReceiptButton}
-                    />
+                    >
+                        <Button.Icon src={expensifyIcons.Camera} />
+                        <Button.Text>{translate('common.replace')}</Button.Text>
+                    </Button>
                 )}
             </View>
         );
-    }, [
-        isCropping,
-        shouldShowRotateAndCropReceiptButton,
-        shouldShowReplaceReceiptButton,
-        isOdometerImage,
-        isPDF,
-        styles.flexRow,
-        styles.gap2,
-        styles.ph5,
-        styles.pb5,
-        styles.justifyContentCenter,
-        styles.transactionReceiptButton,
-        expensifyIcons.Rotate,
-        expensifyIcons.Crop,
-        expensifyIcons.Camera,
-        expensifyIcons.Close,
-        expensifyIcons.Checkmark,
-        rotateReceipt,
-        translate,
-        isRotating,
-        enterCropMode,
-        exitCropMode,
-        saveCrop,
-        isCropSaving,
-        cropRect,
-        action,
-        iouType,
-        transactionID,
-        reportID,
-        imageType,
-        isEditingConfirmation,
-        backToReport,
-        draftTransactionID,
-        transaction?.transactionID,
-        report?.reportID,
-        isNative,
-    ]);
+    }
 
-    const customAttachmentContent = useMemo(() => {
-        if (!isCropping || (!sourceUri && !source)) {
-            return null;
-        }
-
-        return (
+    let customAttachmentContent;
+    if (!isCropping || (!sourceUri && !source)) {
+        customAttachmentContent = null;
+    } else {
+        customAttachmentContent = (
             <ReceiptCropView
                 imageUri={(sourceUri || source) as string}
                 onCropChange={handleCropChange}
                 isAuthTokenRequired={sourceUri ? false : isAuthTokenRequired}
             />
         );
-    }, [isCropping, sourceUri, handleCropChange, isAuthTokenRequired, source]);
+    }
 
-    const contentProps = useMemo<AttachmentModalBaseContentProps>(
-        () => ({
-            source,
-            originalFileName,
-            report,
-            headerTitle,
-            threeDotsMenuItems,
-            isAuthTokenRequired,
-            isTrackExpenseAction: isTrackExpenseActionValue,
-            isLoading: !transaction && reportLoadingState?.isLoadingInitialReportActions,
-            shouldShowNotFoundPage,
-            shouldShowCarousel: false,
-            shouldShowRotateButton: false,
-            pdfRotation,
-            onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
-            transaction,
-            shouldMinimizeMenuButton: false,
-            footerActionButtons,
-            customAttachmentContent,
-            attachmentViewContainerStyles: [styles.pv5, styles.ph2],
-        }),
-        [
-            source,
-            originalFileName,
-            report,
-            headerTitle,
-            threeDotsMenuItems,
-            isAuthTokenRequired,
-            isTrackExpenseActionValue,
-            transaction,
-            reportLoadingState?.isLoadingInitialReportActions,
-            shouldShowNotFoundPage,
-            allowDownload,
-            onDownloadAttachment,
-            pdfRotation,
-            footerActionButtons,
-            customAttachmentContent,
-            styles.pv5,
-            styles.ph2,
-        ],
-    );
+    const contentProps: AttachmentModalBaseContentProps = {
+        source,
+        originalFileName,
+        report,
+        headerTitle,
+        threeDotsMenuItems,
+        isAuthTokenRequired,
+        isLoading: !transaction && reportLoadingState?.isLoadingInitialReportActions,
+        shouldShowNotFoundPage,
+        shouldShowCarousel: false,
+        shouldShowRotateButton: false,
+        pdfRotation,
+        onDownloadAttachment: allowDownload ? undefined : onDownloadAttachment,
+        transaction,
+        shouldMinimizeMenuButton: false,
+        footerActionButtons,
+        customAttachmentContent,
+        attachmentViewContainerStyles: [styles.pv5, styles.ph2],
+        fallbackSource: expensifyIcons.AttachmentNotFound,
+    };
 
     return (
         <AttachmentModalContainer
             navigation={navigation}
             contentProps={contentProps}
-            ExtraContent={ExtraContent}
         />
     );
 }

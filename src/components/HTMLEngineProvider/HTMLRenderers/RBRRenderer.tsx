@@ -1,10 +1,13 @@
-import React from 'react';
-import {StyleSheet} from 'react-native';
+import Text from '@components/Text';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
+
+import React from 'react';
+import {StyleSheet} from 'react-native';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
-import Text from '@components/Text';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 function RBRRenderer({tnode, style}: CustomRendererProps<TText | TPhrasing>) {
     const styles = useThemeStyles();
@@ -22,7 +25,7 @@ function RBRRenderer({tnode, style}: CustomRendererProps<TText | TPhrasing>) {
                         numberOfLines={shouldShowEllipsis ? 1 : 0}
                         ellipsizeMode="tail"
                         key={props.key}
-                        style={[styles.textLabelError, flattenStyle, isSmall ? styles.textMicro : {}]}
+                        style={[styles.textLabelError, styles.badgeDangerText, flattenStyle, isSmall ? styles.textMicro : {}]}
                     >
                         {props.childElement}
                     </Text>

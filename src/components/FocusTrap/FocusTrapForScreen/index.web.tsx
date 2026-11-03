@@ -1,13 +1,18 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import {FocusTrap} from 'focus-trap-react';
-import React, {useMemo} from 'react';
-import sharedTrapStack from '@components/FocusTrap/sharedTrapStack';
 import TOP_TAB_SCREENS from '@components/FocusTrap/TOP_TAB_SCREENS';
 import WIDE_LAYOUT_INACTIVE_SCREENS from '@components/FocusTrap/WIDE_LAYOUT_INACTIVE_SCREENS';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {isCancellingDndKeyboardDrag} from '@libs/cancelDndKeyboardDrag';
 import {isSidebarScreenName} from '@libs/Navigation/helpers/isNavigatorName';
+import sharedTrapStack from '@libs/sharedTrapStack';
+
 import CONST from '@src/CONST';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import {FocusTrap} from 'focus-trap-react';
+import React from 'react';
+
 import type FocusTrapProps from './FocusTrapProps';
 
 function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
@@ -15,26 +20,17 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
     const route = useRoute();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const isActive = useMemo(() => {
-        if (typeof focusTrapSettings?.active !== 'undefined') {
-            return focusTrapSettings.active;
-        }
-        // Focus trap can't be active on sidebar screens because it would block access to the tab bar.
-        if (isSidebarScreenName(route.name)) {
-            return false;
-        }
-
-        // in top tabs only focus trap for currently shown tab should be active
-        if (TOP_TAB_SCREENS.find((screen) => screen === route.name)) {
-            return isFocused;
-        }
-
-        // Focus trap can't be active on these screens if the layout is wide because they may be displayed side by side.
-        if (WIDE_LAYOUT_INACTIVE_SCREENS.includes(route.name) && !shouldUseNarrowLayout) {
-            return false;
-        }
-        return isFocused;
-    }, [isFocused, shouldUseNarrowLayout, route.name, focusTrapSettings?.active]);
+    // Focus trap can't be active on sidebar screens because it would block access to the tab bar.
+    // in top tabs only focus trap for currently shown tab should be active
+    // Focus trap can't be active on these screens if the layout is wide because they may be displayed side by side.
+    let isActive;
+    if (typeof focusTrapSettings?.active !== 'undefined') {
+        isActive = focusTrapSettings.active;
+    } else {
+        isActive =
+            !isSidebarScreenName(route.name) &&
+            (TOP_TAB_SCREENS.find((screen) => screen === route.name) ? isFocused : !(WIDE_LAYOUT_INACTIVE_SCREENS.includes(route.name) && !shouldUseNarrowLayout) && isFocused);
+    }
 
     return (
         <FocusTrap

@@ -49,6 +49,10 @@
                         "comment": "Plaid setup"
                     },
                     {
+                        "/": "/oauth/native-callback",
+                        "comment": "Native-only Cloudflare Access OAuth callback, no web route"
+                    },
+                    {
                         "/": "/statements/*",
                         "comment": "Wallet statements"
                     },
@@ -107,6 +111,15 @@
                     {
                         "/": "/submit-expense/*",
                         "comment": "Submit Expense"
+                    }
+                ]
+            },
+            {
+                "appIDs": ["368M544MTT.com.expensify.expensifylite.adhoc"],
+                "components": [
+                    {
+                        "/": "/oauth/native-callback",
+                        "comment": "Ad-hoc PR builds claim only the QA OAuth callback"
                     }
                 ]
             }

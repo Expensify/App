@@ -1,17 +1,22 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FormProvider from '@components/Form/FormProvider';
-import MagicCodeInput from '@components/MagicCodeInput';
 import Text from '@components/Text';
+import ValidateCodeInput from '@components/ValidateCodeInput';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isValidPIN} from '@libs/ValidationUtils';
+
 import {usePINActions, usePINState} from '@pages/MissingPersonalDetails/PINContext';
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 /**
  * PIN entry step for UK/EU Expensify Card ordering flow.
@@ -27,19 +32,16 @@ function PIN({onNext}: CustomSubPageProps) {
     const [confirmPIN, setConfirmPIN] = useState(savedPIN);
     const [error, setError] = useState('');
 
-    const handlePINChange = useCallback(
-        (value: string) => {
-            setError('');
-            if (isConfirmStep) {
-                setConfirmPIN(value);
-            } else {
-                setEnteredPIN(value);
-            }
-        },
-        [isConfirmStep],
-    );
+    const handlePINChange = (value: string) => {
+        setError('');
+        if (isConfirmStep) {
+            setConfirmPIN(value);
+        } else {
+            setEnteredPIN(value);
+        }
+    };
 
-    const validatePIN = useCallback((): string => {
+    const validatePIN = (): string => {
         const PINToValidate = isConfirmStep ? confirmPIN : enteredPIN;
 
         if (PINToValidate.length !== CONST.EXPENSIFY_CARD.PIN.LENGTH) {
@@ -54,9 +56,9 @@ function PIN({onNext}: CustomSubPageProps) {
             return translate('cardPage.invalidPin');
         }
         return '';
-    }, [isConfirmStep, confirmPIN, enteredPIN, translate]);
+    };
 
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = () => {
         const validationError = validatePIN();
         if (validationError) {
             setError(validationError);
@@ -73,7 +75,7 @@ function PIN({onNext}: CustomSubPageProps) {
         // PIN verified, save it and proceed
         setPIN(confirmPIN);
         onNext();
-    }, [validatePIN, isConfirmStep, setPIN, confirmPIN, onNext, setIsConfirmStep]);
+    };
 
     const currentPIN = isConfirmStep ? confirmPIN : enteredPIN;
     const title = isConfirmStep ? translate('cardPage.confirmYourPin') : translate('cardPage.setYourPin');
@@ -86,12 +88,15 @@ function PIN({onNext}: CustomSubPageProps) {
             style={[styles.flexGrow1, styles.ph5]}
             scrollContextEnabled={false}
             enabledWhenOffline
+            // The submit handler validates the PIN itself and only flips local step state within the same
+            // screen, so an immediate press spinner would never get reset by external loading or a focus change
+            shouldShowLoadingImmediatelyOnPress={false}
         >
             <View style={[styles.flex1]}>
                 <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
 
                 <View style={[styles.mv4, styles.ph11]}>
-                    <MagicCodeInput
+                    <ValidateCodeInput
                         key={`pin-${isConfirmStep}`}
                         autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                         name="pin"
@@ -106,12 +111,10 @@ function PIN({onNext}: CustomSubPageProps) {
                 </View>
 
                 <View style={[styles.flexRow, styles.justifyContentCenter, styles.mv4, styles.alignItemsCenter, styles.w100]}>
-                    <Button
-                        icon={isPINHidden ? icons.Eye : icons.EyeDisabled}
-                        text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
-                        onPress={togglePINVisibility}
-                        medium
-                    />
+                    <Button onPress={togglePINVisibility}>
+                        <Button.Icon src={isPINHidden ? icons.Eye : icons.EyeDisabled} />
+                        <Button.Text>{isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}</Button.Text>
+                    </Button>
                 </View>
             </View>
         </FormProvider>

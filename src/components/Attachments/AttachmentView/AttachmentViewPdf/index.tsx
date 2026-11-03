@@ -1,8 +1,23 @@
-import React, {memo} from 'react';
 import PDFView from '@components/PDFView';
+
+import React from 'react';
+
 import type AttachmentViewPdfProps from './types';
 
-function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onToggleKeyboard, onLoadComplete, style, isUsedAsChatAttachment, onLoadError, rotation}: AttachmentViewPdfProps) {
+function AttachmentViewPdf({
+    file,
+    encryptedSourceUrl,
+    isFocused,
+    onPress,
+    onScaleChanged,
+    onToggleKeyboard,
+    onLoadComplete,
+    style,
+    isUsedInAttachmentModal,
+    isUsedAsChatAttachment,
+    onLoadError,
+    rotation,
+}: AttachmentViewPdfProps) {
     return (
         <PDFView
             onPress={onPress}
@@ -10,8 +25,10 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onTogg
             sourceURL={encryptedSourceUrl}
             fileName={file?.name}
             style={style}
+            onScaleChanged={onScaleChanged}
             onToggleKeyboard={onToggleKeyboard}
             onLoadComplete={onLoadComplete}
+            isUsedInAttachmentModal={isUsedInAttachmentModal}
             isUsedAsChatAttachment={isUsedAsChatAttachment}
             onLoadError={onLoadError}
             rotation={rotation}
@@ -19,4 +36,4 @@ function AttachmentViewPdf({file, encryptedSourceUrl, isFocused, onPress, onTogg
     );
 }
 
-export default memo(AttachmentViewPdf);
+export default AttachmentViewPdf;

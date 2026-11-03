@@ -1,8 +1,12 @@
-import {useEffect, useRef} from 'react';
 import {getBaseTheme, getContrastTheme} from '@styles/theme/utils';
+
 import {setHighContrastIntent, updateTheme} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useEffect, useRef} from 'react';
+
 import useOnyx from './useOnyx';
 
 /**
@@ -26,10 +30,10 @@ function useReconcileHighContrastIntent() {
         const baseTheme = getBaseTheme(currentTheme);
         const targetTheme = highContrastIntent ? getContrastTheme(baseTheme) : baseTheme;
         if (currentTheme !== targetTheme) {
-            updateTheme(targetTheme, false);
+            updateTheme(targetTheme, false, session);
         }
         setHighContrastIntent(null);
-    }, [isLoadingApp, highContrastIntent, preferredTheme, session?.authToken]);
+    }, [isLoadingApp, highContrastIntent, preferredTheme, session]);
 }
 
 export default useReconcileHighContrastIntent;

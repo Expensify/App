@@ -1,13 +1,16 @@
-import {useEffect} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import {isConnectionInProgress, syncConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import {useEffect} from 'react';
 
 type QuickBooksDesktopSetupFlowSyncPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_SETUP_REQUIRED_DEVICE_MODAL>;
 
@@ -26,7 +29,7 @@ function QuickBooksDesktopSetupFlowSyncPage({route}: QuickBooksDesktopSetupFlowS
             syncConnection(policy, CONST.POLICY.CONNECTIONS.NAME.QBD, true);
         }
 
-        Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID));
+        Navigation.navigate(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID));
 
         // disabling this rule, as we want this to run only on the first render
         // eslint-disable-next-line react-hooks/exhaustive-deps

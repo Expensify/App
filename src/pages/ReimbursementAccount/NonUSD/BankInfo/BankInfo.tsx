@@ -1,27 +1,35 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useSubPage from '@hooks/useSubPage';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type NonUSDPageProps from '@pages/ReimbursementAccount/NonUSD/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getCurrencyForNonUSDBankAccount from '@pages/ReimbursementAccount/NonUSD/utils/getCurrencyForNonUSDBankAccount';
 import getInitialSubStepForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBankInfoStep';
 import getInputKeysForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInputKeysForBankInfoStep';
+
 import {clearReimbursementAccountBankCreation, createCorpayBankAccount, getCorpayBankAccountFields} from '@userActions/BankAccounts';
 import {clearErrors} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
+
+import React, {useEffect, useRef} from 'react';
+
+import type BankInfoSubStepProps from './types';
+
 import AccountHolderDetails from './subSteps/AccountHolderDetails';
 import BankAccountDetails from './subSteps/BankAccountDetails';
 import Confirmation from './subSteps/Confirmation';
-import type BankInfoSubStepProps from './types';
 
 const {PAGE_NAME, BANK_INFO_STEP} = CONST.NON_USD_BANK_ACCOUNT;
 const SUB_PAGE_NAMES = BANK_INFO_STEP.SUB_PAGE_NAMES;
@@ -41,8 +49,8 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {country, currency} = getCurrencyForNonUSDBankAccount(policy, reimbursementAccountDraft, reimbursementAccount);
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
-    const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
-    const startFrom = useMemo(() => getInitialSubStepForBankInfoStep(values, corpayFields), [corpayFields, values]);
+    const values = getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount);
+    const startFrom = getInitialSubStepForBankInfoStep(values, corpayFields);
     const isSubmittingRef = useRef(false);
 
     const submit = () => {
@@ -91,10 +99,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
         getCorpayBankAccountFields(country, currency);
     }, [corpayFields?.bankCurrency, corpayFields?.bankCountry, country, currency]);
 
-    const buildRoute = useCallback(
-        (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BANK_INFO, subPage: pageName, action, backTo}),
-        [policyID, backTo],
-    );
+    const buildRoute = (pageName: string, action?: 'edit') => ROUTES.BANK_ACCOUNT_NON_USD_SETUP.getRoute({policyID, page: PAGE_NAME.BANK_INFO, subPage: pageName, action, backTo});
 
     const {CurrentPage, isEditing, currentPageName, pageIndex, nextPage, prevPage, moveTo, isRedirecting} = useSubPage<BankInfoSubStepProps>({
         pages,
@@ -122,7 +127,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID, stepNames, backTo}: No
     }
 
     if (isRedirecting) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'BankInfo', isRedirecting}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

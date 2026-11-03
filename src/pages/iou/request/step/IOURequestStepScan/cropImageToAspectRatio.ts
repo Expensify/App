@@ -1,11 +1,12 @@
-import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
-import ImageSize from 'react-native-image-size';
-import type {Orientation} from 'react-native-vision-camera';
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
 import {JPEG_QUALITY} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
+
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
+import ImageSize from 'react-native-image-size';
 
 type ImageObject = {
     /** File object of the image */
@@ -51,9 +52,6 @@ function cropImageToAspectRatio(
 
     /** Vertically align the crop to the top (true) or center (false) */
     shouldAlignTop?: boolean,
-
-    /** Image orientation determined by react-native-image-size that depends on device orientation */
-    orientation?: Orientation,
 ): Promise<ImageObject> {
     return ImageSize.getSize(image.source)
         .then((imageSize) => {
@@ -62,7 +60,7 @@ function cropImageToAspectRatio(
                 imageHeight,
                 aspectRatioWidth: ratioWidth,
                 aspectRatioHeight: ratioHeight,
-            } = getDeviceOrientationAwareImageSize({imageSize, orientation, aspectRatioWidth, aspectRatioHeight});
+            } = getDeviceOrientationAwareImageSize({imageSize, aspectRatioWidth, aspectRatioHeight});
 
             if (!imageWidth || !imageHeight || !ratioWidth || !ratioHeight) {
                 return image;

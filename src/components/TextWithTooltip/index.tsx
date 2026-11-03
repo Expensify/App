@@ -1,13 +1,17 @@
-import React, {useState} from 'react';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+
+import React, {useState} from 'react';
+
 import type TextWithTooltipProps from './types';
 
 type LayoutChangeEvent = {
     target: HTMLElement;
 };
 
-function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines = 1, forwardedFSClass}: TextWithTooltipProps) {
+function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines = 1, forwardedFSClass, isSelectable = false}: TextWithTooltipProps) {
     const [showTooltip, setShowTooltip] = useState(false);
 
     return (
@@ -19,6 +23,7 @@ function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines 
                 testID={testID}
                 style={style}
                 numberOfLines={numberOfLines}
+                selectable={isSelectable}
                 onLayout={(e) => {
                     const target = (e.nativeEvent as unknown as LayoutChangeEvent).target;
                     if (!shouldShowTooltip) {
@@ -31,6 +36,7 @@ function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines 
                     setShowTooltip(false);
                 }}
                 fsClass={forwardedFSClass}
+                dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
             >
                 {text}
             </Text>

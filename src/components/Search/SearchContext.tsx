@@ -1,4 +1,5 @@
 import {useContext} from 'react';
+
 import {
     SearchQueryActionsContext,
     SearchQueryContext,
@@ -6,7 +7,9 @@ import {
     SearchResultsContext,
     SearchRowSelectionActionsContext,
     SearchSelectionActionsContext,
+    SearchSelectionClearGenerationContext,
     SearchSelectionContext,
+    SearchShiftRangeGroupsContext,
 } from './SearchContextDefinitions';
 
 // Lightweight public surface for search contexts.
@@ -42,6 +45,14 @@ function useSearchRowSelectionActions() {
     return useContext(SearchRowSelectionActionsContext);
 }
 
+function useSearchShiftRangeGroups() {
+    return useContext(SearchShiftRangeGroupsContext);
+}
+
+function useSelectionClearGeneration() {
+    return useContext(SearchSelectionClearGenerationContext);
+}
+
 export {
     SearchQueryContext,
     SearchQueryActionsContext,
@@ -56,4 +67,6 @@ export {
     useSearchSelectionContext,
     useSearchSelectionActions,
     useSearchRowSelectionActions,
+    useSearchShiftRangeGroups,
+    useSelectionClearGeneration,
 };

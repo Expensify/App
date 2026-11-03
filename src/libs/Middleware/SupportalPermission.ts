@@ -1,10 +1,14 @@
-import type {OnyxKey} from 'react-native-onyx';
 import Log from '@libs/Log';
-import {isSupportAuthToken} from '@libs/Network/NetworkStore';
+import isUnauthorizedSupportalResponse from '@libs/Network/isUnauthorizedSupportalResponse';
+
 import {showSupportalPermissionDenied} from '@userActions/App';
+
 import type Request from '@src/types/onyx/Request';
 import type {PaginatedRequest} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+
 import type Middleware from './types';
 
 /**
@@ -13,11 +17,7 @@ import type Middleware from './types';
  */
 const SupportalPermission: Middleware = <TKey extends OnyxKey>(responsePromise: Promise<Response<TKey> | void>, request: Request<TKey> | PaginatedRequest<TKey>) =>
     responsePromise.then((response) => {
-        const message = response?.message;
-        const isUnauthorizedSupportalAction =
-            isSupportAuthToken() && response?.jsonCode === 411 && typeof message === 'string' && message.includes('You are not authorized to take this action when support logged in.');
-
-        if (isUnauthorizedSupportalAction) {
+        if (isUnauthorizedSupportalResponse(response)) {
             if (request?.data) {
                 request.data.shouldRetry = false;
             }

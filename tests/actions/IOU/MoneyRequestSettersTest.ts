@@ -1,8 +1,7 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import {format} from 'date-fns';
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import {
+    copyScanResultsToMovedExpenseDraft,
+    getMoneyRequestDraftParticipantsFromReport,
+    getSyncedParticipantAccountIDs,
     initMoneyRequest,
     resetDraftTransactionsCustomUnit,
     setMoneyRequestAmount,
@@ -12,27 +11,35 @@ import {
     setMoneyRequestDateAttribute,
     setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
+    setMoneyRequestParticipantsFromReport,
+    setMultipleMoneyRequestParticipantsFromReport,
+    setMoneyRequestParticipantsSyncedAccountIDs,
     setMoneyRequestTag,
 } from '@libs/actions/IOU/MoneyRequest';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import Log from '@libs/Log';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {LastSelectedDistanceRates, Policy, Report} from '@src/types/onyx';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
-import SafeString from '@src/utils/SafeString';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import {format} from 'date-fns';
+import Onyx from 'react-native-onyx';
+
 import currencyList from '../../unit/currencyList.json';
-import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -62,29 +69,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
 
 jest.mock('@react-navigation/native');
 
-jest.mock('@src/libs/actions/Report', () => {
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    return {
-        ...originalModule,
-        notifyNewAction: jest.fn(),
-    };
-});
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
-// In production, requestMoney defers its API.write() call until the target screen's
-// content lays out (or a safety timeout fires). In tests there is no target component
-// to flush the deferred write, so we bypass the deferral by executing the callback immediately.
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    registerDeferredWrite: (_key: string, callback: () => void) => callback(),
-    flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
-    reserveDeferredWriteChannel: jest.fn(),
-    resetForTesting: jest.fn(),
-}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;
@@ -113,6 +99,11 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 
 jest.mock('@libs/PolicyUtils', () => ({
     ...jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils'),
+    // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
+    // aren't on it yet. Spread them from their own modules, which load fully.
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
+    ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/policyType'),
     isPaidGroupPolicy: jest.fn().mockReturnValue(true),
     isPolicyOwner: jest.fn().mockImplementation((policy?: OnyxEntry<Policy>, currentUserAccountID?: number) => !!currentUserAccountID && policy?.ownerAccountID === currentUserAccountID),
 }));
@@ -123,14 +114,6 @@ const RORY_ACCOUNT_ID = 3;
 
 OnyxUpdateManager();
 describe('actions/IOU', () => {
-    const currentUserPersonalDetails: CurrentUserPersonalDetails = {
-        ...createPersonalDetails(RORY_ACCOUNT_ID),
-        login: RORY_EMAIL,
-        email: RORY_EMAIL,
-        displayName: RORY_EMAIL,
-        avatar: 'https://example.com/avatar.jpg',
-    };
-
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -363,7 +346,7 @@ describe('actions/IOU', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
             // When setting the money request category
-            setMoneyRequestCategory(transactionID, category, fakePolicy);
+            setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimalsLocal);
 
             await waitForBatchedUpdates();
 
@@ -404,7 +387,7 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When setting the money request category
-                setMoneyRequestCategory(transactionID, category, fakePolicy);
+                setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimalsLocal);
 
                 await waitForBatchedUpdates();
 
@@ -442,7 +425,7 @@ describe('actions/IOU', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
 
                 // When setting the money request category
-                setMoneyRequestCategory(transactionID, category, fakePolicy);
+                setMoneyRequestCategory(transactionID, category, fakePolicy, getCurrencyDecimalsLocal);
 
                 await waitForBatchedUpdates();
 
@@ -473,7 +456,7 @@ describe('actions/IOU', () => {
             });
 
             // When setting the money request category without a policyID
-            setMoneyRequestCategory(transactionID, '', undefined);
+            setMoneyRequestCategory(transactionID, '', undefined, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Then the transaction tax should be cleared
@@ -519,20 +502,7 @@ describe('actions/IOU', () => {
         };
         const transactionResult: Transaction = {
             amount: 0,
-            comment: {
-                attendees: [
-                    {
-                        email: currentUserPersonalDetails.email ?? '',
-                        login: currentUserPersonalDetails.login,
-                        accountID: 3,
-                        text: currentUserPersonalDetails.login,
-                        selected: true,
-                        reportID: '0',
-                        avatarUrl: SafeString(currentUserPersonalDetails.avatar) ?? '',
-                        displayName: currentUserPersonalDetails.displayName ?? '',
-                    },
-                ],
-            },
+            comment: {},
             created: '2025-04-01',
             currency: 'USD',
             iouRequestType: 'manual',
@@ -563,7 +533,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [],
                     });
@@ -586,7 +555,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [],
                     });
@@ -610,7 +578,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [],
                     });
@@ -644,7 +611,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [otherDraftTransactionID],
                     });
@@ -683,7 +649,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [otherDraftTransactionID, CONST.IOU.OPTIMISTIC_TRANSACTION_ID],
                     });
@@ -723,7 +688,6 @@ describe('actions/IOU', () => {
                         report: fakeReport,
                         parentReport: fakeParentReport,
                         currentDate,
-                        currentUserPersonalDetails,
                         hasOnlyPersonalPolicies: false,
                         draftTransactionIDs: [draftTransactionID1, draftTransactionID2],
                     });
@@ -744,8 +708,8 @@ describe('actions/IOU', () => {
             resetDraftTransactionsCustomUnit(undefined);
             await waitForBatchedUpdates();
             const allDraftTransactions = await getOnyxValue(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT);
-            // Assuming there are no draft transactions, this should be undefined or an empty object
-            expect(allDraftTransactions).toBeUndefined();
+            // Onyx resolves a registered collection with no members to the frozen `{}` once init has run.
+            expect(allDraftTransactions).toEqual({});
         });
         it('should reset custom unit for a transaction', async () => {
             const transactionID = 'transaction_reset_001';
@@ -797,6 +761,177 @@ describe('actions/IOU', () => {
             expect(draft?.shouldShowOriginalAmount).toBe(true);
         });
 
+        describe('draft participants from a 1:1 chat with a recipient created offline', () => {
+            const recipientAccountID = 9999995;
+            const recipientLogin = 'new.login@expensifail.com';
+            const chatReport = {
+                reportID: 'chatReport123',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [recipientAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            } as Report;
+
+            beforeEach(async () => {
+                // Given a 1:1 chat with a recipient created offline, whose optimistic personal details have a login
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[recipientAccountID]: {accountID: recipientAccountID, login: recipientLogin, isOptimisticPersonalDetail: true}});
+                await waitForBatchedUpdates();
+            });
+
+            it('setMoneyRequestParticipantsFromReport should store the login and the chat of the recipient with their accountID', async () => {
+                // When the draft's participants are set from that chat
+                await setMoneyRequestParticipantsFromReport(transactionID, chatReport, RORY_ACCOUNT_ID);
+                await waitForBatchedUpdates();
+
+                // Then the login and the chat are stored too, so the real account can still be found from the draft if the accountID is replaced on sync
+                const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+                expect(draft?.participants).toEqual([{accountID: recipientAccountID, login: recipientLogin, reportID: chatReport.reportID, selected: true}]);
+            });
+
+            it('setMultipleMoneyRequestParticipantsFromReport should store the login and the chat of the recipient in every draft', async () => {
+                // When the participants of several drafts, like a multi-scan, are set from that chat
+                const secondTransactionID = `${transactionID}-2`;
+                await setMultipleMoneyRequestParticipantsFromReport([transactionID, secondTransactionID], chatReport, RORY_ACCOUNT_ID);
+                await waitForBatchedUpdates();
+
+                // Then every draft stores the login and the chat, so none of them is submitted against the optimistic accountID after sync
+                const expectedParticipants = [{accountID: recipientAccountID, login: recipientLogin, reportID: chatReport.reportID, selected: true}];
+                const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+                const secondDraft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${secondTransactionID}`);
+                expect(draft?.participants).toEqual(expectedParticipants);
+                expect(secondDraft?.participants).toEqual(expectedParticipants);
+            });
+        });
+
+        describe('draft participants from a report without a recipient created offline', () => {
+            it('getMoneyRequestDraftParticipantsFromReport should return a workspace chat participant unchanged', () => {
+                // Given a workspace chat, whose participant has no accountID and so has no login to add
+                const policyID = 'policy789';
+                const policyExpenseChat = {
+                    reportID: 'policyExpenseChat789',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policyID,
+                    participants: {[RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS}},
+                } as Report;
+
+                // When the draft participants are built from that chat
+                const participants = getMoneyRequestDraftParticipantsFromReport(policyExpenseChat, RORY_ACCOUNT_ID);
+
+                // Then the workspace chat participant passes through unchanged, so the expense still goes to that workspace chat
+                expect(participants).toEqual([{accountID: 0, reportID: policyExpenseChat.reportID, isPolicyExpenseChat: true, selected: true, policyID, isSelfDM: false}]);
+            });
+
+            it('getMoneyRequestDraftParticipantsFromReport should add the login but not the chat for a recipient who was not created offline', async () => {
+                // Given a 1:1 chat with a recipient whose personal details came from the server, so they are not optimistic
+                const recipientAccountID = 9999994;
+                const recipientLogin = 'synced.recipient@expensifail.com';
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[recipientAccountID]: {accountID: recipientAccountID, login: recipientLogin}});
+                await waitForBatchedUpdates();
+                const chatReport = {
+                    reportID: 'chatReport789',
+                    type: CONST.REPORT.TYPE.CHAT,
+                    participants: {
+                        [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                        [recipientAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    },
+                } as Report;
+
+                // When the draft participants are built from that chat
+                const participants = getMoneyRequestDraftParticipantsFromReport(chatReport, RORY_ACCOUNT_ID);
+
+                // Then only the login is added, because the recipient's accountID is already real and won't need the chat to find it
+                expect(participants).toEqual([{accountID: recipientAccountID, login: recipientLogin, selected: true}]);
+                expect(participants.at(0)).not.toHaveProperty('reportID');
+            });
+        });
+
+        describe('synced participant accountIDs', () => {
+            const optimisticAccountID = 9999996;
+            const realAccountID = 9999997;
+            const recipientLogin = 'existing.user@expensifail.com';
+            const chatReport = {
+                reportID: 'chatReport456',
+                type: CONST.REPORT.TYPE.CHAT,
+                participants: {
+                    [RORY_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                    [realAccountID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
+                },
+            } as Report;
+
+            it('getSyncedParticipantAccountIDs should find the real account through the 1:1 chat when the server left its login off', () => {
+                // Given a draft recipient whose optimistic accountID was dropped on sync, and a real account with no login,
+                // which is how the server can return an existing Expensify user
+                const personalDetails = {
+                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                    [realAccountID]: {accountID: realAccountID, displayName: 'Existing User'},
+                };
+
+                // When the real accountIDs are looked up with the chat the draft saved as the recipient's chat
+                const participants = [{accountID: optimisticAccountID, login: recipientLogin, reportID: chatReport.reportID, selected: true}];
+                const syncedAccountIDs = getSyncedParticipantAccountIDs(participants, personalDetails, chatReport, RORY_ACCOUNT_ID);
+
+                // Then the chat's other participant replaces the optimistic accountID, so the existing chat can be found
+                expect(syncedAccountIDs).toEqual({[optimisticAccountID]: realAccountID});
+            });
+
+            it('getSyncedParticipantAccountIDs should not swap a recipient whose draft does not point to the chat for the chat recipient', () => {
+                // Given a newly picked phone contact, whose optimistic accountID was never in personal details, on a draft that still points to another 1:1 chat
+                const phoneContactAccountID = 9999998;
+                const personalDetails = {
+                    [RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL},
+                    [realAccountID]: {accountID: realAccountID, displayName: 'Existing User'},
+                };
+
+                // When the real accountIDs are looked up, and the phone contact was not saved with that chat
+                const participants = [{accountID: phoneContactAccountID, login: '+15005550006', selected: true}];
+                const syncedAccountIDs = getSyncedParticipantAccountIDs(participants, personalDetails, chatReport, RORY_ACCOUNT_ID);
+
+                // Then the phone contact is kept, so the expense isn't sent to the chat's recipient instead
+                expect(syncedAccountIDs).toEqual({});
+            });
+
+            it('getSyncedParticipantAccountIDs should leave a recipient alone while its accountID is still in personal details', () => {
+                // Given a draft recipient whose optimistic accountID has not synced yet
+                const personalDetails = {[optimisticAccountID]: {accountID: optimisticAccountID, login: recipientLogin}};
+
+                // When the real accountIDs are looked up
+                const participants = [{accountID: optimisticAccountID, login: recipientLogin, reportID: chatReport.reportID}];
+                const syncedAccountIDs = getSyncedParticipantAccountIDs(participants, personalDetails, chatReport, RORY_ACCOUNT_ID);
+
+                // Then nothing is replaced, because the optimistic accountID is still the right one
+                expect(syncedAccountIDs).toEqual({});
+            });
+
+            it('setMoneyRequestParticipantsSyncedAccountIDs should move the participant and its split share to the real accountID', async () => {
+                // Given a split draft whose shares were saved under the recipient's optimistic accountID
+                const transaction: Transaction = {
+                    ...createRandomTransaction(1),
+                    transactionID,
+                    participants: [{accountID: optimisticAccountID, login: recipientLogin, selected: true}],
+                    splitShares: {
+                        [RORY_ACCOUNT_ID]: {amount: 1500, isModified: false},
+                        [optimisticAccountID]: {amount: 1500, isModified: false},
+                    },
+                };
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, transaction);
+                await waitForBatchedUpdates();
+
+                // When the draft is moved to the real accountID after sync
+                setMoneyRequestParticipantsSyncedAccountIDs(transaction, {[optimisticAccountID]: realAccountID});
+                await waitForBatchedUpdates();
+
+                // Then the participant and the recipient's share both use the real accountID, so the split row still shows $15
+                const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+                expect(draft?.participants).toEqual([{accountID: realAccountID, login: recipientLogin, selected: true}]);
+                expect(draft?.splitShares).toEqual({
+                    [RORY_ACCOUNT_ID]: {amount: 1500, isModified: false},
+                    [realAccountID]: {amount: 1500, isModified: false},
+                });
+            });
+        });
+
         it('setMoneyRequestCreated should set created on transaction draft', async () => {
             setMoneyRequestCreated(transactionID, '2024-01-15', true);
             await waitForBatchedUpdates();
@@ -831,6 +966,64 @@ describe('actions/IOU', () => {
             await waitForBatchedUpdates();
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
             expect(draft?.billable).toBe(true);
+        });
+    });
+
+    describe('copyScanResultsToMovedExpenseDraft', () => {
+        const transactionID = 'movedScan123';
+        const scanningDraft: Transaction = {
+            transactionID,
+            amount: 0,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            isMerchantSet: false,
+            reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_READY},
+        };
+        const scannedTransaction: Transaction = {
+            ...scanningDraft,
+            // Tracked expenses store the amount negated; the draft holds it positive, as when the move started
+            amount: -1250,
+            currency: 'EUR',
+            created: '2024-01-15',
+            merchant: 'Coffee Shop',
+            receipt: {source: 'receipt.jpg', state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE},
+        };
+
+        it('copies the scanned values into a draft that was copied while the receipt was still scanning', async () => {
+            // Given a draft copied from a tracked expense while its receipt was scanning, and the real transaction after SmartScan completed
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, scanningDraft);
+
+            // When the scan results are synced to the draft
+            copyScanResultsToMovedExpenseDraft(scanningDraft, scannedTransaction);
+            await waitForBatchedUpdates();
+
+            // Then the draft carries the scanned values and receipt state, so the confirmation page stops showing "Scanning…"
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.amount).toBe(1250);
+            expect(draft?.currency).toBe('EUR');
+            expect(draft?.created).toBe('2024-01-15');
+            expect(draft?.merchant).toBe('Coffee Shop');
+            expect(draft?.isMerchantSet).toBe(true);
+            expect(draft?.receipt?.state).toBe(CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE);
+        });
+
+        it('keeps the merchant and date the user already entered on the draft', async () => {
+            // Given a scanning draft where the user already entered a merchant and a date on the confirmation page
+            const editedDraft: Transaction = {...scanningDraft, merchant: 'My merchant', isMerchantSet: true, created: '2024-02-02', isCreatedSet: true};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, editedDraft);
+
+            // When the scan results are synced to the draft
+            copyScanResultsToMovedExpenseDraft(editedDraft, scannedTransaction);
+            await waitForBatchedUpdates();
+
+            // Then the user's values win, and only the still-empty amount is filled from the scan
+            const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`);
+            expect(draft?.merchant).toBe('My merchant');
+            expect(draft?.created).toBe('2024-02-02');
+            expect(draft?.amount).toBe(1250);
         });
     });
 });

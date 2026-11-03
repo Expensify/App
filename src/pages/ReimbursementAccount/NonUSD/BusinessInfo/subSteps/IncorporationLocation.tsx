@@ -1,20 +1,25 @@
-import {CONST as COMMON_CONST} from 'expensify-common/dist/CONST';
-import React, {useCallback, useMemo, useState} from 'react';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import PushRowWithModal from '@components/PushRowWithModal';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
+
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useState} from 'react';
 
 type IncorporationLocationProps = SubPageProps;
 
@@ -45,14 +50,15 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const onyxValues = useMemo(
-        () =>
-            getSubStepValues(
-                {FORMATION_INCORPORATION_COUNTRY_CODE, FORMATION_INCORPORATION_STATE, COMPANY_COUNTRY: COMPANY_COUNTRY_CODE, COMPANY_STATE},
-                reimbursementAccountDraft,
-                reimbursementAccount,
-            ),
-        [reimbursementAccount, reimbursementAccountDraft],
+    const onyxValues = getSubStepValues(
+        {
+            FORMATION_INCORPORATION_COUNTRY_CODE,
+            FORMATION_INCORPORATION_STATE,
+            COMPANY_COUNTRY: COMPANY_COUNTRY_CODE,
+            COMPANY_STATE,
+        },
+        reimbursementAccountDraft,
+        reimbursementAccount,
     );
 
     const incorporationCountryInitialValue = onyxValues[FORMATION_INCORPORATION_COUNTRY_CODE] !== '' ? onyxValues[FORMATION_INCORPORATION_COUNTRY_CODE] : onyxValues[COMPANY_COUNTRY_CODE];
@@ -63,12 +69,9 @@ function IncorporationLocation({onNext, isEditing}: IncorporationLocationProps) 
     const [selectedState, setSelectedState] = useState<string>(incorporationStateInitialValue);
     const shouldGatherState = isCountryWithSelectableState(selectedCountry);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            return getFieldRequiredErrors(values, shouldGatherState ? STEP_FIELDS : [FORMATION_INCORPORATION_COUNTRY_CODE], translate);
-        },
-        [shouldGatherState, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
+        return getFieldRequiredErrors(values, shouldGatherState ? STEP_FIELDS : [FORMATION_INCORPORATION_COUNTRY_CODE], translate);
+    };
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

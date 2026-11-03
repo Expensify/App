@@ -1,13 +1,18 @@
-import React, {useRef} from 'react';
 import CenteredModalLayout from '@components/CenteredModalLayout';
-import FeatureTrainingContent from '@components/FeatureTrainingContent';
+import FeatureTraining from '@components/FeatureTraining';
+
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import {openExternalLink} from '@userActions/Link';
 import {setNameValuePair} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useRef} from 'react';
 
 const VIDEO_ASPECT_RATIO = 1560 / 1280;
 
@@ -33,18 +38,23 @@ function TrackTrainingPage() {
 
     return (
         <CenteredModalLayout onBackdropPress={handleClose}>
-            <FeatureTrainingContent
-                shouldShowDismissModalOption
-                confirmText={translate('common.buttonConfirm')}
-                helpText={translate('common.learnMore')}
-                onHelp={onHelp}
+            <FeatureTraining
+                onConfirm={handleClose}
                 onClose={handleClose}
                 onWillShowAgainChange={(willShowAgain) => {
                     willShowAgainRef.current = willShowAgain;
                 }}
-                videoURL={CONST.FEATURE_TRAINING[CONST.FEATURE_TRAINING.CONTENT_TYPES.TRACK_EXPENSE]?.VIDEO_URL}
-                illustrationAspectRatio={VIDEO_ASPECT_RATIO}
-            />
+            >
+                <FeatureTraining.Illustration
+                    videoURL={CONST.FEATURE_TRAINING[CONST.FEATURE_TRAINING.CONTENT_TYPES.TRACK_EXPENSE]?.VIDEO_URL}
+                    aspectRatio={VIDEO_ASPECT_RATIO}
+                />
+                <FeatureTraining.Body>
+                    <FeatureTraining.DismissOption />
+                    <FeatureTraining.HelpButton onPress={onHelp}>{translate('common.learnMore')}</FeatureTraining.HelpButton>
+                    <FeatureTraining.ConfirmButton>{translate('common.buttonConfirm')}</FeatureTraining.ConfirmButton>
+                </FeatureTraining.Body>
+            </FeatureTraining>
         </CenteredModalLayout>
     );
 }

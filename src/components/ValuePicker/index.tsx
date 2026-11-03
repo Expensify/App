@@ -1,19 +1,27 @@
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
+
 import type {ValuePickerItem, ValuePickerProps} from './types';
+
 import ValueSelectionList from './ValueSelectionList';
 import ValueSelectorModal from './ValueSelectorModal';
 
 function ValuePicker({
     value,
     label,
+    modalHeaderTitle,
+    shouldReadErrorWithLabel,
     items,
     placeholder = '',
     errorText = '',
     onInputChange,
+    onOpen,
     furtherDetails,
     shouldShowTooltips = true,
     shouldShowModal = true,
@@ -27,6 +35,7 @@ function ValuePicker({
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
+        onOpen?.();
     };
 
     const hidePickerModal = () => {
@@ -49,18 +58,18 @@ function ValuePicker({
                     <MenuItemWithTopDescription
                         ref={ref}
                         shouldShowRightIcon
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         title={selectedItem?.label || placeholder || ''}
                         description={label}
                         onPress={showPickerModal}
                         furtherDetails={furtherDetails}
                         brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={errorText}
+                        shouldReadErrorWithLabel={shouldReadErrorWithLabel}
                         forwardedFSClass={forwardedFSClass}
                     />
                     <ValueSelectorModal
                         isVisible={isPickerVisible}
-                        label={label}
+                        label={modalHeaderTitle ?? label}
                         selectedItem={selectedItem}
                         items={items}
                         onClose={hidePickerModal}

@@ -1,13 +1,18 @@
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
 import TestNavigationContainer from '../utils/TestNavigationContainer';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
@@ -15,8 +20,8 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/inbox/sidebar/NavigationTabBarAvatar');
 
-const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 describe('Push fullscreen from RHP', () => {
     beforeEach(() => {
@@ -49,6 +54,7 @@ describe('Push fullscreen from RHP', () => {
                                         },
                                     },
                                     {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                    {name: SCREENS.INSIGHTS},
                                     {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                     {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                 ],
@@ -88,7 +94,7 @@ describe('Push fullscreen from RHP', () => {
         expect(lastRootRoute?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
 
         const newTabState = lastRootRoute?.state;
-        const workspaceNav = newTabState?.routes.at(4);
+        const workspaceNav = newTabState?.routes.at(5);
         expect(workspaceNav?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
         const nestedWorkspacesListRoute = workspaceNav?.state?.routes?.at(-1);
         expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
@@ -123,6 +129,7 @@ describe('Push fullscreen from RHP', () => {
                                         },
                                     },
                                     {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                    {name: SCREENS.INSIGHTS},
                                     {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                     {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                 ],
@@ -155,7 +162,7 @@ describe('Push fullscreen from RHP', () => {
         expect(lastRootRoute?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
 
         const newTabState = lastRootRoute?.state;
-        const workspaceNav = newTabState?.routes.at(4);
+        const workspaceNav = newTabState?.routes.at(5);
         expect(workspaceNav?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
         const nestedWorkspacesListRoute = workspaceNav?.state?.routes?.at(-1);
         expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);
@@ -187,6 +194,7 @@ describe('Push fullscreen from RHP', () => {
                                         },
                                     },
                                     {name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR},
+                                    {name: SCREENS.INSIGHTS},
                                     {name: NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR},
                                     {name: NAVIGATORS.WORKSPACE_NAVIGATOR},
                                 ],
@@ -214,7 +222,7 @@ describe('Push fullscreen from RHP', () => {
         expect(lastRootRoute?.name).toBe(NAVIGATORS.TAB_NAVIGATOR);
 
         const newTabState = lastRootRoute?.state;
-        const workspaceNav = newTabState?.routes.at(4);
+        const workspaceNav = newTabState?.routes.at(5);
         expect(workspaceNav?.name).toBe(NAVIGATORS.WORKSPACE_NAVIGATOR);
         const nestedWorkspacesListRoute = workspaceNav?.state?.routes?.at(-1);
         expect(nestedWorkspacesListRoute?.name).toBe(SCREENS.WORKSPACES_LIST);

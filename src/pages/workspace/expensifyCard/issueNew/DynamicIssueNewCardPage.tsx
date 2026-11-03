@@ -1,22 +1,30 @@
-import React, {useEffect, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
+
 import {startIssueNewCardFlow} from '@libs/actions/Card';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {IssueNewCard, IssueNewCardStep} from '@src/types/onyx/Card';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useEffect} from 'react';
+
 import AssigneeStep from './AssigneeStep';
 import CardNameStep from './CardNameStep';
 import CardTypeStep from './CardTypeStep';
@@ -53,13 +61,8 @@ function DynamicIssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_ISSUE_NEW.path);
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
 
-    const stepNames = useMemo(() => {
-        if (issueNewCard?.isChangeAssigneeDisabled) {
-            return CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES;
-        }
-        return CONST.EXPENSIFY_CARD.STEP_NAMES;
-    }, [issueNewCard?.isChangeAssigneeDisabled]);
-    const startStepIndex = useMemo(() => getStartStepIndex(issueNewCard), [issueNewCard]);
+    const stepNames = issueNewCard?.isChangeAssigneeDisabled ? CONST.EXPENSIFY_CARD.ASSIGNEE_EXCLUDED_STEP_NAMES : CONST.EXPENSIFY_CARD.STEP_NAMES;
+    const startStepIndex = getStartStepIndex(issueNewCard);
 
     useEffect(() => {
         startIssueNewCardFlow(policyID);

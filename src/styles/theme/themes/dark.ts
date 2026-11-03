@@ -1,5 +1,6 @@
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 
@@ -27,8 +28,10 @@ const darkTheme = {
     syntax: colors.productDark800,
     link: colors.blue300,
     linkHover: colors.blue100,
+    linkReversed: colors.blue600,
     buttonDefaultBG: colors.productDark400,
     buttonHoveredBG: colors.productDark500,
+    buttonHoveredBGReversed: colors.productLight500,
     buttonPressedBG: colors.productDark600,
     buttonSuccessText: colors.productLight100,
     buttonDangerText: colors.productDark900,
@@ -45,7 +48,7 @@ const darkTheme = {
     receiptPlaceholderPlus: colors.productLight100,
 
     // Additional keys
-    overlay: colors.productDark400,
+    overlay: colors.productDark300,
     inverse: colors.productDark900,
     shadow: '0px 4px 12px 0px rgba(2,18,4,0.24)',
     componentBG: colors.productDark100,
@@ -55,13 +58,18 @@ const darkTheme = {
     signInSidebar: colors.green800,
     sidebar: colors.productDark100,
     sidebarHover: colors.productDark300,
+    floatingTabBarSelectedBG: 'rgba(26,61,50,0.50)',
+    // selectedOptionBG (green700) at 40%
+    androidTabBarActiveIndicatorBG: 'rgba(8,82,57,0.40)',
+    androidTabBarShadow: '0px -4px 12px 0px rgba(2,18,4,0.24)',
     heading: colors.productDark900,
     textLight: colors.productDark900,
     textDark: colors.productDark100,
     textReversed: colors.productLight900,
     textBackground: colors.productDark200,
     textMutedReversed: colors.productDark700,
-    textError: colors.red,
+    textError: colors.tangerine300,
+    textSuccess: colors.green300,
     offline: colors.productDark700,
     modalBackground: colors.productDark100,
     cardBG: colors.productDark200,
@@ -84,6 +92,7 @@ const darkTheme = {
     imageCropBackgroundColor: colors.productDark700,
     fallbackIconColor: colors.green700,
     reactionActiveBackground: colors.green600,
+    selectedOptionBG: colors.green700,
     reactionActiveText: colors.green100,
     badgeDefaultBG: colors.productDark400,
     badgeSuccessBG: colors.green700,
@@ -92,6 +101,8 @@ const darkTheme = {
     badgeDangerText: colors.tangerine200,
     badgeAdHoc: colors.pink600,
     badgeAdHocHover: colors.pink700,
+    badgeOfferBG: colors.pink700,
+    badgeOfferText: colors.pink200,
     bordersBold: colors.productDark400,
     buttonIcon: colors.productDark700,
     mentionText: colors.blue100,

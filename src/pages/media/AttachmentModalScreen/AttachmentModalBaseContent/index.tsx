@@ -1,7 +1,3 @@
-import React, {memo, useCallback, useContext, useEffect, useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
-import {GestureHandlerRootView} from 'react-native-gesture-handler';
-import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
 import {AttachmentCarouselPagerActionsContext, AttachmentCarouselPagerStateContext} from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
@@ -12,6 +8,7 @@ import type {Attachment} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -20,18 +17,29 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import getPlatform from '@libs/getPlatform';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import viewRef from '@src/types/utils/viewRef';
-import {AttachmentStateContext} from './AttachmentStateContextProvider';
+
+import React, {useContext, useEffect, useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
+
 import type {AttachmentModalBaseContentProps} from './types';
+
+import {AttachmentStateContext} from './AttachmentStateContextProvider';
 
 function AttachmentModalBaseContent({
     source: sourceProp = '',
@@ -64,6 +72,7 @@ function AttachmentModalBaseContent({
     shouldAllowDownloadOutsideReportContext = false,
     onClose,
     onConfirm,
+    confirmLeavesScreen = false,
     AttachmentContent,
     onCarouselAttachmentChange = () => {},
     transaction: transactionProp,
@@ -105,25 +114,9 @@ function AttachmentModalBaseContent({
         addOfflineIndicatorBottomSafeAreaPadding: true,
     });
 
-    const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);
-    const [files, setFilesInternal] = useState<FileObject | FileObject[] | undefined>(() => filesProp ?? fallbackFile);
-    const [isMultipleFiles, setIsMultipleFiles] = useState<boolean>(() => Array.isArray(files));
-    const fileToDisplay = useMemo(() => {
-        if (isMultipleFiles) {
-            return (files as FileObject[])?.at(fileToDisplayIndex);
-        }
-        return files as FileObject;
-    }, [files, fileToDisplayIndex, isMultipleFiles]);
-
-    const setFile = useCallback((newFile: FileObject | FileObject[] | undefined) => {
-        if (Array.isArray(newFile)) {
-            setFilesInternal(newFile);
-            setIsMultipleFiles(true);
-        } else {
-            setFilesInternal(newFile);
-            setIsMultipleFiles(false);
-        }
-    }, []);
+    const fallbackFile = originalFileName ? {name: originalFileName} : undefined;
+    const [files, setFile] = useState<FileObject | FileObject[] | undefined>(() => filesProp ?? fallbackFile);
+    const fileToDisplay = Array.isArray(files) ? files.at(fileToDisplayIndex) : files;
 
     useEffect(() => {
         setFile(filesProp ?? fallbackFile);
@@ -132,51 +125,57 @@ function AttachmentModalBaseContent({
     /**
      * Keeps the attachment source in sync with the attachment displayed currently in the carousel.
      */
-    const onNavigate = useCallback(
-        (attachment: Attachment) => {
-            setSource(attachment.source);
-            setFile(attachment.file);
-            setCurrentPreviewSource(attachment.previewSource);
-            setIsAuthTokenRequiredState(attachment.isAuthTokenRequired ?? false);
-            onCarouselAttachmentChange(attachment);
-            setCurrentAttachmentLink(attachment?.attachmentLink ?? '');
-        },
-        [onCarouselAttachmentChange, setFile],
-    );
+    const onNavigate = (attachment: Attachment) => {
+        setSource(attachment.source);
+        setFile(attachment.file);
+        setCurrentPreviewSource(attachment.previewSource);
+        setIsAuthTokenRequiredState(attachment.isAuthTokenRequired ?? false);
+        onCarouselAttachmentChange(attachment);
+        setCurrentAttachmentLink(attachment?.attachmentLink ?? '');
+    };
 
-    const threeDotsMenuItems = useMemo(
-        () => (typeof threeDotsMenuItemsProp === 'function' ? threeDotsMenuItemsProp({file: fileToDisplay, source, isLocalSource}) : (threeDotsMenuItemsProp ?? [])),
-        [fileToDisplay, isLocalSource, source, threeDotsMenuItemsProp],
-    );
+    const threeDotsMenuItems = typeof threeDotsMenuItemsProp === 'function' ? threeDotsMenuItemsProp({file: fileToDisplay, source, isLocalSource}) : (threeDotsMenuItemsProp ?? []);
 
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = useState(true);
-    const setDownloadButtonVisibility = useCallback(
-        (isButtonVisible: boolean) => {
-            if (isDownloadButtonReadyToBeShown === isButtonVisible) {
-                return;
-            }
-            setIsDownloadButtonReadyToBeShown(isButtonVisible);
-        },
-        [isDownloadButtonReadyToBeShown],
-    );
+    const setDownloadButtonVisibility = (isButtonVisible: boolean) => {
+        if (isDownloadButtonReadyToBeShown === isButtonVisible) {
+            return;
+        }
+        setIsDownloadButtonReadyToBeShown(isButtonVisible);
+    };
 
     /**
      * Execute the onConfirm callback and close the modal.
      */
-    const submitAndClose = useCallback(() => {
+    const submitAndClose = () => {
         // If the modal has already been closed or the confirm button is disabled
         // do not submit.
         if (isConfirmButtonDisabled) {
             return;
         }
 
+        const confirm = () => onConfirm?.(Object.assign(files ?? {}, {source}));
+
+        // Sequence close and confirm so the screen underneath never flashes between them. On native the modal must close
+        // first, otherwise the back navigation latches onto the confirm navigation and loops.
+        if (confirmLeavesScreen) {
+            const platform = getPlatform();
+            const isNativePlatform = platform === CONST.PLATFORM.IOS || platform === CONST.PLATFORM.ANDROID;
+            if (isNativePlatform) {
+                onClose?.({shouldCallDirectly: true});
+                confirm();
+            } else {
+                confirm();
+                onClose?.();
+            }
+            return;
+        }
+
         onClose?.();
 
         // Defer onConfirm to the next frame so the target screen has time to unfreeze and re-mount its refs (e.g. composerRef.clearWorklet)
-        requestAnimationFrame(() => {
-            onConfirm?.(Object.assign(files ?? {}, {source} as FileObject));
-        });
-    }, [isConfirmButtonDisabled, onConfirm, onClose, files, source]);
+        requestAnimationFrame(confirm);
+    };
 
     // Close the modal when the escape key is pressed
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => onClose?.(), {shouldBubble: true});
@@ -190,127 +189,81 @@ function AttachmentModalBaseContent({
 
     const {isAttachmentLoaded} = useContext(AttachmentStateContext);
     const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
-    const isFileImage = typeof source !== 'function' && checkIsFileImage(source, fileToDisplay?.name);
+    const isFileImage = typeof source !== 'function' && checkIsFileImage(source, fileToDisplay?.name, fileToDisplay?.type);
     const isSourceLoaded = isAttachmentLoaded?.(source) || (!!currentPreviewSource && isAttachmentLoaded?.(currentPreviewSource));
-    const shouldShowDownloadButton = useMemo(() => {
-        const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH || shouldAllowDownloadOutsideReportContext;
-        if (!isValidContext || isErrorInAttachment(source) || isEReceipt) {
-            return false;
-        }
-
-        return !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && (!isFileImage || isSourceLoaded);
-    }, [
-        isDownloadButtonReadyToBeShown,
-        isErrorInAttachment,
-        isFileImage,
-        isLocalSource,
-        isOffline,
-        isSourceLoaded,
-        onDownloadAttachment,
-        report,
-        shouldAllowDownloadOutsideReportContext,
-        shouldShowNotFoundPage,
-        source,
-        type,
-        isEReceipt,
-    ]);
+    let shouldShowDownloadButton;
+    const isValidContext = !isEmptyObject(report) || type === CONST.ATTACHMENT_TYPE.SEARCH || shouldAllowDownloadOutsideReportContext;
+    if (!isValidContext || isErrorInAttachment(source) || isEReceipt) {
+        shouldShowDownloadButton = false;
+    } else {
+        shouldShowDownloadButton = !!onDownloadAttachment && isDownloadButtonReadyToBeShown && !shouldShowNotFoundPage && !isOffline && !isLocalSource && (!isFileImage || isSourceLoaded);
+    }
 
     // We need to pass a shared value of type boolean to the context, so `falseSV` acts as a default value.
     const falseSV = useSharedValue(false);
-    const stateValue = useMemo<AttachmentCarouselPagerStateContextType>(
-        () => ({
-            pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
-            activePage: 0,
-            pagerRef: undefined,
-            isPagerScrolling: falseSV,
-            isScrollEnabled: falseSV,
-        }),
-        [falseSV, sourceForAttachmentView],
-    );
+    const stateValue: AttachmentCarouselPagerStateContextType = {
+        pagerItems: [{source: sourceForAttachmentView, index: 0, isActive: true}],
+        activePage: 0,
+        pagerRef: undefined,
+        isPagerScrolling: falseSV,
+        isScrollEnabled: falseSV,
+    };
 
-    const actionsValue = useMemo<AttachmentCarouselPagerActionsContextType>(
-        () => ({
-            onTap: () => {},
-            onScaleChanged: () => {},
-            onAttachmentError: setAttachmentError,
-            ...(shouldCloseOnSwipeDown ? {onSwipeDown: onClose} : {}),
-        }),
-        [setAttachmentError, shouldCloseOnSwipeDown, onClose],
-    );
+    const actionsValue: AttachmentCarouselPagerActionsContextType = {
+        onTap: () => {},
+        onScaleChanged: () => {},
+        onAttachmentError: setAttachmentError,
+        ...(shouldCloseOnSwipeDown ? {onSwipeDown: onClose} : {}),
+    };
 
     const shouldDisplayContent = !shouldShowNotFoundPage && !isLoading;
-    const Content = useMemo(() => {
-        if (AttachmentContent) {
-            return (
-                <AttachmentContent
-                    fileToDisplay={fileToDisplay}
-                    files={files}
-                />
-            );
-        }
-
-        return !isEmptyObject(report) && shouldShowCarousel && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
-            <AttachmentCarousel
-                accountID={accountID}
-                type={type}
-                attachmentID={attachmentID}
-                report={report}
-                onNavigate={onNavigate}
-                source={sourceProp}
-                setDownloadButtonVisibility={setDownloadButtonVisibility}
-                attachmentLink={currentAttachmentLink}
-                onAttachmentError={setAttachmentError}
+    let Content;
+    if (AttachmentContent) {
+        Content = (
+            <AttachmentContent
+                fileToDisplay={fileToDisplay}
+                files={files}
             />
-        ) : (
-            !!sourceForAttachmentView && (
-                <AttachmentCarouselPagerStateContext.Provider value={stateValue}>
-                    <AttachmentCarouselPagerActionsContext.Provider value={actionsValue}>
-                        <AttachmentView
-                            containerStyles={[styles.mh5]}
-                            source={sourceForAttachmentView}
-                            isAuthTokenRequired={isAuthTokenRequiredState}
-                            file={fileToDisplay}
-                            onToggleKeyboard={setIsConfirmButtonDisabled}
-                            isWorkspaceAvatar={isWorkspaceAvatar}
-                            maybeIcon={maybeIcon}
-                            fallbackSource={fallbackSource}
-                            isUsedInAttachmentModal
-                            transactionID={transaction?.transactionID}
-                            transaction={transaction}
-                            isUploaded={!isEmptyObject(report)}
-                            reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
-                            rotation={pdfRotation}
-                        />
-                    </AttachmentCarouselPagerActionsContext.Provider>
-                </AttachmentCarouselPagerStateContext.Provider>
-            )
         );
-    }, [
-        AttachmentContent,
-        accountID,
-        attachmentID,
-        stateValue,
-        actionsValue,
-        currentAttachmentLink,
-        fallbackSource,
-        fileToDisplay,
-        files,
-        isAuthTokenRequiredState,
-        isWorkspaceAvatar,
-        maybeIcon,
-        onNavigate,
-        pdfRotation,
-        report,
-        reportID,
-        setAttachmentError,
-        setDownloadButtonVisibility,
-        shouldShowCarousel,
-        sourceForAttachmentView,
-        sourceProp,
-        styles.mh5,
-        transaction,
-        type,
-    ]);
+    } else {
+        Content =
+            !isEmptyObject(report) && shouldShowCarousel && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
+                <AttachmentCarousel
+                    accountID={accountID}
+                    type={type}
+                    attachmentID={attachmentID}
+                    report={report}
+                    onNavigate={onNavigate}
+                    source={sourceProp}
+                    setDownloadButtonVisibility={setDownloadButtonVisibility}
+                    attachmentLink={currentAttachmentLink}
+                    onAttachmentError={setAttachmentError}
+                />
+            ) : (
+                !!sourceForAttachmentView && (
+                    <AttachmentCarouselPagerStateContext.Provider value={stateValue}>
+                        <AttachmentCarouselPagerActionsContext.Provider value={actionsValue}>
+                            <AttachmentView
+                                containerStyles={[styles.mh5]}
+                                source={sourceForAttachmentView}
+                                isAuthTokenRequired={isAuthTokenRequiredState}
+                                file={fileToDisplay}
+                                onToggleKeyboard={setIsConfirmButtonDisabled}
+                                isWorkspaceAvatar={isWorkspaceAvatar}
+                                maybeIcon={maybeIcon}
+                                fallbackSource={fallbackSource}
+                                isUsedInAttachmentModal
+                                transactionID={transaction?.transactionID}
+                                transaction={transaction}
+                                isUploaded={!isEmptyObject(report)}
+                                reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
+                                rotation={pdfRotation}
+                            />
+                        </AttachmentCarouselPagerActionsContext.Provider>
+                    </AttachmentCarouselPagerStateContext.Provider>
+                )
+            );
+    }
 
     return (
         <GestureHandlerRootView style={styles.flex1}>
@@ -344,7 +297,6 @@ function AttachmentModalBaseContent({
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             testID="attachment-loading-spinner"
-                            reasonAttributes={{context: 'AttachmentModalBaseContent'}}
                         />
                     </View>
                 )}
@@ -381,16 +333,16 @@ function AttachmentModalBaseContent({
                         >
                             <Button
                                 ref={submitRef ? viewRef(submitRef) : undefined}
-                                success
-                                large
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
-                                textStyles={[styles.buttonConfirmText]}
-                                text={translate('common.send')}
                                 onPress={submitAndClose}
                                 isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
-                                pressOnEnter
                                 sentryLabel={CONST.SENTRY_LABEL.ATTACHMENT_MODAL.SEND_BUTTON}
-                            />
+                            >
+                                <Button.KeyboardShortcut />
+                                <Button.Text style={[styles.buttonConfirmText]}>{translate('common.send')}</Button.Text>
+                            </Button>
                         </Animated.View>
                     )}
                 </LayoutAnimationConfig>
@@ -399,4 +351,4 @@ function AttachmentModalBaseContent({
     );
 }
 
-export default memo(AttachmentModalBaseContent);
+export default AttachmentModalBaseContent;

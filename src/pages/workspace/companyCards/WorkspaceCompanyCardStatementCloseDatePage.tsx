@@ -1,22 +1,27 @@
-import React, {useCallback, useMemo} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+
 import {clearErrorField, setFeedStatementPeriodEndDay} from '@libs/actions/CompanyCards';
 import {getCompanyCardFeed, getCompanyFeeds, getDomainOrWorkspaceAccountID, getSelectedFeed} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {StatementPeriodEnd, StatementPeriodEndDay} from '@src/types/onyx/CardFeeds';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import React from 'react';
+
 import WorkspaceCompanyCardStatementCloseDateSelectionList from './WorkspaceCompanyCardStatementCloseDateSelectionList';
 
 type WorkspaceCompanyCardStatementCloseDatePageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE>;
@@ -37,49 +42,32 @@ function WorkspaceCompanyCardStatementCloseDatePage({
     const domainOrWorkspaceAccountID = getDomainOrWorkspaceAccountID(workspaceAccountID, selectedFeedData);
     const statementPeriodEndDay = selectedFeedData?.statementPeriodEndDay;
 
-    const [defaultStatementPeriodEnd, defaultStatementPeriodEndDay] = useMemo(() => {
-        if (!statementPeriodEndDay) {
-            return [undefined, undefined];
+    const defaultStatementPeriodEnd = statementPeriodEndDay && typeof statementPeriodEndDay !== 'number' ? statementPeriodEndDay : undefined;
+    const defaultStatementPeriodEndDay = statementPeriodEndDay && typeof statementPeriodEndDay === 'number' ? statementPeriodEndDay : undefined;
+
+    const submit = (newStatementPeriodEnd: StatementPeriodEnd | undefined, newStatementPeriodEndDay: StatementPeriodEndDay | undefined) => {
+        const isChangedValue = (newStatementPeriodEndDay ?? newStatementPeriodEnd) !== statementPeriodEndDay;
+        if (feed && isChangedValue) {
+            setFeedStatementPeriodEndDay(policyID, feed, domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
         }
 
-        if (typeof statementPeriodEndDay === 'number') {
-            return [undefined, statementPeriodEndDay];
-        }
-
-        return [statementPeriodEndDay, undefined];
-    }, [statementPeriodEndDay]);
-
-    const submit = useCallback(
-        (newStatementPeriodEnd: StatementPeriodEnd | undefined, newStatementPeriodEndDay: StatementPeriodEndDay | undefined) => {
-            const isChangedValue = (newStatementPeriodEndDay ?? newStatementPeriodEnd) !== statementPeriodEndDay;
-            if (feed && isChangedValue) {
-                setFeedStatementPeriodEndDay(policyID, feed, domainOrWorkspaceAccountID, newStatementPeriodEnd, newStatementPeriodEndDay, statementPeriodEndDay);
-            }
-
-            Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
-        },
-        [policyID, feed, statementPeriodEndDay, domainOrWorkspaceAccountID],
-    );
-
-    const goBack = useCallback(() => {
         Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
-    }, [policyID]);
+    };
 
-    const clearError = useCallback(() => {
+    const goBack = () => {
+        Navigation.goBack(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS.getRoute(policyID));
+    };
+
+    const clearError = () => {
         if (!feed) {
             return;
         }
 
         clearErrorField(feed, domainOrWorkspaceAccountID, 'statementPeriodEndDay');
-    }, [feed, domainOrWorkspaceAccountID]);
+    };
 
     if (isLoadingOnyxValue(cardFeedsResult) || isLoadingOnyxValue(lastSelectedFeedResult)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'WorkspaceCompanyCardStatementCloseDatePage',
-            isCardFeedsLoading: isLoadingOnyxValue(cardFeedsResult),
-            isLastSelectedFeedLoading: isLoadingOnyxValue(lastSelectedFeedResult),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

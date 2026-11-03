@@ -1,82 +1,122 @@
-import {useEffect, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePrevious from '@hooks/usePrevious';
-import {clearMoneyRequestRateAutoUpdated, setCustomUnitRateID, setMoneyRequestAmount, setMoneyRequestMerchant, setMoneyRequestPendingFields} from '@libs/actions/IOU/MoneyRequest';
+
+import {
+    clearMoneyRequestRateAutoUpdated,
+    setCustomUnitRateID,
+    setMoneyRequestAmount,
+    setMoneyRequestCommuterExclusionFields,
+    setMoneyRequestMerchant,
+    setMoneyRequestPendingFields,
+} from '@libs/actions/IOU/MoneyRequest';
 import {setSplitShares} from '@libs/actions/IOU/Split';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import type {MileageRate} from '@libs/DistanceRequestUtils';
+import {getCreated, isManualDistanceRequest as isManualDistanceRequestUtil} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
-import type {Unit} from '@src/types/onyx/Policy';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useRef} from 'react';
+
+import type useDistanceRequestState from './hooks/useDistanceRequestState';
 
 type DistanceRequestControllerProps = {
+    /** ID of the transaction being confirmed */
     transactionID: string | undefined;
+
+    /** Read for its manual-distance type, its created date and its `rateAutoUpdated` flag */
     transaction: OnyxEntry<Transaction>;
+
+    /** The workspace whose mileage rates the selected rate is checked against. */
     policy: OnyxEntry<Policy>;
+
+    /** Whether the expense is a distance expense */
     isDistanceRequest: boolean;
-    isManualDistanceRequest: boolean;
+
+    /** Whether the expense is submitted to a workspace chat */
     isPolicyExpenseChat: boolean;
+
+    /** Whether the expense is being moved off a track expense */
     isMovingTransactionFromTrackExpense: boolean;
+
+    /** Whether the confirmation is read-only */
     isReadOnly: boolean;
+
+    /** Whether the expense is a split */
     isTypeSplit: boolean;
+
+    /** The selected distance rate ID */
     customUnitRateID: string;
-    mileageRate: MileageRate;
-    rate: number | undefined;
-    unit: Unit | undefined;
-    currency: string;
-    distance: number;
-    distanceRequestAmount: number;
-    shouldCalculateDistanceAmount: boolean;
+
+    /** Account ID of the current user */
     currentUserAccountID: number;
-    isDistanceRequestWithPendingRoute: boolean;
-    hasRoute: boolean;
-    defaultMileageRateCustomUnitRateID: string | undefined;
+
+    /** Participants that are selected */
     selectedParticipants: Participant[];
+
+    /** Every participant the page passed in, selected or not. Split shares are set for all of them. */
     selectedParticipantsProp: Participant[];
-    setFormError: (error: TranslationPaths | '') => void;
+
+    /** Raises a form error */
+    setFormError: (value: TranslationPaths | '') => void;
+
+    /** Clears the form error if it is one of the given keys */
     clearFormErrors: (errors: string[]) => void;
+
+    /** The full distance state. Only a distance surface resolves one. */
+    distanceState: ReturnType<typeof useDistanceRequestState>;
 };
 
 /**
  * Side-effect-only component that manages distance request effects:
  * validates distance rates on policy change, calculates distance amounts,
  * auto-selects the last saved distance rate, and updates the merchant.
+ *
+ * Mounted only by the distance variant, which is the only surface that resolves a distance state.
  */
 function DistanceRequestController({
     transactionID,
     transaction,
     policy,
     isDistanceRequest,
-    isManualDistanceRequest,
     isPolicyExpenseChat,
     isMovingTransactionFromTrackExpense,
     isReadOnly,
     isTypeSplit,
     customUnitRateID,
-    mileageRate,
-    rate,
-    unit,
-    currency,
-    distance,
-    distanceRequestAmount,
-    shouldCalculateDistanceAmount,
     currentUserAccountID,
-    isDistanceRequestWithPendingRoute,
-    hasRoute,
-    defaultMileageRateCustomUnitRateID,
     selectedParticipants,
     selectedParticipantsProp,
     setFormError,
     clearFormErrors,
+    distanceState,
 }: DistanceRequestControllerProps) {
+    const isManualDistanceRequest = isManualDistanceRequestUtil(transaction);
+    const {
+        mileageRate,
+        rate,
+        unit,
+        currency,
+        distance,
+        distanceRequestAmount,
+        shouldCalculateDistanceAmount,
+        isDistanceRequestWithPendingRoute,
+        hasRoute,
+        defaultRate: defaultMileageRateCustomUnitRateID,
+    } = distanceState;
+
     const {translate, toLocaleDigit} = useLocalize();
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
+    const personalPolicy = usePersonalPolicy();
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const lastSelectedRate = policy?.id ? (lastSelectedDistanceRates?.[policy.id] ?? defaultMileageRateCustomUnitRateID) : defaultMileageRateCustomUnitRateID;
     const prevPolicy = usePrevious(policy);
@@ -86,11 +126,23 @@ function DistanceRequestController({
         // We want this effect to run when the transaction is moving from Self DM to an expense chat, or when the policy changes
         const isPolicyChanged = prevPolicy?.id !== policy?.id;
         const didSwitchPolicy = !!prevPolicy?.id && prevPolicy.id !== policy?.id;
-        if (!transactionID || !isDistanceRequest || !isPolicyExpenseChat || (!isMovingTransactionFromTrackExpense && !isPolicyChanged)) {
+        const errorKey = 'iou.error.invalidRate';
+
+        if (!transactionID || !isDistanceRequest) {
             return;
         }
 
-        const errorKey = 'iou.error.invalidRate';
+        // Moving the expense back to the self DM (or to a P2P recipient) leaves no workspace to validate against, so a
+        // rate error raised for the workspace it just left no longer applies.
+        if (!isPolicyExpenseChat) {
+            clearFormErrors([errorKey]);
+            return;
+        }
+
+        if (!isMovingTransactionFromTrackExpense && !isPolicyChanged) {
+            return;
+        }
+
         const policyRates = DistanceRequestUtils.getMileageRates(policy);
 
         if (didSwitchPolicy && transaction?.comment?.customUnit?.rateAutoUpdated) {
@@ -106,9 +158,27 @@ function DistanceRequestController({
         // If there is a distance rate in the policy that matches the rate and unit of the currently selected mileage rate, select it automatically
         const matchingRate = Object.values(policyRates).find((policyRate) => policyRate.rate === mileageRate.rate && policyRate.unit === mileageRate.unit);
         if (matchingRate?.customUnitRateID) {
-            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID, transaction, policy);
+            setCustomUnitRateID(transactionID, matchingRate.customUnitRateID, transaction, policy, false, personalPolicy?.outputCurrency);
             clearFormErrors([errorKey]);
             return;
+        }
+
+        // The workspace's custom units can still be loading at this point: selecting a participant resolves the new
+        // policy before Onyx has its rates, so validating now would flash an error that clears itself a moment later.
+        if (isEmptyObject(policyRates)) {
+            return;
+        }
+
+        // For the case of moving a track expense we want to auto set best eligible rate from the workspace.
+        if (isMovingTransactionFromTrackExpense) {
+            const expenseDate = getCreated(transaction);
+            const bestRate = expenseDate ? DistanceRequestUtils.getBestEligibleRate(policyRates, expenseDate) : undefined;
+            const fallbackRateID = bestRate?.customUnitRateID ?? defaultMileageRateCustomUnitRateID;
+            if (fallbackRateID) {
+                setCustomUnitRateID(transactionID, fallbackRateID, transaction, policy, false, personalPolicy?.outputCurrency);
+                clearFormErrors([errorKey]);
+                return;
+            }
         }
 
         // If none of the above conditions are met, display the rate error
@@ -126,6 +196,8 @@ function DistanceRequestController({
         clearFormErrors,
         transaction,
         prevPolicy?.id,
+        personalPolicy?.outputCurrency,
+        defaultMileageRateCustomUnitRateID,
     ]);
 
     useEffect(() => {
@@ -138,10 +210,10 @@ function DistanceRequestController({
         if (isReadOnly) {
             return;
         }
-        const amount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
-        setMoneyRequestAmount(transactionID, amount, currency ?? '');
+        // Use the (commuter-exclusion-aware) reimbursable amount so the seeded amount matches what the backend will calculate.
+        setMoneyRequestAmount(transactionID, distanceRequestAmount, currency ?? '');
         isFirstUpdatedDistanceAmount.current = true;
-    }, [distance, rate, isReadOnly, unit, transactionID, currency, isDistanceRequest]);
+    }, [distanceRequestAmount, isReadOnly, transactionID, currency, isDistanceRequest]);
 
     useEffect(() => {
         if (!shouldCalculateDistanceAmount || !transactionID || isReadOnly) {
@@ -154,7 +226,7 @@ function DistanceRequestController({
         // If it's a split request among individuals, set the split shares
         const participantAccountIDs: number[] = selectedParticipantsProp.map((participant) => participant.accountID ?? CONST.DEFAULT_NUMBER_ID);
         if (isTypeSplit && !isPolicyExpenseChat && amount && transaction?.currency) {
-            setSplitShares(transaction, amount, currency, participantAccountIDs, currentUserAccountID);
+            setSplitShares(transaction, amount, currency, participantAccountIDs, currentUserAccountID, getCurrencyDecimals);
         }
     }, [
         shouldCalculateDistanceAmount,
@@ -167,11 +239,12 @@ function DistanceRequestController({
         selectedParticipantsProp,
         transaction,
         currentUserAccountID,
+        getCurrencyDecimals,
     ]);
 
     useEffect(() => {
         if (
-            !['-1', CONST.CUSTOM_UNITS.FAKE_P2P_ID].includes(customUnitRateID) ||
+            !DistanceRequestUtils.isUnsetDistanceCustomUnitRateID(customUnitRateID) ||
             !isDistanceRequest ||
             !isPolicyExpenseChat ||
             !transactionID ||
@@ -183,7 +256,7 @@ function DistanceRequestController({
         }
 
         let rateToUse = lastSelectedRate;
-        const expenseDate = transaction?.created;
+        const expenseDate = getCreated(transaction);
         if (expenseDate) {
             const mileageRates = DistanceRequestUtils.getMileageRates(policy);
             const lastRate = lastSelectedRate ? mileageRates[lastSelectedRate] : undefined;
@@ -192,7 +265,7 @@ function DistanceRequestController({
                 rateToUse = bestRate?.customUnitRateID ?? defaultMileageRateCustomUnitRateID ?? lastSelectedRate;
             }
         }
-        setCustomUnitRateID(transactionID, rateToUse, transaction, policy);
+        setCustomUnitRateID(transactionID, rateToUse, transaction, policy, false, personalPolicy?.outputCurrency);
     }, [
         customUnitRateID,
         transactionID,
@@ -204,6 +277,7 @@ function DistanceRequestController({
         policy,
         selectedParticipants,
         defaultMileageRateCustomUnitRateID,
+        personalPolicy?.outputCurrency,
     ]);
 
     useEffect(() => {
@@ -230,6 +304,20 @@ function DistanceRequestController({
             isManualDistanceRequest,
         );
         setMoneyRequestMerchant(transactionID, distanceMerchant, true);
+
+        setMoneyRequestCommuterExclusionFields({
+            transactionID,
+            transaction,
+            policy,
+            isPolicyExpenseChat,
+            customUnitRateID,
+            routeDistanceMeters: distance,
+            distanceUnit: unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+            translate,
+            toLocaleDigit,
+            getCurrencySymbol,
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
+        });
     }, [
         isDistanceRequestWithPendingRoute,
         hasRoute,
@@ -245,6 +333,10 @@ function DistanceRequestController({
         isReadOnly,
         getCurrencySymbol,
         isManualDistanceRequest,
+        policy,
+        isPolicyExpenseChat,
+        customUnitRateID,
+        personalPolicy?.outputCurrency,
     ]);
 
     return null;
@@ -253,3 +345,4 @@ function DistanceRequestController({
 DistanceRequestController.displayName = 'DistanceRequestController';
 
 export default DistanceRequestController;
+export type {DistanceRequestControllerProps};

@@ -1,21 +1,34 @@
-import {render} from '@testing-library/react-native';
-import React from 'react';
+import {act, render} from '@testing-library/react-native';
+
+import type {SelectionListProps} from '@components/SelectionList/types';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+
 import {setDraftValues} from '@libs/actions/FormActions';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import DynamicPaymentCardCurrencySelectorPage from '@pages/settings/Subscription/PaymentCard/DynamicPaymentCardCurrencySelectorPage';
+
 import {setPaymentMethodCurrency} from '@userActions/PaymentMethods';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import React from 'react';
 
 type CurrencyOption = {text: string; value: string; keyForList: string; isSelected: boolean};
 
+type ConfirmButtonOptions = {showButton?: boolean; text?: string; onConfirm?: () => void; isDisabled?: boolean};
+
 let capturedData: CurrencyOption[] = [];
 let capturedOnSelectRow: ((option: CurrencyOption) => void) | undefined;
-let capturedCustomListHeader: React.ReactNode;
+let capturedCustomListHeader: SelectionListProps<CurrencyOption>['customListHeader'];
+let capturedConfirmButtonOptions: ConfirmButtonOptions | undefined;
 
-jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false})));
+jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false})));
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -66,10 +79,21 @@ jest.mock('@components/HeaderWithBackButton', () => {
 });
 
 jest.mock('@components/SelectionList', () => {
-    function MockSelectionList({data, onSelectRow, customListHeader}: {data: CurrencyOption[]; onSelectRow: (option: CurrencyOption) => void; customListHeader?: React.ReactNode}) {
+    function MockSelectionList({
+        data,
+        onSelectRow,
+        customListHeader,
+        confirmButtonOptions,
+    }: {
+        data: CurrencyOption[];
+        onSelectRow: (option: CurrencyOption) => void;
+        customListHeader?: SelectionListProps<CurrencyOption>['customListHeader'];
+        confirmButtonOptions?: ConfirmButtonOptions;
+    }) {
         capturedData = data ?? [];
         capturedOnSelectRow = onSelectRow;
         capturedCustomListHeader = customListHeader;
+        capturedConfirmButtonOptions = confirmButtonOptions;
         return (data ?? []).map((item) => item.text).join(',');
     }
     return MockSelectionList;
@@ -87,16 +111,18 @@ const mockSetPaymentMethodCurrency = jest.mocked(setPaymentMethodCurrency);
 const mockGoBack = jest.mocked(Navigation.goBack);
 
 /**
- * The page reads three Onyx keys in order: the CHANGE_BILLING_CURRENCY form draft, the in-flight
- * ADD_PAYMENT_CARD form, and the fund list (for the billing card fallback).
+ * The selector is shared by two flows and scopes its read/write to the active one (via backPath):
+ * the change-billing flow uses the CHANGE_BILLING_CURRENCY draft, every other entry point (add
+ * payment card / workspace owner change) uses the ADD_PAYMENT_CARD draft. The fund list provides
+ * the billing-card fallback used by usePreferredCurrency when the active draft is empty.
  */
-const mockOnyx = (formDraftCurrency?: string, addCardCurrency?: string, billingCardCurrency?: string) => {
+const mockOnyx = (formDraftCurrency?: string, addCardDraftCurrency?: string, billingCardCurrency?: string) => {
     mockUseOnyx.mockImplementation((key: string) => {
         if (key === ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM_DRAFT) {
             return [formDraftCurrency ? {currency: formDraftCurrency} : undefined, {status: 'loaded'}] as ReturnType<typeof useOnyx>;
         }
-        if (key === ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM) {
-            return [addCardCurrency ? {currency: addCardCurrency} : undefined, {status: 'loaded'}] as ReturnType<typeof useOnyx>;
+        if (key === ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM_DRAFT) {
+            return [addCardDraftCurrency ? {currency: addCardDraftCurrency} : undefined, {status: 'loaded'}] as ReturnType<typeof useOnyx>;
         }
         if (key === ONYXKEYS.FUND_LIST) {
             return [billingCardCurrency ? {card1: {accountData: {additionalData: {isBillingCard: true}, currency: billingCardCurrency}}} : undefined, {status: 'loaded'}] as ReturnType<
@@ -113,7 +139,8 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         capturedData = [];
         capturedOnSelectRow = undefined;
         capturedCustomListHeader = undefined;
-        mockUsePermissions.mockReturnValue({isBetaEnabled: () => false});
+        capturedConfirmButtonOptions = undefined;
+        mockUsePermissions.mockReturnValue({isBetaEnabled: () => false, isBetaEnabledOrUnknown: () => false});
         mockUseDynamicBackPath.mockReturnValue('settings/subscription/change-billing-currency');
         mockOnyx();
     });
@@ -127,7 +154,7 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
     });
 
     it('shows EUR when the EUR billing beta is enabled', () => {
-        mockUsePermissions.mockReturnValue({isBetaEnabled: () => true});
+        mockUsePermissions.mockReturnValue({isBetaEnabled: () => true, isBetaEnabledOrUnknown: () => true});
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
@@ -144,43 +171,166 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
         expect(selected.at(0)?.value).toBe('AUD');
     });
 
-    it('falls back to the add-payment-card form currency when the draft is empty', () => {
-        mockOnyx(undefined, 'NZD');
+    it('ignores the add-payment-card draft in the change-billing flow and falls back to the billing card currency', () => {
+        // Given the change-billing flow (the default back path), a leftover NZD pick in the add-card draft and a GBP billing card
+        mockOnyx(undefined, 'NZD', 'GBP');
 
+        // When the selector opens
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        expect(capturedData.find((option) => option.isSelected)?.value).toBe('NZD');
-    });
-
-    it('falls back to the billing card currency when both the draft and the add-card form are empty', () => {
-        mockOnyx(undefined, undefined, 'GBP');
-
-        render(<DynamicPaymentCardCurrencySelectorPage />);
-
+        // Then GBP is selected, because a pick made in the add-card flow must not leak into change-billing
         expect(capturedData.find((option) => option.isSelected)?.value).toBe('GBP');
     });
 
-    it('writes the chosen currency to both flows and navigates back on select', () => {
+    it('selects the add-payment-card draft currency in the add payment card flow', () => {
+        // Given the add payment card flow with NZD already picked in its draft
+        mockUseDynamicBackPath.mockReturnValue(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route));
+        mockOnyx(undefined, 'NZD');
+
+        // When the selector opens
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        // Then NZD is selected, so reopening the picker shows the currency the user chose last time
+        expect(capturedData.find((option) => option.isSelected)?.value).toBe('NZD');
+    });
+
+    it('falls back to the billing card currency when both the change-billing-currency draft and the add-card draft are empty', () => {
+        // Given no currency in either draft and a GBP billing card
+        mockOnyx(undefined, undefined, 'GBP');
+
+        // When the selector opens
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        // Then GBP is selected, because with nothing picked yet the current billing currency is the best default
+        expect(capturedData.find((option) => option.isSelected)?.value).toBe('GBP');
+    });
+
+    it('clamps a EUR preferred currency to USD in the add payment card flow when the beta is disabled', () => {
+        // Given the add payment card flow with no draft, so the default comes from a EUR billing card, while the EUR beta is off
+        mockUseDynamicBackPath.mockReturnValue(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route));
+        mockOnyx(undefined, undefined, 'EUR');
+
+        // When the selector opens
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        // Then USD is selected instead, because the list hides EUR and a hidden default would leave the user nothing checked
+        const currencies = capturedData.map((option) => option.value);
+        expect(currencies).not.toContain('EUR');
+        expect(capturedData.find((option) => option.isSelected)?.value).toBe('USD');
+    });
+
+    it('does not clamp a EUR preferred currency in the change-billing flow (keeps the existing card currency)', () => {
+        // Given the change-billing flow (the default back path) with a EUR billing card while the EUR beta is off
+        mockOnyx(undefined, undefined, 'EUR');
+
+        // When the selector opens
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        // Then USD is not selected, because change-billing keeps the card's real currency even though the list hides EUR
+        expect(capturedData.find((option) => option.value === 'USD')?.isSelected).toBe(false);
+        expect(capturedData.find((option) => option.isSelected)).toBeUndefined();
+    });
+
+    it('moves the checkmark on select without persisting or navigating (deferred until Save)', () => {
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
         const aud = capturedData.find((option) => option.value === 'AUD');
         expect(aud).toBeDefined();
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        capturedOnSelectRow?.(aud!);
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
 
+        expect(mockSetDraftValues).not.toHaveBeenCalled();
+        expect(mockSetPaymentMethodCurrency).not.toHaveBeenCalled();
+        expect(mockGoBack).not.toHaveBeenCalled();
+
+        const selected = capturedData.filter((option) => option.isSelected);
+        expect(selected).toHaveLength(1);
+        expect(selected.at(0)?.value).toBe('AUD');
+    });
+
+    it('writes only the change-billing draft (not the add-card draft) and navigates back when Save is tapped', () => {
+        // Given the selector opened from the change-billing flow (the default back path)
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        // When the user picks AUD and taps Save
+        const aud = capturedData.find((option) => option.value === 'AUD');
+        expect(aud).toBeDefined();
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        expect(capturedConfirmButtonOptions?.showButton).toBe(true);
+        act(() => {
+            capturedConfirmButtonOptions?.onConfirm?.();
+        });
+
+        // Then only the change-billing draft gets AUD, so the add-card flow's own pick is untouched, and the user lands back on change-billing
         expect(mockSetDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.CHANGE_BILLING_CURRENCY_FORM, {currency: 'AUD'});
-        expect(mockSetPaymentMethodCurrency).toHaveBeenCalledWith('AUD');
+        expect(mockSetPaymentMethodCurrency).not.toHaveBeenCalled();
         expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/change-billing-currency');
     });
 
-    it('shows the currency note when opened from a flow that does not already display it (e.g. add payment card)', () => {
-        mockUseDynamicBackPath.mockReturnValue('settings/subscription/add-payment-card');
+    it('disables Save while the selection still matches the persisted currency, and enables it after a change', () => {
+        mockOnyx('USD');
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        const header = capturedCustomListHeader as React.ReactElement<{isSectionList?: boolean}>;
+        expect(capturedConfirmButtonOptions?.isDisabled).toBe(true);
+
+        const aud = capturedData.find((option) => option.value === 'AUD');
+        expect(aud).toBeDefined();
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        expect(capturedConfirmButtonOptions?.isDisabled).toBe(false);
+    });
+
+    it('writes only the add-card draft (not the change-billing draft) when Save is tapped in the add payment card flow', () => {
+        // Given the selector opened from the add payment card flow
+        mockUseDynamicBackPath.mockReturnValue(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route));
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        // When the user picks AUD and taps Save
+        const aud = capturedData.find((option) => option.value === 'AUD');
+        expect(aud).toBeDefined();
+        act(() => {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            capturedOnSelectRow?.(aud!);
+        });
+
+        act(() => {
+            capturedConfirmButtonOptions?.onConfirm?.();
+        });
+
+        // Then only the add-card draft gets AUD, so the change-billing draft is untouched, and the user lands back on the add-card form
+        expect(mockSetPaymentMethodCurrency).toHaveBeenCalledWith('AUD');
+        expect(mockSetDraftValues).not.toHaveBeenCalled();
+        expect(mockGoBack).toHaveBeenCalledWith('settings/subscription/add-payment-card');
+    });
+
+    it('shows the currency note when opened from a flow that does not already display it (e.g. add payment card)', () => {
+        mockUseDynamicBackPath.mockReturnValue(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path, ROUTES.SETTINGS_SUBSCRIPTION.route));
+
+        render(<DynamicPaymentCardCurrencySelectorPage />);
+
+        const header = capturedCustomListHeader;
         expect(header).toBeTruthy();
+        if (!React.isValidElement(header)) {
+            throw new Error('Expected the captured custom list header to be a React element');
+        }
+        if (header.type !== 'PaymentCardCurrencyHeader') {
+            throw new Error('Expected the captured custom list header to be PaymentCardCurrencyHeader');
+        }
         expect(header.type).toBe('PaymentCardCurrencyHeader');
+        if (typeof header.props !== 'object' || header.props === null || !('isSectionList' in header.props) || typeof header.props.isSectionList !== 'boolean') {
+            throw new Error('Expected PaymentCardCurrencyHeader to receive a boolean isSectionList prop');
+        }
         expect(header.props.isSectionList).toBe(true);
     });
 

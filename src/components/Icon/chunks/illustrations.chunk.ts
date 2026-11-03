@@ -1,6 +1,3 @@
-// This file contains all the SVG imports for illustrations used in the app
-// Company Cards
-import type {SvgProps} from 'react-native-svg';
 import AmexCardCompanyCardDetail from '@assets/images/companyCards/card-amex.svg';
 import BankOfAmericaCompanyCardDetail from '@assets/images/companyCards/card-bofa.svg';
 import BrexCompanyCardDetail from '@assets/images/companyCards/card-brex.svg';
@@ -37,6 +34,7 @@ import MultiScan from '@assets/images/educational-illustration__multi-scan.svg';
 // Expensify Card
 import ExpensifyCardCoins from '@assets/images/emptystate__expensify-card-coins.svg';
 import ExpensifyCardImage from '@assets/images/expensify-card.svg';
+import ExpensifyCardAppleWalletIllustration from '@assets/images/expensifyCard/cardAppleWalletIllustration.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
 import ExpensifyCardProtectionIllustration from '@assets/images/expensifyCard/cardProtectionIllustration.svg';
 // Other Images
@@ -59,26 +57,33 @@ import RunOutOfTime from '@assets/images/multifactorAuthentication/running-out-o
 import PendingTravel from '@assets/images/pending-travel.svg';
 // Product Illustrations
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
+import ArmWithCardPos from '@assets/images/product-illustrations/arm_with_card_pos.svg';
 import BigVault from '@assets/images/product-illustrations/big-vault.svg';
 import BrokenCompanyCardBankConnection from '@assets/images/product-illustrations/broken-humpty-dumpty.svg';
 import BrokenMagnifyingGlass from '@assets/images/product-illustrations/broken-magnifying-glass.svg';
 import DjBoothReferenceHands from '@assets/images/product-illustrations/dj-booth-reference-hands.svg';
+import EarthWithCoins from '@assets/images/product-illustrations/earth-with-coins.svg';
 import EarthWithControls from '@assets/images/product-illustrations/earth-with-controls.svg';
+import EmptyStateDomainExists from '@assets/images/product-illustrations/empty-state-domain-exists.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
 import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
+import EmptyStateSearchExpenses from '@assets/images/product-illustrations/emptystate__searchexpenses.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
 import FolderWithPapersAndWatch from '@assets/images/product-illustrations/folder-with-papers-and-watch.svg';
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
+import SortingMachine from '@assets/images/product-illustrations/illustration-sorting-machine.svg';
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
 import Copilots from '@assets/images/product-illustrations/illustration__copilots.svg';
-import MagicCode from '@assets/images/product-illustrations/magic-code.svg';
+import AgentsIceCream from '@assets/images/product-illustrations/illustration_agents-ice-cream.svg';
+import IceCreamMenu from '@assets/images/product-illustrations/illustration_ice-cream-menu.svg';
 import ModalHoldOrReject from '@assets/images/product-illustrations/modal-hold-or-reject.svg';
 import MushroomTopHat from '@assets/images/product-illustrations/mushroom-top-hat.svg';
 import PaymentHands from '@assets/images/product-illustrations/payment-hands.svg';
 import PlanetWithMobileApp from '@assets/images/product-illustrations/planet-with-mobile-app.svg';
+import ReceiptWranglerSpaceCowgirl from '@assets/images/product-illustrations/receipt-wrangler-space-cowgirl.svg';
 import ReceiptsStackedOnPin from '@assets/images/product-illustrations/receipts-stacked-on-pin.svg';
 import RocketBlue from '@assets/images/product-illustrations/rocket--blue.svg';
 import RocketDude from '@assets/images/product-illustrations/rocket-dude.svg';
@@ -95,6 +100,7 @@ import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phone
 import TopiaryDollarSign from '@assets/images/product-illustrations/topiary-dollar-sign.svg';
 import TvScreenRobot from '@assets/images/product-illustrations/tv-screen-robot.svg';
 import UpgradeRocket from '@assets/images/product-illustrations/upgrade-rocket.svg';
+import ValidateCode from '@assets/images/product-illustrations/validate-code.svg';
 import WorkspaceScene from '@assets/images/product-illustrations/workspace-scene.svg';
 import ReceiptStack from '@assets/images/receipt-upload.svg';
 import RunningTurtle from '@assets/images/running-turtle.svg';
@@ -104,14 +110,19 @@ import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
 // Simple Illustrations - Original core ones
 import Accounting from '@assets/images/simple-illustrations/simple-illustration__accounting.svg';
+import AiAutomation from '@assets/images/simple-illustrations/simple-illustration__ai-automation.svg';
 import AiBot from '@assets/images/simple-illustrations/simple-illustration__ai-bot.svg';
 import Alert from '@assets/images/simple-illustrations/simple-illustration__alert.svg';
 import Members from '@assets/images/simple-illustrations/simple-illustration__approval-members.svg';
 import Approval from '@assets/images/simple-illustrations/simple-illustration__approval.svg';
+import BankCheck from '@assets/images/simple-illustrations/simple-illustration__bank-check.svg';
 import ShareBank from '@assets/images/simple-illustrations/simple-illustration__bank-share.svg';
+import BankX from '@assets/images/simple-illustrations/simple-illustration__bank-x.svg';
 import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
+import BriefcaseHandshake from '@assets/images/simple-illustrations/simple-illustration__briefcase-handshake.svg';
+import Briefcase from '@assets/images/simple-illustrations/simple-illustration__briefcase.svg';
 import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
 import BuildingCross from '@assets/images/simple-illustrations/simple-illustration__building_cross.svg';
@@ -120,9 +131,13 @@ import CalculatorMoney from '@assets/images/simple-illustrations/simple-illustra
 import CalendarMonthly from '@assets/images/simple-illustrations/simple-illustration__calendar-monthly.svg';
 import CarIce from '@assets/images/simple-illustrations/simple-illustration__car-ice.svg';
 import Car from '@assets/images/simple-illustrations/simple-illustration__car.svg';
+import CardDenied from '@assets/images/simple-illustrations/simple-illustration__carddenied.svg';
+import CardIntoWallet from '@assets/images/simple-illustrations/simple-illustration__cardintowallet.svg';
 import CardReaderAlt from '@assets/images/simple-illustrations/simple-illustration__cardreader-alt.svg';
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
 import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
+import Chart from '@assets/images/simple-illustrations/simple-illustration__chart.svg';
+import ChartSync from '@assets/images/simple-illustrations/simple-illustration__chartsync.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckboxText from '@assets/images/simple-illustrations/simple-illustration__checkboxtext.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
@@ -143,8 +158,10 @@ import F1Flags from '@assets/images/simple-illustrations/simple-illustration__f1
 import FastMoney from '@assets/images/simple-illustrations/simple-illustration__fastmoney.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import FishbowlBlue from '@assets/images/simple-illustrations/simple-illustration__fishbowl--blue.svg';
+import Flag from '@assets/images/simple-illustrations/simple-illustration__flag.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
 import FolderOpen from '@assets/images/simple-illustrations/simple-illustration__folder-open.svg';
+import FolderSync from '@assets/images/simple-illustrations/simple-illustration__foldersync.svg';
 import FoodTruck from '@assets/images/simple-illustrations/simple-illustration__foodtruck-tacos.svg';
 import Gears from '@assets/images/simple-illustrations/simple-illustration__gears.svg';
 import HandCard from '@assets/images/simple-illustrations/simple-illustration__handcard.svg';
@@ -153,6 +170,9 @@ import HeadSet from '@assets/images/simple-illustrations/simple-illustration__he
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import HouseMoney from '@assets/images/simple-illustrations/simple-illustration__house-money.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
+import HouseWithMap from '@assets/images/simple-illustrations/simple-illustration__housewithmap.svg';
+import IceCreamNumberOne from '@assets/images/simple-illustrations/simple-illustration__ice-cream-number-1.svg';
+import IceCreamNumberTwo from '@assets/images/simple-illustrations/simple-illustration__ice-cream-number-2.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
@@ -160,13 +180,16 @@ import LockClosed from '@assets/images/simple-illustrations/simple-illustration_
 import LockClosedOrange from '@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg';
 import LockOpen from '@assets/images/simple-illustrations/simple-illustration__lockopen.svg';
 import Luggage from '@assets/images/simple-illustrations/simple-illustration__luggage.svg';
+import MagnifyingGlassChart from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-chart.svg';
 import MagnifyingGlassMoney from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg';
 import MagnifyingGlassReceipt from '@assets/images/simple-illustrations/simple-illustration__magnifyingglass-receipt.svg';
 import Mailbox from '@assets/images/simple-illustrations/simple-illustration__mailbox.svg';
 import ExpensifyMobileApp from '@assets/images/simple-illustrations/simple-illustration__mobileapp.svg';
 import MoneyReceipts from '@assets/images/simple-illustrations/simple-illustration__money-receipts.svg';
+import MoneyBadge from '@assets/images/simple-illustrations/simple-illustration__moneybadge.svg';
 import MoneyIntoWallet from '@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg';
 import MoneyWings from '@assets/images/simple-illustrations/simple-illustration__moneywings.svg';
+import MonitorSyncNo from '@assets/images/simple-illustrations/simple-illustration__monitorsync-no.svg';
 import NewUser from '@assets/images/simple-illustrations/simple-illustration__newuser.svg';
 import OpenSafe from '@assets/images/simple-illustrations/simple-illustration__opensafe.svg';
 import PalmTree from '@assets/images/simple-illustrations/simple-illustration__palmtree.svg';
@@ -216,6 +239,10 @@ import Workflows from '@assets/images/simple-illustrations/simple-illustration__
 import TravelCVV from '@assets/images/travel-cvv.svg';
 import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
+// This file contains all the SVG imports for illustrations used in the app
+// Company Cards
+import type {SvgProps} from 'react-native-svg';
+
 // Create the illustrations object with all imported illustrations
 const Illustrations = {
     // Company Cards
@@ -262,29 +289,35 @@ const Illustrations = {
     // Expensify Card
     ExpensifyCardIllustration,
     ExpensifyCardProtectionIllustration,
+    ExpensifyCardAppleWalletIllustration,
 
     // Product Illustrations
     Abracadabra,
+    ArmWithCardPos,
     BigVault,
     BrokenCompanyCardBankConnection,
     BrokenMagnifyingGlass,
     DjBoothReferenceHands,
+    EmptyStateSearchExpenses,
     EmptyStateExpenses,
     HoldExpense,
     ReceiptFairy,
     EmptyStateTravel,
+    EarthWithCoins,
     EarthWithControls,
+    EmptyStateDomainExists,
     Fireworks,
     FolderWithPapersAndWatch,
     FolderWithPapers,
     Hands,
     CardReplacementSuccess,
     Copilots,
-    MagicCode,
+    ValidateCode,
     ModalHoldOrReject,
     MushroomTopHat,
     PaymentHands,
     PlanetWithMobileApp,
+    ReceiptWranglerSpaceCowgirl,
     ReceiptsStackedOnPin,
     RocketBlue,
     RocketDude,
@@ -294,6 +327,9 @@ const Illustrations = {
     SewerDino,
     QuestionMark,
     SmartScan,
+    SortingMachine,
+    AgentsIceCream,
+    IceCreamMenu,
     TeleScope,
     Telescope: TeleScope, // Alias for consistency
     ThreeLeggedLaptopWoman,
@@ -320,21 +356,31 @@ const Illustrations = {
 
     // Simple Illustrations
     Accounting,
+    AiAutomation,
     AiBot,
     Building,
     BuildingCross,
+    BankCheck,
     BankCoin,
+    BankX,
     Coins,
+    CardDenied,
+    CardIntoWallet,
     CreditCardsNew,
     FolderOpen,
+    FolderSync,
+    ChartSync,
     HandCard,
     Hashtag,
     InvoiceBlue,
+    MagnifyingGlassChart,
     MagnifyingGlassMoney,
     MagnifyingGlassReceipt,
     MoneyReceipts,
+    MoneyBadge,
     MoneyWings,
     MoneyIntoWallet,
+    MonitorSyncNo,
     PerDiem,
     PiggyBank,
     RealEstate,
@@ -369,6 +415,8 @@ const Illustrations = {
     Workflows,
     CarIce,
     BlueShield,
+    Briefcase,
+    BriefcaseHandshake,
     Pencil,
     ShareBank,
     Luggage,
@@ -400,7 +448,10 @@ const Illustrations = {
     HeadSet,
     Hourglass,
     House,
+    HouseWithMap,
     HouseMoney,
+    IceCreamNumberOne,
+    IceCreamNumberTwo,
     LifeRing,
     Lightbulb,
     LockClosed,
@@ -420,6 +471,7 @@ const Illustrations = {
     ConciergeBot,
     CowboyHat,
     F1Flags,
+    Flag,
     FishbowlBlue,
     SmallRocket,
     Sunglasses,
@@ -429,6 +481,7 @@ const Illustrations = {
     Trophy1,
     FoodTruck,
     Chalkboard,
+    Chart,
 
     // Multifactor Authentication Illustrations
     MagnifyingGlassSpyMouthClosed,

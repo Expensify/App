@@ -1,18 +1,23 @@
-import React, {useCallback, useEffect} from 'react';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {setDraftInviteAccountID, setIssueNewCardStepAndData} from '@libs/actions/Card';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import WorkspaceInviteMessageComponent from '@pages/workspace/members/WorkspaceInviteMessageComponent';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useEffect} from 'react';
 
 type InviteeNewMemberStepProps = Omit<WithPolicyAndFullscreenLoadingProps, 'route'> &
     WithCurrentUserPersonalDetailsProps & {
@@ -43,7 +48,7 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
         });
     };
 
-    const goToNextStep = useCallback(() => {
+    const goToNextStep = () => {
         if (isEditing) {
             setIssueNewCardStepAndData({
                 step: CONST.EXPENSIFY_CARD.STEP.CONFIRMATION,
@@ -59,7 +64,7 @@ function InviteNewMemberStep({policy, route, currentUserPersonalDetails}: Invite
                 data: {...issueNewCard?.data, assigneeEmail: issueNewCard?.data?.invitingMemberEmail ?? '', invitingMemberEmail: undefined},
             });
         }
-    }, [isEditing, issueNewCard?.data, policyID]);
+    };
 
     // If the currently inviting member is already a member of the policy then we should just call goToNextStep
     // See https://github.com/Expensify/App/issues/74256 for more details

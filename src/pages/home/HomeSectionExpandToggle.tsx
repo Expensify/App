@@ -1,19 +1,23 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import Icon from '@components/Icon';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Text from '@components/Text';
+
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 type HomeSectionExpandToggleProps = {
-    /** Whether the section is currently expanded */
     isExpanded: boolean;
 
     /** Callback to toggle the expanded state */
@@ -30,7 +34,7 @@ function HomeSectionExpandToggle({isExpanded, onPress, collapsedLabel, wrapperSt
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {cardPaddingHorizontal} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
 
     const label = isExpanded ? translate('common.showLess') : collapsedLabel;
@@ -41,7 +45,7 @@ function HomeSectionExpandToggle({isExpanded, onPress, collapsedLabel, wrapperSt
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={label}
             sentryLabel="HomeSectionExpandToggle"
-            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, shouldUseNarrowLayout ? styles.ph5 : styles.ph8, wrapperStyle]}
+            style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.pv3, cardPaddingHorizontal, wrapperStyle]}
         >
             <View style={[styles.alignItemsCenter, styles.justifyContentCenter, {width: variables.componentSizeNormal, height: variables.componentSizeNormal}]}>
                 <Icon

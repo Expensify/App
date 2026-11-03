@@ -1,27 +1,33 @@
-import React, {useCallback, useState} from 'react';
-import {View} from 'react-native';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MagicCodeInput from '@components/MagicCodeInput';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+import ValidateCodeInput from '@components/ValidateCodeInput';
+
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {isValidPIN} from '@libs/ValidationUtils';
+
 import {PINContextProvider, usePINActions, usePINState} from '@pages/MissingPersonalDetails/PINContext';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-type ChangePINPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_CHANGE_PIN>;
+import React, {useState} from 'react';
+import {View} from 'react-native';
+
+type ChangePINPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_CARD_CHANGE_PIN>;
 
 function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBlocked: boolean}) {
     const styles = useThemeStyles();
@@ -30,24 +36,22 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
     const {executeScenario} = useMultifactorAuthentication();
     const {isConfirmStep, isPINHidden} = usePINState();
     const {setIsConfirmStep, togglePINVisibility} = usePINActions();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WALLET_CARD_CHANGE_PIN.path);
 
     const [enteredPIN, setEnteredPIN] = useState('');
     const [confirmPIN, setConfirmPIN] = useState('');
     const [error, setError] = useState('');
 
-    const handlePINChange = useCallback(
-        (value: string) => {
-            setError('');
-            if (isConfirmStep) {
-                setConfirmPIN(value);
-            } else {
-                setEnteredPIN(value);
-            }
-        },
-        [isConfirmStep],
-    );
+    const handlePINChange = (value: string) => {
+        setError('');
+        if (isConfirmStep) {
+            setConfirmPIN(value);
+        } else {
+            setEnteredPIN(value);
+        }
+    };
 
-    const validatePIN = useCallback((): string => {
+    const validatePIN = (): string => {
         const PINToValidate = isConfirmStep ? confirmPIN : enteredPIN;
 
         if (PINToValidate.length !== CONST.EXPENSIFY_CARD.PIN.LENGTH) {
@@ -62,9 +66,9 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
             return translate('cardPage.invalidPin');
         }
         return '';
-    }, [isConfirmStep, confirmPIN, enteredPIN, translate]);
+    };
 
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = () => {
         const validationError = validatePIN();
         if (validationError) {
             setError(validationError);
@@ -82,7 +86,7 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
             cardID,
             wasPINBlocked,
         });
-    }, [validatePIN, isConfirmStep, setIsConfirmStep, executeScenario, confirmPIN, cardID, wasPINBlocked]);
+    };
 
     const currentPIN = isConfirmStep ? confirmPIN : enteredPIN;
     const title = isConfirmStep ? translate('cardPage.confirmYourChangedPin') : translate('cardPage.changeYourPin');
@@ -93,7 +97,7 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
                 title={translate(wasPINBlocked ? 'cardPage.unblockCard' : 'cardPage.changePin')}
                 onBackButtonPress={() => {
                     if (!isConfirmStep) {
-                        Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(cardID)));
+                        Navigation.goBack(backPath);
                         return;
                     }
                     setIsConfirmStep(false);
@@ -107,7 +111,7 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
                         <Text style={[styles.textHeadlineH1, styles.mb2]}>{title}</Text>
 
                         <View style={[styles.mv4, styles.ph11]}>
-                            <MagicCodeInput
+                            <ValidateCodeInput
                                 key={`pin-${isConfirmStep}`}
                                 autoComplete={CONST.AUTO_COMPLETE_VARIANTS.OFF}
                                 name="pin"
@@ -122,22 +126,21 @@ function ChangePINPageContent({cardID, wasPINBlocked}: {cardID: string; wasPINBl
                         </View>
 
                         <View style={[styles.flexRow, styles.justifyContentCenter, styles.mv4, styles.alignItemsCenter, styles.w100]}>
-                            <Button
-                                icon={isPINHidden ? icons.Eye : icons.EyeDisabled}
-                                text={isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}
-                                onPress={togglePINVisibility}
-                                medium
-                            />
+                            <Button onPress={togglePINVisibility}>
+                                <Button.Icon src={isPINHidden ? icons.Eye : icons.EyeDisabled} />
+                                <Button.Text>{isPINHidden ? translate('cardPage.revealPin') : translate('cardPage.hidePin')}</Button.Text>
+                            </Button>
                         </View>
                     </View>
 
                     <Button
-                        success
-                        large
-                        text={isConfirmStep ? translate('common.confirm') : translate('common.next')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={handleSubmit}
                         style={[styles.mb5]}
-                    />
+                    >
+                        <Button.Text>{isConfirmStep ? translate('common.confirm') : translate('common.next')}</Button.Text>
+                    </Button>
                 </View>
             </FullPageOfflineBlockingView>
         </ScreenWrapper>

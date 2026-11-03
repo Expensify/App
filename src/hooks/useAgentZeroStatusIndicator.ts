@@ -1,14 +1,19 @@
-import {getAgentZeroProcessingLabel} from '@selectors/ReportNameValuePairs';
-import {useCallback, useEffect, useRef, useState, useSyncExternalStore} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {clearAgentZeroProcessingIndicator, getNewerActions} from '@libs/actions/Report';
 import AgentZeroOptimisticStore, {MAX_AGE_MS as OPTIMISTIC_MAX_AGE_MS} from '@libs/AgentZeroOptimisticStore';
 import AgentZeroReasoningStore from '@libs/AgentZeroReasoningStore';
 import type {ReasoningEntry} from '@libs/AgentZeroReasoningStore';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportNameValuePairs} from '@src/types/onyx';
-import type {ReportActions} from '@src/types/onyx/ReportAction';
+
+import type {NewestReportAction} from '@selectors/ReportAction';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {getNewestReportActionSelector} from '@selectors/ReportAction';
+import {getAgentZeroProcessingLabel} from '@selectors/ReportNameValuePairs';
+import {useEffect, useRef, useState, useSyncExternalStore} from 'react';
+
 import useLocalize from './useLocalize';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -17,11 +22,6 @@ type AgentZeroStatusState = {
     isProcessing: boolean;
     reasoningHistory: ReasoningEntry[];
     statusLabel: string;
-};
-
-type NewestReportAction = {
-    reportActionID: string;
-    actorAccountID?: number;
 };
 
 /**
@@ -43,35 +43,6 @@ const MIN_DISPLAY_TIME = 300; // ms
 const DEBOUNCE_DELAY = 150; // ms
 
 /**
- * Selector that extracts the newest report action ID and actor from the report actions collection.
- *
- * Sorts by `created` timestamp (ISO strings compare chronologically), with reportActionID as a
- * tiebreaker. reportActionID alone is unreliable because optimistic actions use random IDs, so
- * a purely numeric comparison can rank them ahead of real server actions.
- */
-function selectNewestReportAction(reportActions: OnyxEntry<ReportActions>): NewestReportAction | undefined {
-    if (!reportActions) {
-        return undefined;
-    }
-    const actions = Object.values(reportActions).filter(Boolean);
-    if (actions.length === 0) {
-        return undefined;
-    }
-    const newest = actions.reduce((a, b) => {
-        const createdA = a.created ?? '';
-        const createdB = b.created ?? '';
-        if (createdA !== createdB) {
-            return createdA > createdB ? a : b;
-        }
-        return a.reportActionID > b.reportActionID ? a : b;
-    });
-    return {
-        reportActionID: newest.reportActionID,
-        actorAccountID: newest.actorAccountID,
-    };
-}
-
-/**
  * Hook to manage the AgentZero status indicator for a single agent in a chat where AgentZero
  * responds. One instance runs per actively-thinking agent (a room can hold several), so all
  * its state — server label, optimistic store, reasoning store — is keyed by `(reportID,
@@ -88,11 +59,11 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
     // Server-driven processing label for this agent, from report name-value pairs (e.g. "Looking
     // up categories..."). The selector narrows to this agent's slot so the hook only re-renders
     // when its own label changes.
-    const serverLabelSelector = useCallback((reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => getAgentZeroProcessingLabel(reportNameValuePairs, agentAccountID), [agentAccountID]);
+    const serverLabelSelector = (reportNameValuePairs: OnyxEntry<ReportNameValuePairs>) => getAgentZeroProcessingLabel(reportNameValuePairs, agentAccountID);
     const [serverLabel] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {selector: serverLabelSelector});
 
     // Track the newest report action so we can fetch missed actions and detect actual Concierge replies.
-    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: selectNewestReportAction});
+    const [newestReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: getNewestReportActionSelector});
     const newestReportActionRef = useRef<NewestReportAction | undefined>(newestReportAction);
     useEffect(() => {
         newestReportActionRef.current = newestReportAction;
@@ -149,19 +120,19 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
      * react-compiler-compat ESLint processor (which would otherwise suppress the exhaustive-deps
      * false positive) only runs on .tsx/.jsx files, not .ts.
      */
-    const clearSafetyTimer = useCallback(() => {
+    const clearSafetyTimer = () => {
         if (!safetyTimerRef.current) {
             return;
         }
         clearTimeout(safetyTimerRef.current);
         safetyTimerRef.current = null;
-    }, []);
+    };
 
     /**
      * Hard-clear the indicator by resetting local state and clearing the Onyx NVP.
      * Called as a safety net after MAX_INDICATOR_DURATION_MS if no response has arrived.
      */
-    const hardClearIndicator = useCallback(() => {
+    const hardClearIndicator = () => {
         // If offline, don't clear — the response may arrive when reconnected
         if (isOfflineRef.current) {
             return;
@@ -172,7 +143,7 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         setDisplayedLabel('');
         clearAgentZeroProcessingIndicator(reportID, agentAccountID);
         getNewerActions(reportID, newestReportActionRef.current?.reportActionID);
-    }, [clearSafetyTimer, reportID, agentAccountID]);
+    };
 
     /**
      * (Re)arm the safety timer. Called when processing becomes active or the server label
@@ -184,23 +155,20 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
      * one-shot `getNewerActions` on HTTP reconnect. The safety timer is the backstop
      * for the long tail.
      */
-    const startSafetyTimer = useCallback(
-        (safetyDurationMs: number = MAX_INDICATOR_DURATION_MS) => {
-            clearSafetyTimer();
+    const startSafetyTimer = (safetyDurationMs: number = MAX_INDICATOR_DURATION_MS) => {
+        clearSafetyTimer();
 
-            if (safetyDurationMs <= 0) {
-                // Entry is already past the safety window (e.g. remount after >2 min) —
-                // hard-clear immediately rather than rearming a timer that would fire at zero.
-                hardClearIndicator();
-                return;
-            }
+        if (safetyDurationMs <= 0) {
+            // Entry is already past the safety window (e.g. remount after >2 min) —
+            // hard-clear immediately rather than rearming a timer that would fire at zero.
+            hardClearIndicator();
+            return;
+        }
 
-            safetyTimerRef.current = setTimeout(() => {
-                hardClearIndicator();
-            }, safetyDurationMs);
-        },
-        [clearSafetyTimer, hardClearIndicator],
-    );
+        safetyTimerRef.current = setTimeout(() => {
+            hardClearIndicator();
+        }, safetyDurationMs);
+    };
 
     // On reconnect, defensively clear any stale NVP, refetch missed actions, and rearm the
     // safety timer so the cap measures from reconnect rather than the original kickoff.
@@ -247,10 +215,11 @@ function useAgentZeroStatusIndicator(reportID: string, agentAccountID: number = 
         const hasServerLabel = !!serverLabel;
 
         let targetLabel = '';
+        const thinkingLabel = translate(agentAccountID === CONST.ACCOUNT_ID.CONCIERGE ? 'common.thinking' : 'common.agentThinking');
         if (hasServerLabel) {
             targetLabel = serverLabel ?? '';
         } else if (pendingOptimisticRequests > 0) {
-            targetLabel = translate('common.thinking');
+            targetLabel = thinkingLabel;
         }
 
         // (Re)arm the safety timer whenever this agent is active — a server label arrived (lease

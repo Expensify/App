@@ -1,8 +1,11 @@
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+
+import CONST from '@src/CONST';
+
 import type {ParamListBase} from '@react-navigation/native';
+
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {useEffect, useState} from 'react';
-import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import CONST from '@src/CONST';
 
 /** Like `useIsFocused`, but the returned flag turns OFF only once the navigation transition has finished, not at the start of navigating away. */
 function useIsFocusedUntilTransitionEnd(): boolean {

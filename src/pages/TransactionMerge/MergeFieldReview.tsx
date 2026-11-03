@@ -1,14 +1,18 @@
-import React from 'react';
-import {View} from 'react-native';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import RadioButton from '@components/RadioButton';
 import Text from '@components/Text';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {MergeFieldData, MergeFieldKey} from '@libs/MergeTransactionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type MergeFieldReviewProps = {
     mergeField: MergeFieldData;

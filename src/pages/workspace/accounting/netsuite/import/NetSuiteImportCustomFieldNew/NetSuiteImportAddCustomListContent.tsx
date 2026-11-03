@@ -1,25 +1,32 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConnectionLayout from '@components/ConnectionLayout';
 import type {FormRef} from '@components/Form/types';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import InteractiveStepSubPageHeader from '@components/InteractiveStepSubPageHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useSubPage from '@hooks/useSubPage';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import type {CustomFieldSubPageWithPolicy} from '@pages/workspace/accounting/netsuite/types';
+
 import {updateNetSuiteCustomLists} from '@userActions/connections/NetSuiteCommands';
 import {clearDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {NetSuiteCustomFieldForm} from '@src/types/form/NetSuiteCustomFieldForm';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
 import {getCustomListInitialSubstep, getSubstepValues} from './customUtils';
 import ChooseCustomListStep from './subPages/ChooseCustomListStep';
 import ConfirmCustomListStep from './subPages/ConfirmCustomListStep';
@@ -45,13 +52,13 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
     const {translate} = useLocalize();
     const formRef = useRef<FormRef | null>(null);
 
-    const values = useMemo(() => getSubstepValues(draftValues), [draftValues]);
-    const startFrom = useMemo(() => getCustomListInitialSubstep(values), [values]);
+    const values = getSubstepValues(draftValues);
+    const startFrom = getCustomListInitialSubstep(values);
 
     const config = policy?.connections?.netsuite?.options?.config;
-    const customLists = useMemo(() => config?.syncOptions?.customLists ?? [], [config?.syncOptions]);
+    const customLists = config?.syncOptions?.customLists ?? [];
 
-    const handleFinishStep = useCallback(() => {
+    const handleFinishStep = () => {
         const updatedCustomLists = customLists.concat([
             {
                 listName: values[INPUT_IDS.LIST_NAME],
@@ -69,7 +76,7 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
         );
         clearDraftValues(ONYXKEYS.FORMS.NETSUITE_CUSTOM_LIST_ADD_FORM);
         Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING.getRoute(policyID, CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS.CUSTOM_LISTS));
-    }, [values, customLists, policyID]);
+    };
 
     const {CurrentPage, isEditing, nextPage, prevPage, pageIndex, moveTo, isRedirecting} = useSubPage<CustomFieldSubPageWithPolicy>({
         pages,
@@ -98,18 +105,18 @@ function NetSuiteImportAddCustomListContent({policy, draftValues, policyIDParam}
         prevPage();
     };
 
-    const handleNextScreen = useCallback(() => {
+    const handleNextScreen = () => {
         if (isEditing) {
             goBackToConfirmStep();
             return;
         }
         nextPage();
-    }, [isEditing, goBackToConfirmStep, nextPage]);
+    };
 
     if (isRedirecting) {
         return (
             <ScreenWrapper testID="NetSuiteImportAddCustomListContent">
-                <FullScreenLoadingIndicator reasonAttributes={{context: 'NetSuiteImportAddCustomListContent', isRedirecting} satisfies SkeletonSpanReasonAttributes} />
+                <FullScreenLoadingIndicator />
             </ScreenWrapper>
         );
     }

@@ -1,58 +1,73 @@
-import type {RouteProp} from '@react-navigation/native';
-import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import React, {useEffect} from 'react';
+import BulkActionStatusManager from '@components/BulkActionStatusManager';
 import ComposeProviders from '@components/ComposeProviders';
-import {CurrencyListContextProvider} from '@components/CurrencyListContextProvider';
 import DelegateNoAccessModalProvider from '@components/DelegateNoAccessModalProvider';
-import GPSInProgressModal from '@components/GPSInProgressModal';
-import GPSTripStateChecker from '@components/GPSTripStateChecker';
+import EnableGlobalReimbursementsPayModal from '@components/EnableGlobalReimbursementsPayModal';
+import ExportDownloadStatusManager from '@components/ExportDownloadStatusManager';
 import {KeyboardDismissibleFlatListContextProvider} from '@components/KeyboardDismissibleFlatList/KeyboardDismissibleFlatListContext';
 import KYCWallContextProvider from '@components/KYCWall/KYCWallContext';
 import LockedAccountModalProvider from '@components/LockedAccountModalProvider';
 import {MultifactorAuthenticationContextProviders} from '@components/MultifactorAuthentication/Context';
 import OpenAppFailureModal from '@components/OpenAppFailureModal';
-import OptionsListContextProvider from '@components/OptionListContextProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 import PriorityModeController from '@components/PriorityModeController';
 import {ProductTrainingContextProvider} from '@components/ProductTrainingContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import {SearchRouterContextProvider} from '@components/Search/SearchRouter/SearchRouterContext';
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
+import SearchRouterWarmup from '@components/Search/SearchRouter/SearchRouterWarmup';
 import SupportalPermissionDeniedModal from '@components/SupportalPermissionDeniedModal';
 import FullScreenContextProvider from '@components/VideoPlayerContexts/FullScreenContextProvider';
 import {PlaybackContextProvider} from '@components/VideoPlayerContexts/PlaybackContext';
 import {VideoPopoverMenuContextProvider} from '@components/VideoPlayerContexts/VideoPopoverMenuContext';
 import {VolumeContextProvider} from '@components/VideoPlayerContexts/VolumeContext';
 import WideRHPContextProvider from '@components/WideRHPContextProvider';
+
+import useGPSInProgressModal from '@hooks/useGPSInProgressModal';
+import useGPSTripStateChecker from '@hooks/useGPSTripStateChecker';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
+import {REQUIRE_2FA_ABOVE_PORTAL_HOST} from '@hooks/useRequire2FAOverlayVisibility';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import {SidebarOrderedReportsContextProvider} from '@hooks/useSidebarOrderedReports';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import NavBarManager from '@libs/NavBarManager';
-import Navigation from '@libs/Navigation/Navigation';
 import Animations, {InternalPlatformAnimations} from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
+
 import ConnectionCompletePage from '@pages/ConnectionCompletePage';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import RequireTwoFactorAuthenticationOverlay from '@pages/RequireTwoFactorAuthenticationOverlay';
-import ExpensifyCardContextProvider from '@pages/settings/Wallet/ExpensifyCardPage/ExpensifyCardContextProvider';
 import TravelCVVContextProvider from '@pages/settings/Wallet/TravelCVVPage/TravelCVVContextProvider';
+
 import * as Modal from '@userActions/Modal';
+
 import CONST from '@src/CONST';
-import '@src/libs/subscribeToFullReconnect';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
+import '@src/libs/subscribeToFullReconnect';
+
+import type {RouteProp} from '@react-navigation/native';
+import type {StackCardInterpolationProps} from '@react-navigation/stack';
+
+import {PortalHost} from '@gorhom/portal';
+import React, {useEffect} from 'react';
+import {StyleSheet, View} from 'react-native';
+
 import attachmentModalScreenOptions from './attachmentModalScreenOptions';
 import AuthScreensInitHandler from './AuthScreensInitHandler';
 import createRootStackNavigator from './createRootStackNavigator';
 import {screensWithEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import DelegatorConnectGuard from './DelegatorConnectGate';
+import ForcedTransactionReviewHandler from './ForcedTransactionReviewHandler';
 import hideKeyboardOnSwipe from './hideKeyboardOnSwipe';
 import KeyboardShortcutsHandler from './KeyboardShortcutsHandler';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
@@ -60,9 +75,11 @@ import FeatureTrainingModalNavigator from './Navigators/FeatureTrainingModalNavi
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAuthenticationModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
+import SubmitPlanWelcomeModalNavigator from './Navigators/SubmitPlanWelcomeModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
+import {loadRightModalNavigator, loadSearchRouterPage} from './searchRouterLazyLoaders';
+import SubmitIntentDeeplinkHandler from './SubmitIntentDeeplinkHandler';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
-import ThreeDSAuthHandler from './ThreeDSAuthHandler';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 import UserStatusHandler from './UserStatusHandler';
@@ -73,12 +90,13 @@ const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../
 const loadValidateLoginPage = () => require<ReactComponentModule>('../../../pages/ValidateLoginPage').default;
 const loadLogOutPreviousUserPage = () => require<ReactComponentModule>('../../../pages/LogOutPreviousUserPage').default;
 const loadConciergePage = () => require<ReactComponentModule>('../../../pages/ConciergePage').default;
+const loadTalkToHumanPage = () => require<ReactComponentModule>('../../../pages/TalkToHumanPage').default;
 const loadTrackExpensePage = () => require<ReactComponentModule>('../../../pages/TrackExpensePage').default;
 const loadSubmitExpensePage = () => require<ReactComponentModule>('../../../pages/SubmitExpensePage').default;
+const loadPreMountBufferPage = () => require<ReactComponentModule>('../../../pages/PreMountBufferPage').default;
 const loadWorkspaceJoinUser = () => require<ReactComponentModule>('@pages/workspace/WorkspaceJoinUserPage').default;
 
-const loadSearchRouterPage = () => require<ReactComponentModule>('../../../components/Search/SearchRouter/SearchRouterPage').default;
-const loadRightModalNavigator = () => require<ReactComponentModule>('./Navigators/RightModalNavigator').default;
+const loadDynamicCardAuthenticationPage = () => require<ReactComponentModule>('../../../pages/settings/Subscription/DynamicCardAuthenticationPage').default;
 
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 
@@ -119,11 +137,15 @@ const modalScreenListenersWithCancelSearch = {
 
 function AuthScreens() {
     const theme = useTheme();
+    const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const rootNavigatorScreenOptions = useRootNavigatorScreenOptions();
     const modalCardStyleInterpolator = useModalCardStyleInterpolator();
-    const {isOnboardingCompleted} = useOnboardingFlowRouter();
+    const {isVisitingSecureLink} = useOnboardingFlowRouter();
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
+    useGPSTripStateChecker();
+    useGPSInProgressModal();
 
     useEffect(() => {
         NavBarManager.setButtonStyle(theme.navigationBarButtonsStyle);
@@ -152,11 +174,15 @@ function AuthScreens() {
     };
 
     return (
-        <>
+        <PersonalDetailsByLoginProvider>
             <AuthScreensInitHandler />
-            <ThreeDSAuthHandler />
+            <SearchRouterWarmup />
+            <SubmitIntentDeeplinkHandler />
+            <ForcedTransactionReviewHandler />
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
+            <ExportDownloadStatusManager />
+            <BulkActionStatusManager />
             <DelegatorConnectGuard>
                 <ComposeProviders
                     components={[
@@ -167,13 +193,10 @@ function AuthScreens() {
                         FullScreenContextProvider,
                         SearchRouterContextProvider,
                         ProductTrainingContextProvider,
-                        ExpensifyCardContextProvider,
                         TravelCVVContextProvider,
                         KYCWallContextProvider,
                         WideRHPContextProvider,
                         KeyboardDismissibleFlatListContextProvider,
-                        CurrencyListContextProvider,
-                        OptionsListContextProvider,
                         SidebarOrderedReportsContextProvider,
                         SearchContextProvider,
                         LockedAccountModalProvider,
@@ -210,6 +233,11 @@ function AuthScreens() {
                             getComponent={loadConciergePage}
                         />
                         <RootStack.Screen
+                            name={SCREENS.TALK_TO_HUMAN}
+                            options={defaultScreenOptions}
+                            getComponent={loadTalkToHumanPage}
+                        />
+                        <RootStack.Screen
                             name={SCREENS.TRACK_EXPENSE}
                             options={defaultScreenOptions}
                             getComponent={loadTrackExpensePage}
@@ -218,6 +246,13 @@ function AuthScreens() {
                             name={SCREENS.SUBMIT_EXPENSE}
                             options={defaultScreenOptions}
                             getComponent={loadSubmitExpensePage}
+                        />
+                        {/* Internal placeholder screen, not reachable via a URL/deep link. animation: none so it
+                            appears and disappears instantly instead of sliding in. */}
+                        <RootStack.Screen
+                            name={SCREENS.PRE_MOUNT_BUFFER}
+                            options={{...defaultScreenOptions, animation: 'none'}}
+                            getComponent={loadPreMountBufferPage}
                         />
                         <RootStack.Screen
                             name={SCREENS.REPORT_ATTACHMENTS}
@@ -251,6 +286,12 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={SCREENS.WORKSPACE_DOCUMENT}
+                            options={attachmentModalScreenOptions}
+                            getComponent={loadAttachmentModalScreen}
+                            listeners={modalScreenListeners}
+                        />
+                        <RootStack.Screen
+                            name={SCREENS.BILLING_RECEIPT}
                             options={attachmentModalScreenOptions}
                             getComponent={loadAttachmentModalScreen}
                             listeners={modalScreenListeners}
@@ -296,7 +337,10 @@ function AuthScreens() {
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.SHARE_MODAL_NAVIGATOR}
-                            options={rootNavigatorScreenOptions.fullScreen}
+                            options={{
+                                ...rootNavigatorScreenOptions.fullScreen,
+                                gestureEnabled: true,
+                            }}
                             component={ShareModalStackNavigator}
                             listeners={modalScreenListeners}
                         />
@@ -304,6 +348,11 @@ function AuthScreens() {
                             name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
                             options={rootNavigatorScreenOptions.centeredModalNavigator}
                             component={MigratedUserWelcomeModalNavigator}
+                        />
+                        <RootStack.Screen
+                            name={NAVIGATORS.SUBMIT_PLAN_MODAL_NAVIGATOR}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
+                            component={SubmitPlanWelcomeModalNavigator}
                         />
                         <RootStack.Screen
                             name={NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR}
@@ -316,7 +365,12 @@ function AuthScreens() {
                             component={FeatureTrainingModalNavigator}
                             listeners={modalScreenListeners}
                         />
-                        {isOnboardingCompleted === false && !Navigation.isValidateLoginFlow() && (
+                        {/*
+                         * Always registered, like the other modal navigators below, so entering onboarding never toggles this
+                         * screen in and out of the RootStack mid-session (which resets the navigator's state to its initial
+                         * route). OnboardingGuard and useOnboardingFlowRouter gate whether/when a user actually lands here.
+                         */}
+                        {!shouldSuppressPromotionalUI && !isVisitingSecureLink && (
                             <RootStack.Screen
                                 name={NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR}
                                 options={{...rootNavigatorScreenOptions.basicModalNavigator, gestureEnabled: false}}
@@ -347,6 +401,12 @@ function AuthScreens() {
                             component={ConnectionCompletePage}
                         />
                         <RootStack.Screen
+                            name={SCREENS.DYNAMIC_CARD_AUTHENTICATION}
+                            options={rootNavigatorScreenOptions.centeredModalNavigator}
+                            getComponent={loadDynamicCardAuthenticationPage}
+                            listeners={modalScreenListeners}
+                        />
+                        <RootStack.Screen
                             name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
                             options={{
                                 ...rootNavigatorScreenOptions.basicModalNavigator,
@@ -368,15 +428,20 @@ function AuthScreens() {
                         />
                     </RootStack.Navigator>
                     <RequireTwoFactorAuthenticationOverlay />
+                    <View
+                        pointerEvents="box-none"
+                        style={[StyleSheet.absoluteFill, themeStyles.twoFARequiredTestToolsHost]}
+                    >
+                        <PortalHost name={REQUIRE_2FA_ABOVE_PORTAL_HOST} />
+                    </View>
                     <MultifactorAuthenticationModalNavigator />
                     <SearchRouterModal />
-                    <GPSTripStateChecker />
-                    <GPSInProgressModal />
                     <OpenAppFailureModal />
+                    <EnableGlobalReimbursementsPayModal />
                     <PriorityModeController />
                 </ComposeProviders>
             </DelegatorConnectGuard>
-        </>
+        </PersonalDetailsByLoginProvider>
     );
 }
 

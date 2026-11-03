@@ -1,42 +1,47 @@
-import React from 'react';
-import {View} from 'react-native';
-import {RESULTS} from 'react-native-permissions';
 import AttachmentPicker from '@components/AttachmentPicker';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
+import React from 'react';
+import {View} from 'react-native';
+import {RESULTS} from 'react-native-permissions';
 
 type ScannerControlsBarProps = {
     /** Whether the device is currently in landscape orientation */
     isInLandscapeMode: boolean;
 
     /** Whether multi-scan mode is currently active */
-    isMultiScanEnabled: boolean;
+    isMultiScanEnabled?: boolean;
 
     /** Whether the multi-scan feature is available */
-    canUseMultiScan: boolean;
+    canUseMultiScan?: boolean;
 
     /** Whether the attachment picker should allow selecting multiple files */
-    shouldAcceptMultipleFiles: boolean;
+    shouldAcceptMultipleFiles?: boolean;
 
     /** Current camera permission status from react-native-permissions */
     cameraPermissionStatus: string | null;
 
     /** Whether the camera flash is currently on */
-    flash: boolean;
+    flash?: boolean;
 
     /** Whether the camera device supports flash */
-    hasFlash: boolean;
+    hasFlash?: boolean;
 
-    /** Updater function to toggle flash state */
-    setFlash: (updater: (prev: boolean) => boolean) => void;
+    /** Updater function to toggle flash state. When omitted the flash button is replaced by a same-sized spacer that keeps the shutter centered */
+    setFlash?: (updater: (prev: boolean) => boolean) => void;
 
     /** Sets whether the attachment picker modal is open */
     setIsAttachmentPickerActive: (value: boolean) => void;
@@ -51,26 +56,35 @@ type ScannerControlsBarProps = {
     capturePhoto: () => void;
 
     /** Toggles multi-scan mode on or off */
-    toggleMultiScan: () => void;
+    toggleMultiScan?: () => void;
+
+    /** Sentry label for the gallery button. Defaults to the scan labels */
+    gallerySentryLabel?: string;
+
+    /** Sentry label for the shutter button. Defaults to the scan label */
+    shutterSentryLabel?: string;
 };
 
 function ScannerControlsBar({
     isInLandscapeMode,
-    isMultiScanEnabled,
-    canUseMultiScan,
-    shouldAcceptMultipleFiles,
+    isMultiScanEnabled = false,
+    canUseMultiScan = false,
+    shouldAcceptMultipleFiles = false,
     cameraPermissionStatus,
-    flash,
-    hasFlash,
+    flash = false,
+    hasFlash = false,
     setFlash,
     setIsAttachmentPickerActive,
     onAttachmentPickerStatusChange,
     onPicked,
     capturePhoto,
     toggleMultiScan,
+    gallerySentryLabel,
+    shutterSentryLabel = CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER,
 }: ScannerControlsBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter']);
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'ReceiptMultiple', 'boltSlash']);
@@ -89,7 +103,7 @@ function ScannerControlsBar({
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.gallery')}
-                        sentryLabel={shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE}
+                        sentryLabel={gallerySentryLabel ?? (shouldAcceptMultipleFiles ? CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILES : CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.CHOOSE_FILE)}
                         style={[styles.alignItemsStart, isMultiScanEnabled && styles.opacity0]}
                         onPress={() =>
                             openPicker({
@@ -114,7 +128,7 @@ function ScannerControlsBar({
             <PressableWithFeedback
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('receipt.shutter')}
-                sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.SHUTTER}
+                sentryLabel={shutterSentryLabel}
                 style={[styles.alignItemsCenter]}
                 onPress={capturePhoto}
             >
@@ -125,7 +139,7 @@ function ScannerControlsBar({
                     height={CONST.RECEIPT.SHUTTER_SIZE}
                 />
             </PressableWithFeedback>
-            {canUseMultiScan ? (
+            {canUseMultiScan && (
                 <PressableWithFeedback
                     accessibilityRole="button"
                     role={CONST.ROLE.BUTTON}
@@ -141,14 +155,15 @@ function ScannerControlsBar({
                         fill={isMultiScanEnabled ? theme.iconMenu : theme.textSupporting}
                     />
                 </PressableWithFeedback>
-            ) : (
+            )}
+            {!canUseMultiScan && !!setFlash && (
                 <PressableWithFeedback
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
                     sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.SCAN.FLASH}
                     style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
                     disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                    onPress={() => setFlash((prevFlash) => !prevFlash)}
+                    onPress={() => setFlash?.((prevFlash) => !prevFlash)}
                 >
                     <Icon
                         height={variables.iconSizeMenuItem}
@@ -158,6 +173,8 @@ function ScannerControlsBar({
                     />
                 </PressableWithFeedback>
             )}
+            {/* Empty View matching the gallery icon size so justifyContentAround keeps the shutter exactly centered */}
+            {!canUseMultiScan && !setFlash && <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeMenuItem)} />}
         </View>
     );
 }

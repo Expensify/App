@@ -1,18 +1,18 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TextInput from '@components/TextInput';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {
     clearSageIntacctErrorField,
     clearSageIntacctPendingField,
@@ -25,11 +25,16 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/SageIntacctDimensionsForm';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import DimensionTypeSelector from './DimensionTypeSelector';
 
 type SageIntacctEditUserDimensionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_EDIT_USER_DIMENSION>;
@@ -46,25 +51,22 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
     const userDimensions = policy?.connections?.intacct?.config?.mappings?.dimensions;
     const editedUserDimension = userDimensions?.find((userDimension) => userDimension.dimension === editedUserDimensionName);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM>) => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM> = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM>) => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SAGE_INTACCT_DIMENSION_TYPE_FORM> = {};
 
-            if (!values[INPUT_IDS.INTEGRATION_NAME]) {
-                addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('common.error.fieldRequired'));
-            }
+        if (!values[INPUT_IDS.INTEGRATION_NAME]) {
+            addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('common.error.fieldRequired'));
+        }
 
-            if (userDimensions?.some((userDimension) => userDimension.dimension === values[INPUT_IDS.INTEGRATION_NAME] && editedUserDimensionName !== values[INPUT_IDS.INTEGRATION_NAME])) {
-                addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('workspace.intacct.dimensionExists'));
-            }
+        if (userDimensions?.some((userDimension) => userDimension.dimension === values[INPUT_IDS.INTEGRATION_NAME] && editedUserDimensionName !== values[INPUT_IDS.INTEGRATION_NAME])) {
+            addErrorMessage(errors, INPUT_IDS.INTEGRATION_NAME, translate('workspace.intacct.dimensionExists'));
+        }
 
-            if (!values[INPUT_IDS.DIMENSION_TYPE]) {
-                addErrorMessage(errors, INPUT_IDS.DIMENSION_TYPE, translate('common.error.fieldRequired'));
-            }
-            return errors;
-        },
-        [editedUserDimensionName, translate, userDimensions],
-    );
+        if (!values[INPUT_IDS.DIMENSION_TYPE]) {
+            addErrorMessage(errors, INPUT_IDS.DIMENSION_TYPE, translate('common.error.fieldRequired'));
+        }
+        return errors;
+    };
     const icons = useMemoizedLazyExpensifyIcons(['Trashcan']);
 
     return (
@@ -127,7 +129,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                         />
                     </View>
                     <View style={[styles.mhn5]}>
-                        <MenuItem
+                        <MenuItemAction
                             title={translate('common.remove')}
                             icon={icons.Trashcan}
                             onPress={() => {
@@ -136,7 +138,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                                     prompt: translate('workspace.intacct.removeDimensionPrompt'),
                                     confirmText: translate('common.remove'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                     shouldEnableNewFocusManagement: true,
                                 }).then((result) => {
                                     if (result.action !== ModalActions.CONFIRM) {

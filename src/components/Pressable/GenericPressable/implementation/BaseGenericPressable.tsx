@@ -1,17 +1,25 @@
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo, useState} from 'react';
-import type {GestureResponderEvent, View} from 'react-native';
-// eslint-disable-next-line no-restricted-imports
-import {Pressable} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
+
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useRouteKey from '@hooks/useRouteKey';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Accessibility from '@libs/Accessibility';
 import HapticFeedback from '@libs/HapticFeedback';
+import mergeRefs from '@libs/mergeRefs';
+import {notifyPressedTrigger, registerPressable} from '@libs/NavigationFocusReturn';
+
 import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+import type {GestureResponderEvent, View} from 'react-native';
+import type {ValueOf} from 'type-fest';
+
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import {Pressable} from 'react-native';
 
 function GenericPressable({
     children,
@@ -37,6 +45,7 @@ function GenericPressable({
     fullDisabled = false,
     interactive = true,
     isNested = false,
+    shouldAllowTextSelection = false,
     ref,
     dataSet,
     forwardedFSClass,
@@ -46,10 +55,25 @@ function GenericPressable({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isExecuting, singleExecution} = useSingleExecution();
-    const isScreenReaderActive = Accessibility.useScreenReaderStatus();
+    const screenReaderState = Accessibility.useScreenReaderState();
+    const isScreenReaderActive = screenReaderState === 'enabled';
     const [hitSlop, onLayout] = Accessibility.useAutoHitSlop();
     const [isHovered, setIsHovered] = useState(false);
     const isRoleButton = [rest.accessibilityRole, rest.role].includes(CONST.ROLE.BUTTON);
+    // A button role normally means "not selectable, exclude from copy". Callers whose content is selectable text opt out.
+    const shouldSuppressSelection = isRoleButton && !shouldAllowTextSelection;
+    const internalRef = useRef<ComponentRef<typeof View> | null>(null);
+    const composedRef = useMemo(() => mergeRefs(ref, internalRef), [ref]);
+    const routeKey = useRouteKey();
+    // `||` so empty strings skip — never key off an empty prop.
+    const focusIdentifier = rest.id || rest.nativeID || rest.testID || undefined;
+
+    useEffect(() => {
+        if (screenReaderState === 'disabled' || !routeKey || !focusIdentifier) {
+            return;
+        }
+        return registerPressable(routeKey, focusIdentifier, internalRef);
+    }, [screenReaderState, routeKey, focusIdentifier]);
 
     const isDisabled = useMemo(() => {
         let shouldBeDisabledByScreenReader = false;
@@ -61,7 +85,6 @@ function GenericPressable({
             shouldBeDisabledByScreenReader = isScreenReaderActive;
         }
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return disabled || shouldBeDisabledByScreenReader || isExecuting;
     }, [isScreenReaderActive, enableInScreenReaderStates, disabled, isExecuting]);
 
@@ -103,9 +126,10 @@ function GenericPressable({
                 ref.current?.blur();
                 Accessibility.moveAccessibilityFocus(nextFocusRef);
             }
+            notifyPressedTrigger(internalRef, focusIdentifier);
             onLongPress(event);
         },
-        [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled],
+        [shouldUseHapticsOnLongPress, onLongPress, nextFocusRef, ref, isDisabled, focusIdentifier],
     );
 
     const onPressHandler = useCallback(
@@ -123,9 +147,10 @@ function GenericPressable({
                 ref.current?.blur();
                 Accessibility.moveAccessibilityFocus(nextFocusRef);
             }
+            notifyPressedTrigger(internalRef, focusIdentifier);
             return onPress(event);
         },
-        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled, interactive],
+        [shouldUseHapticsOnPress, onPress, nextFocusRef, ref, isDisabled, interactive, focusIdentifier],
     );
 
     const voidOnPressHandler = useCallback(
@@ -176,14 +201,14 @@ function GenericPressable({
         <Pressable
             hitSlop={shouldUseAutoHitSlop ? hitSlop : undefined}
             onLayout={shouldUseAutoHitSlop ? onLayout : undefined}
-            ref={ref as ForwardedRef<View>}
+            ref={composedRef}
             disabled={fullDisabled || undefined}
             onPress={!isDisabled ? singleExecution(onPressHandler) : undefined}
             onLongPress={!isDisabled && onLongPress ? onLongPressHandler : undefined}
             onKeyDown={!isDisabled ? handleKeyDown : undefined}
             onPressIn={!isDisabled ? onPressIn : undefined}
             onPressOut={!isDisabled ? onPressOut : undefined}
-            dataSet={{...(isRoleButton ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : {}), ...(dataSet ?? {})}}
+            dataSet={{...(shouldSuppressSelection ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : {}), ...(dataSet ?? {})}}
             style={(state) => [
                 cursorStyle,
                 StyleUtils.parseStyleFromFunction(style, state),
@@ -192,7 +217,7 @@ function GenericPressable({
                 (state.hovered || isHovered) && StyleUtils.parseStyleFromFunction(hoverStyle, state),
                 state.pressed && StyleUtils.parseStyleFromFunction(pressStyle, state),
                 isDisabled && [StyleUtils.parseStyleFromFunction(disabledStyle, state), styles.noSelect],
-                isRoleButton && styles.userSelectNone,
+                shouldAllowTextSelection ? styles.userSelectAuto : shouldSuppressSelection && styles.userSelectNone,
             ]}
             // accessibility props
             accessibilityState={{

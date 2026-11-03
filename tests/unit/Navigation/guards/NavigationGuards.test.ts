@@ -1,9 +1,12 @@
-import type {NavigationState} from '@react-navigation/native';
-import Onyx from 'react-native-onyx';
 import {clearGuards, createGuardContext, evaluateGuards, getRegisteredGuards, registerGuard} from '@libs/Navigation/guards';
 import type {GuardContext, NavigationGuard} from '@libs/Navigation/guards/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+
+import type {NavigationState} from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
 
 describe('Navigation Guard System', () => {
     beforeAll(() => {
@@ -90,6 +93,8 @@ describe('Navigation Guard System', () => {
             isAuthenticated: true,
             isLoading: false,
             currentUrl: '',
+            isSupportalSession: false,
+            isDelegateSession: false,
         };
 
         it('should return ALLOW when no guards are registered', () => {

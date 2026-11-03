@@ -1,24 +1,26 @@
-import React from 'react';
-import type {ValueOf} from 'type-fest';
 import {PressableWithFeedback} from '@components/Pressable';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
-import {startSpan} from '@libs/telemetry/activeSpans';
-import {startNavigateToReportsSpans} from '@libs/telemetry/navigateToReportsSpans';
+import {startNavigateToReportsTabSpans} from '@libs/telemetry/startTabNavigationSpans';
+
 import navigationRef from '@navigation/navigationRef';
-import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
+
 import CONST from '@src/CONST';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
-import getLastRoute from './getLastRoute';
+import {lastExpensesSearchQuerySelector} from '@src/selectors/SearchFilters';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
+import getSearchTabRoute from './getSearchTabRoute';
 import NAVIGATION_TABS from './NAVIGATION_TABS';
 import TabBarItem from './TabBarItem';
 
@@ -28,10 +30,12 @@ type SearchTabButtonProps = {
 };
 
 function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReceiptMultiple']);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const [lastExpensesSearchQuery] = useOnyx(ONYXKEYS.SEARCH_FILTERS, {selector: lastExpensesSearchQuerySelector});
     const searchAccessibilityState = {selected: selectedTab === NAVIGATION_TABS.SEARCH};
 
     const navigateToSearch = () => {
@@ -40,35 +44,10 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            startSpan(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {
-                name: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
-                op: CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS,
-                forceTransaction: true,
-            });
-            startNavigateToReportsSpans();
+            startNavigateToReportsTabSpans();
 
-            const lastSearchRoute = getLastRoute(navigationRef.getRootState(), NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR, SCREENS.SEARCH.ROOT);
-
-            if (lastSearchRoute) {
-                const {q, ...rest} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-                const queryJSON = buildSearchQueryJSON(q);
-                if (queryJSON) {
-                    const query = buildSearchQueryString(queryJSON);
-                    Navigation.navigate(
-                        ROUTES.SEARCH_ROOT.getRoute({
-                            query,
-                            ...rest,
-                        }),
-                    );
-                    return;
-                }
-            }
-
-            const lastQueryJSON = lastSearchParams?.queryJSON;
-            const lastQueryFromOnyx = lastQueryJSON ? buildSearchQueryString(lastQueryJSON) : undefined;
-            const defaultSearchQuery = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE});
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: lastQueryFromOnyx ?? defaultSearchQuery}));
-        });
+            Navigation.navigate(getSearchTabRoute(navigationRef.getRootState(), lastSearchParams, lastExpensesSearchQuery));
+        }, session);
     };
 
     if (isWideLayout) {
@@ -99,7 +78,7 @@ function SearchTabButton({selectedTab, isWideLayout}: SearchTabButtonProps) {
             role={CONST.ROLE.TAB}
             accessibilityLabel={translate('common.spend')}
             accessibilityState={searchAccessibilityState}
-            wrapperStyle={styles.flex1}
+            wrapperStyle={styles.navigationTabBarSlot}
             style={styles.navigationTabBarItem}
             sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.REPORTS}
         >

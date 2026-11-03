@@ -1,0 +1,155 @@
+name: Resolve build refs
+
+# Reusable workflow that resolves which Expensify/App and Expensify/Mobile-Expensify commits a build should check out.
+#
+# App head ref (APP_REF):
+#   - The head SHA of the App PR (APP_PULL_REQUEST_URL), if provided.
+#   - Otherwise, empty — callers fall back to the triggering ref (push commit / dispatch branch).
+#
+# Mobile-Expensify head ref (MOBILE_EXPENSIFY_REF), resolution order:
+#   1. An explicit Mobile-Expensify PR URL (MOBILE_EXPENSIFY_PULL_REQUEST_URL), if provided.
+#   2. Otherwise, if MOBILE_EXPENSIFY_MAIN is true, empty — callers build against Mobile-Expensify main.
+#   3. Otherwise, a `MOBILE-EXPENSIFY: <pr-url>` entry in the body of the App PR (APP_PULL_REQUEST_URL),
+#      If that PR is already merged, its head commit is stale, so Mobile-Expensify main (which contains the change) is used instead.
+#   4. Otherwise, empty — callers fall back to the pinned submodule commit.
+# Providing both MOBILE_EXPENSIFY_PULL_REQUEST_URL and MOBILE_EXPENSIFY_MAIN fails the run.
+on:
+  workflow_call:
+    inputs:
+      APP_PULL_REQUEST_URL:
+        description: The Expensify/App pull request URL. Its description is scanned for a MOBILE-EXPENSIFY entry. Ignored if a Mobile-Expensify PR URL is provided.
+        required: false
+        type: string
+        default: ''
+      MOBILE_EXPENSIFY_PULL_REQUEST_URL:
+        description: The Expensify/Mobile-Expensify pull request URL. Overrides MOBILE-EXPENSIFY set in the App PR description.
+        required: false
+        type: string
+        default: ''
+      MOBILE_EXPENSIFY_MAIN:
+        description: Whether the caller builds against Mobile-Expensify main. Overrides MOBILE-EXPENSIFY set in the App PR description, and cannot be combined with MOBILE_EXPENSIFY_PULL_REQUEST_URL.
+        required: false
+        type: boolean
+        default: false
+    outputs:
+      APP_PR_NUMBER:
+        description: PR number extracted from the App PR URL (empty if none).
+        value: ${{ jobs.resolve.outputs.APP_PR_NUMBER }}
+      APP_REF:
+        description: Resolved Expensify/App head SHA (empty to use the triggering ref).
+        value: ${{ jobs.resolve.outputs.APP_REF }}
+      MOBILE_EXPENSIFY_PR:
+        description: Resolved Mobile-Expensify PR number (empty if none, including when MOBILE_EXPENSIFY_MAIN is true).
+        value: ${{ jobs.resolve.outputs.MOBILE_EXPENSIFY_PR }}
+      MOBILE_EXPENSIFY_REF:
+        description: Resolved Mobile-Expensify head SHA, or `main` when the PR from the App PR description is already merged (empty to use the pinned submodule commit).
+        value: ${{ jobs.resolve.outputs.MOBILE_EXPENSIFY_REF }}
+    secrets:
+      OS_BOTIFY_TOKEN:
+        description: Token with read access to Expensify/Mobile-Expensify, used to resolve the PR head ref.
+        required: true
+
+jobs:
+  resolve:
+    name: Resolve build refs
+    runs-on: 'blacksmith-4vcpu-ubuntu-2404'
+    outputs:
+      APP_PR_NUMBER: ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}
+      APP_REF: ${{ steps.getAppHeadRef.outputs.REF }}
+      MOBILE_EXPENSIFY_PR: ${{ steps.getHeadRef.outputs.PR }}
+      MOBILE_EXPENSIFY_REF: ${{ steps.getHeadRef.outputs.REF }}
+    steps:
+      - name: Validate Mobile-Expensify inputs
+        if: ${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_URL != '' && inputs.MOBILE_EXPENSIFY_MAIN }}
+        run: |
+          echo "::error::❌ MOBILE_EXPENSIFY_PULL_REQUEST_URL and MOBILE_EXPENSIFY_MAIN cannot be used together. Provide a Mobile-Expensify PR URL to build against that PR, or set MOBILE_EXPENSIFY_MAIN to build against Mobile-Expensify main."
+          exit 1
+
+      - name: Extract App PR number from URL
+        id: extractAppPRNumber
+        if: ${{ inputs.APP_PULL_REQUEST_URL != '' }}
+        run: |
+          PR_NUMBER=$(echo '${{ inputs.APP_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::❌ Could not extract PR number from the App PR URL. Please provide a valid GitHub PR URL (e.g., https://github.com/Expensify/App/pull/12345)"
+            exit 1
+          fi
+          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve App head ref from PR number
+        id: getAppHeadRef
+        if: ${{ steps.extractAppPRNumber.outputs.PR_NUMBER != '' }}
+        run: |
+          set -e
+          echo "REF=$(gh pr view ${{ steps.extractAppPRNumber.outputs.PR_NUMBER }} -R Expensify/App --json headRefOid --jq '.headRefOid')" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Extract Mobile-Expensify PR number from URL
+        id: extractMobilePRNumber
+        if: ${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_URL != '' }}
+        run: |
+          PR_NUMBER=$(echo '${{ inputs.MOBILE_EXPENSIFY_PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')
+          if ! [[ "$PR_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::❌ Could not extract PR number from the Mobile-Expensify PR URL. Please provide a valid GitHub PR URL (e.g., https://github.com/Expensify/Mobile-Expensify/pull/12345)"
+            exit 1
+          fi
+          echo "PR_NUMBER=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve which Mobile-Expensify PR to use
+        id: mobileExpensifyPR
+        # v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd
+        with:
+          github-token: ${{ github.token }}
+          result-encoding: string
+          script: |
+            // An explicit Mobile-Expensify PR URL takes precedence over the App PR description
+            if ('${{ steps.extractMobilePRNumber.outputs.PR_NUMBER }}') {
+              core.setOutput('SOURCE', 'url');
+              return '${{ steps.extractMobilePRNumber.outputs.PR_NUMBER }}';
+            }
+
+            // Building against Mobile-Expensify main was requested explicitly, so it takes precedence over the App PR description
+            if (${{ inputs.MOBILE_EXPENSIFY_MAIN }}) {
+              return '';
+            }
+
+            if (!'${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}') {
+              return '';
+            }
+
+            const pullRequest = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: '${{ steps.extractAppPRNumber.outputs.PR_NUMBER }}',
+            });
+
+            const body = pullRequest.data.body ?? '';
+            const regex = /MOBILE-EXPENSIFY:\s*https:\/\/github.com\/Expensify\/Mobile-Expensify\/pull\/(?<prNumber>\d+)/;
+            const found = body.match(regex)?.groups?.prNumber || "";
+
+            core.setOutput('SOURCE', 'description');
+            return found.trim();
+
+      - name: Resolve Mobile-Expensify head ref from PR number
+        id: getHeadRef
+        if: ${{ steps.mobileExpensifyPR.outputs.result != '' }}
+        run: |
+          set -e
+          PR_INFO=$(gh pr view "$PR_NUMBER" -R Expensify/Mobile-Expensify --json state,headRefOid --jq '"\(.state) \(.headRefOid)"')
+          read -r STATE REF <<< "$PR_INFO"
+
+          # A merged PR's head commit is stale compared to main, and the pinned submodule of the App PR branch may predate the merge, so build against main, which contains the change
+          if [[ "$SOURCE" == 'description' && "$STATE" == 'MERGED' ]]; then
+            echo "::notice::Mobile-Expensify PR #$PR_NUMBER from the App PR description is already merged, so Mobile-Expensify main is used instead."
+            echo "REF=main" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "PR=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "REF=$REF" >> "$GITHUB_OUTPUT"
+        env:
+          PR_NUMBER: ${{ steps.mobileExpensifyPR.outputs.result }}
+          SOURCE: ${{ steps.mobileExpensifyPR.outputs.SOURCE }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}

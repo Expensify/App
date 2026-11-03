@@ -1,6 +1,3 @@
-import React, {useState} from 'react';
-import {View} from 'react-native';
-import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -9,28 +6,38 @@ import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSearchResults from '@hooks/useSearchResults';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import tokenizedSearch from '@libs/tokenizedSearch';
+
+import CONST from '@src/CONST';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type SpendRulesCurrencyBaseProps = {
-    /** The currently selected currencies */
     currencies: string[];
 
     /** The settlement currency of the currently selected cards */
     settlementCurrency: string;
 
-    /** Handle the currencies changing */
     onCurrenciesChange: (currencies: string[]) => void;
 };
 
 type CurrencyListItem = ListItem & {
     value: string;
+    searchTokens: string[];
 };
 
 export default function SpendRulesCurrencyBase({currencies, settlementCurrency, onCurrenciesChange}: SpendRulesCurrencyBaseProps) {
@@ -44,13 +51,11 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
     const currencyOptions = getCurrencyOptions(currencyList, getCurrencySymbol);
     const validCurrencyOptions = currencyOptions.filter((option) => option.value !== settlementCurrency);
 
-    const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(() => {
-        if (currencies.length > 0) {
-            return currencies.filter((currency) => currency !== settlementCurrency);
-        }
+    const savedSelectedCurrencies = currencies.length > 0 ? currencies.filter((currency) => currency !== settlementCurrency) : validCurrencyOptions.map((option) => option.value);
 
-        return validCurrencyOptions.map((option) => option.value);
-    });
+    const [selectedCurrencies, setSelectedCurrencies] = useState<string[]>(savedSelectedCurrencies);
+    // Freeze the saved selection (not the live, unsaved edits) so returning focus to the page doesn't treat
+    const initialSelectedCurrencies = useInitialSelection(savedSelectedCurrencies, {resetOnFocus: true});
 
     const currencyItems: CurrencyListItem[] = [];
     const selectedCurrenciesSet = new Set(selectedCurrencies);
@@ -71,6 +76,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
             keyForList: currencyOption.value,
             text: currencyOption.text,
             value: currencyOption.value,
+            searchTokens: [currencyOption.text, currencyOption.value, currencyOption.searchableText ?? ''],
         });
 
         if (!isSelected) {
@@ -79,14 +85,17 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
     }
 
     const filterCurrency = (item: CurrencyListItem, searchInput: string) => {
-        return (item.text ?? '').toLowerCase().includes(searchInput);
+        const results = tokenizedSearch([item], searchInput, (currency) => currency.searchTokens);
+        return results.length > 0;
     };
 
     const sortCurrencies = (items: CurrencyListItem[]) => {
         return items.sort((a, b) => localeCompare(a.text ?? '', b.text ?? ''));
     };
 
-    const [inputValue, setInputValue, filteredCurrencyItems] = useSearchResults(currencyItems, filterCurrency, sortCurrencies);
+    // Pin the frozen initial selection to the top of the full sorted list before searching, so pre-selected currencies stay pinned while searching (identity sort keeps the pinned order intact).
+    const orderedCurrencyItems = moveInitialSelectionToTop(sortCurrencies([...currencyItems]), initialSelectedCurrencies);
+    const [inputValue, setInputValue, filteredCurrencyItems] = useSearchResults(orderedCurrencyItems, filterCurrency);
 
     const toggleCurrency = (item: CurrencyListItem) => {
         setSelectedCurrencies((prev) => {
@@ -124,7 +133,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
             onCurrenciesChange([...selectedCurrencies, settlementCurrency]);
         }
 
-        goBack();
+        Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
     };
 
     const ListHeaderContent = (
@@ -132,7 +141,6 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
             <MultiSelectListItem
                 isFocused={false}
                 showTooltip={false}
-                keyForList="select-all"
                 item={{keyForList: 'select-all', text: translate('workspace.rules.spendRules.allCurrencies'), isSelected: areAllCurrenciesSelected}}
                 onSelectRow={toggleSelectAll}
             />
@@ -153,7 +161,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                     </Text>
                 </View>
                 <Icon
-                    medium
+                    size={CONST.ICON_SIZE.MEDIUM}
                     src={icons.Lock}
                     fill={theme.icon}
                 />
@@ -173,11 +181,11 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                 onBackButtonPress={goBack}
             />
 
-            <Text style={[styles.textLabel, styles.textSupporting, styles.ph5, styles.pb4]}>{translate('workspace.rules.spendRules.permittedCurrenciesSubtitle')}</Text>
-
             <SelectionList
                 canSelectMultiple
+                shouldScrollToFocusedIndexOnMount={false}
                 shouldUpdateFocusedIndex
+                disableMaintainingScrollPosition
                 customListHeaderContent={ListHeaderContent}
                 ListItem={MultiSelectListItem}
                 data={filteredCurrencyItems}
@@ -188,6 +196,7 @@ export default function SpendRulesCurrencyBase({currencies, settlementCurrency, 
                 textInputOptions={{
                     value: inputValue,
                     label: translate('common.search'),
+                    headerMessage: inputValue.trim() && filteredCurrencyItems.length === 0 ? translate('common.noResultsFound') : undefined,
                     onChangeText: setInputValue,
                 }}
                 style={{

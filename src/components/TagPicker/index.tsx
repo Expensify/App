@@ -1,20 +1,27 @@
-import React, {useMemo, useState} from 'react';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import useLoadPolicyTags from '@hooks/useLoadPolicyTags';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import {getTagList} from '@libs/PolicyUtils';
+import {getTagList, matchesParentTagPath} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import type {SelectedTagOption} from '@libs/TagsOptionsListUtils';
 import {getTagListSections} from '@libs/TagsOptionsListUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTag, PolicyTags} from '@src/types/onyx';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import React, {useEffect, useState} from 'react';
 
 type TagPickerProps = {
     /** The policyID we are getting tags for */
@@ -32,16 +39,12 @@ type TagPickerProps = {
     /** The name of tag list we are getting tags for */
     tagListName: string;
 
-    /** Callback to submit the selected tag */
     onSubmit: (selectedTag: Partial<OptionData>) => void;
-
-    /** Should show the selected option that is disabled? */
     shouldShowDisabledAndSelectedOption?: boolean;
 
     /** Whether the list should be sorted by tag name. default is false */
     shouldOrderListByTagName?: boolean;
 
-    /** Indicates which tag list index was selected */
     tagListIndex: number;
 
     /**
@@ -50,6 +53,23 @@ type TagPickerProps = {
      * split-edit where the active workspace no longer carries the original tag value.
      */
     additionalTagsToInclude?: string[];
+
+    /** Whether to add bottom safe area padding to the list (for edge-to-edge bottom-docked modals) */
+    addBottomSafeAreaPadding?: boolean;
+    /**
+     * Optional override for whether to show GL codes. When omitted, TagPicker reads
+     * `showTagGLCodes && glCodes` from the policy in Onyx.
+     */
+    shouldShowGLCode?: boolean;
+
+    /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
+    shouldAutoFocusSearchInput?: boolean;
+
+    /** Reports how many rows the unfiltered list renders, section headings included, so a container can size itself to them */
+    onRenderedRowCountChange?: (rowCount: number) => void;
+
+    /** Number of available tags at which the search input appears. Defaults to `CONST.STANDARD_LIST_ITEM_LIMIT`. */
+    searchInputThreshold?: number;
 };
 
 const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
@@ -76,33 +96,53 @@ function TagPicker({
     shouldOrderListByTagName = false,
     onSubmit,
     additionalTagsToInclude,
+    addBottomSafeAreaPadding = false,
+    shouldShowGLCode: shouldShowGLCodeProp,
+    shouldAutoFocusSearchInput = false,
+    onRenderedRowCountChange,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [shouldShowGLCodeFromPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        selector: (policy) => !!policy?.showTagGLCodes && !!policy?.glCodes,
+    });
+    const shouldShowGLCode = shouldShowGLCodeProp ?? shouldShowGLCodeFromPolicy;
     const [policyRecentlyUsedTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${policyID}`);
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const {translate, localeCompare} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
 
-    const policyRecentlyUsedTagsList = useMemo(() => policyRecentlyUsedTags?.[tagListName] ?? [], [policyRecentlyUsedTags, tagListName]);
+    // Backfill the policy's tags on demand so lazy-loaded accounts don't get stuck showing only the selected tag.
+    const {isLoadingPolicyTags} = useLoadPolicyTags(policyID);
+
+    const policyRecentlyUsedTagsList = policyRecentlyUsedTags?.[tagListName] ?? [];
     const policyTagList = getTagList(policyTags, tagListIndex);
     const selectedOptions = getSelectedOptions(selectedTag);
 
     // Merge any orphaned tag names into the policy's tag map so they appear as selectable options.
-    const policyTagsWithAdditions = useMemo<PolicyTags>(() => {
-        const baseTags = policyTagList.tags ?? {};
-        if (!additionalTagsToInclude?.length) {
-            return baseTags;
-        }
+    let policyTagsWithAdditions: PolicyTags;
+    const baseTags = policyTagList.tags ?? {};
+    if (!additionalTagsToInclude?.length) {
+        policyTagsWithAdditions = baseTags;
+    } else {
         const extras: PolicyTags = {};
         for (const name of additionalTagsToInclude) {
             if (!name || baseTags[name]) {
                 continue;
             }
-            extras[name] = {name, enabled: true} as PolicyTag;
+            extras[name] = {
+                name,
+                enabled: true,
+            } as PolicyTag;
         }
-        return Object.keys(extras).length ? {...baseTags, ...extras} : baseTags;
-    }, [policyTagList.tags, additionalTagsToInclude]);
+        policyTagsWithAdditions = Object.keys(extras).length
+            ? {
+                  ...baseTags,
+                  ...extras,
+              }
+            : baseTags;
+    }
 
     const getEnabledTags = (): PolicyTags | Array<PolicyTag | SelectedTagOption> => {
         if (!shouldShowDisabledAndSelectedOption && !hasDependentTags) {
@@ -115,15 +155,7 @@ function TagPicker({
                 .slice(0, tagListIndex)
                 .join(':');
 
-            return Object.values(policyTagsWithAdditions).filter((policyTag) => {
-                const filterRegex = policyTag.rules?.parentTagsFilter;
-                if (!filterRegex) {
-                    return policyTagsWithAdditions;
-                }
-
-                const regex = new RegExp(filterRegex);
-                return regex.test(parentTag ?? '');
-            });
+            return Object.values(policyTagsWithAdditions).filter((policyTag) => matchesParentTagPath(policyTag, parentTag));
         }
 
         const selectedNames = new Set(selectedOptions.map((s) => s.name));
@@ -142,41 +174,56 @@ function TagPicker({
         recentlyUsedTags: policyRecentlyUsedTagsList,
         localeCompare,
         translate,
+        shouldShowGLCode,
+        searchInputThreshold,
     });
-    const sections = shouldOrderListByTagName
-        ? tagSections.map((option) => ({
-              ...option,
-              data: option.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
-          }))
-        : tagSections;
+    const sections = tagSections.map((section) => ({
+        ...section,
+        data: (shouldOrderListByTagName ? section.data.sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')) : section.data).map((tag) => ({...tag, titleStyles: styles.w100})),
+    }));
 
     const selectedOptionKey = sections.at(0)?.data?.find((policyTag) => policyTag.searchText === selectedTag)?.keyForList;
+    const renderedRowCount = sections.reduce((total, section) => total + section.data.length + (section.title ? 1 : 0), 0);
+
+    useEffect(() => {
+        if (searchValue) {
+            return;
+        }
+        onRenderedRowCountChange?.(renderedRowCount);
+    }, [renderedRowCount, searchValue, onRenderedRowCountChange]);
+
+    // While the on-demand fetch above is in flight, show the list skeleton instead of flashing the selected-only
+    // fallback. Orphaned tags passed in by the caller are a complete local list, so they render immediately.
+    const isLoadingNewOptions = isLoadingPolicyTags && !additionalTagsToInclude?.length;
 
     const textInputOptions = {
         value: searchValue,
         onChangeText: setSearchValue,
-        headerMessage: getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
+        headerMessage: getHeaderMessageForNonUserList(translate, (sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
         label: translate('common.search'),
-        disableAutoFocus: true,
+        // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
+        disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
     return (
         <SelectionListWithSections
-            sections={sections}
+            // The list only renders the skeleton when it has no items, so the sections have to be emptied too.
+            // Otherwise the selected-only fallback row still shows while the fetch is in flight.
+            sections={isLoadingNewOptions ? getEmptyArray<never>() : sections}
             ListItem={SingleSelectListItem}
-            style={{
-                sectionTitleStyles: styles.mt5,
-                listItemTitleStyles: styles.w100,
-            }}
+            style={{sectionTitleStyles: styles.mt5}}
             textInputOptions={textInputOptions}
-            shouldShowTextInput={availableTagsCount >= CONST.STANDARD_LIST_ITEM_LIMIT}
+            shouldShowTextInput={availableTagsCount >= searchInputThreshold}
+            shouldShowLoadingPlaceholder={isLoadingNewOptions}
+            isLoadingNewOptions={isLoadingNewOptions}
             initiallyFocusedItemKey={selectedOptionKey}
             onSelectRow={onSubmit}
-            isRowMultilineSupported
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
             titleNumberOfLines={CONST.TRANSACTION_TAG_AND_CATEGORY_PICKER_MAX_TITLE_LINES}
         />
     );
 }
 
 export default TagPicker;
+export type {TagPickerProps};

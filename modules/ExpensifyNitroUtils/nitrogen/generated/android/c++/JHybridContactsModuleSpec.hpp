@@ -21,11 +21,11 @@ namespace margelo::nitro::utils {
   class JHybridContactsModuleSpec: public virtual HybridContactsModuleSpec, public virtual JHybridObject {
   public:
     struct JavaPart: public jni::JavaClass<JavaPart, JHybridObject::JavaPart> {
-      static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridContactsModuleSpec;";
+      static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridContactsModuleSpec;";
       std::shared_ptr<JHybridContactsModuleSpec> getJHybridContactsModuleSpec();
     };
     struct CxxPart: public jni::HybridClass<CxxPart, JHybridObject::CxxPart> {
-      static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridContactsModuleSpec$CxxPart;";
+      static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/HybridContactsModuleSpec$CxxPart;";
       static jni::local_ref<jhybriddata> initHybrid(jni::alias_ref<jhybridobject> jThis);
       static void registerNatives();
       using HybridBase::HybridBase;
@@ -55,6 +55,7 @@ namespace margelo::nitro::utils {
   public:
     // Methods
     std::shared_ptr<Promise<std::vector<Contact>>> getAll(const std::vector<ContactFields>& keys) override;
+    std::shared_ptr<Promise<std::vector<Contact>>> pick(const std::vector<ContactFields>& keys) override;
 
   private:
     jni::global_ref<JHybridContactsModuleSpec::JavaPart> _javaPart;

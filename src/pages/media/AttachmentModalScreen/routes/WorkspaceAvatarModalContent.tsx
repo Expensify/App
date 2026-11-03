@@ -1,14 +1,19 @@
-import React, {useMemo} from 'react';
 import useDefaultAvatars from '@hooks/useDefaultAvatars';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
+
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {getFullSizeAvatar} from '@libs/UserAvatarUtils';
+
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/types';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import type {AttachmentModalScreenProps} from '@pages/media/AttachmentModalScreen/types';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+
 import useDownloadAttachment from './hooks/useDownloadAttachment';
 
 function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenProps<typeof SCREENS.WORKSPACE_AVATAR>) {
@@ -29,20 +34,17 @@ function WorkspaceAvatarModalContent({navigation, route}: AttachmentModalScreenP
 
     const onDownloadAttachment = useDownloadAttachment();
 
-    const contentProps = useMemo<AttachmentModalBaseContentProps>(
-        () => ({
-            source,
-            headerTitle,
-            originalFileName,
-            shouldShowNotFoundPage,
-            isLoading,
-            isWorkspaceAvatar: true,
-            maybeIcon: true,
-            onDownloadAttachment,
-            shouldCloseOnSwipeDown: true,
-        }),
-        [headerTitle, isLoading, onDownloadAttachment, originalFileName, shouldShowNotFoundPage, source],
-    );
+    const contentProps: AttachmentModalBaseContentProps = {
+        source,
+        headerTitle,
+        originalFileName,
+        shouldShowNotFoundPage,
+        isLoading,
+        isWorkspaceAvatar: true,
+        maybeIcon: true,
+        onDownloadAttachment,
+        shouldCloseOnSwipeDown: true,
+    };
 
     return (
         <AttachmentModalContainer

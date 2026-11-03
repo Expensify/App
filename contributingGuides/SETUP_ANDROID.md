@@ -12,8 +12,8 @@ The following steps describe how to configure the project to fully utilize Rock.
 
 ### Running the mobile application 📱
 * To install project dependencies run: `npm install`
-* To start metro server run: `npm run start`
-**Note:** For now this is a required step — metro needs to be called manually in a separate terminal.
+* To start the dev server run: `npm run start`
+**Note:** For now this is a required step — the dev server needs to be started manually in a separate terminal.
 * To run application on a **Development Simulator**:
     - For standalone `npm run android-standalone`
     - For hybrid app `npm run android`
@@ -76,43 +76,11 @@ If you haven't done any intentional edits outside of `src/` (like adding new dep
 - To point the **Development Emulator** at your local VM, follow [these steps](https://stackoverflow.com/c/expensify/questions/7699).
 - You must configure the local dev email account; follow [these instructions](https://stackoverflowteams.com/c/expensify/questions/23537/23538#23538).
 
-## Enabling Prebuilt React Native Artifacts
+## Prebuilt React Native Artifacts
 
-By default, `react-native` is built from source when building the Android app. However, you can enable prebuilt artifacts to speed up the build process:
-
-### Disabling Build from Source
-- Open `android/gradle.properties` (for Standalone NewDot) or `Mobile-Expensify/Android/gradle.properties` (for HybridApp)
-- Set `patchedArtifacts.forceBuildFromSource=false`
-
-### Configuring GitHub CLI
-
-To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
-
-1. **Install GitHub CLI**
-   - Install GitHub CLI by following the instructions from [cli.github.com](https://cli.github.com/)
-
-2. **Create a GitHub Personal Access Token**
-   - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
-   - Click "Generate new token (classic)"
-   - Select the following scopes:
-     - `repo`
-     - `read:org`
-     - `gist`
-     - `read:packages`
-   - Copy the generated token
-
-3. **Login to GitHub CLI**
-   ```bash
-   echo "YOUR_TOKEN" | gh auth login --with-token
-   ```
-
-4. **Verify Login**
-   ```bash
-   gh auth status
-   ```
-   You should see a message confirming you are authenticated with your GitHub account.
-
-After completing these steps, you should be able to build Android apps with prebuilt `react-native` artifacts.
+Android builds download a prebuilt `react-native` from GitHub Packages instead of compiling it, which
+requires an authenticated GitHub CLI. See [Prebuilt React Native Artifacts](PREBUILT_REACT_NATIVE_ARTIFACTS.md)
+for the setup and for how to compile from source instead.
 
 ## Push Notifications Setup
 
@@ -161,8 +129,8 @@ Our React Native Android app now uses the `Hermes` JS engine which requires your
 
 ### Chrome Debugging Setup
 1. Navigate to `chrome://inspect`
-2. Use the `Configure...` button to add the Metro server address (typically `localhost:8081`, check your `Metro` output)
-3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the Metro server is running
+2. Use the `Configure...` button to add the dev server address (typically `localhost:8081`, check the dev server output)
+3. You should now see a "Hermes React Native" target with an "inspect" link which can be used to bring up a debugger. If you don't see the "inspect" link, make sure the dev server is running
 4. You can now use the Chrome debug tools. See [React Native Debugging Hermes](https://reactnative.dev/docs/hermes#debugging-hermes-using-google-chromes-devtools)
 
 ## Release Profiling

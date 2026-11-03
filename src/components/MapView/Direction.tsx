@@ -1,7 +1,11 @@
-import Mapbox from '@rnmapbox/maps';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import Mapbox from '@rnmapbox/maps';
+
 import type {DirectionProps} from './MapViewTypes';
+
 import utils from './utils';
 
 function Direction({coordinates, belowLayerID}: DirectionProps) {

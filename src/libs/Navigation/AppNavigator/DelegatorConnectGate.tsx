@@ -1,12 +1,14 @@
-import React, {Suspense, use} from 'react';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useOnyx from '@hooks/useOnyx';
+
 import {connect} from '@libs/actions/Delegate';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getSearchParamFromUrl} from '@libs/Url';
-import * as App from '@userActions/App';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {Suspense, use} from 'react';
 
 let connectPromise: Promise<boolean | undefined> | null = null;
 
@@ -27,7 +29,6 @@ function DelegatorConnectGate({children, delegatorEmail}: DelegatorConnectGatePr
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
 
     // Module-level cache survives unmount/remount cycles caused by Onyx.clear() inside connect().
-    // connect() always returns a Promise when isFromOldDot is true.
     connectPromise ??=
         connect({
             email: delegatorEmail,
@@ -35,10 +36,6 @@ function DelegatorConnectGate({children, delegatorEmail}: DelegatorConnectGatePr
             credentials,
             session,
             activePolicyID,
-            isFromOldDot: true,
-        })?.then((success) => {
-            App.setAppLoading(!!success);
-            return success;
         }) ?? Promise.resolve(undefined);
 
     use(connectPromise);
@@ -59,7 +56,8 @@ function DelegatorConnectGuard({children}: {children: React.ReactNode}) {
     }
 
     return (
-        <Suspense fallback={<FullScreenLoadingIndicator reasonAttributes={{context: 'DelegatorConnectGate'} satisfies SkeletonSpanReasonAttributes} />}>
+        // No "Go Back" button: this fallback replaces the whole AuthScreens navigator while connect() clears Onyx, so there is no screen to go back to.
+        <Suspense fallback={<FullScreenLoadingIndicator shouldUseGoBackButton={false} />}>
             <DelegatorConnectGate delegatorEmail={delegatorEmail}>{children}</DelegatorConnectGate>
         </Suspense>
     );

@@ -1,24 +1,29 @@
-import React, {useCallback, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
 import TagPicker from '@components/TagPicker';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
 import {getTagLists} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getTagArrayFromName} from '@libs/TransactionUtils';
+
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 type DebugTagPickerProps = {
     /** The policyID we are getting tags for */
     policyID: string;
 
-    /** Current tag name */
     tagName?: string;
 
     /** Callback to submit the selected tag */
@@ -31,27 +36,25 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [newTagName, setNewTagName] = useState(tagName);
-    const selectedTags = useMemo(() => getTagArrayFromName(newTagName), [newTagName]);
+    const selectedTags = getTagArrayFromName(newTagName);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+    const policyTagLists = getTagLists(policyTags);
 
     const [hasMultipleTagLists] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {selector: policyHasMultipleTagListsSelector});
-    const updateTagName = useCallback(
+    const updateTagName =
         (index: number) =>
-            ({text}: Partial<OptionData>) => {
-                const newTag = text === selectedTags.at(index) ? undefined : text;
-                const updatedTagName = insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index, hasMultipleTagLists ?? false);
-                if (policyTagLists.length === 1) {
-                    return onSubmit({text: updatedTagName, keyForList: updatedTagName});
-                }
-                setNewTagName(updatedTagName);
-            },
-        [newTagName, onSubmit, policyTagLists.length, selectedTags, hasMultipleTagLists],
-    );
+        ({text}: Partial<OptionData>) => {
+            const newTag = text === selectedTags.at(index) ? undefined : text;
+            const updatedTagName = insertTagIntoTransactionTagsString(newTagName, newTag ?? '', index, hasMultipleTagLists ?? false);
+            if (policyTagLists.length === 1) {
+                return onSubmit({text: updatedTagName, keyForList: updatedTagName});
+            }
+            setNewTagName(updatedTagName);
+        };
 
-    const submitTag = useCallback(() => {
+    const submitTag = () => {
         onSubmit({text: newTagName, keyForList: newTagName});
-    }, [newTagName, onSubmit]);
+    };
 
     return (
         <View style={styles.gap5}>
@@ -73,11 +76,12 @@ function DebugTagPicker({policyID, tagName = '', onSubmit}: DebugTagPickerProps)
             {policyTagLists.length > 1 && (
                 <View style={styles.ph5}>
                     <Button
-                        success
-                        large
-                        text={translate('common.save')}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={submitTag}
-                    />
+                    >
+                        <Button.Text>{translate('common.save')}</Button.Text>
+                    </Button>
                 </View>
             )}
         </View>

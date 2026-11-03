@@ -1,11 +1,12 @@
+import type {ComponentRef, ForwardedRef} from 'react';
+import type {ViewProps} from 'react-native';
+
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // eslint-disable-next-line no-restricted-imports
 import React, {forwardRef, useRef} from 'react';
-import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {ViewProps} from 'react-native';
 
 type MutedChangeEventPayload = {
     isMuted: boolean;
@@ -97,7 +98,7 @@ function useVideoPlayer(..._args: unknown[]): VideoPlayer {
  */
 type VideoViewProps = ViewProps & {player?: VideoPlayer};
 
-const VideoView = forwardRef((props: VideoViewProps, ref: ForwardedRef<View>) => (
+const VideoView = forwardRef((props: VideoViewProps, ref: ForwardedRef<ComponentRef<typeof View>>) => (
     <View
         ref={ref}
         accessibilityLabel="MockVideoView"

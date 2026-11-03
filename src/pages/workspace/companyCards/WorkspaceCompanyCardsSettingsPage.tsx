@@ -1,14 +1,13 @@
-import {isUserValidatedSelector} from '@selectors/Account';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCardFeeds from '@hooks/useCardFeeds';
 import useCardsList from '@hooks/useCardsList';
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -18,28 +17,36 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
+
 import {deleteWorkspaceCompanyCardFeed, setAddNewCompanyCardStepAndData, setWorkspaceCompanyCardTransactionLiability} from '@libs/actions/CompanyCards';
-import {getCompanyCardFeed, getCompanyFeeds, getCustomOrFormattedFeedName, getDomainOrWorkspaceAccountID, getSelectedFeed, isCSVUploadFeed, isDirectFeed} from '@libs/CardUtils';
+import {
+    getCompanyCardFeed,
+    getCompanyFeeds,
+    getCustomOrFormattedFeedName,
+    getDomainOrWorkspaceAccountID,
+    getEffectiveFeedReimbursable,
+    getSelectedFeed,
+    isCSVUploadFeed,
+    isDirectFeed,
+} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import {startCardFeedRefresh} from '@userActions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {CompanyCardFeedWithDomainID} from '@src/types/onyx';
 
-const ADVANCED_CSV_COLUMNS = new Set<string>([
-    CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE,
-    CONST.CSV_IMPORT_COLUMNS.ORIGINAL_AMOUNT,
-    CONST.CSV_IMPORT_COLUMNS.ORIGINAL_CURRENCY,
-    CONST.CSV_IMPORT_COLUMNS.COMMENT,
-    CONST.CSV_IMPORT_COLUMNS.CATEGORY,
-    CONST.CSV_IMPORT_COLUMNS.TAG,
-]);
+import React from 'react';
+import {View} from 'react-native';
 
 type WorkspaceCompanyCardsSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS>;
 
@@ -56,10 +63,9 @@ function WorkspaceCompanyCardsSettingsPage({
     const [cardFeeds] = useCardFeeds(policyID);
     const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
     const {currencyList} = useCurrencyListState();
 
-    const selectedFeed = useMemo(() => getSelectedFeed(lastSelectedFeed, cardFeeds), [cardFeeds, lastSelectedFeed]);
+    const selectedFeed = getSelectedFeed(lastSelectedFeed, cardFeeds);
     const feed = selectedFeed ? getCompanyCardFeed(selectedFeed) : undefined;
     const {showConfirmModal} = useConfirmModal();
 
@@ -74,20 +80,18 @@ function WorkspaceCompanyCardsSettingsPage({
     const isPending = !!selectedFeedData?.pending;
     const isDirectFeedType = isDirectFeed(feed);
     const isCsvFeed = isCSVUploadFeed(feed);
-    const storedMappings = selectedFeedData?.uploadLayoutSettings?.columnMappings;
-    const hadAdvancedFields = !!storedMappings && Object.keys(storedMappings).some((col) => ADVANCED_CSV_COLUMNS.has(col));
 
-    const statementCloseDate = useMemo(() => {
-        if (!selectedFeedData?.statementPeriodEndDay) {
-            return undefined;
-        }
+    let statementCloseDate;
+    if (!selectedFeedData?.statementPeriodEndDay) {
+        statementCloseDate = undefined;
+    } else if (typeof selectedFeedData?.statementPeriodEndDay === 'number') {
+        statementCloseDate = selectedFeedData.statementPeriodEndDay;
+    } else {
+        statementCloseDate = translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
+    }
 
-        if (typeof selectedFeedData?.statementPeriodEndDay === 'number') {
-            return selectedFeedData.statementPeriodEndDay;
-        }
-
-        return translate(`workspace.companyCards.statementCloseDate.${selectedFeedData.statementPeriodEndDay}`);
-    }, [translate, selectedFeedData?.statementPeriodEndDay]);
+    const effectiveReimbursable = getEffectiveFeedReimbursable(selectedFeedData?.forceReimbursable);
+    const reimbursable = effectiveReimbursable ? translate(`workspace.companyCards.reimbursable.${effectiveReimbursable}`) : '';
 
     const navigateToChangeFeedName = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_FEED_NAME.getRoute(policyID));
@@ -95,6 +99,10 @@ function WorkspaceCompanyCardsSettingsPage({
 
     const navigateToChangeStatementCloseDate = () => {
         Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE.getRoute(policyID));
+    };
+
+    const navigateToChangeReimbursable = () => {
+        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SETTINGS_REIMBURSABLE.getRoute(policyID));
     };
 
     const deleteCompanyCardFeed = () => {
@@ -112,6 +120,15 @@ function WorkspaceCompanyCardsSettingsPage({
             },
         });
     };
+
+    const refreshCardFeed = () => {
+        if (!selectedFeed) {
+            return;
+        }
+        startCardFeedRefresh(policyID, selectedFeed, policy?.outputCurrency, currencyList, countryByIp);
+    };
+
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume(() => refreshCardFeed());
 
     const onToggleLiability = (isOn: boolean) => {
         if (!feed) {
@@ -143,24 +160,28 @@ function WorkspaceCompanyCardsSettingsPage({
                 >
                     <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon
-                            title={feedName}
-                            description={translate('workspace.moreFeatures.companyCards.cardFeedName')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
+                        <MenuItemField
+                            value={feedName}
+                            name={translate('workspace.moreFeatures.companyCards.cardFeedName')}
                             onPress={navigateToChangeFeedName}
                         />
                         <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.statementPeriodEndDay}>
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={statementCloseDate?.toString()}
-                                description={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
-                                style={[styles.moneyRequestMenuItem]}
-                                titleStyle={styles.flex1}
+                            <MenuItemField
+                                value={statementCloseDate?.toString()}
+                                name={translate('workspace.moreFeatures.companyCards.statementCloseDateTitle')}
                                 onPress={navigateToChangeStatementCloseDate}
-                                brickRoadIndicator={selectedFeedData?.errorFields?.statementPeriodEndDay ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                            />
+                            >
+                                {!!selectedFeedData?.errorFields?.statementPeriodEndDay && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            </MenuItemField>
+                        </OfflineWithFeedback>
+                        <OfflineWithFeedback pendingAction={selectedFeedData?.pendingFields?.forceReimbursable}>
+                            <MenuItemField
+                                value={reimbursable}
+                                name={translate('workspace.companyCards.reimbursable.title')}
+                                onPress={navigateToChangeReimbursable}
+                            >
+                                {!!selectedFeedData?.errorFields?.forceReimbursable && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
+                            </MenuItemField>
                         </OfflineWithFeedback>
                         <View style={[styles.mv3, styles.mh5]}>
                             <ToggleSettingOptionRow
@@ -173,24 +194,28 @@ function WorkspaceCompanyCardsSettingsPage({
                             <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.moreFeatures.companyCards.setTransactionLiabilityDescription')}</Text>
                         </View>
                         {isDirectFeedType && (
-                            <MenuItem
-                                icon={icons.Sync}
-                                title={translate('workspace.companyCards.assignNewCards.title')}
-                                description={translate('workspace.companyCards.assignNewCards.description')}
+                            <MenuItem.Root
                                 onPress={() => {
-                                    if (!selectedFeed) {
-                                        return;
-                                    }
                                     if (!isUserValidated) {
-                                        Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_VERIFY_ACCOUNT.getRoute(policyID, selectedFeed));
+                                        verifyAccountAndResume(undefined);
                                         return;
                                     }
-                                    startCardFeedRefresh(policyID, selectedFeed, policy?.outputCurrency, currencyList, countryByIp);
+                                    refreshCardFeed();
                                 }}
-                            />
+                            >
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <MenuItem.Icon src={icons.Sync} />
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title>{translate('workspace.companyCards.assignNewCards.title')}</MenuItem.Title>
+                                        <MenuItem.Description>{translate('workspace.companyCards.assignNewCards.description')}</MenuItem.Description>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         )}
                         {isCsvFeed && (
-                            <MenuItem
+                            <MenuItemAction
                                 icon={icons.Table}
                                 title={translate('spreadsheet.importSpreadsheet')}
                                 onPress={() => {
@@ -198,15 +223,15 @@ function WorkspaceCompanyCardsSettingsPage({
                                         data: {
                                             layoutType: feed,
                                             companyCardLayoutName: selectedFeedData?.customFeedName ?? feedName ?? '',
-                                            useAdvancedFields: hadAdvancedFields,
                                             existingInstanceID: selectedFeedData?.uploadLayoutSettings?.instanceID ?? null,
+                                            domainAccountID: domainOrWorkspaceAccountID,
                                         },
                                     });
                                     Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET.getRoute(policyID));
                                 }}
                             />
                         )}
-                        <MenuItem
+                        <MenuItemAction
                             icon={icons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}
                             onPress={() => {
@@ -215,7 +240,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                     prompt: translate('workspace.moreFeatures.companyCards.removeCardFeedDescription'),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 }).then((result) => {
                                     if (result.action !== ModalActions.CONFIRM) {
                                         return;

@@ -1,31 +1,21 @@
 import React from 'react';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
-import useTheme from '@hooks/useTheme';
-import MenuItem from './MenuItem';
+
 import type {MenuItemProps} from './MenuItem';
 
-type MenuItemWithTopDescriptionProps = MenuItemProps & {
-    /** Should the menu item be highlighted? */
-    highlighted?: boolean;
-};
+import MenuItem from './MenuItem';
 
-function MenuItemWithTopDescription({highlighted, outerWrapperStyle, ref, ...props}: MenuItemWithTopDescriptionProps) {
-    const theme = useTheme();
-    const highlightedOuterWrapperStyle = useAnimatedHighlightStyle({
-        shouldHighlight: highlighted ?? false,
-        highlightColor: theme.messageHighlightBG,
-        itemEnterDelay: 0,
-    });
-
+/** @deprecated Use `MenuItemField` from `@components/MenuItem/presets/MenuItemField` for new usages. */
+function MenuItemWithTopDescription({ref, ...props}: MenuItemProps) {
     return (
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- The deprecated wrapper itself must render legacy MenuItem.
         <MenuItem
             {...props}
             ref={ref}
             shouldShowBasicTitle
             shouldShowDescriptionOnTop
-            outerWrapperStyle={highlighted ? highlightedOuterWrapperStyle : outerWrapperStyle}
         />
     );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Exporting the deprecated component itself is not a usage.
 export default MenuItemWithTopDescription;

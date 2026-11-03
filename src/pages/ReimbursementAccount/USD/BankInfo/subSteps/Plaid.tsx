@@ -1,23 +1,29 @@
-import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect} from 'react';
 import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/types';
 import {getBankAccountIDAsNumber} from '@libs/ReimbursementAccountUtils';
+
 import type BankInfoSubStepProps from '@pages/ReimbursementAccount/USD/BankInfo/types';
+
 import {setBankAccountSubStep, validatePlaidSelection} from '@userActions/BankAccounts';
 import {updateReimbursementAccountDraft} from '@userActions/ReimbursementAccount';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+
+import {useIsFocused, useRoute} from '@react-navigation/native';
+import React, {useEffect} from 'react';
 
 type ReimbursementAccountNavigatorRoute = PlatformStackRouteProp<ReimbursementAccountNavigatorParamList, typeof SCREENS.REIMBURSEMENT_ACCOUNT_USD>;
 
@@ -37,7 +43,7 @@ function Plaid({onNext}: BankInfoSubStepProps) {
     const prevIsFocused = usePrevious(isFocused);
     const selectedPlaidAccountID = reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID] ?? '';
 
-    const handleNextPress = useCallback(() => {
+    const handleNextPress = () => {
         const selectedPlaidBankAccount = (plaidData?.bankAccounts ?? []).find((account) => account.plaidAccountID === reimbursementAccountDraft?.[BANK_INFO_STEP_KEYS.PLAID_ACCOUNT_ID]);
 
         const bankAccountData = {
@@ -52,7 +58,7 @@ function Plaid({onNext}: BankInfoSubStepProps) {
 
         updateReimbursementAccountDraft(bankAccountData);
         onNext(bankAccountData);
-    }, [plaidData, reimbursementAccountDraft, onNext]);
+    };
 
     const bankAccountID = getBankAccountIDAsNumber(reimbursementAccount?.achData);
 

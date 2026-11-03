@@ -1,38 +1,53 @@
-import React, {useCallback, useContext, useEffect, useRef, useState} from 'react';
-import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
-// Animated required for side panel navigation
-// eslint-disable-next-line no-restricted-imports
-import {Animated, View} from 'react-native';
 import ColorSchemeWrapper from '@components/ColorSchemeWrapper';
 import NavigationBar from '@components/NavigationBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
+import RHPResizeHandle from '@components/RHPResizeHandle';
 import ScreenWrapperOfflineIndicatorContext from '@components/ScreenWrapper/ScreenWrapperOfflineIndicatorContext';
 import ScrollView from '@components/ScrollView';
+
+import useIsResizableSingleRHP from '@hooks/useIsResizableSingleRHP';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSidePanelState from '@hooks/useSidePanelState';
+import useSingleRHPWidth from '@hooks/useSingleRHPWidth';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {canUseTouchScreen as canUseTouchScreenCheck} from '@libs/DeviceCapabilities';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
-import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
+
+import variables from '@styles/variables';
+
+import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalCovering, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
+
 import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+import type {GestureResponderEvent, LayoutChangeEvent} from 'react-native';
+
+import React, {useContext, useEffect, useRef, useState} from 'react';
+// Animated required for side panel navigation
+// eslint-disable-next-line no-restricted-imports
+import {Animated, View} from 'react-native';
+
+import type BaseModalProps from './types';
+
 import ModalContext from './ModalContext';
 import ReanimatedModal from './ReanimatedModal';
-import type BaseModalProps from './types';
 
 function BaseModal({
     isVisible,
     onClose,
     shouldSetModalVisibility = true,
+    shouldTreatModalAsCovering,
     onModalHide = () => {},
     type,
     popoverAnchorPosition = {},
@@ -58,6 +73,7 @@ function BaseModal({
     modalId,
     shouldEnableNewFocusManagement = false,
     shouldReturnFocus,
+    launcherRef,
     restoreFocusType,
     shouldUseModalPaddingStyle = true,
     initialFocus = false,
@@ -74,7 +90,9 @@ function BaseModal({
     ref,
     shouldDisplayBelowModals = false,
     shouldKeepRightDockedBackdropInNarrowPane = false,
+    shouldShowBackdrop = false,
     shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode = true,
+    shouldLimitHeightIfBottomDockedInLandscapeMode = true,
 }: BaseModalProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -90,6 +108,7 @@ function BaseModal({
 
     // This prop does not have a default value, because React Compiler throws an internal error if this is provided as a default value.
     const shouldApplySidePanelOffset = shouldApplySidePanelOffsetProp ?? type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
+    const isModalCovering = shouldTreatModalAsCovering ?? (type !== CONST.MODAL.MODAL_TYPE.POPOVER && type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
     const sidePanelAnimatedStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
@@ -100,15 +119,17 @@ function BaseModal({
 
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
-    const bottomDockedDismissButtonRef = useRef<View>(null);
-    const fallbackModalIdRef = useRef<number | undefined>(undefined);
-    if (fallbackModalIdRef.current === undefined) {
-        fallbackModalIdRef.current = ComposerFocusManager.getId();
-    }
+    const bottomDockedDismissButtonRef = useRef<ComponentRef<typeof View>>(null);
+    const [fallbackModalID] = useState(() => ComposerFocusManager.getId());
+    const coveringModalID = fallbackModalID;
+    // On Android the hide callback fires from the reanimated exit-animation snapshot taken when the close began,
+    // so it closes over that render's isVisible. Read the current value through a ref instead, or a reopen during
+    // the exit would be misread as still closed and its covering entry cleared.
+    const isVisibleRef = useRef(isVisible);
 
     const wasVisible = usePrevious(isVisible);
 
-    const uniqueModalId = modalId ?? fallbackModalIdRef.current;
+    const uniqueModalId = modalId ?? fallbackModalID;
     const saveFocusState = () => {
         if (shouldEnableNewFocusManagement) {
             ComposerFocusManager.saveFocusState(uniqueModalId);
@@ -119,32 +140,30 @@ function BaseModal({
      * Hides modal
      * @param callHideCallback - Should we call the onModalHide callback
      */
-    const hideModal = useCallback(
-        (callHideCallback = true) => {
-            shouldCallHideModalOnUnmount.current = false;
-            willAlertModalBecomeVisible(false);
-            if (areAllModalsHidden()) {
-                if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
-                    setModalVisibility(false);
-                }
+    const hideModal = (callHideCallback = true) => {
+        shouldCallHideModalOnUnmount.current = false;
+        willAlertModalBecomeVisible(false);
+        if (areAllModalsHidden()) {
+            if (shouldSetModalVisibility && !Navigation.isTopmostRouteModalScreen()) {
+                setModalVisibility(false);
             }
-            if (callHideCallback) {
-                onModalHide();
-            }
-            onModalDidClose();
-            ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
-        },
-        [shouldSetModalVisibility, onModalHide, restoreFocusType, uniqueModalId],
-    );
+        }
+        if (callHideCallback) {
+            onModalHide();
+        }
+        onModalDidClose();
+        ComposerFocusManager.refocusAfterModalFullyClosed(uniqueModalId, restoreFocusType);
+    };
 
-    const handleDismissModal = useCallback(() => {
+    const handleDismissModal = () => {
         ComposerFocusManager.setReadyToFocus(uniqueModalId);
-    }, [uniqueModalId]);
+    };
 
     useEffect(() => {
         let removeOnCloseListener: () => void;
         if (isVisible) {
             shouldCallHideModalOnUnmount.current = true;
+            setModalCovering(coveringModalID, isModalCovering);
             willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
             if (onClose) {
@@ -163,11 +182,18 @@ function BaseModal({
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type, handleDismissModal]);
+    }, [isVisible, wasVisible, onClose, type, isModalCovering, handleDismissModal, coveringModalID]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
     }, [hideModal]);
+
+    useEffect(() => {
+        isVisibleRef.current = isVisible;
+    }, [isVisible]);
+
+    // The covering entry must not outlive the component, whatever path unmounts it.
+    useEffect(() => () => setModalCovering(coveringModalID, false), [coveringModalID]);
 
     useEffect(
         () => () => {
@@ -180,12 +206,12 @@ function BaseModal({
         [],
     );
 
-    const handleShowModal = useCallback(() => {
+    const handleShowModal = () => {
         if (shouldSetModalVisibility) {
             setModalVisibility(true, type);
         }
         onModalShow();
-    }, [onModalShow, shouldSetModalVisibility, type]);
+    };
 
     const handleBackdropPress = (e?: GestureResponderEvent | KeyboardEvent) => {
         if (e && 'key' in e && e.key === CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
@@ -225,6 +251,14 @@ function BaseModal({
         setModalHeight(e.nativeEvent.layout.height);
     };
 
+    const {isInNarrowPane} = useContext(NarrowPaneContext);
+
+    // A right docked modal opened from inside the RHP sits on the RHP's own card, so it must not dim it or add a second shadow.
+    const isStackedOnRHP = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
+    const isResizableSingleRHP = useIsResizableSingleRHP();
+    const {width: singleRHPWidth} = useSingleRHPWidth();
+    const stackedResizableRHPWidth = isStackedOnRHP && isResizableSingleRHP ? singleRHPWidth : undefined;
+
     const {
         modalStyle,
         modalContainerStyle,
@@ -253,6 +287,8 @@ function BaseModal({
         },
         enableEdgeToEdgeBottomSafeAreaPadding,
         shouldDisplayBelowModals,
+        isStackedOnRHP,
+        stackedResizableRHPWidth,
     });
 
     // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
@@ -269,31 +305,27 @@ function BaseModal({
     });
     const modalPaddingStyles = shouldUseModalPaddingStyle ? paddings : {paddingLeft: paddings.paddingLeft, paddingRight: paddings.paddingRight};
 
-    const modalContextValue = {
-        activeModalType: isVisible ? type : undefined,
-        default: false,
-    };
-
-    // In Modals we need to reset the ScreenWrapperOfflineIndicatorContext to allow nested ScreenWrapper components to render offline indicators,
-    // except if we are in a narrow pane navigator. In this case, we use the narrow pane's original values.
-    const {isInNarrowPane} = useContext(NarrowPaneContext);
-    const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
-    const offlineIndicatorContextValue = isInNarrowPane ? (originalValues ?? {}) : {};
-
-    const shouldSuppressRightDockedBackdrop =
-        type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
     const isFullWidthNarrowSheet =
         (type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED || type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPEABLE_TO_RIGHT) && isSmallScreenWidth && !shouldKeepRightDockedBackdropInNarrowPane;
+    // A right docked sheet floats like the RHP on wide web, so it dims the page as lightly as the RHP does.
+    const rightDockedBackdropOpacity = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth ? variables.rhpOverlayOpacity : undefined;
     const backdropOpacityAdjusted =
-        hideBackdrop || shouldSuppressRightDockedBackdrop || isFullWidthNarrowSheet // full-width narrow sheets (RHP-like) shouldn't dim a backdrop behind them
+        !shouldShowBackdrop && (hideBackdrop || isStackedOnRHP || isFullWidthNarrowSheet) // full-width narrow sheets (RHP-like) shouldn't dim a backdrop behind them
             ? 0
-            : backdropOpacity;
+            : (backdropOpacity ?? rightDockedBackdropOpacity);
 
     const dragArea = type === CONST.MODAL.MODAL_TYPE.CENTERED || type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ? undefined : false;
 
     const isBottomDockedModalInLandscapeMode = type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && isInLandscapeMode;
 
     const shouldWrapChildrenInScrollView = shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode && isBottomDockedModalInLandscapeMode;
+
+    const modalContextValue = {
+        activeModalType: isVisible ? type : undefined,
+        isContentWrappedInScrollView: shouldWrapChildrenInScrollView,
+        default: false,
+    };
+
     const shouldShowBottomDockedDismissButton = isSmallScreenWidth && type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED && !!(onBackdropPress ?? onClose);
     // `bottomDockedDismissButtonRef.current` can be `null` by the time focus-trap reads `initialFocus` (the read is
     // deferred via setTimeout) — e.g. the sheet was dismissed quickly, or a layout change flipped `shouldShowBottomDockedDismissButton`
@@ -302,7 +334,7 @@ function BaseModal({
 
     return (
         <ModalContext.Provider value={modalContextValue}>
-            <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+            <ScreenWrapperOfflineIndicatorContext.Provider value={{}}>
                 <View
                     // this is a workaround for modal not being visible on the new arch in some cases
                     // it's necessary to have a non-collapsible view as a parent of the modal to prevent
@@ -319,7 +351,15 @@ function BaseModal({
                         // Note: Escape key on web will trigger onBackButtonPress callback
                         onBackButtonPress={closeTop}
                         onModalShow={handleShowModal}
-                        onModalHide={hideModal}
+                        onModalHide={() => {
+                            // A hide callback can fire after this modal was already asked to re-show (the interrupted
+                            // close completes first); only a hide for a modal that is staying closed clears its
+                            // covering entry, so the marketing window cannot appear over a reopened modal.
+                            if (!isVisibleRef.current) {
+                                setModalCovering(coveringModalID, false);
+                            }
+                            hideModal();
+                        }}
                         onModalWillShow={() => {
                             saveFocusState();
                             onModalWillShow?.();
@@ -363,6 +403,7 @@ function BaseModal({
                         shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
                         supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
                         shouldReturnFocus={shouldReturnFocus}
+                        launcherRef={launcherRef}
                     >
                         <Animated.View
                             onLayout={onViewLayout}
@@ -372,7 +413,8 @@ function BaseModal({
                                 modalPaddingStyles,
                                 !isVisible && styles.pointerEventsNone,
                                 sidePanelAnimatedStyle,
-                                isBottomDockedModalInLandscapeMode && {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE},
+                                isBottomDockedModalInLandscapeMode &&
+                                    shouldLimitHeightIfBottomDockedInLandscapeMode && {maxHeight: windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE},
                             ]}
                             ref={ref}
                             fsClass={forwardedFSClass}
@@ -392,6 +434,16 @@ function BaseModal({
                             )}
                             <ColorSchemeWrapper>{shouldWrapChildrenInScrollView ? <ScrollView>{children}</ScrollView> : children}</ColorSchemeWrapper>
                         </Animated.View>
+                        {stackedResizableRHPWidth !== undefined &&
+                            isVisible && (
+                                // Shifts with the card when the Side Panel opens, since the handle straddles the card's edge.
+                                <Animated.View
+                                    pointerEvents="box-none"
+                                    style={[styles.fullScreen, sidePanelAnimatedStyle]}
+                                >
+                                    <RHPResizeHandle />
+                                </Animated.View>
+                            )}
                         {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                     </ReanimatedModal>
                 </View>

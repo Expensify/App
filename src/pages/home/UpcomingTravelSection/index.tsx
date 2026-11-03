@@ -1,8 +1,11 @@
-import React from 'react';
 import WidgetContainer from '@components/WidgetContainer';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import React from 'react';
+
 import UpcomingTravelItem from './UpcomingTravelItem';
 import useUpcomingTravelReservations from './useUpcomingTravelReservations';
 
@@ -19,7 +22,7 @@ function UpcomingTravelSection() {
     return (
         <WidgetContainer
             title={translate('homePage.upcomingTravel')}
-            containerStyles={shouldUseNarrowLayout ? styles.pb2 : styles.pb5}
+            containerStyles={styles.getWidgetContainerBottomPaddingStyle(shouldUseNarrowLayout)}
         >
             {upcomingReservations.map((reservation) => (
                 <UpcomingTravelItem

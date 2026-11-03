@@ -1,6 +1,3 @@
-import {CONST as COMMON_CONST} from 'expensify-common';
-import React, {useCallback, useRef, useState} from 'react';
-import {View} from 'react-native';
 import AddressSearch from '@components/AddressSearch';
 import CountryPicker from '@components/CountryPicker';
 import FormProvider from '@components/Form/FormProvider';
@@ -10,16 +7,24 @@ import StatePicker from '@components/StatePicker';
 import type {State} from '@components/StateSelector';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isRequiredFulfilled} from '@libs/ValidationUtils';
+
 import type {CountryZipRegex, CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
+
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
+
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useCallback, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 const STEP_FIELDS = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.ADDRESS_LINE_2, INPUT_IDS.CITY, INPUT_IDS.STATE, INPUT_IDS.ZIP_POST_CODE, INPUT_IDS.COUNTRY];
 

@@ -1,7 +1,11 @@
-import {useRef} from 'react';
+import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
-import {useRootActions} from './RootContext';
+
+import {useRef} from 'react';
+
 import type {AnchorRect, AnchorRef} from './RootContext';
+
+import {useRootActions} from './RootContext';
 
 type UseAnchorOpenerResult = {
     ref: AnchorRef;
@@ -10,7 +14,7 @@ type UseAnchorOpenerResult = {
 
 function useAnchorOpener(callerName: string): UseAnchorOpenerResult {
     const {setIsVisible, setActiveAnchor} = useRootActions(callerName);
-    const ownRef: AnchorRef = useRef<View | null>(null);
+    const ownRef: AnchorRef = useRef<ComponentRef<typeof View> | null>(null);
 
     const open = (overrideRect?: AnchorRect) => {
         if (overrideRect) {

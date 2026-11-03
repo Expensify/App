@@ -1,12 +1,15 @@
-import type {OnyxKey} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {AnyDeferredUpdatesDictionary, DeferredUpdatesDictionary} from '@libs/actions/OnyxUpdateManager/types';
 import Log from '@libs/Log';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxUpdatesFromServer, Response} from '@src/types/onyx';
 import {isValidOnyxUpdateFromServer} from '@src/types/onyx/OnyxUpdatesFromServer';
+
+import type {OnyxKey} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let missingOnyxUpdatesQueryPromise: Promise<Response<any> | Array<Response<any>> | void> | undefined;

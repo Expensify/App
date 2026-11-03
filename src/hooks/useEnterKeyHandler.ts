@@ -1,6 +1,6 @@
-import type {KeyboardEvent} from 'react';
-import {useCallback} from 'react';
 import CONST from '@src/CONST';
+
+import type {KeyboardEvent} from 'react';
 
 /**
  * Custom hook that returns a keyboard event handler which triggers a callback
@@ -13,16 +13,13 @@ import CONST from '@src/CONST';
  * const handleKeyDown = useEnterKeyHandler(() => navigation.navigate('Home'));
  */
 function useEnterKeyHandler(callback: () => void) {
-    return useCallback(
-        (event: KeyboardEvent) => {
-            if (event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
-                return;
-            }
-            event.preventDefault();
-            callback();
-        },
-        [callback],
-    );
+    return (event: KeyboardEvent) => {
+        if (event.key !== CONST.KEYBOARD_SHORTCUTS.ENTER.shortcutKey) {
+            return;
+        }
+        event.preventDefault();
+        callback();
+    };
 }
 
 export default useEnterKeyHandler;

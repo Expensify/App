@@ -1,34 +1,35 @@
-import React, {useCallback} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
+
 import useEnterSignerInfoStepFormSubmit from '@hooks/useEnterSignerInfoStepFormSubmit';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import {getFieldRequiredErrors, isValidLegalName} from '@libs/ValidationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/EnterSignerInfoForm';
 
-function Name({onNext, onMove, isEditing}: SubStepProps) {
+import React from 'react';
+
+function Name({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
     const [enterSignerInfoFormDraft] = useOnyx(ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM_DRAFT);
 
     const inputID = INPUT_IDS.SIGNER_FULL_NAME;
     const defaultValue = String(enterSignerInfoFormDraft?.[inputID] ?? '');
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
-            const errors = getFieldRequiredErrors(values, [inputID], translate);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ENTER_SINGER_INFO_FORM> => {
+        const errors = getFieldRequiredErrors(values, [inputID], translate);
 
-            if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
-                errors[inputID] = translate('bankAccount.error.fullName');
-            }
+        if (values[inputID] && !isValidLegalName(String(values[inputID]))) {
+            errors[inputID] = translate('bankAccount.error.fullName');
+        }
 
-            return errors;
-        },
-        [inputID, translate],
-    );
+        return errors;
+    };
 
     const handleSubmit = useEnterSignerInfoStepFormSubmit({
         fieldIds: [inputID],

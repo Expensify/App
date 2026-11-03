@@ -1,4 +1,5 @@
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
+
 import type {Report} from '@src/types/onyx';
 
 type AttachmentCarouselViewProps = {
@@ -6,7 +7,6 @@ type AttachmentCarouselViewProps = {
     shouldShowArrows: boolean;
     /** The current page index */
     page: number;
-    /** The attachments from the carousel */
     attachments: Attachment[];
     /** The id of the current active attachment */
     attachmentID?: string;
@@ -20,11 +20,8 @@ type AttachmentCarouselViewProps = {
     cancelAutoHideArrow: () => void;
     /** A callback that is called when swipe-down-to-close gesture happens */
     onSwipeDown?: () => void;
-    /** Sets current page */
     setPage: (page: number) => void;
-    /** The report currently being looked at */
     report?: Report;
-    /** Callback for attachment errors */
     onAttachmentError?: (source: AttachmentSource, state?: boolean) => void;
     /** Callback to update the parent modal's state with a source and name from the attachments array */
     onNavigate?: (attachment: Attachment) => void;

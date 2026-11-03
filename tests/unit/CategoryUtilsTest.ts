@@ -1,18 +1,28 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
+    getCategoryDefaultTaxRate,
+    getCategoryDescriptionHint,
     getCategoryGLCode,
+    getCategoryNameError,
+    getDecodedFullCategoryName,
     getDecodedLeafCategoryName,
+    hasAnyCategoryGLCode,
+    hasAnyCategoryRules,
     isCategoryDescriptionRequired,
     isCategoryMissing,
     processCategoryNameSegments,
 } from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
-import {translateLocal} from '../utils/TestHelper';
+import type {ExpenseRule} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 
 describe(`isMissingCategory`, () => {
     it('returns true if category is undefined', () => {
@@ -35,13 +45,13 @@ describe(`isMissingCategory`, () => {
 });
 
 describe('formatRequireItemizedReceiptsOverText', () => {
-    const mockPolicy: Policy = {
+    const mockPolicy = createMock<Policy>({
         id: '1',
         name: 'Test Policy',
         type: CONST.POLICY.TYPE.CORPORATE,
         outputCurrency: CONST.CURRENCY.USD,
         maxExpenseAmountNoItemizedReceipt: 7500,
-    } as Policy;
+    });
 
     it('returns "Always" text when category amount is 0', () => {
         const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, 0, convertToDisplayString);
@@ -75,6 +85,51 @@ describe('formatRequireItemizedReceiptsOverText', () => {
         } as Policy;
         const result = formatRequireItemizedReceiptsOverText(translateLocal, policyWithUndefinedItemizedReceipt, undefined, convertToDisplayString);
         expect(result).toBe(translateLocal('workspace.rules.categoryRules.requireItemizedReceiptsOverList.never'));
+    });
+});
+
+describe('getCategoryDescriptionHint', () => {
+    const mockPolicyCategories: PolicyCategories = {
+        Advertising: {
+            commentHint: 'Client name',
+            enabled: true,
+            name: 'Advertising',
+        },
+        Meals: {
+            enabled: true,
+            name: 'Meals',
+        },
+    };
+
+    it('returns the hint when the category has one and rules are enabled', () => {
+        // Given a category with a description hint on a workspace with Rules on
+        // When the hint is looked up
+        // Then the saved hint is returned so the description field can show it
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', true)).toBe('Client name');
+    });
+
+    it('returns an empty string when rules are not enabled, even if the category has a hint', () => {
+        // Given a category that kept its hint but its workspace has Rules off (for example a duplicated workspace)
+        // When the hint is looked up
+        // Then no hint is returned, because category rules don't apply without Rules
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', false)).toBe('');
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Advertising', undefined)).toBe('');
+    });
+
+    it('returns an empty string when the category has no hint', () => {
+        // Given a category without a description hint
+        // When the hint is looked up
+        // Then nothing is returned
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'Meals', true)).toBe('');
+    });
+
+    it('returns an empty string when no category is selected or categories are missing', () => {
+        // Given no selected category, an unknown category, or no loaded categories
+        // When the hint is looked up
+        // Then nothing is returned instead of throwing
+        expect(getCategoryDescriptionHint(mockPolicyCategories, undefined, true)).toBe('');
+        expect(getCategoryDescriptionHint(mockPolicyCategories, 'NonExistentCategory', true)).toBe('');
+        expect(getCategoryDescriptionHint(undefined, 'Advertising', true)).toBe('');
     });
 });
 
@@ -216,7 +271,7 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
         expect(result[keyOther]?.TestCategory3).toBeDefined();
     });
 
-    describe('processCategoryNameSegments and getDecodedLeafCategoryName', () => {
+    describe('category name formatting', () => {
         describe('processCategoryNameSegments', () => {
             it('returns a single segment for colon‑only names', () => {
                 expect(processCategoryNameSegments(':')).toEqual([':']);
@@ -241,6 +296,166 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
                 expect(getDecodedLeafCategoryName('A: B:')).toEqual('B:');
             });
         });
+
+        describe('getDecodedFullCategoryName', () => {
+            it('returns the full name for colon‑only categories', () => {
+                expect(getDecodedFullCategoryName(':')).toEqual(':');
+                expect(getDecodedFullCategoryName('::')).toEqual('::');
+            });
+
+            it('returns the full path for normal hierarchies', () => {
+                expect(getDecodedFullCategoryName('Food: Meat')).toEqual('Food: Meat');
+                expect(getDecodedFullCategoryName('A: B:')).toEqual('A: B:');
+                expect(getDecodedFullCategoryName('Meals and Entertainment: Other')).toEqual('Meals and Entertainment: Other');
+            });
+
+            it('normalizes separator spacing for display', () => {
+                expect(getDecodedFullCategoryName('A:B')).toEqual('A: B');
+                expect(getDecodedFullCategoryName('A:  B')).toEqual('A: B');
+            });
+
+            it('drops empty middle segments', () => {
+                expect(getDecodedFullCategoryName('Food: : Meat')).toEqual('Food: Meat');
+            });
+
+            it('keeps a single trailing colon on the last segment', () => {
+                expect(getDecodedFullCategoryName('A: B::')).toEqual('A: B:');
+            });
+
+            it('returns single segments and empty input unchanged', () => {
+                expect(getDecodedFullCategoryName('Plain')).toEqual('Plain');
+                expect(getDecodedFullCategoryName('')).toEqual('');
+            });
+
+            it('decodes HTML entities in every segment', () => {
+                expect(getDecodedFullCategoryName('Travel &amp; Lodging: Other')).toEqual('Travel & Lodging: Other');
+            });
+        });
+    });
+});
+
+describe('hasAnyCategoryRules', () => {
+    const createCategory = (overrides: Partial<PolicyCategories[string]> = {}) => ({
+        enabled: true,
+        name: 'Test',
+        pendingAction: null,
+        ...overrides,
+    });
+
+    it('returns false when categories are undefined', () => {
+        expect(hasAnyCategoryRules(undefined)).toBe(false);
+    });
+
+    it('returns false when categories are empty', () => {
+        expect(hasAnyCategoryRules({})).toBe(false);
+    });
+
+    it('returns false when category has only metadata and no rule fields', () => {
+        const categories: PolicyCategories = {
+            Advertising: createCategory({name: 'Advertising', 'GL Code': '1234'}), // eslint-disable-line @typescript-eslint/naming-convention
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(false);
+    });
+
+    it('returns true when maxExpenseAmount is set to an active value', () => {
+        const categories: PolicyCategories = {
+            Advertising: createCategory({maxExpenseAmount: 50000}),
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(true);
+    });
+
+    it('returns false when maxExpenseAmount is disabled or undefined', () => {
+        expect(hasAnyCategoryRules({Advertising: createCategory({maxExpenseAmount: CONST.DISABLED_MAX_EXPENSE_VALUE})})).toBe(false);
+        expect(hasAnyCategoryRules({Advertising: createCategory({maxExpenseAmount: undefined})})).toBe(false);
+    });
+
+    it('returns true when maxAmountNoReceipt is 0', () => {
+        const categories: PolicyCategories = {
+            Travel: createCategory({name: 'Travel', maxAmountNoReceipt: 0}),
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(true);
+    });
+
+    it('returns true when maxAmountNoReceipt is a positive amount', () => {
+        const categories: PolicyCategories = {
+            Travel: createCategory({name: 'Travel', maxAmountNoReceipt: 2500}),
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(true);
+    });
+
+    it('returns true when maxAmountNoReceipt is explicitly disabled', () => {
+        const categories: PolicyCategories = {
+            Travel: createCategory({name: 'Travel', maxAmountNoReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}),
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(true);
+    });
+
+    it('returns false when maxAmountNoReceipt is null or undefined', () => {
+        expect(hasAnyCategoryRules({Travel: createCategory({name: 'Travel', maxAmountNoReceipt: null})})).toBe(false);
+        expect(hasAnyCategoryRules({Travel: createCategory({name: 'Travel', maxAmountNoReceipt: undefined})})).toBe(false);
+    });
+
+    it('returns true when maxAmountNoItemizedReceipt is 0', () => {
+        const categories: PolicyCategories = {
+            Travel: createCategory({name: 'Travel', maxAmountNoItemizedReceipt: 0}),
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(true);
+    });
+
+    it('returns true when maxAmountNoItemizedReceipt is explicitly disabled', () => {
+        const categories: PolicyCategories = {
+            Travel: createCategory({name: 'Travel', maxAmountNoItemizedReceipt: CONST.DISABLED_MAX_EXPENSE_VALUE}),
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(true);
+    });
+
+    it('returns false when maxAmountNoItemizedReceipt is null or undefined', () => {
+        expect(hasAnyCategoryRules({Travel: createCategory({name: 'Travel', maxAmountNoItemizedReceipt: null})})).toBe(false);
+        expect(hasAnyCategoryRules({Travel: createCategory({name: 'Travel', maxAmountNoItemizedReceipt: undefined})})).toBe(false);
+    });
+
+    it('returns true when areCommentsRequired is true', () => {
+        const categories: PolicyCategories = {
+            Meals: createCategory({name: 'Meals', areCommentsRequired: true}),
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(true);
+    });
+
+    it('returns true when areAttendeesRequired is true', () => {
+        const categories: PolicyCategories = {
+            Meals: createCategory({name: 'Meals', areAttendeesRequired: true}),
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(true);
+    });
+
+    it('returns true when commentHint is set', () => {
+        const categories: PolicyCategories = {
+            Car: createCategory({name: 'Car', commentHint: 'Enter purpose'}),
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(true);
+    });
+
+    it('returns false when commentHint is empty', () => {
+        const categories: PolicyCategories = {
+            Car: createCategory({name: 'Car', commentHint: ''}),
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(false);
+    });
+
+    it('returns true when only the second category has a rule field', () => {
+        const categories: PolicyCategories = {
+            Advertising: createCategory({name: 'Advertising', 'GL Code': '1234'}), // eslint-disable-line @typescript-eslint/naming-convention
+            Travel: createCategory({name: 'Travel', maxAmountNoReceipt: 0}),
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(true);
+    });
+
+    it('returns false when multiple categories have no rule fields', () => {
+        const categories: PolicyCategories = {
+            Advertising: createCategory({name: 'Advertising', 'GL Code': '1234'}), // eslint-disable-line @typescript-eslint/naming-convention
+            Meals: createCategory({name: 'Meals', enabled: true}),
+        };
+        expect(hasAnyCategoryRules(categories)).toBe(false);
     });
 });
 
@@ -304,5 +519,132 @@ describe('getCategoryGLCode', () => {
             },
         };
         expect(getCategoryGLCode(categories, 'Meals')).toBe('1200');
+    });
+});
+
+describe('hasAnyCategoryGLCode', () => {
+    it('returns false when the workspace has no categories', () => {
+        // Given no categories, there is no GL code to pick, so the Category GL code cell must stay read-only
+        // When / Then
+        expect(hasAnyCategoryGLCode(undefined)).toBe(false);
+        expect(hasAnyCategoryGLCode({})).toBe(false);
+    });
+
+    it('returns false when every GL code is missing or blank', () => {
+        // Given categories whose GL codes are missing, empty, whitespace or only quotes
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: true, name: 'Travel', pendingAction: null, 'GL Code': ''}, // eslint-disable-line @typescript-eslint/naming-convention
+            Fuel: {enabled: true, name: 'Fuel', pendingAction: null, 'GL Code': '   '}, // eslint-disable-line @typescript-eslint/naming-convention
+            Rent: {enabled: true, name: 'Rent', pendingAction: null, 'GL Code': '""'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then a blank code does not count as a GL code
+        expect(hasAnyCategoryGLCode(categories)).toBe(false);
+    });
+
+    it('returns true when at least one category has a GL code', () => {
+        // Given a mix of categories with and without a GL code
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: true, name: 'Travel', pendingAction: null, 'GL Code': '1200'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then one code is enough to keep the cell editable
+        expect(hasAnyCategoryGLCode(categories)).toBe(true);
+    });
+
+    it('returns false when the only GL codes are on disabled or pending-deletion categories', () => {
+        // Given GL codes only on categories the category picker won't let the user select
+        const categories: PolicyCategories = {
+            Meals: {enabled: true, name: 'Meals', pendingAction: null},
+            Travel: {enabled: false, name: 'Travel', pendingAction: null, 'GL Code': '1200'}, // eslint-disable-line @typescript-eslint/naming-convention
+            Fuel: {enabled: true, name: 'Fuel', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, 'GL Code': '1300'}, // eslint-disable-line @typescript-eslint/naming-convention
+        };
+
+        // When / Then the cell stays read-only, because the picker would offer no GL code to pick
+        expect(hasAnyCategoryGLCode(categories)).toBe(false);
+    });
+});
+
+describe('getCategoryNameError', () => {
+    const encodedFoodAndDrink = 'Food &amp; Drink';
+    const categories: PolicyCategories = {
+        Food: {name: 'Food', enabled: true, pendingAction: null},
+        [encodedFoodAndDrink]: {name: encodedFoodAndDrink, enabled: true, pendingAction: null},
+    };
+
+    it('does not flag an HTML-encoded category as a duplicate of its decoded name', () => {
+        // Given a category stored under an HTML-encoded key
+        // When the caller passes the already-decoded display name as the name being edited
+        // Then keeping that display name is allowed, because decoding it again would change the comparison
+        expect(getCategoryNameError(categories, 'Food & Drink', 'Food & Drink')).toBeUndefined();
+    });
+
+    it('keeps a display name that still contains an entity distinct from its decoded form', () => {
+        const doubleEncodedFoodAndDrink = 'Food &amp;amp; Drink';
+        const categoriesWithEntityName: PolicyCategories = {
+            ...categories,
+            [doubleEncodedFoodAndDrink]: {name: doubleEncodedFoodAndDrink, enabled: true, pendingAction: null},
+        };
+
+        // Given a category whose once-decoded name still contains an entity, beside a different category named Food & Drink
+        // When validation receives that once-decoded name as the name being edited
+        // Then renaming it to Food & Drink is a duplicate, because decoding currentName again would treat the two as the same category
+        expect(getCategoryNameError(categoriesWithEntityName, 'Food & Drink', 'Food &amp; Drink')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+
+        // Then saving the unchanged display name is allowed, because a second decode would make it look like a different category
+        expect(getCategoryNameError(categoriesWithEntityName, 'Food &amp; Drink', 'Food &amp; Drink')).toBeUndefined();
+    });
+
+    it('flags a decoded name that already exists as an encoded category', () => {
+        expect(getCategoryNameError(categories, 'Food & Drink')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+        expect(getCategoryNameError(categories, 'Food & Drink', 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+    });
+
+    it('still flags an exact-key duplicate', () => {
+        expect(getCategoryNameError(categories, 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.EXISTING);
+        expect(getCategoryNameError(categories, 'Food', 'Food')).toBeUndefined();
+    });
+
+    it('flags an HTML-like name the Name page already rejects', () => {
+        // Given a category the admin is renaming from the table
+        // When the new name is an HTML-like token such as </>
+        // Then the name is invalid, because the Name page blocks it and the table must not save it
+        expect(getCategoryNameError(categories, '</>', 'Food')).toBe(CONST.INPUT_VALIDATION_ERRORS.INVALID);
+    });
+
+    it('allows a whitelisted angle-bracket token', () => {
+        // Given a category the admin is renaming
+        // When the new name is a harmless token the Name page already allows, such as <>
+        // Then the name is valid, so the table and the Name page stay in agreement
+        expect(getCategoryNameError(categories, '<>', 'Food')).toBeUndefined();
+    });
+});
+
+describe('getCategoryDefaultTaxRate', () => {
+    const buildCategoryTaxRule = (categoryName: string, taxID: string): ExpenseRule => ({
+        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        tax: {field_id_TAX: {externalID: taxID}},
+    });
+
+    it("returns the category's own rate", () => {
+        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_A');
+    });
+
+    it('falls back to the workspace rate when the category has no rule', () => {
+        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Meals', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
+    });
+
+    it('ignores a rule that carries the name on some other condition', () => {
+        // Matching on the value alone would read a rule that a save or delete never targets, handing the expense a
+        // rate the admin never set for this category.
+        const tagNamedAfterTheCategory: ExpenseRule = {
+            applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.TAG, value: 'Travel'}],
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            tax: {field_id_TAX: {externalID: 'id_TAX_B'}},
+        };
+        expect(getCategoryDefaultTaxRate([tagNamedAfterTheCategory], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
     });
 });

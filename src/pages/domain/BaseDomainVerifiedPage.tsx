@@ -1,27 +1,30 @@
-import {Str} from 'expensify-common';
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
 import ConfirmationPage from '@components/ConfirmationPage';
+import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import {isAdminSelector} from '@src/selectors/Domain';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import {Str} from 'expensify-common';
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 type BaseDomainVerifiedPageProps = {
-    /** The accountID of the domain */
     domainAccountID: number;
 
     /** Route to redirect to when trying to access the page for an unverified domain */
@@ -48,11 +51,7 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
     }, [domainAccountID, domain?.validated, doesDomainExist, redirectTo]);
 
     if (isLoadingOnyxValue(domainMetadata)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'BaseDomainVerifiedPage',
-            isLoadingDomain: isLoadingOnyxValue(domainMetadata),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     if (!domain || !isAdmin) {
@@ -65,19 +64,21 @@ function BaseDomainVerifiedPage({domainAccountID, redirectTo, confirmDestination
             shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton title={translate('domain.domainVerified.title')} />
-            <ConfirmationPage
-                illustration={LottieAnimations.Fireworks}
-                heading={translate('domain.domainVerified.header')}
-                descriptionComponent={
+            <ConfirmationPage>
+                <ConfirmationPage.Content style={styles.p10}>
+                    <ConfirmationPage.Illustration />
+                    <ConfirmationPage.Heading>{translate('domain.domainVerified.header')}</ConfirmationPage.Heading>
                     <View style={[styles.renderHTML, styles.flexRow]}>
                         <RenderHTML html={translate('domain.domainVerified.description', {domainName: Str.extractEmailDomain(domain.email)})} />
                     </View>
-                }
-                innerContainerStyle={styles.p10}
-                buttonText={translate('common.buttonConfirm')}
-                shouldShowButton
-                onButtonPress={() => Navigation.navigate(confirmDestination)}
-            />
+                </ConfirmationPage.Content>
+                <FixedFooter>
+                    <ConfirmationPage.PrimaryButton
+                        text={translate('common.buttonConfirm')}
+                        onPress={() => Navigation.navigate(confirmDestination)}
+                    />
+                </FixedFooter>
+            </ConfirmationPage>
         </ScreenWrapper>
     );
 }

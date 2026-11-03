@@ -1,0 +1,602 @@
+import type {SelectionListApprover} from '@components/ApproverSelectionList';
+import ApproverSelectionList from '@components/ApproverSelectionList';
+import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
+import {ModalActions} from '@components/Modal/Global/ModalContext';
+import Text from '@components/Text';
+
+import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
+import {searchInServer} from '@libs/actions/Report';
+import {clearApprovalWorkflow, saveFastEditApprovalWorkflow, setApprovalWorkflowMembers} from '@libs/actions/Workflow';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {canMemberWrite, getDefaultApprover, getExcludedUsers, getMemberAccountIDsForWorkspace, isPendingDeletePolicy, shouldHideDynamicExternalWorkflowPeople} from '@libs/PolicyUtils';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+import {
+    getApproverChainKey,
+    getApprovalWorkflowRulesForPolicy,
+    getRulesSubmitterToFirstApprover,
+    getRulesSubmitterToWorkflowKey,
+    includesEveryWorkspaceMember,
+    isApprovalWorkflowLockedByIntegration,
+} from '@libs/WorkflowUtils';
+
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import MemberRightIcon from '@pages/workspace/MemberRightIcon';
+import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
+
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
+import type {Member} from '@src/types/onyx/ApprovalWorkflow';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {Str} from 'expensify-common';
+import React, {useEffect, useRef} from 'react';
+
+type DynamicWorkspaceWorkflowsApprovalsExpensesFromPageProps = WithPolicyAndFullscreenLoadingProps &
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_WORKFLOWS_APPROVALS_EXPENSES_FROM>;
+
+// A user invited by phone is stored in the workflow with the raw login the admin typed, but the workspace
+// keys its members by the canonical SMS login (e164@expensify.sms). Normalize before any membership or
+// duplicate comparison so a freshly invited phone number isn't treated as both a pending invite and a
+// separate member (which made it show twice and lose its selection on back). This is a no-op for email logins.
+function normalizeLogin(login: string | null | undefined): string {
+    return addSMSDomainIfPhoneNumber(login ?? '');
+}
+
+function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingReportData = true, route}: DynamicWorkspaceWorkflowsApprovalsExpensesFromPageProps) {
+    const styles = useThemeStyles();
+    const {translate, formatPhoneNumber} = useLocalize();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path);
+    const [approvalWorkflow, approvalWorkflowResults] = useOnyx(ONYXKEYS.APPROVAL_WORKFLOW);
+    const [rulesCollection] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [personalDetails] = useAllPersonalDetails();
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID}`);
+    const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
+    const {showConfirmModal} = useConfirmModal();
+    const {isBetaEnabled} = usePermissions();
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const firstApprover = approvalWorkflow?.originalApprovers?.[0]?.email ?? '';
+    const employeeAndApprovalMembersPersonalDetails = usePersonalDetailsByLogins([
+        ...Object.keys(policy?.employeeList ?? {}),
+        ...(approvalWorkflow?.members ?? []).map((member) => member.email),
+    ]);
+
+    const shouldInitializeSearch = useRunAfterTransitions(true);
+
+    const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
+    const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
+    // Set true when nextStep navigates to the invite-message page so the cleanup
+    // effect below knows to leave the draft intact for that page to consume.
+    const isHandingOffToInviteRef = useRef(false);
+    // Tracks whether we're still on the very first step of the create flow
+    const isInitialCreationFlowRef = useRef(false);
+    const isFastEditRef = useRef(false);
+
+    const excludedUsers = getExcludedUsers(policy?.employeeList);
+
+    const {
+        setSearchTerm: setSearchSelectorTerm,
+        debouncedSearchTerm,
+        availableOptions,
+        areOptionsInitialized,
+    } = usePersonalDetailSearchSelector({
+        selectionMode: CONST.SEARCH_SELECTOR.SELECTION_MODE_MULTI,
+        includeUserToInvite: true,
+        excludeLogins: excludedUsers,
+        includeRecentReports: false,
+        shouldInitialize: shouldInitializeSearch,
+    });
+
+    useEffect(() => {
+        searchInServer(debouncedSearchTerm);
+    }, [debouncedSearchTerm]);
+
+    const shouldShowNotFoundView =
+        (isEmptyObject(policy) && !isLoadingReportData) ||
+        !canWriteApprovals ||
+        isPendingDeletePolicy(policy) ||
+        isApprovalWorkflowLockedByIntegration(policy) ||
+        shouldHideDynamicExternalWorkflowPeople(policy);
+    const isInitialCreationFlow = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && approvalWorkflow?.isInitialFlow;
+    const hasAnyEligibleMember = Object.values(policy?.employeeList ?? {}).some((employee) => !!employee?.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const shouldShowListEmptyContent = !isLoadingApprovalWorkflow && !hasAnyEligibleMember;
+    const isCreateAction = approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE;
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy?.employeeList, employeeAndApprovalMembersPersonalDetails);
+
+    const policyRules = isMultipleApproversBetaEnabled ? getApprovalWorkflowRulesForPolicy(rulesCollection, route.params.policyID) : {};
+
+    // Build a map of member emails to their existing workflow's first approver, covering non-default
+    // workflows only.
+    const membersInExistingWorkflows = (() => {
+        const defaultApprover = getDefaultApprover(policy);
+
+        if (isMultipleApproversBetaEnabled) {
+            return new Map(Object.entries(getRulesSubmitterToFirstApprover(policyRules, policy?.employeeList ?? {}, defaultApprover)));
+        }
+
+        const employees = policy?.employeeList ?? {};
+        const map = new Map<string, string>();
+
+        for (const employee of Object.values(employees)) {
+            if (!employee?.email || !employee.submitsTo || employee.submitsTo === defaultApprover) {
+                continue;
+            }
+            // Only track members who submit to a non-default approver (i.e., they're in a custom workflow)
+            if (employees[employee.submitsTo]) {
+                map.set(employee.email, employee.submitsTo);
+            }
+        }
+        return map;
+    })();
+
+    // Beta only: a key covering each submitter's full current approver chain, plus the same key for the
+    // workflow being edited. Comparing whole chains rather than just first approvers lets us warn before
+    // moving a member out of a workflow that merely shares its first approver with this one.
+    const submitterToWorkflowKey = isMultipleApproversBetaEnabled ? new Map(Object.entries(getRulesSubmitterToWorkflowKey(policyRules, policy?.employeeList ?? {}))) : undefined;
+    const currentWorkflowKey = getApproverChainKey(approvalWorkflow?.originalApprovers ?? []);
+
+    const selectedMembers = ((): SelectionListApprover[] => {
+        if (!approvalWorkflow?.members) {
+            return [];
+        }
+
+        return approvalWorkflow.members
+            .filter((member) => {
+                const isPolicyMember = !!policy?.employeeList?.[normalizeLogin(member.email)];
+                // Keep policy members. For non-policy members, only keep if they're
+                // in the invite draft (meaning an invite flow is actively in progress).
+                // This mirrors the card flow's handleBackButtonPress cleanup pattern.
+                return isPolicyMember || invitedEmailsToAccountIDsDraft?.[member.email] != null;
+            })
+            .map((member) => {
+                let accountID = Number(policyMemberEmailsToAccountIDs[normalizeLogin(member.email)] ?? '');
+                const isPolicyMember = !!policy?.employeeList?.[normalizeLogin(member.email)];
+
+                const personalDetail = employeeAndApprovalMembersPersonalDetails[member.email];
+
+                // Fall back when getMemberAccountIDsForWorkspace can't resolve an accountID — for
+                // example a freshly invited user whose personal details haven't fully synced yet
+                // (the helper requires personalDetail.login). Without a real accountID,
+                // ReportActionAvatars renders the FallbackAvatar instead of the default avatar
+                // assigned to that account.
+                if (!accountID) {
+                    const draftAccountID = invitedEmailsToAccountIDsDraft?.[member.email];
+                    if (personalDetail?.accountID) {
+                        accountID = personalDetail.accountID;
+                    } else if (draftAccountID) {
+                        accountID = draftAccountID;
+                    }
+                }
+
+                const login = personalDetails?.[accountID]?.login ?? member.email;
+                const displayName = member.displayName ?? personalDetail?.displayName ?? member.email;
+                const avatar = member.avatar ?? personalDetail?.avatar;
+                const formattedDisplayName = Str.isSMSLogin(displayName) ? formatPhoneNumber(displayName) : displayName;
+
+                return {
+                    text: formattedDisplayName,
+                    alternateText: member.email,
+                    keyForList: member.email,
+                    isSelected: true,
+                    login: member.email,
+                    value: member.email,
+                    icons: [
+                        {
+                            source: avatar ?? icons.FallbackAvatar,
+                            type: CONST.ICON_TYPE_AVATAR,
+                            name: formattedDisplayName,
+                            id: accountID,
+                        },
+                    ],
+                    // Only show right element for policy members
+                    rightElement: isPolicyMember ? (
+                        <MemberRightIcon
+                            role={policy?.employeeList?.[normalizeLogin(member.email)]?.role}
+                            owner={policy?.owner}
+                            login={login}
+                        />
+                    ) : undefined,
+                };
+            });
+    })();
+
+    const workflowApprovers = approvalWorkflow?.approvers;
+
+    // Derive available members live from policy.employeeList instead of approvalWorkflow.availableMembers,
+    // which is a snapshot taken once when the EditPage first mounts and never refreshed. Without this,
+    // a member invited mid-flow won't appear in the picker when the user returns to expenses-from.
+    const employees = policy?.employeeList ?? {};
+    const liveAvailableMembers: Member[] = Object.values(employees)
+        .filter((employee) => !!employee?.email && employee.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        .map((employee) => {
+            const personalDetail = employeeAndApprovalMembersPersonalDetails[employee.email ?? ''];
+            return {
+                email: employee.email ?? '',
+                displayName: personalDetail?.displayName ?? employee.email ?? '',
+                avatar: personalDetail?.avatar,
+            };
+        });
+
+    const allApprovers: SelectionListApprover[] = [...selectedMembers];
+    const approversEmail = workflowApprovers?.map((member) => member?.email);
+    const availableMembers = liveAvailableMembers
+        .map((member) => {
+            const accountID = Number(policyMemberEmailsToAccountIDs[member.email] ?? '');
+            const formattedDisplayName = Str.isSMSLogin(member.displayName) ? formatPhoneNumber(member.displayName) : member.displayName;
+            return {
+                text: formattedDisplayName,
+                alternateText: member.email,
+                keyForList: member.email,
+                isSelected: false,
+                login: member.email,
+                value: member.email,
+                icons: [
+                    {
+                        source: member.avatar ?? icons.FallbackAvatar,
+                        type: CONST.ICON_TYPE_AVATAR,
+                        name: formattedDisplayName,
+                        id: accountID,
+                    },
+                ],
+                rightElement: (
+                    <MemberRightIcon
+                        role={policy?.employeeList?.[member.email]?.role}
+                        owner={policy?.owner}
+                        login={member.email}
+                    />
+                ),
+            };
+        })
+        .filter(
+            (member) =>
+                (!policy?.preventSelfApproval || !approversEmail?.includes(member.login)) &&
+                !selectedMembers.some((selectedOption) => normalizeLogin(selectedOption.login) === normalizeLogin(member.login)),
+        );
+    allApprovers.push(...availableMembers);
+
+    // Add search results for non-workspace members
+    if (debouncedSearchTerm && areOptionsInitialized) {
+        // Add userToInvite if available
+        if (availableOptions.userToInvite) {
+            const userToInvite = availableOptions.userToInvite;
+            const isAlreadySelected = selectedMembers.some((selectedOption) => selectedOption.login === userToInvite.login);
+            if (!isAlreadySelected) {
+                allApprovers.push({
+                    text: userToInvite.text ?? userToInvite.login ?? '',
+                    alternateText: userToInvite.login ?? '',
+                    keyForList: userToInvite.login ?? '',
+                    isSelected: false,
+                    login: userToInvite.login ?? '',
+                    value: userToInvite.login ?? '',
+                    icons: userToInvite.icons ?? [],
+                });
+            }
+        }
+
+        // Add search results that aren't already in the list (selected approvers or userToInvite)
+        const searchResults = availableOptions.personalDetails.filter((option) => !allApprovers.some((m) => normalizeLogin(m.login) === normalizeLogin(option.login)));
+        for (const option of searchResults) {
+            allApprovers.push({
+                text: option.text ?? option.login ?? '',
+                alternateText: option.login ?? '',
+                keyForList: option.login ?? '',
+                isSelected: false,
+                login: option.login ?? '',
+                value: option.login ?? '',
+                icons: option.icons ?? [],
+            });
+        }
+    }
+
+    // Drop any selected members who never made it into the workspace. They were staged for invite but
+    // never confirmed, so leaving them in approvalWorkflow.members would carry an un-invited user into
+    // the form and fail backend validation with "Approvals can only be set for members of the policy".
+    // This must run on every back path so unconfirmed invitees are removed from the workflow draft.
+    const dropUnconfirmedStagedMembers = () => {
+        // Going back means we're done with this expenses-from session, so any
+        // hand-off to the invite-message page is no longer in flight.
+        isHandingOffToInviteRef.current = false;
+
+        const stagedMembers = approvalWorkflow?.members ?? [];
+        const confirmedMembers = stagedMembers.filter((m) => !!policy?.employeeList?.[normalizeLogin(m.email)]);
+        if (confirmedMembers.length !== stagedMembers.length) {
+            setApprovalWorkflowMembers(confirmedMembers);
+        }
+    };
+
+    const goBack = () => {
+        dropUnconfirmedStagedMembers();
+        // Don't compare params: the edit screen may carry "Add agent" seed params, so a strict param
+        // match would miss it and REPLACE would mount a fresh edit screen that wipes the unsaved draft.
+        Navigation.goBack(backPath, {compareParams: false});
+    };
+
+    // Fall back to goBack — plain Navigation.goBack() closes the modal after a refresh.
+    const onBackButtonPress = () => {
+        goBack();
+    };
+
+    const nextStep = () => {
+        const existingMembers: Member[] = [];
+        const usersToInvite: Array<{
+            email: string;
+            accountID?: number;
+            displayName?: string;
+            avatar?: AvatarSource;
+        }> = [];
+
+        for (const member of selectedMembers) {
+            if (!member.login) {
+                continue;
+            }
+            // Store the canonical SMS login (e164@expensify.sms) for phone members so it matches the key the
+            // invite writes into employeeList. If we kept the raw number, convertApprovalWorkflowToPolicyEmployees
+            // would index a separate, non-matching employee, so the member and submitsTo fall out of sync once
+            // online and the workflow gets dropped. No-op for email logins.
+            const memberLogin = normalizeLogin(member.login);
+            const isPolicyMember = policy?.employeeList?.[memberLogin];
+            if (isPolicyMember) {
+                existingMembers.push({
+                    displayName: member.text ?? '',
+                    avatar: member.icons?.at(0)?.source,
+                    email: memberLogin,
+                });
+            } else {
+                // This is a non-workspace member that needs to be invited.
+                // Carry the picker's display name and avatar so they survive the round-trip through
+                // approvalWorkflow.members, otherwise the invited user reverts to their email and a
+                // fallback avatar after returning from the invite step or on the confirm page.
+                const iconId = member.icons?.at(0)?.id;
+                const accountID = typeof iconId === 'number' ? iconId : undefined;
+                usersToInvite.push({
+                    email: memberLogin,
+                    accountID,
+                    displayName: member.text,
+                    avatar: member.icons?.at(0)?.source,
+                });
+            }
+        }
+
+        // Normalize avatar types for existing members
+        const normalizedExistingMembers: Member[] = existingMembers.map((member) => ({
+            ...member,
+            avatar: typeof member.avatar === 'string' ? member.avatar : undefined,
+        }));
+
+        // Combine all members for the workflow
+        const allMembers: Member[] = [
+            ...normalizedExistingMembers,
+            ...usersToInvite.map((user) => ({
+                displayName: user.displayName ?? user.email,
+                email: user.email,
+                avatar: typeof user.avatar === 'string' ? user.avatar : undefined,
+            })),
+        ];
+        setApprovalWorkflowMembers(allMembers);
+
+        // If there are users to invite, navigate to invite flow first
+        if (usersToInvite.length > 0) {
+            const invitedEmailsToAccountIDs: Record<string, number> = {};
+            for (const user of usersToInvite) {
+                if (!user.email) {
+                    continue;
+                }
+                invitedEmailsToAccountIDs[user.email] = user.accountID ?? CONST.DEFAULT_NUMBER_ID;
+            }
+
+            setWorkspaceInviteMembersDraft(route.params.policyID, invitedEmailsToAccountIDs);
+
+            // The invite-message page reads the draft we just set, so the cleanup
+            // effect must skip its clear if this page unmounts during the hand-off.
+            isHandingOffToInviteRef.current = true;
+
+            // Append the dynamic invite-message route to the current expenses-from URL so the
+            // confirmation flow returns to this workflow context without a URL backTo parameter.
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_INVITE_MESSAGE.path));
+            return;
+        }
+
+        if (isInitialCreationFlow) {
+            Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_APPROVER.getRoute(route.params.policyID, 0));
+        } else if (approvalWorkflow?.isFastEdit) {
+            const updatedApprovalWorkflow = {...approvalWorkflow, members: allMembers};
+            Navigation.goBack(backPath, {
+                compareParams: false,
+                afterTransition: () => saveFastEditApprovalWorkflow({approvalWorkflow: updatedApprovalWorkflow, policy, rules: rulesCollection, isMultipleApproversBetaEnabled}),
+            });
+        } else {
+            // Use goBack so we return to the existing parent (e.g. the workflow edit page) in the stack
+            // instead of pushing a new instance. A fresh mount of the edit page would re-derive members
+            // from policy.employeeList via its useEffect and overwrite the selection we just saved.
+            Navigation.goBack(backPath, {compareParams: false});
+        }
+    };
+
+    let buttonText = isInitialCreationFlow ? translate('common.next') : translate('common.save');
+    if (shouldShowListEmptyContent) {
+        buttonText = translate('common.buttonConfirm');
+    }
+    const button = (
+        <FormAlertWithSubmitButton
+            isDisabled={!shouldShowListEmptyContent && !selectedMembers.length}
+            buttonText={buttonText}
+            onSubmit={shouldShowListEmptyContent ? () => Navigation.goBack() : nextStep}
+            containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
+            enabledWhenOffline
+        />
+    );
+
+    // Keep the refs in sync so the unmount cleanup below reads the latest values.
+    useEffect(() => {
+        isInitialCreationFlowRef.current = !!isInitialCreationFlow;
+    }, [isInitialCreationFlow]);
+
+    useEffect(() => {
+        isFastEditRef.current = !!approvalWorkflow?.isFastEdit;
+    }, [approvalWorkflow?.isFastEdit]);
+
+    // Clean up invite draft when leaving the expenses-from page to prevent
+    // stale non-member data from persisting in the approval workflow. Skip
+    // when handing off to the invite-message page, which still needs the draft.
+    useEffect(() => {
+        return () => {
+            if (isHandingOffToInviteRef.current) {
+                return;
+            }
+            clearInviteDraft(route.params.policyID);
+            // Abandoning the initial create step or a "+N more" edit must discard the eagerly-seeded
+            // approvalWorkflow draft, otherwise a stale draft stays in Onyx and pollutes the next session.
+            if (isInitialCreationFlowRef.current || isFastEditRef.current) {
+                clearApprovalWorkflow();
+            }
+        };
+    }, [route.params.policyID]);
+
+    const toggleMember = (members: SelectionListApprover[]) => {
+        const applySelection = (nextMembers: SelectionListApprover[]) => {
+            // Persist non-policy members to the invite draft AND to approvalWorkflow.members
+            // so they survive re-renders triggered by Onyx updates (e.g. personalDetails
+            // changes from search results). selectedMembers is derived from
+            // approvalWorkflow.members and only keeps non-policy members that are also in the
+            // invite draft, so both stores must stay in sync to avoid dropping the newly
+            // selected member.
+            const nextDraft: Record<string, number> = {};
+            const workflowMembers: Member[] = [];
+            for (const member of nextMembers) {
+                if (!member.login) {
+                    continue;
+                }
+                const iconSource = member.icons?.at(0)?.source;
+                workflowMembers.push({
+                    displayName: member.text ?? member.login,
+                    email: member.login,
+                    avatar: typeof iconSource === 'string' ? iconSource : undefined,
+                });
+                if (policy?.employeeList?.[normalizeLogin(member.login)]) {
+                    continue;
+                }
+                const iconId = member.icons?.at(0)?.id;
+                nextDraft[member.login] = typeof iconId === 'number' ? iconId : (invitedEmailsToAccountIDsDraft?.[member.login] ?? CONST.DEFAULT_NUMBER_ID);
+            }
+            setWorkspaceInviteMembersDraft(route.params.policyID, nextDraft);
+            setApprovalWorkflowMembers(workflowMembers);
+        };
+
+        // Warn when selecting the last unselected workspace member: that moves everyone into this workflow,
+        // which deletes every other workflow.
+        const selectedLogins = selectedMembers.map((member) => member.login);
+        const nextSelectedLogins = members.map((member) => member.login);
+        const isSelectingLastMember = !includesEveryWorkspaceMember(selectedLogins, policy?.employeeList) && includesEveryWorkspaceMember(nextSelectedLogins, policy?.employeeList);
+        if (isSelectingLastMember) {
+            showConfirmModal({
+                title: translate('workflowsExpensesFromPage.moveEveryoneToThisWorkflowTitle'),
+                prompt: translate('workflowsExpensesFromPage.moveEveryoneToThisWorkflowPrompt'),
+                confirmText: translate('common.confirm'),
+                cancelText: translate('common.cancel'),
+            }).then((result) => {
+                if (result.action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                applySelection(members);
+            });
+            return;
+        }
+
+        // Warn when adding a member who already belongs to another workflow. With the beta on this
+        // applies to both create and edit (a submitter can only be in one workflow, so confirming
+        // moves them); legacy keeps the create-only behavior.
+        const shouldCheckCrossWorkflow = isCreateAction || isMultipleApproversBetaEnabled;
+        if (shouldCheckCrossWorkflow && members.length > selectedMembers.length) {
+            const newMember = members.find((m) => !selectedMembers.some((s) => s.login === m.login));
+            const existingApproverEmail = newMember?.login ? membersInExistingWorkflows.get(newMember.login) : undefined;
+
+            // With the beta on, compare full workflow identities so a member that submits to the same
+            // first approver but through a different chain is still treated as a cross-workflow move.
+            // Legacy has no diverging chains here, so first-approver comparison is enough.
+            const belongsToDifferentWorkflow = isMultipleApproversBetaEnabled
+                ? !!newMember?.login && !!submitterToWorkflowKey?.get(newMember.login) && submitterToWorkflowKey.get(newMember.login) !== currentWorkflowKey
+                : !!existingApproverEmail && existingApproverEmail !== firstApprover;
+
+            if (newMember && existingApproverEmail && belongsToDifferentWorkflow) {
+                const rawMemberName = newMember.text ?? newMember.login ?? '';
+                const memberName = Str.isSMSLogin(rawMemberName) ? formatPhoneNumber(rawMemberName) : rawMemberName;
+                const approverDetails = employeeAndApprovalMembersPersonalDetails[existingApproverEmail];
+                const rawApproverName = approverDetails?.displayName ?? existingApproverEmail;
+                const approverName = Str.isSMSLogin(rawApproverName) ? formatPhoneNumber(rawApproverName) : rawApproverName;
+
+                showConfirmModal({
+                    title: translate('workflowsExpensesFromPage.memberAlreadyInWorkflowTitle'),
+                    prompt: translate('workflowsExpensesFromPage.memberAlreadyInWorkflowPrompt', {memberName, approverName}),
+                    confirmText: translate('common.confirm'),
+                    cancelText: translate('common.cancel'),
+                }).then((result) => {
+                    if (result.action !== ModalActions.CONFIRM) {
+                        return;
+                    }
+                    applySelection(members);
+                });
+                return;
+            }
+        }
+
+        applySelection(members);
+    };
+
+    return (
+        <AccessOrNotFoundWrapper
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+        >
+            <ApproverSelectionList
+                testID="DynamicWorkspaceWorkflowsApprovalsExpensesFromPage"
+                headerTitle={translate('workflowsExpensesFromPage.title')}
+                onBackButtonPress={onBackButtonPress}
+                subtitle={
+                    approvalWorkflow?.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE &&
+                    !shouldShowListEmptyContent && <Text style={[styles.textHeadlineH1, styles.mh5, styles.mv3]}>{translate('workflowsExpensesFromPage.header')}</Text>
+                }
+                isLoadingReportData={isLoadingReportData}
+                policy={policy}
+                shouldShowNotFoundViewLink
+                shouldShowListEmptyContent={shouldShowListEmptyContent}
+                shouldShowNotFoundView={shouldShowNotFoundView}
+                allApprovers={allApprovers}
+                listEmptyContentSubtitle={translate('workflowsPage.emptyContent.expensesFromSubtitle')}
+                allowMultipleSelection
+                shouldShowTextInput
+                onSelectApprover={toggleMember}
+                footerContent={button}
+                shouldShowLoadingPlaceholder={isLoadingApprovalWorkflow}
+                shouldEnableHeaderMaxHeight
+                onSearchChange={setSearchSelectorTerm}
+                shouldUpdateFocusedIndex={false}
+                shouldRequirePolicyAdmin={false}
+            />
+        </AccessOrNotFoundWrapper>
+    );
+}
+
+export default withPolicyAndFullscreenLoading(DynamicWorkspaceWorkflowsApprovalsExpensesFromPage);

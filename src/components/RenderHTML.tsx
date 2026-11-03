@@ -1,14 +1,20 @@
-import React, {useMemo} from 'react';
-import {RenderHTMLConfigProvider, RenderHTMLSource} from 'react-native-render-html';
-import type {RenderersProps} from 'react-native-render-html';
 import useHasTextAncestor from '@hooks/useHasTextAncestor';
+import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+
 import Parser from '@libs/Parser';
+
+import type {RenderersProps} from 'react-native-render-html';
+
+import React from 'react';
+import {RenderHTMLConfigProvider, RenderHTMLSource, useSharedProps} from 'react-native-render-html';
+
 import BulletItemRenderer from './HTMLEngineProvider/HTMLRenderers/BulletItemRenderer';
 import ConciergeLinkRenderer from './HTMLEngineProvider/HTMLRenderers/ConciergeLinkRenderer';
 import OLRenderer from './HTMLEngineProvider/HTMLRenderers/OLRenderer';
 import SparklesIconRenderer from './HTMLEngineProvider/HTMLRenderers/SparklesIconRenderer';
 import ULRenderer from './HTMLEngineProvider/HTMLRenderers/ULRenderer';
+import {useHTMLRenderers} from './HTMLEngineProvider/HTMLRenderersContext';
 
 type LinkPressHandler = NonNullable<RenderersProps['a']>['onPress'];
 type ConciergeLinkPressHandler = () => void;
@@ -21,18 +27,38 @@ const RE_EMOJI_OPEN_OR_CLOSE = /(<emoji[^>]*>)(?:<emoji[^>]*>)+|(<\/emoji[^>]*>)
 const RE_BR_CLEANUP = /(?:\s*<br\s*\/?>)+\s*(<\/(?:ul|ol)>)|(<\/li>)(?:\s*<br\s*\/?>)+\s*(?=<(?:li|\/(?:ul|ol))>)/gi;
 
 type RenderHTMLProps = {
-    /** HTML string to render */
     html: string;
-
-    /** Callback to handle link press */
     onLinkPress?: LinkPressHandler;
-
-    /** Callback to handle concierge-link press */
     onConciergeLinkPress?: ConciergeLinkPressHandler;
 
     /** Whether the rendered text should be selectable */
     isSelectable?: boolean;
 };
+
+type SelectableHTMLConfigProviderProps = {
+    children: React.ReactNode;
+    isSelectable: boolean;
+};
+
+function SelectableHTMLConfigProvider({children, isSelectable}: SelectableHTMLConfigProviderProps) {
+    const styles = useThemeStyles();
+    const sharedProps = useSharedProps();
+    const htmlRenderers = useHTMLRenderers();
+
+    return (
+        <RenderHTMLConfigProvider
+            {...sharedProps}
+            defaultTextProps={{
+                ...sharedProps.defaultTextProps,
+                selectable: isSelectable,
+                style: [sharedProps.defaultTextProps.style, styles.overflowVisible],
+            }}
+            renderers={htmlRenderers}
+        >
+            {children}
+        </RenderHTMLConfigProvider>
+    );
+}
 
 // We are using the explicit composite architecture for performance gains.
 // Configuration for RenderHTML is handled in a top-level component providing
@@ -44,31 +70,26 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
         throw new Error('RenderHTML must not be rendered inside a <Text> component, as it will break the layout on iOS. Render it as a sibling instead.');
     }
 
+    const styles = useThemeStyles();
     const {windowWidth} = useWindowDimensions();
-    const html = useMemo(() => {
-        return (
-            Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
-                // Escape brackets when pasting a link, since unescaped [] can break Markdown link syntax
-                .replaceAll(RE_BRACKET_ESCAPE, (m) => (m.at(7) === '1' ? '[' : ']'))
-                // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
-                .replaceAll(RE_EMOJI_OPEN_OR_CLOSE, '$1$2')
-                // Strip orphaned <br/> tags inside <ul> and <ol> that would render as extra empty items
-                .replaceAll(RE_BR_CLEANUP, '$1$2')
-        );
-    }, [htmlParam]);
+    const html = Parser.replace(htmlParam, {shouldEscapeText: false, filterRules: ['emoji']})
+        // Escape brackets when pasting a link, since unescaped [] can break Markdown link syntax
+        .replaceAll(RE_BRACKET_ESCAPE, (m) => (m.at(7) === '1' ? '[' : ']'))
+        // Remove double <emoji> tag if exists and keep the outermost tag (always the original tag).
+        .replaceAll(RE_EMOJI_OPEN_OR_CLOSE, '$1$2')
+        // Strip orphaned <br/> tags inside <ul> and <ol> that would render as extra empty items
+        .replaceAll(RE_BR_CLEANUP, '$1$2');
 
-    const renderersProps = useMemo(() => {
-        return {
-            a: {
-                onPress: onLinkPress,
-            },
-            // Custom HTML renderer keys must use hyphenated tag names per react-native-render-html API
-            /* eslint-disable @typescript-eslint/naming-convention */
-            'concierge-link': {
-                onPress: onConciergeLinkPress,
-            },
-        };
-    }, [onLinkPress, onConciergeLinkPress]);
+    const renderersProps = {
+        a: {
+            onPress: onLinkPress,
+        },
+        // Custom HTML renderer keys must use hyphenated tag names per react-native-render-html API
+        /* eslint-disable @typescript-eslint/naming-convention */
+        'concierge-link': {
+            onPress: onConciergeLinkPress,
+        },
+    };
 
     const renderers = {
         /* eslint-disable @typescript-eslint/naming-convention */
@@ -86,17 +107,23 @@ function RenderHTML({html: htmlParam, onLinkPress, onConciergeLinkPress, isSelec
         />
     );
 
-    return onLinkPress || onConciergeLinkPress ? (
-        <RenderHTMLConfigProvider
-            defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false}}
-            renderersProps={renderersProps}
-            renderers={renderers}
-        >
-            {htmlSource}
-        </RenderHTMLConfigProvider>
-    ) : (
-        htmlSource
-    );
+    if (onLinkPress || onConciergeLinkPress) {
+        return (
+            <RenderHTMLConfigProvider
+                defaultTextProps={{selectable: isSelectable ?? true, allowFontScaling: false, style: styles.overflowVisible}}
+                renderersProps={renderersProps}
+                renderers={renderers}
+            >
+                {htmlSource}
+            </RenderHTMLConfigProvider>
+        );
+    }
+
+    if (isSelectable === undefined) {
+        return htmlSource;
+    }
+
+    return <SelectableHTMLConfigProvider isSelectable={isSelectable}>{htmlSource}</SelectableHTMLConfigProvider>;
 }
 
 export default RenderHTML;

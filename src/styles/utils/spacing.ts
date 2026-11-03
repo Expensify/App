@@ -231,6 +231,10 @@ export default {
         marginLeft: 12,
     },
 
+    mln3: {
+        marginLeft: -12,
+    },
+
     ml4: {
         marginLeft: 16,
     },
@@ -799,6 +803,10 @@ export default {
         paddingBottom: 24,
     },
 
+    pb7: {
+        paddingBottom: 28,
+    },
+
     pb8: {
         paddingBottom: 32,
     },
@@ -831,6 +839,10 @@ export default {
         gap: 2,
     },
 
+    gap1Half: {
+        gap: 6,
+    },
+
     gap2: {
         gap: 8,
     },
@@ -857,6 +869,14 @@ export default {
 
     gap8: {
         gap: 32,
+    },
+
+    gap96: {
+        gap: 96,
+    },
+
+    rowGap1: {
+        rowGap: 4,
     },
 
     rowGap4: {

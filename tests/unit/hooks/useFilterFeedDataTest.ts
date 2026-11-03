@@ -1,16 +1,22 @@
 import {act, renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useFeedKeysWithAssignedCards from '@hooks/useFeedKeysWithAssignedCards';
 import useLocalize from '@hooks/useLocalize';
+
 import useFilterFeedData from '@src/components/Search/hooks/useFilterFeedData';
+import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useLocalize');
 jest.mock('@hooks/useFeedKeysWithAssignedCards');
 
-const mockUseLocalize = useLocalize as jest.Mock;
-const mockUseFeedKeysWithAssignedCards = useFeedKeysWithAssignedCards as jest.Mock;
+const mockUseLocalize = jest.mocked(useLocalize);
+const mockUseFeedKeysWithAssignedCards = jest.mocked(useFeedKeysWithAssignedCards);
 
 describe('useFilterFeedData', () => {
     beforeAll(() => {
@@ -19,10 +25,12 @@ describe('useFilterFeedData', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
-        mockUseLocalize.mockReturnValue({
-            translate: (key: string) => key,
-            localeCompare: (a: string, b: string) => a.localeCompare(b),
-        });
+        mockUseLocalize.mockReturnValue(
+            createMock<ReturnType<typeof useLocalize>>({
+                translate: <TPath extends TranslationPaths>(path: TPath, ...[,]: TranslationParameters<TPath>) => String(path),
+                localeCompare: (a: string, b: string) => a.localeCompare(b),
+            }),
+        );
         mockUseFeedKeysWithAssignedCards.mockReturnValue({});
 
         await Onyx.clear();

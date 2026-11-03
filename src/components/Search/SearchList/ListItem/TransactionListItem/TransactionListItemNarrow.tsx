@@ -1,6 +1,3 @@
-import React, {useRef} from 'react';
-import type {View} from 'react-native';
-import {getButtonRole} from '@components/Button/utils';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
@@ -8,12 +5,23 @@ import UserInfoAndActionButtonRow from '@components/Search/SearchList/ListItem/U
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
-import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
+import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
+
 import CONST from '@src/CONST';
+
+import type {ComponentRef} from 'react';
+import type {View} from 'react-native';
+
+import React, {useRef} from 'react';
+
 import type {TransactionListItemNarrowProps} from './types';
 
 function TransactionListItemNarrow<TItem extends ListItem>({
@@ -35,21 +43,29 @@ function TransactionListItemNarrow<TItem extends ListItem>({
     isFirstItem,
     transactionViolations,
     handleActionButtonPress,
+    shouldDisableActionPointerEvents,
     transactionPreviewData,
-    exportedReportActions,
+    reportActions,
     nonPersonalAndWorkspaceCards,
     isAttendeesEnabledForMovingPolicy,
 }: TransactionListItemNarrowProps<TItem>) {
     const styles = useThemeStyles();
+    const {pageGutterMargin} = useLayoutSpacing();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
-    const pressableRef = useRef<View>(null);
+    const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
     const transactionItem = item as unknown as TransactionListItemType;
-    const {isSelected} = useRowSelection(item.keyForList);
+    const {isSelected} = useRowSelection(item.keyForList, transactionItem.selectionGroupKey);
 
     const handleOnPress: React.ComponentProps<typeof PressableWithFeedback>['onPress'] = (event) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         // A deleted transaction has no report to open, so a row press toggles its selection instead of dead-ending in navigation.
         if (isDeletedTransaction) {
             if (canSelectMultiple) {
@@ -60,28 +76,36 @@ function TransactionListItemNarrow<TItem extends ListItem>({
         onSelectRow(item, transactionPreviewData, event);
     };
 
-    const pressableStyle = [styles.transactionListItemStyle, styles.p4, styles.noBorderRadius, isSelected && styles.activeComponentBG, {...styles.flexColumn, ...styles.alignItemsStretch}];
-
-    const animatedHighlightStyle = useAnimatedHighlightStyle({
-        borderRadius: 0,
-        shouldHighlight: item?.shouldAnimateInHighlight ?? false,
-        highlightColor: theme.messageHighlightBG,
-        backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG,
-        shouldApplyOtherStyles: true,
-    });
+    const pressableStyle = [
+        styles.transactionListItemStyle,
+        styles.p4,
+        styles.noBorderRadius,
+        isSelected && styles.activeComponentBG,
+        // A selected row paints an opaque background here, on top of the rounded wrapper below, so the outer
+        // corners have to be rounded on this element too or the list's top/bottom corners look square.
+        isFirstItem && styles.tableTopRadius,
+        isLastItem && styles.tableBottomRadius,
+        {...styles.flexColumn, ...styles.alignItemsStretch},
+    ];
 
     return (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
             <PressableWithFeedback
                 ref={pressableRef}
-                onLongPress={() => onLongPressRow?.(item)}
+                onLongPress={() => {
+                    if (shouldSuppressCopyableTextRowLongPress()) {
+                        return;
+                    }
+                    onLongPressRow?.(item);
+                }}
                 onPress={handleOnPress}
                 disabled={isDisabled && !isSelected}
                 accessibilityLabel={item.text ?? ''}
-                role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
+                role={!isDeletedTransaction ? CONST.ROLE.BUTTON : 'none'}
                 isNested
+                shouldAllowTextSelection
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
+                dataSet={{...COPYABLE_ROW_DATA_SET, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
                 id={item.keyForList ?? ''}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.TRANSACTION_LIST_ITEM}
                 style={[
@@ -89,11 +113,26 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     isFocused && StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
-                onFocus={onFocus}
+                onFocus={(event) => {
+                    if (shouldSuppressCopyableTextRowFocus()) {
+                        return;
+                    }
+                    onFocus?.(event);
+                }}
+                onMouseDown={(event) => {
+                    const isCopyableTarget = markMouseDownOnCopyableText(event?.target);
+                    if (isCopyableTarget) {
+                        return;
+                    }
+                    event.preventDefault();
+                }}
+                onTouchStart={(event) => {
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
+                }}
                 wrapperStyle={[
-                    styles.mh5,
+                    pageGutterMargin,
                     styles.flex1,
-                    animatedHighlightStyle,
+                    StyleUtils.getSearchRowBackgroundStyle(isSelected),
                     styles.userSelectNone,
                     isFirstItem && styles.tableTopRadius,
                     isLastItem && styles.tableBottomRadius,
@@ -104,10 +143,11 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                     <>
                         <UserInfoAndActionButtonRow
                             item={transactionItem}
-                            shouldShowUserInfo={!isDeletedTransaction && !!transactionItem?.from}
+                            shouldShowUserInfo={!!transactionItem?.from}
                             stateNum={transactionItem.report?.stateNum}
                             statusNum={transactionItem.report?.statusNum}
                             isSelected={isSelected}
+                            shouldAllowStatusTextSelection
                         />
                         <TransactionItemRow
                             transactionItem={transactionItem}
@@ -115,13 +155,14 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             policy={transactionItem.policy}
                             shouldShowTooltip={showTooltip}
                             onButtonPress={handleActionButtonPress}
-                            onCheckboxPress={() => onCheckboxPress?.(item)}
+                            onCheckboxPress={(_transactionID, shiftKey) => onCheckboxPress?.(item, undefined, shiftKey)}
                             shouldUseNarrowLayout
                             isLargeScreenWidth={false}
                             columns={columns}
                             isActionLoading={isLoading ?? isActionLoading}
                             isSelected={isSelected}
                             isDisabled={!!isDisabled}
+                            shouldDisableActionPointerEvents={shouldDisableActionPointerEvents}
                             dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             amountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             taxAmountColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
@@ -132,7 +173,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                             onArrowRightPress={isDeletedTransaction ? undefined : (event) => onSelectRow(item, transactionPreviewData, event)}
                             isHover={false}
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
-                            reportActions={exportedReportActions}
+                            reportActions={reportActions}
                             isAttendeesEnabledForMovingPolicy={isAttendeesEnabledForMovingPolicy}
                         />
                     </>

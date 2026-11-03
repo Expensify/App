@@ -1,15 +1,20 @@
-import React, {useCallback} from 'react';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
+
 import {appendCountryCode, formatE164PhoneNumber} from '@libs/LoginUtils';
 import {isRequiredFulfilled, isValidPhoneNumber} from '@libs/ValidationUtils';
+
 import type {CustomSubPageProps} from '@pages/MissingPersonalDetails/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/PersonalDetailsForm';
+
+import React from 'react';
 
 const STEP_FIELDS = [INPUT_IDS.PHONE_NUMBER];
 
@@ -17,25 +22,22 @@ function PhoneNumberStep({isEditing, onNext, onMove, personalDetailsValues}: Cus
     const {translate} = useLocalize();
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
-            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
-            const phoneNumber = values[INPUT_IDS.PHONE_NUMBER];
-            const phoneNumberWithCountryCode = appendCountryCode(phoneNumber, countryCode);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> => {
+        const errors: FormInputErrors<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM> = {};
+        const phoneNumber = values[INPUT_IDS.PHONE_NUMBER];
+        const phoneNumberWithCountryCode = appendCountryCode(phoneNumber, countryCode);
 
-            if (!isRequiredFulfilled(phoneNumber)) {
-                errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
-                return errors;
-            }
-
-            if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
-                errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
-            }
-
+        if (!isRequiredFulfilled(phoneNumber)) {
+            errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.fieldRequired');
             return errors;
-        },
-        [translate, countryCode],
-    );
+        }
+
+        if (!isValidPhoneNumber(phoneNumberWithCountryCode)) {
+            errors[INPUT_IDS.PHONE_NUMBER] = translate('common.error.phoneNumber');
+        }
+
+        return errors;
+    };
 
     const handleSubmit = usePersonalDetailsFormSubmit({
         fieldIds: STEP_FIELDS,

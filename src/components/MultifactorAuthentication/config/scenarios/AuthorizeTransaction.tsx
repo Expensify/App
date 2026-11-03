@@ -1,4 +1,3 @@
-import React from 'react';
 import {AuthorizeTransactionCancelConfirmModal} from '@components/MultifactorAuthentication/components/Modals';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
 import {
@@ -14,10 +13,16 @@ import type {
     MultifactorAuthenticationScenarioAdditionalParams,
     MultifactorAuthenticationScenarioCustomConfig,
 } from '@components/MultifactorAuthentication/config/types';
+
 import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
+
 import variables from '@styles/variables';
+
 import {authorizeTransaction, denyTransaction, fireAndForgetDenyTransaction} from '@userActions/MultifactorAuthentication';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type Payload = {
     transactionID: string;
@@ -102,7 +107,7 @@ const AlreadyReviewedFailureScreen = createScreenWithDefaults(
 export {DeniedTransactionSuccessScreen, DeniedTransactionServerFailureScreen};
 
 export default {
-    // Allowed methods are hardcoded here; keep in sync with allowedAuthenticationMethods in useNavigateTo3DSAuthorizationChallenge.
+    // Allowed methods are hardcoded here. useNavigateToForcedTransactionReview also gates the 3DS review on them.
     allowedAuthenticationMethods: [CONST.MULTIFACTOR_AUTHENTICATION.TYPE.BIOMETRICS_HSM, CONST.MULTIFACTOR_AUTHENTICATION.TYPE.PASSKEYS],
     action: authorizeTransaction,
 

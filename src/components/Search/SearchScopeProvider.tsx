@@ -1,5 +1,6 @@
-import React, {useContext, useMemo} from 'react';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
+import React, {useContext} from 'react';
 
 const defaultSearchContext = {
     isOnSearch: false,
@@ -8,12 +9,9 @@ const defaultSearchContext = {
 const SearchScopeContext = React.createContext(defaultSearchContext);
 
 function SearchScopeProvider({children, isOnSearch = true}: ChildrenProps) {
-    const searchContext = useMemo(
-        () => ({
-            isOnSearch,
-        }),
-        [isOnSearch],
-    );
+    const searchContext = {
+        isOnSearch,
+    };
 
     return <SearchScopeContext.Provider value={searchContext}>{children}</SearchScopeContext.Provider>;
 }

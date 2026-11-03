@@ -1,5 +1,4 @@
 type Attachment = {
-    /** Attachment ID of the attachment */
     attachmentID: string;
 
     /** Local source of the attachment */

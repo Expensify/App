@@ -1,11 +1,17 @@
-import type {ForwardedRef} from 'react';
-import React, {useCallback, useMemo, useRef} from 'react';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripSpacesFromAmount, validatePercentage} from '@libs/MoneyRequestUtils';
+
 import CONST from '@src/CONST';
-import TextInput from './TextInput';
+
+import type {ForwardedRef} from 'react';
+
+import React, {useRef} from 'react';
+
 import type {BaseTextInputProps, BaseTextInputRef} from './TextInput/BaseTextInput/types';
+
+import TextInput from './TextInput';
 
 type PercentageFormProps = BaseTextInputProps & {
     /** Amount supplied by the FormProvider */
@@ -29,7 +35,6 @@ type PercentageFormProps = BaseTextInputProps & {
     /** Whether to allow negative percentages (e.g. for split expenses with negative amounts). */
     allowNegative?: boolean;
 
-    /** Reference to the outer element */
     ref?: ForwardedRef<BaseTextInputRef>;
 };
 
@@ -50,28 +55,25 @@ function PercentageForm({
 
     const textInput = useRef<BaseTextInputRef | null>(null);
 
-    const currentAmount = useMemo(() => (typeof amount === 'string' ? amount : ''), [amount]);
+    const currentAmount = typeof amount === 'string' ? amount : '';
 
     /**
      * Sets the amount according to the value passed to the input
      * @param newAmount - Changed amount from user input
      */
-    const setNewAmount = useCallback(
-        (newAmount: string) => {
-            // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
-            // More info: https://github.com/Expensify/App/issues/16974
-            const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
-            const withLeadingZero = addLeadingZero(newAmountWithoutSpaces, allowNegative);
-            if (!validatePercentage(withLeadingZero, allowExceedingHundred, allowDecimal, allowNegative)) {
-                return;
-            }
+    const setNewAmount = (newAmount: string) => {
+        // Remove spaces from the newAmount value because Safari on iOS adds spaces when pasting a copied value
+        // More info: https://github.com/Expensify/App/issues/16974
+        const newAmountWithoutSpaces = stripSpacesFromAmount(newAmount);
+        const withLeadingZero = addLeadingZero(newAmountWithoutSpaces, allowNegative);
+        if (!validatePercentage(withLeadingZero, allowExceedingHundred, allowDecimal, allowNegative)) {
+            return;
+        }
 
-            // Convert comma to period for internal representation (commas are used as decimal separators in some locales like Spanish)
-            const normalizedAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
-            onInputChange?.(normalizedAmount);
-        },
-        [allowExceedingHundred, allowDecimal, allowNegative, onInputChange],
-    );
+        // Convert comma to period for internal representation (commas are used as decimal separators in some locales like Spanish)
+        const normalizedAmount = replaceCommasWithPeriod(newAmountWithoutSpaces);
+        onInputChange?.(normalizedAmount);
+    };
 
     const formattedAmount = replaceAllDigits(currentAmount, toLocaleDigit);
 
@@ -79,6 +81,7 @@ function PercentageForm({
         <TextInput
             label={label}
             value={formattedAmount}
+            errorText={errorText}
             onChangeText={setNewAmount}
             placeholder={numberFormat(0)}
             ref={(newRef: BaseTextInputRef | null) => {

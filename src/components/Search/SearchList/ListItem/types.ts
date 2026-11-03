@@ -1,48 +1,54 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import type {SearchColumnType, SearchGroupBy, SearchQueryJSON} from '@components/Search/types';
 import type {ListItemProps} from '@components/SelectionList/ListItem/types';
 import type {ListItem} from '@components/SelectionList/types';
+
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type CONST from '@src/CONST';
 import type {
-    BankAccountList,
     BillingGraceEndPeriod,
-    CardFeeds,
     CardList,
     LastPaymentMethod,
     PersonalDetails,
     Policy,
+    PolicyTagLists,
     Report,
     ReportAction,
     SearchResults,
     TransactionViolation,
     TransactionViolations,
 } from '@src/types/onyx';
-import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon} from '@src/types/onyx/OnyxCommon';
 import type {
+    SearchApproverGroup,
     SearchCardGroup,
     SearchCategoryGroup,
     SearchDataTypes,
+    SearchDayGroup,
     SearchMemberGroup,
     SearchMerchantGroup,
     SearchMonthGroup,
     SearchQuarterGroup,
+    SearchReport,
     SearchTagGroup,
     SearchTask,
+    SearchTransaction,
     SearchTransactionAction,
+    SearchTrip,
     SearchWeekGroup,
     SearchWithdrawalIDGroup,
     SearchYearGroup,
 } from '@src/types/onyx/SearchResults';
 import type Transaction from '@src/types/onyx/Transaction';
 
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
 type SearchListActionProps = {
     /** The last payment method used per policy */
     lastPaymentMethod?: OnyxEntry<LastPaymentMethod>;
-    /** The user's personal policy ID */
     personalPolicyID?: string;
     /** Billing grace period end dates for workspace owners (shared across all list items) */
     userBillingGracePeriodEnds?: OnyxCollection<BillingGraceEndPeriod>;
@@ -51,8 +57,9 @@ type SearchListActionProps = {
 };
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
-    /** The report data */
     report?: Report;
+    /** Called on long press of the row (opens the hold menu) */
+    onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
 };
 
 type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -60,12 +67,15 @@ type ExpenseReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         /** The visible columns for the report */
         columns?: SearchColumnType[];
 
+        /** Called on long press of the row (opens the hold menu) */
+        onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+
         /** Whether the item's action is loading */
         isLoading?: boolean;
     };
 
 type TransactionListItemType = ListItem &
-    Transaction & {
+    SearchTransaction & {
         /** Report to which the transaction belongs */
         report: Report | undefined;
 
@@ -75,11 +85,17 @@ type TransactionListItemType = ListItem &
         /** The date the report was approved */
         approved?: string;
 
+        /** The date the report was paid */
+        paid?: string;
+
         /** The date the report was posted */
         posted?: string;
 
         /** The date the report was exported */
         exported?: string;
+
+        /** Names of the integrations/templates the report was exported to, used for sorting the "Exported to" column */
+        exportedTo?: string;
 
         /** Policy to which the transaction belongs */
         policy: Policy | undefined;
@@ -135,6 +151,11 @@ type TransactionListItemType = ListItem &
          */
         shouldShowYearApproved: boolean;
 
+        /** Whether we should show the year for the paid date.
+         * This is true if at least one transaction in the dataset belongs to a report paid in past years
+         */
+        shouldShowYearPaid?: boolean;
+
         /** Whether we should show the year for the posted date.
          * This is true if at least one transaction in the dataset was posted in past years
          */
@@ -157,11 +178,11 @@ type TransactionListItemType = ListItem &
         /** Key used internally by React */
         keyForList: string;
 
+        /** Parent selection key when this transaction is rendered inside a lazily loaded group. */
+        selectionGroupKey?: string;
+
         /** The name of the file used for a receipt */
         filename?: string;
-
-        /** Attendees in the transaction */
-        attendees?: Attendee[];
 
         /** Precomputed violations */
         violations?: TransactionViolation[];
@@ -201,7 +222,6 @@ type TransactionGroupListItemType = ListItem & {
     /** Whether the report has a single transaction */
     isOneTransactionReport?: boolean;
 
-    /** The hash of the query to get the transactions data */
     transactionsQueryJSON?: SearchQueryJSON;
 
     /** Whether the report has visible violations for user */
@@ -219,7 +239,7 @@ type TransactionGroupListItemType = ListItem & {
 
 type ExpenseReportListItemType = TransactionReportGroupListItemType;
 
-type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & Report & {
+type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT} & SearchReport & {
         /** The personal details of the user requesting money */
         from: PersonalDetails;
 
@@ -228,6 +248,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** Final and formatted "status" value used for displaying and sorting */
         formattedStatus?: string;
+
+        /** Final and formatted "paid status" value (Marked as paid / Withdrawing / Confirmed) used for displaying and sorting */
+        formattedPaidStatus?: string;
 
         /** Final and formatted "from" value used for displaying and sorting */
         formattedFrom?: string;
@@ -238,7 +261,32 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** The date the report was exported */
         exported?: string;
 
-        /** Whether the status field should be shown in a pending state */
+        /** Names of the integrations/templates the report was exported to, used for sorting the "Exported to" column */
+        exportedTo?: string;
+
+        /** The date of the report's first approval (created date of the earliest APPROVED/FORWARDED report action) */
+        firstApproved?: string;
+
+        /** The date the report was paid (created date of the latest payment report action that was not cancelled) */
+        paid?: string;
+
+        firstApproverAvatar?: AvatarSource;
+
+        /** Account ID of the first approver (actor on the earliest APPROVED/FORWARDED report action) */
+        firstApproverAccountID?: number;
+
+        /** Final and formatted "first approver" value used for displaying and sorting */
+        formattedFirstApprover?: string;
+
+        /** The avatar of the user the report was paid by */
+        paidByAvatar?: AvatarSource;
+
+        /** Account ID of the user the report was paid by (actor on the latest payment report action) */
+        paidByAccountID?: number;
+
+        /** Final and formatted "paid by" value used for displaying and sorting */
+        formattedPaidBy?: string;
+
         shouldShowStatusAsPending?: boolean;
 
         /**
@@ -264,6 +312,12 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
          * This is true if at least one report in the dataset was exported in past years
          */
         shouldShowYearExported: boolean;
+
+        /**
+         * Whether we should show the year for the paid date.
+         * This is true if at least one report in the dataset was paid in past years
+         */
+        shouldShowYearPaid?: boolean;
 
         /** The main action that can be performed for the report */
         action: SearchTransactionAction | undefined;
@@ -315,7 +369,9 @@ type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Whether the item's action is loading */
     isLoading?: boolean;
 
-    /** All the data of the report collection */
+    /** Called on long press of the row (opens the hold menu) */
+    onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
+
     allReports?: OnyxCollection<Report>;
 };
 
@@ -352,6 +408,26 @@ type TaskListItemType = ListItem &
         shouldShowYear: boolean;
     };
 
+type TripListItemType = ListItem &
+    SearchTrip & {
+        /** The personal details of the traveler */
+        traveler: PersonalDetails;
+
+        /** Final and formatted "traveler" value used for displaying and sorting */
+        formattedTraveler: string;
+
+        /** The trip room's name, used as the trip name */
+        tripName: string;
+
+        /** Key used internally by React */
+        keyForList: string;
+    };
+
+type TripListItemProps = ListItemProps<TripListItemType> & {
+    /** Columns to show */
+    columns?: SearchColumnType[];
+};
+
 type ReportActionListItemType = ListItem &
     ReportAction & {
         /** The personal details of the user posting comment */
@@ -366,11 +442,10 @@ type ReportActionListItemType = ListItem &
         /** Key used internally by React */
         keyForList: string;
 
-        /** The name of the report */
         reportName: string;
     };
 
-type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType;
+type SearchListItem = TransactionListItemType | TransactionGroupListItemType | ReportActionListItemType | TaskListItemType | ExpenseReportListItemType | TripListItemType;
 
 type TransactionCardGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.CARD} & PersonalDetails &
     SearchCardGroup & {
@@ -387,17 +462,31 @@ type TransactionMemberGroupListItemType = TransactionGroupListItemType & {groupe
         formattedFrom?: string;
     };
 
+type TransactionDayGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.DAY} & SearchDayGroup & {
+        formattedDay: string;
+
+        /** Compact "day" value used where space is tight, e.g. bar chart axis labels, adding the year when the groups span several years */
+        shortFormattedDay: string;
+
+        /** Day label for line chart axes, e.g. "Aug 15", adding the year only outside the current year */
+        lineChartFormattedDay: string;
+    };
+
 type TransactionMonthGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.MONTH} & SearchMonthGroup & {
-        /** Final and formatted "month" value used for displaying */
         formattedMonth: string;
 
-        /** Key used for sorting */
+        /** Compact "month" value used where space is tight, e.g. chart axis labels */
+        shortFormattedMonth: string;
+
         sortKey: number;
     };
 
 type TransactionWithdrawalIDGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID} & SearchWithdrawalIDGroup & {
         /** Final and formatted "withdrawalID" value used for displaying and sorting */
         formattedWithdrawalID?: string;
+
+        /** Value used for sorting the "withdrawal status" column */
+        settlementStatusRank?: number;
 
         /** Whether any withdrawn date in the current results belongs to a past year */
         shouldShowYearWithdrawn?: boolean;
@@ -419,24 +508,33 @@ type TransactionTagGroupListItemType = TransactionGroupListItemType & {groupedBy
     };
 
 type TransactionWeekGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.WEEK} & SearchWeekGroup & {
-        /** Final and formatted "week" value used for displaying */
         formattedWeek: string;
+
+        /** Compact week range used where space is tight, e.g. bar chart axis labels, adding the year when the groups span several years */
+        shortFormattedWeek: string;
+
+        /** Week start label for line chart axes, e.g. "Sep 6", adding the year only outside the current year */
+        lineChartFormattedWeek: string;
     };
 
 type TransactionYearGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.YEAR} & SearchYearGroup & {
-        /** Final and formatted "year" value used for displaying */
         formattedYear: string;
-
-        /** Key used for sorting */
         sortKey: number;
     };
 
 type TransactionQuarterGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.QUARTER} & SearchQuarterGroup & {
-        /** Final and formatted "quarter" value used for displaying */
         formattedQuarter: string;
 
-        /** Sort key for sorting */
+        /** Compact "quarter" value used where space is tight, e.g. chart axis labels */
+        shortFormattedQuarter: string;
+
         sortKey: number;
+    };
+
+type TransactionApproverGroupListItemType = TransactionGroupListItemType & {groupedBy: typeof CONST.SEARCH.GROUP_BY.APPROVER} & PersonalDetails &
+    SearchApproverGroup & {
+        /** Final and formatted approver name used for displaying and sorting */
+        formattedApprover?: string;
     };
 
 type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
@@ -444,14 +542,19 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
         /** Whether the item's action is loading */
         isLoading?: boolean;
         columns?: SearchColumnType[];
+        /** Called on long press of the row (opens the hold menu) */
+        onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
-        /** Callback to undelete a transaction */
+        /** All policies' tag lists, drilled from the list level so each row can resolve its policy's tags without an Onyx subscription per row */
+        policyTags?: OnyxCollection<PolicyTagLists>;
         onUndelete?: (transaction: Transaction) => void;
     };
 
 type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem> &
     SearchListActionProps & {
+        /** Called on long press of the row (opens the hold menu) */
+        onLongPressRow?: (item: TItem, itemTransactions?: TransactionListItemType[]) => void;
         groupBy?: SearchGroupBy;
         searchType?: SearchDataTypes;
         accountID?: number;
@@ -459,14 +562,15 @@ type TransactionGroupListItemProps<TItem extends ListItem> = ListItemProps<TItem
         newTransactionID?: string;
         /** Non-personal and workspace cards for company card display */
         nonPersonalAndWorkspaceCards?: CardList;
-        /** Callback to undelete a transaction */
         onUndelete?: (transaction: Transaction) => void;
     };
 
 type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     TransactionGroupListItemProps<TItem>,
-    'showTooltip' | 'canSelectMultiple' | 'onSelectionButtonPress' | 'columns' | 'groupBy' | 'accountID' | 'isOffline' | 'onSelectRow' | 'nonPersonalAndWorkspaceCards' | 'onUndelete'
+    'showTooltip' | 'canSelectMultiple' | 'onSelectionButtonPress' | 'columns' | 'groupBy' | 'accountID' | 'onSelectRow' | 'nonPersonalAndWorkspaceCards' | 'onUndelete'
 > & {
+    /** Whether the network is offline */
+    isOffline?: boolean;
     violations?: Record<string, TransactionViolations | undefined> | undefined;
     transactions: TransactionListItemType[];
     transactionsVisibleLimit: number;
@@ -480,6 +584,9 @@ type TransactionGroupListExpandedProps<TItem extends ListItem> = Pick<
     searchTransactions: (pageSize?: number) => void;
     onLongPress: (transaction: TransactionListItemType) => void;
     hideSearchTableHeader?: boolean;
+
+    /** Sync key that ties these rows' horizontal scroll to the group's column header, which lives in a sibling row. */
+    syncScrollKey?: string;
 };
 
 const GROUP_ITEM_TYPES = {
@@ -487,7 +594,7 @@ const GROUP_ITEM_TYPES = {
     CHILDREN_CONTAINER: 'children_container',
 } as const;
 
-type GroupHeaderListItemType = {listItemType: typeof GROUP_ITEM_TYPES.GROUP_HEADER};
+type GroupHeaderListItemType = {listItemType: typeof GROUP_ITEM_TYPES.GROUP_HEADER; groupKeyForList: string};
 
 type GroupHeaderItemType =
     | (TransactionReportGroupListItemType & GroupHeaderListItemType)
@@ -497,14 +604,17 @@ type GroupHeaderItemType =
     | (TransactionCategoryGroupListItemType & GroupHeaderListItemType)
     | (TransactionMerchantGroupListItemType & GroupHeaderListItemType)
     | (TransactionTagGroupListItemType & GroupHeaderListItemType)
+    | (TransactionDayGroupListItemType & GroupHeaderListItemType)
     | (TransactionMonthGroupListItemType & GroupHeaderListItemType)
     | (TransactionWeekGroupListItemType & GroupHeaderListItemType)
     | (TransactionYearGroupListItemType & GroupHeaderListItemType)
     | (TransactionQuarterGroupListItemType & GroupHeaderListItemType)
+    | (TransactionApproverGroupListItemType & GroupHeaderListItemType)
     | (TransactionGroupListItemType & GroupHeaderListItemType);
 
 type GroupChildrenContainerItemType = TransactionGroupListItemType & {
     listItemType: typeof GROUP_ITEM_TYPES.CHILDREN_CONTAINER;
+    groupKeyForList: string;
 };
 
 function isGroupHeaderItem(item: SearchListItem): item is GroupHeaderItemType {
@@ -523,14 +633,11 @@ type GroupChildrenContentProps = {
     columns?: SearchColumnType[];
     canSelectMultiple: boolean;
     onSelectRow: (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => void;
-    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    onCheckboxPress: (item: SearchListItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;
     newTransactionID?: string;
-    bankAccountList?: OnyxEntry<BankAccountList>;
-    cardFeeds?: OnyxCollection<CardFeeds>;
-    conciergeReportID?: string;
 };
 
 type UnreportedExpenseListItemType = Transaction & {
@@ -548,10 +655,13 @@ export type {
     SearchListItem,
     TaskListItemProps,
     TaskListItemType,
+    TripListItemProps,
+    TripListItemType,
     TransactionGroupListItemType,
     TransactionListItemType,
     TransactionCardGroupListItemType,
     TransactionMemberGroupListItemType,
+    TransactionDayGroupListItemType,
     TransactionMonthGroupListItemType,
     TransactionCategoryGroupListItemType,
     TransactionMerchantGroupListItemType,
@@ -559,6 +669,7 @@ export type {
     TransactionWeekGroupListItemType,
     TransactionYearGroupListItemType,
     TransactionQuarterGroupListItemType,
+    TransactionApproverGroupListItemType,
     TransactionWithdrawalIDGroupListItemType,
     TransactionGroupListItemProps,
     TransactionGroupListExpandedProps,

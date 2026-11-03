@@ -1,20 +1,27 @@
-import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getSageIntacctBankAccounts, settingsPendingAction} from '@libs/PolicyUtils';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import variables from '@styles/variables';
+
 import {updateSageIntacctSyncReimbursementAccountID} from '@userActions/connections/SageIntacct';
 import {clearSageIntacctErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -25,29 +32,23 @@ function SageIntacctPaymentAccountPage({policy}: WithPolicyConnectionsProps) {
     const {config} = policy?.connections?.intacct ?? {};
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
-    const vendorSelectorOptions = useMemo<SelectorType[]>(() => getSageIntacctBankAccounts(policy, config?.sync?.reimbursementAccountID), [policy, config?.sync?.reimbursementAccountID]);
+    const vendorSelectorOptions: SelectorType[] = getSageIntacctBankAccounts(policy, config?.sync?.reimbursementAccountID);
 
-    const updateDefaultVendor = useCallback(
-        ({value}: SelectorType) => {
-            if (value !== config?.sync?.reimbursementAccountID) {
-                updateSageIntacctSyncReimbursementAccountID(policyID, value, config?.sync?.reimbursementAccountID);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
-        },
-        [policyID, config?.sync?.reimbursementAccountID],
-    );
+    const updateDefaultVendor = ({value}: SelectorType) => {
+        if (value !== config?.sync?.reimbursementAccountID) {
+            updateSageIntacctSyncReimbursementAccountID(policyID, value, config?.sync?.reimbursementAccountID);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADVANCED.getRoute(policyID));
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.sageIntacct.noAccountsFound')}
-                subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
-            />
-        ),
-        [illustrations.Telescope, translate],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.sageIntacct.noAccountsFound')}
+            subtitle={translate('workspace.sageIntacct.noAccountsFoundDescription')}
+        />
     );
 
     return (

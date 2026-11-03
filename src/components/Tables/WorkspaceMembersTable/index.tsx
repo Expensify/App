@@ -1,28 +1,48 @@
-import type {ListRenderItemInfo} from '@shopify/flash-list';
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
+import compareOptionalValues from '@components/Table/compareOptionalValues';
+
+import useCopySelectionEvent from '@hooks/useCopySelectionEvent';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isControlPolicy, isPolicyApprover, isSubmitPolicy} from '@libs/PolicyUtils';
+
+import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
+import {getFirstApproverLabel} from '@libs/WorkflowUtils';
+
+import {fontScale} from '@styles/typography';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {ListRenderItemInfo} from '@shopify/flash-list';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
-type WorkspaceMembersTableColumnKey = 'member' | 'role' | 'actions' | 'customField1' | 'customField2';
+type WorkspaceMembersTableColumnKey = 'member' | 'approver' | 'role' | 'actions' | 'officeLocation' | 'customField1' | 'customField2' | 'bankAccount';
 
 type WorkspaceMemberRowData = TableData & {
     accountID: number;
     login: string;
-    role?: string;
+    /** Whether this member is the workspace billing owner, shown as a badge rather than a role. */
+    isOwner?: boolean;
+    role?: ValueOf<typeof CONST.POLICY.ROLE>;
     employeeUserID?: string;
     employeePayrollID?: string;
+    approverAccountID?: number;
+    approverDisplayName?: string;
+    approverLogin?: string;
+    approverPendingAction?: OnyxCommon.PendingAction;
+    officeLocationName?: string;
+    bankAccountLastFour?: string;
     name: string;
     email: string;
     shouldShowEmployeeUserID: boolean;
@@ -33,56 +53,121 @@ type WorkspaceMemberRowData = TableData & {
     invitedSecondaryLogin: string;
     action: () => void;
     dismissError: () => void;
+    canEditRole?: boolean;
+    onChangeRole?: (role: ValueOf<typeof CONST.POLICY.ROLE>) => void;
 };
 
 type WorkspaceMembersTableProps = {
     ref?: React.Ref<TableHandle<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey, string>> | undefined;
     members: WorkspaceMemberRowData[];
     policy: OnyxEntry<Policy>;
-    isPolicyAdmin: boolean;
+    canSelectMembers: boolean;
     selectedKeys: string[];
     shouldShowCustomField1Column: boolean;
     shouldShowCustomField2Column: boolean;
+    shouldShowApproverColumn: boolean;
+    shouldUseOrdinalApproverLabel: boolean;
+    shouldShowOfficeLocationColumn: boolean;
+    shouldShowBankAccountColumn: boolean;
     onRowSelectionChange: (selectedRowKeys: string[]) => void;
+    headerComponent?: React.ReactElement;
+
+    /** The actions the selected members support, offered in the floating bar the wide layout shows while rows are selected. */
+    bulkActionOptions?: Array<DropdownOption<WorkspaceMemberBulkActionType>>;
 };
+
+/** Width the approver cell's avatar and the gap the row lays it out with, which the name starts after. */
+const APPROVER_CELL_AVATAR_WIDTH = variables.avatarSizeXxxSmall + variables.spacing2;
 
 const WORKSPACE_MEMBER_FILTER_VALUES = {
     ADMINS: 'admins',
+    APPROVE_ONLY: 'approveOnly',
     APPROVERS: 'approvers',
     AUDITORS: 'auditors',
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
+    GUESTS: 'guests',
     MEMBERS: 'members',
+    PAYMENTS_ADMINS: 'paymentsAdmins',
+    PEOPLE_ADMINS: 'peopleAdmins',
 } as const;
 
 export default function WorkspaceMembersTable({
     ref,
-    isPolicyAdmin,
+    canSelectMembers,
     policy,
     selectedKeys,
     shouldShowCustomField1Column,
     shouldShowCustomField2Column,
+    shouldShowApproverColumn,
+    shouldUseOrdinalApproverLabel,
+    shouldShowOfficeLocationColumn,
+    shouldShowBankAccountColumn,
     members,
     onRowSelectionChange,
+    headerComponent,
+    bulkActionOptions,
 }: WorkspaceMembersTableProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, toLocaleOrdinalWithWords} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    useCopySelectionEvent();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
+    // The badge sits after the name with gap2, and its padding and border apply on both sides, so those values are doubled.
+    const ownerBadgeExtraWidth = members.some((member) => member.isOwner) ? styles.gap2.gap + styles.defaultBadge.paddingHorizontal * 2 + styles.defaultBadge.borderWidth * 2 : 0;
 
-    const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey>> = [
+    const workspaceMembersColumns: Array<TableColumn<WorkspaceMembersTableColumnKey, WorkspaceMemberRowData>> = [
         {
             key: 'member',
             label: translate('common.member'),
             sortable: true,
+            dynamicSizing: {
+                // The cell stacks the member's name above their email, so whichever of the two renders wider decides the
+                // column's width. Owner rows also render a badge after the name, so that label is measured with the name
+                // and extraWidth covers the gap and the badge's padding and border.
+                getContentToMeasure: (item) => [
+                    {text: item.isOwner ? `${item.name}${translate('common.owner')}` : item.name, fontSize: fontScale.text},
+                    {text: item.email, fontSize: fontScale.label},
+                ],
+                extraWidth: variables.tableMemberCellAvatarWidth + ownerBadgeExtraWidth,
+            },
         },
 
+        ...(shouldShowApproverColumn
+            ? [
+                  {
+                      sortable: true,
+                      key: 'approver' as const,
+                      // One header for the whole table, so it follows the deepest workflow in the workspace.
+                      label: getFirstApproverLabel(shouldUseOrdinalApproverLabel, translate, toLocaleOrdinalWithWords),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.approverDisplayName ? [{text: item.approverDisplayName}] : []),
+                          extraWidth: APPROVER_CELL_AVATAR_WIDTH,
+                      },
+                  },
+              ]
+            : []),
+        ...(shouldShowOfficeLocationColumn
+            ? [
+                  {
+                      sortable: true,
+                      key: 'officeLocation' as const,
+                      label: translate('workspace.people.officeLocation'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.officeLocationName ? [{text: item.officeLocationName, fontSize: fontScale.text}] : []),
+                      },
+                  },
+              ]
+            : []),
         ...(shouldShowCustomField1Column
             ? [
                   {
                       sortable: true,
                       key: 'customField1' as const,
                       label: translate('workspace.common.customField1'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeeUserID ? [{text: item.employeeUserID, fontSize: fontScale.text}] : []),
+                      },
                   },
               ]
             : []),
@@ -92,6 +177,22 @@ export default function WorkspaceMembersTable({
                       sortable: true,
                       key: 'customField2' as const,
                       label: translate('workspace.common.customField2'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) => (item.employeePayrollID ? [{text: item.employeePayrollID, fontSize: fontScale.text}] : []),
+                      },
+                  },
+              ]
+            : []),
+        ...(shouldShowBankAccountColumn
+            ? [
+                  {
+                      sortable: true,
+                      key: 'bankAccount' as const,
+                      label: translate('common.bankAccount'),
+                      dynamicSizing: {
+                          getContentToMeasure: (item: WorkspaceMemberRowData) =>
+                              item.bankAccountLastFour ? [{text: `${translate('paymentMethodList.accountLastFour')} ${item.bankAccountLastFour}`, fontSize: fontScale.text}] : [],
+                      },
                   },
               ]
             : []),
@@ -99,7 +200,17 @@ export default function WorkspaceMembersTable({
             key: 'role',
             label: translate('common.role'),
             sortable: true,
-            width: variables.workspaceMembersRoleColumnWidth,
+            styling: {
+                // editableCellHeader matches the padded role cell so the label and value share an edge.
+                containerStyles: [styles.editableCellHeader],
+            },
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: fontScale.text}],
+                // A role is one of a short, known set of labels, so the column always shows them in full.
+                shouldFitContent: true,
+                // Padding and border sit inside the track. A role is pinned to its text, so that chrome has to be measured or the label clips.
+                extraWidth: variables.editableCellChromeWidth,
+            },
         },
         {
             label: '',
@@ -111,43 +222,35 @@ export default function WorkspaceMembersTable({
 
     const compareTableItems: CompareItemsCallback<WorkspaceMemberRowData, WorkspaceMembersTableColumnKey> = (item1, item2, activeSorting) => {
         const orderMultiplier = activeSorting.order === 'asc' ? 1 : -1;
+        const memberNameComparison = localeCompare(item1.name, item2.name) * orderMultiplier;
 
         if (activeSorting.columnKey === 'member') {
-            return localeCompare(item1.name, item2.name) * orderMultiplier;
+            return memberNameComparison;
         }
 
         if (activeSorting.columnKey === 'role') {
-            if (!item1.role) {
-                return 1;
-            }
-            if (!item2.role) {
-                return -1;
-            }
-            return localeCompare(item1.role, item2.role) * orderMultiplier;
+            const compareRoleNames = (role1: string, role2: string) => localeCompare(translate('workspace.common.roleName', role1), translate('workspace.common.roleName', role2));
+            return compareOptionalValues(item1.role, item2.role, compareRoleNames, orderMultiplier, memberNameComparison);
+        }
+
+        if (activeSorting.columnKey === 'approver') {
+            return compareOptionalValues(item1.approverDisplayName, item2.approverDisplayName, localeCompare, orderMultiplier, memberNameComparison);
+        }
+
+        if (activeSorting.columnKey === 'officeLocation') {
+            return compareOptionalValues(item1.officeLocationName, item2.officeLocationName, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField1') {
-            const item1CustomField1Value = item1.employeeUserID;
-            const item2CustomField1Value = item2.employeeUserID;
-            if (!item1CustomField1Value) {
-                return 1;
-            }
-            if (!item2CustomField1Value) {
-                return -1;
-            }
-            return localeCompare(item1CustomField1Value, item2CustomField1Value) * orderMultiplier;
+            return compareOptionalValues(item1.employeeUserID, item2.employeeUserID, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         if (activeSorting.columnKey === 'customField2') {
-            const item1CustomField2Value = item1.employeePayrollID;
-            const item2CustomField2Value = item2.employeePayrollID;
-            if (!item1CustomField2Value) {
-                return 1;
-            }
-            if (!item2CustomField2Value) {
-                return -1;
-            }
-            return localeCompare(item1CustomField2Value, item2CustomField2Value) * orderMultiplier;
+            return compareOptionalValues(item1.employeePayrollID, item2.employeePayrollID, localeCompare, orderMultiplier, memberNameComparison);
+        }
+
+        if (activeSorting.columnKey === 'bankAccount') {
+            return compareOptionalValues(item1.bankAccountLastFour, item2.bankAccountLastFour, localeCompare, orderMultiplier, memberNameComparison);
         }
 
         return 1;
@@ -158,18 +261,19 @@ export default function WorkspaceMembersTable({
         return results.length > 0;
     };
 
+    const approverLogins = getPolicyApproverLogins(policy);
+
     const isItemInFilter: IsItemInFilterCallback<WorkspaceMemberRowData> = (item, filterValues) => {
         if (!filterValues || filterValues.length === 0) {
             return true;
         }
 
-        const isAdmin = item.role === CONST.POLICY.ROLE.ADMIN || item.role === CONST.POLICY.ROLE.OWNER;
+        const isAdmin = item.role === CONST.POLICY.ROLE.ADMIN;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.ADMINS) && isAdmin) {
             return true;
         }
 
-        const isApprover = isPolicyApprover(policy, item.login);
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && isApprover) {
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && approverLogins.has(item.login)) {
             return true;
         }
 
@@ -180,6 +284,26 @@ export default function WorkspaceMembersTable({
 
         const isCardAdmin = item.role === CONST.POLICY.ROLE.CARD_ADMIN;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.CARD_ADMINS) && isCardAdmin) {
+            return true;
+        }
+
+        const isPeopleAdmin = item.role === CONST.POLICY.ROLE.PEOPLE_ADMIN;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS) && isPeopleAdmin) {
+            return true;
+        }
+
+        const isPaymentsAdmin = item.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS) && isPaymentsAdmin) {
+            return true;
+        }
+
+        const isGuest = item.role === CONST.POLICY.ROLE.GUEST;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.GUESTS) && isGuest) {
+            return true;
+        }
+
+        const isApproveOnly = item.role === CONST.POLICY.ROLE.APPROVE_ONLY;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVE_ONLY) && isApproveOnly) {
             return true;
         }
 
@@ -199,10 +323,16 @@ export default function WorkspaceMembersTable({
     const filterConfig: FilterConfig = {
         role: {
             label: translate('common.role'),
-            filterType: 'multi-select',
+            filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
             options: [
-                {label: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
-                {label: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
+                {
+                    label: translate('workspace.people.admins'),
+                    value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS,
+                },
+                {
+                    label: translate('workspace.people.approvers'),
+                    value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS,
+                },
             ],
         },
     };
@@ -214,8 +344,28 @@ export default function WorkspaceMembersTable({
         });
 
         filterConfig.role.options.push({
+            label: translate('workspace.people.peopleAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS,
+        });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.paymentsAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS,
+        });
+
+        filterConfig.role.options.push({
             label: translate('workspace.people.auditors'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.AUDITORS,
+        });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.guests'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.GUESTS,
+        });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.approveOnly'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVE_ONLY,
         });
     }
 
@@ -239,17 +389,24 @@ export default function WorkspaceMembersTable({
                 shouldUseNarrowTableLayout={shouldUseNarrowTableLayout}
                 shouldShowCustomField1Column={shouldShowCustomField1Column}
                 shouldShowCustomField2Column={shouldShowCustomField2Column}
+                shouldShowApproverColumn={shouldShowApproverColumn}
+                shouldShowOfficeLocationColumn={shouldShowOfficeLocationColumn}
+                shouldShowBankAccountColumn={shouldShowBankAccountColumn}
+                policy={policy}
             />
         );
     };
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('workspace.people.findMember')} />);
 
     return (
         <Table
+            shouldUseDynamicColumns
+            columnResizingID={CONST.TABLES.COLUMN_RESIZING_IDS.WORKSPACE_MEMBERS}
             ref={ref}
             data={members}
             filters={filterConfig}
             selectedKeys={selectedKeys}
-            selectionEnabled={isPolicyAdmin}
+            selectionEnabled={canSelectMembers}
             columns={workspaceMembersColumns}
             initialSortColumn="member"
             title={translate('common.members')}
@@ -260,16 +417,11 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
-                <Table.SearchBar
-                    label={translate('workspace.people.findMember')}
-                    style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
-                />
-                <Table.FilterButtons style={[styles.mw50, styles.flexShrink1]} />
-            </View>
-
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
+            {!!bulkActionOptions && <Table.BulkActionBar options={bulkActionOptions} />}
         </Table>
     );
 }

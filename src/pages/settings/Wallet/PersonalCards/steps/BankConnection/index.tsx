@@ -1,4 +1,3 @@
-import React, {useEffect} from 'react';
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -6,38 +5,47 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useImportPersonalPlaidAccounts from '@hooks/useImportPersonalPlaidAccounts';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import PersonalCardsErrorConfirmation from '@pages/settings/Wallet/PersonalCards/PersonalCardsErrorConfirmation';
 import useGetNewPersonalCard from '@pages/settings/Wallet/PersonalCards/useGetNewPersonalCard';
+
 import {getPersonalCardBankConnection} from '@userActions/getCompanyCardBankConnection';
 import {setAddNewPersonalCardStepAndData} from '@userActions/PersonalCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useEffect} from 'react';
+
 import openBankConnection from './openBankConnection';
 
 let customWindow: Window | null = null;
 
 type BankConnectionContentProps = {
     hasImportError: boolean;
+    errorMessage?: string;
     isPlaid?: boolean;
     onOpenBankConnectionFlow: () => void;
     bankName?: string | null;
     plaidConnectedFeedName?: string;
 };
 
-function BankConnectionContent({hasImportError, isPlaid, onOpenBankConnectionFlow, bankName, plaidConnectedFeedName}: BankConnectionContentProps) {
+function BankConnectionContent({hasImportError, errorMessage, isPlaid, onOpenBankConnectionFlow, bankName, plaidConnectedFeedName}: BankConnectionContentProps) {
     const illustrations = useMemoizedLazyIllustrations(['PendingBank']);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     if (hasImportError) {
-        return <PersonalCardsErrorConfirmation />;
+        return <PersonalCardsErrorConfirmation errorMessage={errorMessage} />;
     }
     if (!isPlaid) {
         return (
@@ -57,15 +65,10 @@ function BankConnectionContent({hasImportError, isPlaid, onOpenBankConnectionFlo
             />
         );
     }
-    const activityReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'PersonalCardBankConnection',
-        isPlaid,
-    };
     return (
         <ActivityIndicator
             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
             style={styles.flex1}
-            reasonAttributes={activityReasonAttributes}
         />
     );
 }
@@ -82,6 +85,7 @@ function BankConnection() {
     const onImportPlaidAccounts = useImportPersonalPlaidAccounts();
     const newCard = useGetNewPersonalCard();
     const hasImportError = !isEmptyObject(addNewCard?.errors);
+    const errorMessage = getLatestErrorMessage(addNewCard) || undefined;
 
     const onOpenBankConnectionFlow = () => {
         if (!url) {
@@ -131,6 +135,7 @@ function BankConnection() {
             <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 <BankConnectionContent
                     bankName={bankName}
+                    errorMessage={errorMessage}
                     hasImportError={hasImportError}
                     onOpenBankConnectionFlow={onOpenBankConnectionFlow}
                     plaidConnectedFeedName={addNewCard?.data?.plaidConnectedFeedName}

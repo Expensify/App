@@ -1,24 +1,30 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import CurrencySelectionList from '@components/CurrencySelectionList';
 import type {CurrencyListItem} from '@components/CurrencySelectionList/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {editPerDiemRateCurrency} from '@libs/actions/Policy/PerDiem';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type EditPerDiemCurrencyPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_EDIT_CURRENCY>;
 
@@ -34,16 +40,13 @@ function EditPerDiemCurrencyPage({route}: EditPerDiemCurrencyPageProps) {
 
     const selectedRate = customUnit?.rates?.[rateID];
 
-    const editCurrency = useCallback(
-        (item: CurrencyListItem) => {
-            const newCurrency = item.currencyCode;
-            if (newCurrency !== selectedRate?.currency) {
-                editPerDiemRateCurrency(policyID, rateID, customUnit, newCurrency);
-            }
-            Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
-        },
-        [selectedRate?.currency, policyID, rateID, subRateID, customUnit],
-    );
+    const editCurrency = (item: CurrencyListItem) => {
+        const newCurrency = item.currencyCode;
+        if (newCurrency !== selectedRate?.currency) {
+            editPerDiemRateCurrency(policyID, rateID, customUnit, newCurrency);
+        }
+        Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM_DETAILS.getRoute(policyID, rateID, subRateID));
+    };
 
     return (
         <AccessOrNotFoundWrapper

@@ -1,5 +1,6 @@
-import type {CommonActions, NavigationRoute, ParamListBase, StackActionType} from '@react-navigation/native';
 import type CONST from '@src/CONST';
+
+import type {CommonActions, NavigationRoute, ParamListBase, StackActionType} from '@react-navigation/native';
 
 type PushParamsActionType = {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.PUSH_PARAMS;

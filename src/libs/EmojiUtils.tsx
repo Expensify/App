@@ -1,21 +1,28 @@
-import {parseExpensiMark} from '@expensify/react-native-live-markdown';
-import type {MarkdownRange} from '@expensify/react-native-live-markdown';
-import {Str} from 'expensify-common';
-import lodashSortBy from 'lodash/sortBy';
-import React from 'react';
-import type {StyleProp, TextStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import * as Emojis from '@assets/emojis';
 import type {Emoji, HeaderEmoji, PickerEmojis} from '@assets/emojis/types';
+
 import Text from '@components/Text';
+
 import CONST from '@src/CONST';
 import {isFullySupportedLocale} from '@src/CONST/LOCALES';
 import type {FrequentlyUsedEmoji, Locale} from '@src/types/onyx';
 import type ReportActionReactions from '@src/types/onyx/ReportActionReactions';
 import type {ReportActionReaction, UsersReactions} from '@src/types/onyx/ReportActionReactions';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {isSafari} from './Browser';
+
+import type {MarkdownRange} from '@expensify/react-native-live-markdown';
+import type {StyleProp, TextStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {parseExpensiMark} from '@expensify/react-native-live-markdown';
+import {Str} from 'expensify-common';
+import lodashSortBy from 'lodash/sortBy';
+import React from 'react';
+
 import type {getEmojiTrie as getEmojiTrieType} from './EmojiTrie';
+
+import {isSafari} from './Browser';
+import {containsCustomEmoji, containsOnlyCustomEmoji} from './CustomEmojiUtils';
 import memoize from './memoize';
 
 type HeaderIndices = {code: string; index: number; icon: IconAsset};
@@ -37,7 +44,7 @@ const findEmojiByCode = (code: string): Emoji => Emojis.emojiCodeTableWithSkinTo
 const CODE_RANGE_TYPES = new Set(['code', 'pre']);
 
 function getCodeRanges(text: string): MarkdownRange[] {
-    return parseExpensiMark(text).filter((range) => CODE_RANGE_TYPES.has(range.type));
+    return parseExpensiMark(text, CONST.MAX_MARKUP_LENGTH).filter((range) => CODE_RANGE_TYPES.has(range.type));
 }
 
 function isPositionInsideCodeRanges(ranges: MarkdownRange[], position: number): boolean {
@@ -45,7 +52,7 @@ function isPositionInsideCodeRanges(ranges: MarkdownRange[], position: number): 
 }
 
 function isPositionInsideCodeBlock(text: string, position: number): boolean {
-    return isPositionInsideCodeRanges(parseExpensiMark(text), position);
+    return isPositionInsideCodeRanges(parseExpensiMark(text, CONST.MAX_MARKUP_LENGTH), position);
 }
 
 /**
@@ -116,7 +123,8 @@ const sortByName = (emoji: Emoji, emojiData: RegExpMatchArray) => {
 };
 
 const processFrequentlyUsedEmojis = (emojiList?: FrequentlyUsedEmoji[]) => {
-    if (!emojiList) {
+    // Persisted emoji history can contain non-array values despite its declared Onyx type.
+    if (!Array.isArray(emojiList)) {
         return [];
     }
 
@@ -456,7 +464,7 @@ function replaceEmojis(text: string, preferredSkinTone: OnyxEntry<number | strin
         return {text: revertEmojisInCodeBlocks(newText).text, emojis};
     }
 
-    const codeBlockRanges = parseExpensiMark(text);
+    const codeBlockRanges = parseExpensiMark(text, CONST.MAX_MARKUP_LENGTH);
     const replacements: Array<{position: number; shortcode: string; replacement: string; name: string}> = [];
     const shortcodeSearchPositions: Record<string, number> = {};
     const englishTrie = normalizedLocale !== CONST.LOCALES.DEFAULT ? getEmojiTrie(CONST.LOCALES.DEFAULT) : null;
@@ -867,24 +875,6 @@ function getProcessedText(processedTextArray: TextWithEmoji[], style: StyleProp<
     );
 }
 
-function containsCustomEmoji(text?: string): boolean {
-    if (!text) {
-        return false;
-    }
-
-    const privateUseAreaRegex = CONST.REGEX.PRIVATE_USER_AREA;
-    return privateUseAreaRegex.test(text);
-}
-
-function containsOnlyCustomEmoji(text?: string): boolean {
-    if (!text) {
-        return false;
-    }
-
-    const privateUseAreaRegex = CONST.REGEX.ONLY_PRIVATE_USER_AREA;
-    return privateUseAreaRegex.test(text);
-}
-
 /**
  * Insert Variation Selector 15 (FE0E) between digits/symbols and emojis to prevent Safari's automatic keycap sequence bug.
  *
@@ -953,6 +943,7 @@ export {
     extractEmojis,
     getAddedEmojis,
     isFirstLetterEmoji,
+    findEmojiByName,
     hasAccountIDEmojiReacted,
     getRemovedSkinToneEmoji,
     getSpacersIndexes,

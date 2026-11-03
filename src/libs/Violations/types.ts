@@ -1,6 +1,7 @@
+import type {MileageRate} from '@libs/DistanceRequestUtils';
+
 import type {PolicyCategories, PolicyTagLists, TaxRates} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 type ViolationFixParams = {
     category: string;
@@ -12,9 +13,11 @@ type ViolationFixParams = {
     policyTagLists: PolicyTagLists | undefined;
     policyTaxRates: TaxRates | undefined;
     iouAttendees: Attendee[] | undefined;
-    currentUserPersonalDetails: CurrentUserPersonalDetails;
+    ownerLogin: string | undefined;
     isAttendeeTrackingEnabled: boolean | undefined;
     isControlPolicy?: boolean;
+    mileageRate?: MileageRate;
+    expenseDate?: string;
 };
 
 export default ViolationFixParams;

@@ -1,17 +1,22 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React from 'react';
 import EmptyStateComponent from '@components/EmptyStateComponent';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {navigateToConciergeChat} from '@libs/actions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import React from 'react';
 
 function WorkspaceCompanyCardsFeedPendingPage() {
     const {translate} = useLocalize();
@@ -19,8 +24,10 @@ function WorkspaceCompanyCardsFeedPendingPage() {
     const {LaptopReviewCard} = useMemoizedLazyIllustrations(['LaptopReviewCard']);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [conciergePersonalDetails] = usePersonalDetailsByIDs([CONST.ACCOUNT_ID.CONCIERGE]);
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     return (
@@ -34,7 +41,19 @@ function WorkspaceCompanyCardsFeedPendingPage() {
             >
                 <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>
                     {translate('workspace.moreFeatures.companyCards.pendingFeedDescription')}
-                    <TextLink onPress={() => navigateToConciergeChat(conciergeReportID, introSelected, currentUserAccountID, isSelfTourViewed, betas, false)}>
+                    <TextLink
+                        onPress={() => {
+                            navigateToConciergeChat({
+                                conciergeReportID,
+                                introSelected,
+                                currentUserAccountID,
+                                isSelfTourViewed,
+                                hasCompletedGuidedSetupFlow,
+                                conciergePersonalDetails,
+                                shouldDismissModal: false,
+                            });
+                        }}
+                    >
                         {' '}
                         {CONST.CONCIERGE_CHAT_NAME}
                     </TextLink>

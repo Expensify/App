@@ -1,13 +1,20 @@
-import type {VideoPlayer} from 'expo-video';
-import React, {use, useEffect, useRef, useState} from 'react';
 import {useSession} from '@components/OnyxListItemProvider';
+
 import useLocalize from '@hooks/useLocalize';
+
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import fileDownload from '@libs/fileDownload';
+
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {usePlaybackStateContext} from './PlaybackContext';
+
+import type {VideoPlayer} from 'expo-video';
+
+import React, {use, useEffect, useRef, useState} from 'react';
+
 import type {PlaybackSpeed, VideoPopoverMenuActionsContextType, VideoPopoverMenuStateContextType} from './types';
+
+import {usePlaybackStateContext} from './PlaybackContext';
 
 const VideoPopoverMenuStateContext = React.createContext<VideoPopoverMenuStateContextType | null>(null);
 const VideoPopoverMenuActionsContext = React.createContext<VideoPopoverMenuActionsContextType | null>(null);
@@ -16,6 +23,7 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
     const {translate} = useLocalize();
     const {currentVideoPlayerRef, originalParent} = usePlaybackStateContext();
     const [source, setSource] = useState('');
+    const [sourceFileName, setSourceFileName] = useState<string | undefined>(undefined);
     const [currentPlaybackSpeed, setCurrentPlaybackSpeed] = useState<PlaybackSpeed>(CONST.VIDEO_PLAYER.PLAYBACK_SPEEDS[3]);
     const isLocalFile = !!source && CONST.ATTACHMENT_LOCAL_URL_PREFIX.some((prefix) => source.startsWith(prefix));
     const videoPopoverMenuPlayerRef = useRef<VideoPlayer>(null);
@@ -48,18 +56,25 @@ function VideoPopoverMenuContextProvider({children}: ChildrenProps) {
         videoPopoverMenuPlayerRef.current = videoPlayer;
     };
 
+    const updateSource = (newSource: string, newFileName?: string) => {
+        setSource(newSource);
+        setSourceFileName(newFileName);
+    };
+
     const downloadAttachment = () => {
         if (typeof source === 'number' || !source) {
             return;
         }
-        fileDownload(translate, addEncryptedAuthTokenToURL(source, encryptedAuthToken));
+        // Without the original file name the download falls back to the last segment of the URL, which is the
+        // raw storage key and carries no extension, so the saved file opens as a generic document.
+        fileDownload(translate, addEncryptedAuthTokenToURL(source, encryptedAuthToken), sourceFileName);
     };
 
     const stateValue = {currentPlaybackSpeed, isLocalFile};
     const actionsValue = {
         updateVideoPopoverMenuPlayerRef,
         updatePlaybackSpeed,
-        updateSource: setSource,
+        updateSource,
         downloadAttachment,
     };
 

@@ -1,6 +1,9 @@
-import RNFetchBlob from 'react-native-blob-util';
+import canSendAuthTokenToURL from '@libs/canSendAuthTokenToURL';
 import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
+
 import CONST from '@src/CONST';
+
+import RNFetchBlob from 'react-native-blob-util';
 
 export default function fetchImage(source: string, authToken: string) {
     // Create a unique filename based on timestamp
@@ -13,9 +16,7 @@ export default function fetchImage(source: string, authToken: string) {
         fileCache: true,
         path,
     })
-        .fetch('GET', source, {
-            [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken,
-        })
+        .fetch('GET', source, canSendAuthTokenToURL(source) ? {[CONST.CHAT_ATTACHMENT_TOKEN_KEY]: authToken} : {})
         .then((res) => {
             // Return the file URI with file:// prefix for expo-image-manipulator
             return `file://${res.path()}`;

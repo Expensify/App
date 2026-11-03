@@ -1,18 +1,24 @@
-import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useState} from 'react';
-import {View} from 'react-native';
 import ActivityIndicator from '@components/ActivityIndicator';
 import type {Attachment} from '@components/Attachments/types';
+
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {deepEqual} from 'fast-equals';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+
+import type {AttachmentCarouselProps} from './types';
+
 import AttachmentCarouselView from './AttachmentCarouselView';
 import extractAttachments from './extractAttachments';
-import type {AttachmentCarouselProps} from './types';
 import useCarouselArrows from './useCarouselArrows';
 
 function AttachmentCarousel({
@@ -44,11 +50,8 @@ function AttachmentCarousel({
         setShouldShowArrows(true);
     }, [canUseTouchScreen, page, setShouldShowArrows]);
 
-    const compareImage = useCallback(
-        (attachment: Attachment) =>
-            (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source) && (!attachmentLink || attachment.attachmentLink === attachmentLink),
-        [attachmentLink, attachmentID, source],
-    );
+    const compareImage = (attachment: Attachment) =>
+        (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source) && (!attachmentLink || attachment.attachmentLink === attachmentLink);
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
@@ -102,10 +105,7 @@ function AttachmentCarousel({
     if (page == null) {
         return (
             <View style={[styles.flex1, styles.attachmentCarouselContainer, styles.fullScreenLoading]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'AttachmentCarousel'}}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }

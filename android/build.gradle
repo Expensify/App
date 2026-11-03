@@ -3,7 +3,7 @@ buildscript {
     ext {
         buildToolsVersion = "36.0.0"
         minSdkVersion = 24
-        compileSdkVersion = 36
+        compileSdkVersion = 37
         targetSdkVersion = 36
         ndkVersion = "27.1.12297006"
 
@@ -16,7 +16,7 @@ buildscript {
         // "mapbox" indicates the usage of the Mapbox SDK.
         RNMapboxMapsImpl = "mapbox"
         reactNativeIncludedBuild = gradle.getIncludedBuilds().find { it.name == 'react-native' }
-        // This is our custom extension that we defined in gradleUtils/PatchedArtifactsSettings.gradle
+        // This is our custom extension that we defined in scripts/artifacts-utils/android/PatchedArtifactsSettings.gradle
         // It enables us to use custom artifacts of patched react-native
         patchedArtifactsConfig = project.gradle.settings.extensions.findByName('patchedArtifacts')
     }

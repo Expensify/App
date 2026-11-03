@@ -1,17 +1,22 @@
-import React, {useMemo} from 'react';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
+
 import {setTransactionReport} from '@libs/actions/Transaction';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getActivePoliciesWithExpenseChatAndTimeEnabled, getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
+
 import {setMoneyRequestParticipantsFromReport, setMoneyRequestTimeRate} from '@userActions/IOU/MoneyRequest';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {policyExpenseChatsSelector} from '@src/selectors/Report';
+
+import React from 'react';
+
 import BaseRequestStepWorkspace from './BaseRequestStepWorkspace';
 
 type IOURequestStepTimeWorkspaceProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CREATE>;
@@ -23,7 +28,7 @@ function IOURequestStepTimeWorkspace({route, navigation}: IOURequestStepTimeWork
 
     const {accountID} = useCurrentUserPersonalDetails();
     const isTransactionDraft = shouldUseTransactionDraft(action);
-    const selector = useMemo(() => policyExpenseChatsSelector(accountID), [accountID]);
+    const selector = policyExpenseChatsSelector(accountID);
     const [policyExpenseChats] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector});
 
     return (

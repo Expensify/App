@@ -1,21 +1,28 @@
-import React, {useCallback, useMemo} from 'react';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import type {SelectorType} from '@components/SelectionScreen';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateQuickbooksDesktopExpensesExportDestination} from '@libs/actions/connections/QuickbooksDesktop';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import {getQBDReimbursableAccounts} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Account, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
+
+import React from 'react';
 
 type MenuItem = ListItem & {
     value: QBDReimbursableExportAccountType;
@@ -32,62 +39,56 @@ function DynamicQuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: Wi
     const policyID = policy?.id;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_OUT_OF_POCKET_EXPENSE_ENTITY_SELECT.path);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const data: MenuItem[] = useMemo(
-        () => [
-            {
-                value: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
-                text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK}`),
-                keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
-                isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
-                isShown: true,
-                accounts: getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK),
-            },
-            {
-                value: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}`),
-                keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
-                isShown: true,
-                accounts: getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY),
-            },
-            {
-                value: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}`),
-                keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
-                isShown: true,
-                accounts: getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL),
-            },
-        ],
-        [translate, reimbursable, policy?.connections?.quickbooksDesktop],
-    );
-
-    const filteredData = useMemo(() => data.filter((item) => item.isShown), [data]);
-
-    const selectExportEntity = useCallback(
-        (row: MenuItem) => {
-            const account = row?.accounts?.at(0)?.id;
-            if (row.value !== reimbursable && policyID) {
-                updateQuickbooksDesktopExpensesExportDestination(
-                    policyID,
-                    {
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE]: row.value,
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: account,
-                    },
-                    {
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE]: reimbursable,
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: qbdConfig?.export?.reimbursableAccount,
-                    },
-                );
-            }
-            goBack();
+    const data: MenuItem[] = [
+        {
+            value: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
+            text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK}`),
+            keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
+            isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK,
+            isShown: true,
+            accounts: getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK),
         },
-        [reimbursable, policyID, qbdConfig?.export?.reimbursableAccount, goBack],
-    );
+        {
+            value: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+            text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY}`),
+            keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+            isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY,
+            isShown: true,
+            accounts: getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY),
+        },
+        {
+            value: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+            text: translate(`workspace.qbd.accounts.${CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL}`),
+            keyForList: CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+            isSelected: reimbursable === CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL,
+            isShown: true,
+            accounts: getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL),
+        },
+    ];
+
+    const filteredData = data.filter((item) => item.isShown);
+
+    const selectExportEntity = (row: MenuItem) => {
+        const account = row?.accounts?.at(0)?.id;
+        if (row.value !== reimbursable && policyID) {
+            updateQuickbooksDesktopExpensesExportDestination(
+                policyID,
+                {
+                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE]: row.value,
+                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: account,
+                },
+                {
+                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE]: reimbursable,
+                    [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: qbdConfig?.export?.reimbursableAccount,
+                },
+            );
+        }
+        goBack();
+    };
 
     return (
         <SelectionScreen

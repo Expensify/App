@@ -1,4 +1,3 @@
-import React, {useState} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,15 +6,23 @@ import ScrollView from '@components/ScrollView';
 import SelectionList from '@components/SelectionList';
 import MultiSelectListItem from '@components/SelectionList/ListItem/MultiSelectListItem';
 import type {ListItem} from '@components/SelectionList/types';
+
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useSearchResults from '@hooks/useSearchResults';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+
 import variables from '@styles/variables';
+
 import type {SpendRuleCategory} from '@src/types/form/SpendRuleForm';
 import {SPEND_RULE_CATEGORIES} from '@src/types/form/SpendRuleForm';
+
+import React, {useState} from 'react';
 
 type CategoryListItem = ListItem & {
     value: SpendRuleCategory;
@@ -31,6 +38,7 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
     const [selectedCategories, setSelectedCategories] = useState<SpendRuleCategory[]>(categories);
+    const initialSelectedCategories = useInitialSelection(categories, {resetOnFocus: true});
 
     const categoryItems: CategoryListItem[] = SPEND_RULE_CATEGORIES.map((category) => ({
         keyForList: category,
@@ -43,11 +51,14 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
         return (item.text ?? '').toLowerCase().includes(searchInput.toLowerCase());
     };
 
-    const sortCategories = (items: CategoryListItem[]) => {
-        return items.sort((a, b) => localeCompare(a.text ?? '', b.text ?? ''));
-    };
+    // Pin the initially selected categories to the top of the FULL sorted list, then let the search filter run
+    // over the already-pinned list (no sort override) so pinned rows stay at the top even while searching.
+    const sortedCategoryItems = moveInitialSelectionToTop(
+        [...categoryItems].sort((a, b) => localeCompare(a.text ?? '', b.text ?? '')),
+        initialSelectedCategories,
+    );
 
-    const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(categoryItems, filterCategory, sortCategories);
+    const [inputValue, setInputValue, filteredCategoryItems] = useSearchResults(sortedCategoryItems, filterCategory);
 
     const toggleCategory = (item: CategoryListItem) => {
         setSelectedCategories((prev) => {
@@ -80,7 +91,7 @@ export default function SpendRuleCategoryBase({categories, onCategoriesChange}: 
 
     const handleSave = () => {
         onCategoriesChange(selectedCategories);
-        goBack();
+        Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
     };
 
     return (

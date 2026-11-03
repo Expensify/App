@@ -1,17 +1,24 @@
-import React, {useCallback} from 'react';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateQuickbooksDesktopSyncClasses} from '@libs/actions/connections/QuickbooksDesktop';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
 
 type CardListItem = ListItem & {
     value: keyof typeof CONST.INTEGRATION_ENTITY_MAP_TYPES;
@@ -40,15 +47,12 @@ function QuickbooksDesktopClassesDisplayedAsPage({policy}: WithPolicyConnections
         },
     ];
 
-    const selectDisplayedAs = useCallback(
-        (row: CardListItem) => {
-            if (row.value !== qbdConfig?.mappings?.classes) {
-                updateQuickbooksDesktopSyncClasses(policyID, row.value, qbdConfig?.mappings?.classes);
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES.getRoute(policyID));
-        },
-        [qbdConfig?.mappings?.classes, policyID],
-    );
+    const selectDisplayedAs = (row: CardListItem) => {
+        if (row.value !== qbdConfig?.mappings?.classes) {
+            updateQuickbooksDesktopSyncClasses(policyID, row.value, qbdConfig?.mappings?.classes);
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_CLASSES.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen

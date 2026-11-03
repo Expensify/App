@@ -1,20 +1,29 @@
-import React from 'react';
 import type {SelectionListApprover} from '@components/ApproverSelectionList';
 import ApproverSelectionList from '@components/ApproverSelectionList';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import {usePersonalDetailsByLogins} from '@hooks/usePersonalDetailByLogin';
+
 import {setWorkspaceInviteApproverDraft} from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDefaultApprover, getMemberAccountIDsForWorkspace} from '@libs/PolicyUtils';
+import {getDefaultApprover, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React from 'react';
+
+import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
+
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import MemberRightIcon from './MemberRightIcon';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 
 type WorkspaceInviteMessageApproverPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE_APPROVER>;
 
@@ -42,7 +51,8 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
         Navigation.goBack(backTo);
     };
 
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList);
+    const employeePersonalDetails = usePersonalDetailsByLogins(Object.keys(employeeList ?? {}));
+    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(employeeList, employeePersonalDetails);
 
     const allApprovers: SelectionListApprover[] = (() => {
         if (!employeeList) {
@@ -79,6 +89,7 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
                     keyForList: email,
                     isSelected: selectedApprover === email,
                     login: email,
+                    value: email,
                     icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: (
                         <MemberRightIcon
@@ -104,16 +115,23 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
     };
 
     return (
-        <ApproverSelectionList
-            testID="WorkspaceInviteMessageApproverPage"
-            headerTitle={translate('workflowsPage.approver')}
-            policy={policy}
-            isLoadingReportData={isLoadingReportData}
-            onBackButtonPress={goBack}
-            initiallyFocusedOptionKey={selectedApprover}
-            allApprovers={allApprovers}
-            onSelectApprover={handleOnSelectApprover}
-        />
+        <AccessOrNotFoundWrapper
+            policyID={policyID}
+            policyFeature={CONST.POLICY.POLICY_FEATURE.MEMBERS}
+            policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
+        >
+            <ApproverSelectionList
+                testID="WorkspaceInviteMessageApproverPage"
+                headerTitle={translate('workflowsPage.approver')}
+                policy={policy}
+                isLoadingReportData={isLoadingReportData}
+                onBackButtonPress={goBack}
+                allApprovers={allApprovers}
+                onSelectApprover={handleOnSelectApprover}
+                shouldRequirePolicyAdmin={false}
+            />
+        </AccessOrNotFoundWrapper>
     );
 }
 

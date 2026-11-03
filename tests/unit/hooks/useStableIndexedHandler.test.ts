@@ -1,4 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useStableIndexedHandler from '@hooks/useStableIndexedHandler';
 
 describe('useStableIndexedHandler', () => {

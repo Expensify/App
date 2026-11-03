@@ -1,6 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import type {Part} from '@libs/actions/Policy/CopyPolicySettings';
+
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type {Errors} from './OnyxCommon';
 
 /** Onyx state of the Copy Policy Settings (bulk workspace edits) flow */
@@ -25,7 +28,6 @@ type CopyPolicySettings = {
      */
     currentStep?: ValueOf<typeof CONST.POLICY.COPY_SETTINGS_MODAL_STEP> | null;
 
-    /** Error state */
     errors?: Errors;
 };
 

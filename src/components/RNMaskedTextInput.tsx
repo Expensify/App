@@ -1,17 +1,21 @@
-import type {ForwardedRef} from 'react';
+import useTheme from '@hooks/useTheme';
+
+import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
+
+import CONST from '@src/CONST';
+
+import type {ComponentRef, ForwardedRef} from 'react';
+import type {MaskedTextInputProps} from 'react-native-advanced-input-mask';
+
 import React from 'react';
 import {TextInput} from 'react-native';
-import type {MaskedTextInputProps} from 'react-native-advanced-input-mask';
 import {MaskedTextInput} from 'react-native-advanced-input-mask';
 import Animated from 'react-native-reanimated';
-import useTheme from '@hooks/useTheme';
-import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
-import CONST from '@src/CONST';
 
 // Convert the underlying TextInput into an Animated component so that we can take an animated ref and pass it to a worklet
 const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
 
-type AnimatedTextInputRef = typeof AnimatedTextInput & TextInput & HTMLInputElement;
+type AnimatedTextInputRef = typeof AnimatedTextInput & ComponentRef<typeof TextInput> & HTMLInputElement;
 
 type RNMaskedTextInputWithRefProps = MaskedTextInputProps &
     ForwardedFSClassProps & {
@@ -37,7 +41,6 @@ function RNMaskedTextInputWithRef({ref, forwardedFSClass = CONST.FULLSTORY.CLASS
             }}
             // eslint-disable-next-line react/forbid-component-props
             fsClass={forwardedFSClass}
-            // eslint-disable-next-line
             {...props}
         />
     );

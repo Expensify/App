@@ -1,242 +1,173 @@
-import {emailSelector} from '@selectors/Session';
-import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
-import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Button from '@components/Button';
-import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
+
+import useCreateReport from '@hooks/useCreateReport';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
-import useShouldShowEmptyReportConfirmation from '@hooks/useShouldShowEmptyReportConfirmation';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {startDistanceRequest, startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import {createNewReport} from '@libs/actions/Report';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
-import Permissions from '@libs/Permissions';
-import {getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
-import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
-import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {hasAcceptedTravelTerms, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {generateReportID} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
+import {createHasTravelEnabledPolicySelector} from '@src/selectors/Policy';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {emailSelector} from '@selectors/Session';
+import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
+import {Str} from 'expensify-common';
+import React from 'react';
+import {View} from 'react-native';
 
 function QuickCreationActionsBar() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'CarPlus', 'LuggageWithLinesPlus']);
+    const icons = useMemoizedLazyExpensifyIcons(['ReceiptPlus', 'DocumentPlus', 'LocationAdd', 'LuggageWithLinesPlus']);
 
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
-    const [allBetas] = useOnyx(ONYXKEYS.BETAS);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(activePolicyID)}`);
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup: false});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
-    const {policyForMovingExpensesID, shouldSelectPolicy} = usePolicyForMovingExpenses();
-    const shouldNavigateToUpgradePath = !policyForMovingExpensesID && !shouldSelectPolicy;
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const groupPoliciesWithChatEnabledSelector = (policies: OnyxCollection<OnyxTypes.Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, email);
-    const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: groupPoliciesWithChatEnabledSelector}, [email, isSubmit2026BetaEnabled]);
+    // A new report has no expenses yet, so it can't have violations.
+    const hasViolations = false;
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
-    const defaultChatEnabledPolicy = useMemo(
-        () => getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled as Array<OnyxEntry<OnyxTypes.Policy>>, activePolicy),
-        [activePolicy, groupPoliciesWithChatEnabled],
-    );
-    const defaultChatEnabledPolicyID = defaultChatEnabledPolicy?.id;
+    const hasTravelEnabledPolicySelector = createHasTravelEnabledPolicySelector(email);
+    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasTravelEnabledPolicySelector});
 
-    const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
+    const shouldShowBookTravel = !!hasTravelEnabledPolicy;
 
-    const travelEnabledPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => !!policy?.isTravelEnabled), [allPolicies]);
-
-    const shouldShowBookTravel = !!travelEnabledPolicy;
-
-    const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
+    const isBlockedFromSpotnanaTravel = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
-    const isTravelReady = useMemo(() => {
-        if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(travelEnabledPolicy)) {
-            return false;
+    const isTravelReady =
+        !(!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) &&
+        hasAcceptedTravelTerms(activePolicy, travelSettings);
+
+    const handleCreateWorkspaceReport = (policy: OnyxEntry<OnyxTypes.Policy>, shouldDismissEmptyReportsConfirmation?: boolean) => {
+        if (!policy?.id) {
+            return;
         }
 
-        const isPolicyProvisioned = isWorkspaceProvisionedForTravel(travelEnabledPolicy?.travelSettings);
+        const {reportID: createdReportID} = createNewReport(
+            currentUserPersonalDetails,
+            hasViolations,
+            isASAPSubmitBetaEnabled,
+            policy,
+            isTrackIntentUser,
+            getCurrencyDecimals,
+            rules,
+            false,
+            shouldDismissEmptyReportsConfirmation,
+        );
+        // Navigate to the Reports page first so getCreateReportRoute() resolves against
+        // the Search/Reports fullscreen context before opening the created report modal.
+        Navigation.navigate(getReportsRootRoute());
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
+        });
+    };
 
-        return travelEnabledPolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
-    }, [travelEnabledPolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings?.hasAcceptedTerms]);
-
-    const handleCreateWorkspaceReport = useCallback(
-        (shouldDismissEmptyReportsConfirmation?: boolean) => {
-            if (!defaultChatEnabledPolicy?.id) {
-                return;
-            }
-
-            const {reportID: createdReportID} = createNewReport(
-                currentUserPersonalDetails,
-                hasViolations,
-                isASAPSubmitBetaEnabled,
-                defaultChatEnabledPolicy,
-                allBetas,
-                false,
-                shouldDismissEmptyReportsConfirmation,
-            );
-            // Navigate to the Reports page first so getCreateReportRoute() resolves against
-            // the Search/Reports fullscreen context before opening the created report modal.
-            Navigation.navigate(getReportsRootRoute());
-            Navigation.setNavigationActionToMicrotaskQueue(() => {
-                Navigation.navigate(getCreateReportRoute({reportID: createdReportID}));
-            });
-        },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas],
-    );
-
-    const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({
-        policyID: defaultChatEnabledPolicyID,
-        policyName: defaultChatEnabledPolicy?.name ?? '',
-        onConfirm: handleCreateWorkspaceReport,
+    const {createReport, isVisible: isCreateReportReady} = useCreateReport({
+        onCreateReport: handleCreateWorkspaceReport,
+        onNavigateToWorkspaceSelection: navigateToCreateReportWorkspaceSelection,
         shouldHandleNavigationBack: false,
     });
 
-    const handleExpense = useCallback(
-        () =>
-            interceptAnonymousUser(() => {
-                startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
-            }),
-        [draftTransactionIDs],
-    );
+    const handleExpense = () =>
+        interceptAnonymousUser(() => {
+            startMoneyRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs);
+        }, session);
 
-    const handleReport = useCallback(
-        () =>
-            interceptAnonymousUser(() => {
-                if (shouldNavigateToUpgradePath) {
-                    const freshReportID = generateReportID();
-                    const freshTransactionID = generateReportID();
-                    Navigation.navigate(
-                        createDynamicRoute(
-                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                action: CONST.IOU.ACTION.CREATE,
-                                iouType: CONST.IOU.TYPE.CREATE,
-                                transactionID: freshTransactionID,
-                                reportID: freshReportID,
-                                upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                            }),
-                        ),
-                    );
-                    return;
-                }
+    const handleDistance = () =>
+        interceptAnonymousUser(() => {
+            startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, lastDistanceExpenseType);
+        }, session);
 
-                const workspaceIDForReportCreation = defaultChatEnabledPolicyID;
+    const handleBookTravel = () =>
+        interceptAnonymousUser(() => {
+            if (blockIfDefaultWorkspaceLacksTravel()) {
+                return;
+            }
 
-                if (
-                    !workspaceIDForReportCreation ||
-                    (shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID) &&
-                        groupPoliciesWithChatEnabled.length > 1)
-                ) {
-                    navigateToCreateReportWorkspaceSelection();
-                    return;
-                }
-
-                if (!shouldRestrictUserBillableActions(defaultChatEnabledPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)) {
-                    if (shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy) {
-                        openCreateReportConfirmation();
-                    } else {
-                        handleCreateWorkspaceReport(false);
-                    }
-                    return;
-                }
-
-                Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(workspaceIDForReportCreation));
-            }),
-        [
-            shouldNavigateToUpgradePath,
-            defaultChatEnabledPolicyID,
-            userBillingGracePeriodEnds,
-            ownerBillingGracePeriodEnd,
-            amountOwed,
-            defaultChatEnabledPolicy,
-            groupPoliciesWithChatEnabled.length,
-            shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy,
-            openCreateReportConfirmation,
-            handleCreateWorkspaceReport,
-            currentUserPersonalDetails.accountID,
-        ],
-    );
-
-    const handleDistance = useCallback(
-        () =>
-            interceptAnonymousUser(() => {
-                startDistanceRequest(CONST.IOU.TYPE.CREATE, generateReportID(), draftTransactionIDs, lastDistanceExpenseType);
-            }),
-        [draftTransactionIDs, lastDistanceExpenseType],
-    );
-
-    const handleBookTravel = useCallback(
-        () =>
-            interceptAnonymousUser(() => {
-                if (isTravelReady) {
-                    openTravelDotLink(travelEnabledPolicy?.id);
-                    return;
-                }
-                Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(travelEnabledPolicy?.id));
-            }),
-        [travelEnabledPolicy?.id, isTravelReady],
-    );
+            if (isTravelReady) {
+                openTravelDotLink(activePolicy?.id);
+                return;
+            }
+            Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
+        }, session);
 
     return (
         <View style={[styles.flexRow, styles.gap2, styles.pt1, styles.pb5]}>
             <Button
-                small
-                icon={icons.ReceiptPlus}
-                text={translate('common.expense')}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleExpense}
                 style={styles.quickCreationActionsBarButton}
-                textStyles={styles.quickCreationActionsBarButtonText}
-            />
+                testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.EXPENSE}
+                accessibilityLabel={translate('common.expense')}
+            >
+                <Button.Icon src={icons.ReceiptPlus} />
+                <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('common.expense')}</Button.Text>
+            </Button>
             <Button
-                small
-                icon={icons.DocumentPlus}
-                text={translate('common.report')}
-                onPress={handleReport}
+                size={CONST.BUTTON_SIZE.SMALL}
+                onPress={createReport}
+                isDisabled={!isCreateReportReady}
                 style={styles.quickCreationActionsBarButton}
-                textStyles={styles.quickCreationActionsBarButtonText}
-            />
+                testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.REPORT}
+                accessibilityLabel={translate('common.report')}
+            >
+                <Button.Icon src={icons.DocumentPlus} />
+                <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('common.report')}</Button.Text>
+            </Button>
             <Button
-                small
-                icon={icons.CarPlus}
-                text={translate('common.distance')}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={handleDistance}
                 style={styles.quickCreationActionsBarButton}
-                textStyles={styles.quickCreationActionsBarButtonText}
-            />
+                testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.DISTANCE}
+                accessibilityLabel={translate('common.distance')}
+            >
+                <Button.Icon src={icons.LocationAdd} />
+                <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('common.distance')}</Button.Text>
+            </Button>
             {shouldShowBookTravel && (
                 <Button
-                    small
-                    icon={icons.LuggageWithLinesPlus}
-                    text={translate('workspace.common.travel')}
+                    size={CONST.BUTTON_SIZE.SMALL}
                     onPress={handleBookTravel}
                     style={styles.quickCreationActionsBarButton}
-                    textStyles={styles.quickCreationActionsBarButtonText}
-                />
+                    testID={CONST.TEST_ID.QUICK_CREATION_ACTIONS_BAR.BOOK_TRAVEL}
+                    accessibilityLabel={translate('workspace.common.travel')}
+                >
+                    <Button.Icon src={icons.LuggageWithLinesPlus} />
+                    <Button.Text style={styles.quickCreationActionsBarButtonText}>{translate('workspace.common.travel')}</Button.Text>
+                </Button>
             )}
         </View>
     );

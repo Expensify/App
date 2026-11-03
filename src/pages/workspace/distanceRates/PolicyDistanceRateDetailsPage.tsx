@@ -1,87 +1,88 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolation from '@hooks/useTransactionViolation';
+
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import {clearPolicyDistanceRateErrorFields, deletePolicyDistanceRates, setPolicyDistanceRatesEnabled} from '@userActions/Policy/DistanceRate';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
-import type {Rate, TaxRateAttributes} from '@src/types/onyx/Policy';
+import type {Rate, RateAttributes} from '@src/types/onyx/Policy';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type PolicyDistanceRateDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS>;
 
 function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
-    const isDateBoundMileageRateEnabled = isBetaEnabled(CONST.BETAS.DATE_BOUND_MILEAGE_RATE);
     const policyID = route.params.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
     const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
     const rateID = route.params.rateID;
-    const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
+    const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
 
-    const policyReportsSelector = useCallback(
-        (reports: OnyxCollection<Report>) => {
-            return Object.values(reports ?? {}).reduce((reportIDs, report) => {
-                if (report?.policyID === policyID) {
-                    reportIDs.add(report.reportID);
-                }
-                return reportIDs;
-            }, new Set<string>());
-        },
-        [policyID],
-    );
+    const policyReportsSelector = (reports: OnyxCollection<Report>) => {
+        const reportIDs: Record<string, true> = {};
+        for (const report of Object.values(reports ?? {})) {
+            if (report?.policyID === policyID) {
+                reportIDs[report.reportID] = true;
+            }
+        }
+        return reportIDs;
+    };
 
     const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: policyReportsSelector,
     });
 
-    const transactionsSelector = useCallback(
-        (transactions: OnyxCollection<Transaction>) => {
-            return Object.values(transactions ?? {}).reduce((transactionIDs, transaction) => {
-                if (
-                    transaction?.reportID &&
-                    policyReports?.has(transaction.reportID) &&
-                    transaction?.comment?.customUnit?.customUnitRateID &&
-                    transaction?.comment?.customUnit?.customUnitRateID === rateID
-                ) {
-                    transactionIDs.add(transaction?.transactionID);
-                }
-                return transactionIDs;
-            }, new Set<string>());
-        },
-        [rateID, policyReports],
-    );
+    const transactionsSelector = (transactions: OnyxCollection<Transaction>) => {
+        return Object.values(transactions ?? {}).reduce<string[]>((transactionIDs, transaction) => {
+            if (
+                transaction?.reportID &&
+                policyReports?.[transaction.reportID] &&
+                transaction?.comment?.customUnit?.customUnitRateID &&
+                transaction?.comment?.customUnit?.customUnitRateID === rateID
+            ) {
+                transactionIDs.push(transaction?.transactionID);
+            }
+            return transactionIDs;
+        }, []);
+    };
 
     const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: transactionsSelector,
@@ -146,7 +147,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     };
 
     const deleteRate = () => {
-        deletePolicyDistanceRates(policyID, customUnit, [rateID], Array.from(eligibleTransactionIDs ?? []), transactionViolations);
+        deletePolicyDistanceRates(policyID, customUnit, [rateID], eligibleTransactionIDs ?? [], transactionViolations);
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack());
     };
 
@@ -154,7 +155,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const taxClaimableValueToDisplay = taxClaimablePercentage && rate.rate ? convertAmountToDisplayString(taxClaimablePercentage * rate.rate, currency) : '';
     const unitToDisplay = translate(`common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`);
 
-    const clearErrorFields = (fieldName: keyof Rate | keyof TaxRateAttributes) => {
+    const clearErrorFields = (fieldName: keyof Rate | keyof RateAttributes) => {
         clearPolicyDistanceRateErrorFields(policyID, customUnit.customUnitID, rateID, {...errorFields, [fieldName]: null});
     };
 
@@ -211,13 +212,10 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         errorRowStyles={styles.mh5}
                         onClose={() => clearErrorFields('name')}
                     >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canWriteDistanceRates}
-                            title={rate.name}
-                            description={translate('common.name')}
-                            descriptionTextStyle={styles.textNormal}
-                            onPress={editRateName}
-                            interactive={canWriteDistanceRates}
+                        <MenuItemField
+                            name={translate('common.name')}
+                            onPress={canWriteDistanceRates ? editRateName : undefined}
+                            value={DistanceRequestUtils.getRateDisplayName(rate)}
                         />
                     </OfflineWithFeedback>
                     <OfflineWithFeedback
@@ -226,49 +224,36 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                         errorRowStyles={styles.mh5}
                         onClose={() => clearErrorFields('rate')}
                     >
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canWriteDistanceRates}
-                            title={`${rateValueToDisplay} / ${unitToDisplay}`}
-                            description={translate('workspace.distanceRates.rate')}
-                            descriptionTextStyle={styles.textNormal}
-                            onPress={editRateValue}
-                            interactive={canWriteDistanceRates}
+                        <MenuItemField
+                            name={translate('workspace.distanceRates.rate')}
+                            onPress={canWriteDistanceRates ? editRateValue : undefined}
+                            value={`${rateValueToDisplay} / ${unitToDisplay}`}
                         />
                     </OfflineWithFeedback>
-                    {isDateBoundMileageRateEnabled && (
-                        <OfflineWithFeedback
-                            errors={getLatestErrorField(rate ?? {}, 'startDate')}
-                            pendingAction={rate?.pendingFields?.startDate}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('startDate')}
-                        >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canWriteDistanceRates}
-                                title={rate.startDate ? DateUtils.formatToReadableString(rate.startDate) : ''}
-                                description={translate('workspace.distanceRates.startDate')}
-                                descriptionTextStyle={styles.textNormal}
-                                onPress={editStartDate}
-                                interactive={canWriteDistanceRates}
-                            />
-                        </OfflineWithFeedback>
-                    )}
-                    {isDateBoundMileageRateEnabled && (
-                        <OfflineWithFeedback
-                            errors={getLatestErrorField(rate ?? {}, 'endDate')}
-                            pendingAction={rate?.pendingFields?.endDate}
-                            errorRowStyles={styles.mh5}
-                            onClose={() => clearErrorFields('endDate')}
-                        >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canWriteDistanceRates}
-                                title={rate.endDate ? DateUtils.formatToReadableString(rate.endDate) : ''}
-                                description={translate('workspace.distanceRates.endDate')}
-                                descriptionTextStyle={styles.textNormal}
-                                onPress={editEndDate}
-                                interactive={canWriteDistanceRates}
-                            />
-                        </OfflineWithFeedback>
-                    )}
+                    <OfflineWithFeedback
+                        errors={getLatestErrorField(rate ?? {}, 'startDate')}
+                        pendingAction={rate?.pendingFields?.startDate}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearErrorFields('startDate')}
+                    >
+                        <MenuItemField
+                            name={translate('workspace.distanceRates.startDate')}
+                            onPress={canWriteDistanceRates ? editStartDate : undefined}
+                            value={rate.startDate ? DateUtils.formatToReadableString(rate.startDate, dateFnsLocale) : ''}
+                        />
+                    </OfflineWithFeedback>
+                    <OfflineWithFeedback
+                        errors={getLatestErrorField(rate ?? {}, 'endDate')}
+                        pendingAction={rate?.pendingFields?.endDate}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearErrorFields('endDate')}
+                    >
+                        <MenuItemField
+                            name={translate('workspace.distanceRates.endDate')}
+                            onPress={canWriteDistanceRates ? editEndDate : undefined}
+                            value={rate.endDate ? DateUtils.formatToReadableString(rate.endDate, dateFnsLocale) : ''}
+                        />
+                    </OfflineWithFeedback>
                     {isDistanceTrackTaxEnabled && isPolicyTrackTaxEnabled && (
                         <OfflineWithFeedback
                             errors={getLatestErrorField(rate, 'taxRateExternalID')}
@@ -277,12 +262,10 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             onClose={() => clearErrorFields('taxRateExternalID')}
                         >
                             <View style={styles.w100}>
-                                <MenuItemWithTopDescription
-                                    title={taxRate}
-                                    description={translate('workspace.taxes.taxRate')}
-                                    shouldShowRightIcon={canWriteDistanceRates}
-                                    onPress={editTaxRateValue}
-                                    interactive={canWriteDistanceRates}
+                                <MenuItemField
+                                    name={translate('workspace.taxes.taxRate')}
+                                    onPress={canWriteDistanceRates ? editTaxRateValue : undefined}
+                                    value={taxRate}
                                 />
                             </View>
                         </OfflineWithFeedback>
@@ -294,18 +277,15 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                             errorRowStyles={styles.mh5}
                             onClose={() => clearErrorFields('taxClaimablePercentage')}
                         >
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon={canWriteDistanceRates}
-                                title={taxClaimableValueToDisplay}
-                                description={translate('workspace.taxes.taxReclaimableOn')}
-                                descriptionTextStyle={styles.textNormal}
-                                onPress={editTaxReclaimableValue}
-                                interactive={canWriteDistanceRates}
+                            <MenuItemField
+                                name={translate('workspace.taxes.taxReclaimableOn')}
+                                onPress={canWriteDistanceRates ? editTaxReclaimableValue : undefined}
+                                value={taxClaimableValueToDisplay}
                             />
                         </OfflineWithFeedback>
                     )}
                     {canWriteDistanceRates && (
-                        <MenuItem
+                        <MenuItemAction
                             icon={icons.Trashcan}
                             title={translate('common.delete')}
                             onPress={async () => {
@@ -318,7 +298,7 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
                                     prompt: translate('workspace.distanceRates.areYouSureDelete', {count: 1}),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 });
                                 if (action === ModalActions.CONFIRM) {
                                     deleteRate();

@@ -1,25 +1,31 @@
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateXeroTenantID} from '@libs/actions/connections/Xero';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {findCurrentXeroOrganization, getXeroTenants} from '@libs/PolicyUtils';
+
 import withPolicy from '@pages/workspace/withPolicy';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+
 import variables from '@styles/variables';
+
 import {clearXeroErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type XeroOrganizationConfigurationPageProps = WithPolicyProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.XERO_ORGANIZATION>;
 function XeroOrganizationConfigurationPage({
@@ -30,7 +36,7 @@ function XeroOrganizationConfigurationPage({
 }: XeroOrganizationConfigurationPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const tenants = useMemo(() => getXeroTenants(policy ?? undefined), [policy]);
+    const tenants = getXeroTenants(policy ?? undefined);
     const xeroConfig = policy?.connections?.xero?.config;
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, xeroConfig?.tenantID);
 
@@ -45,13 +51,10 @@ function XeroOrganizationConfigurationPage({
             isSelected: tenant.id === organizationID,
         })) ?? [];
 
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.pb2, styles.ph5]}>
-                <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.organizationDescription')}</Text>
-            </View>
-        ),
-        [translate, styles.pb2, styles.ph5, styles.pb5, styles.textNormal],
+    const listHeaderComponent = (
+        <View style={[styles.pb2, styles.ph5]}>
+            <Text style={[styles.pb5, styles.textNormal]}>{translate('workspace.xero.organizationDescription')}</Text>
+        </View>
     );
 
     const saveSelection = ({keyForList}: ListItem) => {
@@ -63,18 +66,15 @@ function XeroOrganizationConfigurationPage({
         Navigation.goBack();
     };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.xero.noAccountsFound')}
-                subtitle={translate('workspace.xero.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.xero.noAccountsFound')}
+            subtitle={translate('workspace.xero.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (
@@ -88,7 +88,7 @@ function XeroOrganizationConfigurationPage({
             onSelectRow={saveSelection}
             initiallyFocusedOptionKey={currentXeroOrganization?.id}
             headerContent={listHeaderComponent}
-            onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID))}
+            onBackButtonPress={() => Navigation.goBack()}
             title="workspace.xero.organization"
             listEmptyContent={listEmptyContent}
             pendingAction={xeroConfig?.pendingFields?.tenantID}

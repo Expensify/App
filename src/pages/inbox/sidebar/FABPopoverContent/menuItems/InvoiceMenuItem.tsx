@@ -1,20 +1,25 @@
-import React from 'react';
-import type {OnyxCollection} from 'react-native-onyx';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMappedPolicies from '@hooks/useMappedPolicies';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {startMoneyRequest} from '@libs/actions/IOU/MoneyRequest';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import {canSendInvoice as canSendInvoicePolicyUtils} from '@libs/PolicyUtils';
+
 import FABFocusableMenuItem from '@pages/inbox/sidebar/FABPopoverContent/FABFocusableMenuItem';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {policyMapper} from '@src/selectors/Policy';
 import {emailSelector} from '@src/selectors/Session';
 import {validTransactionDraftIDsSelector} from '@src/selectors/TransactionDraft';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import React from 'react';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.INVOICE;
 
@@ -23,6 +28,7 @@ type InvoiceMenuItemProps = {
 };
 
 function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['InvoiceGeneric']);
@@ -41,7 +47,7 @@ function InvoiceMenuItem({reportID}: InvoiceMenuItemProps) {
             onPress={() =>
                 interceptAnonymousUser(() => {
                     startMoneyRequest(CONST.IOU.TYPE.INVOICE, reportID, draftTransactionIDs, undefined, undefined, undefined, true);
-                })
+                }, session)
             }
             shouldCallAfterModalHide={shouldUseNarrowLayout}
         />

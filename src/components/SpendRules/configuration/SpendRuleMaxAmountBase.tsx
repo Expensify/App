@@ -1,21 +1,25 @@
-import React from 'react';
-import {View} from 'react-native';
 import AmountForm from '@components/AmountForm';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import Text from '@components/Text';
+
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCanWriteCardSpendRules from '@hooks/useCanWriteCardSpendRules';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/SpendRuleMaxAmountForm';
+
+import React from 'react';
+import {View} from 'react-native';
 
 type SpendRuleMaxAmountBaseProps = {
     policyID: string;
@@ -36,7 +40,7 @@ function SpendRuleMaxAmountBase({policyID, maxAmount, currencyCode, onMaxAmountC
 
     const onSubmit = (form: FormOnyxValues<typeof ONYXKEYS.FORMS.SPEND_RULE_MAX_AMOUNT_FORM>) => {
         onMaxAmountChange(form.maxAmount.trim());
-        goBack();
+        Navigation.goBack(undefined, {shouldSkipFocusRestore: true});
     };
 
     return (
@@ -75,7 +79,6 @@ function SpendRuleMaxAmountBase({policyID, maxAmount, currencyCode, onMaxAmountC
                             defaultValue={maxAmount}
                             isCurrencyPressable={false}
                         />
-                        <Text style={[styles.mutedTextLabel, styles.mt2]}>{translate('workspace.rules.spendRules.maxAmountHelp')}</Text>
                     </View>
                 </FormProvider>
             </ScreenWrapper>

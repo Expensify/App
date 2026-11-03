@@ -1,7 +1,3 @@
-import React, {useCallback, useEffect, useMemo} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormProvider from '@components/Form/FormProvider';
@@ -10,17 +6,28 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {ObjectType, OnyxDataType} from '@libs/DebugUtils';
 import DebugUtils from '@libs/DebugUtils';
+
 import Debug from '@userActions/Debug';
-import type CONST from '@src/CONST';
+
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TRANSACTION_FORM_INPUT_IDS from '@src/types/form/DebugTransactionForm';
 import type {Report, ReportAction, Transaction, TransactionViolation} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
+
 import {DETAILS_CONSTANT_FIELDS, DETAILS_DATETIME_FIELDS, DETAILS_DISABLED_KEYS} from './const';
 import ConstantSelector from './ConstantSelector';
 import DateTimeSelector from './DateTimeSelector';
@@ -32,10 +39,7 @@ type DebugDetailsProps = {
     /** The report or report action data to be displayed and edited. */
     data: OnyxEntry<Report> | OnyxEntry<ReportAction> | OnyxEntry<Transaction> | OnyxEntry<TransactionViolation>;
 
-    /** Whether the provided policy has enabled tags */
     policyHasEnabledTags?: boolean;
-
-    /** ID of the provided policy */
     policyID?: string;
 
     /** Metadata UI */
@@ -56,95 +60,74 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
     const {translate, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const [formDraftData] = useOnyx(ONYXKEYS.FORMS.DEBUG_DETAILS_FORM_DRAFT);
-    const booleanFields = useMemo(
-        () =>
-            Object.entries(data ?? {})
-                .filter(([, value]) => typeof value === 'boolean')
-                .sort((a, b) => localeCompare(a[0], b[0])) as Array<[string, boolean]>,
-        [data, localeCompare],
-    );
-    const constantFields = useMemo(
-        () =>
-            Object.entries(data ?? {})
-                .filter((entry): entry is [string, string] => {
-                    // Tag picker needs to be hidden when the policy has no tags available to pick
-                    if (entry[0] === TRANSACTION_FORM_INPUT_IDS.TAG && !policyHasEnabledTags) {
-                        return false;
-                    }
-                    return DETAILS_CONSTANT_FIELDS[formType].some(({fieldName}) => fieldName === entry[0]);
-                })
-                .sort((a, b) => localeCompare(a[0], b[0])),
-        [data, formType, policyHasEnabledTags, localeCompare],
-    );
-    const numberFields = useMemo(
-        () =>
-            Object.entries(data ?? {})
-                .filter((entry): entry is [string, number] => typeof entry[1] === 'number')
-                .sort((a, b) => localeCompare(a[0], b[0])),
-        [data, localeCompare],
-    );
-    const textFields = useMemo(
-        () =>
-            Object.entries(data ?? {})
-                .filter(
-                    (entry): entry is [string, string | ObjectType<Record<string, unknown>>] =>
-                        (typeof entry[1] === 'string' || typeof entry[1] === 'object') &&
-                        !DETAILS_CONSTANT_FIELDS[formType].some(({fieldName}) => fieldName === entry[0]) &&
-                        !DETAILS_DATETIME_FIELDS.includes(entry[0]),
-                )
-                .map(([key, value]) => [key, DebugUtils.onyxDataToString(value)])
-                .sort((a, b) => localeCompare(a.at(0) ?? '', b.at(0) ?? '')),
-        [data, formType, localeCompare],
-    );
-    const dateTimeFields = useMemo(() => Object.entries(data ?? {}).filter((entry): entry is [string, string] => DETAILS_DATETIME_FIELDS.includes(entry[0])), [data]);
-
-    const validator = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM> => {
-            const newErrors: Record<string, string | undefined> = {};
-            for (const [key, value] of Object.entries(values)) {
-                try {
-                    validate(key, DebugUtils.onyxDataToString(value));
-                } catch (e) {
-                    const {cause, message} = e as SyntaxError;
-                    newErrors[key] = cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message;
-                }
+    const booleanFields = Object.entries(data ?? {})
+        .filter(([, value]) => typeof value === 'boolean')
+        .sort((a, b) => localeCompare(a[0], b[0])) as Array<[string, boolean]>;
+    const constantFields = Object.entries(data ?? {})
+        .filter((entry): entry is [string, string] => {
+            // Tag picker needs to be hidden when the policy has no tags available to pick
+            if (entry[0] === TRANSACTION_FORM_INPUT_IDS.TAG && !policyHasEnabledTags) {
+                return false;
             }
-            return newErrors;
-        },
-        [translate, validate],
-    );
+            return DETAILS_CONSTANT_FIELDS[formType].some(({fieldName}) => fieldName === entry[0]);
+        })
+        .sort((a, b) => localeCompare(a[0], b[0]));
+    const numberFields = Object.entries(data ?? {})
+        .filter((entry): entry is [string, number] => typeof entry[1] === 'number')
+        .sort((a, b) => localeCompare(a[0], b[0]));
+    const textFields = Object.entries(data ?? {})
+        .filter(
+            (entry): entry is [string, string | ObjectType<Record<string, unknown>>] =>
+                (typeof entry[1] === 'string' || typeof entry[1] === 'object') &&
+                !DETAILS_CONSTANT_FIELDS[formType].some(({fieldName}) => fieldName === entry[0]) &&
+                !DETAILS_DATETIME_FIELDS.includes(entry[0]),
+        )
+        .map(([key, value]) => [key, DebugUtils.onyxDataToString(value)])
+        .sort((a, b) => localeCompare(a.at(0) ?? '', b.at(0) ?? ''));
+    const dateTimeFields = Object.entries(data ?? {}).filter((entry): entry is [string, string] => DETAILS_DATETIME_FIELDS.includes(entry[0]));
+
+    const validator = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM> => {
+        const newErrors: Record<string, string | undefined> = {};
+        for (const [key, value] of Object.entries(values)) {
+            try {
+                validate(key, DebugUtils.onyxDataToString(value));
+            } catch (e) {
+                if (!(e instanceof Error)) {
+                    newErrors[key] = String(e);
+                    continue;
+                }
+
+                const {message, cause} = e;
+                newErrors[key] = cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message;
+            }
+        }
+        return newErrors;
+    };
 
     useEffect(() => {
         Debug.resetDebugDetailsDraftForm();
     }, []);
 
-    const handleSubmit = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM>) => {
-            const dataPreparedToSave = Object.entries<string | boolean>(values).reduce((acc: Record<string, unknown>, [key, value]) => {
-                if (typeof value === 'boolean') {
-                    acc[key] = value;
-                } else {
-                    acc[key] = DebugUtils.stringToOnyxData(value, typeof data?.[key as keyof typeof data] as OnyxDataType);
-                }
-                return acc;
-            }, {});
+    const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.DEBUG_DETAILS_FORM>) => {
+        const dataPreparedToSave = Object.entries<string | boolean>(values).reduce((acc: Record<string, unknown>, [key, value]) => {
+            if (typeof value === 'boolean') {
+                acc[key] = value;
+            } else {
+                acc[key] = DebugUtils.stringToOnyxData(value, typeof data?.[key as keyof typeof data] as OnyxDataType);
+            }
+            return acc;
+        }, {});
 
-            onSave(dataPreparedToSave);
-        },
-        [data, onSave],
-    );
+        onSave(dataPreparedToSave);
+    };
 
-    const isSubmitDisabled = useMemo(
-        () =>
-            !Object.entries(formDraftData ?? {}).some(([key, value]) => {
-                const onyxData = data?.[key as keyof typeof data];
-                if (typeof value === 'string') {
-                    return !DebugUtils.compareStringWithOnyxData(value, onyxData);
-                }
-                return onyxData !== value;
-            }),
-        [formDraftData, data],
-    );
+    const isSubmitDisabled = !Object.entries(formDraftData ?? {}).some(([key, value]) => {
+        const onyxData = data?.[key as keyof typeof data];
+        if (typeof value === 'string') {
+            return !DebugUtils.compareStringWithOnyxData(value, onyxData);
+        }
+        return onyxData !== value;
+    });
 
     return (
         <ScrollView style={styles.mv5}>
@@ -250,11 +233,12 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                 <View style={[styles.ph5, styles.mb3, styles.mt5]}>
                     <Button
-                        danger
-                        large
-                        text={translate('common.delete')}
+                        variant={CONST.BUTTON_VARIANT.DANGER}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={onDelete}
-                    />
+                    >
+                        <Button.Text>{translate('common.delete')}</Button.Text>
+                    </Button>
                 </View>
             </FormProvider>
         </ScrollView>

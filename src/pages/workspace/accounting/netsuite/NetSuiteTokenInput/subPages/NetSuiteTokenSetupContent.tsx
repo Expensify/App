@@ -1,17 +1,23 @@
-import React from 'react';
-import {View} from 'react-native';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Parser from '@libs/Parser';
+
+import NetSuiteTokenAuthenticationLink from '@pages/workspace/accounting/netsuite/NetSuiteTokenInput/NetSuiteTokenAuthenticationLink';
 import type {CustomSubPageTokenInputProps} from '@pages/workspace/accounting/netsuite/types';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
-function NetSuiteTokenSetupContent({onNext, currentPageName}: CustomSubPageTokenInputProps) {
+import React from 'react';
+import {View} from 'react-native';
+
+function NetSuiteTokenSetupContent({onNext, currentPageName, policyID, shouldShowTokenAuthenticationLink}: CustomSubPageTokenInputProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -29,12 +35,14 @@ function NetSuiteTokenSetupContent({onNext, currentPageName}: CustomSubPageToken
             </View>
             <FixedFooter style={[styles.mtAuto]}>
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100]}
                     onPress={onNext}
-                    text={translate('common.next')}
-                />
+                >
+                    <Button.Text>{translate('common.next')}</Button.Text>
+                </Button>
+                {shouldShowTokenAuthenticationLink && <NetSuiteTokenAuthenticationLink policyID={policyID} />}
             </FixedFooter>
         </View>
     );

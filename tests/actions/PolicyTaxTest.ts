@@ -1,13 +1,19 @@
-import Onyx from 'react-native-onyx';
 import {createPolicyTax, deletePolicyTaxes, renamePolicyTax, setPolicyTaxCode, setPolicyTaxesEnabled, updatePolicyTaxValue} from '@libs/actions/TaxRate';
+
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy as PolicyType, TaxRate} from '@src/types/onyx';
-import createRandomPolicy from '../utils/collections/policies';
-import * as TestHelper from '../utils/TestHelper';
+import type {ExpenseRule} from '@src/types/onyx/Policy';
+
+import Onyx from 'react-native-onyx';
+
 import type {MockFetch} from '../utils/TestHelper';
+
+import createRandomPolicy from '../utils/collections/policies';
+import getOnyxValue from '../utils/getOnyxValue';
+import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 OnyxUpdateManager();
@@ -41,8 +47,8 @@ describe('actions/PolicyTax', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear()
             .then(() => Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy))
             .then(waitForBatchedUpdates);
@@ -59,7 +65,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.name).toBe(customTaxName);
@@ -77,7 +82,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.pendingFields?.name).toBeFalsy();
@@ -100,7 +104,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.name).toBe(customTaxName);
@@ -121,7 +124,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.name).toBe(originalCustomTaxName);
@@ -147,7 +149,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.defaultExternalID).toBe(taxCode);
@@ -165,7 +166,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.pendingFields?.defaultExternalID).toBeFalsy();
@@ -188,7 +188,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.defaultExternalID).toBe(taxCode);
@@ -209,7 +208,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.defaultExternalID).toBe(originalDefaultExternalID);
@@ -234,7 +232,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.foreignTaxDefault).toBe(taxCode);
@@ -252,7 +249,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     // Check if the policy pendingFields was cleared
@@ -276,7 +272,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.taxRates?.foreignTaxDefault).toBe(taxCode);
@@ -298,7 +293,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     // Check if the policy pendingFields was cleared
@@ -328,7 +322,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const createdTax = policy?.taxRates?.taxes?.[newTaxRate.code ?? ''];
@@ -348,7 +341,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const createdTax = policy?.taxRates?.taxes?.[newTaxRate.code ?? ''];
@@ -376,7 +368,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const createdTax = policy?.taxRates?.taxes?.[newTaxRate.code ?? ''];
@@ -399,7 +390,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const createdTax = policy?.taxRates?.taxes?.[newTaxRate.code ?? ''];
@@ -422,7 +412,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const disabledTax = policy?.taxRates?.taxes?.[disableTaxID];
@@ -442,7 +431,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const disabledTax = policy?.taxRates?.taxes?.[disableTaxID];
@@ -466,7 +454,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const disabledTax = policy?.taxRates?.taxes?.[disableTaxID];
@@ -489,7 +476,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const disabledTax = policy?.taxRates?.taxes?.[disableTaxID];
@@ -517,7 +503,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -537,7 +522,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -563,7 +547,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -586,7 +569,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -614,7 +596,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -634,7 +615,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -661,7 +641,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -684,7 +663,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const updatedTax = policy?.taxRates?.taxes?.[taxID];
@@ -711,7 +689,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const taxRates = policy?.taxRates;
@@ -732,7 +709,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const taxRates = policy?.taxRates;
@@ -765,7 +741,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicyWithForeignTaxDefault.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const taxRates = policy?.taxRates;
@@ -786,7 +761,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicyWithForeignTaxDefault.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const taxRates = policy?.taxRates;
@@ -812,7 +786,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const taxRates = policy?.taxRates;
@@ -836,7 +809,6 @@ describe('actions/PolicyTax', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     const taxRates = policy?.taxRates;
@@ -855,6 +827,9 @@ describe('actions/PolicyTax', () => {
         const oldTaxCode = 'id_TAX_RATE_1';
         const newTaxCode = 'id_TAX_RATE_2';
         const oldTaxRateName = fakePolicy?.taxRates?.taxes[oldTaxCode]?.name;
+
+        // Release any request a test left paused, so it doesn't hold up the queue for the next test
+        afterEach(() => (mockFetch?.resume?.() as Promise<unknown>).then(waitForBatchedUpdates));
 
         it('Set policy`s tax code', () => {
             mockFetch?.pause?.();
@@ -876,7 +851,6 @@ describe('actions/PolicyTax', () => {
                     new Promise<void>((resolve) => {
                         const connection = Onyx.connect({
                             key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                            waitForCollectionCallback: false,
                             callback: (policy) => {
                                 Onyx.disconnect(connection);
                                 const taxRates = policy?.taxRates;
@@ -885,12 +859,67 @@ describe('actions/PolicyTax', () => {
                                 // We expected to have a new tax rate with the new tax code
                                 expect(updatedTaxRate).toBeDefined();
                                 expect(updatedTaxRate?.previousTaxCode).toBe(oldTaxCode);
+                                // The old code is appended to the rename history so expenses still referencing it resolve to this rate
+                                expect(updatedTaxRate?.previousTaxCodes).toEqual([oldTaxCode]);
                                 expect(updatedTaxRate?.name).toBe(oldTaxRateName);
                                 resolve();
                             },
                         });
                     }),
             );
+        });
+
+        describe('expense rules', () => {
+            const buildRule = (categoryName: string, taxID: string): ExpenseRule => ({
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                tax: {field_id_TAX: {externalID: taxID}},
+                applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
+            });
+            const expenseRules = [buildRule('Travel', oldTaxCode), buildRule('Meals', 'id_TAX_EXEMPT')];
+
+            const renameTaxCode = () =>
+                setPolicyTaxCode(
+                    fakePolicy.id,
+                    oldTaxCode,
+                    newTaxCode,
+                    // @ts-expect-error - we can send undefined tax rate here for testing
+                    fakePolicy?.taxRates?.taxes[oldTaxCode],
+                    fakePolicy?.taxRates?.foreignTaxDefault,
+                    fakePolicy?.taxRates?.defaultExternalID,
+                    undefined,
+                    expenseRules,
+                );
+
+            beforeEach(() => Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {rules: {expenseRules}}).then(waitForBatchedUpdates));
+
+            it('moves the rules that referenced the old tax code onto the new one', async () => {
+                // Given a category tax default rule on the old code and another on a different code, with the request held so only optimistic data applies
+                mockFetch?.pause?.();
+
+                // When the tax code is renamed
+                renameTaxCode();
+                await waitForBatchedUpdates();
+
+                // Then only the rule on the old code points at the new code, mirroring the back end, so its tax rate still resolves
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+                expect(policy?.rules?.expenseRules).toEqual([buildRule('Travel', newTaxCode), buildRule('Meals', 'id_TAX_EXEMPT')]);
+            });
+
+            it('restores the rules when the request fails', async () => {
+                // Given a tax code rename that has moved the rules onto the new code optimistically
+                mockFetch?.pause?.();
+                renameTaxCode();
+                await waitForBatchedUpdates();
+
+                // When the server rejects the rename
+                mockFetch?.fail?.();
+                await mockFetch?.resume?.();
+                await waitForBatchedUpdates();
+
+                // Then the rules point at the old code again, matching the tax rate that the failure data restores
+                const policy = await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+                expect(policy?.rules?.expenseRules).toEqual(expenseRules);
+            });
         });
     });
 });

@@ -1,18 +1,24 @@
-import React, {useCallback} from 'react';
 import type {SelectorType} from '@components/SelectionScreen';
 import SelectionScreen from '@components/SelectionScreen';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateNetSuiteCustomersJobsMapping} from '@libs/actions/connections/NetSuiteCommands';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
+
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
+
 import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {NetSuiteMappingValues} from '@src/types/onyx/Policy';
+
+import React from 'react';
 
 type ImportListItem = SelectorType & {
     value: NetSuiteMappingValues;
@@ -40,25 +46,22 @@ function NetSuiteImportCustomersOrProjectSelectPage({policy}: WithPolicyConnecti
         alternateText: translate(`workspace.netsuite.import.importTypes.${inputOption}.description`),
     }));
 
-    const updateImportMapping = useCallback(
-        ({value}: ImportListItem) => {
-            if (value !== importedValue) {
-                updateNetSuiteCustomersJobsMapping(
-                    policyID,
-                    {
-                        customersMapping: importCustomer !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? value : CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT,
-                        jobsMapping: importJobs !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? value : CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT,
-                    },
-                    {
-                        customersMapping: importMappings?.customers,
-                        jobsMapping: importMappings?.jobs,
-                    },
-                );
-            }
-            Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS.getRoute(policyID));
-        },
-        [importCustomer, importJobs, importMappings?.customers, importMappings?.jobs, importedValue, policyID],
-    );
+    const updateImportMapping = ({value}: ImportListItem) => {
+        if (value !== importedValue) {
+            updateNetSuiteCustomersJobsMapping(
+                policyID,
+                {
+                    customersMapping: importCustomer !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? value : CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT,
+                    jobsMapping: importJobs !== CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT ? value : CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT,
+                },
+                {
+                    customersMapping: importMappings?.customers,
+                    jobsMapping: importMappings?.jobs,
+                },
+            );
+        }
+        Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOMERS_OR_PROJECTS.getRoute(policyID));
+    };
 
     return (
         <SelectionScreen

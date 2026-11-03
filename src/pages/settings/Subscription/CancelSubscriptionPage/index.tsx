@@ -1,5 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
@@ -11,25 +9,34 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import useCancellationType from '@hooks/useCancellationType';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {cancelBillingSubscription} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import {canCancelSubscription} from '@libs/SubscriptionUtils';
+
 import type {FeedbackSurveyOptionID} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
+import React from 'react';
+import {View} from 'react-native';
+
 function CancelSubscriptionPage() {
     const {environmentURL} = useEnvironment();
     const workspacesListRoute = `${environmentURL}/${ROUTES.WORKSPACES_LIST.route}`;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const {isBetaEnabled} = usePermissions();
+    const canArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
     const [privateSubscription, privateSubscriptionResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [firstDayFreeTrial, firstDayFreeTrialResult] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial, lastDayFreeTrialResult] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
@@ -67,7 +74,7 @@ function CancelSubscriptionPage() {
     const isAutomaticCancellation = resolvedCancellationType === CONST.CANCELLATION_TYPE.AUTOMATIC;
 
     if (isLoadingGuardData) {
-        return <FullscreenLoadingIndicator reasonAttributes={{context: 'CancelSubscriptionPage'}} />;
+        return <FullscreenLoadingIndicator />;
     }
 
     return (
@@ -95,11 +102,12 @@ function CancelSubscriptionPage() {
                                 </View>
                                 <FixedFooter style={styles.ph0}>
                                     <Button
-                                        success
-                                        text={translate('common.done')}
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         onPress={() => Navigation.goBack()}
-                                        large
-                                    />
+                                        size={CONST.BUTTON_SIZE.LARGE}
+                                    >
+                                        <Button.Text>{translate('common.done')}</Button.Text>
+                                    </Button>
                                 </FixedFooter>
                             </View>
                         )}
@@ -110,15 +118,23 @@ function CancelSubscriptionPage() {
                                     <Text style={[styles.mt1, styles.textNormalThemeText]}>{translate('subscription.cancelSubscription.subscriptionCanceled.subtitle')}</Text>
                                     <Text style={[styles.mv4, styles.textNormalThemeText]}>{translate('subscription.cancelSubscription.subscriptionCanceled.info')}</Text>
 
-                                    <RenderHTML html={translate('subscription.cancelSubscription.subscriptionCanceled.preventFutureActivity', workspacesListRoute)} />
+                                    <RenderHTML
+                                        html={translate(
+                                            canArchivePolicies
+                                                ? 'subscription.cancelSubscription.subscriptionCanceled.preventFutureActivityWithArchive'
+                                                : 'subscription.cancelSubscription.subscriptionCanceled.preventFutureActivity',
+                                            workspacesListRoute,
+                                        )}
+                                    />
                                 </View>
                                 <FixedFooter style={styles.ph0}>
                                     <Button
-                                        success
-                                        text={translate('common.done')}
+                                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                                         onPress={() => Navigation.goBack()}
-                                        large
-                                    />
+                                        size={CONST.BUTTON_SIZE.LARGE}
+                                    >
+                                        <Button.Text>{translate('common.done')}</Button.Text>
+                                    </Button>
                                 </FixedFooter>
                             </View>
                         )}

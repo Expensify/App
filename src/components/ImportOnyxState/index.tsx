@@ -1,19 +1,27 @@
-import React, {useState} from 'react';
+import useDecisionModal from '@hooks/useDecisionModal';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {setIsUsingImportedState, setPreservedAccount, setPreservedUserSession} from '@libs/actions/App';
 import {setShouldForceOffline} from '@libs/actions/Network';
 import {rollbackOngoingRequest} from '@libs/actions/PersistedRequests';
 import {cleanAndTransformState, importState} from '@libs/ImportOnyxStateUtils';
 import Navigation from '@libs/Navigation/Navigation';
+
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {FileObject} from '@src/types/utils/Attachment';
-import BaseImportOnyxState from './BaseImportOnyxState';
+
+import React from 'react';
+
 import type ImportOnyxStateProps from './types';
 
+import BaseImportOnyxState from './BaseImportOnyxState';
+
 export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
-    const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
+    const {translate} = useLocalize();
+    const {showDecisionModal} = useDecisionModal();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
@@ -53,18 +61,16 @@ export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
             })
             .catch((error) => {
                 console.error('Error importing state:', error);
-                setIsErrorModalVisible(true);
+                showDecisionModal({
+                    title: translate('initialSettingsPage.troubleshoot.invalidFile'),
+                    prompt: translate('initialSettingsPage.troubleshoot.invalidFileDescription'),
+                    secondOptionText: translate('common.ok'),
+                });
             })
             .finally(() => {
                 setIsLoading(false);
             });
     };
 
-    return (
-        <BaseImportOnyxState
-            onFileRead={handleFileRead}
-            isErrorModalVisible={isErrorModalVisible}
-            setIsErrorModalVisible={setIsErrorModalVisible}
-        />
-    );
+    return <BaseImportOnyxState onFileRead={handleFileRead} />;
 }

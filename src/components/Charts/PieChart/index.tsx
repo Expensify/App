@@ -1,31 +1,31 @@
-import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
+import ChartFrame from '@components/Charts/components/ChartFrame';
+import SkiaWebChart from '@components/Charts/SkiaWebChart';
+import {getPieChartLoadingHeight} from '@components/Charts/utils/chartHeights';
+
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import React from 'react';
-import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import type {PieChartProps} from './PieChartContent';
 
 const getPieChartContent = () => import('./PieChartContent');
 
 function PieChart(props: PieChartProps) {
-    const styles = useThemeStyles();
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PieChart.SkiaWebLoading'};
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
-        <WithSkiaWeb
-            opts={{locateFile: (file: string) => `/${file}`}}
-            getComponent={getPieChartContent}
-            componentProps={props}
-            fallback={
-                <View style={styles.chartWebFallback}>
-                    <ActivityIndicator
-                        size="large"
-                        reasonAttributes={reasonAttributes}
-                    />
-                </View>
-            }
-        />
+        <ChartFrame
+            isLoading={props.isLoading}
+            hasData={props.data.length > 0}
+            getLoadingHeight={(chartWidth) => getPieChartLoadingHeight(chartWidth, shouldUseNarrowLayout, props.shouldShowLegend, props.shouldUseResponsiveLegend)}
+        >
+            {(chartWidth) => (
+                <SkiaWebChart
+                    getComponent={getPieChartContent}
+                    componentProps={{...props, chartWidth}}
+                />
+            )}
+        </ChartFrame>
     );
 }
 

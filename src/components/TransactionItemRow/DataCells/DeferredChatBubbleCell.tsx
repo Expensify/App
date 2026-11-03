@@ -1,8 +1,12 @@
+import PulsingView from '@components/PulsingView';
+
+import useTheme from '@hooks/useTheme';
+
+import variables from '@styles/variables';
+
 import React, {useDeferredValue} from 'react';
 import {View} from 'react-native';
-import PulsingView from '@components/PulsingView';
-import useTheme from '@hooks/useTheme';
-import variables from '@styles/variables';
+
 import ChatBubbleCell from './ChatBubbleCell';
 
 type DeferredChatBubbleCellProps = React.ComponentProps<typeof ChatBubbleCell>;

@@ -1,13 +1,59 @@
+import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
+import type {SearchAutocompleteQueryRange, SearchFilterKey} from '@components/Search/types';
+
+import CONST from '@src/CONST';
+import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTypes';
-import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
-import type {SearchAutocompleteQueryRange, SearchAutocompleteResult, SearchColumnType, SearchFilterKey} from '@components/Search/types';
-import CONST, {CONTINUATION_DETECTION_SEARCH_FILTER_KEYS} from '@src/CONST';
-import type {PolicyCategories, PolicyTagLists, RecentlyUsedCategories, RecentlyUsedTags} from '@src/types/onyx';
+
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyValue} from './SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue} from './SearchQueryUtils';
+
+const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
+];
+
+type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length'> & {key: string};
+type AutocompleteParserResult = {autocomplete: AutocompleteParserRange | null; ranges: AutocompleteParserRange[]};
+
+/** The generated parser also produces non-canonical keys. Only prove the fields used by ordinary query consumers. */
+function isAutocompleteParserResult(value: unknown): value is AutocompleteParserResult {
+    'worklet';
+
+    if (typeof value !== 'object' || value === null || !('autocomplete' in value) || !('ranges' in value) || !Array.isArray(value.ranges)) {
+        return false;
+    }
+
+    const parsedRanges: unknown[] = value.ranges;
+    const ranges = value.autocomplete === null ? parsedRanges : [...parsedRanges, value.autocomplete];
+    for (const range of ranges) {
+        if (
+            typeof range !== 'object' ||
+            range === null ||
+            !('key' in range) ||
+            typeof range.key !== 'string' ||
+            !('value' in range) ||
+            typeof range.value !== 'string' ||
+            !('start' in range) ||
+            typeof range.start !== 'number' ||
+            !('length' in range) ||
+            typeof range.length !== 'number'
+        ) {
+            return false;
+        }
+    }
+    return true;
+}
 
 /**
  * Parses given query using the autocomplete parser.
@@ -15,7 +61,10 @@ import {getUserFriendlyValue} from './SearchQueryUtils';
  */
 function parseForAutocomplete(text: string) {
     try {
-        const parsedAutocomplete = parse(text) as SearchAutocompleteResult;
+        const parsedAutocomplete: unknown = parse(text);
+        if (!isAutocompleteParserResult(parsedAutocomplete)) {
+            throw new Error('Invalid autocomplete parser result');
+        }
         return parsedAutocomplete;
     } catch (e) {
         console.error(`Error when parsing autocomplete query"`, e);
@@ -126,6 +175,8 @@ function getAutocompleteQueryWithComma(prevQuery: string, newQuery: string) {
 }
 
 const userFriendlyExpenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
+const userFriendlyReceiptTypeList = Object.values(CONST.SEARCH.RECEIPT_TYPE).map((value) => getUserFriendlyValue(value));
+const userFriendlyTransactionStatusList = Object.values(CONST.SEARCH.TRANSACTION_STATUS).map((value) => getUserFriendlyValue(value));
 const userFriendlyGroupByList = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 const userFriendlyViewList = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const userFriendlyStatusList = Object.values({
@@ -137,7 +188,7 @@ const userFriendlyStatusList = Object.values({
 
 const userFriendlyColumnList = new Set(
     Object.entries(CONST.SEARCH.SEARCH_USER_FRIENDLY_VALUES_MAP)
-        .filter(([key]) => Object.values(CONST.SEARCH.TABLE_COLUMNS).includes(key as SearchColumnType))
+        .filter(([key]) => Object.values(CONST.SEARCH.TABLE_COLUMNS).some((column) => column === key))
         .map(([, value]) => value),
 );
 
@@ -146,7 +197,7 @@ const userFriendlyColumnList = new Set(
  * Determines if a specific value in the search syntax can/should be highlighted as valid or not
  */
 function filterOutRangesWithCorrectValue(
-    range: SearchAutocompleteQueryRange,
+    range: AutocompleteParserRange,
     substitutionMap: SubstitutionMap,
     userLogins: SharedValue<string[]>,
     currencyList: SharedValue<string[]>,
@@ -154,13 +205,17 @@ function filterOutRangesWithCorrectValue(
     tagList: SharedValue<string[]>,
     exportedToList: SharedValue<string[]>,
     currentType: string,
+    hasExplicitType: boolean,
 ) {
     'worklet';
 
     const typeList = Object.values(CONST.SEARCH.DATA_TYPES) as string[];
     const expenseTypeList = userFriendlyExpenseTypeList;
+    const receiptTypeList = userFriendlyReceiptTypeList;
+    const transactionStatusList = userFriendlyTransactionStatusList;
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const withdrawalStatusList = Object.values(CONST.SEARCH.SETTLEMENT_STATUS) as string[];
+    const paidStatusList = Object.values(CONST.SEARCH.PAID_STATUS) as string[];
     const statusList = userFriendlyStatusList;
     const groupByList = userFriendlyGroupByList;
     const viewList = userFriendlyViewList;
@@ -169,6 +224,8 @@ function filterOutRangesWithCorrectValue(
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
     const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
+    const footerCountList = Object.values(CONST.SEARCH.FOOTER_COUNT) as string[];
+    const footerTotalList = Object.values(CONST.SEARCH.FOOTER_TOTAL) as string[];
 
     if (range.key.startsWith(CONST.SEARCH.REPORT_FIELD.GLOBAL_PREFIX)) {
         return range.value.length > 0;
@@ -176,32 +233,51 @@ function filterOutRangesWithCorrectValue(
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
+            // `in:` is only supported for chats and tasks. A bare `in:` with no explicit type resolves to `type:chat`.
+            if (hasExplicitType && currentType !== CONST.SEARCH.DATA_TYPES.CHAT && currentType !== CONST.SEARCH.DATA_TYPES.TASK) {
+                return false;
+            }
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined;
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined || userLogins.get().includes(range.value) || range.value === CONST.SEARCH.ME;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_CURRENCY:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY:
             return currencyList.get().includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT:
+            return footerCountList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL:
+            return footerTotalList.includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE:
             return typeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE:
             return expenseTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE:
+            return receiptTypeList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
+            return transactionStatusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:
             return withdrawalStatusList.includes(range.value);
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS:
+            return paidStatusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS:
             return statusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
             return actionList.includes(range.value);
@@ -218,10 +294,13 @@ function filterOutRangesWithCorrectValue(
             return viewList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD:
             return booleanList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.ANY_APPROVAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
@@ -232,6 +311,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TITLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR:
             return range.value.length > 0;
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO:
             return exportedToList.get().includes(range.value);
@@ -241,6 +321,8 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED:
             // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
             return new RegExp(`^-?(?!.*[.,].*[.,])\\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}(?:[.,]\\d{0,2})?$`).test(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
@@ -272,13 +354,18 @@ function parseForLiveMarkdown(
 ): MarkdownRange[] {
     'worklet';
 
-    const parsedAutocomplete = parse(input) as SearchAutocompleteResult;
+    const parsedAutocomplete: unknown = parse(input);
+    if (!isAutocompleteParserResult(parsedAutocomplete)) {
+        return [];
+    }
     const ranges = parsedAutocomplete.ranges;
-    const typeRange = ranges.find((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
+
+    // The search parser applies repeated `type:` filters in order, so the last one decides the query type.
+    const typeRange = ranges.findLast((range) => range.key === CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE);
     const currentType = typeRange?.value ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
 
     return ranges
-        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, exportedToList, currentType))
+        .filter((range) => filterOutRangesWithCorrectValue(range, map, userLogins, currencyList, categoryList, tagList, exportedToList, currentType, !!typeRange))
         .map((range) => {
             const isCurrentUserMention = userLogins.get().includes(range.value) || range.value === currentUserName || range.value === CONST.SEARCH.ME;
             const type = isCurrentUserMention ? 'mention-here' : 'mention-user';
@@ -299,11 +386,18 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
         return getQueryWithoutAutocompletedPart(textInputValue);
     }
 
-    const isNameField = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.includes(fieldKey as SearchFilterKey);
+    const nameFieldKey = CONTINUATION_DETECTION_SEARCH_FILTER_KEYS.find((key) => key === fieldKey);
 
-    if (isNameField) {
-        const fieldPattern = `${fieldKey}:`;
-        const keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+    if (nameFieldKey) {
+        // The typed key can be the syntax form or the user-friendly form (e.g. paidBy vs paid-by). Match whichever appears last.
+        let fieldPattern = `${fieldKey}:`;
+        let keyIndex = textInputValue.toLowerCase().lastIndexOf(fieldPattern.toLowerCase());
+        const userFriendlyPattern = `${getUserFriendlyKey(nameFieldKey)}:`;
+        const userFriendlyKeyIndex = textInputValue.toLowerCase().lastIndexOf(userFriendlyPattern.toLowerCase());
+        if (userFriendlyKeyIndex > keyIndex) {
+            keyIndex = userFriendlyKeyIndex;
+            fieldPattern = userFriendlyPattern;
+        }
 
         if (keyIndex !== -1) {
             const afterFieldKey = textInputValue.substring(keyIndex + fieldPattern.length);
@@ -323,6 +417,7 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
 }
 
 export {
+    CONTINUATION_DETECTION_SEARCH_FILTER_KEYS,
     getAutocompleteCategories,
     getAutocompleteQueryWithComma,
     getAutocompleteRecentCategories,

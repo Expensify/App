@@ -1,16 +1,22 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import {isMobile} from '@libs/Browser';
+
+import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+
+import type {ComponentRef} from 'react';
+
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 import {Polygon, Svg} from 'react-native-svg';
-import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobile} from '@libs/Browser';
-import htmlDivElementRef from '@src/types/utils/htmlDivElementRef';
+
 import type SafeTriangleProps from './types';
 
 type Point = [number, number];
 
 type SafeTriangleOverlayProps = {
-    submenuRef: React.RefObject<View | null>;
-    containerRef: React.RefObject<View | null>;
+    submenuRef: React.RefObject<ComponentRef<typeof View> | null>;
+    containerRef: React.RefObject<ComponentRef<typeof View> | null>;
 };
 
 type Rect = {
@@ -172,7 +178,7 @@ function SafeTriangleOverlay({submenuRef, containerRef}: SafeTriangleOverlayProp
  */
 function SafeTriangle({submenuRef, children}: SafeTriangleProps) {
     const styles = useThemeStyles();
-    const containerRef = useRef<View>(null);
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
 
     if (isMobile()) {
         return children;

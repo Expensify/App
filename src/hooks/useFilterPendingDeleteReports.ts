@@ -1,8 +1,11 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import {isReportPendingDelete} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
 import useOnyx from './useOnyx';
 
 /**

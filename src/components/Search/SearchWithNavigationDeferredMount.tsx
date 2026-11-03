@@ -1,16 +1,28 @@
-import type {ComponentProps} from 'react';
-import React from 'react';
 import NavigationDeferredMount from '@components/NavigationDeferredMount';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {endSpanWithAttributes} from '@libs/telemetry/activeSpans';
 import {endNavigateToReportsFirstPaint} from '@libs/telemetry/navigateToReportsSpans';
 import {endSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
+
+import type {ComponentProps} from 'react';
+
+import React, {useState} from 'react';
+import {StyleSheet, View} from 'react-native';
+import Animated, {FadeIn} from 'react-native-reanimated';
+
 import Search from './index';
 
-const REASON_ATTRIBUTES = {context: 'SearchPage.NavigationDeferred'} as const;
+type SearchWithNavigationDeferredMountProps = ComponentProps<typeof Search> & {
+    /** Whether this mount is swapping in over content that is already on screen, rather than filling an empty page. */
+    isReplacingContent?: boolean;
+};
 
 function handleSkeletonLayout() {
     endSpanWithAttributes(CONST.TELEMETRY.SPAN_NAVIGATE_TO_REPORTS, {[CONST.TELEMETRY.ATTRIBUTE_IS_WARM]: true});
@@ -26,24 +38,35 @@ function handleSkeletonLayout() {
     }
 }
 
-function SearchWithNavigationDeferredMount(props: ComponentProps<typeof Search>) {
+function SearchWithNavigationDeferredMount({isReplacingContent, ...props}: SearchWithNavigationDeferredMountProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const containerStyle = shouldUseNarrowLayout ? styles.searchListContentContainerStyles(!!props.hasFilterBars) : styles.mt3;
+    const searchListContentContainerStyle = useSearchListContentContainerStyle(!!props.hasFilterBars);
+    const containerStyle = shouldUseNarrowLayout ? searchListContentContainerStyle : undefined;
+
+    // Read once at mount: the placeholder only ever covers this mount's deferral window, so a later prop change must
+    // not un-hide it mid-swap.
+    const [isReplacingContentAtMount] = useState(isReplacingContent);
 
     return (
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
-                <SearchRowSkeleton
-                    shouldAnimate
-                    onLayout={handleSkeletonLayout}
-                    containerStyle={containerStyle}
-                    reasonAttributes={REASON_ATTRIBUTES}
-                />
+                <View style={[styles.flex1, StyleSheet.absoluteFill, isReplacingContentAtMount && styles.opacity0]}>
+                    <SearchRowSkeleton
+                        shouldAnimate
+                        onLayout={handleSkeletonLayout}
+                        containerStyle={containerStyle}
+                    />
+                </View>
             }
         >
-            <Search {...props} />
+            <Animated.View
+                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+                style={styles.flex1}
+            >
+                <Search {...props} />
+            </Animated.View>
         </NavigationDeferredMount>
     );
 }

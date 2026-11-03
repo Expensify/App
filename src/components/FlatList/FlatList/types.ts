@@ -1,15 +1,10 @@
+import type {CellRendererProps} from '@src/types/utils/ReactNativeCompat';
+
 import type {ForwardedRef} from 'react';
-import type {CellRendererProps, FlatList, FlatListProps} from 'react-native';
+import type {FlatList, FlatListProps} from 'react-native';
 
 type CustomFlatListProps<T> = Omit<FlatListProps<T>, 'CellRendererComponent'> & {
-    /**
-     * Ref to the FlatList component
-     */
     ref?: ForwardedRef<FlatList>;
-
-    /**
-     * Whether to disable the visible content position
-     */
     shouldDisableVisibleContentPosition?: boolean;
 
     /**
@@ -18,9 +13,6 @@ type CustomFlatListProps<T> = Omit<FlatListProps<T>, 'CellRendererComponent'> & 
      */
     enableAnimatedKeyboardDismissal?: boolean;
 
-    /**
-     * Custom cell renderer component
-     */
     CellRendererComponent?: React.ComponentType<CellRendererProps<T>> | null;
 
     /**

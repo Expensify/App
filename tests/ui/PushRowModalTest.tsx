@@ -1,10 +1,16 @@
-import type * as ReactNavigation from '@react-navigation/native';
 import {act, render} from '@testing-library/react-native';
-import React from 'react';
+
 import SelectionList from '@components/SelectionList';
+
 import searchOptions from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
+
 import PushRowModal from '@src/components/PushRowWithModal/PushRowModal';
+import CONST from '@src/CONST';
+
+import type * as ReactNavigation from '@react-navigation/native';
+
+import React from 'react';
 
 const mockUseState = React.useState;
 
@@ -22,6 +28,7 @@ jest.mock('@components/Modal', () => jest.fn(({children}: {children: React.React
 jest.mock('@components/ScreenWrapper', () => jest.fn(({children}: {children: React.ReactNode}) => children));
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/SingleSelectListItem', () => jest.fn(() => null));
+jest.mock('@components/SelectionList/ListItem/MultiSelectListItem', () => jest.fn(() => null));
 jest.mock('@hooks/useDebouncedState', () =>
     jest.fn((initialValue: string) => {
         const [value, setValue] = mockUseState(initialValue);
@@ -36,18 +43,10 @@ jest.mock('@hooks/useLocalize', () =>
 
 describe('PushRowModal', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
-    const optionsList = {
-        one: 'Option 1',
-        two: 'Option 2',
-        three: 'Option 3',
-        four: 'Option 4',
-        five: 'Option 5',
-        six: 'Option 6',
-        seven: 'Option 7',
-        eight: 'Option 8',
-        nine: 'Option 9',
-        ten: 'Option 10',
-    };
+    // Pre-selected rows are only pinned to the top once the list reaches STANDARD_LIST_ITEM_LIMIT (when the
+    // search input is shown), so build enough options to exceed that threshold (see moveInitialSelectionToTop).
+    const optionsList = Object.fromEntries(Array.from({length: CONST.STANDARD_LIST_ITEM_LIMIT + 2}, (_, index) => [`option-${index + 1}`, `Option ${index + 1}`]));
+    const selectedOptionKey = 'option-10';
 
     beforeEach(() => {
         mockedSelectionList.mockClear();
@@ -57,7 +56,7 @@ describe('PushRowModal', () => {
         render(
             <PushRowModal
                 isVisible
-                selectedOption="ten"
+                selectedOptions={[selectedOptionKey]}
                 onOptionChange={jest.fn()}
                 onClose={jest.fn()}
                 optionsList={optionsList}
@@ -68,19 +67,19 @@ describe('PushRowModal', () => {
         const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
         expect(selectionListProps?.data.at(0)).toEqual(
             expect.objectContaining({
-                keyForList: 'ten',
-                value: 'ten',
+                keyForList: selectedOptionKey,
+                value: selectedOptionKey,
                 isSelected: true,
             }),
         );
-        expect(selectionListProps?.initiallyFocusedItemKey).toBe('ten');
+        expect(selectionListProps?.initiallyFocusedItemKey).toBe(selectedOptionKey);
     });
 
     it('keeps natural filtered ordering while search is active', () => {
         render(
             <PushRowModal
                 isVisible
-                selectedOption="ten"
+                selectedOptions={[selectedOptionKey]}
                 onOptionChange={jest.fn()}
                 onClose={jest.fn()}
                 optionsList={optionsList}
@@ -102,11 +101,46 @@ describe('PushRowModal', () => {
                 value: key,
                 keyForList: key,
                 text: value,
-                isSelected: key === 'ten',
+                isSelected: key === selectedOptionKey,
                 searchValue: StringUtils.sanitizeString(value),
             })),
         );
 
         expect(searchedProps?.data.map((item) => item.keyForList)).toEqual(expectedSearchResults.map((item) => item.keyForList));
+    });
+
+    it('toggles rows without closing and saves with the confirm button when several options can be chosen', () => {
+        // Given a multi-select modal with one option already chosen
+        const onOptionChange = jest.fn();
+        const onConfirm = jest.fn();
+        const onClose = jest.fn();
+        render(
+            <PushRowModal
+                isVisible
+                canSelectMultiple
+                selectedOptions={[selectedOptionKey]}
+                onOptionChange={onOptionChange}
+                onConfirm={onConfirm}
+                onClose={onClose}
+                optionsList={optionsList}
+                headerTitle="Options"
+            />,
+        );
+        const selectionListProps = mockedSelectionList.mock.lastCall?.[0];
+        const firstRow = selectionListProps?.data.find((item) => item.keyForList === 'option-1');
+
+        // When the user picks another row, then presses the confirm button
+        act(() => {
+            if (firstRow) {
+                selectionListProps?.onSelectRow(firstRow);
+            }
+            selectionListProps?.confirmButtonOptions?.onConfirm?.();
+        });
+
+        // Then the row is reported but the modal stays open, so the user can pick more, and the confirm button saves
+        expect(selectionListProps?.canSelectMultiple).toBe(true);
+        expect(onOptionChange).toHaveBeenCalledWith('option-1');
+        expect(onClose).not.toHaveBeenCalled();
+        expect(onConfirm).toHaveBeenCalledTimes(1);
     });
 });

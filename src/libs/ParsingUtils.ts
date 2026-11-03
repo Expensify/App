@@ -1,10 +1,14 @@
+import CONST from '@src/CONST';
+
 import type {MarkdownRange} from '@expensify/react-native-live-markdown';
+
 import {parseExpensiMark} from '@expensify/react-native-live-markdown';
 import {Str} from 'expensify-common';
-import type {Extras} from 'expensify-common/dist/ExpensiMark';
-import CONST from '@src/CONST';
+
 import Parser from './Parser';
 import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
+
+type Extras = NonNullable<NonNullable<Parameters<typeof Parser.replace>[1]>['extras']>;
 
 /**
  * Handles possible short mentions inside ranges by verifying if the specific range refers to a user mention/login
@@ -57,7 +61,7 @@ function decorateRangesWithShortMentions(ranges: MarkdownRange[], text: string, 
 function parseExpensiMarkWithShortMentions(text: string, availableMentions: string[], currentUserMentions?: string[]) {
     'worklet';
 
-    const parsedRanges = parseExpensiMark(text);
+    const parsedRanges = parseExpensiMark(text, CONST.MAX_MARKUP_LENGTH);
     return decorateRangesWithShortMentions(parsedRanges, text, availableMentions, currentUserMentions);
 }
 

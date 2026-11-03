@@ -1,6 +1,10 @@
-import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {convertToDistanceInMeters} from '@libs/DistanceUnitConversionUtils';
+
+import CONST from '@src/CONST';
 import type {OnyxInputOrEntry, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
+
+import getSelectedRouteKey from './getSelectedRouteKey';
 
 // Get the distance in meters from the transaction.
 // This function is placed in a separate file to avoid circular dependencies.
@@ -10,12 +14,21 @@ function getDistanceInMeters(transaction: OnyxInputOrEntry<Transaction>, unit: U
     // This check takes priority because after a manual distance edit, routes.route0.distance may still
     // hold a stale route-calculated value while quantity reflects the user's intended distance.
     if (transaction?.comment?.customUnit?.quantity && unit) {
-        return DistanceRequestUtils.convertToDistanceInMeters(transaction.comment.customUnit.quantity, unit);
+        return convertToDistanceInMeters(transaction.comment.customUnit.quantity, unit);
     }
 
     // If we are creating a new distance request, the distance is available in routes.route0.distance and it's already in meters.
-    if (transaction?.routes?.route0?.distance) {
-        return transaction.routes.route0.distance;
+    // `getSelectedRouteKey` resolves the route the user picked (falling back to route0), so an alternate route wins here.
+    const selectedRouteKey = getSelectedRouteKey(transaction);
+    const selectedRouteDistance = transaction?.routes?.[selectedRouteKey]?.distance ?? transaction?.routes?.[CONST.TRANSACTION.DEFAULT_ROUTE_KEY]?.distance;
+    if (selectedRouteDistance) {
+        return selectedRouteDistance;
+    }
+
+    // Routes are cleared once the request is saved, leaving `routeDistanceMeters` (already in meters) as the only distance until the backend writes `quantity` back.
+    const routeDistanceMeters = transaction?.comment?.customUnit?.routeDistanceMeters;
+    if (routeDistanceMeters) {
+        return routeDistanceMeters;
     }
 
     return 0;

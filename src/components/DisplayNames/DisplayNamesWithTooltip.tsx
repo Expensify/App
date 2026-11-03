@@ -1,15 +1,23 @@
-import React, {Fragment, useCallback, useRef} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import type {Text as RNText} from 'react-native';
-import {View} from 'react-native';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {formatReportLastMessageText} from '@libs/ReportUtils';
-import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
+import {COPYABLE_TEXT_DATA_SET} from '@libs/SelectionScraper';
+
+import type {ComponentRef} from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {Text as RNText} from 'react-native';
+
+import React, {Fragment, useCallback, useRef} from 'react';
+import {View} from 'react-native';
+
 import type DisplayNamesProps from './types';
 
-type HTMLElementWithText = HTMLElement & RNText;
+import DisplayNamesTooltipItem from './DisplayNamesTooltipItem';
+
+type HTMLElementWithText = HTMLElement & ComponentRef<typeof RNText>;
 
 function DisplayNamesWithToolTip({
     shouldUseFullTitle,
@@ -21,6 +29,7 @@ function DisplayNamesWithToolTip({
     renderAdditionalText,
     forwardedFSClass,
     accessibilityLabel,
+    isSelectable = false,
 }: DisplayNamesProps) {
     const styles = useThemeStyles();
     const containerRef = useRef<HTMLElementWithText>(null);
@@ -66,6 +75,8 @@ function DisplayNamesWithToolTip({
             ref={containerRef}
             testID="DisplayNamesWithToolTip"
             fsClass={forwardedFSClass}
+            selectable={isSelectable}
+            dataSet={isSelectable ? COPYABLE_TEXT_DATA_SET : undefined}
         >
             {shouldUseFullTitle
                 ? formatReportLastMessageText(fullTitle)
@@ -82,6 +93,7 @@ function DisplayNamesWithToolTip({
                               textStyles={textStyles}
                               childRefs={childRefs}
                               forwardedFSClass={forwardedFSClass}
+                              isSelectable={isSelectable}
                           />
                           {index < displayNamesWithTooltips.length - 1 && <Text style={textStyles}>,&nbsp;</Text>}
                           {shouldAddEllipsis && index === displayNamesWithTooltips.length - 1 && <Text style={textStyles}>...</Text>}

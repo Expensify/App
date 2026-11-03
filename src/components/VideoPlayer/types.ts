@@ -1,13 +1,20 @@
+import type CONST from '@src/CONST';
+
 import type {SourceLoadEventPayload} from 'expo-video';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type CONST from '@src/CONST';
 
 type VideoPlayerProps = {
     /**
      * Video source used to initialize the player.
      */
     url: string;
+
+    /**
+     * Original file name of the video, used to name the file saved by the player's Download action.
+     * Without it the download falls back to the raw storage key, which has no extension.
+     */
+    fileName?: string;
 
     /**
      * Callback fired when the sourceLoad event is triggered.
@@ -25,9 +32,6 @@ type VideoPlayerProps = {
      */
     style?: StyleProp<ViewStyle>;
 
-    /**
-     * Style applied to the VideoView inside the VideoPlayer component.
-     */
     videoPlayerStyle?: StyleProp<ViewStyle>;
 
     /**
@@ -40,9 +44,6 @@ type VideoPlayerProps = {
      */
     videoDuration?: number;
 
-    /**
-     * Whether the VideoPlayer should use a shared video element.
-     */
     shouldUseSharedVideoElement?: boolean;
 
     /**
@@ -50,9 +51,6 @@ type VideoPlayerProps = {
      */
     shouldUseSmallVideoControls?: boolean;
 
-    /**
-     * Whether the VideoPlayer is currently hovered.
-     */
     isVideoHovered?: boolean;
 
     /**
@@ -60,9 +58,6 @@ type VideoPlayerProps = {
      */
     shouldUseControlsBottomMargin?: boolean;
 
-    /**
-     * Current status of the video controls.
-     */
     controlsStatus?: ValueOf<typeof CONST.VIDEO_PLAYER.CONTROLS_STATUS>;
 
     /**

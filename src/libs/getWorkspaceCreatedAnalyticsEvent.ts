@@ -1,5 +1,7 @@
 import CONST from '@src/CONST';
+
 import type {GoogleTagManagerEvent} from './GoogleTagManager/types';
+
 import {isEmailPublicDomain} from './LoginUtils';
 
 // Company size ranges that represent 5 or more employees. The "1-4" range and the deprecated "1-10" range are excluded
@@ -10,6 +12,8 @@ const SALES_ELIGIBLE_COMPANY_SIZES = new Set<string>([
     CONST.ONBOARDING_COMPANY_SIZE.MEDIUM_SMALL,
     CONST.ONBOARDING_COMPANY_SIZE.MEDIUM,
     CONST.ONBOARDING_COMPANY_SIZE.LARGE,
+    CONST.ONBOARDING_COMPANY_SIZE.LEGACY_MICRO_MEDIUM,
+    CONST.ONBOARDING_COMPANY_SIZE.LEGACY_SMALL,
 ]);
 
 /**

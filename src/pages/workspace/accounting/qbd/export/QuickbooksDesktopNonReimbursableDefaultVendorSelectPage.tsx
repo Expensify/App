@@ -1,19 +1,27 @@
-import React, {useCallback, useMemo} from 'react';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionScreen from '@components/SelectionScreen';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {updateQuickbooksDesktopNonReimbursableBillDefaultVendor} from '@libs/actions/connections/QuickbooksDesktop';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import {settingsPendingAction} from '@libs/PolicyUtils';
+
 import Navigation from '@navigation/Navigation';
+
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
+
 import variables from '@styles/variables';
+
 import {clearQBDErrorField} from '@userActions/Policy/Policy';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 type CardListItem = ListItem & {
     value: string;
@@ -28,39 +36,42 @@ function QuickbooksDesktopNonReimbursableDefaultVendorSelectPage({policy}: WithP
     const nonReimbursableBillDefaultVendor = qbdConfig?.export?.nonReimbursableBillDefaultVendor;
 
     const policyID = policy?.id ?? CONST.DEFAULT_NUMBER_ID.toString();
-    const data: CardListItem[] = useMemo(
-        () =>
-            vendors?.map((vendor) => ({
-                value: vendor.id,
-                text: vendor.name,
-                keyForList: vendor.name,
-                isSelected: vendor.id === nonReimbursableBillDefaultVendor,
-            })) ?? [],
-        [nonReimbursableBillDefaultVendor, vendors],
-    );
+    const vendorOptions: CardListItem[] =
+        vendors?.map((vendor) => ({
+            value: vendor.id,
+            text: vendor.name,
+            keyForList: vendor.name,
+            isSelected: vendor.id === nonReimbursableBillDefaultVendor,
+        })) ?? [];
 
-    const selectVendor = useCallback(
-        (row: CardListItem) => {
-            if (row.value !== nonReimbursableBillDefaultVendor) {
-                updateQuickbooksDesktopNonReimbursableBillDefaultVendor(policyID, row.value, nonReimbursableBillDefaultVendor);
-            }
-            Navigation.goBack();
-        },
-        [nonReimbursableBillDefaultVendor, policyID],
-    );
+    const isNonReimbursableBillDefaultVendorNone = !nonReimbursableBillDefaultVendor || nonReimbursableBillDefaultVendor === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE;
+    const clearOption: CardListItem = {
+        value: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+        text: translate('common.none'),
+        keyForList: CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE,
+        isSelected: isNonReimbursableBillDefaultVendorNone,
+    };
+    const shouldShowClearOption = !!nonReimbursableBillDefaultVendor || vendorOptions.length > 0;
+    const data: CardListItem[] = shouldShowClearOption ? [clearOption, ...vendorOptions] : vendorOptions;
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbd.noAccountsFound')}
-                subtitle={translate('workspace.qbd.noAccountsFoundDescription')}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10],
+    const selectVendor = (row: CardListItem) => {
+        const isAlreadySelected = row.value === nonReimbursableBillDefaultVendor || (row.value === CONST.INTEGRATION_ENTITY_MAP_TYPES.NONE && isNonReimbursableBillDefaultVendorNone);
+        if (isAlreadySelected) {
+            return;
+        }
+        updateQuickbooksDesktopNonReimbursableBillDefaultVendor(policyID, row.value, nonReimbursableBillDefaultVendor);
+        Navigation.goBack();
+    };
+
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.qbd.noAccountsFound')}
+            subtitle={translate('workspace.qbd.noAccountsFoundDescription')}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

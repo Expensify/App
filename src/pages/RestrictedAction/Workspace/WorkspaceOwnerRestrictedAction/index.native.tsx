@@ -1,5 +1,3 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -7,12 +5,20 @@ import Icon from '@components/Icon';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
 
 function WorkspaceOwnerRestrictedAction() {
     const illustrations = useMemoizedLazyIllustrations(['LockClosedOrange']);
@@ -20,11 +26,18 @@ function WorkspaceOwnerRestrictedAction() {
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Unlock']);
 
-    const activeRoute = useMemo(() => Navigation.getActiveRoute(), []);
-    const goToSubscription = useCallback(() => {
-        Navigation.closeRHPFlow();
-        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(activeRoute));
-    }, [activeRoute]);
+    const goToSubscription = () => {
+        // Read the active route at press time rather than snapshotting it at mount. This screen stays
+        // mounted underneath the Subscription page, so a mount-time snapshot can be taken while
+        // Subscription is the focused route, which would make `backTo` point at Subscription itself.
+        // `linkTo` then drops the navigation as a no-op and the button stops working after a swipe back.
+        // A press can only happen while this screen is on top, so reading it here always resolves to
+        // the restricted-action route.
+        //
+        // Don't close the RHP here either. Doing so pops this screen off the root stack, so the native
+        // swipe-back gesture lands on whatever was underneath instead of returning here.
+        Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION.getRoute(Navigation.getActiveRoute()));
+    };
 
     return (
         <ScreenWrapper
@@ -53,11 +66,12 @@ function WorkspaceOwnerRestrictedAction() {
                     <Text style={[styles.textHeadlineH1, styles.mb4]}>{translate('workspace.restrictedAction.addPaymentCardToContinueUsingWorkspace')}</Text>
                     <Text style={[styles.textLabelSupportingEmptyValue, styles.mb5]}>{translate('workspace.restrictedAction.youWillNeedToAddOrUpdatePaymentCard')}</Text>
                     <Button
-                        text={translate('workspace.restrictedAction.goToSubscription')}
                         onPress={goToSubscription}
-                        success
-                        large
-                    />
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={CONST.BUTTON_SIZE.LARGE}
+                    >
+                        <Button.Text>{translate('workspace.restrictedAction.goToSubscription')}</Button.Text>
+                    </Button>
                 </View>
             </ScrollView>
         </ScreenWrapper>

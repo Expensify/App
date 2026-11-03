@@ -1,8 +1,12 @@
+import {getOdometerImageUri} from '@libs/OdometerUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
+import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
+
+import type {FileObject} from '@src/types/utils/Attachment';
+
 import {ImageFormat, Skia} from '@shopify/react-native-skia';
 import RNFS from 'react-native-fs';
-import Log from '@libs/Log';
-import {getOdometerImageUri} from '@libs/OdometerImageUtils';
-import type {FileObject} from '@src/types/utils/Attachment';
+
 import STITCHED_ODOMETER_FILENAME_PREFIX from './constants';
 import calculateStitchLayout from './stitchLayout';
 
@@ -45,20 +49,20 @@ async function stitchOdometerImages(image1: FileObject | string | undefined, ima
         snapshot = surface.makeImageSnapshot();
         const base64 = snapshot.encodeToBase64(ImageFormat.JPEG, 100);
 
-        // Delete any previously stitched files before creating a new one
-        try {
-            const tempDirContents = await RNFS.readDir(RNFS.TemporaryDirectoryPath);
-            const oldStitchedFiles = tempDirContents.filter((f) => f.name.startsWith(`${STITCHED_ODOMETER_FILENAME_PREFIX}_`) && f.name.endsWith('.jpg'));
-            await Promise.all(oldStitchedFiles.map((f) => RNFS.unlink(f.path)));
-        } catch (error) {
-            Log.warn('stitchOdometerImages (native) failed to clean up old stitched files', {error});
-        }
-
         const filename = `${STITCHED_ODOMETER_FILENAME_PREFIX}_${Date.now()}.jpg`;
         const tempPath = `${RNFS.TemporaryDirectoryPath}/${filename}`;
         await RNFS.writeFile(tempPath, base64, 'base64');
 
-        return {uri: `file://${tempPath}`, name: filename, type: 'image/jpeg'};
+        // The upload can flush hours after an offline capture, long after the OS may have evicted the
+        // temp directory, so the stitched output has to live in durable receipt storage.
+        const uri = await ReceiptStorage.adopt(`file://${tempPath}`, filename)
+            .then((durableName) => ReceiptStorage.toLocalUri(durableName))
+            .catch((error: unknown) => {
+                logReceiptAdoptFailed({error, captureSource: 'odometer'});
+                return `file://${tempPath}`;
+            });
+
+        return {uri, name: filename, type: 'image/jpeg'};
     } finally {
         skImage1?.dispose?.();
         skImage2?.dispose?.();

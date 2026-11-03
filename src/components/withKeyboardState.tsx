@@ -1,13 +1,16 @@
-import type {ReactElement, RefObject} from 'react';
-import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {KeyboardEvents, useKeyboardHandler} from 'react-native-keyboard-controller';
-import {scheduleOnRN} from 'react-native-worklets';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+
 import getKeyboardHeight from '@libs/getKeyboardHeight';
+
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
+import type {ReactElement, RefObject} from 'react';
+
+import React, {createContext, useEffect, useRef, useState} from 'react';
+import {KeyboardEvents, useKeyboardHandler} from 'react-native-keyboard-controller';
+import {scheduleOnRN} from 'react-native-worklets';
+
 type KeyboardStateContextValue = {
-    /** Whether the keyboard is open */
     isKeyboardShown: boolean;
 
     /** Whether the keyboard is animating or shown */
@@ -19,7 +22,6 @@ type KeyboardStateContextValue = {
     /** Future or present height of the keyboard in pixels. Available together with isKeyboardActive. */
     keyboardActiveHeight: number;
 
-    /** Ref to check if the keyboard is animating */
     isKeyboardAnimatingRef: RefObject<boolean>;
 };
 
@@ -46,6 +48,8 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         const keyboardDidHideListener = KeyboardEvents.addListener('keyboardDidHide', () => {
             setKeyboardHeight(0);
             setIsKeyboardActive(false);
+            // Sometimes 'keyboardWillHide' is not called (popover closed when keyboard is open), in this case we don't want stale keyboardActiveHeight value
+            setKeyboardActiveHeight(0);
         });
         const keyboardWillShowListener = KeyboardEvents.addListener('keyboardWillShow', (e) => {
             setIsKeyboardActive(true);
@@ -64,9 +68,9 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         };
     }, [bottom]);
 
-    const setIsKeyboardAnimating = useCallback((isAnimating: boolean) => {
+    const setIsKeyboardAnimating = (isAnimating: boolean) => {
         isKeyboardAnimatingRef.current = isAnimating;
-    }, []);
+    };
 
     useKeyboardHandler(
         {
@@ -84,16 +88,13 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         [],
     );
 
-    const contextValue = useMemo(
-        () => ({
-            keyboardHeight,
-            keyboardActiveHeight,
-            isKeyboardShown: keyboardHeight !== 0,
-            isKeyboardAnimatingRef,
-            isKeyboardActive,
-        }),
-        [isKeyboardActive, keyboardActiveHeight, keyboardHeight],
-    );
+    const contextValue = {
+        keyboardHeight,
+        keyboardActiveHeight,
+        isKeyboardShown: keyboardHeight !== 0,
+        isKeyboardAnimatingRef,
+        isKeyboardActive,
+    };
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
 

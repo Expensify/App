@@ -1,30 +1,27 @@
-import {WithSkiaWeb} from '@shopify/react-native-skia/lib/module/web';
+import ChartFrame from '@components/Charts/components/ChartFrame';
+import SkiaWebChart from '@components/Charts/SkiaWebChart';
+import {getCartesianChartHeight} from '@components/Charts/utils/chartHeights';
+
 import React from 'react';
-import {View} from 'react-native';
-import ActivityIndicator from '@components/ActivityIndicator';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import type {LineChartProps} from './LineChartContent';
 
 const getLineChartContent = () => import('./LineChartContent');
-function LineChart(props: LineChartProps) {
-    const styles = useThemeStyles();
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'LineChart.SkiaWebLoading'};
 
+function LineChart(props: LineChartProps) {
     return (
-        <WithSkiaWeb
-            opts={{locateFile: (file: string) => `/${file}`}}
-            getComponent={getLineChartContent}
-            componentProps={props}
-            fallback={
-                <View style={styles.chartWebFallback}>
-                    <ActivityIndicator
-                        size="large"
-                        reasonAttributes={reasonAttributes}
-                    />
-                </View>
-            }
-        />
+        <ChartFrame
+            isLoading={props.isLoading}
+            hasData={props.data.length > 0}
+            getLoadingHeight={() => getCartesianChartHeight()}
+        >
+            {(chartWidth) => (
+                <SkiaWebChart
+                    getComponent={getLineChartContent}
+                    componentProps={{...props, chartWidth}}
+                />
+            )}
+        </ChartFrame>
     );
 }
 

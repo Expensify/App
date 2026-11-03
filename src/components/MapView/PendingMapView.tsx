@@ -1,12 +1,16 @@
-import isEmpty from 'lodash/isEmpty';
-import React from 'react';
-import {View} from 'react-native';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import Icon from '@components/Icon';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import isEmpty from 'lodash/isEmpty';
+import React from 'react';
+import {View} from 'react-native';
+
 import type {PendingMapViewProps} from './MapViewTypes';
 
 function PendingMapView({title = '', subtitle = '', style, isSmallerIcon = false}: PendingMapViewProps) {

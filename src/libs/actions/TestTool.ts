@@ -1,22 +1,20 @@
-import throttle from 'lodash/throttle';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
+
+import throttle from 'lodash/throttle';
+
 import {close} from './Modal';
 
-/**
- * Get the backTo parameter from the current test tools modal route
- */
+/** Only the screen the URL built carries a backTo, so take it from the first one that has it. */
 function getBackToParam(): Route | undefined {
-    const route = navigationRef.current?.getCurrentRoute();
-    if (route?.name === SCREENS.TEST_TOOLS_MODAL.ROOT && route.params) {
-        return (route.params as {backTo?: Route}).backTo;
-    }
-    return undefined;
+    const modalRoute = navigationRef.current?.getRootState()?.routes.find((route) => route.name === NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR);
+    const screenWithBackTo = modalRoute?.state?.routes?.find((route) => !!(route.params as {backTo?: Route} | undefined)?.backTo);
+    return (screenWithBackTo?.params as {backTo?: Route} | undefined)?.backTo;
 }
 
 /**
@@ -31,8 +29,12 @@ const throttledToggle = throttle(
         if (currentRoute.includes(ROUTES.TEST_TOOLS_MODAL.route)) {
             if (backTo) {
                 Navigation.goBack(backTo);
-            } else {
-                Navigation.goBack();
+                return;
+            }
+            // dismissModal() would not close this modal: the public root is a plain platform stack that never handles DISMISS_MODAL.
+            const rootKey = navigationRef.current?.getRootState()?.key;
+            if (rootKey) {
+                Navigation.pop(rootKey);
             }
             return;
         }
@@ -62,3 +64,4 @@ function toggleTestToolsModal() {
 }
 
 export default toggleTestToolsModal;
+export {getBackToParam};

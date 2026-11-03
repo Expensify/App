@@ -1,13 +1,18 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useTransactionThreadReportIDs from '@hooks/useTransactionThreadReportIDs';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 
 function makeIouAction(transactionID: string, reportActionID: string, childReportID?: string): ReportAction {
-    return {
+    return createMock<ReportAction>({
         reportActionID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         originalMessage: {
@@ -16,7 +21,7 @@ function makeIouAction(transactionID: string, reportActionID: string, childRepor
         },
         message: [{type: 'TEXT', text: 'IOU'}],
         childReportID,
-    } as unknown as ReportAction;
+    });
 }
 
 describe('useTransactionThreadReportIDs', () => {

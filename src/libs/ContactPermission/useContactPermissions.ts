@@ -1,9 +1,12 @@
+import useAppState from '@hooks/useAppState';
+
+import type {AppStateStatus} from 'react-native';
+import type {PermissionStatus} from 'react-native-permissions';
+
 import {useFocusEffect} from '@react-navigation/native';
 import {useCallback} from 'react';
-import type {AppStateStatus} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
-import type {PermissionStatus} from 'react-native-permissions';
-import useAppState from '@hooks/useAppState';
+
 import {getContactPermission} from './index';
 
 type UseContactPermissionsProps = {
@@ -14,7 +17,7 @@ type UseContactPermissionsProps = {
 };
 
 function useContactPermissions({importAndSaveContacts, setContacts, contactPermissionState, setContactPermissionState}: UseContactPermissionsProps): void {
-    const checkPermissionAndUpdateContacts = useCallback(() => {
+    const checkPermissionAndUpdateContacts = () => {
         return getContactPermission()
             .then((newStatus) => {
                 const isNewStatusGranted = newStatus === RESULTS.GRANTED || newStatus === RESULTS.LIMITED; // Permission is enabled, or just became enabled
@@ -31,18 +34,15 @@ function useContactPermissions({importAndSaveContacts, setContacts, contactPermi
             .catch((error) => {
                 console.error('Failed to check contact permission:', error);
             });
-    }, [contactPermissionState, importAndSaveContacts, setContacts, setContactPermissionState]);
+    };
 
-    const handleAppStateChange = useCallback(
-        (nextAppState: AppStateStatus) => {
-            if (nextAppState !== 'active') {
-                return;
-            }
+    const handleAppStateChange = (nextAppState: AppStateStatus) => {
+        if (nextAppState !== 'active') {
+            return;
+        }
 
-            checkPermissionAndUpdateContacts();
-        },
-        [checkPermissionAndUpdateContacts],
-    );
+        checkPermissionAndUpdateContacts();
+    };
 
     useAppState({onAppStateChange: handleAppStateChange});
 
