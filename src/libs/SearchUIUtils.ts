@@ -5531,7 +5531,8 @@ function collectViolationNamesForTransaction(violationNames: Set<string>, violat
     }
 
     for (const violation of transactionViolations) {
-        if (violation.name) {
+        // Search, Insights and the CSV export skip the cash expense notice that only Classic records, so this column skips it too.
+        if (violation.name && violation.name !== CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT) {
             violationNames.add(violation.name);
         }
     }
