@@ -150,6 +150,8 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const accountID = memberPersonalDetails?.accountID ?? routeAccountID;
     const [memberChatReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: createMemberChatReportIDSelector(accountID, currentUserAccountID)});
     const [hasMemberChatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${memberChatReportID}`, {selector: Boolean});
+    const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
+    const [hasSelfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {selector: Boolean});
     const member = policy?.employeeList?.[memberLogin];
     const memberWorkArrangement = getEffectiveWorkArrangement(member?.hasOfficeWorkArrangement, policy?.commuterExclusions?.isOfficeWorkArrangement);
     const memberOfficeLocation = getMemberOfficeLocation(getAssignableOfficeLocations(policy, translate, localeCompare), member?.officeID);
@@ -185,8 +187,10 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const hasDisplayNameSet = !!details.firstName || !!details.lastName;
     const canSetDisplayName = !hasDisplayNameSet && isPolicyAdmin(policy, currentUserLogin);
     const shouldShowLocalTime = shouldShowLocalTimeUtil({accountID, timezone: details.timezone, isCustomAgent, isValidated: !!details.validated});
-    const shouldShowMessageButton = !isSelectedMemberCurrentUser && !isAnonymousUserSession();
+    // Like ProfilePage, your own row only offers Message when your self DM already exists, so we never optimistically create one
+    const shouldShowMessageButton = (!isSelectedMemberCurrentUser || !!hasSelfDMReport) && !isAnonymousUserSession();
     const messageAction = PromotedActions.message({
+        reportID: isSelectedMemberCurrentUser ? selfDMReportID : memberChatReportID,
         accountID,
         login: memberLogin,
         personalDetailsByLogin: memberPersonalDetailsByLogin,

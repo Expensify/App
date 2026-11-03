@@ -1035,14 +1035,35 @@ describe('WorkspaceMemberDetailsPage', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('hides the Message button on the current user', async () => {
-        // When the admin opens their own member details
+    it('hides the Message button on the current user without a self DM', async () => {
+        // When the admin opens their own member details and has no self DM yet
         const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
         await waitForBatchedUpdatesWithAct();
 
-        // Then there is no Message button, because there is no one else to message
+        // Then there is no Message button, because pressing it would optimistically create a self DM
         expect(await screen.findByTestId('WorkspaceMemberDetailsPage')).toBeOnTheScreen();
         expect(screen.queryByText(TestHelper.translateLocal('common.message'))).not.toBeOnTheScreen();
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    it('opens the self DM from the Message button on the current user', async () => {
+        const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+        const selfDMReportID = '9876';
+
+        // Given the admin already has a self DM
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`, {reportID: selfDMReportID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
+            await Onyx.set(ONYXKEYS.SELF_DM_REPORT_ID, selfDMReportID);
+        });
+
+        // When they open their own member details and press Message
+        const {unmount} = renderPage({policyID: policy.id, accountID: String(selfAccountID)});
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(await screen.findByText(TestHelper.translateLocal('common.message')));
+
+        // Then the existing self DM opens, the same as from their Profile page
+        expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(selfDMReportID));
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
