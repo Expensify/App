@@ -153,51 +153,15 @@ const transactionThreadReportIDSelector = (transactionID: string | undefined) =>
     transactionID ? getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID)?.childReportID : undefined;
 
 /**
- * Keeps only the fields `clearAllRelatedReportActionErrors` reads when walking related report actions.
- * Nested fields (`errors`, `message`, `originalMessage`) are copied by reference so equality checks on the
- * projected result short-circuit and unrelated action updates (reactions, read receipts, person data, ...)
- * neither re-render the subscriber nor pay a deep comparison.
- */
-function reportActionErrorFieldsSelector(reportAction: OnyxEntry<ReportAction>): OnyxEntry<ReportAction> {
-    return (
-        reportAction && {
-            reportActionID: reportAction.reportActionID,
-            actionName: reportAction.actionName,
-            created: reportAction.created,
-            pendingAction: reportAction.pendingAction,
-            isOptimisticAction: reportAction.isOptimisticAction,
-            childReportID: reportAction.childReportID,
-            errors: reportAction.errors,
-            message: reportAction.message,
-            // Copying the deprecated originalMessage field is intentional. The projection must preserve the raw
-            // data so downstream helpers can resolve it through getOriginalMessage.
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            originalMessage: reportAction.originalMessage,
-        }
-    );
-}
-
-function projectReportActionsErrorFields(actions: ReportActions): ReportActions {
-    const projectedActions: ReportActions = {};
-    for (const [reportActionID, reportAction] of Object.entries(actions)) {
-        const projectedAction = reportActionErrorFieldsSelector(reportAction);
-        if (projectedAction) {
-            projectedActions[reportActionID] = projectedAction;
-        }
-    }
-    return projectedActions;
-}
-
-/**
- * Creates a selector returning the report actions `clearAllRelatedReportActionErrors` walks, narrowed to the fields it
- * reads: the actions of every report in `reportIDs` (the report whose error is dismissed, its ancestors and the original
- * report holding the dismissed action), plus the threads below `childRootReportID` that hang off actions with errors.
+ * Creates a selector returning the report actions `clearAllRelatedReportActionErrors` walks: the actions of every
+ * report in `reportIDs` (the report whose error is dismissed, its ancestors and the original report holding the
+ * dismissed action), plus the threads below `childRootReportID` that hang off actions with errors.
  * The walk returns early from an action without errors, so following only errored actions downward is exact.
- * Only those keys are looked up, so a write to an unrelated report action neither maps the whole collection nor pays
- * a deep comparison over it.
+ * Only those keys are looked up and each report's actions are returned by reference, so a write to an unrelated
+ * report action costs a few lookups, and a report whose actions are unchanged compares by reference.
  */
-function relatedReportActionsErrorFieldsSelector(reportIDs: Array<string | undefined>, childRootReportID: string | undefined) {
-    return function selectRelatedReportActionsErrorFields(reportActions: OnyxCollection<ReportActions>): OnyxCollection<ReportActions> {
+function relatedReportActionsSelector(reportIDs: Array<string | undefined>, childRootReportID: string | undefined) {
+    return function selectRelatedReportActions(reportActions: OnyxCollection<ReportActions>): OnyxCollection<ReportActions> {
         const result: OnyxCollection<ReportActions> = {};
         const visitedReportIDs = new Set<string>();
         const collect = (reportID: string | undefined, shouldFollowErroredThreads: boolean) => {
@@ -210,7 +174,7 @@ function relatedReportActionsErrorFieldsSelector(reportIDs: Array<string | undef
             if (!actions) {
                 return;
             }
-            result[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = projectReportActionsErrorFields(actions);
+            result[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] = actions;
             if (!shouldFollowErroredThreads) {
                 return;
             }
@@ -272,7 +236,7 @@ export {
     getReportActionByIDSelector,
     getReceiptScanFailedIOUActionDataSelector,
     reportVisibleActionsSelector,
-    relatedReportActionsErrorFieldsSelector,
+    relatedReportActionsSelector,
     forwardedSinceLastSubmitReportIDsSelector,
     transactionThreadReportIDSelector,
     getParentReportActionWithoutThreadRepliesSelector,

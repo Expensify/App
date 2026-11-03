@@ -28,7 +28,7 @@ import useOriginalReportID from '@hooks/useOriginalReportID';
 import usePermissions from '@hooks/usePermissions';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePrevious from '@hooks/usePrevious';
-import useRelatedReportActionsErrorFields from '@hooks/useRelatedReportActionsErrorFields';
+import useRelatedReportActions from '@hooks/useRelatedReportActions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
@@ -175,7 +175,7 @@ function MoneyRequestReceiptView({
 
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
     const reportsParentHierarchy = useReportsParentHierarchy(report?.reportID);
-    const relatedReportActions = useRelatedReportActionsErrorFields(reportsParentHierarchy, originalReportID, parentReportAction?.childReportID);
+    const relatedReportActions = useRelatedReportActions(reportsParentHierarchy, originalReportID, parentReportAction?.childReportID);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);

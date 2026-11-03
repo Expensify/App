@@ -4,7 +4,7 @@ import type {ReportAction, ReportActions} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {getLatestFeedbackActionIDByAuthorSelector, getReceiptScanFailedIOUActionDataSelector, relatedReportActionsErrorFieldsSelector} from '@selectors/ReportAction';
+import {getLatestFeedbackActionIDByAuthorSelector, getReceiptScanFailedIOUActionDataSelector, relatedReportActionsSelector} from '@selectors/ReportAction';
 
 const CURRENT_USER_ACCOUNT_ID = 123456789;
 const OTHER_USER_ACCOUNT_ID = 987654321;
@@ -183,7 +183,7 @@ describe('getLatestFeedbackActionIDByAuthorSelector', () => {
     });
 });
 
-describe('relatedReportActionsErrorFieldsSelector', () => {
+describe('relatedReportActionsSelector', () => {
     const THREAD_REPORT_ID = 'thread1';
     const PARENT_REPORT_ID = 'parent1';
     const CHAT_REPORT_ID = 'chat1';
@@ -193,9 +193,9 @@ describe('relatedReportActionsErrorFieldsSelector', () => {
 
     const reportActionsKey = (reportID: string) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
 
-    it('should return the actions of the listed reports projected to the error fields, and nothing else', () => {
-        // Given actions for a thread, its parent and an unrelated report, where the parent action carries fields the error clearing never reads
-        const parentAction = createIOUAction('iou1', {childReportID: THREAD_REPORT_ID, errors: {error1: 'Error message'}, person: [{type: 'TEXT', text: 'Jane'}]});
+    it('should return the actions of the listed reports by reference, and nothing else', () => {
+        // Given actions for a thread, its parent and an unrelated report
+        const parentAction = createIOUAction('iou1', {childReportID: THREAD_REPORT_ID, errors: {error1: 'Error message'}});
         const reportActions: OnyxCollection<ReportActions> = {
             [reportActionsKey(THREAD_REPORT_ID)]: {comment1: createIOUAction('comment1')},
             [reportActionsKey(PARENT_REPORT_ID)]: {iou1: parentAction},
@@ -203,28 +203,15 @@ describe('relatedReportActionsErrorFieldsSelector', () => {
         };
 
         // When the selector is applied for the thread and its parent without a child root
-        const result = relatedReportActionsErrorFieldsSelector([THREAD_REPORT_ID, PARENT_REPORT_ID], undefined)(reportActions);
+        const result = relatedReportActionsSelector([THREAD_REPORT_ID, PARENT_REPORT_ID], undefined)(reportActions);
 
         // Then only the listed reports are returned, so unrelated report action writes cannot change the result
         expect(Object.keys(result ?? {})).toEqual([reportActionsKey(THREAD_REPORT_ID), reportActionsKey(PARENT_REPORT_ID)]);
 
-        // Then each action keeps the fields the walk and its helpers read, and drops the rest so unrelated action updates compare equal
-        const projectedParentAction = result?.[reportActionsKey(PARENT_REPORT_ID)]?.iou1;
-        expect(projectedParentAction).toEqual({
-            reportActionID: 'iou1',
-            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
-            created: parentAction.created,
-            pendingAction: undefined,
-            isOptimisticAction: undefined,
-            childReportID: THREAD_REPORT_ID,
-            errors: parentAction.errors,
-            message: parentAction.message,
-            // The projection intentionally preserves the deprecated raw field so getOriginalMessage can resolve it downstream
-            // eslint-disable-next-line @typescript-eslint/no-deprecated
-            originalMessage: parentAction.originalMessage,
-        });
-        expect(projectedParentAction).not.toHaveProperty('person');
-        expect(projectedParentAction).not.toHaveProperty('actorAccountID');
+        // Then each report's actions are the input objects by reference, so a report whose actions are unchanged compares cheaply
+        expect(result?.[reportActionsKey(THREAD_REPORT_ID)]).toBe(reportActions[reportActionsKey(THREAD_REPORT_ID)]);
+        expect(result?.[reportActionsKey(PARENT_REPORT_ID)]).toBe(reportActions[reportActionsKey(PARENT_REPORT_ID)]);
+        expect(result?.[reportActionsKey(PARENT_REPORT_ID)]?.iou1).toBe(parentAction);
     });
 
     it('should follow threads below the child root only through actions that have errors', () => {
@@ -239,7 +226,7 @@ describe('relatedReportActionsErrorFieldsSelector', () => {
         };
 
         // When the selector is applied with the thread both listed and used as the child root
-        const result = relatedReportActionsErrorFieldsSelector([THREAD_REPORT_ID], THREAD_REPORT_ID)(reportActions);
+        const result = relatedReportActionsSelector([THREAD_REPORT_ID], THREAD_REPORT_ID)(reportActions);
 
         // Then the thread hanging off the errored action is included, since the walk recurses into it, while the clean action's thread is not
         expect(Object.keys(result ?? {}).sort()).toEqual([reportActionsKey(ERRORED_THREAD_REPORT_ID), reportActionsKey(THREAD_REPORT_ID)].sort());
@@ -253,7 +240,7 @@ describe('relatedReportActionsErrorFieldsSelector', () => {
         };
 
         // When the selector is applied with the cycle reachable from the child root
-        const result = relatedReportActionsErrorFieldsSelector([THREAD_REPORT_ID, PARENT_REPORT_ID, undefined], THREAD_REPORT_ID)(reportActions);
+        const result = relatedReportActionsSelector([THREAD_REPORT_ID, PARENT_REPORT_ID, undefined], THREAD_REPORT_ID)(reportActions);
 
         // Then both reports in the cycle are returned once, the unloaded report is left out and the selector returns instead of hanging
         expect(Object.keys(result ?? {}).sort()).toEqual([reportActionsKey(CHAT_REPORT_ID), reportActionsKey(THREAD_REPORT_ID)].sort());

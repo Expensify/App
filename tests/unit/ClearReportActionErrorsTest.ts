@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx';
 
-import {relatedReportActionsErrorFieldsSelector} from '@selectors/ReportAction';
+import {relatedReportActionsSelector} from '@selectors/ReportAction';
 import Onyx from 'react-native-onyx';
 
 import {createMockReport, getFakeReportAction} from '../utils/ReportTestUtils';
@@ -675,11 +675,10 @@ describe('ClearReportActionErrors', () => {
             expect(parentReportActions?.[SIBLING_REPORT_ACTION_ID]).toBeUndefined();
         });
 
-        it('should clear errors when the reportActions data is narrowed by relatedReportActionsErrorFieldsSelector', async () => {
+        it('should clear errors when the reportActions data comes from relatedReportActionsSelector', async () => {
             // Given the same hierarchy as the recursion test, but with the reportActions parameter passed
-            // through the selector components use to scope the data to the hierarchy and narrow each action to
-            // the fields the error clearing reads. This fails if the selector ever drops a report the walk looks
-            // up or a field the walk or its helpers start consuming.
+            // through the selector components use to scope the data to the dismissal hierarchy. This fails if
+            // the selector ever drops a report the walk looks up.
             const reportAction = getFakeReportAction(Number(REPORT_ACTION_ID), {
                 errors: {sharedError: 'Error message'},
             });
@@ -709,7 +708,7 @@ describe('ClearReportActionErrors', () => {
             });
             await waitForBatchedUpdates();
 
-            // When clearAllRelatedReportActionErrors is called with selector-narrowed reportActions data
+            // When clearAllRelatedReportActionErrors is called with selector-scoped reportActions data
             clearAllRelatedReportActionErrors({
                 reportID: REPORT_ID,
                 reportAction,
@@ -718,7 +717,7 @@ describe('ClearReportActionErrors', () => {
                 reports: {
                     [`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`]: {parentReportID: PARENT_REPORT_ID, parentReportActionID: PARENT_REPORT_ACTION_ID},
                 },
-                reportActions: relatedReportActionsErrorFieldsSelector(
+                reportActions: relatedReportActionsSelector(
                     [REPORT_ID, PARENT_REPORT_ID],
                     reportAction.childReportID,
                 )({
@@ -733,7 +732,7 @@ describe('ClearReportActionErrors', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then the narrowed data should still drive the full walk and delete the reject sibling
+            // Then the scoped data should still drive the full walk and delete the reject sibling
             const parentReportActions = await getReportActionsFromOnyx(PARENT_REPORT_ID);
             expect(parentReportActions?.[SIBLING_REPORT_ACTION_ID]).toBeUndefined();
         });
