@@ -1,3 +1,4 @@
+/** The line under a Wallet bank account whose Wise global reimbursements setup is not finished, with Continue when the admin has something to do */
 import Icon from '@components/Icon';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -22,15 +23,15 @@ import {View} from 'react-native';
 type WiseSetupInProgressRowProps = {
     bankAccountID: number;
 
-    /** Whether the admin left the onboarding before Submit, so Continue reopens it */
-    canContinue: boolean;
+    /** The page Continue opens on top of the intro, when there is something for the admin to do */
+    pageToContinue?: string;
 
     /** Spacing for the row, which follows the list it sits in */
     style?: StyleProp<ViewStyle>;
 };
 
 /** Tells the admin under the Wallet bank account row that its global reimbursements setup is not finished */
-function WiseSetupInProgressRow({bankAccountID, canContinue, style}: WiseSetupInProgressRowProps) {
+function WiseSetupInProgressRow({bankAccountID, pageToContinue, style}: WiseSetupInProgressRowProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -50,12 +51,12 @@ function WiseSetupInProgressRow({bankAccountID, canContinue, style}: WiseSetupIn
                 style={[styles.textSupporting, styles.flexShrink1]}
             >
                 {translate('walletPage.wiseSetupInProgress.message')}
-                {canContinue && (
+                {!!pageToContinue && (
                     <>
                         {' '}
                         <TextLink
                             variant="label"
-                            onPress={() => navigateToWiseGlobalReimbursements(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)), true)}
+                            onPress={() => navigateToWiseGlobalReimbursements(createDynamicRoute(DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.getRoute(bankAccountID)), pageToContinue)}
                         >
                             {translate('walletPage.wiseSetupInProgress.continue')}
                         </TextLink>

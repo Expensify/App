@@ -97,8 +97,8 @@ type PaymentMethodItem = PaymentMethod & {
     wiseSetupInProgress?: {
         bankAccountID: number;
 
-        /** Whether the admin left the onboarding before Submit, so Continue reopens it */
-        canContinue: boolean;
+        /** The page Continue opens on top of the intro, when there is something for the admin to do */
+        pageToContinue?: string;
     };
 
     /** Whether the bank account is set up for global reimbursements, which shows a globe next to its name */
@@ -367,7 +367,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             {!!item.wiseSetupInProgress && (
                 <WiseSetupInProgressRow
                     bankAccountID={item.wiseSetupInProgress.bankAccountID}
-                    canContinue={item.wiseSetupInProgress.canContinue}
+                    pageToContinue={item.wiseSetupInProgress.pageToContinue}
                     style={[styles.pt4, styles.pb3, cardPaddingHorizontal]}
                 />
             )}

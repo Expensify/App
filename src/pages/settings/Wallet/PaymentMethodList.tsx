@@ -16,7 +16,6 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {
-    canContinueWiseOnboarding,
     canLinkPlaid,
     getBankAccountConnectionStatus,
     getBankAccountState,
@@ -49,6 +48,7 @@ import {
     maskCardNumber,
 } from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+import {getWiseOnboardingPageToContinue} from '@libs/Navigation/helpers/navigateToWiseGlobalReimbursements';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -77,7 +77,6 @@ import type {ValueOf} from 'type-fest';
 import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
 import cardOnWaitlistPolicyIDsSelector from '@selectors/CardOnWaitlist';
 import {createPoliciesForAssignedCardsSelector} from '@selectors/Policy';
-import {wiseBusinessOnboardingDraftBankAccountIDSelector} from '@selectors/WiseBusinessOnboardingForm';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
 import React from 'react';
@@ -173,14 +172,14 @@ function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMet
     return paymentMethod.accountType === actionPaymentMethodType && paymentMethod.methodID === activePaymentMethodID;
 }
 
-function getWiseSetupInProgress(paymentMethod: PaymentMethod, onboardingDraftBankAccountID: string | undefined): PaymentMethodItem['wiseSetupInProgress'] {
+function getWiseSetupInProgress(paymentMethod: PaymentMethod): PaymentMethodItem['wiseSetupInProgress'] {
     if (paymentMethod.accountType !== CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
         return undefined;
     }
     const bankAccount = paymentMethod as BankAccount;
     const bankAccountID = bankAccount.accountData?.bankAccountID;
-    const canContinue = canContinueWiseOnboarding(bankAccount, onboardingDraftBankAccountID);
-    return bankAccountID && (canContinue || isWiseOnboardingAwaitingDecision(bankAccount)) ? {bankAccountID, canContinue} : undefined;
+    const pageToContinue = getWiseOnboardingPageToContinue(bankAccount);
+    return bankAccountID && (pageToContinue || isWiseOnboardingAwaitingDecision(bankAccount)) ? {bankAccountID, pageToContinue} : undefined;
 }
 
 function keyExtractor(item: PaymentMethod | string) {
@@ -234,7 +233,6 @@ function PaymentMethodList({
     });
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
     const [bankAccountList = getEmptyObject<BankAccountList>(), bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [wiseOnboardingDraftBankAccountID] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {selector: wiseBusinessOnboardingDraftBankAccountIDSelector});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
@@ -675,7 +673,7 @@ function PaymentMethodList({
                 shouldShowRightIcon,
                 canDismissError: true,
                 isMissingPersonalInfo,
-                wiseSetupInProgress: shouldShowWiseSetupInProgress ? getWiseSetupInProgress(paymentMethod, wiseOnboardingDraftBankAccountID) : undefined,
+                wiseSetupInProgress: shouldShowWiseSetupInProgress ? getWiseSetupInProgress(paymentMethod) : undefined,
                 isGlobalReimbursementsEnabled:
                     isWiseGlobalReimbursementsEnabled && paymentMethod.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT && isGlobalReimbursementsEnabled(paymentMethod),
                 brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,

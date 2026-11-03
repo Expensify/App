@@ -102,7 +102,13 @@ const WISE_BANK_ACCOUNT_ID = 9053192;
 
 function createWiseBusinessBankAccount(wise: BankAccountAdditionalData['wise']): BankAccount {
     const bankAccount = createBusinessBankAccount(WISE_BANK_ACCOUNT_ID, 'Chase Checking');
-    return {...bankAccount, accountData: {...bankAccount.accountData, additionalData: {...bankAccount.accountData?.additionalData, wise}}};
+    return {
+        ...bankAccount,
+        accountData: {
+            ...bankAccount.accountData,
+            additionalData: {...bankAccount.accountData?.additionalData, globalReimbursementProvider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, wise},
+        },
+    };
 }
 
 // Renders the bank accounts list the same way the Wallet page does with the Wise beta on
@@ -205,10 +211,9 @@ describe('PaymentMethodList', () => {
     });
 
     it('continues a Wise onboarding the admin left before Submit', async () => {
-        // Given a business bank account whose Wise onboarding the admin opened on this device and did not submit
+        // Given a business bank account whose Wise onboarding the admin saved a page of and did not submit
         await act(async () => {
             await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount(undefined)});
-            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(WISE_BANK_ACCOUNT_ID)});
         });
 
         // When the Wallet's bank accounts list renders and the admin presses Continue
@@ -222,11 +227,26 @@ describe('PaymentMethodList', () => {
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/business-onboarding`);
     });
 
+    it("sends the admin to Wise's form when Wise needs more info", async () => {
+        // Given a business bank account whose submitted Wise onboarding Wise sent back for more info
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED})});
+        });
+
+        // When the Wallet's bank accounts list renders and the admin presses Continue
+        renderBankAccountsList();
+        await waitForBatchedUpdatesWithAct();
+        fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
+
+        // Then Continue opens the intro and the more info page on top of it, since Wise waits on the admin rather than the other way around
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(1, `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`, expect.anything());
+        expect(Navigation.navigate).toHaveBeenNthCalledWith(2, `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/more-info-needed`);
+    });
+
     it('shows a submitted Wise onboarding as in progress without Continue', async () => {
-        // Given a business bank account whose Wise onboarding is in review, with its draft still on this device
+        // Given a business bank account whose Wise onboarding is in review
         await act(async () => {
             await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW})});
-            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(WISE_BANK_ACCOUNT_ID)});
         });
 
         // When the Wallet's bank accounts list renders
@@ -239,10 +259,9 @@ describe('PaymentMethodList', () => {
     });
 
     it('hides the Wise onboarding row without the Wise beta', async () => {
-        // Given a business bank account whose Wise onboarding the admin opened and did not submit
+        // Given a business bank account whose Wise onboarding the admin saved a page of and did not submit
         await act(async () => {
             await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount(undefined)});
-            await Onyx.set(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM_DRAFT, {bankAccountID: String(WISE_BANK_ACCOUNT_ID)});
         });
 
         // When the list renders the way it does for a user without the Wise beta

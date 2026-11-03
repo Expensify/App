@@ -299,26 +299,28 @@ function getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy: OnyxEnt
 }
 
 /**
- * Whether the admin left the account's Wise onboarding before Submit and can continue it. The onboarding draft on this device holds the account it was
- * opened for, and the onboarding opens only for an eligible account.
+ * Whether the admin saved part of the account's Wise onboarding and has not submitted it yet. The server sets Wise as the provider on the first saved page,
+ * and the onboarding opens only for an eligible account.
  */
-function canContinueWiseOnboarding(bankAccount: OnyxEntry<OnyxTypes.BankAccount>, onboardingDraftBankAccountID: string | undefined): boolean {
-    const bankAccountID = bankAccount?.accountData?.bankAccountID;
+function isWiseOnboardingPendingSubmit(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
+    const additionalData = bankAccount?.accountData?.additionalData;
     return (
         bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-        !!bankAccountID &&
-        String(bankAccountID) === onboardingDraftBankAccountID &&
-        !bankAccount?.accountData?.additionalData?.wise?.status &&
+        additionalData?.globalReimbursementProvider === CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE &&
+        !additionalData.wise?.status &&
         isBankAccountEligibleForGlobalReimbursements(bankAccount?.accountData, bankAccount?.bankCurrency)
     );
 }
 
-/** Whether the account's Wise onboarding is submitted and Wise has not approved or rejected it yet */
+/** Whether the account's Wise onboarding is submitted and Wise is reviewing it, with nothing for the admin to do */
 function isWiseOnboardingAwaitingDecision(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
-    const status = bankAccount?.accountData?.additionalData?.wise?.status;
+    return bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.wise?.status === CONST.WISE.ONBOARDING_STATUS.IN_REVIEW;
+}
+
+/** Whether Wise needs more info from the admin on its own form before it can decide on the submitted business */
+function isWiseOnboardingMoreInfoNeeded(bankAccount: OnyxEntry<OnyxTypes.BankAccount>): boolean {
     return (
-        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
-        (status === CONST.WISE.ONBOARDING_STATUS.IN_REVIEW || status === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED)
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.wise?.status === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED
     );
 }
 
@@ -495,8 +497,9 @@ export {
     isGlobalReimbursementsEnabled,
     getWiseGlobalReimbursementsBannerBankAccountID,
     getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
-    canContinueWiseOnboarding,
+    isWiseOnboardingPendingSubmit,
     isWiseOnboardingAwaitingDecision,
+    isWiseOnboardingMoreInfoNeeded,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,

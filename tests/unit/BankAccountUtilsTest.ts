@@ -1,5 +1,5 @@
 import {
-    canContinueWiseOnboarding,
+    isWiseOnboardingPendingSubmit,
     getBankAccountConnectionStatus,
     getBankAccountState,
     getCompletedStepsForBankAccount,
@@ -19,6 +19,7 @@ import {
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
     isWiseOnboardingAwaitingDecision,
+    isWiseOnboardingMoreInfoNeeded,
     PERSONAL_INFO_STEP,
     shouldSetUpGlobalReimbursementsBeforePaying,
 } from '@libs/BankAccountUtils';
@@ -29,6 +30,8 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {Account, BankAccount, BankAccountList, Policy, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
+
+import type {ValueOf} from 'type-fest';
 
 import createMock from '../utils/createMock';
 
@@ -340,7 +343,12 @@ describe('BankAccountUtils', () => {
     });
 
     describe('Wise onboarding progress', () => {
-        const buildBankAccount = (wise: BankAccountAdditionalData['wise'], overrides: {pendingAction?: BankAccount['pendingAction']; state?: AccountData['state']} = {}): BankAccount => ({
+        type Overrides = {
+            provider?: ValueOf<typeof CONST.GLOBAL_REIMBURSEMENT_PROVIDER>;
+            pendingAction?: BankAccount['pendingAction'];
+            state?: AccountData['state'];
+        };
+        const buildBankAccount = (wise: BankAccountAdditionalData['wise'], overrides: Overrides = {}): BankAccount => ({
             bankCurrency: CONST.CURRENCY.USD,
             bankCountry: CONST.COUNTRY.US,
             pendingAction: overrides.pendingAction,
@@ -348,51 +356,66 @@ describe('BankAccountUtils', () => {
                 bankAccountID: 9053192,
                 type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
                 state: overrides.state ?? CONST.BANK_ACCOUNT.STATE.OPEN,
-                additionalData: {currency: CONST.CURRENCY.USD, wise},
+                additionalData: {
+                    currency: CONST.CURRENCY.USD,
+                    globalReimbursementProvider: 'provider' in overrides ? overrides.provider : CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE,
+                    wise,
+                },
             },
         });
 
-        const DRAFT_BANK_ACCOUNT_ID = '9053192';
-
         it('continues an onboarding left before Submit', () => {
-            // Given the admin opened the onboarding on this device and left before Submit
+            // Given the admin saved a page of the onboarding, which makes Wise the provider, and left before Submit
             const bankAccount = buildBankAccount(undefined);
 
-            // When the helpers evaluate the account with its onboarding draft
+            // When the helpers evaluate the account
             // Then the onboarding can continue, and Wise has nothing to decide on yet
-            expect(canContinueWiseOnboarding(bankAccount, DRAFT_BANK_ACCOUNT_ID)).toBe(true);
+            expect(isWiseOnboardingPendingSubmit(bankAccount)).toBe(true);
             expect(isWiseOnboardingAwaitingDecision(bankAccount)).toBe(false);
         });
 
-        it.each([CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED])('waits on Wise without reopening the onboarding in %s', (status) => {
-            // Given a submitted onboarding Wise has not decided on, whose draft stays on the device
-            const bankAccount = buildBankAccount({status});
+        it('waits on Wise without reopening the onboarding while Wise reviews it', () => {
+            // Given a submitted onboarding Wise is reviewing
+            const bankAccount = buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW});
 
             // When the helpers evaluate the account
             // Then it waits on Wise, and the onboarding does not reopen, since its answers are already with Wise
-            expect(canContinueWiseOnboarding(bankAccount, DRAFT_BANK_ACCOUNT_ID)).toBe(false);
+            expect(isWiseOnboardingPendingSubmit(bankAccount)).toBe(false);
             expect(isWiseOnboardingAwaitingDecision(bankAccount)).toBe(true);
+            expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
+        });
+
+        it('asks the admin for more info instead of waiting when Wise needs it', () => {
+            // Given a submitted onboarding Wise sent back for more info
+            const bankAccount = buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED});
+
+            // When the helpers evaluate the account
+            // Then it needs the admin on Wise's form, not waiting on Wise, and the onboarding does not reopen
+            expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(true);
+            expect(isWiseOnboardingAwaitingDecision(bankAccount)).toBe(false);
+            expect(isWiseOnboardingPendingSubmit(bankAccount)).toBe(false);
         });
 
         it.each([
-            ['the onboarding has not started', buildBankAccount(undefined), undefined],
-            ['the draft holds another account', buildBankAccount(undefined), '1234'],
-            ['Wise approved the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.APPROVED}), DRAFT_BANK_ACCOUNT_ID],
-            ['Wise rejected the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED}), DRAFT_BANK_ACCOUNT_ID],
-            ['the account was deleted offline', buildBankAccount(undefined, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}), DRAFT_BANK_ACCOUNT_ID],
+            ['the onboarding has not started', buildBankAccount(undefined, {provider: undefined})],
+            ['the account goes through Corpay', buildBankAccount(undefined, {provider: CONST.GLOBAL_REIMBURSEMENT_PROVIDER.CORPAY})],
+            ['Wise approved the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.APPROVED})],
+            ['Wise rejected the account', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED})],
+            ['the account was deleted offline', buildBankAccount(undefined, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})],
+            ['a submitted account was deleted offline', buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE})],
             [
-                'a submitted account was deleted offline',
-                buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW}, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
-                DRAFT_BANK_ACCOUNT_ID,
+                'an account Wise needs more info on was deleted offline',
+                buildBankAccount({status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}, {pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}),
             ],
-            ['the account is no longer verified', buildBankAccount(undefined, {state: CONST.BANK_ACCOUNT.STATE.VERIFYING}), DRAFT_BANK_ACCOUNT_ID],
-            ['the account is unknown', undefined, DRAFT_BANK_ACCOUNT_ID],
-        ])('has nothing in progress when %s', (_label, bankAccount, onboardingDraftBankAccountID) => {
+            ['the account is no longer verified', buildBankAccount(undefined, {state: CONST.BANK_ACCOUNT.STATE.VERIFYING})],
+            ['the account is unknown', undefined],
+        ])('has nothing in progress when %s', (_label, bankAccount) => {
             // Given an account with no onboarding the admin can continue or wait on
             // When the helpers evaluate the account
             // Then neither holds, since the onboarding opens only for an eligible account and ends once Wise decides
-            expect(canContinueWiseOnboarding(bankAccount, onboardingDraftBankAccountID)).toBe(false);
+            expect(isWiseOnboardingPendingSubmit(bankAccount)).toBe(false);
             expect(isWiseOnboardingAwaitingDecision(bankAccount)).toBe(false);
+            expect(isWiseOnboardingMoreInfoNeeded(bankAccount)).toBe(false);
         });
     });
 
