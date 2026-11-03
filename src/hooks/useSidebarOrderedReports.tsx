@@ -250,6 +250,7 @@ function SidebarOrderedReportsContextProvider({
             reportsToDisplay = SidebarUtils.updateReportsToDisplayInLHN({
                 displayedReports: currentReportsToDisplay,
                 reports: chatReports,
+                policies: allPolicies,
                 updatedReportsKeys: effectiveUpdatedReports,
                 currentReportId: derivedCurrentReportID,
                 isInFocusMode: priorityMode === CONST.PRIORITY_MODE.GSD,
@@ -271,6 +272,7 @@ function SidebarOrderedReportsContextProvider({
             reportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: derivedCurrentReportID,
                 reports: chatReports,
+                policies: allPolicies,
                 isDefaultRoomsBetaEnabled,
                 priorityMode,
                 draftComments: reportsDrafts,
@@ -308,6 +310,7 @@ function SidebarOrderedReportsContextProvider({
         guideAccountIDs,
         prevGuideAccountIDs,
         session,
+        allPolicies,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.
