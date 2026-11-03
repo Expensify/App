@@ -63,6 +63,11 @@ function getReportActionByIDSelector(reportActions: OnyxEntry<ReportActions>, re
     return reportActions[reportActionID];
 }
 
+function getBillProcessorAccountIDSelector(reportActions: OnyxEntry<ReportActions>): number | undefined {
+    const createdAction = Object.values(reportActions ?? {}).find((action) => isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED));
+    return getOriginalMessage(createdAction)?.processor;
+}
+
 function getReimbursedExpectedDateSelector(reportActions: OnyxEntry<ReportActions>, paymentCreated: string): string | undefined {
     let latestReimbursedAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSED> | undefined;
     for (const reportAction of Object.values(reportActions ?? {})) {
@@ -187,6 +192,7 @@ function getParentReportActionWithoutThreadRepliesSelector(parentReportActions: 
 }
 
 export {
+    getBillProcessorAccountIDSelector,
     getLatestFeedbackActionIDByAuthorSelector,
     getParentReportActionSelector,
     getLastClosedReportAction,

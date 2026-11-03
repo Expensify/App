@@ -8,6 +8,7 @@ import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isBillSubmittedAction from '@libs/isBillSubmittedAction';
 import {
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
@@ -34,7 +35,7 @@ import {buildUserIcon} from '@libs/UserAvatarUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
-import {getReportActionByIDSelector} from '@src/selectors/ReportAction';
+import {getBillProcessorAccountIDSelector, getReportActionByIDSelector} from '@src/selectors/ReportAction';
 import {pendingDeleteMemberAccountIDsSelector} from '@src/selectors/ReportMetaData';
 import type {InvitedEmailsToAccountIDs, OnyxInputOrEntry, Policy, Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
@@ -134,7 +135,15 @@ function useReportActionAvatars({
 
     const delegateAccountID = getDelegateAccountIDFromReportAction(action);
     const delegatePersonalDetails = delegateAccountID ? personalDetails?.[delegateAccountID] : undefined;
-    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor);
+    const isBillSubmission = isBillSubmittedAction(action, iouReport);
+    const [billProcessorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(isBillSubmission ? iouReport?.reportID : undefined)}`, {
+        selector: getBillProcessorAccountIDSelector,
+    });
+
+    // Bill intake submits as the receiver, but the history must credit the person who created the bill or Concierge.
+    const actorAccountID = isBillSubmission
+        ? billProcessorAccountID || CONST.ACCOUNT_ID.CONCIERGE
+        : getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor);
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
 
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);

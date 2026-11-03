@@ -147,7 +147,7 @@ describe('ReportActionItem', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false) {
+    function renderItemWithAction(action: ReportAction, isLatestConciergeFeedbackAction = false, report?: Report) {
         return render(
             <ComposeProviders
                 components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider, PlaybackContextProvider]}
@@ -157,7 +157,7 @@ describe('ReportActionItem', () => {
                         <ReportActionItem
                             reportsParentHierarchy={undefined}
                             chatReport={undefined}
-                            report={undefined}
+                            report={report}
                             transactionThreadReport={undefined}
                             parentReportAction={undefined}
                             action={action}
@@ -171,6 +171,48 @@ describe('ReportActionItem', () => {
             </ComposeProviders>,
         );
     }
+
+    describe('Bill submission history', () => {
+        const processorAccountID = 456;
+
+        it.each([
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED, 0, 'Concierge'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, processorAccountID, 'Tom Jones'],
+            [CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, 0, 'Concierge'],
+        ] as const)('credits %s to processor %s as %s', async (actionName, processor, actorName) => {
+            // Given bill intake submits as the receiver, while the creation action records who created the bill.
+            const senderAccountID = 321;
+            const bill: Report = {
+                reportID: '9876',
+                type: CONST.REPORT.UNSUPPORTED_TYPE.BILL,
+                ownerAccountID: ACTOR_ACCOUNT_ID,
+                managerID: 789,
+                billSenderAccountID: senderAccountID,
+            };
+            const action = {...createReportAction(actionName, {harvesting: true}), reportID: bill.reportID};
+            const createdAction = {...createReportAction(CONST.REPORT.ACTIONS.TYPE.CREATED, processor ? {processor} : {}), reportActionID: '12344'};
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${bill.reportID}`, bill);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${bill.reportID}`, {[createdAction.reportActionID]: createdAction, [action.reportActionID]: action});
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [ACTOR_ACCOUNT_ID]: {accountID: ACTOR_ACCOUNT_ID, displayName: 'Receiver'},
+                    [senderAccountID]: {accountID: senderAccountID, displayName: 'Sender'},
+                    [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones', login: 'tom@example.com'},
+                    [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', login: 'concierge@expensify.com'},
+                });
+            });
+
+            // When NewDot renders the submission, it uses the bill wording even for actions saved with a harvest token.
+            renderItemWithAction(action, false, bill);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the history names the creator and the original receiver, not the bill's current approver.
+            expect(screen.getByText(actorName)).toBeOnTheScreen();
+            expect(screen.getByText('created this bill on behalf of Sender\nsent this bill to Receiver')).toBeOnTheScreen();
+            expect(screen.queryByText(translateLocal('iou.automaticallySubmitted'))).not.toBeOnTheScreen();
+        });
+    });
 
     describe('Edited file attachments', () => {
         const attachmentURL = 'https://www.expensify.com/chat-attachments/12345/w_abc.csv';

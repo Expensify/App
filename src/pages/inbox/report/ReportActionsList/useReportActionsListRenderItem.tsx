@@ -5,6 +5,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isBillSubmittedAction from '@libs/isBillSubmittedAction';
 import {
     getFirstVisibleReportActionID,
     getFeedbackPromptActionIDs,
@@ -136,6 +137,9 @@ function useReportActionsListRenderItem({
         const isAfterCollapsedRun = !!previousRun && !previousRun.isExpanded;
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
+        // Bill history overrides the stored submission actor, so either neighbor needs its own actor header.
+        const shouldKeepBillActorHeaders = isBillSubmittedAction(reportAction, reportStable) || isBillSubmittedAction(previousReportAction, reportStable);
+
         return (
             <ReportActionPositionContextProvider
                 index={index}
@@ -166,6 +170,7 @@ function useReportActionsListRenderItem({
                         linkedReportActionID={linkedReportActionID}
                         displayAsGroup={
                             !isAfterCollapsedRun &&
+                            !shouldKeepBillActorHeaders &&
                             !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                             isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, canonicalIndex, isOffline)
                         }

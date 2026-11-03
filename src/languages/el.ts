@@ -32,6 +32,9 @@ type StateValue = {
 type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        submitted: ({sender, receiver}) => `δημιούργησε αυτόν τον λογαριασμό εκ μέρους του ${sender}\nέστειλε αυτόν τον λογαριασμό στον ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 ημέρα`,

@@ -507,6 +507,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'managerID':
         case 'lastActorAccountID':
         case 'ownerAccountID':
+        case 'billSenderAccountID':
         case 'total':
         case 'unheldTotal':
         case 'nonReimbursableTotal':
@@ -674,6 +675,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 lastActorAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 lastActionType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 ownerAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                billSenderAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 participants: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 total: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 unheldTotal: CONST.RED_BRICK_ROAD_PENDING_ACTION,

@@ -43,6 +43,9 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 
 const translations = {
+    billPay: {
+        submitted: ({sender, receiver}: {sender: string; receiver: string}) => `created this bill on behalf of ${sender}\nsent this bill to ${receiver}`,
+    },
     bulkActionBar: {
         label: 'Bulk actions',
         clearSelection: 'Clear selection',

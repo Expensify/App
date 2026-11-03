@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import isBillSubmittedAction from '@libs/isBillSubmittedAction';
 import {hasDynamicExternalWorkflow} from '@libs/PolicyUtils';
 import {getForwardedReportActionMessage, getOriginalMessage, hasPendingDEWApprove, hasPendingDEWSubmit, isActionOfType, isMarkAsClosedAction} from '@libs/ReportActionsUtils';
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
@@ -18,6 +19,8 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
+
+import BillSubmittedContent from './BillSubmittedContent';
 
 type ApprovalFlowContentProps = {
     action: OnyxTypes.ReportAction;
@@ -35,6 +38,10 @@ function ApprovalFlowContent({action, policyID, reportID, originalReport, isTrac
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
     const isPendingAdd = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD;
+
+    if (isBillSubmittedAction(action, originalReport)) {
+        return <BillSubmittedContent reportID={reportID} />;
+    }
 
     if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) || isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) || isMarkAsClosedAction(action)) {
         const wasSubmittedViaHarvesting = !isMarkAsClosedAction(action) ? (getOriginalMessage(action)?.harvesting ?? false) : false;

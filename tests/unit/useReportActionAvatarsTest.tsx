@@ -1,11 +1,11 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import type {PersonalDetailsList, Report, ReportAction} from '@src/types/onyx';
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 
 import Onyx from 'react-native-onyx';
@@ -13,6 +13,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createAdminRoom, createAnnounceRoom, createInvoiceReport, createInvoiceRoom, createRegularChat} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const mockPolicyID = '123456';
@@ -33,6 +34,40 @@ describe('useReportActionAvatars', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
         return waitForBatchedUpdates();
+    });
+
+    describe('Bill submission avatars', () => {
+        const processorAccountID = 456;
+
+        afterEach(() => Onyx.clear());
+
+        it.each([processorAccountID, 0])('uses processor %s or Concierge instead of the receiver', async (processor) => {
+            // Given bill intake submits the bill with the receiver's token.
+            const report: Report = {reportID: '9400', type: CONST.REPORT.UNSUPPORTED_TYPE.BILL, ownerAccountID: 123, managerID: 123};
+            const action = createMock<ReportAction>({actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, actorAccountID: 123});
+            const createdAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CREATED>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                message: {processor},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {created: createdAction});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [processorAccountID]: {accountID: processorAccountID, displayName: 'Tom Jones', avatar: 'https://example.com/tom.png'},
+                [CONST.ACCOUNT_ID.CONCIERGE]: {accountID: CONST.ACCOUNT_ID.CONCIERGE, displayName: 'Concierge', avatar: 'https://example.com/concierge.png'},
+            });
+            await waitForBatchedUpdates();
+
+            // When the history resolves the author, the creation action identifies a manual bill's processor.
+            const {result} = renderHook(() => useReportActionAvatars({report, action}), {wrapper});
+            await act(async () => waitForBatchedUpdates());
+
+            // Then both the name and avatar identify that processor, or Concierge for an emailed invoice.
+            const expectedAccountID = processor || CONST.ACCOUNT_ID.CONCIERGE;
+            expect(result.current.avatars.at(0)).toMatchObject({
+                id: expectedAccountID,
+                name: processor ? 'Tom Jones' : 'Concierge',
+                source: processor ? 'https://example.com/tom.png' : 'https://example.com/concierge.png',
+            });
+        });
     });
 
     describe('isWorkspaceActor', () => {
