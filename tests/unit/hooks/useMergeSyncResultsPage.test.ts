@@ -216,6 +216,24 @@ describe('useMergeSyncResultsPage', () => {
         expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it('opens nothing on a screen that was covered partway through the sync', async () => {
+        // Given Connections watching a sync that started while it was showing, then covered by its HR panel before the sync finishes
+        const {rerender} = await renderWith([RUNNING, '2026-08-26 10:00:00.000']);
+        mockIsFocused = false;
+        rerender({});
+        await pushSyncProgress(JOB_DONE, '2026-08-26 10:00:05.000', RESULT);
+
+        // When the panel closes and Connections is focused again
+        mockIsFocused = true;
+        rerender({});
+        await act(async () => {
+            await waitForBatchedUpdates();
+        });
+
+        // Then Connections opens nothing, because the panel on top already showed these results
+        expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     describe('without a connection to watch', () => {
         it('opens the results screen for whichever HR or recruiting provider syncs', async () => {
             await renderWith([RUNNING, '2026-08-26 10:00:00.000'], undefined);

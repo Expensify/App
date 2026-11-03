@@ -78,6 +78,11 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
             didWatchSyncRunRef.current = false;
         }
 
+        // A sync that finishes after this screen got covered is shown by the screen on top, so this one lets it go
+        if (isSyncDoneWithResult && !isFocused) {
+            didWatchSyncRunRef.current = false;
+        }
+
         const pendingSyncResult = pendingSyncResultRef.current;
         if (!pendingSyncResult || isModalOpenOnTop) {
             return;

@@ -88,6 +88,8 @@ function ConnectionCard({listing, shouldUseFullWidth}: ConnectionCardProps) {
             <MenuItem
                 ref={registerConnectButton}
                 title={title}
+                // The status message renders as an addon, which MenuItem leaves out of its default label
+                accessibilityLabel={[title, status?.message].filter(Boolean).join(', ')}
                 titleStyle={[styles.textStrong, styles.flexShrink1]}
                 icon={icon}
                 iconType={CONST.ICON_TYPE_AVATAR}
