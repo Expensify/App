@@ -53,7 +53,7 @@ function getDefaultFullScreenRoute(route?: NavigationRoute) {
         const reportID = route.params.reportID;
 
         // Only allReports should be checked here — TODO: Passing undefined in follow-up PRs of https://github.com/Expensify/App/issues/66414
-        if (!getReportOrDraftReport(reportID, undefined, undefined, {})) {
+        if (!getReportOrDraftReport({reportID, reportDraft: {}})) {
             return getTabNavigatorState({name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR});
         }
 
