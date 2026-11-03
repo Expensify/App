@@ -739,4 +739,56 @@ describe('handleBulkPayItemSelected', () => {
         // confirmPayment (onBulkPaySelected) is what surfaces the offline modal; the exact paymentType is not important here.
         expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
+
+    it('should hand Mark as paid to confirmPayment while offline so it can be paid optimistically', async () => {
+        // Given a user who is offline
+        const policy: Policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        // When they pick "Mark as paid" from the bulk Pay submenu
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            isOffline: true,
+            item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Mark as paid', icon: () => null},
+        });
+
+        // Then the payment goes straight to confirmPayment with the ELSEWHERE type, because marking as paid never
+        // needs KYC or bank account setup and can be queued offline
+        expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
+        expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
+        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, undefined);
+    });
+
+    it('should still block Mark as paid for a locked account while offline', async () => {
+        // Given a user with a locked account who is offline
+        const policy: Policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        };
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        // When they pick "Mark as paid" from the bulk Pay submenu
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            isAccountLocked: true,
+            isOffline: true,
+            item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Mark as paid', icon: () => null},
+        });
+
+        // Then the locked account modal is shown and nothing is paid, because now that Mark as paid can go through
+        // offline, it must pass the same account checks as it does online
+        expect(baseParams.showLockedAccountModal).toHaveBeenCalled();
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
 });
