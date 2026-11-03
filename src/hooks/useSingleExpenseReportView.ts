@@ -29,12 +29,16 @@ type UseSingleExpenseReportViewResult = {
 function useSingleExpenseReportView(reportID?: string): UseSingleExpenseReportViewResult {
     const {isBetaEnabled} = usePermissions();
     const [singleExpenseReportView = CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.EXPENSE] = useOnyx(ONYXKEYS.NVP_SINGLE_EXPENSE_REPORT_VIEW);
-    const [isSentMoneyReport = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: isSentMoneyReportSelector});
+    const prefersTableView = isBetaEnabled(CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW) && singleExpenseReportView === CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE;
+
+    // Only subscribe to the report's actions when the table view is otherwise on, since only then can a "Pay someone" report change the answer
+    const [isSentMoneyReport = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prefersTableView ? getNonEmptyStringOnyxID(reportID) : undefined}`, {
+        selector: isSentMoneyReportSelector,
+    });
 
     return {
         singleExpenseReportView,
-        shouldUseTableViewForSingleExpense:
-            isBetaEnabled(CONST.BETAS.SINGLE_EXPENSE_TABLE_VIEW) && singleExpenseReportView === CONST.REPORT_LAYOUT.SINGLE_EXPENSE_REPORT_VIEW.TABLE && !isSentMoneyReport,
+        shouldUseTableViewForSingleExpense: prefersTableView && !isSentMoneyReport,
     };
 }
 
