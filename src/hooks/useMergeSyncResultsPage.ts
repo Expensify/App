@@ -1,6 +1,5 @@
 import type {HRConnectionName} from '@libs/merge/HRUtils';
 import type {RecruitingConnectionName} from '@libs/merge/RecruitingUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
@@ -14,6 +13,7 @@ import {isModalActiveSelector} from '@selectors/Modal';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
 import useOnyx from './useOnyx';
+import useScreenBoundDynamicRoute from './useScreenBoundDynamicRoute';
 
 function getSyncResultsRoutePath(connectionName: ConnectionName | undefined) {
     if (CONST.POLICY.CONNECTIONS.HR_CONNECTION_NAMES.some((hrConnectionName) => hrConnectionName === connectionName)) {
@@ -44,6 +44,7 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
     // A mount that finds a finished sync already in Onyx never saw the run, therefore it opens nothing.
     const didWatchSyncRunRef = useRef(false);
     const [isAnyModalActive] = useOnyx(ONYXKEYS.MODAL, {selector: isModalActiveSelector});
+    const buildDynamicRoute = useScreenBoundDynamicRoute();
 
     const syncConnectionName = connectionSyncProgress?.connectionName;
     const openSyncResultsScreen = useEffectEvent((syncResult: PolicyConnectionSyncProgress['result'], syncedConnectionName: PolicyConnectionSyncProgress['connectionName']) => {
@@ -54,7 +55,7 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
 
         // The result payload stays in Onyx; the screen re-reads it from the `policyID` it inherits
         // from the workspace route, so nothing rich has to be serialized into navigation params.
-        Navigation.navigate(createDynamicRoute(routePath));
+        Navigation.navigate(buildDynamicRoute(routePath));
     });
 
     useEffect(() => {
@@ -76,8 +77,10 @@ function useMergeSyncResultsPage(policyID: string, connectionName?: HRConnection
             didWatchSyncRunRef.current = false;
         }
 
+        // Hold the result while the user is on another screen, so it doesn't open on top of that screen.
+        // It opens once the user comes back.
         const pendingSyncResult = pendingSyncResultRef.current;
-        if (!pendingSyncResult || isAnyModalActive) {
+        if (!pendingSyncResult || isAnyModalActive || !isFocused) {
             return;
         }
 
