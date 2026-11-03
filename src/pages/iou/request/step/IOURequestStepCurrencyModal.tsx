@@ -9,8 +9,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -27,6 +25,9 @@ type CurrencyPickerProps = {
 
     excludeCurrencies?: string[];
 
+    /** Whether the picker includes an option to clear the selected currency. */
+    shouldAllowEmptySelection?: boolean;
+
     /** The button that opens the picker. When passed, focus returns to it after the picker closes. */
     launcherRef?: FocusTrapForModalProps['launcherRef'];
 
@@ -40,6 +41,7 @@ function IOURequestStepCurrencyModal({
     headerText,
     value,
     excludeCurrencies,
+    shouldAllowEmptySelection = false,
     launcherRef,
     shouldKeepBackdropInNarrowPane = false,
     onInputChange = () => {},
@@ -62,8 +64,7 @@ function IOURequestStepCurrencyModal({
             shouldEnableNewFocusManagement
             shouldReturnFocus={!!launcherRef}
             launcherRef={launcherRef}
-            // Over a wider pane the backdrop covers part of that pane, so pressing it only closes the picker
-            onBackdropPress={shouldKeepBackdropInNarrowPane ? hidePickerModal : Navigation.dismissModal}
+            onBackdropPress={hidePickerModal}
             shouldKeepRightDockedBackdropInNarrowPane={shouldKeepBackdropInNarrowPane}
             shouldUseModalPaddingStyle={false}
             shouldHandleNavigationBack
@@ -86,6 +87,7 @@ function IOURequestStepCurrencyModal({
                     onSelect={updateInput}
                     searchInputLabel={translate('common.search')}
                     excludedCurrencies={excludeCurrencies}
+                    shouldAllowEmptySelection={shouldAllowEmptySelection}
                     addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
