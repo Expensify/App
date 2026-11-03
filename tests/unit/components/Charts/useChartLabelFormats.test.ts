@@ -116,3 +116,62 @@ describe('formatLabel', () => {
         expect(result.current.formatLabel(1)).toBe('Feb');
     });
 });
+
+describe('formatTotalValue', () => {
+    const DOLLAR = {value: '$', fallback: 'USD'};
+
+    it('keeps the decimals under 1m', () => {
+        // Given a currency with two decimals
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: DOLLAR}));
+
+        // When formatting totals with up to six integer digits
+        const formatted = [3527, 999999.99].map((total) => result.current.formatTotalValue(total, 2));
+
+        // Then the full amount is shown with the currency's decimals
+        expect(formatted).toEqual(['$3,527.00', '$999,999.99']);
+    });
+
+    it('drops the decimals from 1m to under 10m', () => {
+        // Given a currency with two decimals
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: DOLLAR}));
+
+        // When formatting totals with seven integer digits
+        const formatted = [1000000, 1234567.8].map((total) => result.current.formatTotalValue(total, 2));
+
+        // Then the full amount is rounded to a whole number, so it still fits in the donut
+        expect(formatted).toEqual(['$1,000,000', '$1,234,568']);
+    });
+
+    it('uses the compact form from 10m up', () => {
+        // Given a currency with two decimals
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: DOLLAR}));
+
+        // When formatting totals with eight or more integer digits
+        const formatted = [10000000, 2000000000].map((total) => result.current.formatTotalValue(total, 2));
+
+        // Then the total matches the compact form of the y-axis labels
+        expect(formatted).toEqual(['$10M', '$2B']);
+    });
+
+    it('shows no decimals for a currency without them', () => {
+        // Given a currency with zero decimals
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '¥', fallback: 'JPY'}}));
+
+        // When formatting a total under 1m
+        const formatted = result.current.formatTotalValue(3527, 0);
+
+        // Then no decimals are added, since the currency has none
+        expect(formatted).toBe('¥3,527');
+    });
+
+    it('shortens negative totals at the same thresholds', () => {
+        // Given a currency with two decimals
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: DOLLAR}));
+
+        // When formatting negative totals in each range
+        const formatted = [-3527, -1234567.8, -12100000].map((total) => result.current.formatTotalValue(total, 2));
+
+        // Then the thresholds use the absolute value and the minus sign leads the unit
+        expect(formatted).toEqual(['-$3,527.00', '-$1,234,568', '-$12M']);
+    });
+});
