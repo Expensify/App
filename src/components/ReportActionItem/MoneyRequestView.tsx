@@ -1396,14 +1396,18 @@ function MoneyRequestView({
                         </Text>
                     </View>
                 )}
-                <View
-                    // 16px above the heading comes from the view's own top padding, or from this padding below an
-                    // inline receipt. Its 8px bottom padding meets the first field's 8px top margin.
-                    style={[styles.ph5, shouldShowReceipt && styles.pt4, styles.pb2, styles.userSelectNone]}
-                    dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                >
-                    <Text variant="labelStrong">{translate('common.details')}</Text>
-                </View>
+                {/* The heading pairs with the "Receipt" heading of the wide RHP's receipt pane. An inline receipt
+                    has no heading, so the fields follow it directly. */}
+                {!shouldShowReceipt && (
+                    <View
+                        // 16px above the heading comes from the view's own top padding. Its 8px bottom padding meets
+                        // the first field's 8px top margin.
+                        style={[styles.ph5, styles.pb2, styles.userSelectNone]}
+                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                    >
+                        <Text variant="labelStrong">{translate('common.details')}</Text>
+                    </View>
+                )}
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
                     {canEditAmountInline && !!transaction?.transactionID ? (
                         <AmountInputField
