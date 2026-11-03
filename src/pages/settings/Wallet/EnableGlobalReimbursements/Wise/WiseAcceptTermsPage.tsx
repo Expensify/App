@@ -95,8 +95,8 @@ function WiseAcceptTermsPage() {
             return;
         }
         clearSensitiveAnswers(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-        // The status page reads the account's own status and follows it, so the terms do not decide between approved and in review
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path, introPath), {forceReplace: true});
+        // Until Auth ships SubmitWiseBusinessOnboarding, Confirm always opens the more info needed page
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WISE_MORE_INFO_NEEDED.path, introPath), {forceReplace: true});
     };
 
     if (!isWiseReimbursementsBetaEnabled) {

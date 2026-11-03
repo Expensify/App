@@ -1055,6 +1055,12 @@ const CONST = {
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
+        /** The content the onboarding status page shows, read from its `status` query param */
+        ONBOARDING_STATUS_PAGE: {
+            REVIEW: 'review',
+            APPROVED: 'approved',
+            REJECTED: 'rejected',
+        },
         /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
         ONBOARDING_STEP: {
             BUSINESS: 'business',

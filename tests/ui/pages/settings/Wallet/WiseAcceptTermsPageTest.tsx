@@ -7,7 +7,6 @@ import WiseAcceptTermsPage from '@pages/settings/Wallet/EnableGlobalReimbursemen
 import {clearSensitiveAnswers} from '@userActions/DynamicForm';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type ReactNative from 'react-native';
 
@@ -67,7 +66,7 @@ describe('WiseAcceptTermsPage', () => {
         jest.clearAllMocks();
     });
 
-    it('keeps the page open with an error until every box is ticked, then opens the status page', () => {
+    it('keeps the page open with an error until every box is ticked, then opens the more info needed page', () => {
         // Given the terms page with only two of the three boxes ticked
         render(<WiseAcceptTermsPage />);
         fireEvent.press(screen.getByLabelText(TERM_LABELS.at(0) ?? ''));
@@ -84,10 +83,9 @@ describe('WiseAcceptTermsPage', () => {
         fireEvent.press(screen.getByLabelText(TERM_LABELS.at(2) ?? ''));
         pressConfirm();
 
-        // Then the button still works after the error, the SSN kept in memory for this page is dropped, and the account's status page replaces the terms, since that page shows whatever Wise decided
+        // Then the button still works after the error, the SSN kept in memory for this page is dropped, and the more info needed page replaces the terms
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-        expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/1/${DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path}`, {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/more-info-needed', {forceReplace: true});
     });
 
     it('hides the error once the user changes a box', () => {

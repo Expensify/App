@@ -1,6 +1,6 @@
 /**
- * Shows where the business's Wise onboarding stands for one bank account: more info needed, in review, approved, or rejected.
- * It opens over the intro after Confirm on the terms page or from any link to the account, and the content updates live when the status changes.
+ * Shows where the business's Wise onboarding stands for one bank account: in review, approved, or rejected.
+ * It opens over the intro, and the `status` query param picks the content.
  */
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -13,8 +13,6 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
-import getWiseOnboardingStatusVariant from '@libs/getWiseOnboardingStatusVariant';
-import type {WiseOnboardingStatusVariant} from '@libs/getWiseOnboardingStatusVariant';
 import stripDynamicRouteSuffixFromPath from '@libs/Navigation/helpers/dynamicRoutesUtils/stripDynamicRouteSuffixFromPath';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -27,33 +25,37 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import type {ValueOf} from 'type-fest';
+
 import React, {useEffect} from 'react';
 
 import ApprovedContent from './WiseOnboardingStatus/ApprovedContent';
 import InReviewContent from './WiseOnboardingStatus/InReviewContent';
-import MoreInfoNeededContent from './WiseOnboardingStatus/MoreInfoNeededContent';
 import RejectedContent from './WiseOnboardingStatus/RejectedContent';
 
 type WiseOnboardingStatusPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ONBOARDING_STATUS>;
 
+type WiseOnboardingStatusPageStatus = ValueOf<typeof CONST.WISE.ONBOARDING_STATUS_PAGE>;
+
 const HEADER_TITLES = {
-    moreInfoNeeded: 'walletPage.wiseOnboarding.moreInfoNeeded.headerTitle',
-    inReview: 'walletPage.wiseOnboarding.inReview.title',
-    approved: 'walletPage.wiseOnboarding.approved.title',
-    rejected: 'walletPage.wiseOnboarding.rejected.title',
-} as const satisfies Record<WiseOnboardingStatusVariant, TranslationPaths>;
+    [CONST.WISE.ONBOARDING_STATUS_PAGE.REVIEW]: 'walletPage.wiseOnboarding.inReview.title',
+    [CONST.WISE.ONBOARDING_STATUS_PAGE.APPROVED]: 'walletPage.wiseOnboarding.approved.title',
+    [CONST.WISE.ONBOARDING_STATUS_PAGE.REJECTED]: 'walletPage.wiseOnboarding.rejected.title',
+} as const satisfies Record<WiseOnboardingStatusPageStatus, TranslationPaths>;
+
+/**
+ * A missing or unknown status shows the in review content, since that is what the admin sees right after submitting.
+ */
+function getStatus(status: string | undefined): WiseOnboardingStatusPageStatus {
+    return Object.values(CONST.WISE.ONBOARDING_STATUS_PAGE).find((value) => value === status) ?? CONST.WISE.ONBOARDING_STATUS_PAGE.REVIEW;
+}
 
 function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
     const bankAccountID = Number(route.params.bankAccountID);
     const introPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path);
     const entryPath = stripDynamicRouteSuffixFromPath(introPath, DYNAMIC_ROUTES.WISE_GLOBAL_REIMBURSEMENTS_INTRO.path);
-    // The status is read from the routed bank account, since the reimbursement account can still hold another account's onboarding
-    const [onboarding] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {
-        selector: (bankAccountList) => ({
-            hasBankAccount: !!bankAccountList?.[bankAccountID],
-            status: bankAccountList?.[bankAccountID]?.accountData?.additionalData?.wise?.status,
-        }),
-    });
+    const status = getStatus(route.params.status);
+    const [hasBankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (bankAccountList) => !!bankAccountList?.[bankAccountID]});
     const [isLoadingPaymentMethods = true] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
 
     const {translate} = useLocalize();
@@ -69,6 +71,7 @@ function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
         return true;
     });
 
+    // Close the page instead of showing "not found" when the user lacks the beta. Wait for betas to load first, since undefined means they are still loading
     useEffect(() => {
         if (isWiseReimbursementsBetaEnabled !== false) {
             return;
@@ -77,13 +80,11 @@ function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
     }, [isWiseReimbursementsBetaEnabled, goBackToEntryPoint]);
 
     // On a cold direct link the account list can be empty until the payment-method fetch finishes, so wait for it before judging the account
-    const isWaitingForBankAccount = !onboarding?.hasBankAccount && !!isLoadingPaymentMethods;
+    const isWaitingForBankAccount = !hasBankAccount && !!isLoadingPaymentMethods;
 
     if (isWaitingForBankAccount || !isWiseReimbursementsBetaEnabled) {
         return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
-
-    const variant = getWiseOnboardingStatusVariant(onboarding?.status);
 
     return (
         <ScreenWrapper
@@ -91,17 +92,16 @@ function WiseOnboardingStatusPage({route}: WiseOnboardingStatusPageProps) {
             includeSafeAreaPaddingBottom
         >
             <FullPageNotFoundView
-                shouldShow={!onboarding?.hasBankAccount}
+                shouldShow={!hasBankAccount}
                 onBackButtonPress={goBackToEntryPoint}
             >
                 <Header>
                     <Header.BackButton onPress={goBackToEntryPoint} />
-                    <Header.Title title={translate(HEADER_TITLES[variant])} />
+                    <Header.Title title={translate(HEADER_TITLES[status])} />
                 </Header>
-                {variant === 'moreInfoNeeded' && <MoreInfoNeededContent bankAccountID={bankAccountID} />}
-                {variant === 'inReview' && <InReviewContent onDone={goBackToEntryPoint} />}
-                {variant === 'approved' && <ApprovedContent onDone={goBackToEntryPoint} />}
-                {variant === 'rejected' && <RejectedContent onDone={goBackToEntryPoint} />}
+                {status === CONST.WISE.ONBOARDING_STATUS_PAGE.REVIEW && <InReviewContent onDone={goBackToEntryPoint} />}
+                {status === CONST.WISE.ONBOARDING_STATUS_PAGE.APPROVED && <ApprovedContent onDone={goBackToEntryPoint} />}
+                {status === CONST.WISE.ONBOARDING_STATUS_PAGE.REJECTED && <RejectedContent onDone={goBackToEntryPoint} />}
             </FullPageNotFoundView>
         </ScreenWrapper>
     );
