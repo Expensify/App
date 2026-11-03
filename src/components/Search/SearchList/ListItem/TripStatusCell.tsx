@@ -7,14 +7,19 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 import type {SearchTrip} from '@src/types/onyx/SearchResults';
 
+import type {StyleProp, ViewStyle} from 'react-native';
+
 import React from 'react';
 import {View} from 'react-native';
 
 type TripStatusCellProps = {
     status: SearchTrip['status'];
+
+    /** Styles for the badge, e.g. to align it within the cell */
+    badgeStyles?: StyleProp<ViewStyle>;
 };
 
-function TripStatusCell({status}: TripStatusCellProps) {
+function TripStatusCell({status, badgeStyles}: TripStatusCellProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -35,6 +40,7 @@ function TripStatusCell({status}: TripStatusCellProps) {
                 text={translate(`search.trip.status.${status}`)}
                 backgroundColor={badgeColors.backgroundColor}
                 textColor={badgeColors.textColor}
+                badgeStyles={badgeStyles}
             />
         </View>
     );

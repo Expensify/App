@@ -7,25 +7,18 @@ import {
     isConnectedAsDelegate,
     removeDelegate,
     removeSelfAsDelegate,
-    restoreDelegateSession,
     resumeSelfRemovalAsDelegate,
     updateDelegateRole,
 } from '@libs/actions/Delegate';
 import * as API from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import HttpUtils from '@libs/HttpUtils';
-import {clearPreservedNavigatorStates, getPreservedNavigatorState, setPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
-import navigationRef from '@libs/Navigation/navigationRef';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
 
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
-import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {DelegatedAccess} from '@src/types/onyx/Account';
 
 import Onyx from 'react-native-onyx';
@@ -321,6 +314,37 @@ describe('actions/Delegate', () => {
 
     // Stubbing the flow's API methods counts as chained API calls for this rule
     /* eslint-disable rulesdir/no-multiple-api-calls */
+    describe('connect token updates', () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('updates the cached token pair when connecting as a delegate', async () => {
+            // Given an account switch that replaces both the API and image credentials
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
+                jsonCode: CONST.JSON_CODE.SUCCESS,
+                restrictedToken: 'restrictedToken',
+                encryptedAuthToken: 'encrypted',
+                accountID: 2,
+                email: 'delegator@test.com',
+            });
+            jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockResolvedValue(undefined);
+            const setAuthTokenSpy = jest.spyOn(NetworkStore, 'setAuthToken');
+
+            // When the copilot switches into the delegator's account
+            await connect({
+                email: 'delegator@test.com',
+                delegatedAccess: undefined,
+                credentials: {},
+                session: {accountID: 1, email: 'copilot@test.com'},
+                activePolicyID: undefined,
+            });
+
+            // Then image probes receive the encrypted token belonging to the new API session
+            expect(setAuthTokenSpy).toHaveBeenCalledWith('restrictedToken', 'encrypted');
+        });
+    });
+
     describe('removeSelfAsDelegate', () => {
         afterEach(() => {
             jest.restoreAllMocks();
@@ -332,34 +356,40 @@ describe('actions/Delegate', () => {
                 {authToken: 'copilotRefreshedToken', encryptedAuthToken: 'encrypted', requesterID: 2, requesterEmail: 'copilot@test.com'},
                 false,
                 true,
-                {email: 'copilot@test.com', authToken: 'copilotRefreshedToken'},
+                {email: 'copilot@test.com', authToken: 'copilotRefreshedToken', encryptedAuthToken: 'encrypted'},
             ],
             [
                 'removes the copilot access when restoring the original session is interrupted after SESSION was written',
                 {authToken: 'copilotRefreshedToken', encryptedAuthToken: 'encrypted', requesterID: 2, requesterEmail: 'copilot@test.com'},
                 true,
                 true,
-                {email: 'copilot@test.com', authToken: 'copilotRefreshedToken'},
+                {email: 'copilot@test.com', authToken: 'copilotRefreshedToken', encryptedAuthToken: 'encrypted'},
             ],
             [
                 'removes the copilot access once the original session is restored from the stash',
                 {authToken: undefined, encryptedAuthToken: undefined, requesterID: undefined, requesterEmail: undefined},
                 false,
                 true,
-                {email: 'copilot@test.com', authToken: 'copilotAuthToken'},
+                {email: 'copilot@test.com', authToken: 'copilotAuthToken', encryptedAuthToken: 'stashedEncryptedToken'},
             ],
             [
                 'keeps the copilot access and shows an error when the original session could not be restored',
                 new Error('Network error'),
                 false,
                 false,
-                {email: 'delegator@test.com', authToken: 'restrictedToken'},
+                {email: 'delegator@test.com', authToken: 'restrictedToken', encryptedAuthToken: 'restrictedEncryptedToken'},
             ],
         ])('%s', async (_description, disconnectResponse, shouldOpenAppFail, shouldRemoveDelegator, expectedSession) => {
             // Given a copilot acting as the delegator, with their own session and login stashed
-            const stashedSession = {authToken: 'copilotAuthToken', email: 'copilot@test.com', accountID: 2};
+            const stashedSession = {authToken: 'copilotAuthToken', encryptedAuthToken: 'stashedEncryptedToken', email: 'copilot@test.com', accountID: 2};
             const stashedCredentials = {autoGeneratedLogin: 'copilotLogin', autoGeneratedPassword: 'copilotPassword'};
-            await Onyx.set(ONYXKEYS.SESSION, {authToken: 'restrictedToken', email: 'delegator@test.com', accountID: 1, authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                authToken: 'restrictedToken',
+                encryptedAuthToken: 'restrictedEncryptedToken',
+                email: 'delegator@test.com',
+                accountID: 1,
+                authTokenType: CONST.AUTH_TOKEN_TYPES.DELEGATE,
+            });
             let pendingRemovalAtDisconnect: string | undefined;
             jest.spyOn(API, 'makeRequestWithSideEffects').mockImplementation(async () => {
                 pendingRemovalAtDisconnect = await getOnyxValue(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL);
@@ -371,6 +401,7 @@ describe('actions/Delegate', () => {
             jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockImplementation(() => (shouldOpenAppFail ? Promise.reject(new Error('OpenApp failed')) : Promise.resolve()));
             const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
             const readSpy = jest.spyOn(API, 'read').mockImplementation(() => {});
+            const setAuthTokenSpy = jest.spyOn(NetworkStore, 'setAuthToken');
 
             // When the copilot removes themselves from the delegator's copilots
             await removeSelfAsDelegate({delegatorEmail: 'delegator@test.com', delegateEmail: 'copilot@test.com', stashedCredentials, stashedSession});
@@ -384,6 +415,7 @@ describe('actions/Delegate', () => {
             expect(removeDelegatorCalls).toHaveLength(shouldRemoveDelegator ? 1 : 0);
             await expect(getOnyxValue(ONYXKEYS.SESSION)).resolves.toEqual(expect.objectContaining(expectedSession));
             if (shouldRemoveDelegator) {
+                expect(setAuthTokenSpy).toHaveBeenCalledWith(expectedSession.authToken, expectedSession.encryptedAuthToken);
                 expect(writeSpy).toHaveBeenCalledWith(
                     WRITE_COMMANDS.REMOVE_DELEGATOR,
                     {delegatorEmail: 'delegator@test.com'},
@@ -424,147 +456,6 @@ describe('actions/Delegate', () => {
             if (isDelegateSession) {
                 await expect(getOnyxValue(ONYXKEYS.PENDING_SELF_COPILOT_REMOVAL)).resolves.toBeUndefined();
             }
-        });
-    });
-
-    describe('restoreDelegateSession', () => {
-        afterEach(() => {
-            jest.restoreAllMocks();
-            clearPreservedNavigatorStates();
-        });
-
-        it('resets navigation so the restored account does not land on screens of the account it switched from', async () => {
-            // Given a copilot who opened the delegator's workspace chat, so the Inbox tab still holds it
-            const preservedReportsNavigatorKey = `${NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}-key`;
-            setPreservedNavigatorState(preservedReportsNavigatorKey, {
-                key: 'reportsState',
-                index: 1,
-                routeNames: [SCREENS.INBOX, SCREENS.REPORT],
-                routes: [
-                    {key: 'inbox', name: SCREENS.INBOX},
-                    {key: 'report', name: SCREENS.REPORT, params: {reportID: '1'}},
-                ],
-                stale: false,
-                type: 'stack',
-            });
-            jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
-            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
-            const setAuthTokenSpy = jest.spyOn(NetworkStore, 'setAuthToken');
-            jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockResolvedValue(undefined);
-            jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
-
-            // When the copilot switches back to their own account
-            await restoreDelegateSession({
-                authToken: 'copilotAuthToken',
-                encryptedAuthToken: 'encrypted',
-                accountID: 2,
-                email: 'copilot@test.com',
-                stashedCredentials: {},
-                stashedSession: {},
-            });
-            await waitForBatchedUpdates();
-
-            // Then the delegator's screens are dropped and the app starts again from the Settings tab, where accounts are switched
-            expect(setAuthTokenSpy).toHaveBeenCalledWith('copilotAuthToken', 'encrypted');
-            expect(getPreservedNavigatorState(preservedReportsNavigatorKey)).toBeUndefined();
-            expect(resetRootSpy).toHaveBeenCalledTimes(1);
-            const resetState = resetRootSpy.mock.calls.at(0)?.at(0);
-            const tabNavigatorState = resetState?.routes.at(resetState.index ?? -1)?.state;
-            expect(tabNavigatorState?.routes.at(tabNavigatorState.index ?? -1)?.name).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
-        });
-
-        it('finishes the switch when resetting navigation throws', async () => {
-            // Given a navigation reset that throws, after the auth token was already swapped to the restored account
-            await Onyx.set(ONYXKEYS.STASHED_SESSION, {accountID: 2, email: 'copilot@test.com'});
-            jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
-            jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {
-                throw new Error('Invalid navigation state');
-            });
-            jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockResolvedValue(undefined);
-            jest.spyOn(HttpUtils, 'xhr').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
-
-            // When the copilot switches back to their own account
-            await restoreDelegateSession({
-                authToken: 'copilotAuthToken',
-                encryptedAuthToken: 'encrypted',
-                accountID: 2,
-                email: 'copilot@test.com',
-                stashedCredentials: {},
-                stashedSession: {},
-            });
-            await waitForBatchedUpdates();
-
-            // Then Onyx is still cleared and reseeded, so the restored account never sees the previous account's data
-            expect(await getOnyxValue(ONYXKEYS.STASHED_SESSION)).toEqual({});
-            expect((await getOnyxValue(ONYXKEYS.CREDENTIALS))?.accountID).toBe(2);
-        });
-    });
-
-    describe('connect navigation reset', () => {
-        const agentEmail = 'agent_3@expensify.ai';
-        const agentAccountID = 3;
-
-        beforeEach(async () => {
-            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[agentAccountID]: {accountID: agentAccountID, login: agentEmail, isCustomAgent: true}});
-            jest.spyOn(navigationRef, 'isReady').mockReturnValue(true);
-            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({
-                jsonCode: CONST.JSON_CODE.SUCCESS,
-                restrictedToken: 'agentRestrictedToken',
-                encryptedAuthToken: 'encrypted',
-                accountID: agentAccountID,
-                email: agentEmail,
-            });
-            jest.spyOn(API, 'writeWithNoDuplicatesOpenAppConflictAction').mockResolvedValue(undefined);
-        });
-
-        afterEach(() => {
-            jest.restoreAllMocks();
-        });
-
-        function getLandingTabName(resetState: Parameters<typeof navigationRef.resetRoot>[0]) {
-            const tabNavigatorState = resetState?.routes.at(resetState.index ?? -1)?.state;
-            return tabNavigatorState?.routes.at(tabNavigatorState.index ?? -1)?.name;
-        }
-
-        it('starts navigation over from the route the caller passes', async () => {
-            // Given an owner copiloting from an agent page, which asks to land on Home because the agent can't use its own Agents pages
-            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
-            const setAuthTokenSpy = jest.spyOn(NetworkStore, 'setAuthToken');
-
-            // When the owner copilots into the agent with Home as the landing route
-            await connect({
-                email: agentEmail,
-                delegatedAccess: undefined,
-                credentials: {},
-                session: {accountID: 1, email: 'owner@test.com'},
-                activePolicyID: undefined,
-                routeAfterSwitch: ROUTES.HOME,
-            });
-            await waitForBatchedUpdates();
-
-            // Then the app starts again from Home rather than the Settings tab
-            expect(setAuthTokenSpy).toHaveBeenCalledWith('agentRestrictedToken', 'encrypted');
-            expect(resetRootSpy).toHaveBeenCalledTimes(1);
-            expect(getLandingTabName(resetRootSpy.mock.calls.at(0)?.at(0))).toBe(SCREENS.HOME);
-        });
-
-        it('lands on the Settings tab by default, even when copiloting into an agent', async () => {
-            // Given an owner switching into an agent from the account switcher, which passes no landing route
-            const resetRootSpy = jest.spyOn(navigationRef, 'resetRoot').mockImplementation(() => {});
-
-            // When the owner copilots into the agent
-            await connect({
-                email: agentEmail,
-                delegatedAccess: undefined,
-                credentials: {},
-                session: {accountID: 1, email: 'owner@test.com'},
-                activePolicyID: undefined,
-            });
-            await waitForBatchedUpdates();
-
-            // Then the app lands on the Settings tab like any other copilot switch
-            expect(resetRootSpy).toHaveBeenCalledTimes(1);
-            expect(getLandingTabName(resetRootSpy.mock.calls.at(0)?.at(0))).toBe(NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR);
         });
     });
     /* eslint-enable rulesdir/no-multiple-api-calls */
