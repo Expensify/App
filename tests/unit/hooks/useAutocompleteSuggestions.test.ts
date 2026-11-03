@@ -838,6 +838,20 @@ describe('useAutocompleteSuggestions', () => {
             expect(result.current.map((item) => item.text)).toEqual(['Tag absent']);
         });
 
+        it('excludes a violation that was typed by its raw name', () => {
+            // Given the user typed the raw name missingCategory instead of picking the translated label, then started the next value
+            parseForAutocomplete.mockReturnValue({
+                autocomplete: {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, value: 'absent'},
+                ranges: [{key: CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION, length: 15, start: 10, value: CONST.VIOLATIONS.MISSING_CATEGORY}],
+            });
+
+            // When autocomplete runs
+            const {result} = renderHook(() => useAutocompleteSuggestions({...defaultParams, translate, autocompleteQueryValue: 'violation:missingCategory,absent'}));
+
+            // Then the same violation is not offered again under its label, which would put it in the query twice
+            expect(result.current.map((item) => item.text)).toEqual(['Tag absent']);
+        });
+
         it('suggests nothing when no workspace has Rules enabled', () => {
             // Given none of the user's workspaces has Rules turned on, so the advanced filters hide the violation row too
             hasRulesEnabledPolicy.mockReturnValueOnce(false);

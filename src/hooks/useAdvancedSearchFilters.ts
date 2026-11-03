@@ -319,8 +319,8 @@ function useAdvancedSearchFilters(type: SearchDataTypes | undefined) {
     const isVendorFilterAvailableSelector = (allPolicies: OnyxCollection<Policy>) => hasVendorFeatureOnAnyPolicy(allPolicies, isVendorMatchingBetaEnabled);
     const [isVendorFilterAvailable = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: isVendorFilterAvailableSelector});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const shouldDisplayViolationFilterSelector = (policyCategories: OnyxCollection<PolicyCategories>) => hasRulesEnabledPolicy(policies, policyCategories);
-    const [shouldDisplayViolationFilter = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: shouldDisplayViolationFilterSelector});
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const shouldDisplayViolationFilter = hasRulesEnabledPolicy(policies, allPolicyCategories);
 
     const {workspaces} = useAdvancedSearchFiltersWorkspaces(policies);
 

@@ -459,7 +459,9 @@ function useAutocompleteSuggestions({
             const filteredViolations = VIOLATION_FILTER_VALUES.map((violationName) => ({violationName, displayName: getViolationDisplayName(violationName, translate)}))
                 .filter(
                     ({violationName, displayName}) =>
-                        (displayName.toLowerCase().includes(searchValue) || violationName.toLowerCase().includes(searchValue)) && !alreadyAutocompletedKeys.has(displayName.toLowerCase()),
+                        (displayName.toLowerCase().includes(searchValue) || violationName.toLowerCase().includes(searchValue)) &&
+                        !alreadyAutocompletedKeys.has(displayName.toLowerCase()) &&
+                        !alreadyAutocompletedKeys.has(violationName.toLowerCase()),
                 )
                 .sort((first, second) => localeCompare(first.displayName, second.displayName));
 
