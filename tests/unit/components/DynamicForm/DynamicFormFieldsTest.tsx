@@ -63,6 +63,13 @@ jest.mock('@components/Form/InputWrapper', () => ({
     default: (props: CapturedInputProps) => mockInputWrapper(props),
 }));
 
+const mockOnFileTextInput = jest.fn((props: {inputID: string; label?: string; shouldSaveDraft?: boolean}) => props.inputID);
+
+jest.mock('@components/DynamicForm/components/DynamicFormOnFileTextInput', () => ({
+    __esModule: true,
+    default: (props: {inputID: string}) => mockOnFileTextInput(props),
+}));
+
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
         translate: (key: string, parameters?: {example?: string; count?: number}) => {
@@ -105,6 +112,7 @@ type RenderFieldsOptions = {
 
 function renderFields(content: DynamicFormContentItem[], values: DynamicFormValues = {}, {currency, maxFileSize, onRefreshRequirements, isLoneFieldInHeadline}: RenderFieldsOptions = {}) {
     mockInputWrapper.mockClear();
+    mockOnFileTextInput.mockClear();
     render(
         <DynamicFormFields
             content={content}
@@ -189,6 +197,29 @@ describe('DynamicFormFields', () => {
         // Then only the regular field saves its draft
         expect(rendered.get('ssn')?.shouldSaveDraft).toBe(false);
         expect(rendered.get('nationality')?.shouldSaveDraft).toBe(true);
+    });
+
+    it('draws a sensitive answer the server holds with the on-file input', () => {
+        // Given a resumed SSN the server holds, which it never sends back
+        const ssn: DynamicFormField = {key: 'ssn', type: 'text', required: true, sensitive: true};
+
+        // When its page renders
+        renderFields([ssn, otherQuestion], {ssnProvided: true});
+
+        // Then the on-file input draws it, which shows the mask until the user clears it, with the label and the draft rule the field would get anyway
+        expect(mockOnFileTextInput).toHaveBeenCalledWith(expect.objectContaining({inputID: 'ssn', label: 'ssn', shouldSaveDraft: false}));
+    });
+
+    it('shows no mask on a sensitive field the server does not hold', () => {
+        // Given an SSN the user has not given yet
+        const ssn: DynamicFormField = {key: 'ssn', type: 'text', required: true, sensitive: true};
+
+        // When the field renders
+        const rendered = renderFields([ssn, otherQuestion]);
+
+        // Then the input is a plain one, with nothing suggesting an answer is on file
+        expect(mockOnFileTextInput).not.toHaveBeenCalled();
+        expect(rendered.get('ssn')?.InputComponent).toBe(TextInput);
     });
 
     it.each(FIELD_TYPES)('refills a sensitive %s field from the answer kept in memory', (type) => {
