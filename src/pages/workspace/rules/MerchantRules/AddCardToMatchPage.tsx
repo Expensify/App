@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import HeaderWithBackButtonAndTitle from '@components/Header/composed/HeaderWithBackButtonAndTitle';
@@ -12,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyCards from '@hooks/usePolicyCards';
 import useSearchResults from '@hooks/useSearchResults';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateDraftMerchantRule} from '@libs/actions/User';
@@ -31,6 +33,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
+import {View} from 'react-native';
 
 import useMerchantRuleRoute from './useMerchantRuleRoute';
 import useRuleConditionSelection from './useRuleConditionSelection';
@@ -45,9 +48,10 @@ function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
     const {policyID, ruleID} = route.params;
     const {backToRoute} = useMerchantRuleRoute(DYNAMIC_ROUTES.RULES_CARD_TO_MATCH_FROM_EXPENSE.path, policyID, ruleID);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate, localeCompare} = useLocalize();
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
-    const policyCards = usePolicyCards(policyID);
+    const {cards: policyCards, isLoadingCards} = usePolicyCards(policyID);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
 
@@ -128,14 +132,24 @@ function AddCardToMatchPage({route}: AddCardToMatchPageProps) {
                     listHeaderSelectAllTextStyle: [styles.textLabelSupporting],
                 }}
                 listEmptyContent={
-                    <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                        <BlockingView
-                            icon={illustrations.Telescope}
-                            iconWidth={variables.emptyListIconWidth}
-                            iconHeight={variables.emptyListIconHeight}
-                            title={translate('common.noResultsFound')}
-                        />
-                    </ScrollView>
+                    // An empty list reads as a workspace with no cards, so it waits for the cards to arrive first.
+                    isLoadingCards ? (
+                        <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                            <ActivityIndicator
+                                color={theme.spinner}
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            />
+                        </View>
+                    ) : (
+                        <ScrollView contentContainerStyle={[styles.flexGrow1]}>
+                            <BlockingView
+                                icon={illustrations.Telescope}
+                                iconWidth={variables.emptyListIconWidth}
+                                iconHeight={variables.emptyListIconHeight}
+                                title={translate('common.noResultsFound')}
+                            />
+                        </ScrollView>
+                    )
                 }
                 footerContent={
                     <FormAlertWithSubmitButton

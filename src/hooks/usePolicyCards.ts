@@ -5,6 +5,15 @@ import type {Card} from '@src/types/onyx';
 import useCardFeedsForDisplay from './useCardFeedsForDisplay';
 import useCardsLists from './useCardsLists';
 import useDefaultFundID from './useDefaultFundID';
+import useLoadSearchCardData from './useLoadSearchCardData';
+
+type PolicyCards = {
+    /** The cards the workspace's own feeds hold */
+    cards: Card[];
+
+    /** Whether the cards are still on their way, which is not the same as the workspace having none */
+    isLoadingCards: boolean;
+};
 
 /**
  * The cards a rule on this workspace can match on, across its Expensify Card and company card feeds.
@@ -16,7 +25,11 @@ import useDefaultFundID from './useDefaultFundID';
  * The feeds are matched on the whole `<fundID>_<feedName>` key rather than on the fund, because one domain fund
  * holds a feed per workspace it serves and each is listed only under the workspace it is linked to.
  */
-function usePolicyCards(policyID: string | undefined): Card[] {
+function usePolicyCards(policyID: string | undefined): PolicyCards {
+    // Onyx opens with only a subset of the cards, and the per feed loaders each need a feed, an account ID and a
+    // member list, so reaching this page without passing a card page would otherwise leave nothing to pick from.
+    // This asks for every card the admin administers in one call, which the feed keys below narrow back down.
+    const {isLoadingInitialCards} = useLoadSearchCardData();
     const [cardsLists] = useCardsLists();
     const defaultFundID = useDefaultFundID(policyID);
     const {cardFeedsByPolicy} = useCardFeedsForDisplay();
@@ -36,7 +49,7 @@ function usePolicyCards(policyID: string | undefined): Card[] {
         cards.push(...Object.values(feedCards));
     }
 
-    return cards;
+    return {cards, isLoadingCards: isLoadingInitialCards};
 }
 
 export default usePolicyCards;

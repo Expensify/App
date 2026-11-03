@@ -18,7 +18,7 @@ import useWorkspaceMembers from './useWorkspaceMembers';
 function useExpenseDefaultConditionNames(policy: OnyxEntry<Policy>): ExpenseDefaultConditionNames {
     const {translate} = useLocalize();
     const members = useWorkspaceMembers(policy);
-    const policyCards = usePolicyCards(policy?.id);
+    const {cards: policyCards} = usePolicyCards(policy?.id);
 
     const submitters: Record<string, string> = {};
     for (const {accountID, details} of members) {

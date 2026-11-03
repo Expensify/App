@@ -198,7 +198,7 @@ function ExpenseDefaultRulePageBase({
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Calendar', 'Cash', 'CreditCard', 'Folder', 'Paperclip', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
-    const policyCards = usePolicyCards(policyID);
+    const {cards: policyCards} = usePolicyCards(policyID);
     const cardDescriptionsByID = new Map(policyCards.map((card) => [String(card.cardID), getCardDescription(card, translate)]));
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
