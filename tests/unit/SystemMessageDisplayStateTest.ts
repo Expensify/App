@@ -55,13 +55,16 @@ const NON_COLLAPSIBLE_SYSTEM_MESSAGE_ACTION_TYPES = [
 
 describe('system message presentation', () => {
     describe('classification', () => {
-        it.each([CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED, CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION])('retains the dedicated simple-message renderer for %s', (actionName) => {
-            // Given an upstream action whose renderer was moved behind the shared classifier
-            const action = makeAction('1', actionName);
-            // When routing its content
-            // Then preserve its dedicated renderer instead of generic fallback content
-            expect(isSimpleMessageAction(action)).toBe(true);
-        });
+        it.each([CONST.REPORT.ACTIONS.TYPE.AGENT_PROMPT_UPDATED, CONST.REPORT.ACTIONS.TYPE.UNDELETED_TRANSACTION, CONST.REPORT.ACTIONS.TYPE.MERGED_EXPENSE_DELETED])(
+            'retains the dedicated simple-message renderer for %s',
+            (actionName) => {
+                // Given an upstream action whose renderer was moved behind the shared classifier
+                const action = makeAction('1', actionName);
+                // When routing its content
+                // Then preserve its dedicated renderer instead of generic fallback content
+                expect(isSimpleMessageAction(action)).toBe(true);
+            },
+        );
 
         it.each([
             CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
@@ -222,8 +225,12 @@ describe('system message presentation', () => {
         );
 
         it('collapses maximal runs of two or more system messages to one anchor row', () => {
-            // Given consecutive passive updates, including muted audit types
-            const actions = [systemAction('1'), makeAction('2', CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION), makeAction('3', CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)];
+            // Given consecutive passive updates, including muted audit types and one whose thread was opened without any replies
+            const actions = [
+                systemAction('1', {childReportID: 'thread-report', childVisibleActionCount: 0, childCommenterCount: 0}),
+                makeAction('2', CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION),
+                makeAction('3', CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT),
+            ];
             // When constructing their presentation
             const state = getSystemMessageDisplayState(actions, new Set());
 
@@ -241,22 +248,29 @@ describe('system message presentation', () => {
             ]);
         });
 
-        it.each([
-            chatAction('3'),
-            systemAction('3', {error: 'Could not update'}),
-            systemAction('3', {originalMessage: {reasoning: 'The expense was changed automatically.'}}),
-            systemAction('3', {childReportID: 'thread-report', childVisibleActionCount: 1, childCommenterCount: 1}),
-        ])('preserves chat, error, Explain, and reply rows as run boundaries: %s', (boundary) => {
-            // Given two eligible runs separated by a row with independently visible content
-            const actions = [systemAction('1'), systemAction('2'), boundary, systemAction('4'), systemAction('5')];
-            // When constructing the display list
+        it.each(
+            [
+                chatAction('3'),
+                systemAction('3', {error: 'Could not update'}),
+                systemAction('3', {originalMessage: {reasoning: 'The expense was changed automatically.'}}),
+                systemAction('3', {childReportID: 'thread-report', childVisibleActionCount: 1, childCommenterCount: 1}),
+            ].flatMap((boundary) => [
+                {boundary, newestFirst: false},
+                {boundary, newestFirst: true},
+            ]),
+        )('preserves interactive rows as run boundaries (newest first: $newestFirst): $boundary', ({boundary, newestFirst}) => {
+            // Given two eligible runs separated by interactive content
+            const chronologicalActions = [systemAction('1'), systemAction('2'), boundary, systemAction('4'), systemAction('5')];
+            const actions = newestFirst ? chronologicalActions.toReversed() : chronologicalActions;
+            // When constructing the display list in either report layout direction
             const state = getSystemMessageDisplayState(actions, new Set());
-            // Then the boundary remains visible and each neighboring run has its own summary
+            // Then the interactive row stays visible between summaries with correct canonical-to-display mappings
             expect(isCollapsibleSystemMessageAction(boundary)).toBe(false);
-            expect(state.displayReportActions.map((action) => action.reportActionID)).toEqual(['1', '3', '4']);
-            expect([...state.runsByAnchorReportActionID.keys()]).toEqual(['1', '4']);
-            expect(state.reportActionIDToDisplayIndex.get('2')).toBe(0);
-            expect(state.reportActionIDToDisplayIndex.get('5')).toBe(2);
+            expect(state.displayReportActions.map((action) => action.reportActionID)).toEqual(newestFirst ? ['5', '3', '2'] : ['1', '3', '4']);
+            expect([...state.runsByAnchorReportActionID.keys()]).toEqual(newestFirst ? ['2', '5'] : ['1', '4']);
+            expect(state.reportActionIDToDisplayIndex.get('2')).toBe(newestFirst ? 2 : 0);
+            expect(state.reportActionIDToDisplayIndex.get('3')).toBe(1);
+            expect(state.reportActionIDToDisplayIndex.get('5')).toBe(newestFirst ? 0 : 2);
         });
 
         it.each([false, true])('restores every member and display index when expanded (newest first: %s)', (newestFirst) => {

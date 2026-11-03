@@ -92,6 +92,8 @@ Use this guide to understand:
 
 **Workspace Admin**
 - Export reports
+- Reject reports
+- Delete Draft reports on their workspace, including Draft reports submitted by other members
 - Mark reports as exported
 - Change approver
 - Bypass approvers
@@ -139,14 +141,15 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Change workspace** | Draft reports | Submitter | Moves the report to another workspace |
 | **Change workspace** | Before export | Approver, Workspace Admin | Moves the report to another workspace |
 | **Change approver** | Submitted reports | Workspace Admin | Adds or bypasses approvers |
-| **Delete** | Draft reports only | Submitter | Permanently removes the report |
+| **Delete** | Draft reports only | Submitter, Workspace Admin | Removes the report. When a Workspace Admin deletes another member’s report, the expenses on it become Unreported instead of being deleted |
 | **Undelete** | Deleted expenses | Submitter | Restores a deleted expense |
 | **Unapprove** | After approval, before payment | Approver | Reverts approval |
 | **Mark as exported** | Approved or Paid reports | Workspace Admin | Marks report as exported manually |
 | **Export to accounting system** | When accounting integration is enabled | Workspace Admin | Sends data externally |
 | **Duplicate expense** | Non-card expenses | Submitter | Creates a copy of an expense |
 | **Duplicate report** | Any report owned by submitter | Submitter | Creates a copy of the report |
-| **Download report** | Any report | All roles | Downloads a PDF copy |
+| **Download report** | Any report | All roles (Submitter only on Draft reports) | Downloads a PDF copy |
+| **Share** | Any report | All roles | Opens **Share code**, **Refer a friend**, and **Copy URL**. On expense reports that aren't Draft, the submitter, approver, and workspace admin also see **Share report**, which emails the report to one person you choose |
 | **Print** | Any report except Draft | All roles | Opens print view |
 | **Reject** | Submitted reports | Approver, Admin | Sends report back for changes |
 | **Invite member** | Draft and Outstanding reports | All roles | Adds a member to the report |
@@ -156,13 +159,13 @@ How long **Cancel payment** stays available depends on how the report was paid:
 | **Change workspace** | Draft reports | Submitter | Moves the report to a different workspace |
 | **Change workspace** | Before report is exported | Approver, Admin | Moves the report to a different workspace |
 | **Change approver** | On submitted reports, before the report is final-approved | Admin | "Add Approver" allows an extra approver to be inserted into the approval workflow at the current point. "Bypass Approver" allows an admin to take control of the report approval and final approve |
-| **Delete** | Only on draft/unsubmitted reports | Submitter | Permanently removes the report |
+| **Delete** | Only on draft/unsubmitted reports | Submitter, Workspace Admin | Removes the report. A Workspace Admin can delete another member’s Draft report, which leaves the expenses on it Unreported in that member's account |
 | **Unapprove** | After approval, before payment | Approver | Reverts the approval if the report hasn’t been re-approved or paid |
 | **Mark as exported** | On approved/paid reports when integrated to an accounting system| Admin, Exporter | Marks the report as manually exported for tracking purposes |
 | **Export to [accounting system]** | When an accounting system is connected | Admin, Exporter | Sends the report to an external system such as Xero or QuickBooks Online |
-| **Duplicate expense** | On non-card expenses in any state | Submitter | Creates a copy of the expense on your primary workspace with the same details. Date is set to today and receipts are not copied |
+| **Duplicate expense** | On non-card expenses in any state | Submitter | Creates a copy of the expense with the same details. The copy is added to the same report if it can still accept expenses, or to your primary workspace if not. Date is set to today and receipts are not copied |
 | **Duplicate report** | On reports the submitter owns, in any state | Submitter | Creates a copy of the report and its non-card expenses. Date is set to today and receipts are not copied |
-| **Download report** | Any report state | All roles | Downloads a copy of the report as a PDF |
+| **Download report** | Any report state | All roles on reports that aren't Draft. Submitter only on Draft reports, including reports rejected back to the submitter | Downloads a copy of the report as a PDF |
 | **Print** | Any report status except Draft | All roles | Opens the report in a printable format and triggers the browser's print dialog |
 | **Submit** | For draft reports | Submitter, Admin (on behalf of submitter) | Kicks off report approval workflow |
 | **Reject** | On Outstanding reports | Assigned approver, Admin | Returns the entire report to the submitter or a previous approver with a required reason. The report moves to Draft (if rejected to submitter) or stays Outstanding (if rejected to a previous approver) |

@@ -94,5 +94,5 @@ Only Domain Admins can access the Reconciliation tool.
    - Amount
    - Last four digits of the card number
 
-**Note: Only posted transactions will be imported.**
+**Note: Only posted transactions will be imported, except for cards connected through Plaid. Plaid cards also import pending transactions, which are marked as pending until they post.**
 

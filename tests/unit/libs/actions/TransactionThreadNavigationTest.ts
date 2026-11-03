@@ -4,6 +4,7 @@ import {
     clearActiveTransactionIDsForSource,
     disownActiveTransactionIDs,
     getActiveTransactionIDs,
+    removeActiveTransactionIDsForReport,
     setActiveTransactionIDs,
     shouldRefreshActiveTransactionIDs,
 } from '@libs/actions/TransactionThreadNavigation';
@@ -277,6 +278,73 @@ describe('TransactionThreadNavigation carousel ownership', () => {
             disownActiveTransactionIDs(REPORT_SOURCE);
 
             expect(getActiveTransactionIDs()).toEqual({ids: SPEND_PAGE_IDS, descriptors: null, source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+        });
+    });
+
+    /**
+     * Regression guard for https://github.com/Expensify/App/issues/103944: removing an expense from a two-expense
+     * report left it in the report's carousel, so the report kept its arrows and stepping to the removed expense
+     * opened the self-DM.
+     */
+    describe('removeActiveTransactionIDsForReport', () => {
+        it('clears a report row carousel that drops to one expense', async () => {
+            // Given an expense opened from report B's list, seeding the carousel with both of B's expenses
+            await setActiveTransactionIDs(REPORT_B_IDS, {source: CAROUSEL_SOURCE.reportRow('B')});
+
+            // When one of them is removed from report B
+            await removeActiveTransactionIDsForReport(['B1'], 'B');
+
+            // Then there is nothing left to page through, so the carousel is cleared and no arrows show
+            expect((await readCarouselFromOnyx()).ids).toBeUndefined();
+            expect(getActiveTransactionIDs()).toEqual({ids: null, descriptors: null, source: null, snapshotHash: null});
+        });
+
+        it('keeps paging through the expenses still on the report', async () => {
+            // Given report B's own carousel with three expenses
+            await setActiveTransactionIDs(['B1', 'B2', 'B3'], {source: REPORT_SOURCE});
+
+            // When one expense moves to another report
+            await removeActiveTransactionIDsForReport(['B2'], 'B');
+
+            // Then the other two stay in the carousel under the same owner
+            expect(getActiveTransactionIDs()).toEqual({ids: ['B1', 'B3'], descriptors: null, source: REPORT_SOURCE, snapshotHash: null});
+            expect((await readCarouselFromOnyx()).ids).toEqual(['B1', 'B3']);
+        });
+
+        it('trims again on a later move, since the module state matches Onyx', async () => {
+            // Given report B's own carousel with three expenses, one of which was already moved out
+            await setActiveTransactionIDs(['B1', 'B2', 'B3'], {source: REPORT_SOURCE});
+            await removeActiveTransactionIDsForReport(['B2'], 'B');
+
+            // When a second expense moves out of report B
+            await removeActiveTransactionIDsForReport(['B3'], 'B');
+
+            // Then the carousel is cleared, so the arrows don't come back for the last expense
+            expect((await readCarouselFromOnyx()).ids).toBeUndefined();
+        });
+
+        it('leaves a search carousel alone, since it spans several reports', async () => {
+            // Given a carousel seeded from the Spend page, which holds expenses from reports A and B
+            await setActiveTransactionIDs(SPEND_PAGE_IDS, {source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+
+            // When an expense is removed from report B
+            await removeActiveTransactionIDsForReport(['B1'], 'B');
+
+            // Then the search carousel is untouched, because the expense is still one of its results
+            expect(getActiveTransactionIDs()).toEqual({ids: SPEND_PAGE_IDS, descriptors: null, source: SEARCH_SOURCE, snapshotHash: SEARCH_HASH});
+            expect((await readCarouselFromOnyx()).ids).toEqual(SPEND_PAGE_IDS);
+        });
+
+        it("leaves another report's carousel alone", async () => {
+            // Given report B's carousel
+            await setActiveTransactionIDs(REPORT_B_IDS, {source: REPORT_SOURCE});
+
+            // When an expense leaves a different report
+            await removeActiveTransactionIDsForReport(['B1'], 'A');
+
+            // Then report B's carousel is untouched
+            expect(getActiveTransactionIDs()).toEqual({ids: REPORT_B_IDS, descriptors: null, source: REPORT_SOURCE, snapshotHash: null});
+            expect((await readCarouselFromOnyx()).ids).toEqual(REPORT_B_IDS);
         });
     });
 });

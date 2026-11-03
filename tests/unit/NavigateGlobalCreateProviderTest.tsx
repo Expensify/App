@@ -128,7 +128,7 @@ describe('NavigateGlobalCreateProvider', () => {
 
         // Then the scan opens the self DM confirmation, because the route type already resolved the destination
         expect(mockNavigateToParticipantPage).not.toHaveBeenCalled();
-        expect(mockSetTransactionReport).toHaveBeenCalledWith('t1', {reportID: CONST.REPORT.UNREPORTED_REPORT_ID}, true);
+        expect(mockSetTransactionReport).toHaveBeenCalledWith('t1', {reportID: CONST.REPORT.UNREPORTED_REPORT_ID, isFromGlobalCreate: true}, true);
         expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining(`create/${CONST.IOU.TYPE.TRACK}/confirmation/t1/${SELF_DM_REPORT.reportID}`));
     });
 

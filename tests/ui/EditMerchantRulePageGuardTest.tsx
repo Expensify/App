@@ -1,4 +1,4 @@
-import {act, render, screen} from '@testing-library/react-native';
+import {act, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
@@ -103,10 +103,21 @@ function renderEditMerchantRulePage() {
  * ruleID with a freshly built merchant rule, so the page has to refuse rather than render an empty form.
  */
 describe('EditMerchantRulePage route guard', () => {
+    let readSpy: ReturnType<typeof stubRulesFetch>;
+
+    beforeEach(() => {
+        // Every test mounts the editor, which sends `GetRules`. A real one resolves against the global fetch mock and
+        // can land after the next test has cleared Onyx, marking the collection as fetched before that test mounts.
+        readSpy = stubRulesFetch();
+    });
+
     afterEach(async () => {
+        // The editor is still mounted here because the testing library unmounts in an outer `afterEach`. Clearing the
+        // fetch flags makes it send `GetRules` again, so the spy has to stay in place until the clear is done.
         await act(async () => {
             await Onyx.clear();
         });
+        readSpy.mockRestore();
     });
 
     it('opens the editor for a rule this policy can edit', async () => {
@@ -139,21 +150,19 @@ describe('EditMerchantRulePage route guard', () => {
 
     it('fetches the rules collection when it is reached without one loaded', async () => {
         // Given this route is deep linkable, so nothing on the way in has populated the rules collection
-        const readSpy = stubRulesFetch();
         await seedOnyx();
 
         // When the editor mounts against an empty collection
         renderEditMerchantRulePage();
         await waitForBatchedUpdatesWithAct();
 
-        // Then it requests the rules rather than settling on not-found for a rule that does exist server side
-        expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_RULES, expect.anything(), expect.anything());
-        readSpy.mockRestore();
+        // Then it requests the rules rather than settling on not-found for a rule that does exist server side. The
+        // request only goes out once the fetch flags have loaded from Onyx, which can take more than one tick.
+        await waitFor(() => expect(readSpy).toHaveBeenCalledWith(READ_COMMANDS.GET_RULES, expect.anything(), expect.anything()));
     });
 
     it('waits for the fetch instead of showing not-found or an empty form before the collection arrives', async () => {
         // Given the request is in flight, so Onyx has hydrated the collection as empty but nothing has answered yet
-        const readSpy = stubRulesFetch();
         await seedOnyx();
         await act(async () => {
             await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, true);
@@ -167,12 +176,10 @@ describe('EditMerchantRulePage route guard', () => {
         // form filled in now would save over the rule the link points at
         expect(screen.getByTestId('EditMerchantRulePageLoading')).toBeOnTheScreen();
         expect(screen.queryByTestId('EditMerchantRulePage')).toBeNull();
-        readSpy.mockRestore();
     });
 
     it('refuses a ruleID that is absent once the collection has been fetched', async () => {
         // Given the fetch has answered and the rule is genuinely not in the collection
-        const readSpy = stubRulesFetch();
         await seedOnyx();
         await act(async () => {
             await Onyx.set(ONYXKEYS.RAM_ONLY_IS_LOADING_RULES, false);
@@ -185,7 +192,6 @@ describe('EditMerchantRulePage route guard', () => {
 
         // Then the guard fires, since waiting any longer would never produce the rule
         expect(screen.queryByTestId('EditMerchantRulePage')).toBeNull();
-        readSpy.mockRestore();
     });
 
     it('refuses a nested filter tree the form cannot represent', async () => {

@@ -91,8 +91,8 @@ const startOrStopChronosTimer = (report: Report, currentUserAccountID: number, p
     const lastMessageText = formatReportLastMessageText(getReportActionMessage(reportAction)?.text ?? '');
 
     // Capture the report's current last-visible message so we can restore it if the optimistic comment fails to send.
-    const previousLastVisibleAction = getLastVisibleAction(reportID);
-    const {lastMessageText: previousLastMessageText = ''} = getLastVisibleMessage(reportID);
+    const previousLastVisibleAction = getLastVisibleAction(reportID, undefined, {}, undefined, undefined, currentUserAccountID);
+    const {lastMessageText: previousLastMessageText = ''} = getLastVisibleMessage(reportID, undefined, {}, undefined, undefined, currentUserAccountID);
     const failureReport: Partial<Report> = previousLastMessageText
         ? {lastMessageText: previousLastMessageText, lastVisibleActionCreated: previousLastVisibleAction?.created, lastActorAccountID: previousLastVisibleAction?.actorAccountID}
         : {lastMessageText: '', lastVisibleActionCreated: ''};

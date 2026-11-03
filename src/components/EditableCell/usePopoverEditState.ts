@@ -1,6 +1,7 @@
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import CONST from '@src/CONST';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 
 import type {ComponentRef} from 'react';
 import type {View} from 'react-native';
@@ -28,7 +29,7 @@ type UsePopoverEditStateOptions = {
     /** Custom equality function. If not provided, Object.is is used. */
     isEqual?: (newValue: unknown, originalValue: unknown) => boolean;
 
-    /** Height of the popover content (used for overflow detection). Defaults to CONST.POPOVER_DATE_MAX_HEIGHT */
+    /** Preferred popover height. Shrunk when the chosen side has less room. */
     popoverHeight?: number;
 
     /** Padding between the anchor and the popover */
@@ -49,7 +50,7 @@ function usePopoverEditStateImpl({
     value,
     onSave,
     isEqual,
-    popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+    popoverHeight: preferredPopoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
     padding = CONST.MODAL.POPOVER_MENU_PADDING,
     anchorEdge = CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
 }: UsePopoverEditStateOptions) {
@@ -58,15 +59,23 @@ function usePopoverEditStateImpl({
     const [isEditing, setIsEditing] = useState(false);
     const [isPopoverVisible, setIsPopoverVisible] = useState(false);
     const [popoverPosition, setPopoverPosition] = useState<PopoverPosition>({horizontal: 0, vertical: 0});
-    const [isInverted, setIsInverted] = useState(false);
+    const [shouldOpenAbove, setShouldOpenAbove] = useState(false);
+    const [popoverHeight, setPopoverHeight] = useState(preferredPopoverHeight);
 
     const openPopover = () => {
         anchorRef.current?.measureInWindow((x, y, width, height) => {
-            const wouldExceedBottom = y + popoverHeight + padding > windowHeight;
-            setIsInverted(wouldExceedBottom);
+            // Reserve `padding` next to the anchor and next to the window edge.
+            const spaceBelow = windowHeight - (y + height + padding) - padding;
+            const spaceAbove = y - padding - padding;
+
+            const shouldOpenPopoverAbove = spaceBelow < preferredPopoverHeight && spaceAbove > spaceBelow;
+            const availableSpace = shouldOpenPopoverAbove ? spaceAbove : spaceBelow;
+
+            setShouldOpenAbove(shouldOpenPopoverAbove);
+            setPopoverHeight(Math.min(preferredPopoverHeight, Math.max(availableSpace, CONST.POPOVER_DROPDOWN_MIN_USABLE_HEIGHT)));
             setPopoverPosition({
                 horizontal: anchorEdge === CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT ? x : x + width,
-                vertical: y + (wouldExceedBottom ? 0 : height + padding),
+                vertical: shouldOpenPopoverAbove ? y - padding : y + height + padding,
             });
             setIsPopoverVisible(true);
         });
@@ -103,12 +112,19 @@ function usePopoverEditStateImpl({
         });
     }, [canEdit, isEditing]);
 
+    const anchorAlignment: AnchorAlignment = {
+        horizontal: anchorEdge,
+        vertical: shouldOpenAbove ? CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM : CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+    };
+
     return {
         isEditing,
         anchorRef,
         isPopoverVisible,
         popoverPosition,
-        isInverted,
+        popoverHeight,
+        anchorAlignment,
+        shouldOpenAbove,
         startEditing,
         cancelEditing,
         handleSave,
@@ -131,8 +147,10 @@ type UsePopoverEditStateOptionsGeneric<T> = {
  * Handles:
  *   - Anchor ref for popover positioning
  *   - measureInWindow-based position calculation
- *   - Overflow detection (inverts when too close to bottom)
+ *   - Side selection (opens above the anchor when the popover can't fit below it)
  *   - Adaptive height calculation (shrinks popover when space is limited)
+ *
+ * Callers should pass `shouldSwitchPositionIfOverflow={false}` to the popover, since flipping the chosen side would cover the anchor.
  *   - Auto-open after layout via requestAnimationFrame
  *   - isEditing + isPopoverVisible toggling
  *   - Auto-cancel when canEdit becomes false

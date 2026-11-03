@@ -10,14 +10,15 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import {setDisableDismissOnEscape} from './actions/Modal';
-import SidePanelActions from './actions/SidePanel';
 import {setOnboardingRHPVariant} from './actions/Welcome';
+import Log from './Log';
 import isReportTopmostSplitNavigator from './Navigation/helpers/isReportTopmostSplitNavigator';
-import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingNavigationUtils';
+import dismissOnboardingModalBeforeExit from './Navigation/helpers/OnboardingNavigationUtils';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport} from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
+import {registerSessionCleanupCallback} from './SessionCleanup';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
 Onyx.connectWithoutView({
@@ -25,6 +26,34 @@ Onyx.connectWithoutView({
     callback: (value) => {
         onboardingRHPVariant = value;
     },
+});
+
+/** Parked by openReportFromDeepLink() while onboarding owns the screen. In memory rather than Onyx so a stale destination cannot replay after a reload or for the next account on the device. */
+let openDeepLinkAfterOnboarding: (() => boolean) | undefined;
+
+/** The callback returns whether it opened the route. Returning false lets the caller pick the default destination. */
+function setDeepLinkToOpenAfterOnboarding(callback: () => boolean) {
+    openDeepLinkAfterOnboarding = callback;
+}
+
+function consumeDeepLinkToOpenAfterOnboarding(): boolean {
+    if (!openDeepLinkAfterOnboarding) {
+        return false;
+    }
+
+    const openDeepLink = openDeepLinkAfterOnboarding;
+    openDeepLinkAfterOnboarding = undefined;
+    try {
+        return openDeepLink();
+    } catch (error) {
+        // The onboarding modal is already dismissed, so a failing replay must not take the default destination with it.
+        Log.alert('[navigateAfterOnboarding] Parked deep link failed to open', {error});
+        return false;
+    }
+}
+
+registerSessionCleanupCallback(() => {
+    openDeepLinkAfterOnboarding = undefined;
 });
 
 type NavigateAfterOnboardingOptions = {
@@ -42,6 +71,7 @@ function getReportIDAfterOnboarding(
     canUseDefaultRooms: boolean | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    isAnonymousUser: boolean,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -56,8 +86,15 @@ function getReportIDAfterOnboarding(
         return undefined;
     }
 
-    // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
-    const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, undefined, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, reportNameValuePairs);
+    // TODO: Pass guideAccountIDs in Phase B. findLastAccessedReport reaches hasExpensifyGuidesEmails, which falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
+    const lastAccessedReport = findLastAccessedReport(
+        !canUseDefaultRooms,
+        undefined,
+        isAnonymousUser,
+        shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom,
+        undefined,
+        reportNameValuePairs,
+    );
     const lastAccessedReportID = lastAccessedReport?.reportID;
 
     // When the user goes through the onboarding flow, a workspace can be created if the user selects specific options. The user should be taken to the #admins room for that workspace because it is the most natural place for them to start their experience in the app.
@@ -79,6 +116,7 @@ function navigateAfterOnboarding(
     canUseDefaultRooms: boolean | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    isAnonymousUser: boolean,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
@@ -86,25 +124,22 @@ function navigateAfterOnboarding(
 ) {
     setDisableDismissOnEscape(false);
 
-    // On mobile (small screen), Track workspace admins with the trackExpensesWithConcierge variant
-    // should navigate directly to the Concierge DM (which contains onboarding tasks).
-    // This check is outside shouldOpenRHPVariant because that function returns false on native
-    // (Side Panel doesn't exist on native), but we still need to navigate to Concierge on mobile.
+    // A route the user asked for before signing up outranks every default below, including the Side Panel variant.
+    if (consumeDeepLinkToOpenAfterOnboarding()) {
+        return;
+    }
+
     const navigationOptions = options?.afterTransition ? {afterTransition: options.afterTransition} : undefined;
     const variantOverride = options?.variantOverride;
     const variant = variantOverride ?? onboardingRHPVariant;
 
-    // The homePageNoRHP arm of the onboarding experiment lands on Home without opening the side panel, at every company size,
-    // so it is handled before the variants that are limited to micro companies or that open the side panel.
-    if (variant === CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP) {
+    // Track users and the homePageNoRHP arm of the onboarding experiment land on Home without the side panel, at every company size
+    // and screen size, because Home's Getting started section is their onboarding. This runs before shouldOpenRHPVariant, which
+    // returns false on native even though native Track users also have the Track variant.
+    if (variant === CONST.ONBOARDING_RHP_VARIANT.HOME_PAGE_NO_RHP || variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
         if (!isReportTopmostSplitNavigator()) {
             Navigation.navigate(ROUTES.HOME, navigationOptions);
         }
-        return;
-    }
-
-    if (isSmallScreenWidth && variant === CONST.ONBOARDING_RHP_VARIANT.TRACK_EXPENSES_WITH_CONCIERGE) {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID), navigationOptions);
         return;
     }
 
@@ -118,6 +153,7 @@ function navigateAfterOnboarding(
         canUseDefaultRooms,
         conciergeReportID,
         reportNameValuePairs,
+        isAnonymousUser,
         onboardingPolicyID,
         onboardingAdminsChatReportID,
         shouldPreventOpenAdminRoom,
@@ -135,32 +171,39 @@ function navigateAfterOnboardingWithMicrotaskQueue(
     canUseDefaultRooms: boolean | undefined,
     conciergeReportID: string | undefined,
     reportNameValuePairs: OnyxCollection<ReportNameValuePairs>,
+    isAnonymousUser: boolean,
     onboardingPolicyID?: string,
     onboardingAdminsChatReportID?: string,
     shouldPreventOpenAdminRoom = false,
     options?: NavigateAfterOnboardingOptions,
 ) {
-    dismissOnboardingModalBeforeExit();
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateAfterOnboarding(
-            isSmallScreenWidth,
-            canUseDefaultRooms,
-            conciergeReportID,
-            reportNameValuePairs,
-            onboardingPolicyID,
-            onboardingAdminsChatReportID,
-            shouldPreventOpenAdminRoom,
-            options,
-        );
+    dismissOnboardingModalBeforeExit(() => {
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            navigateAfterOnboarding(
+                isSmallScreenWidth,
+                canUseDefaultRooms,
+                conciergeReportID,
+                reportNameValuePairs,
+                isAnonymousUser,
+                onboardingPolicyID,
+                onboardingAdminsChatReportID,
+                shouldPreventOpenAdminRoom,
+                options,
+            );
+        });
     });
 }
 
 /**
- * After creating or joining a Submit workspace during onboarding, navigate to Spend > Expenses
- * with the side panel open so the #admins room is visible in Concierge Anywhere.
+ * After creating or joining a Submit workspace, navigate to Spend > Expenses with the side panel closed.
+ * This covers onboarding, the Submit plan welcome modal and the `intent=submit` deeplink, so new and existing Employer users get the same experience.
  */
-function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
+function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string) {
     setDisableDismissOnEscape(false);
+
+    if (consumeDeepLinkToOpenAfterOnboarding()) {
+        return;
+    }
 
     if (!policyID) {
         Navigation.navigate(ROUTES.HOME);
@@ -169,14 +212,14 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
 
     setOnboardingRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
     Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE}), searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES}));
-    SidePanelActions.openSidePanel(!shouldUseNarrowLayout);
 }
 
-function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false) {
-    dismissOnboardingModalBeforeExit();
-    Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
+function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string) {
+    dismissOnboardingModalBeforeExit(() => {
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            navigateToSubmitWorkspaceAfterOnboarding(policyID);
+        });
     });
 }
 
-export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};
+export {navigateAfterOnboarding, navigateAfterOnboardingWithMicrotaskQueue, setDeepLinkToOpenAfterOnboarding, navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue};

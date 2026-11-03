@@ -41,7 +41,6 @@ import {
     getReportTransactions,
     getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasOnlyHeldExpenses,
     hasOutstandingChildRequest,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -87,10 +86,12 @@ type ApproveMoneyRequestFunctionParams = {
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 type SubmitReportFunctionParams = {
     expenseReport: OnyxEntry<OnyxTypes.Report>;
+    expenseReportTransactions: OnyxTypes.Transaction[];
     policy: OnyxEntry<OnyxTypes.Policy>;
     rules: OnyxCollection<OnyxTypes.Rule>;
     currentUserAccountIDParam: number;
@@ -116,6 +117,9 @@ type SubmitReportFunctionParams = {
      */
     shouldExportToPDF?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+
+    /** Set when the user confirmed "Submit anyway" on a report with violations. */
+    shouldResolveAcknowledgedViolations?: boolean;
 };
 
 /**
@@ -153,6 +157,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
         getCurrencyDecimals,
+        personalDetailsByLogins,
     } = params;
     if (!expenseReport) {
         return;
@@ -191,7 +196,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
 
-    const nextApproverAccountID = getNextApproverAccountID(expenseReport, rules);
+    const nextApproverAccountID = getNextApproverAccountID(expenseReport, rules, undefined, undefined, personalDetailsByLogins);
     const predictedNextStatus = !nextApproverAccountID ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
     const predictedNextState = !nextApproverAccountID ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
     const managerID = !nextApproverAccountID ? expenseReport.managerID : nextApproverAccountID;
@@ -209,7 +214,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               predictedNextStatus,
               isTrackIntentUser,
           });
-    const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
+    const chatReport = getReportOrDraftReport({reportID: expenseReport.chatReportID});
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -990,6 +995,7 @@ function unapproveExpenseReport(
 
 function submitReport({
     expenseReport,
+    expenseReportTransactions,
     policy,
     rules,
     currentUserAccountIDParam,
@@ -1007,6 +1013,7 @@ function submitReport({
     managerEmail,
     managerAccountID: managerAccountIDFromPopover,
     shouldExportToPDF,
+    shouldResolveAcknowledgedViolations,
     isTrackIntentUser,
     getCurrencyDecimals,
 }: SubmitReportFunctionParams) {
@@ -1020,7 +1027,7 @@ function submitReport({
 
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
-    const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
+    const parentReport = getReportOrDraftReport({reportID: expenseReport.parentReportID});
     const trimmedManagerEmail = managerEmail?.trim();
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList, personalDetailsByLogins) : undefined;
     const resolvedManagerAccountIDFromEmail = managerAccountIDFromPopover ?? managerAccountIDFromEmail;
@@ -1034,11 +1041,10 @@ function submitReport({
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
 
     // unheldTotal already uses the same sign convention as total, so it can be used directly here without conversion.
-    const reportTransactions = getReportTransactions(expenseReport.reportID);
-    const heldTransactions = reportTransactions.filter((transaction) => isOnHold(transaction));
+    const heldTransactions = expenseReportTransactions.filter((transaction) => isOnHold(transaction));
     const hasHeldExpenses = heldTransactions.length > 0;
 
-    if (hasOnlyHeldExpenses(reportTransactions)) {
+    if (hasHeldExpenses && heldTransactions.length === expenseReportTransactions.length) {
         return;
     }
 
@@ -1103,6 +1109,8 @@ function submitReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                // Clear errors from a previous failed submit
+                errors: null,
                 ...(shouldAddOptimisticSubmitAction
                     ? {
                           lastMessageText: getReportActionText(optimisticSubmittedReportAction),
@@ -1130,6 +1138,8 @@ function submitReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                // Clear errors from a previous failed submit
+                errors: null,
                 // For DEW policies, don't optimistically update stateNum, statusNum, or nextStep
                 ...(isDEWPolicy
                     ? {}
@@ -1308,7 +1318,7 @@ function submitReport({
 
     // Submit via PDF: on a Submit workspace where the submitter submits to themselves, the backend generates the
     // report PDF and writes its filename into nvp_expensify_report_PDFFilename_{reportID}. Prime that NVP the same way
-    // exportReportToPDF does so the ReportPDFDownloadModal shows progress and auto-downloads once the filename arrives.
+    // exportReportToPDF does so the report PDF download modal shows progress and auto-downloads once the filename arrives.
     if (shouldExportToPDF) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -1342,6 +1352,7 @@ function submitReport({
                   optimisticHoldReportExpenseActionIDs,
               }
             : {}),
+        ...(shouldResolveAcknowledgedViolations ? {shouldResolveAcknowledgedViolations} : {}),
     };
 
     onSubmitted?.();

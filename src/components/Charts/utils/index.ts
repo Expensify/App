@@ -1,6 +1,15 @@
 import BAR_INNER_PADDING, {BAR_GAP, BAR_MAX_WIDTH} from '@components/Charts/barChartConstants';
 import type {ChartDataPoint, LabelRotation, PieSlice} from '@components/Charts/types';
-import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, ELLIPSIS, LABEL_PADDING, LABEL_ROTATIONS, MAX_X_AXIS_LABEL_WIDTH, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {
+    CHART_Y_SCALE_HEIGHT,
+    DIAGONAL_ANGLE_RADIAN_THRESHOLD,
+    ELLIPSIS,
+    LABEL_PADDING,
+    LABEL_ROTATIONS,
+    MAX_X_AXIS_LABEL_WIDTH,
+    SIN_45,
+    WRAPPED_LABEL_ELLIPSIS,
+} from '@components/Charts/VictoryTheme';
 
 import {isShareWorthDrawing} from '@libs/PercentageUtils';
 
@@ -8,8 +17,11 @@ import variables from '@styles/variables';
 
 import type {SkParagraph, SkParagraphBuilder, SkTypefaceFontProvider} from '@shopify/react-native-skia';
 
-import {FontStyle, FontWeight, Skia} from '@shopify/react-native-skia';
+import {FontStyle, FontWeight, Skia, TextAlign} from '@shopify/react-native-skia';
 import {scaleLinear} from 'd3-scale';
+
+import getLineRuns from './getLineRuns';
+import getPrimaryValue from './getPrimaryValue';
 
 /** One reusable ParagraphBuilder per fontManager instance. Auto-GC'd when fontManager is released. */
 const builderCache = new WeakMap<SkTypefaceFontProvider, SkParagraphBuilder>();
@@ -36,6 +48,27 @@ function buildChartParagraph(text: string, fontManager: SkTypefaceFontProvider, 
             fontStyle: {weight: FontWeight.Normal},
             fontSize,
             ...(color !== undefined ? {color: Skia.Color(color)} : {}),
+        })
+        .addText(text)
+        .pop()
+        .build();
+}
+
+/**
+ * Builds a Skia paragraph that wraps at word breaks, centers each line, and truncates anything
+ * past `maxLines` with an ellipsis. Used for bar-name labels drawn under the Home chart bars.
+ *
+ * Unlike buildChartParagraph this does not reuse the shared builder cache: the wrap/ellipsis/align
+ * paragraph style is fixed when the builder is created, so it cannot share the single-line builder.
+ * The caller is responsible for calling `para.layout(width)` before measuring or rendering.
+ */
+function buildWrappedChartParagraph(text: string, fontManager: SkTypefaceFontProvider, fontSize: number, color: string, maxLines: number): SkParagraph {
+    return Skia.ParagraphBuilder.Make({maxLines, ellipsis: WRAPPED_LABEL_ELLIPSIS, textAlign: TextAlign.Center}, fontManager)
+        .pushStyle({
+            fontFamilies: VictoryTheme.fontFamilies,
+            fontStyle: {weight: FontWeight.Normal},
+            fontSize,
+            color: Skia.Color(color),
         })
         .addText(text)
         .pop()
@@ -203,6 +236,7 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
 
 /**
  * Process raw data into pie chart slices sorted by absolute value descending.
+ * Slices are sized by the primary series only.
  *
  * Points whose share of total spend is too small to draw are left out: the inline table prints their share as
  * `~0%`, and a slice that thin is a sliver nobody can hover or tap. The group is still listed in the table, so
@@ -210,11 +244,18 @@ function findSliceAtPosition(cursorX: number, cursorY: number, centerX: number, 
  */
 function processDataIntoSlices(
     data: ChartDataPoint[],
+    primarySeriesKey: string,
     pieGeometry: {centerX: number; centerY: number; radius: number; innerRadius: number},
     startAngle: number = VictoryTheme.pie.startAngle,
 ): PieSlice[] {
     const visibleSlices = data
-        .map((point, index) => ({label: point.label, absTotal: Math.abs(point.total), originalIndex: index, percentOfTotal: point.percentOfTotal}))
+        .map((point, index) => ({
+            label: point.label,
+            color: point.color,
+            absTotal: Math.abs(getPrimaryValue(point, primarySeriesKey)),
+            originalIndex: index,
+            percentOfTotal: point.percentOfTotal,
+        }))
         .filter((slice) => isShareWorthDrawing(slice.percentOfTotal))
         .sort((a, b) => b.absTotal - a.absTotal);
 
@@ -237,7 +278,7 @@ function processDataIntoSlices(
             acc.slices.push({
                 label: slice.label,
                 value: slice.absTotal,
-                color: VictoryTheme.colors.getColor(index),
+                color: slice.color ?? VictoryTheme.colors.default,
                 percentage: fraction * 100,
                 startAngle: acc.angle,
                 endAngle: acc.angle + sweepAngle,
@@ -426,6 +467,14 @@ function getNiceYAxisTicks(rawDataMax: number, rawDataMin: number, tickCount: nu
 }
 
 /**
+ * Tick count that keeps a Y axis on whole numbers, for charts plotting counts rather than amounts.
+ * A domain spanning fewer units than the default tick count is otherwise split into fractions, which repeat once the labels drop their decimals.
+ */
+function getWholeNumberTickCount(domain: [number, number], tickCount: number): number {
+    return Math.min(tickCount, Math.max(1, Math.floor(domain[1] - domain[0])));
+}
+
+/**
  * Bars fill the plot with BAR_GAP between them, up to BAR_MAX_WIDTH, and the gap shrinks when there are too many bars for it.
  * `edgeSpace` is the distance (px) from each plot edge to the nearest bar's center, and the x-domain lays the bars out with it.
  */
@@ -446,6 +495,16 @@ function getBarLayout(plotWidth: number, barCount: number): {barWidth: number; g
 }
 
 /**
+ * Horizontal plot bounds of a cartesian chart whose y axis is `CARTESIAN_Y_AXIS`, mirroring victory-native's layout,
+ * so labels can be laid out from the width before the chart mounts.
+ */
+function getCartesianPlotBounds(chartWidth: number, paddingRight: number): {left: number; right: number; width: number} {
+    const left = VictoryTheme.axis.padding.left;
+    const right = Math.max(left, chartWidth - paddingRight);
+    return {left, right, width: right - left};
+}
+
+/**
  * Domain padding that leaves `edgeSpace` px between the plot edges and the first and last points.
  * victory-native fits the padded domain back into the plot width, so the space on screen is smaller than the padding.
  */
@@ -457,6 +516,44 @@ function getDomainPaddingForEdgeSpace(edgeSpace: {left: number; right: number}, 
     return {left: (edgeSpace.left * plotWidth) / pointsSpan, right: (edgeSpace.right * plotWidth) / pointsSpan};
 }
 
+type AxisLabelStepParams = {
+    /** Pixel width of each point's label */
+    labelWidths: number[];
+
+    /** Canvas x position of each point */
+    pointXs: number[];
+
+    /** Allowed steps between labeled points, ascending */
+    steps: readonly number[];
+
+    /** Minimum clear space between adjacent labels (px) */
+    minGap: number;
+};
+
+/**
+ * Picks the smallest step whose labels (points 0, step, 2 * step, ...), centered under their points, don't overlap.
+ * When no step fits, multiples of the last step are tried, down to labeling only the first point.
+ */
+function getAxisLabelStep({labelWidths, pointXs, steps, minGap}: AxisLabelStepParams): number {
+    const getLeft = (i: number) => (pointXs.at(i) ?? 0) - (labelWidths.at(i) ?? 0) / 2;
+    const fits = (step: number) => {
+        for (let i = step; i < pointXs.length; i += step) {
+            const previousRight = getLeft(i - step) + (labelWidths.at(i - step) ?? 0);
+            if (getLeft(i) - previousRight < minGap) {
+                return false;
+            }
+        }
+        return true;
+    };
+
+    const candidates = [...steps];
+    const lastStep = steps.at(-1) ?? 1;
+    for (let step = lastStep * 2; step < pointXs.length; step += lastStep) {
+        candidates.push(step);
+    }
+    return candidates.find(fits) ?? Math.max(1, pointXs.length);
+}
+
 /** Returns the pixel width needed for Y-axis labels given the chart data. */
 function getYAxisLabelWidth(
     data: ChartDataPoint[],
@@ -464,23 +561,23 @@ function getYAxisLabelWidth(
     fontManager: SkTypefaceFontProvider | null,
     fontSize: number,
     domainPadding: {top: number; bottom: number},
+    tickCount: number = VictoryTheme.axis.tickCount,
 ): number {
     if (!fontManager) {
         return 0;
     }
-    const totals = data.map((p) => p.total);
-    const rawDataMax = totals.length ? Math.max(...totals) : 0;
-    const rawDataMin = totals.length ? Math.min(...totals) : 0;
+    const values = data.flatMap((point) => Object.values(point.values).filter((value) => value !== undefined));
+    const rawDataMax = values.length ? Math.max(...values) : 0;
+    const rawDataMin = values.length ? Math.min(...values) : 0;
     return Math.max(
         0,
-        ...getNiceYAxisTicks(rawDataMax, rawDataMin, VictoryTheme.axis.tickCount, domainPadding.top, domainPadding.bottom).map((tick) =>
-            measureTextWidth(formatValue(tick), fontManager, fontSize),
-        ),
+        ...getNiceYAxisTicks(rawDataMax, rawDataMin, tickCount, domainPadding.top, domainPadding.bottom).map((tick) => measureTextWidth(formatValue(tick), fontManager, fontSize)),
     );
 }
 
 export {
     buildChartParagraph,
+    buildWrappedChartParagraph,
     canFontRenderText,
     getAdditionalOffset,
     measureTextWidth,
@@ -490,6 +587,8 @@ export {
     normalizeAngle,
     isAngleInSlice,
     findSliceAtPosition,
+    getLineRuns,
+    getPrimaryValue,
     processDataIntoSlices,
     getXAxisLabel,
     truncateLabel,
@@ -502,9 +601,12 @@ export {
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
     getNiceYAxisTicks,
+    getWholeNumberTickCount,
     getYAxisLabelWidth,
+    getCartesianPlotBounds,
     getBarLayout,
     getDomainPaddingForEdgeSpace,
+    getAxisLabelStep,
 };
 
 export type {ChartLabelHitTestParams};

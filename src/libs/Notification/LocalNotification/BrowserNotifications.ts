@@ -1,6 +1,7 @@
 import EXPENSIFY_ICON_URL from '@assets/images/expensify-logo-round-clearspace.png';
 
 import type {CurrencyListActionsContextType} from '@components/CurrencyListContextProvider/types';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import {convertToFrontendAmountAsInteger, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {translate, translateLocal} from '@libs/Localize';
@@ -144,7 +145,14 @@ export default {
      *
      * @param usesIcon true if notification uses right circular icon
      */
-    pushReportCommentNotification(report: Report, reportAction: ReportAction, onClick: LocalNotificationClickHandler, derivedReportName: string | undefined, usesIcon = false) {
+    pushReportCommentNotification(
+        report: Report,
+        reportAction: ReportAction,
+        onClick: LocalNotificationClickHandler,
+        derivedReportName: string | undefined,
+        formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+        usesIcon = false,
+    ) {
         let title;
         let body;
         const icon = usesIcon ? EXPENSIFY_ICON_URL : '';
@@ -152,7 +160,7 @@ export default {
         const isRoomOrGroupChat = ReportUtils.isChatRoom(report) || ReportUtils.isPolicyExpenseChat(report) || ReportUtils.isGroupChat(report);
 
         const {person, message} = reportAction;
-        const plainTextPerson = person?.map((f) => Str.removeSMSDomain(f.text ?? '')).join() ?? '';
+        const plainTextPerson = person?.map((f) => (Str.isSMSLogin(f.text ?? '') ? formatPhoneNumber(f.text ?? '') : (f.text ?? ''))).join() ?? '';
 
         // Specifically target the comment part of the message, falling back to the action's full text
         // for system actions (e.g. MARKEDREIMBURSED) that have no COMMENT-type message fragment.

@@ -43,7 +43,7 @@ import viewRef from '@src/types/utils/viewRef';
 import type {ComponentRef} from 'react';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type LoginFormProps from './types';
@@ -75,53 +75,47 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
     /**
      * Validate the input value and set the error for formError
      */
-    const validate = useCallback(
-        (value: string) => {
-            const loginTrim = StringUtils.removeInvisibleCharacters(value.trim());
-            if (!loginTrim) {
-                setFormError('common.pleaseEnterEmailOrPhoneNumber');
-                return false;
+    const validate = (value: string) => {
+        const loginTrim = StringUtils.removeInvisibleCharacters(value.trim());
+        if (!loginTrim) {
+            setFormError('common.pleaseEnterEmailOrPhoneNumber');
+            return false;
+        }
+
+        const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
+        const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+
+        if (!isValidEmailWithTLD(loginTrim) && !parsedPhoneNumber.possible) {
+            if (isNumericWithSpecialChars(loginTrim)) {
+                setFormError('common.error.phoneNumber');
+            } else {
+                setFormError('loginForm.error.invalidFormatEmailLogin');
             }
+            return false;
+        }
 
-            const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(loginTrim), countryCode);
-            const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
-
-            if (!isValidEmailWithTLD(loginTrim) && !parsedPhoneNumber.possible) {
-                if (isNumericWithSpecialChars(loginTrim)) {
-                    setFormError('common.error.phoneNumber');
-                } else {
-                    setFormError('loginForm.error.invalidFormatEmailLogin');
-                }
-                return false;
-            }
-
-            setFormError(undefined);
-            return true;
-        },
-        [setFormError, countryCode],
-    );
+        setFormError(undefined);
+        return true;
+    };
 
     /**
      * Handle text input and validate the text input if it is blurred
      */
-    const onTextInput = useCallback(
-        (text: string) => {
-            setLogin(text);
-            if (firstBlurred.current) {
-                validate(text);
-            }
+    const onTextInput = (text: string) => {
+        setLogin(text);
+        if (firstBlurred.current) {
+            validate(text);
+        }
 
-            if (!!account?.errors || !!account?.message) {
-                clearAccountMessages();
-            }
+        if (!!account?.errors || !!account?.message) {
+            clearAccountMessages();
+        }
 
-            // Clear the "Account successfully closed" message when the user starts typing
-            if (closeAccount?.success && !isInputAutoFilled(input.current)) {
-                setDefaultData();
-            }
-        },
-        [account?.errors, account?.message, closeAccount?.success, input, setLogin, validate],
-    );
+        // Clear the "Account successfully closed" message when the user starts typing
+        if (closeAccount?.success && !isInputAutoFilled(input.current)) {
+            setDefaultData();
+        }
+    };
 
     function getSignInWithStyles() {
         return shouldUseNarrowLayout ? [styles.mt1] : [styles.mt5, styles.mb5];
@@ -130,7 +124,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
     /**
      * Check that all the form fields are valid, then trigger the submit callback
      */
-    const validateAndSubmitForm = useCallback(() => {
+    const validateAndSubmitForm = () => {
         if (!!isOffline || !!account?.isLoading || isLoading.current) {
             return;
         }
@@ -165,7 +159,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
 
         // Check if this login has an account associated with it or not
         beginSignIn(parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : loginTrim);
-    }, [login, account?.isLoading, closeAccount?.success, isOffline, validate, countryCode]);
+    };
 
     useEffect(() => {
         // Call clearAccountMessages on the login page (home route).
@@ -230,13 +224,13 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
         },
     }));
 
-    const serverErrorText = useMemo(() => (account ? getLatestErrorMessage(account) : ''), [account]);
+    const serverErrorText = account ? getLatestErrorMessage(account) : '';
     const shouldShowServerError = !!serverErrorText && !formError;
     const isSigningWithAppleOrGoogle = useRef(false);
-    const setIsSigningWithAppleOrGoogle = useCallback((isPressed: boolean) => (isSigningWithAppleOrGoogle.current = isPressed), []);
+    const setIsSigningWithAppleOrGoogle = (isPressed: boolean) => (isSigningWithAppleOrGoogle.current = isPressed);
 
     const submitContainerRef = useRef<ComponentRef<typeof View> | HTMLDivElement>(null);
-    const handleFocus = useCallback(() => {
+    const handleFocus = () => {
         if (!isMobileWebKit()) {
             return;
         }
@@ -247,7 +241,7 @@ function BaseLoginForm({submitBehavior = 'submit', isVisible, ref}: BaseLoginFor
             behavior: 'smooth',
             block: 'end',
         });
-    }, []);
+    };
 
     const handleSignIn = () => setIsSigningWithAppleOrGoogle(true);
 

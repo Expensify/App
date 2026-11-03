@@ -18,6 +18,7 @@ import {
     getCommaSeparatedTagNameWithSanitizedColons,
     getPerDiemCustomUnit,
     isAttendeeTrackingEnabled as isAttendeeTrackingEnabledForPolicy,
+    isTimeTrackingEnabled,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, getReportTransactions, getTransactionDetails, isInvoiceReport, isIOUReport, isThread} from '@libs/ReportUtils';
@@ -63,6 +64,7 @@ import {getClearedPendingFields, getDistanceMerchantForTransaction, getUpdatedTr
 import {
     calculateTaxAmount,
     getCalculatedTaxAmount,
+    getCategoryTaxCode,
     getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceRateTaxUpdates,
@@ -80,7 +82,6 @@ import {
     getTransactionViolations,
     getUnsuppressibleBrokenConnectionTransactionID,
     getVisibleTransactionViolations,
-    hasAnyPendingRTERViolation,
     hasAnyTransactionWithoutRTERViolation,
     hasCustomUnitOutOfPolicyViolation,
     hasDuplicateTransactions,
@@ -95,6 +96,7 @@ import {
     hasWarningTypeViolation,
     isBrokenConnectionViolation,
     isDuplicate,
+    isPendingRTERViolation,
     isTransactionSubmittable,
     isViolationDismissed,
     mergeProhibitedViolations,
@@ -235,9 +237,11 @@ type ManuallyEnteredScanFields = Pick<Transaction, 'iouRequestType' | 'isAmountS
 /**
  * The Scan confirmation's amount / merchant / date are all-or-nothing: leave all three blank to let SmartScan read
  * them, or fill all three in to submit as a manual expense whose receipt is never scanned over.
+ * `isMerchantRequired` mirrors the manual flow, where only a workspace chat requires a merchant: outside of one
+ * (P2P, self DM) a blank merchant doesn't keep the entered amount and date from counting as complete.
  */
-function hasAllManuallyEnteredScanFields(transaction: OnyxEntry<ManuallyEnteredScanFields>): boolean {
-    return isScanRequest(transaction) && !!transaction?.isAmountSet && !!transaction?.isMerchantSet && !!transaction?.isCreatedSet;
+function hasAllManuallyEnteredScanFields(transaction: OnyxEntry<ManuallyEnteredScanFields>, isMerchantRequired = true): boolean {
+    return isScanRequest(transaction) && !!transaction?.isAmountSet && (!isMerchantRequired || !!transaction?.isMerchantSet) && !!transaction?.isCreatedSet;
 }
 
 /** Whether the user filled in at least one of those three fields, which is what turns the scan into a manual expense. */
@@ -247,11 +251,11 @@ function hasAnyManuallyEnteredScanField(transaction: OnyxEntry<ManuallyEnteredSc
 
 /**
  * Whether the user started filling the three fields in but stopped short, which blocks confirmation.
- * `canEnterScanFieldsManually` says whether the surface offers those fields at all, since splits, moved tracked
- * expenses and test receipts carry the same flags without ever having shown them.
+ * `canEnterScanFieldsManually` says whether the surface offers those fields at all, since moved tracked expenses
+ * and test receipts carry the same flags without ever having shown them.
  */
-function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false): boolean {
-    return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction);
+function isPartiallyEnteredScanExpense(transaction: OnyxEntry<ManuallyEnteredScanFields>, canEnterScanFieldsManually = false, isMerchantRequired = true): boolean {
+    return canEnterScanFieldsManually && hasAnyManuallyEnteredScanField(transaction) && !hasAllManuallyEnteredScanFields(transaction, isMerchantRequired);
 }
 
 function isPerDiemRequest(transaction: OnyxEntry<Transaction>): boolean {
@@ -416,6 +420,15 @@ function hasReceiptSource(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return !!transaction?.receipt?.source;
 }
 
+/**
+ * Whether a receipt can be shown as a real PDF rendered over its thumbnail, rather than just the static thumbnail.
+ * E-receipts have no underlying PDF to render, and map-based distance receipts show the map image instead.
+ */
+function canOverlayReceiptPDF(transaction: OnyxEntry<Transaction>): boolean {
+    const isEReceipt = !hasReceiptSource(transaction) && hasEReceipt(transaction);
+    return !isEReceipt && !isMapBasedDistanceRequest(transaction);
+}
+
 /** Check if odometer image has the source file */
 function hasOdometerImageSource(transaction: OnyxInputOrEntry<Transaction>, imageType: string): boolean {
     const odometerImage = imageType === CONST.IOU.ODOMETER_IMAGE_TYPE.START ? transaction?.comment?.odometerStartImage : transaction?.comment?.odometerEndImage;
@@ -533,32 +546,17 @@ function getAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseRepo
 }
 
 /**
- * Convert a stored tax amount to the sign we display.
- */
-function normalizeTaxAmountSign(rawAmount: number | undefined, isFromExpenseReport: boolean): number {
-    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
-    if (!isFromExpenseReport) {
-        return Math.abs(rawAmount ?? 0);
-    }
-
-    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
-    const amount = rawAmount ?? 0;
-    return amount ? -amount : 0;
-}
-
-/**
  * Return the tax amount field from the transaction.
  */
 function getTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
-    return normalizeTaxAmountSign(transaction?.taxAmount, isFromExpenseReport);
-}
+    // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
+    if (!isFromExpenseReport) {
+        return Math.abs(transaction?.taxAmount ?? 0);
+    }
 
-/**
- * Return the converted tax amount field from the transaction.
- * It follows the same sign convention as `getTaxAmount`.
- */
-function getConvertedTaxAmount(transaction: OnyxInputOrEntry<Transaction>, isFromExpenseReport: boolean): number {
-    return normalizeTaxAmountSign(transaction?.convertedTaxAmount, isFromExpenseReport);
+    // To avoid -0 being shown, lets only change the sign if the value is other than 0.
+    const amount = transaction?.taxAmount ?? 0;
+    return amount ? -amount : 0;
 }
 
 /**
@@ -666,12 +664,10 @@ function getConvertedAmount(
  * For non-expense reports, returns getOriginalAmount() or Math.abs(amount) or Math.abs(modifiedAmount).
  */
 function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmount' | 'amount' | 'modifiedAmount'>, isExpenseReport: boolean): number {
-    /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
     if (isExpenseReport) {
         return -((transaction.originalAmount || transaction.amount || Number(transaction.modifiedAmount)) ?? 0);
     }
     return getOriginalAmount(transaction as Transaction) || Math.abs(transaction.amount ?? 0) || Math.abs(Number(transaction.modifiedAmount ?? 0));
-    /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 }
 
 /**
@@ -679,7 +675,6 @@ function getOriginalAmountForDisplay(transaction: Pick<Transaction, 'originalAmo
  * Falls back to originalCurrency, then currency, then modifiedCurrency.
  */
 function getOriginalCurrencyForDisplay(transaction: Pick<Transaction, 'originalCurrency' | 'currency' | 'modifiedCurrency' | 'amount'>): string {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return transaction.originalCurrency || (transaction.amount === 0 ? transaction.modifiedCurrency : transaction.currency) || CONST.CURRENCY.USD;
 }
 
@@ -750,7 +745,6 @@ function getMerchantName(transaction: TransactionWithOptionalSearchFields, trans
 }
 
 function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): Attendee | undefined {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const creatorLogin = creatorDetails?.login || creatorDetails?.displayName || '';
 
     if (!creatorLogin) {
@@ -766,18 +760,16 @@ function getReportOwnerAsAttendee(creatorDetails: OnyxEntry<PersonalDetails>): A
 }
 
 /**
- * Return report owner as default attendee
+ * Return report owner as default attendee. `reportOwnerAccountID` is the owner of the report the transaction is on,
+ * which the caller reads so it is told when that report lands.
  */
-function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserAccountID: number | undefined) {
+function getReportOwnerAccountIDAsAttendee(transaction: OnyxInputOrEntry<Transaction>, currentUserAccountID: number | undefined, reportOwnerAccountID: number | undefined) {
     if (transaction?.reportID === undefined) {
         return;
     }
 
-    // Get the creator of the transaction by looking at the owner of the report linked to the transaction
-    const report = getReportOrDraftReport(transaction?.reportID);
     // For unreported expenses, the creator ID should belong to the current user because the transaction isn’t part of any report yet
-    const creatorAccountID = isExpenseUnreported(transaction) ? currentUserAccountID : report?.ownerAccountID;
-    return creatorAccountID;
+    return isExpenseUnreported(transaction) ? currentUserAccountID : reportOwnerAccountID;
 }
 
 /**
@@ -808,10 +800,13 @@ function getAttendees(transaction: OnyxInputOrEntry<Transaction>, reportOwnerAsA
 /**
  * Returns attendees joined as a display string. Pass `localeCompare` to sort alphabetically (matches the pill sort);
  * omit it to keep insertion order — used by non-React callers that don't want to thread the comparator.
- * Strips the SMS domain so phone-login attendees render the same as in the rendered pills.
+ * Formats phone-login attendees so they render the same as in the rendered pills.
  */
-function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): string {
-    const getName = (a: Attendee) => Str.removeSMSDomain(a.displayName ?? a.email ?? '');
+function getAttendeesListDisplayString(attendees: Attendee[], formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], localeCompare?: LocaleContextProps['localeCompare']): string {
+    const getName = (a: Attendee) => {
+        const name = a.displayName ?? a.email ?? '';
+        return Str.isSMSLogin(name) ? formatPhoneNumber(name) : name;
+    };
     const ordered = localeCompare
         ? // Lowercase to match sortAlphabetically (the pill sort) so joined string and pill order never disagree on case.
           [...attendees].sort((a, b) => localeCompare(getName(a).toLowerCase(), getName(b).toLowerCase()))
@@ -822,10 +817,15 @@ function getAttendeesListDisplayString(attendees: Attendee[], localeCompare?: Lo
 /**
  * Return the list of attendees as a string and modified list of attendees as a string if present.
  */
-function getFormattedAttendees(modifiedAttendees?: Attendee[], attendees?: Attendee[], localeCompare?: LocaleContextProps['localeCompare']): [string, string] {
+function getFormattedAttendees(
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    modifiedAttendees?: Attendee[],
+    attendees?: Attendee[],
+    localeCompare?: LocaleContextProps['localeCompare'],
+): [string, string] {
     const oldAttendees = modifiedAttendees ?? [];
     const newAttendees = attendees ?? [];
-    return [getAttendeesListDisplayString(oldAttendees, localeCompare), getAttendeesListDisplayString(newAttendees, localeCompare)];
+    return [getAttendeesListDisplayString(oldAttendees, formatPhoneNumber, localeCompare), getAttendeesListDisplayString(newAttendees, formatPhoneNumber, localeCompare)];
 }
 
 /**
@@ -989,7 +989,6 @@ function getTagForDisplay(transaction: OnyxEntry<Pick<Transaction, 'tag'>>, tagI
 }
 
 function getCreated(transaction: OnyxInputOrEntry<Transaction>): string {
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return transaction?.modifiedCreated ? transaction.modifiedCreated : transaction?.created || '';
 }
 
@@ -1203,6 +1202,14 @@ function isScanning(transaction: OnyxEntry<Transaction>): boolean {
 
 function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_READY || transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANNING;
+}
+
+/**
+ * Manual expenses never show a scan to the user, so a backend scan of their receipt shouldn't block receipt edits.
+ * This checks iouRequestType directly instead of using getRequestType, which treats a missing type as manual.
+ */
+function isReceiptScanBlockingEdit(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    return isReceiptBeingScanned(transaction) && transaction?.iouRequestType !== CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
 /**
@@ -1450,7 +1457,7 @@ function getAllSortedTransactions(iouReportID?: string): Array<OnyxEntry<Transac
 function isExpenseSplit(transaction: OnyxEntry<Transaction>, originalTransaction?: OnyxEntry<Transaction>): boolean {
     const isAddedToReport = !!transaction?.reportID && transaction.reportID !== CONST.REPORT.SPLIT_REPORT_ID && transaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID;
     if (isAddedToReport) {
-        const report = getReportOrDraftReport(transaction.reportID);
+        const report = getReportOrDraftReport({reportID: transaction.reportID});
         if (report && report.type !== CONST.REPORT.TYPE.EXPENSE) {
             return false;
         }
@@ -1599,6 +1606,7 @@ function getEligibleTransactionsToAdd({
     const isIOU = isIOUReport(report);
     const canSubmitPerDiemExpense = canSubmitPerDiemExpenseFromWorkspace(policy);
     const workspacePerDiemUnitID = getPerDiemCustomUnit(policy)?.customUnitID;
+    const canSubmitTimeExpense = isTimeTrackingEnabled(policy);
 
     return Object.values(transactions).filter((transaction): transaction is Transaction => {
         if (!transaction) {
@@ -1647,6 +1655,11 @@ function getEligibleTransactionsToAdd({
             const perDiemCustomUnitID = transaction.comment?.customUnit?.customUnitID;
 
             return canSubmitPerDiemExpense && (!perDiemCustomUnitID || perDiemCustomUnitID === workspacePerDiemUnitID);
+        }
+
+        // Only show time expenses if the target workspace has time tracking enabled
+        if (isTimeRequest(transaction)) {
+            return canSubmitTimeExpense;
         }
 
         return true;
@@ -1873,6 +1886,7 @@ export {
     hasEReceipt,
     hasRoute,
     isReceiptBeingScanned,
+    isReceiptScanBlockingEdit,
     didReceiptScanSucceed,
     getValidWaypoints,
     doesMoneyRequestDraftHaveUserInput,
@@ -1908,7 +1922,6 @@ export {
     hasMissingSmartscanFieldsForRBR,
     hasPendingRTERViolation,
     getUnsuppressibleBrokenConnectionTransactionID,
-    hasAnyPendingRTERViolation,
     hasValidModifiedAmount,
     getNegatedAmountTransaction,
     allHavePendingRTERViolation,
@@ -1925,6 +1938,7 @@ export {
     hasSubmissionBlockingViolations,
     hasCustomUnitOutOfPolicyViolation,
     isBrokenConnectionViolation,
+    isPendingRTERViolation,
     shouldSuppressBrokenConnectionStatus,
     shouldShowBrokenConnectionViolation,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
@@ -1946,11 +1960,13 @@ export {
     getDeleteExpenseTitle,
     getDeleteConfirmationPrompt,
     hasReceiptSource,
+    canOverlayReceiptPDF,
     hasOdometerImageSource,
     shouldShowAttendees,
     getAllSortedTransactions,
     getFormattedPostedDate,
     getPostedDate,
+    getCategoryTaxCode,
     getCategoryTaxDetails,
     isPerDiemRequest,
     isViolationDismissed,
@@ -1992,7 +2008,6 @@ export {
     getMCCForDisplay,
     hasDisplayableMCC,
     getConvertedAmount,
-    getConvertedTaxAmount,
     isTimeRequest,
     getExpenseTypeTranslationKey,
     getDetailedExpenseTypeTranslationKey,
@@ -2011,3 +2026,4 @@ export {
 };
 
 export type {ManuallyEnteredScanFields};
+export type {MergeDuplicatesTransactionParams} from './duplicates';

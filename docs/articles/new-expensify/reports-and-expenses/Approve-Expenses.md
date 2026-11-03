@@ -44,7 +44,7 @@ To review and approve a report submitted to you for approval:
 
 ## How to approve a report that contains held expenses
 
-If a report contains one or more held expenses, clicking **Approve** (from within the report or from the **Reports** page) displays a confirmation modal with two options:
+If a report contains one or more held expenses, selecting **Approve** (from within the report or from **Spend > Reports**) opens a menu with two options:
 
 - **Approve only [non-held amount]**: Approves only the compliant (non-held) expenses. The held expenses are moved to a separate report so they can be reviewed independently.
 - **Approve [full amount]**: Approves the entire report, including all held expenses.
@@ -168,7 +168,7 @@ The outdated row is removed from the report. The expense itself is not deleted �
 # FAQ
 
 ## Why can't I action a pending expense? 
-Expensify Card expenses show as pending until the merchant posts them. This can take 1–3 business days. Hotel or rental car holds may take longer (up to 31 days for hotels). Only posted expenses can be approved. 
+Expensify Card expenses, and expenses from cards connected through Plaid, show as pending until the merchant posts them. This can take 1–3 business days. Hotel or rental car holds may take longer (up to 31 days for hotels). Only posted expenses can be approved. 
 
 ## Why can’t I see Bypass approvers?
 Only Workspace admins can bypass the prescribed approval workflow. If **Prevent Self-Approval** is enabled, an admin cannot bypass approvals to approve their own report. 

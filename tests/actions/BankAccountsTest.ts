@@ -1,4 +1,11 @@
-import {clearPersonalBankAccount, connectBankAccountWithPlaid, initiateBankAccountUnlock, openPersonalBankAccountSetupView, updateBankAccountName} from '@libs/actions/BankAccounts';
+import {
+    clearPersonalBankAccount,
+    connectBankAccountWithPlaid,
+    enableGlobalReimbursementsForUSDBankAccount,
+    initiateBankAccountUnlock,
+    openPersonalBankAccountSetupView,
+    updateBankAccountName,
+} from '@libs/actions/BankAccounts';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -197,7 +204,7 @@ describe('actions/BankAccounts', () => {
             openPersonalBankAccountSetupView({shouldSetUpUSBankAccount: true});
             await waitForBatchedUpdates();
 
-            expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SETTINGS_ADD_US_BANK_ACCOUNT.getRoute());
+            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.ADD_US_BANK_ACCOUNT.getRoute()));
         });
 
         test('carries shouldSetUpUSBankAccount to the verify account page when the user is not validated', async () => {
@@ -325,6 +332,42 @@ describe('actions/BankAccounts', () => {
             expect(bankAccountList?.[bankAccountID]?.title).toBeUndefined();
             expect(bankAccountList?.[bankAccountID]?.accountData?.addressName).toBeUndefined();
             expect(bankAccountList?.[bankAccountID]?.errors).toBeTruthy();
+        });
+    });
+
+    describe('enableGlobalReimbursementsForUSDBankAccount', () => {
+        test('clears the form draft after success so the next bank account does not reuse its values', async () => {
+            // Given a draft filled in while enabling Global Reimbursement for the first bank account
+            await Onyx.set(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {
+                businessRegistrationIncorporationNumber: '123456789',
+                natureOfBusiness: 'retail',
+            });
+
+            // When the request succeeds
+            enableGlobalReimbursementsForUSDBankAccount({inputs: '{}', bankAccountID: 1234});
+            await waitForBatchedUpdates();
+
+            // Then the draft is cleared and the form reports success
+            TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ENABLE_GLOBAL_REIMBURSEMENTS_FOR_USD_BANK_ACCOUNT, 1);
+            expect(await getOnyxValue(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT)).toBeUndefined();
+            const form = await getOnyxValue(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS);
+            expect(form?.isSuccess).toBe(true);
+        });
+
+        test('keeps the form draft when the request fails so the user can retry', async () => {
+            // Given a draft filled in for a bank account
+            await Onyx.set(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT, {
+                businessRegistrationIncorporationNumber: '123456789',
+            });
+            mockFetch.fail?.();
+
+            // When the request fails
+            enableGlobalReimbursementsForUSDBankAccount({inputs: '{}', bankAccountID: 1234});
+            await waitForBatchedUpdates();
+
+            // Then the draft is kept
+            const draft = await getOnyxValue(ONYXKEYS.FORMS.ENABLE_GLOBAL_REIMBURSEMENTS_DRAFT);
+            expect(draft?.businessRegistrationIncorporationNumber).toBe('123456789');
         });
     });
 

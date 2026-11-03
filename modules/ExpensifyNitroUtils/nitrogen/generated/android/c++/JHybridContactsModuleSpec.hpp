@@ -55,6 +55,7 @@ namespace margelo::nitro::utils {
   public:
     // Methods
     std::shared_ptr<Promise<std::vector<Contact>>> getAll(const std::vector<ContactFields>& keys) override;
+    std::shared_ptr<Promise<std::vector<Contact>>> pick(const std::vector<ContactFields>& keys) override;
 
   private:
     jni::global_ref<JHybridContactsModuleSpec::JavaPart> _javaPart;

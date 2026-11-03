@@ -6,6 +6,10 @@ import MoneyRequestReportTransactionItem from '@components/MoneyRequestReportVie
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import type * as CopyableTextRowPress from '@hooks/useCopyableTextRowPress';
+
+import canUseTouchScreen from '@libs/DeviceCapabilities/canUseTouchScreen';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,6 +26,15 @@ import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native');
+jest.mock('@libs/DeviceCapabilities/canUseTouchScreen', () => jest.fn());
+
+const mockIsPressStartOnCopyableText = jest.fn<boolean, [unknown]>();
+jest.mock('@hooks/useCopyableTextRowPress', () => {
+    const actual = jest.requireActual<typeof CopyableTextRowPress>('@hooks/useCopyableTextRowPress');
+    return {...actual, __esModule: true, default: actual.default, isPressStartOnCopyableText: (event: unknown) => mockIsPressStartOnCopyableText(event)};
+});
+
+const mockedCanUseTouchScreen = jest.mocked(canUseTouchScreen);
 
 const REPORT_ID = '12345';
 const TRANSACTION_ID = '67890';
@@ -62,6 +75,11 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         return waitForBatchedUpdatesWithAct();
     });
 
+    beforeEach(() => {
+        mockedCanUseTouchScreen.mockReturnValue(false);
+        mockIsPressStartOnCopyableText.mockReturnValue(false);
+    });
+
     afterEach(async () => {
         await act(async () => {
             await Onyx.clear();
@@ -70,7 +88,7 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    async function renderTransactionItem(transaction: Transaction, handleOnPress = jest.fn()) {
+    async function renderTransactionItem(transaction: Transaction, handleOnPress = jest.fn(), handleLongPress = jest.fn()) {
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
@@ -82,14 +100,14 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
                 <ScreenWrapper testID="test">
                     <PortalProvider>
                         <MoneyRequestReportTransactionItem
-                            transaction={transaction}
-                            violations={[]}
+                            transactionID={transaction.transactionID}
+                            reportOwnerLogin={undefined}
                             report={report}
                             policy={undefined}
                             isSelectionModeEnabled={false}
                             toggleTransaction={jest.fn()}
                             handleOnPress={handleOnPress}
-                            handleLongPress={jest.fn()}
+                            handleLongPress={handleLongPress}
                             isSelected={false}
                             dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
                             postedColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
@@ -105,7 +123,7 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
         );
         await waitForBatchedUpdatesWithAct();
 
-        return {handleOnPress};
+        return {handleLongPress, handleOnPress};
     }
 
     it('should show the translated copy instead of the English message the server sent', async () => {
@@ -145,6 +163,24 @@ describe('MoneyRequestReportTransactionItem - reject errors', () => {
 
         // Then: The expense opens as usual
         expect(handleOnPress).toHaveBeenCalledWith(TRANSACTION_ID);
+    });
+
+    it('should open row actions when a long press starts in blank space inside a copyable cell', async () => {
+        // Given a touch device and a copyable cell whose element extends beyond its text
+        mockedCanUseTouchScreen.mockReturnValue(true);
+        mockIsPressStartOnCopyableText.mockReturnValue(false);
+        const copyableCell = document.createElement('span');
+        copyableCell.setAttribute(`data-${CONST.COPYABLE_TEXT_ELEMENT}`, 'true');
+        const {handleLongPress} = await renderTransactionItem(buildTransaction());
+        const row = screen.getByLabelText('View details');
+
+        // When the user long-presses the cell element outside the text glyphs
+        fireEvent(row, 'touchStart', {target: copyableCell});
+        fireEvent(row, 'pressIn', {target: copyableCell});
+        fireEvent(row, 'longPress');
+
+        // Then the row action remains available instead of treating the blank area as selectable text
+        expect(handleLongPress).toHaveBeenCalledWith(TRANSACTION_ID);
     });
 
     it('should clear the reject error when it is dismissed', async () => {

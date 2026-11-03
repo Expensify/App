@@ -220,6 +220,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
                 <SelectionListWithSections<WorkspaceFilterItem>
                     sections={sections}
                     ListItem={MultiSelectListItem}
+                    titleNumberOfLines={2}
                     onSelectRow={updateSelectedItems}
                     shouldPreventDefaultFocusOnSelectRow={false}
                     shouldShowTextInput={shouldShowWorkspaceSearchInput}

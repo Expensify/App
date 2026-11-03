@@ -1,11 +1,13 @@
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import useIsSearchRowFocused from '@components/Search/hooks/useIsSearchRowFocused';
 import {useHorizontalScrollFollower} from '@components/Search/hooks/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
+import useCopyableTextRowPress, {isPressStartOnCopyableText} from '@hooks/useCopyableTextRowPress';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useIsVendorColumnAvailable from '@hooks/useIsVendorColumnAvailable';
@@ -24,6 +26,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {queryHasViolationFilter} from '@libs/SearchQueryUtils';
 import {getColumnsToShow, getGroupColumnWidthFlags, getGroupTableScrollLayout, isCashBackWithdrawalGroup} from '@libs/SearchUIUtils';
+import {COPYABLE_ROW_DATA_SET} from '@libs/SelectionScraper';
 
 import variables from '@styles/variables';
 
@@ -36,7 +39,7 @@ import type {ComponentRef} from 'react';
 import type {NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
@@ -71,7 +74,6 @@ type GroupHeaderProps = SearchListActionProps & {
     onLongPressRow?: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
     onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void;
     shouldSyncFocus?: boolean;
-    isFocused?: boolean;
     isFirstItem: boolean;
     isLastItem: boolean;
     visibleColumns?: SearchCustomColumnIds[];
@@ -93,7 +95,6 @@ function GroupHeader({
     onLongPressRow,
     onFocus,
     shouldSyncFocus,
-    isFocused,
     isFirstItem,
     isLastItem,
     lastPaymentMethod,
@@ -103,6 +104,7 @@ function GroupHeader({
     visibleColumns,
     windowWidth,
 }: GroupHeaderProps) {
+    const isFocused = useIsSearchRowFocused(item.keyForList);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {pageGutterMargin} = useLayoutSpacing();
@@ -126,15 +128,12 @@ function GroupHeader({
     const [parentReportAction] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oneTransactionReportID}`, {
         selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => reportActions?.[`${oneTransactionItem?.reportAction?.reportActionID}`],
     });
-    const transactionPreviewData: TransactionPreviewData = useMemo(
-        () => ({
-            hasParentReport: !!parentReport,
-            hasTransaction: !!oneTransaction,
-            hasParentReportAction: !!parentReportAction,
-            hasTransactionThreadReport: !!oneTransactionThreadReport,
-        }),
-        [parentReport, oneTransaction, parentReportAction, oneTransactionThreadReport],
-    );
+    const transactionPreviewData: TransactionPreviewData = {
+        hasParentReport: !!parentReport,
+        hasTransaction: !!oneTransaction,
+        hasParentReportAction: !!parentReportAction,
+        hasTransactionThreadReport: !!oneTransactionThreadReport,
+    };
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
     const snapshotData = transactionsSnapshot?.data;
@@ -155,18 +154,24 @@ function GroupHeader({
         });
     }
 
+    const subHeaderColumnWidthFlags = getGroupColumnWidthFlags(groupItem.transactions);
     const {
         isAmountColumnWide: isSubHeaderAmountColumnWide,
         isTaxAmountColumnWide: isSubHeaderTaxAmountColumnWide,
         shouldShowYear: shouldSubHeaderShowYear,
+        shouldShowYearSubmitted: shouldSubHeaderShowYearSubmitted,
+        shouldShowYearApproved: shouldSubHeaderShowYearApproved,
+        shouldShowYearPaid: shouldSubHeaderShowYearPaid,
+        shouldShowYearPosted: shouldSubHeaderShowYearPosted,
+        shouldShowYearExported: shouldSubHeaderShowYearExported,
         isActionColumnWide: isSubHeaderActionColumnWide,
-    } = getGroupColumnWidthFlags(groupItem.transactions);
+    } = subHeaderColumnWidthFlags;
 
     // Shared with TransactionGroupListExpanded so the two always agree on the table's width.
     const {minTableWidth: subHeaderMinTableWidth, shouldScrollHorizontally: shouldSubHeaderScrollHorizontally} = getGroupTableScrollLayout(
         subHeaderColumns,
         CONST.SEARCH.DATA_TYPES.EXPENSE,
-        isSubHeaderActionColumnWide,
+        subHeaderColumnWidthFlags,
         windowWidth,
         isLargeScreenWidth,
     );
@@ -320,13 +325,25 @@ function GroupHeader({
                         {...commonProps}
                     />
                 );
+            case CONST.SEARCH.GROUP_BY.APPROVER:
+                return (
+                    <MemberListItemHeader
+                        member={groupItem}
+                        nameColumn={CONST.SEARCH.TABLE_COLUMNS.GROUP_APPROVER}
+                        {...commonProps}
+                        isLargeScreenWidth={isLargeScreenWidth}
+                    />
+                );
             default:
                 return null;
         }
     };
 
     const subHeaderContent = (
-        <View style={[styles.flexColumn, styles.flex1]}>
+        <View
+            style={[styles.flexColumn, styles.flex1, styles.userSelectNone]}
+            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+        >
             <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8]}>
                 <SearchTableHeader
                     canSelectMultiple
@@ -335,6 +352,11 @@ function GroupHeader({
                     sortOrder={undefined}
                     sortBy={undefined}
                     shouldShowYear={shouldSubHeaderShowYear}
+                    shouldShowYearSubmitted={shouldSubHeaderShowYearSubmitted}
+                    shouldShowYearApproved={shouldSubHeaderShowYearApproved}
+                    shouldShowYearPaid={shouldSubHeaderShowYearPaid}
+                    shouldShowYearPosted={shouldSubHeaderShowYearPosted}
+                    shouldShowYearExported={shouldSubHeaderShowYearExported}
                     isAmountColumnWide={isSubHeaderAmountColumnWide}
                     isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
                     shouldShowSorting={false}
@@ -350,6 +372,8 @@ function GroupHeader({
 
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
     const pressableRef = useRef<ComponentRef<typeof View>>(null);
+    const {markMouseDownOnCopyableText, markTouchStartOnCopyableText, shouldSuppressCopyableTextRowFocus, shouldSuppressCopyableTextRowLongPress, shouldSuppressCopyableTextRowPress} =
+        useCopyableTextRowPress();
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
@@ -366,6 +390,10 @@ function GroupHeader({
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;
 
     const handlePress = (event?: ModifiedMouseEvent) => {
+        if (shouldSuppressCopyableTextRowPress()) {
+            return;
+        }
+
         if (isExpenseReportType) {
             onSelectRow(withOriginalKey(item), transactionPreviewData, event);
         }
@@ -375,6 +403,9 @@ function GroupHeader({
     };
 
     const handleLongPress = () => {
+        if (shouldSuppressCopyableTextRowLongPress()) {
+            return;
+        }
         onLongPressRow?.(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
 
@@ -389,14 +420,39 @@ function GroupHeader({
                 accessibilityLabel={item.text ?? ''}
                 role={isCashBackWithdrawal ? undefined : CONST.ROLE.BUTTON}
                 isNested
+                shouldAllowTextSelection={!isCashBackWithdrawal}
                 interactive={!isCashBackWithdrawal}
                 focusable={!isCashBackWithdrawal}
                 pressDimmingValue={isCashBackWithdrawal ? 1 : undefined}
                 hoverStyle={[!isExpanded && !item.isDisabled && !isCashBackWithdrawal && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
-                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: true}}
-                onMouseDown={(e) => e.preventDefault()}
+                dataSet={{
+                    ...(isCashBackWithdrawal ? {[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true} : COPYABLE_ROW_DATA_SET),
+                    [CONST.INNER_BOX_SHADOW_ELEMENT]: true,
+                }}
+                onMouseDown={(e) => {
+                    if (isCashBackWithdrawal) {
+                        e.preventDefault();
+                        return;
+                    }
+                    const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
+                    if (isCopyableTarget) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
+                onTouchStart={(event) => {
+                    if (isCashBackWithdrawal) {
+                        return;
+                    }
+                    markTouchStartOnCopyableText(event, isPressStartOnCopyableText(event));
+                }}
                 id={item.keyForList ?? ''}
-                onFocus={onFocus}
+                onFocus={(event) => {
+                    if (shouldSuppressCopyableTextRowFocus()) {
+                        return;
+                    }
+                    onFocus?.(event);
+                }}
                 style={[
                     pressableStyle,
                     isFocused && StyleUtils.getItemBackgroundColorStyle(!!isItemSelected, !!isFocused, !!item.isDisabled, theme.activeComponentBG, theme.hoverComponentBG),
