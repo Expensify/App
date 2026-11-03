@@ -11,6 +11,7 @@ import useOnyx from '@hooks/useOnyx';
 import useReconciliationFundID from '@hooks/useReconciliationFundID';
 import useScreenBoundDynamicRoute from '@hooks/useScreenBoundDynamicRoute';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
@@ -36,7 +37,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigationState} from '@react-navigation/native';
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import RECONCILIATION_ACCOUNT_SETTINGS_TYPE from './constants';
@@ -190,7 +191,8 @@ function ExpensifyCardDynamicReconciliation({policyID, domainName, bankAccountLi
 function TravelBillingDynamicReconciliation({policyID, workspaceAccountID, domainName, bankAccountList, goBack, connectionName, connectionBankAccounts}: DynamicReconciliationProps) {
     const {translate} = useLocalize();
 
-    const [travelBillingCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [travelBillingCardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${travelBillingFundID}`);
     const [travelBillingReconciliationBankAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID}${workspaceAccountID}`);
     const [travelBillingContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION}${workspaceAccountID}`);
     const [travelBillingContinuousReconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION}${workspaceAccountID}`);
@@ -215,8 +217,8 @@ function TravelBillingDynamicReconciliation({policyID, workspaceAccountID, domai
             connectionName={connectionName}
             connectionBankAccounts={connectionBankAccounts}
             goBack={goBack}
-            description={translate('workspace.accounting.chooseReconciliationAccount.chooseTravelInvoicingBankAccount')}
-            html={translate('workspace.accounting.chooseReconciliationAccount.travelInvoicingSettlementAccountReconciliation', settlementAccountEnding)}
+            description={translate('workspace.accounting.chooseReconciliationAccount.chooseTravelBillingBankAccount')}
+            html={translate('workspace.accounting.chooseReconciliationAccount.travelBillingSettlementAccountReconciliation', settlementAccountEnding)}
             selectedBankAccountID={travelBillingReconciliationBankAccountID}
             onSelectBankAccount={selectBankAccount}
         />
@@ -236,9 +238,9 @@ function DynamicReconciliationAccountSettingsPage({route}: DynamicReconciliation
 
     const connectionBankAccounts = getConnectionBankAccountsForReconciliation(connections, connectionName);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
     if (reconciliationAccountSettingsType === RECONCILIATION_ACCOUNT_SETTINGS_TYPE.TRAVEL_BILLING) {
         return (

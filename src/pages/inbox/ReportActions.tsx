@@ -6,7 +6,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
-import useSingleExpenseReportView from '@hooks/useSingleExpenseReportView';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
@@ -55,19 +54,17 @@ function ReportActions() {
 
     const allReportTransactions = useReportTransactionsCollection(reportIDFromRoute);
     const reportTransactions = getAllNonDeletedTransactions(allReportTransactions, reportActions, isOffline, true);
-    const {shouldUseTableViewForSingleExpense} = useSingleExpenseReportView(report?.reportID);
 
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
     const shouldWaitForTransactions = shouldWaitForTransactionsUtil(report, reportTransactions, reportLoadingState, isReportLoadPending, isOffline);
-    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions, shouldUseTableViewForSingleExpense);
+    const shouldDisplayMoneyRequestActionsList = isMoneyRequestOrInvoiceReport && shouldDisplayReportTableView(report, reportTransactions);
 
     // The app-load skeleton is hoisted out of the body so the body's data hooks/effects never run
     // during app boot. It only applies on the chat path (after the skeleton and money-request
     // branches below) — matching the previous behavior, where this skeleton lived inside the
     // chat-only ReportActionsView.
     //
-    // Concierge is excluded so the body still mounts under the app-load skeleton, seeding sessionStartTime
-    // before content appeared.
+    // Concierge is excluded so its welcome screen shows while the app loads.
     const isConciergeMainDM = isConciergeChatReport(report, conciergeReportID);
     const shouldShowAppLoadSkeleton = isAppLoadPending && !isOffline && !!report && !shouldWaitForTransactions && !shouldDisplayMoneyRequestActionsList && !isConciergeMainDM;
 

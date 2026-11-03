@@ -139,7 +139,7 @@ function isObjectPayload(value: unknown): value is DeepestFocusedScreenInput {
 }
 
 function getActionPayloadScreenName(action: NavigationAction): string | undefined {
-    // NAVIGATE/PUSH payloads aren't full NavigationStates; getDeepestFocusedScreen accepts that shape.
+    // NAVIGATE/PUSH payloads aren't full NavigationStates. getDeepestFocusedScreen accepts that shape.
     // Use a type guard (not `as`) so we stay within this file's no-unsafe-type-assertion seatbelt.
     if (!isObjectPayload(action.payload)) {
         return undefined;
@@ -185,20 +185,27 @@ function shouldPreventReset(state: NavigationState, action: NavigationAction) {
     return false;
 }
 
+function getActionTargetName(action: NavigationAction): string | undefined {
+    return (action.payload as {name?: string} | undefined)?.name;
+}
+
+/**
+ * Checks whether a route belongs to onboarding
+ */
+function isOnboardingTargetName(name: string | undefined): boolean {
+    return name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR || isOnboardingFlowName(name);
+}
+
 /**
  * Check if the navigation action is targeting an onboarding screen.
- * This handles NAVIGATE/PUSH actions that target the OnboardingModalNavigator directly.
+ * This handles RESET actions, and NAVIGATE/PUSH actions that target the OnboardingModalNavigator or one of its screens.
  */
 function isNavigatingToOnboardingFlow(action: NavigationAction): boolean {
     if (action.type === CONST.NAVIGATION_ACTIONS.RESET && isObjectPayload(action.payload)) {
-        const targetScreenName = getActionPayloadScreenName(action);
-        return targetScreenName === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR || isOnboardingFlowName(targetScreenName);
+        return isOnboardingTargetName(getActionPayloadScreenName(action));
     }
 
-    if (
-        (action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH) &&
-        (action.payload as {name?: string} | undefined)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR
-    ) {
+    if ((action.type === CONST.NAVIGATION.ACTION_TYPE.NAVIGATE || action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH) && isOnboardingTargetName(getActionTargetName(action))) {
         return true;
     }
 
@@ -213,12 +220,30 @@ function isNavigatingToJoinWorkspaceTask(action: NavigationAction): boolean {
     return JOIN_WORKSPACE_TASK_SCREENS.has(getActionPayloadScreenName(action) ?? '') && getActionPayloadScreenParams(action)?.isJoinWorkspaceTask === 'true';
 }
 
+const ACTIONS_THAT_CAN_LEAVE_ONBOARDING = new Set<string>([
+    CONST.NAVIGATION.ACTION_TYPE.NAVIGATE,
+    CONST.NAVIGATION.ACTION_TYPE.PUSH,
+    CONST.NAVIGATION.ACTION_TYPE.REPLACE,
+    CONST.NAVIGATION.ACTION_TYPE.POP_TO,
+]);
+
+/**
+ * Check if the navigation action takes the user out of the onboarding flow.
+ * NAVIGATE/PUSH bury the OnboardingModalNavigator under a new root route (warm deep link, OldDot exitTo).
+ * REPLACE/POP_TO remove it, which is what goBack(ROUTES.HOME) becomes in goUp once the target is below it.
+ * GO_BACK, POP, SET_PARAMS and DISMISS_MODAL are not checked here: DISMISS_MODAL is how the completed flow exits,
+ * shouldPreventReset handles a GO_BACK that leaves onboarding, and the others keep their previous behaviour.
+ */
+function isNavigatingAwayFromOnboardingFlow(action: NavigationAction): boolean {
+    return ACTIONS_THAT_CAN_LEAVE_ONBOARDING.has(action.type) && !isOnboardingTargetName(getActionTargetName(action));
+}
+
 /**
  * Check if the navigation action is targeting an onboarding screen.
  * This handles REPLACE actions that target the OnboardingModalNavigator directly.
  */
 function isNavigatingToOnboardingFlowWithReplaceAction(action: NavigationAction): boolean {
-    return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE && (action.payload as {name?: string} | undefined)?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE && getActionTargetName(action) === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
 }
 
 /**
@@ -241,7 +266,6 @@ const OnboardingGuard: NavigationGuard = {
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
         const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
         const isNavigatingToJoinWorkspaceTaskRoute = isNavigatingToJoinWorkspaceTask(action);
@@ -295,6 +319,13 @@ const OnboardingGuard: NavigationGuard = {
         // triggers further actions, creating an infinite navigation loop (APP-7FR).
         const isOnboardingFocused = state.routes[state.index]?.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR;
         if (isOnboardingFocused) {
+            // A deep link that arrives while the app is warm reaches the root router as NAVIGATE/PUSH, and the
+            // OldDot transition page follows its blocked exitTo with goBack(ROUTES.HOME), which goUp turns into
+            // POP_TO or REPLACE. shouldPreventReset never sees any of these. Block them unless they target
+            // onboarding itself. BLOCK is not REDIRECT, so the APP-7FR loop protection above is preserved.
+            if (isNavigatingAwayFromOnboardingFlow(action)) {
+                return {type: 'BLOCK', reason: 'Cannot navigate away from onboarding before it is completed'};
+            }
             return {type: 'ALLOW'};
         }
 

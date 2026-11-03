@@ -15,6 +15,8 @@ import ValueSelectorModal from './ValueSelectorModal';
 function ValuePicker({
     value,
     label,
+    modalHeaderTitle,
+    shouldReadErrorWithLabel,
     items,
     placeholder = '',
     errorText = '',
@@ -56,18 +58,18 @@ function ValuePicker({
                     <MenuItemWithTopDescription
                         ref={ref}
                         shouldShowRightIcon
-                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         title={selectedItem?.label || placeholder || ''}
                         description={label}
                         onPress={showPickerModal}
                         furtherDetails={furtherDetails}
                         brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={errorText}
+                        shouldReadErrorWithLabel={shouldReadErrorWithLabel}
                         forwardedFSClass={forwardedFSClass}
                     />
                     <ValueSelectorModal
                         isVisible={isPickerVisible}
-                        label={label}
+                        label={modalHeaderTitle ?? label}
                         selectedItem={selectedItem}
                         items={items}
                         onClose={hidePickerModal}

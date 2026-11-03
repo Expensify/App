@@ -65,8 +65,10 @@ import type {
     SetWorkspaceAutoReportingFrequencyParams,
     SetGlobalReimbursementFXPreferenceParams,
     SetWorkspaceAutoReportingMonthlyOffsetParams,
+    UpdatePolicyTimezoneParams,
     SetWorkspacePayerParams,
     SetWorkspaceReimbursementParams,
+    ToggleCollectDepositAccountsParams,
     TogglePolicyReceiptPartnersParams,
     TogglePolicyUberAutoInvitePageParams,
     TogglePolicyUberAutoRemovePageParams,
@@ -334,6 +336,8 @@ type SetWorkspaceReimbursementActionParams = {
     shouldUpdateLastPaymentMethod?: boolean;
     currentReimbursementChoice: Policy['reimbursementChoice'];
     currentAchAccount: Policy['achAccount'];
+    currentIsCollectDepositAccountsEnabled?: Policy['isCollectDepositAccountsEnabled'];
+    currentReimbursementCountries?: NonNullable<Policy['reimbursement']>['countries'];
     bankAccountList?: BankAccountList;
 };
 
@@ -1010,13 +1014,59 @@ function setWorkspaceCurrencyConversionFeesPreference(policyID: string, shouldPr
     API.write(WRITE_COMMANDS.SET_GLOBAL_REIMBURSEMENT_FX_PREFERENCE, params, {optimisticData, failureData, successData});
 }
 
-function setWorkspaceAutoReportingMonthlyOffset(
+/**
+ * Turn collecting employee deposit account details on or off. Like Classic, this only flips the flag and leaves the
+ * workspace's reimbursement countries untouched.
+ */
+function toggleCollectDepositAccounts(policyID: string, enabled: boolean, currentIsCollectDepositAccountsEnabled: Policy['isCollectDepositAccountsEnabled']) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isCollectDepositAccountsEnabled: enabled,
+                pendingFields: {isCollectDepositAccountsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errorFields: {isCollectDepositAccountsEnabled: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isCollectDepositAccountsEnabled: currentIsCollectDepositAccountsEnabled ?? null,
+                pendingFields: {isCollectDepositAccountsEnabled: null},
+                errorFields: {isCollectDepositAccountsEnabled: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {isCollectDepositAccountsEnabled: null},
+            },
+        },
+    ];
+
+    const params: ToggleCollectDepositAccountsParams = {policyID, enabled};
+    API.write(WRITE_COMMANDS.TOGGLE_COLLECT_DEPOSIT_ACCOUNTS, params, {optimisticData, failureData, successData});
+}
+
+function setWorkspaceAutoReportingOffset(
     policyID: string,
-    autoReportingOffset: number | ValueOf<typeof CONST.POLICY.AUTO_REPORTING_OFFSET>,
+    autoReportingOffset: AutoReportingOffset,
     currentAutoReportingOffset: AutoReportingOffset | undefined,
     reviewWorkspaceSettingsTaskData: OnboardingTaskCompletionOnyxData = {},
+    autoReportingOffsetSecondSemiMonthly?: AutoReportingOffset,
+    currentAutoReportingOffsetSecondSemiMonthly?: AutoReportingOffset,
 ) {
-    const value = JSON.stringify({autoReportingOffset});
+    const hasSecondOffset = autoReportingOffsetSecondSemiMonthly !== undefined;
+    const value = JSON.stringify({autoReportingOffset, ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly})});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
@@ -1024,7 +1074,11 @@ function setWorkspaceAutoReportingMonthlyOffset(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReportingOffset,
-                pendingFields: {autoReportingOffset: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly}),
+                pendingFields: {
+                    autoReportingOffset: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                },
             },
         },
     ];
@@ -1035,8 +1089,9 @@ function setWorkspaceAutoReportingMonthlyOffset(
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
                 autoReportingOffset: currentAutoReportingOffset ?? null,
-                pendingFields: {autoReportingOffset: null},
-                errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.monthlyOffsetErrorMessage')},
+                ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: currentAutoReportingOffsetSecondSemiMonthly ?? null}),
+                pendingFields: {autoReportingOffset: null, ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: null})},
+                errorFields: {autoReportingOffset: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workflowsDelayedSubmissionPage.autoReportingFrequencyErrorMessage')},
             },
         },
     ];
@@ -1046,7 +1101,7 @@ function setWorkspaceAutoReportingMonthlyOffset(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             value: {
-                pendingFields: {autoReportingOffset: null},
+                pendingFields: {autoReportingOffset: null, ...(hasSecondOffset && {autoReportingOffsetSecondSemiMonthly: null})},
             },
         },
     ];
@@ -1057,6 +1112,46 @@ function setWorkspaceAutoReportingMonthlyOffset(
         params,
         withReviewWorkspaceSettingsTaskData({optimisticData, failureData, successData}, reviewWorkspaceSettingsTaskData),
     );
+}
+
+function setWorkspaceTimezone(policyID: string, timeZone: string, currentTimeZone: Policy['timeZone']) {
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                timeZone,
+                pendingFields: {timeZone: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errorFields: {timeZone: null},
+            },
+        },
+    ];
+
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                timeZone: currentTimeZone ?? null,
+                pendingFields: {timeZone: null},
+                errorFields: {timeZone: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.editor.timezoneErrorMessage')},
+            },
+        },
+    ];
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                pendingFields: {timeZone: null},
+            },
+        },
+    ];
+
+    const params: UpdatePolicyTimezoneParams = {policyID, policyTimezone: timeZone};
+
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_TIMEZONE, params, {optimisticData, successData, failureData});
 }
 
 function setWorkspaceApprovalMode(
@@ -1394,6 +1489,8 @@ function setWorkspaceReimbursement({
     shouldUpdateLastPaymentMethod,
     currentReimbursementChoice,
     currentAchAccount,
+    currentIsCollectDepositAccountsEnabled,
+    currentReimbursementCountries,
     bankAccountList = {},
 }: SetWorkspaceReimbursementActionParams) {
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
@@ -1526,6 +1623,23 @@ function setWorkspaceReimbursement({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
             value: failureBankAccountList,
+        });
+    }
+
+    // Turning payments off also stops collecting employee bank details and clears the reimbursement countries
+    if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {isCollectDepositAccountsEnabled: false, reimbursement: {countries: null}},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isCollectDepositAccountsEnabled: currentIsCollectDepositAccountsEnabled ?? null,
+                reimbursement: {countries: currentReimbursementCountries ?? null},
+            },
         });
     }
 
@@ -2885,6 +2999,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    timeZone: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -2998,6 +3113,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                     reimbursementChoice: null,
                     name: null,
                     outputCurrency: null,
+                    timeZone: null,
                     address: null,
                     description: null,
                     type: null,
@@ -3474,6 +3590,7 @@ function buildOptimisticDuplicatePolicy(
         areInvoicesEnabled: isInvoicesFeatureSelected,
         areRulesEnabled: isRulesFeatureSelected,
         areWorkflowsEnabled: isWorkflowsFeatureSelected,
+        isCollectDepositAccountsEnabled: isWorkflowsFeatureSelected ? sourcePolicy?.isCollectDepositAccountsEnabled : false,
         areReportFieldsEnabled: isReportsFeatureSelected ? sourcePolicy?.areReportFieldsEnabled : false,
         areInvoiceFieldsEnabled: isInvoiceFieldsFeatureSelected ? sourcePolicy?.areInvoiceFieldsEnabled : false,
         areConnectionsEnabled: isConnectionsFeatureSelected,
@@ -3502,6 +3619,7 @@ function buildOptimisticDuplicatePolicy(
             reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            timeZone: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3669,6 +3787,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                     reimbursementChoice: null,
                     name: null,
                     outputCurrency: null,
+                    timeZone: null,
                     address: null,
                     description: null,
                     type: null,
@@ -4314,7 +4433,7 @@ function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number, fun
 function updateMemberCustomField(policyID: string, login: string, customFieldType: CustomFieldType, value: string, currentValue: string | undefined) {
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
 
-    if (value === (currentValue ?? '')) {
+    if (!login || value === (currentValue ?? '')) {
         return;
     }
 
@@ -4399,7 +4518,7 @@ function createWorkspaceFromIOUPayment({
     const policyID = generatePolicyID();
     const workspaceName = generateDefaultWorkspaceName(currentUserEmail, currentUserDisplayName, lastWorkspaceNumber, localeTranslate);
     const employeeAccountID = iouReport?.ownerAccountID;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as iouReport?.currency could be an empty string
+    // `iouReport?.currency` can be an empty string
     const {customUnits, customUnitID, customUnitRateID} = buildOptimisticDistanceRateCustomUnits(iouReport?.currency || currentUserLocalCurrency);
     const oldPersonalPolicyID = iouReport?.policyID;
     const iouReportID = iouReport?.reportID;
@@ -5159,6 +5278,12 @@ const ENABLE_CONNECTION_FEATURE = {
 function enablePolicyFeatureForConnection(policy: OnyxEntry<Policy>, featureName: ConnectionFeatureName) {
     if (!policy?.id || PolicyUtils.isPolicyFeatureEnabled(policy, featureName)) {
         return;
+    }
+    // A workspace that is still being created has no connections to fetch. Without this, the open Connections page
+    // would be replaced by a loader while the fetch waits behind the create request. It's set first so the page never
+    // sees the feature on without it.
+    if (featureName === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && policy.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_HAS_CONNECTIONS_DATA_BEEN_FETCHED}${policy.id}`, true);
     }
     ENABLE_CONNECTION_FEATURE[featureName](policy.id, true, false);
 }
@@ -8236,7 +8361,9 @@ export {
     setWorkspaceAutoHarvesting,
     setWorkspaceAutoReportingFrequency,
     setWorkspaceCurrencyConversionFeesPreference,
-    setWorkspaceAutoReportingMonthlyOffset,
+    setWorkspaceAutoReportingOffset,
+    setWorkspaceTimezone,
+    toggleCollectDepositAccounts,
     updateWorkspaceDescription,
     updateWorkspaceClientID,
     setWorkspacePayer,
@@ -8246,8 +8373,6 @@ export {
     enablePolicyConnections,
     enablePolicyHR,
     enablePolicyRecruiting,
-    enablePolicyMCP,
-    enablePolicyReceiptPartners,
     enablePolicyFeatureForConnection,
     enablePolicyReportFields,
     enablePolicyInvoiceFields,

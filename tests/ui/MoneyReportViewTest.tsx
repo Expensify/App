@@ -1,14 +1,20 @@
-import {act, render, screen, waitFor} from '@testing-library/react-native';
+/** Exercises report breakdown visibility and exact pending contributions through the real report rows. */
+import {act, render, screen, waitFor, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
+
+import {getReportFieldKey} from '@libs/ReportUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type * as NativeNavigation from '@react-navigation/native';
 
@@ -32,6 +38,11 @@ jest.mock('@hooks/useResponsiveLayoutOnWideRHP', () => ({
         isSuperWideRHPDisplayedOnWideLayout: false,
     }),
 }));
+
+jest.mock('@components/OfflineWithFeedback', () => {
+    const actual = jest.requireActual<{default: typeof OfflineWithFeedback}>('@components/OfflineWithFeedback');
+    return {...actual, __esModule: true, default: jest.fn<ReturnType<typeof actual.default>, [OfflineWithFeedbackProps]>(actual.default)};
+});
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({
@@ -112,7 +123,7 @@ const seedReportAndTransactions = async (transactions: OnyxTypes.Transaction[], 
     await waitForBatchedUpdatesWithAct();
 };
 
-const renderMoneyReportView = (report: OnyxTypes.Report, policy: OnyxTypes.Policy | undefined = undefined, isCombinedReport = false) =>
+const renderMoneyReportView = (report: OnyxTypes.Report, policy: OnyxTypes.Policy | undefined = undefined, isCombinedReport = false, pendingAction?: PendingAction) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <MoneyReportView
@@ -121,6 +132,7 @@ const renderMoneyReportView = (report: OnyxTypes.Report, policy: OnyxTypes.Polic
                 shouldHideThreadDividerLine={false}
                 shouldShowAnimatedBackground={false}
                 isCombinedReport={isCombinedReport}
+                pendingAction={pendingAction}
             />
         </ComposeProviders>,
     );
@@ -185,6 +197,27 @@ describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
             expect(screen.getByText('cardTransactions.outOfPocket')).toBeOnTheScreen();
             expect(screen.getByText('cardTransactions.companySpend')).toBeOnTheScreen();
         });
+    });
+
+    it('shows all four exact breakdown labels together for multiple taxed and billable expenses', async () => {
+        // Given multiple expenses with company spend, billable amount and tax enabled
+        const policy = buildTaxPolicy();
+        const transactions = [buildTransaction('t1', 5000, true, true, 500), buildTransaction('t2', 3000, false, true, 300)];
+        const report = buildExpenseReport({total: -8000, unheldTotal: -8000, nonReimbursableTotal: -3000, unheldNonReimbursableTotal: -3000});
+        await seedReportAndTransactions(transactions, report);
+
+        // When the actual report renders its breakdown
+        renderMoneyReportView(report, policy);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then all four labels remain in their existing order
+        const labels = screen.getAllByText(/^(cardTransactions\.(outOfPocket|companySpend)|common\.(billable|tax))$/);
+        expect(labels.map((label) => label.children.filter((child) => typeof child === 'string').join(''))).toEqual([
+            'cardTransactions.outOfPocket',
+            'cardTransactions.companySpend',
+            'common.billable',
+            'common.tax',
+        ]);
     });
 
     it('hides every report-level row for a single billable expense (the amount lives on the expense field)', async () => {
@@ -291,7 +324,7 @@ describe('MoneyReportView reimbursable/non-reimbursable breakdown rows', () => {
 });
 
 describe('MoneyReportView report fields visibility', () => {
-    const customFieldKey = `expensify_${'field_test'}` as const;
+    const customFieldKey = getReportFieldKey('field_test');
 
     const buildTitleField = (): OnyxTypes.PolicyReportField => ({
         fieldID: CONST.REPORT_FIELD_TITLE_FIELD_ID,
@@ -426,5 +459,97 @@ describe('MoneyReportView report fields visibility', () => {
         await waitFor(() => {
             expect(screen.queryByText('title')).not.toBeOnTheScreen();
         });
+    });
+
+    it.each<PendingAction | undefined>([undefined, null, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE])(
+        'preserves the exact custom-field contribution %s without taking a title or another field contribution',
+        async (contribution) => {
+            // Given keys produced by getReportFieldKey and the pending shape written by updateReportField
+            const secondFieldKey = getReportFieldKey('field_second');
+            const fieldList = {
+                [CONST.REPORT_FIELD_TITLE_FIELD_ID]: buildTitleField(),
+                [customFieldKey]: buildCustomTextField(),
+                [secondFieldKey]: {...buildCustomTextField(), fieldID: 'field_second', name: 'Second', orderWeight: 3},
+            };
+            const policy = buildReportFieldsPolicy(fieldList);
+            const report = buildExpenseReport({
+                fieldList,
+                pendingFields: {[getReportFieldKey(CONST.REPORT_FIELD_TITLE_FIELD_ID)]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+            });
+            // Custom pending keys are written by updateReportField even though the Report model lists fixed keys only.
+            const pendingFields = {...report.pendingFields, [customFieldKey]: contribution, [secondFieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE};
+            const reportWithPending = {...report, pendingFields};
+            await seedReportFieldsPolicy(policy, report);
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.NETWORK, {shouldForceOffline: true});
+            });
+            jest.mocked(OfflineWithFeedback).mockClear();
+
+            // When typed direct props retain explicit undefined and null that an Onyx merge would delete
+            renderMoneyReportView(reportWithPending, policy);
+            await waitForBatchedUpdatesWithAct();
+
+            // Then both intended rows exist and the real feedback component receives their distinct exact values
+            expect(screen.getByLabelText('Test')).toBeOnTheScreen();
+            expect(screen.getByLabelText('Second')).toBeOnTheScreen();
+            const feedback = screen.UNSAFE_getAllByType(OfflineWithFeedback);
+            expect(feedback).toHaveLength(2);
+            const customFeedback = feedback.find((row) => within(row).queryByLabelText('Test'));
+            const secondFeedback = feedback.find((row) => within(row).queryByLabelText('Second'));
+            expect(customFeedback).toBeDefined();
+            expect(secondFeedback).toBeDefined();
+            if (!customFeedback || !secondFeedback) {
+                throw new Error('Expected feedback around both custom report fields');
+            }
+            const customObservation = jest.mocked(OfflineWithFeedback).mock.calls.findLast(([props]) => props === customFeedback.props)?.[0];
+            const secondObservation = jest.mocked(OfflineWithFeedback).mock.calls.findLast(([props]) => props === secondFeedback.props)?.[0];
+            expect(customObservation).toBeDefined();
+            expect(secondObservation).toBeDefined();
+            expect(customObservation?.pendingAction).toBe(contribution);
+            expect(secondObservation?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+        },
+    );
+
+    it.each(['missing-container', 'missing-key', 'overall-action'] as const)('retains undefined feedback for %s', async (scenario) => {
+        // Given two custom rows and title pending data that must not leak into either row
+        const secondFieldKey = getReportFieldKey('field_second');
+        const fieldList = {
+            [CONST.REPORT_FIELD_TITLE_FIELD_ID]: buildTitleField(),
+            [customFieldKey]: buildCustomTextField(),
+            [secondFieldKey]: {...buildCustomTextField(), fieldID: 'field_second', name: 'Second', orderWeight: 3},
+        };
+        const policy = buildReportFieldsPolicy(fieldList);
+        const report = buildExpenseReport({fieldList});
+        const pendingFields =
+            scenario === 'missing-container'
+                ? undefined
+                : {
+                      ...report.pendingFields,
+                      [getReportFieldKey(CONST.REPORT_FIELD_TITLE_FIELD_ID)]: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                      ...(scenario === 'overall-action' ? {[customFieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, [secondFieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE} : {}),
+                  };
+        const reportWithPending = {...report, pendingFields};
+        await seedReportFieldsPolicy(policy, reportWithPending);
+        jest.mocked(OfflineWithFeedback).mockClear();
+
+        // When the real component receives missing contributions or an overall pending action
+        renderMoneyReportView(reportWithPending, policy, false, scenario === 'overall-action' ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the intended rows still exist without duplicate or unrelated feedback
+        expect(screen.getByLabelText('Test')).toBeOnTheScreen();
+        expect(screen.getByLabelText('Second')).toBeOnTheScreen();
+        const feedback = screen.UNSAFE_getAllByType(OfflineWithFeedback);
+        expect(feedback).toHaveLength(2);
+        for (const name of ['Test', 'Second']) {
+            const fieldFeedback = feedback.find((row) => within(row).queryByLabelText(name));
+            expect(fieldFeedback).toBeDefined();
+            if (!fieldFeedback) {
+                throw new Error(`Expected feedback around ${name}`);
+            }
+            const observation = jest.mocked(OfflineWithFeedback).mock.calls.findLast(([props]) => props === fieldFeedback.props)?.[0];
+            expect(observation).toBeDefined();
+            expect(observation?.pendingAction).toBeUndefined();
+        }
     });
 });

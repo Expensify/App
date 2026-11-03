@@ -14,7 +14,7 @@ import type Middleware from './types';
 
 /**
  * Middleware that detects the Corpay pay modal signal sent by the backend when a pay attempt fails because the
- * workspace USD VBBA is not set up on Corpay. The backend sends an Onyx SET on corpayPayModal instead of writing
+ * workspace USD VBBA is not set up on Corpay. The backend sends an Onyx SET on enableGlobalReimbursementsModal instead of writing
  * an inline error onto the report action.
  */
 const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responsePromise: Promise<Response<TKey> | void>, request: Request<TKey> | PaginatedRequest<TKey>) =>
@@ -24,9 +24,9 @@ const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responseP
         }
 
         const onyxData = response.onyxData ?? [];
-        const hasCorpayPayModal = onyxData.some((update) => update.key === ONYXKEYS.RAM_ONLY_CORPAY_PAY_MODAL);
+        const hasEnableGlobalReimbursementsModal = onyxData.some((update) => update.key === ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL);
 
-        if (!hasCorpayPayModal) {
+        if (!hasEnableGlobalReimbursementsModal) {
             return response;
         }
 
@@ -54,7 +54,7 @@ const GlobalReimbursementPayError: Middleware = <TKey extends OnyxKey>(responseP
             };
         }
 
-        Log.info('GlobalReimbursementPayError: replaced optimistic PAY action-error with action-null for corpayPayModal', false, {iouReportID, reportActionID});
+        Log.info('GlobalReimbursementPayError: replaced optimistic PAY action-error with action-null for enableGlobalReimbursementsModal', false, {iouReportID, reportActionID});
 
         return response;
     });

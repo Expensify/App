@@ -2,7 +2,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {convertAttendeesToArray, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
+import {convertAttendeesToArray, getAttendeesMinusOwnerCount, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {isPersonalCard} from '@libs/CardUtils';
 import {getDecodedCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import DateUtils from '@libs/DateUtils';
@@ -552,7 +552,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
         policyTagLists,
         policyTaxRates,
         iouAttendees,
-        currentUserPersonalDetails,
+        ownerLogin,
         isAttendeeTrackingEnabled,
         isControlPolicy,
         mileageRate,
@@ -591,7 +591,7 @@ function getIsViolationFixed(violationError: string, params: ViolationFixParams)
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.MISSING_ATTENDEES}`]: () => {
             // Attendees violation is fixed if getIsMissingAttendeesViolation returns false
-            return !getIsMissingAttendeesViolation(policyCategories, category, iouAttendees, currentUserPersonalDetails, isAttendeeTrackingEnabled, isControlPolicy);
+            return !getIsMissingAttendeesViolation(policyCategories, category, iouAttendees, ownerLogin, isAttendeeTrackingEnabled, isControlPolicy);
         },
         [`${CONST.VIOLATIONS_PREFIX}${CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE}`]: () => {
             if (!expenseDate || !mileageRate) {
@@ -687,6 +687,7 @@ const ViolationsUtils = {
         distanceOriginalPolicy,
         ownerLogin: ownerLoginParam,
         isVendorMatchingBetaEnabled,
+        policyVendors: policyVendorsParam,
     }: {
         updatedTransaction: Transaction;
         transactionViolations: TransactionViolation[];
@@ -703,6 +704,7 @@ const ViolationsUtils = {
         ownerLogin: string | undefined;
         /** Undefined while the account betas are still loading, which leaves the inactive vendor violation untouched */
         isVendorMatchingBetaEnabled: boolean | undefined;
+        policyVendors?: OnyxEntry<PolicyVendors>;
     }): OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS> {
         const isScanning = TransactionUtils.isScanning(updatedTransaction);
         const isScanRequest = TransactionUtils.isScanRequest(updatedTransaction);
@@ -811,14 +813,17 @@ const ViolationsUtils = {
                 // positive in Onyx, and rejecting it would strip a legitimate one. Leave the
                 // existing violation state untouched until the list arrives.
                 const matchedVendor = getMatchingVendorByID(policy, transactionVendorID);
+                const isVendorDisabled = policyVendorsParam?.[transactionVendorID]?.enabled === false;
+                const isVendorInactive = !matchedVendor || isVendorDisabled;
+                const canConfirmVendorEnabled = policyVendorsParam !== undefined && !isVendorDisabled;
 
-                if (!matchedVendor && !hasInactiveVendorViolation) {
+                if (isVendorInactive && !hasInactiveVendorViolation) {
                     newTransactionViolations.push({
                         name: CONST.VIOLATIONS.INACTIVE_VENDOR,
                         type: CONST.VIOLATION_TYPES.VIOLATION,
                         showInReview: true,
                     });
-                } else if (matchedVendor && hasInactiveVendorViolation) {
+                } else if (!isVendorInactive && canConfirmVendorEnabled && hasInactiveVendorViolation) {
                     newTransactionViolations = reject(newTransactionViolations, {name: CONST.VIOLATIONS.INACTIVE_VENDOR});
                 }
             } else if (!transactionVendorID && hasInactiveVendorViolation) {
@@ -897,7 +902,6 @@ const ViolationsUtils = {
         const isTaxRateValid = !!taxRate && !taxRate.isDisabled;
 
         const amount = hasValidModifiedAmount(updatedTransaction) ? Number(updatedTransaction.modifiedAmount) : updatedTransaction.amount;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const currency = updatedTransaction.modifiedCurrency || updatedTransaction.currency;
         const canCalculateAmountViolations = policy.outputCurrency === currency;
 
@@ -978,21 +982,8 @@ const ViolationsUtils = {
         const rawAttendees = updatedTransaction.modifiedAttendees ?? updatedTransaction.comment?.attendees;
         const attendees = convertAttendeesToArray(rawAttendees);
         const isAttendeeTrackingEnabled = isAttendeeTrackingEnabledForPolicy(policy);
-        // Filter out the owner/creator when checking attendance count - expense is valid if at least one non-owner attendee is present
-        let attendeesMinusOwnerCount: number;
-        // Prefer the actual report owner's login; fall back to the current user when the report is unavailable (e.g. an offline-created expense)
-        const ownerLogin = ownerLoginParam ?? getCurrentUserEmail();
-        if (ownerLogin) {
-            // Filter by login or email to identify owner
-            attendeesMinusOwnerCount = attendees.filter((a) => {
-                const attendeeIdentifier = a?.email;
-                return attendeeIdentifier !== ownerLogin;
-            }).length;
-        } else {
-            // Can't identify owner at all - if there are attendees, assume owner is one of them
-            // This means we need at least 2 attendees to have a non-owner attendee
-            attendeesMinusOwnerCount = Math.max(0, attendees.length - 1);
-        }
+        // The expense is valid when at least one attendee isn't the owner. Use the current user as the owner when the report isn't available, e.g. for an expense created offline
+        const attendeesMinusOwnerCount = getAttendeesMinusOwnerCount(attendees, ownerLoginParam ?? getCurrentUserEmail());
 
         const shouldShowMissingAttendees =
             !isInvoiceTransaction &&

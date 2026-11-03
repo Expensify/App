@@ -1,6 +1,6 @@
-import ActivityIndicator from '@components/ActivityIndicator';
 import ActivePointIndicator from '@components/Charts/components/ActivePointIndicator';
 import AreaGradient from '@components/Charts/components/AreaGradient';
+import ChartAverageLine from '@components/Charts/components/ChartAverageLine';
 import ChartGridLines from '@components/Charts/components/ChartGridLines';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import ChartXAxisLabels from '@components/Charts/components/ChartXAxisLabels';
@@ -18,17 +18,9 @@ import {
     useReadyCartesianCanvas,
 } from '@components/Charts/hooks';
 import {getAxisLabelStep, getCartesianPlotBounds, getDomainPaddingForEdgeSpace, getLineRuns, getXAxisLabel, getYAxisLabelWidth, labelOverhang} from '@components/Charts/utils';
+import {getCartesianChartHeight, getXAxisLabelSpace} from '@components/Charts/utils/chartHeights';
 import type {LineRun} from '@components/Charts/utils/getLineRuns';
-import VictoryTheme, {
-    CARTESIAN_Y_AXIS,
-    CHART_CONTENT_MIN_HEIGHT,
-    DASH_INTERVALS,
-    GLYPH_PADDING,
-    LABEL_PADDING,
-    LABEL_ROTATIONS,
-    SIN_45,
-    X_AXIS_LABEL_MIN_GAP,
-} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CARTESIAN_Y_AXIS, DASH_INTERVALS, GLYPH_PADDING, LABEL_PADDING, LABEL_ROTATIONS, SIN_45, X_AXIS_LABEL_MIN_GAP} from '@components/Charts/VictoryTheme';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -41,7 +33,6 @@ import type {CartesianChartRenderArg, ChartBounds, Scale} from 'victory-native';
 
 import {DashPathEffect} from '@shopify/react-native-skia';
 import React from 'react';
-import {View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {CartesianChart, Line} from 'victory-native';
@@ -53,6 +44,9 @@ type LineChartProps = CartesianChartProps & {
 
     /** Steps the x-axis may label points at, ascending. When set, labels stay horizontal and only every Nth point is labeled. */
     labelSteps?: readonly number[];
+
+    /** Whether a compared tooltip shows how the primary series changed against the compared one */
+    shouldShowTooltipChange?: boolean;
 };
 
 type LineChartContentProps = LineChartProps & {
@@ -62,7 +56,7 @@ type LineChartContentProps = LineChartProps & {
 
 type LineChartCanvasProps = Omit<LineChartProps, 'isLoading'> & CartesianCanvasInputs;
 
-function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, labelSteps, chartWidth, fontManager}: LineChartCanvasProps) {
+function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, labelSteps, shouldShowTooltipChange, chartWidth, fontManager}: LineChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -70,6 +64,9 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
     const yAxisDomain = useDynamicYDomain(data);
     const seriesKeys = series.map((seriesItem) => seriesItem.key);
     const [{key: primarySeriesKey, color: primarySeriesColor = VictoryTheme.colors.default}] = series;
+    const lineSeries = series.filter((seriesItem) => !seriesItem.isAverage);
+    const averageSeries = series.find((seriesItem) => seriesItem.isAverage);
+    const averageValue = averageSeries && data.at(0)?.values[averageSeries.key];
     const openPointFlags = data.map((point) => !!point.isInProgress);
 
     // Periods that haven't ended, the current one and any later ones, are drawn dashed on the primary series, along with the segments leading into them.
@@ -186,7 +183,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
         plotRight.set(bounds.right);
     };
 
-    const labelSpace = VictoryTheme.axis.xAxisLabelGap + (xAxisLabelHeight ?? 0);
+    const labelSpace = getXAxisLabelSpace(xAxisLabelHeight);
 
     const isInPlotArea = (args: HitTestArgs) => {
         'worklet';
@@ -215,7 +212,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
         initialTooltipPosition,
         activePointPosition,
         onChartMoved,
-        onTooltipDismiss,
+        dismissTooltip,
         onChartTouchStart,
     } = useChartInteractions({
         handlePress: onPointPress ? handlePointPress : undefined,
@@ -262,8 +259,9 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                         />
                     ))}
                 {/* Drawn last, the primary line sits on top of the compared one */}
-                {[...series].reverse().map((seriesItem) => {
+                {[...lineSeries].reverse().map((seriesItem) => {
                     const color = seriesItem.color ?? VictoryTheme.colors.default;
+
                     const seriesPoints = args.points[seriesItem.key] ?? [];
 
                     // Only the primary series is dashed
@@ -315,7 +313,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                 <ActivePointIndicator
                     x={activePointX}
                     activeIndex={matchedIndex}
-                    dots={series.map((seriesItem) => ({
+                    dots={lineSeries.map((seriesItem) => ({
                         color: seriesItem.color ?? VictoryTheme.colors.default,
                         yPositions: (args.points[seriesItem.key] ?? []).map((point) => point.y),
                     }))}
@@ -328,11 +326,22 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     isHollow={isActivePointHollow}
                     hollowColor={theme.cardBG}
                 />
+                {averageValue !== undefined && (
+                    <ChartAverageLine
+                        value={averageValue}
+                        yScale={args.yScale}
+                        chartBounds={args.chartBounds}
+                        canvasHeight={args.canvasSize.height}
+                        formatValue={formatCompactValue}
+                        fontSize={variables.iconSizeExtraSmall}
+                        fontManager={fontManager}
+                    />
+                )}
             </>
         );
     };
 
-    const chartHeight = CHART_CONTENT_MIN_HEIGHT + labelSpace;
+    const chartHeight = getCartesianChartHeight(xAxisLabelHeight);
     const chartPadding = {
         ...VictoryTheme.axis.padding,
         bottom: labelSpace + VictoryTheme.axis.padding.bottom,
@@ -386,7 +395,8 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     chartWidth={chartWidth}
                     initialTooltipPosition={initialTooltipPosition}
                     onChartMoved={onChartMoved}
-                    onDismiss={onTooltipDismiss}
+                    onDismiss={dismissTooltip}
+                    shouldShowTooltipChange={shouldShowTooltipChange}
                 />
             </Animated.View>
         </GestureDetector>
@@ -394,19 +404,10 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
 }
 
 function LineChartContentBody({isLoading = false, chartWidth, ...canvasProps}: LineChartContentProps) {
-    const styles = useThemeStyles();
     const readyCanvas = useReadyCartesianCanvas(isLoading, chartWidth);
 
-    if (!isLoading && canvasProps.data.length === 0) {
-        return null;
-    }
-
     if (!readyCanvas) {
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
+        return null;
     }
 
     return (

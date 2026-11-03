@@ -1,7 +1,7 @@
 import {usePopoverActions} from '@components/PopoverProvider';
 
 import {useIsFocused} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
 
 import type UseDragAndDrop from './types';
 
@@ -50,74 +50,68 @@ const useDragAndDrop: UseDragAndDrop = ({
         }
     }, [isFocused, isDisabled]);
 
-    const handleDragEvent = useCallback(
-        (event: DragEvent) => {
-            if (!shouldHandleDragEvent) {
-                return;
-            }
+    const handleDragEvent = (event: DragEvent) => {
+        if (!shouldHandleDragEvent) {
+            return;
+        }
 
-            const shouldAcceptThisDrop = shouldAllowDrop && shouldAcceptDrop(event);
+        const shouldAcceptThisDrop = shouldAllowDrop && shouldAcceptDrop(event);
 
-            if (shouldAcceptThisDrop && event.type === DRAG_ENTER_EVENT) {
-                closePopover();
-            }
+        if (shouldAcceptThisDrop && event.type === DRAG_ENTER_EVENT) {
+            closePopover();
+        }
 
-            const effect = shouldAcceptThisDrop ? COPY_DROP_EFFECT : NONE_DROP_EFFECT;
+        const effect = shouldAcceptThisDrop ? COPY_DROP_EFFECT : NONE_DROP_EFFECT;
 
-            if (event.dataTransfer) {
-                // eslint-disable-next-line no-param-reassign
-                event.dataTransfer.dropEffect = effect;
-                // eslint-disable-next-line no-param-reassign
-                event.dataTransfer.effectAllowed = effect;
-            }
-        },
-        [shouldHandleDragEvent, shouldAllowDrop, shouldAcceptDrop, closePopover],
-    );
+        if (event.dataTransfer) {
+            // eslint-disable-next-line no-param-reassign
+            event.dataTransfer.dropEffect = effect;
+            // eslint-disable-next-line no-param-reassign
+            event.dataTransfer.effectAllowed = effect;
+        }
+    };
 
     /**
      * Handles all types of drag-N-drop events on the drop zone associated with composer
      */
-    const dropZoneDragHandler = useCallback(
-        (event: DragEvent) => {
-            if (!isFocused || isDisabled || !shouldAcceptDrop(event)) {
-                return;
-            }
+    const dropZoneDragHandler = (event: DragEvent) => {
+        if (!isFocused || isDisabled || !shouldAcceptDrop(event)) {
+            return;
+        }
 
-            event.preventDefault();
-            if (shouldStopPropagation) {
-                event.stopPropagation();
-            }
+        event.preventDefault();
+        if (shouldStopPropagation) {
+            event.stopPropagation();
+        }
 
-            // Clear any existing debounce timeout
-            if (debounceTimeoutRef.current) {
-                clearTimeout(debounceTimeoutRef.current);
-                debounceTimeoutRef.current = null;
-            }
+        // Clear any existing debounce timeout
+        if (debounceTimeoutRef.current) {
+            clearTimeout(debounceTimeoutRef.current);
+            debounceTimeoutRef.current = null;
+        }
 
-            switch (event.type) {
-                case DRAG_OVER_EVENT:
-                case DRAG_ENTER_EVENT:
-                    handleDragEvent(event);
-                    if (!isDraggingOver) {
-                        setIsDraggingOver(true);
-                    }
-                    break;
-                case DRAG_LEAVE_EVENT:
-                    // Add small debounce to prevent rapid flickering
-                    debounceTimeoutRef.current = setTimeout(() => {
-                        setIsDraggingOver(false);
-                    }, 50);
-                    break;
-                case DROP_EVENT:
+        switch (event.type) {
+            case DRAG_OVER_EVENT:
+            case DRAG_ENTER_EVENT:
+                handleDragEvent(event);
+                if (!isDraggingOver) {
+                    setIsDraggingOver(true);
+                }
+                break;
+            case DRAG_LEAVE_EVENT:
+                // Add small debounce to prevent rapid flickering
+                debounceTimeoutRef.current = setTimeout(() => {
                     setIsDraggingOver(false);
-                    onDrop(event);
-                    break;
-                default:
-                    break;
-            }
-        },
-        [isFocused, isDisabled, shouldAcceptDrop, shouldStopPropagation, handleDragEvent, isDraggingOver, onDrop],
-    );
+                }, 50);
+                break;
+            case DROP_EVENT:
+                setIsDraggingOver(false);
+                onDrop(event);
+                break;
+            default:
+                break;
+        }
+    };
 
     useEffect(() => {
         if (!dropZone.current) {

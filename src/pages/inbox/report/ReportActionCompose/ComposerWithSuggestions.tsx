@@ -4,6 +4,7 @@ import Composer from '@components/Composer';
 import type {ComposerRef, CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
+import useAccountIDToNameMap from '@hooks/useAccountIDToNameMap';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useKeyboardState from '@hooks/useKeyboardState';
@@ -131,6 +132,10 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> &
         includeChronos?: boolean;
         isGroupPolicyReport: boolean;
         policyID?: string;
+
+        /** Whether the composer should stay unfocused when the screen opens or a modal closes */
+        shouldSkipAutoFocus?: boolean;
+
         ref?: Ref<ComposerWithSuggestionsRef | null>;
     };
 
@@ -173,6 +178,7 @@ function ComposerWithSuggestions({
     includeChronos,
     isGroupPolicyReport,
     policyID,
+    shouldSkipAutoFocus = false,
 
     // Focus
     onFocus,
@@ -289,6 +295,7 @@ function ComposerWithSuggestions({
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const reportIDToName = useReportIDToNameMap();
+    const accountIDToName = useAccountIDToNameMap();
 
     const commentRef = useRef(initialText);
 
@@ -315,7 +322,7 @@ function ComposerWithSuggestions({
         const delay = shouldDelayAutoFocusRef.current ? CONST.ANIMATED_TRANSITION : CONST.COMPOSER_FOCUS_DELAY;
         // Another composer taking focus releases the claim, so it has to be read when the focus lands rather than now.
         const canFocusAfterDelay = isInSidePanelRef.current ? () => !!ReportActionComposeFocusManager.sidePanelComposerRef.current : undefined;
-        focusComposerWithDelay(composerRef.current, delay, canFocusAfterDelay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
+        focusComposerWithDelay(() => composerRef.current, delay, canFocusAfterDelay)(shouldDelay, forcedSelectionRange, forceKeyboardIfAlreadyFocused).catch(() => {});
     }, []);
 
     const shouldIgnoreEditSelectionResetRef = useRef(false);
@@ -365,7 +372,7 @@ function ComposerWithSuggestions({
     }, [text]);
 
     const maxComposerLines = shouldUseNarrowLayout ? CONST.COMPOSER.MAX_LINES_SMALL_SCREEN : CONST.COMPOSER.MAX_LINES;
-    const shouldAutoFocus = (shouldFocusInputOnScreenFocus || !!text) && areAllModalsHidden() && isFocused;
+    const shouldAutoFocus = !shouldSkipAutoFocus && (shouldFocusInputOnScreenFocus || !!text) && areAllModalsHidden() && isFocused;
     const delayedAutoFocusRouteKeyRef = useRef<string | null>(null);
 
     const valueRef = useRef(initialText);
@@ -616,7 +623,7 @@ function ComposerWithSuggestions({
                 webEvent.preventDefault();
                 if (lastReportAction) {
                     const message = Array.isArray(lastReportAction?.message) ? (lastReportAction?.message?.at(-1) ?? null) : (lastReportAction?.message ?? null);
-                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? '', {reportIDToName}), isOffline);
+                    saveReportActionDraft(reportID, lastReportAction, reportActions, Parser.htmlToMarkdown(message?.html ?? '', {reportIDToName, accountIDToName}), isOffline);
                 }
             }
             // Flag emojis like "Wales" have several code points. Default backspace key action does not remove such flag emojis completely.
@@ -667,6 +674,7 @@ function ComposerWithSuggestions({
             reportID,
             reportActions,
             reportIDToName,
+            accountIDToName,
             updateComment,
             setCurrentEditMessageSelection,
             isOffline,
@@ -932,6 +940,11 @@ function ComposerWithSuggestions({
             inputFocusChange(false);
             return;
         }
+
+        // Refocusing after a modal closes would take the arrow keys away from expense navigation, just like autofocus.
+        if (shouldSkipAutoFocus) {
+            return;
+        }
         focus(true);
     }, [
         focus,
@@ -942,6 +955,7 @@ function ComposerWithSuggestions({
         modal?.isVisible,
         isNextModalWillOpenRef,
         shouldAutoFocus,
+        shouldSkipAutoFocus,
         isSidePanelHiddenOrLargeScreen,
         shouldHideSidePanel,
         isInSidePanel,

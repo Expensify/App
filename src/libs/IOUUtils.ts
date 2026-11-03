@@ -419,16 +419,7 @@ function navigateToConfirmationPage(
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, backToReport));
             break;
         case CONST.IOU.TYPE.CREATE:
-            Navigation.navigate(
-                ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                    CONST.IOU.ACTION.CREATE,
-                    CONST.IOU.TYPE.SUBMIT,
-                    transactionID,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    reportIDParam || reportID,
-                    backToReport,
-                ),
-            );
+            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportIDParam || reportID, backToReport));
             break;
         case CONST.IOU.TYPE.SEND:
             if (fromManualDistanceRequest) {
@@ -443,7 +434,6 @@ function navigateToConfirmationPage(
                     CONST.IOU.ACTION.CREATE,
                     shouldNavigateToSubmit ? CONST.IOU.TYPE.SUBMIT : iouType,
                     transactionID,
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     reportIDParam || reportID,
                     backToReport,
                 ),

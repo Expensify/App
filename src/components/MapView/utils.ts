@@ -1,7 +1,9 @@
 import {LOCALES} from '@src/CONST/LOCALES';
 import type {Locale} from '@src/CONST/LOCALES';
 
-import type {AlternateDirection, Coordinate} from './MapViewTypes';
+import type {CameraPadding} from '@rnmapbox/maps';
+
+import type {AlternateDirection, Coordinate, WayPoint} from './MapViewTypes';
 
 /** App locales whose value isn't already the BCP-47 code Mapbox expects for label localization. */
 const LOCALE_TO_MAPBOX_LANGUAGE: Partial<Record<Locale, string>> = {
@@ -83,15 +85,15 @@ function getBounds(waypoints: Coordinate[], directionCoordinates: undefined | Co
 }
 
 /**
- * Calculates the distance between two points on the Earth's surface given their latitude and longitude coordinates.
+ * Calculates the distance between two points on the Earth's surface given their [longitude, latitude] coordinates.
  */
 function haversineDistance(coordinate1: Coordinate, coordinate2: Coordinate) {
     // Radius of the Earth in meters
     const R = 6371e3;
-    const lat1 = ((coordinate1.at(0) ?? 0) * Math.PI) / 180;
-    const lat2 = ((coordinate2.at(0) ?? 0) * Math.PI) / 180;
-    const deltaLat = (((coordinate2.at(0) ?? 0) - (coordinate1.at(0) ?? 0)) * Math.PI) / 180;
-    const deltaLon = (((coordinate2.at(1) ?? 0) - (coordinate1.at(1) ?? 0)) * Math.PI) / 180;
+    const lat1 = ((coordinate1.at(1) ?? 0) * Math.PI) / 180;
+    const lat2 = ((coordinate2.at(1) ?? 0) * Math.PI) / 180;
+    const deltaLat = (((coordinate2.at(1) ?? 0) - (coordinate1.at(1) ?? 0)) * Math.PI) / 180;
+    const deltaLon = (((coordinate2.at(0) ?? 0) - (coordinate1.at(0) ?? 0)) * Math.PI) / 180;
 
     // The square of half the chord length between the points
     const halfChordLengthSq = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) + Math.cos(lat1) * Math.cos(lat2) * Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
@@ -193,14 +195,14 @@ function simpleInterpolateCoordinate(start: Coordinate, end: Coordinate, progres
 
 function getBoundsCenter(bounds: {southWest: Coordinate; northEast: Coordinate}) {
     const {
-        southWest: [south, west],
-        northEast: [north, east],
+        southWest: [west, south],
+        northEast: [east, north],
     } = bounds;
 
     const latitudeCenter = (north + south) / 2;
     const longitudeCenter = (east + west) / 2;
 
-    return {lng: latitudeCenter, lat: longitudeCenter};
+    return {lng: longitudeCenter, lat: latitudeCenter};
 }
 
 /** Coordinate that lies `fraction` of the way along a route, measured by length rather than by index, as the density of the coordinates varies along a route. */
@@ -215,8 +217,7 @@ function findCoordinateAtRouteFraction(lineCoordinates: Coordinate[], fraction: 
             break;
         }
 
-        // map Coordinates are [long, lat], but haversineDistance treats [0] as latitude and [1] as longitude
-        totalLength += haversineDistance([startPoint[1], startPoint[0]], [endPoint[1], endPoint[0]]);
+        totalLength += haversineDistance(startPoint, endPoint);
     }
 
     const targetLength = totalLength * fraction;
@@ -230,7 +231,7 @@ function findCoordinateAtRouteFraction(lineCoordinates: Coordinate[], fraction: 
             break;
         }
 
-        const segmentLength = haversineDistance([startPoint[1], startPoint[0]], [endPoint[1], endPoint[0]]);
+        const segmentLength = haversineDistance(startPoint, endPoint);
 
         if (walkedLength + segmentLength >= targetLength) {
             return simpleInterpolateCoordinate(startPoint, endPoint, segmentLength > 0 ? (targetLength - walkedLength) / segmentLength : 0);
@@ -290,8 +291,33 @@ function getCoordinatesFromAllDirections(directionCoordinates: Coordinate[] | Co
     return [...(directionCoordinatesFlattened ?? []), ...(alternateDirectionCoordinatesFlattened ?? [])];
 }
 
+/** Applies the same padding to every side of the native camera viewport */
+function getCameraPadding(padding: number | undefined): CameraPadding | undefined {
+    if (padding === undefined) {
+        return undefined;
+    }
+    return {paddingLeft: padding, paddingRight: padding, paddingTop: padding, paddingBottom: padding};
+}
+
+/** Resolves what the center button can move the camera to: the waypoints (a fitted route or a lone waypoint) and/or the current position */
+function getCenterTargets(waypoints: WayPoint[] | undefined, directionCoordinates: Coordinate[] | undefined, currentPosition: Coordinate | undefined) {
+    const waypointCoordinates = waypoints?.map((waypoint) => waypoint.coordinate) ?? [];
+    const hasRoute = waypointCoordinates.length > 1 || (directionCoordinates ?? []).length > 1;
+
+    // With a single waypoint there is no route to fit yet, so that lone waypoint is what the button alternates with.
+    const singleWaypointCoordinate = !hasRoute ? waypointCoordinates.at(0) : undefined;
+
+    // A lone waypoint at the current position is the same target, so there is nothing to alternate with.
+    const isSingleWaypointAtCurrentPosition = !!singleWaypointCoordinate && !!currentPosition && areSameCoordinate(singleWaypointCoordinate, currentPosition);
+    const hasWaypointsTarget = hasRoute || (!!singleWaypointCoordinate && !isSingleWaypointAtCurrentPosition);
+
+    return {waypointCoordinates, singleWaypointCoordinate, hasWaypointsTarget};
+}
+
 export default {
     getBounds,
+    getCameraPadding,
+    getCenterTargets,
     areSameCoordinate,
     areCoordinatesEqual,
     getSinglePointCoordinate,
