@@ -138,6 +138,7 @@ function DebugReportPage({
             hasGuidesEmails,
             derivedIsEmptyReport,
             transactionViolations,
+            reportMetadata: pendingExpenseActionMetadata,
         });
         metadata = [
             {
