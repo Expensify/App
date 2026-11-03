@@ -166,20 +166,6 @@ function shouldEnableWorkflowsByDefaultForNewWorkspace({
     );
 }
 
-function getApprovalModeForNewWorkspace(
-    isSubmitWorkspace: boolean,
-    shouldEnableWorkflowsByDefault: boolean,
-    engagementChoice?: OnboardingPurpose,
-): ValueOf<typeof CONST.POLICY.APPROVAL_MODE> {
-    if (isSubmitWorkspace) {
-        return CONST.POLICY.APPROVAL_MODE.ADVANCED;
-    }
-    if (shouldEnableWorkflowsByDefault && engagementChoice !== CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE) {
-        return CONST.POLICY.APPROVAL_MODE.BASIC;
-    }
-    return CONST.POLICY.APPROVAL_MODE.OPTIONAL;
-}
-
 type CreateDraftInitialWorkspaceParams = {
     introSelected: OnyxEntry<IntroSelected>;
     workspaceName: string;
@@ -271,7 +257,6 @@ export {
     generateCustomUnitID,
     generateDefaultWorkspaceName,
     generatePolicyID,
-    getApprovalModeForNewWorkspace,
     getDisplayNameForWorkspace,
     shouldEnableWorkflowsByDefaultForNewWorkspace,
 };
