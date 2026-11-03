@@ -283,6 +283,10 @@ function TestNavigationContainer({initialState, onBeforeRemove}: TestNavigationC
                         component={getEmptyComponent()}
                     />
                     <RootStack.Screen
+                        name={SCREENS.TALK_TO_HUMAN}
+                        component={getEmptyComponent()}
+                    />
+                    <RootStack.Screen
                         name={NAVIGATORS.RIGHT_MODAL_NAVIGATOR}
                         component={TestRightModalNavigator}
                     />
