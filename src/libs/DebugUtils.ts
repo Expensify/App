@@ -492,6 +492,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'hasOutstandingChildRequest':
         case 'isBillPayReport':
         case 'isHiddenForBillReceiver':
+        case 'isAwaitingActionFromCurrentUser':
         case 'hasOutstandingChildTask':
         case 'isOwnPolicyExpenseChat':
         case 'isPinned':
@@ -637,6 +638,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 billSenderAccountID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isBillPayReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isHiddenForBillReceiver: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                isAwaitingActionFromCurrentUser: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 description: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 privateNotes: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 currency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
