@@ -4,6 +4,7 @@ import type {Merge} from 'type-fest';
 // action would likely cause confusion about which one to use. But most other API methods should happen inside an action file.
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Logger} from 'expensify-common';
+import lodashIsPlainObject from 'lodash/isPlainObject';
 import AppLogs from 'react-native-app-logs';
 
 import pkg from '../../package.json';
@@ -11,7 +12,6 @@ import {getLogTab} from './ActiveClientManager';
 import {getCurrentUserEmail} from './CurrentUserStore';
 import getPlatform from './getPlatform';
 import MainQueueStore from './Network/MainQueueStore';
-import {isRecord} from './ObjectUtils';
 import requireParameters from './requireParameters';
 import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
@@ -111,17 +111,17 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
 
 type LogParameters = Parameters<Logger['add']>[1];
 
+const isPlainObject = (value: unknown): value is Record<string, unknown> => lodashIsPlainObject(value);
+
 function addTabToParameters(parameters: LogParameters): LogParameters {
     const tab = getLogTab();
     if (!tab) {
         return parameters;
     }
-    const wasCalledWithoutParameters = parameters === '';
-    if (wasCalledWithoutParameters) {
+    if (!parameters) {
         return {tab};
     }
-    const canSpreadWithoutLosingFields = isRecord(parameters) && !(parameters instanceof Error);
-    if (canSpreadWithoutLosingFields) {
+    if (isPlainObject(parameters)) {
         return {...parameters, tab};
     }
     return parameters;
