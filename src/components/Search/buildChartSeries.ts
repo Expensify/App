@@ -92,6 +92,12 @@ type BuildChartSeriesParams = {
     /** Returns whether a group's period starts after today, as it does for future-dated expenses */
     isLaterPeriod?: (item: GroupedItem) => boolean;
 
+    /** Returns whether a group's period starts after today with no expenses of its own, which a running total's count no longer shows */
+    isEmptyLaterPeriod?: (item: GroupedItem) => boolean;
+
+    /** Returns whether a compared group has expenses of its own, which a running total's count no longer shows. Reads the group's count by default. */
+    hasComparedExpenses?: (item: GroupedItem) => boolean;
+
     /** Formats labels shared by paired time buckets, and the name of an average */
     translate: LocaleContextProps['translate'];
 
@@ -137,6 +143,8 @@ function buildChartSeries({
     getCurrencyDecimals,
     getInProgressLabel,
     isLaterPeriod,
+    isEmptyLaterPeriod,
+    hasComparedExpenses = (item) => !!item.count,
     translate,
     dateFnsLocale,
     colorScheme,
@@ -167,6 +175,7 @@ function buildChartSeries({
             return {
                 value: counterpartRange && (comparedItem ? getAmount(comparedItem) : 0),
                 percentOfTotal: comparedItem?.percentOfTotal,
+                hasExpenses: !!comparedItem && hasComparedExpenses(comparedItem),
                 bucketLabels: getComparedBucketLabels(bucketRange, counterpartRange, periods, groupBy, translate, dateFnsLocale),
                 counterpartStart: counterpartRange?.start,
                 sortDate: bucketRange.start,
@@ -184,6 +193,7 @@ function buildChartSeries({
         const shortLabel = getShortLabel?.(item);
         const inProgressLabel = getInProgressLabel?.(item);
         const isInProgress = inProgressLabel !== undefined;
+        const isLater = !!isLaterPeriod?.(item);
         const compared = getCompared(item);
         const bucketLabels = compared?.bucketLabels;
         const primarySeriesLabel = bucketLabels?.seriesLabels.primary;
@@ -204,10 +214,16 @@ function buildChartSeries({
                 },
             }),
             ...(compared && {seriesPercentOfTotal: {[CHART_SERIES_KEY.PRIMARY]: item.percentOfTotal, [CHART_SERIES_KEY.COMPARISON]: compared.percentOfTotal}}),
-            isInProgress: isInProgress || !!isLaterPeriod?.(item),
+            isInProgress: isInProgress || isLater,
         };
 
-        return {row: {point, item}, counterpartStart: compared?.counterpartStart, sortDate: compared?.sortDate ?? ''};
+        return {
+            row: {point, item},
+            isEmptyLaterPeriod: !!isEmptyLaterPeriod?.(item),
+            hasComparedExpenses: !!compared?.hasExpenses,
+            counterpartStart: compared?.counterpartStart,
+            sortDate: compared?.sortDate ?? '',
+        };
     });
 
     /** Builds a point for a compared bucket no current bucket pairs with, like January 31 against February, which only the compared line reaches */
@@ -221,7 +237,8 @@ function buildChartSeries({
             seriesPercentOfTotal: {[CHART_SERIES_KEY.COMPARISON]: comparedItem.percentOfTotal},
             isInProgress: false,
         };
-        return {row: {point}, sortDate: getPositionInPrimaryPeriod(range, comparisonPeriods, timeGroupBy)};
+        const row: SearchChartDataRow = {point};
+        return {row, isEmptyLaterPeriod: false, hasComparedExpenses: hasComparedExpenses(comparedItem), sortDate: getPositionInPrimaryPeriod(range, comparisonPeriods, timeGroupBy)};
     };
 
     const pairedStarts = new Set(pairedRows.map((pairedRow) => pairedRow.counterpartStart));
@@ -234,14 +251,21 @@ function buildChartSeries({
             : [];
 
     // Sorted by where each bucket sits in the current period. Stable, so a current bucket stays ahead of a compared one sharing its date.
-    const rows: SearchChartDataRow[] = [...pairedRows, ...unpairedRows]
-        .sort((first, second) => {
-            if (first.sortDate === second.sortDate) {
-                return 0;
-            }
-            return first.sortDate < second.sortDate ? -1 : 1;
-        })
-        .map(({row}) => row);
+    const sortedRows = [...pairedRows, ...unpairedRows].sort((first, second) => {
+        if (first.sortDate === second.sortDate) {
+            return 0;
+        }
+        return first.sortDate < second.sortDate ? -1 : 1;
+    });
+
+    // Ends the current line at today, or at the last future expense, instead of drawing $0 through periods that haven't come yet.
+    const lastCurrentIndex = sortedRows.findLastIndex((sortedRow) => !!sortedRow.row.item && !sortedRow.isEmptyLaterPeriod);
+    const plottedRows = sortedRows.map(({row, isEmptyLaterPeriod: isEmpty}, index) =>
+        index > lastCurrentIndex && isEmpty ? {...row, point: {...row.point, values: {...row.point.values, [CHART_SERIES_KEY.PRIMARY]: undefined}}} : row,
+    );
+    // The chart goes on through the compared period's last expense
+    const lastPlottedIndex = sortedRows.findLastIndex((sortedRow, index) => index <= lastCurrentIndex || sortedRow.hasComparedExpenses);
+    const rows = plottedRows.slice(0, lastPlottedIndex + 1);
 
     const pieColors = view === CONST.SEARCH.VIEW.PIE ? getSliceColorsByDataIndex(rows.map((row) => row.point)) : undefined;
     const primarySeries: ChartSeries = {key: CHART_SERIES_KEY.PRIMARY, label: periods && formatDates(periods.primary, dateFnsLocale)};

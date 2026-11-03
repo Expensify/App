@@ -1,4 +1,4 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import useOnyx from '@hooks/useOnyx';
 import type useStyleUtils from '@hooks/useStyleUtils';
@@ -16,8 +16,10 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 import createMock from '../../../utils/createMock';
+import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 
 type ParsableStyle = Parameters<ReturnType<typeof useStyleUtils>['parseStyleFromFunction']>[0];
 
@@ -152,7 +154,8 @@ type DynamicEditAgentPageRoute = PlatformStackScreenProps<SettingsNavigatorParam
 type DynamicEditAgentPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.DYNAMIC_EDIT>['navigation'];
 
 const mockRoute = createMock<DynamicEditAgentPageRoute>({params: {accountID: TEST_ACCOUNT_ID}});
-const mockNavigation = createMock<DynamicEditAgentPageNavigation>({});
+const mockSetParams = jest.fn();
+const mockNavigation = createMock<DynamicEditAgentPageNavigation>({setParams: mockSetParams});
 
 describe('DynamicEditAgentPage', () => {
     beforeEach(() => {
@@ -306,5 +309,90 @@ describe('DynamicEditAgentPage', () => {
         );
 
         expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
+    });
+
+    describe('optimistic accountID replacement', () => {
+        beforeAll(() => {
+            Onyx.init({keys: ONYXKEYS});
+        });
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+            await waitForBatchedUpdates();
+            mockUseOnyx.mockImplementation(jest.requireActual<{default: typeof useOnyx}>('@hooks/useOnyx').default);
+        });
+
+        it('keeps an already-open Edit page usable when another tab replaces its optimistic agent', async () => {
+            // Given an Edit screen is still showing the temporary agent while another tab finishes creation
+            const optimisticAccountID = 5728193046572819;
+            const realAccountID = 12346;
+            const route = createMock<DynamicEditAgentPageRoute>({params: {accountID: optimisticAccountID}});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [optimisticAccountID]: {accountID: optimisticAccountID, displayName: 'Pending agent', isOptimisticPersonalDetail: true},
+            });
+            await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}`, {prompt: 'Pending instructions'});
+
+            const {toJSON} = render(
+                <DynamicEditAgentPage
+                    route={route}
+                    navigation={mockNavigation}
+                />,
+            );
+            await act(async () => waitForBatchedUpdates());
+            expect(JSON.stringify(toJSON())).toContain('Pending agent');
+
+            // When this tab receives the latest shared state without its route having been redirected, the tab
+            // processing CreateAgent has written the real data and removed the optimistic copies.
+            await act(async () => {
+                await Onyx.multiSet({
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Created agent'}},
+                    [`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}` as const]: {prompt: 'Created instructions'},
+                    [`${ONYXKEYS.COLLECTION.AGENT}${optimisticAccountID}` as const]: null,
+                    [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[optimisticAccountID]: realAccountID},
+                });
+                await waitForBatchedUpdates();
+            });
+
+            // Then the mounted screen resolves the real data and requests route repair without showing not-found
+            expect(route.params.accountID).toBe(optimisticAccountID);
+            expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)});
+            expect(JSON.stringify(toJSON())).toContain('Created agent');
+            expect(JSON.stringify(toJSON())).toContain('Created instructions');
+            expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
+
+            // When the real agent is deleted, retaining its mapping must not resurrect the old data.
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[realAccountID]: null});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}`, null);
+                await waitForBatchedUpdates();
+            });
+            // Then the screen reports not-found even though the temporary-to-real mapping remains
+            expect(JSON.stringify(toJSON())).toContain('notFound.notHere');
+        });
+
+        it('opens an optimistic route after creation has already completed', async () => {
+            // Given creation has finished, leaving only the real agent data and its retained ID mapping
+            const optimisticAccountID = 6849302751684930;
+            const realAccountID = 12347;
+            await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {[realAccountID]: {accountID: realAccountID, displayName: 'Already created agent'}},
+                [`${ONYXKEYS.COLLECTION.AGENT}${realAccountID}` as const]: {prompt: 'Already created instructions'},
+                [ONYXKEYS.OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING]: {[optimisticAccountID]: realAccountID},
+            });
+            // When an old temporary-ID route opens after the original replacement has already run
+            const {toJSON} = render(
+                <DynamicEditAgentPage
+                    route={createMock<DynamicEditAgentPageRoute>({params: {accountID: optimisticAccountID}})}
+                    navigation={mockNavigation}
+                />,
+            );
+            await act(async () => waitForBatchedUpdates());
+            expect(mockSetParams).toHaveBeenCalledWith({accountID: String(realAccountID)});
+            // Then the retained mapping resolves the agent without requiring another replacement event
+            expect(JSON.stringify(toJSON())).toContain('Already created agent');
+            expect(JSON.stringify(toJSON())).toContain('Already created instructions');
+            expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
+        });
     });
 });
