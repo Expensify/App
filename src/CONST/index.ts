@@ -10675,6 +10675,9 @@ const CONST = {
         TAG_PICKER_MODAL: {
             BACK_BUTTON: 'TagPickerModal-BackButton',
         },
+        DYNAMIC_FORM_DROPDOWN: {
+            BACK_BUTTON: 'DynamicFormDropdown-BackButton',
+        },
         TAX_PICKER_MODAL: {
             BACK_BUTTON: 'TaxPickerModal-BackButton',
         },
