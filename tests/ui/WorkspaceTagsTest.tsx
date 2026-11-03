@@ -18,6 +18,7 @@ import WorkspaceTagsPage from '@pages/workspace/tags/WorkspaceTagsPage';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
+import type Beta from '@src/types/onyx/Beta';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -250,7 +251,13 @@ describe('WorkspaceTags', () => {
             expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
         });
 
-        fireEvent.press(screen.getByLabelText(TestHelper.translateLocal('workspace.common.selectAll')));
+        const selectAll = screen.getAllByLabelText(TestHelper.translateLocal('workspace.common.selectAll')).at(0);
+
+        if (!selectAll) {
+            throw new Error('Select all button not found');
+        }
+
+        fireEvent.press(selectAll);
 
         const dropdownMenuButtonTestID = 'WorkspaceTagsPage-header-dropdown-menu-button';
 
@@ -273,6 +280,96 @@ describe('WorkspaceTags', () => {
 
         unmount();
         await waitForBatchedUpdatesWithAct();
+    });
+
+    describe('Append custom tag list', () => {
+        const connectedPolicy = {
+            ...LHNTestUtils.getFakePolicy(),
+            role: CONST.POLICY.ROLE.ADMIN,
+            areTagsEnabled: true,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {},
+            },
+        };
+
+        const dependentMultiLevelTags = {
+            ParentList: {
+                name: 'ParentList',
+                required: false,
+                orderWeight: 0,
+                tags: {
+                    Parent: {name: 'Parent', enabled: true},
+                },
+            },
+            ChildList: {
+                name: 'ChildList',
+                required: false,
+                orderWeight: 1,
+                tags: {
+                    Child: {name: 'Child', enabled: true, rules: {parentTagsFilter: '^Parent$'}},
+                },
+            },
+        };
+
+        const renderAndOpenMoreMenu = async (policy: typeof connectedPolicy, policyTags: typeof tags | typeof dependentMultiLevelTags, betas: Beta[]) => {
+            await TestHelper.signInWithTestUser();
+            await act(async () => {
+                await Onyx.set(ONYXKEYS.BETAS, betas);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, policyTags);
+            });
+
+            const result = renderPage(SCREENS.WORKSPACE.TAGS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('common.more'))).toBeOnTheScreen();
+            });
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.more')));
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(TestHelper.translateLocal('spreadsheet.downloadCSV'))).toBeOnTheScreen();
+            });
+            return result;
+        };
+
+        it('should show the option for single-level tags on a workspace with an accounting connection and the indirectTagUploads beta', async () => {
+            // Given a NetSuite workspace with single-level tags and an admin on the indirectTagUploads beta
+            // When the admin opens the More menu
+            const {unmount} = await renderAndOpenMoreMenu(connectedPolicy, tags, [CONST.BETAS.INDIRECT_TAG_UPLOADS]);
+
+            // Then the option to append a custom tag list is offered, the same as Classic, while the regular import stays hidden
+            expect(screen.getByText(TestHelper.translateLocal('workspace.tags.appendCustomTagList'))).toBeOnTheScreen();
+            expect(screen.queryByText(TestHelper.translateLocal('spreadsheet.importSpreadsheet'))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should not show the option for dependent multi-level tags', async () => {
+            // Given a NetSuite workspace with dependent multi-level tags and an admin on the indirectTagUploads beta
+            // When the admin opens the More menu
+            const {unmount} = await renderAndOpenMoreMenu({...connectedPolicy, hasMultipleTagLists: true}, dependentMultiLevelTags, [CONST.BETAS.INDIRECT_TAG_UPLOADS]);
+
+            // Then the option is hidden because a custom list can only be appended to single-level or independent multi-level tags
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.tags.appendCustomTagList'))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should not show the option without the indirectTagUploads beta', async () => {
+            // Given a NetSuite workspace with single-level tags and an admin who isn't on the indirectTagUploads beta
+            // When the admin opens the More menu
+            const {unmount} = await renderAndOpenMoreMenu(connectedPolicy, tags, []);
+
+            // Then the option is hidden because the feature is gated by the beta
+            expect(screen.queryByText(TestHelper.translateLocal('workspace.tags.appendCustomTagList'))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
     });
 
     describe('multi-level tags', () => {
@@ -309,6 +406,42 @@ describe('WorkspaceTags', () => {
 
             // And the Display button is hidden, so the levels can't be re-sorted
             expect(screen.queryByLabelText(TestHelper.translateLocal('search.display.label'))).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('shows a row for each level when two levels share a name', async () => {
+            // Given a no-header import with GL codes in adjacent columns, which returned two levels named "Sub-projects"
+            // under the unique Onyx keys "Sub-projects" and "Sub-projects_2"
+            mockLayout(false);
+            await TestHelper.signInWithTestUser();
+            const policy = {
+                ...LHNTestUtils.getFakePolicy(),
+                role: CONST.POLICY.ROLE.ADMIN,
+                areTagsEnabled: true,
+                hasMultipleTagLists: true,
+            };
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, {
+                    Clients: {name: 'Clients', required: false, orderWeight: 0, tags: {Engineering: {name: 'Engineering', enabled: true}}},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Sub-projects': {name: 'Sub-projects', required: false, orderWeight: 1, tags: {'North America': {name: 'North America', enabled: true}}},
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    'Sub-projects_2': {name: 'Sub-projects', required: false, orderWeight: 2, tags: {'Project Apollo': {name: 'Project Apollo', enabled: true}}},
+                });
+            });
+
+            // When the tags page renders
+            const {unmount} = renderPage(SCREENS.WORKSPACE.TAGS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            // Then every level gets its own row, including both levels named "Sub-projects"
+            await waitFor(() => {
+                expect(screen.getByText('Clients')).toBeOnTheScreen();
+            });
+            expect(screen.getAllByText('Sub-projects')).toHaveLength(2);
 
             unmount();
             await waitForBatchedUpdatesWithAct();

@@ -54,7 +54,24 @@ import type {Locale as DateFnsLocale} from 'date-fns';
 import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addDays, endOfMonth, format, parse, startOfMonth, startOfYear, subMonths} from 'date-fns';
+import {
+    addDays,
+    endOfMonth,
+    endOfQuarter,
+    endOfWeek,
+    endOfYear,
+    format,
+    parse,
+    startOfMonth,
+    startOfQuarter,
+    startOfWeek,
+    startOfYear,
+    subDays,
+    subMonths,
+    subQuarters,
+    subWeeks,
+    subYears,
+} from 'date-fns';
 import cloneDeep from 'lodash/cloneDeep';
 import Onyx from 'react-native-onyx';
 
@@ -75,6 +92,7 @@ import {isRecord} from './ObjectUtils';
 import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, getValidConnectedIntegration} from './PolicyUtils';
 import {getReportName} from './ReportNameUtils';
+import {parseAmountFilterValue, supportsAmountFilterCurrency} from './SearchAmountFilterUtils';
 import {parse as parseSearchQuery} from './SearchParser/searchParser';
 import StringUtils from './StringUtils';
 import {hashText} from './UserUtils';
@@ -92,6 +110,13 @@ type NavigationRouteLike = {
     /** Nested navigator state, if this route is itself a navigator. */
     state?: unknown;
 };
+
+/**
+ * The outcome for one tab navigator that has Search state. `params` is `undefined` when its Search navigator is
+ * mounted but has no usable root route params. Wrapping it lets that "resolved, but empty" outcome be told apart
+ * from a tab navigator with no Search state at all, which returns no resolution so the walk keeps going.
+ */
+type TabNavigatorSearchResolution = {params: SearchRootParams | undefined};
 
 // This map contains chars that match each operator
 const operatorToCharMap = {
@@ -621,19 +646,19 @@ function buildAmountFilterQuery(filterKey: SearchAmountFilterKeys, filterValues:
     const amountStrings = [];
 
     if (equalTo) {
-        amountStrings.push(`${filterKey}:${equalTo}`);
+        amountStrings.push(`${filterKey}:${sanitizeSearchValue(equalTo)}`);
     }
 
     if (greaterThan) {
-        amountStrings.push(`${filterKey}>${greaterThan}`);
+        amountStrings.push(`${filterKey}>${sanitizeSearchValue(greaterThan)}`);
     }
 
     if (lessThan) {
-        amountStrings.push(`${filterKey}<${lessThan}`);
+        amountStrings.push(`${filterKey}<${sanitizeSearchValue(lessThan)}`);
     }
 
     if (negatedAmount) {
-        amountStrings.push(`-${filterKey}:${negatedAmount}`);
+        amountStrings.push(`-${filterKey}:${sanitizeSearchValue(negatedAmount)}`);
     }
 
     return amountStrings.join(' ');
@@ -769,14 +794,6 @@ function getFooterSelectionFromQuery(queryJSON: SearchQueryJSON | undefined) {
         footerTotal: total && isFooterTotal(total) ? total : undefined,
         footerCurrency: currency ? currency.toUpperCase() : undefined,
     };
-}
-
-function getQueryWithoutFooterSelections(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return buildSearchQueryString({...queryJSON, flatFilters: queryJSON.flatFilters.filter((filter) => !FOOTER_FILTER_KEYS.has(filter.key))});
-}
-
-function hasFooterSelections(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>) {
-    return queryJSON.flatFilters.some((filter) => FOOTER_FILTER_KEYS.has(filter.key));
 }
 
 /**
@@ -948,7 +965,9 @@ function getQueryHashWithoutFilters(query: SearchQueryJSON, exclude: ReadonlySet
     const flatFilters = query.flatFilters
         .map((filter) => {
             const filterKey = filter.key;
-            const filters = cloneDeep(filter.filters);
+            const filters = cloneDeep(filter.filters).map((queryFilter) =>
+                canFilterValueBeDatePreset(filterKey, queryFilter.operator) ? {...queryFilter, value: normalizeDatePreset(queryFilter.value.toString())} : queryFilter,
+            );
             filters.sort((a, b) => customCollator.compare(a.value.toString(), b.value.toString()));
             return {filterString: buildFilterValuesString(filterKey, filters), filterKey};
         })
@@ -1062,6 +1081,45 @@ function getQueryHashes(query: SearchQueryJSON) {
  */
 function isSearchDatePreset(date: string | undefined): date is SearchDatePreset {
     return Object.values(CONST.SEARCH.DATE_PRESETS).some((datePreset) => datePreset === date);
+}
+
+/**
+ * Maps the deprecated Year to date preset to This year, which the date picker lists in its place
+ */
+function normalizeDatePreset(date: string): string {
+    return date === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE ? CONST.SEARCH.DATE_PRESETS.THIS_YEAR : date;
+}
+
+/**
+ * Whether a filter value can hold a date preset. The filter form reads equal-to report field values as dates and negated ones as text.
+ */
+function canFilterValueBeDatePreset(filterKey: string, operator: ASTNode['operator']) {
+    return (
+        (DATE_FILTER_KEYS as readonly string[]).includes(filterKey) || (filterKey.startsWith(CONST.SEARCH.REPORT_FIELD.DEFAULT_PREFIX) && operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO)
+    );
+}
+
+/**
+ * Maps the deprecated Year to date preset to This year in a filter value that can hold a date preset
+ */
+function normalizeDatePresetFilterValue(filterKey: SyntaxFilterKey, filterValue: string | string[], operator: ASTNode['operator']): string | string[] {
+    if (!canFilterValueBeDatePreset(filterKey, operator)) {
+        return filterValue;
+    }
+    return Array.isArray(filterValue) ? filterValue.map(normalizeDatePreset) : normalizeDatePreset(filterValue);
+}
+
+/**
+ * Maps the deprecated Year to date preset to This year in a query, so a search saved with it opens and saves with This year
+ */
+function normalizeDatePresetsInQuery(query: SearchQueryString): SearchQueryString {
+    const queryJSON = query ? buildSearchQueryJSON(query) : undefined;
+    const hasYearToDate = queryJSON?.flatFilters.some((filter) => filter.filters.some((queryFilter) => queryFilter.value === CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE));
+    if (!queryJSON || !hasYearToDate) {
+        return query;
+    }
+
+    return buildSearchQueryString(traverseAndUpdatedQuery(queryJSON, normalizeDatePresetFilterValue));
 }
 
 /**
@@ -1221,7 +1279,14 @@ const NON_FILTER_CHIP_KEYS = new Set<SearchFilterKey>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
 ]);
-const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY]);
+// Keys whose change alone doesn't offer Save. The Spend footer's selections are still saved with a search, but changing
+// them is undone from the footer's own Reset, so they offer neither Save nor Reset in the header.
+const NON_SAVABLE_FILTER_KEYS = new Set<SearchFilterKey>([
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.GROUP_CURRENCY,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_COUNT,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_TOTAL,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.FOOTER_CURRENCY,
+]);
 
 function buildQueryStringWithResetFilters(currentQueryJSON: SearchQueryJSON, defaultQueryJSON: SearchQueryJSON | undefined) {
     const resetFilters = (defaultQueryJSON?.flatFilters ?? []).filter((filter) => !NON_FILTER_CHIP_KEYS.has(filter.key));
@@ -1414,6 +1479,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.REIMBURSABLE ||
                     filterKey === FILTER_KEYS.BILLABLE ||
                     filterKey === FILTER_KEYS.DECLINED ||
+                    filterKey === FILTER_KEYS.HELD ||
                     filterKey === FILTER_KEYS.TITLE ||
                     filterKey === FILTER_KEYS.SUBMITTER_USER_ID ||
                     filterKey === FILTER_KEYS.SUBMITTER_PAYROLL_ID ||
@@ -1508,9 +1574,11 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
                     filterKey === FILTER_KEYS.EXPENSE_TYPE ||
                     filterKey === FILTER_KEYS.RECEIPT_TYPE ||
                     filterKey === FILTER_KEYS.TAG ||
+                    filterKey === FILTER_KEYS.VENDOR ||
                     filterKey === FILTER_KEYS.CURRENCY ||
                     filterKey === FILTER_KEYS.PURCHASE_CURRENCY ||
                     filterKey === FILTER_KEYS.FROM ||
+                    filterKey === FILTER_KEYS.APPROVER ||
                     filterKey === FILTER_KEYS.TO ||
                     filterKey === FILTER_KEYS.PAID_BY ||
                     filterKey === FILTER_KEYS.FEED ||
@@ -1579,12 +1647,7 @@ function isPolicyCollection(key: OnyxCollectionKey, data: unknown): data is Onyx
     return !!data;
 }
 
-function getAllPolicyValues<T extends OnyxCollectionKey>(
-    policyID: Filter | undefined,
-    key: T,
-    policyData: OnyxCollection<OnyxCollectionValuesMapping[T]>,
-    policies?: OnyxCollection<OnyxTypes.Policy>,
-): Array<OnyxCollectionValuesMapping[T]> {
+function getAllPolicyValues<TValue>(policyID: Filter | undefined, key: OnyxCollectionKey, policyData: OnyxCollection<TValue>, policies?: OnyxCollection<OnyxTypes.Policy>): TValue[] {
     if (!policyData || !policyID || !policyID.value) {
         return Object.values(policyData ?? {}).filter((data): data is NonNullable<typeof data> => !!data);
     }
@@ -1593,16 +1656,13 @@ function getAllPolicyValues<T extends OnyxCollectionKey>(
     const resolvedValues = policiesForResolution ? policyID.value.map((id) => resolvePolicyIDFromName(id, policiesForResolution)) : policyID.value;
 
     if (policyID.isNegated) {
-        return Object.keys(policyData).reduce(
-            (acc, curr) => {
-                const id = curr.replace(key, '');
-                if (!resolvedValues.includes(id) && policyData[curr]) {
-                    acc.push(policyData[curr]);
-                }
-                return acc;
-            },
-            [] as Array<OnyxCollectionValuesMapping[T]>,
-        );
+        return Object.keys(policyData).reduce<TValue[]>((acc, curr) => {
+            const id = curr.replace(key, '');
+            if (!resolvedValues.includes(id) && policyData[curr]) {
+                acc.push(policyData[curr]);
+            }
+            return acc;
+        }, []);
     }
 
     return resolvedValues.map((id) => policyData?.[`${key}${id}`]).filter((data): data is NonNullable<typeof data> => !!data);
@@ -1702,44 +1762,31 @@ function getDateFilterRange(queryJSON: SearchQueryJSON): DateFilterRange {
             const presetRange = getDateRangeForPreset(equalToValue);
             start = presetRange.start;
             end = presetRange.end;
-        } else if (isValidDate(equalToValue)) {
-            start = equalToValue;
-            end = equalToValue;
+        } else {
+            start = getInclusiveRangeBoundary(equalToValue);
+            end = start;
         }
     }
 
+    // Typed dates can drop leading zeros, like 2026-1-5, so each boundary is zero-padded before it is compared with other dates
     const greaterThanOrEqualToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN_OR_EQUAL_TO);
     if (greaterThanOrEqualToFilter) {
-        const filterValue = greaterThanOrEqualToFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            start = getLaterDate(start, filterValue);
-        }
+        start = getLaterDate(start, getInclusiveRangeBoundary(greaterThanOrEqualToFilter.value.toString()));
     }
 
     const greaterThanFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN);
     if (greaterThanFilter) {
-        const filterValue = greaterThanFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            const nextDay = format(addDays(parse(filterValue, 'yyyy-MM-dd', new Date()), 1), 'yyyy-MM-dd');
-            start = getLaterDate(start, nextDay);
-        }
+        start = getLaterDate(start, getInclusiveRangeBoundary(greaterThanFilter.value.toString(), 1));
     }
 
     const lowerThanOrEqualToFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN_OR_EQUAL_TO);
     if (lowerThanOrEqualToFilter) {
-        const filterValue = lowerThanOrEqualToFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            end = getEarlierDate(end, filterValue);
-        }
+        end = getEarlierDate(end, getInclusiveRangeBoundary(lowerThanOrEqualToFilter.value.toString()));
     }
 
     const lowerThanFilter = dateFilters.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN);
     if (lowerThanFilter) {
-        const filterValue = lowerThanFilter.value.toString();
-        if (isValidDate(filterValue)) {
-            const previousDay = format(addDays(parse(filterValue, 'yyyy-MM-dd', new Date()), -1), 'yyyy-MM-dd');
-            end = getEarlierDate(end, previousDay);
-        }
+        end = getEarlierDate(end, getInclusiveRangeBoundary(lowerThanFilter.value.toString(), -1));
     }
 
     return {start, end};
@@ -1773,9 +1820,23 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
     const now = new Date();
     let start: Date;
     let end: Date;
+    const lastWeek = subWeeks(now, 1);
     const lastMonth = subMonths(now, 1);
+    const lastQuarter = subQuarters(now, 1);
+    const lastYear = subYears(now, 1);
+
+    // Weeks start on Sunday regardless of locale, matching the week buckets of group-by:week.
+    const weekOptions = {weekStartsOn: 0} as const;
 
     switch (preset) {
+        case CONST.SEARCH.DATE_PRESETS.THIS_WEEK:
+            start = startOfWeek(now, weekOptions);
+            end = endOfWeek(now, weekOptions);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_WEEK:
+            start = startOfWeek(lastWeek, weekOptions);
+            end = endOfWeek(lastWeek, weekOptions);
+            break;
         case CONST.SEARCH.DATE_PRESETS.THIS_MONTH:
             start = startOfMonth(now);
             end = endOfMonth(now);
@@ -1784,9 +1845,35 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
             start = startOfMonth(lastMonth);
             end = endOfMonth(lastMonth);
             break;
+        case CONST.SEARCH.DATE_PRESETS.THIS_QUARTER:
+            start = startOfQuarter(now);
+            end = endOfQuarter(now);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_QUARTER:
+            start = startOfQuarter(lastQuarter);
+            end = endOfQuarter(lastQuarter);
+            break;
+        // Year to date is deprecated and kept as an alias of this year, so saved searches and links still resolve.
+        case CONST.SEARCH.DATE_PRESETS.THIS_YEAR:
         case CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE:
             start = startOfYear(now);
+            end = endOfYear(now);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_YEAR:
+            start = startOfYear(lastYear);
+            end = endOfYear(lastYear);
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_30_DAYS:
+            start = subDays(now, 29);
             end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_90_DAYS:
+            start = subDays(now, 89);
+            end = now;
+            break;
+        case CONST.SEARCH.DATE_PRESETS.LAST_6_MONTHS:
+            start = startOfMonth(subMonths(now, 5));
+            end = endOfMonth(now);
             break;
         case CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS:
             start = startOfMonth(subMonths(now, 11));
@@ -1811,7 +1898,7 @@ function getDateRangeForPreset(preset: SearchDatePreset): {start: string; end: s
 // Adds bankAccountList and currentUserAccountID for the new bank account and from:me filters. Refactoring this to a params object would touch every call site and is out of scope here.
 function buildFilterFormValuesFromQuery(
     queryJSON: SearchQueryJSON,
-    policyCategories: OnyxCollection<OnyxTypes.PolicyCategories>,
+    policyCategories: OnyxCollection<Record<string, Pick<OnyxTypes.PolicyCategory, 'name'>>>,
     currencyList: OnyxTypes.CurrencyList,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
     cardList: OnyxTypes.CardList | undefined,
@@ -1931,6 +2018,7 @@ function buildFilterFormValuesFromQuery(
         }
         if (
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
             filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTER ||
@@ -1974,6 +2062,10 @@ function buildFilterFormValuesFromQuery(
                 .filter((name) => uniqueCategories.has(name))
                 .concat(hasEmptyCategoriesInFilter ? [CONST.SEARCH.CATEGORY_EMPTY_VALUE] : []);
         }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VENDOR) {
+            // Vendor names are matched by text on the server and the synced vendor lists load lazily, so the typed values are kept as-is.
+            filtersForm[addNegation(filterKey, isNegated)] = filterValues;
+        }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
             filtersForm[filterKey] = filterValues
                 ?.map((filter) => {
@@ -2012,8 +2104,8 @@ function buildFilterFormValuesFromQuery(
 
             filtersForm[beforeKey] = getEarlierDate(beforeFilter?.value.toString(), filtersForm[beforeKey]);
             filtersForm[afterKey] = getLaterDate(afterFilter?.value.toString(), filtersForm[afterKey]);
-            filtersForm[onKey] = onFilter?.value.toString() ?? filtersForm[onKey];
-            filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
+            filtersForm[onKey] = onFilter ? normalizeDatePreset(onFilter.value.toString()) : filtersForm[onKey];
+            filtersForm[negatedKey] = negatedFilter ? normalizeDatePreset(negatedFilter.value.toString()) : filtersForm[negatedKey];
 
             if (rangeValue) {
                 filtersForm[rangeKey] = rangeValue;
@@ -2028,26 +2120,37 @@ function buildFilterFormValuesFromQuery(
             const lessThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.LESS_THAN}`;
             const greaterThanKey = `${filterKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}` as `${SearchAmountFilterKeys}${typeof CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`;
 
-            // backend amount is an integer and is 2 digits longer than frontend amount
+            const isValidAmount = (value: string) => {
+                const parsed = parseAmountFilterValue(value);
+                if (parsed.currency && !supportsAmountFilterCurrency(filterKey)) {
+                    return false;
+                }
+
+                // Bare amounts use integer hundredths, so they need two extra digits and no decimals.
+                // Amounts with a currency use decimals, such as "12.00 USD".
+                return validateAmount(parsed.amount, parsed.currency ? CONST.DEFAULT_CURRENCY_DECIMALS : 0, CONST.IOU.AMOUNT_MAX_LENGTH + (parsed.currency ? 0 : 2), true);
+            };
+
             filtersForm[equalToKey] =
-                filterList
-                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2, true))
-                    ?.value.toString() ?? filtersForm[equalToKey];
+                filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
+                filtersForm[equalToKey];
             filtersForm[lessThanKey] =
-                filterList
-                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2, true))
-                    ?.value.toString() ?? filtersForm[lessThanKey];
+                filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.LOWER_THAN && isValidAmount(filter.value.toString()))?.value.toString() ??
+                filtersForm[lessThanKey];
             filtersForm[greaterThanKey] =
-                filterList
-                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2, true))
-                    ?.value.toString() ?? filtersForm[greaterThanKey];
+                filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.GREATER_THAN && isValidAmount(filter.value.toString()))?.value.toString() ??
+                filtersForm[greaterThanKey];
             filtersForm[negatedKey] =
-                filterList
-                    .find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2, true))
-                    ?.value.toString() ?? filtersForm[negatedKey];
+                filterList.find((filter) => filter.operator === CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO && isValidAmount(filter.value.toString()))?.value.toString() ??
+                filtersForm[negatedKey];
         }
 
-        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED) {
+        if (
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DECLINED ||
+            filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.HELD
+        ) {
             const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
             filtersForm[addNegation(filterKey, isNegated)] = validBooleanTypes.find((value) => filterValues.at(0) === value);
         }
@@ -2096,7 +2199,7 @@ function buildFilterFormValuesFromQuery(
 
             filtersForm[textKey] = textFilter?.value.toString() ?? filtersForm[textKey];
             filtersForm[negatedKey] = negatedFilter?.value.toString() ?? filtersForm[negatedKey];
-            filtersForm[dateOnKey] = dateOnFilter?.value.toString() ?? filtersForm[dateOnKey];
+            filtersForm[dateOnKey] = dateOnFilter ? normalizeDatePreset(dateOnFilter.value.toString()) : filtersForm[dateOnKey];
             filtersForm[dateBeforeKey] = getEarlierDate(dateBeforeFilter?.value.toString(), filtersForm[dateBeforeKey]);
             filtersForm[dateAfterKey] = getLaterDate(dateAfterFilter?.value.toString(), filtersForm[dateAfterKey]);
 
@@ -2236,6 +2339,7 @@ function getFilterDisplayValue({
 }: GetFilterDisplayValueParams) {
     if (
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
         filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PAYER ||
@@ -2682,7 +2786,10 @@ const sortOptionsWithEmptyValue = (a: string, b: string, localeCompare: LocaleCo
 /**
  *  Given a search query, this function will standardize the query by replacing display values with their corresponding IDs.
  */
-function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>, computeNodeValue: (left: SyntaxFilterKey, right: string | string[]) => string | string[]) {
+function traverseAndUpdatedQuery(
+    queryJSON: SearchQueryJSON | Readonly<SearchQueryJSON>,
+    computeNodeValue: (left: SyntaxFilterKey, right: string | string[], operator: ASTNode['operator']) => string | string[],
+) {
     const standardQuery = cloneDeep(queryJSON) as SearchQueryJSON;
     const filters = standardQuery.filters;
     const traverse = (node: ASTNode) => {
@@ -2698,7 +2805,7 @@ function traverseAndUpdatedQuery(queryJSON: SearchQueryJSON | Readonly<SearchQue
 
         if (typeof node.left !== 'object' && (Array.isArray(node.right) || typeof node.right === 'string')) {
             // eslint-disable-next-line no-param-reassign
-            node.right = computeNodeValue(node.left, node.right);
+            node.right = computeNodeValue(node.left, node.right, node.operator);
         }
     };
 
@@ -2719,6 +2826,7 @@ function getKeywordQueryWithCurrentSearchContext(queryString: SearchQueryString,
 /**
  * Returns new string query, after parsing it and traversing to update some filter values.
  * If there are any personal emails, it will try to substitute them with accountIDs
+ * The deprecated Year to date preset is mapped to This year
  */
 function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = false, policies?: OnyxCollection<OnyxTypes.Policy>) {
     const queryJSON = buildSearchQueryJSON(query);
@@ -2728,7 +2836,8 @@ function getQueryWithUpdatedValues(query: string, shouldSkipAmountConversion = f
         return;
     }
 
-    const computeNodeValue = (left: SyntaxFilterKey, right: string | string[]) => getUpdatedFilterValue(left, right, shouldSkipAmountConversion, policies);
+    const computeNodeValue = (left: SyntaxFilterKey, right: string | string[], operator: ASTNode['operator']) =>
+        normalizeDatePresetFilterValue(left, getUpdatedFilterValue(left, right, shouldSkipAmountConversion, policies), operator);
     const standardizedQuery = traverseAndUpdatedQuery(queryJSON, computeNodeValue);
     const rawFilterList = getRawFilterListFromQuery(query);
     const hasInFilter = rawFilterList?.some((filter) => !filter.isDefault && filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) ?? false;
@@ -2809,6 +2918,45 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
     return buildSearchQueryJSON(params.q, params.rawQuery);
 }
 
+function isTabNavigatorRoute(route: unknown): route is NavigationRouteLike {
+    return isRecord(route) && route.name === NAVIGATORS.TAB_NAVIGATOR;
+}
+
+/**
+ * Returns the Search root params a single tab navigator resolves to, or `undefined` when it has no Search state.
+ *
+ * Nested route params are only consulted when `shouldUseNestedParams` is set, which the caller does for the newest
+ * tab navigator only. For an older navigator they are the params it was first opened with, and the user may have
+ * changed the query since, so they can be stale. The live or preserved Search state is always current.
+ */
+function getSearchRootParamsFromTabNavigator(tabNavigator: NavigationRouteLike, shouldUseNestedParams: boolean): TabNavigatorSearchResolution | undefined {
+    const tabStateFromParams = getParamsState(tabNavigator.params);
+    const tabState = tabNavigator.state ?? (tabNavigator.key ? getPreservedNavigatorState(tabNavigator.key) : undefined) ?? tabStateFromParams;
+    const searchNavigator = getLastRouteByName(tabState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+    const searchNavigatorState = searchNavigator?.state ?? (searchNavigator?.key ? getPreservedNavigatorState(searchNavigator.key) : undefined);
+
+    if (searchNavigatorState) {
+        return {params: getSearchRootParamsFromSearchNavigatorState(searchNavigatorState)};
+    }
+
+    if (!shouldUseNestedParams) {
+        return undefined;
+    }
+
+    // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
+    // neither .state nor the preserved state map will have an entry. Use nested route params when
+    // React Navigation provided them and they parse.
+    const nestedSearchRootParams =
+        getSearchRootParamsFromNestedNavigatorParams(searchNavigator?.params) ??
+        getSearchRootParamsFromNestedNavigatorParams(tabNavigator.params) ??
+        getSearchRootParamsFromTabState(tabStateFromParams);
+    if (nestedSearchRootParams && getSearchQueryJSONFromRouteParams(nestedSearchRootParams)) {
+        return {params: nestedSearchRootParams};
+    }
+
+    return undefined;
+}
+
 /**
  * Resolves the params of the Search root route that the app is currently showing (or would return to),
  * from a navigation state tree.
@@ -2818,36 +2966,33 @@ function getSearchQueryJSONFromRouteParams(params: unknown) {
  * still does. It also does not walk only the live tree. A non-focused tab navigator has its nested state
  * dropped from the tree, so the preserved-state map is consulted as well (see `usePreserveNavigatorState`).
  *
+ * Tab navigators are walked from newest to oldest and the first one with Search state wins, like the tab bar's
+ * `getLastRoute`. A cross-tab push such as "Go to room" adds a newer tab navigator without Search state, so the
+ * older Spend tab keeps providing the query. Only the newest one may use nested route params, since an older
+ * one's can be stale.
+ *
  * Note: the preserved-state map has no subscription, so a `useRootNavigationState` selector built on this
  * only re-reads it on navigation events. Call `getCurrentSearchQueryJSON` imperatively where you need the
  * value at an arbitrary moment (e.g. right after a delegate switch, which clears the map without navigating).
+ *
+ * Pass `shouldFallBackToDefaultQuery: false` to get `undefined` instead of the default query when no tab
+ * navigator has Search state. Reactive readers use this to keep their last real query.
  */
-function getSearchRootParamsFromRootState(rootState: unknown): SearchRootParams | undefined {
-    const lastTabNavigator = getLastRouteByName(rootState, NAVIGATORS.TAB_NAVIGATOR);
-    const tabStateFromParams = getParamsState(lastTabNavigator?.params);
-    const tabState = lastTabNavigator?.state ?? (lastTabNavigator?.key ? getPreservedNavigatorState(lastTabNavigator.key) : undefined) ?? tabStateFromParams;
-    const lastSearchNavigator = getLastRouteByName(tabState, NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
-    let lastSearchNavigatorState = lastSearchNavigator?.state;
-    if (!lastSearchNavigatorState) {
-        lastSearchNavigatorState = lastSearchNavigator?.key ? getPreservedNavigatorState(lastSearchNavigator.key) : undefined;
+function getSearchRootParamsFromRootState(rootState: unknown, shouldFallBackToDefaultQuery = true): SearchRootParams | undefined {
+    const tabNavigators = (getRoutes(rootState) ?? []).filter(isTabNavigatorRoute);
+    const newestTabNavigator = tabNavigators.at(-1);
+
+    // Walk newest to oldest. `??` short-circuits, so older tab navigators are not resolved once one has Search state.
+    const resolution = tabNavigators.reduceRight<TabNavigatorSearchResolution | undefined>(
+        (found, tabNavigator) => found ?? getSearchRootParamsFromTabNavigator(tabNavigator, tabNavigator === newestTabNavigator),
+        undefined,
+    );
+
+    if (resolution) {
+        return resolution.params;
     }
 
-    const nestedSearchRootParams =
-        getSearchRootParamsFromNestedNavigatorParams(lastSearchNavigator?.params) ??
-        getSearchRootParamsFromNestedNavigatorParams(lastTabNavigator?.params) ??
-        getSearchRootParamsFromTabState(tabStateFromParams);
-
-    // When the SearchFullscreenNavigator has never been mounted (e.g. lazy tab not yet visited),
-    // neither .state nor the preserved state map will have an entry. Use nested route params when
-    // React Navigation provided them and they parse, otherwise fall back to the default initialParams query.
-    if (!lastSearchNavigatorState) {
-        if (nestedSearchRootParams && getSearchQueryJSONFromRouteParams(nestedSearchRootParams)) {
-            return nestedSearchRootParams;
-        }
-        return {q: buildSearchQueryString()};
-    }
-
-    return getSearchRootParamsFromSearchNavigatorState(lastSearchNavigatorState);
+    return shouldFallBackToDefaultQuery ? {q: buildSearchQueryString()} : undefined;
 }
 
 function getCurrentSearchQueryJSON() {
@@ -3136,7 +3281,9 @@ function doesQueryMatchDefaultFilterKeysAndType(queryJSON: SearchQueryJSON | und
     }
 
     const queryFilterKeys = new Set(queryJSON.flatFilters.map((filter) => filter.key));
-    const defaultQueryFilterKeys = new Set(defaultQueryJSON.flatFilters.map((filter) => filter.key));
+    // The Spend footer's keys pick what the footer shows, not which rows match, and a default choice is left out of the
+    // query. So they never decide whether a last query still belongs to its default one.
+    const defaultQueryFilterKeys = new Set(defaultQueryJSON.flatFilters.map((filter) => filter.key).filter((key) => !FOOTER_FILTER_KEYS.has(key)));
 
     return [...defaultQueryFilterKeys].every((value) => queryFilterKeys.has(value)) && queryJSON.type === defaultQueryJSON.type;
 }
@@ -3174,11 +3321,11 @@ export {
     getDefaultFooterCount,
     getFooterSelectionFromQuery,
     getQueryWithFooterSelection,
-    getQueryWithoutFooterSelections,
-    hasFooterSelections,
     hasFiltersChangedFromDefault,
     isSearchQuerySavable,
     isSearchDatePreset,
+    normalizeDatePreset,
+    normalizeDatePresetsInQuery,
     getDateRangeForPreset,
     getDateFilterRange,
     isSearchBeforeViolationsSnapshotStarted,

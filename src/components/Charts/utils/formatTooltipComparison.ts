@@ -14,12 +14,15 @@ type TooltipRow = {
     /** The series' color, shown as a dot before the row */
     color: string;
 
-    /** Names the series, like "Average" */
+    /** Whether the row is an average, shown with a short dash like its line instead of a dot */
+    isAverage?: boolean;
+
+    /** Names the series, like "Average", or the dates the point covers in its period */
     label?: string;
 
     amount: string;
 
-    /** The amount's share of total spend */
+    /** The amount's share of its own period's total spend */
     percentage?: string;
 };
 
@@ -75,26 +78,27 @@ function formatTooltipComparison(
     const [{key: primarySeriesKey}, comparedSeries] = series;
     const primaryValue = dataPoint.values[primarySeriesKey];
     const comparedValue = comparedSeries && dataPoint.values[comparedSeries.key];
-    if (primaryValue === undefined || comparedValue === undefined) {
+    if (!comparedSeries || (primaryValue === undefined && comparedValue === undefined) || (comparedValue === undefined && !dataPoint.seriesLabels)) {
         return undefined;
     }
 
-    const rows = series.flatMap(({key, color = VictoryTheme.colors.default, label}) => {
+    const rows = series.flatMap(({key, color = VictoryTheme.colors.default, label, isAverage}) => {
         const value = dataPoint.values[key];
         if (value === undefined) {
             return [];
         }
-        const isPrimary = key === primarySeriesKey;
+        const percentOfTotal = dataPoint.seriesPercentOfTotal?.[key];
         return {
             key,
             color: dataPoint.seriesColors?.[key] ?? color,
-            label,
+            isAverage,
+            label: dataPoint.seriesLabels?.[key] ?? label,
             amount: formatAmount(value),
-            percentage: isPrimary && dataPoint.percentOfTotal !== undefined ? formatPercentOfTotal(dataPoint.percentOfTotal, value, locale) : undefined,
+            percentage: percentOfTotal === undefined ? undefined : formatPercentOfTotal(percentOfTotal, value, locale),
         };
     });
 
-    return {rows, change: formatChange(primaryValue, comparedValue, formatAmount, locale)};
+    return {rows, change: primaryValue === undefined || comparedValue === undefined ? undefined : formatChange(primaryValue, comparedValue, formatAmount, locale)};
 }
 
 export default formatTooltipComparison;

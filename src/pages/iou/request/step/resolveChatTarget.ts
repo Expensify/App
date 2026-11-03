@@ -87,7 +87,7 @@ function resolveChatTargetForSubmitCleanup({
     }
 
     let chatReportID: string | undefined;
-    if (participant.isPolicyExpenseChat && participant.reportID && getReportOrDraftReport(participant.reportID, undefined, undefined, participantReportDraft)) {
+    if (participant.isPolicyExpenseChat && participant.reportID && getReportOrDraftReport({reportID: participant.reportID, reportDraft: participantReportDraft})) {
         chatReportID = participant.reportID;
     } else if (participant.accountID) {
         chatReportID = getChatByParticipants([participant.accountID, currentUserAccountID])?.reportID;

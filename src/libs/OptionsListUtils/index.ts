@@ -19,9 +19,10 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
-import {getLoginByAccountID, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getLoginByAccountID, getPersonalDetailByEmail, getPersonalDetailForAccountID, getPersonalDetailsForAccountIDs, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {
+    canCreateExpensesOnPolicy,
     canSendInvoiceFromWorkspace,
     canSubmitPerDiemExpenseFromWorkspace,
     getCountOfEnabledTagsOfList,
@@ -147,8 +148,12 @@ function isPersonalDetailsReady(personalDetails: OnyxEntry<PersonalDetailsList>)
  * Get the participant option for a report.
  */
 function getParticipantsOption(participant: OptionData | Participant, personalDetails: OnyxEntry<PersonalDetailsList>, translate: LocalizedTranslate): Participant & {keyForList: string} {
-    const detail = participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined;
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    // An optimistic accountID is dropped from personal details once the server assigns the real one, so a draft that
+    // still holds it would point at no one. Resolve it by login to the canonical account. A phone number typed into the
+    // participant search is stored without the SMS domain, but the canonical account's login has it.
+    const canonicalDetail =
+        participant.accountID && !personalDetails?.[participant.accountID] && participant.login ? getPersonalDetailByEmail(addSMSDomainIfPhoneNumber(participant.login)) : undefined;
+    const detail = canonicalDetail ?? (participant.accountID ? getPersonalDetailsForAccountIDs([participant.accountID], personalDetails)[participant.accountID] : undefined);
     const login = detail?.login || participant.login || '';
     const formattedLogin = formatPhoneNumberPhoneUtils(login);
     // When detail has a login the participant is a real Expensify user — use their profile name.
@@ -164,7 +169,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
         displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, defaultValue: formattedLogin, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
     } else {
         const detailDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: detail, defaultValue: formattedLogin, translate, formatPhoneNumber: formatPhoneNumberPhoneUtils});
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- empty string from device contacts should fall through to the formatted phone number
+        // empty string from device contacts should fall through to the formatted phone number
         displayName = participant?.text || detailDisplayName;
     }
 
@@ -173,21 +178,17 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
         login,
         accountID: detail?.accountID,
         text: displayName,
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         firstName: (detail?.firstName || participant.firstName) ?? '',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         lastName: (detail?.lastName || participant.lastName) ?? '',
         alternateText: formattedLogin || displayName,
         icons: [
             {
-                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 source: (participant.avatar || detail?.avatar) ?? FallbackAvatar,
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
                 id: detail?.accountID,
             },
         ],
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         phoneNumber: (detail?.phoneNumber || participant?.phoneNumber) ?? '',
         isSelected: participant.selected,
         selected: participant.selected, // Keep for backwards compatibility
@@ -282,7 +283,7 @@ function getAlternateText(
         rules,
     }: GetAlternateTextConfig,
 ) {
-    const report = getReportOrDraftReport(option.reportID);
+    const report = getReportOrDraftReport({reportID: option.reportID});
     const isAdminRoom = reportUtilsIsAdminRoom(report);
     const isAnnounceRoom = reportUtilsIsAnnounceRoom(report);
     const isGroupChat = reportUtilsIsGroupChat(report);
@@ -520,7 +521,6 @@ function createOption({
         result.allReportErrors = getEffectiveReportErrors(reportAttribute);
         result.brickRoadIndicator = !isEmptyObject(result.allReportErrors) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : (reportAttribute?.brickRoadStatus ?? '');
 
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- below is a boolean expression
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
         subtitle = getChatRoomSubtitle(report, policy, conciergeReportID, translateFn, rules, true, result.private_isArchived);
 
@@ -577,20 +577,19 @@ function createOption({
 
     // Set core display properties that are used in SearchOption context
     result.text = reportName;
-    result.icons = getIcons(
+    result.icons = getIcons({
         report,
-        formatPhoneNumberPhoneUtils,
-        translateFn,
+        formatPhoneNumber: formatPhoneNumberPhoneUtils,
+        translate: translateFn,
         personalDetails,
-        personalDetail?.avatar,
-        personalDetail?.login,
-        personalDetail?.accountID,
-        null,
-        undefined,
-        result?.private_isArchived,
+        defaultIcon: personalDetail?.avatar,
+        defaultName: personalDetail?.login,
+        defaultAccountID: personalDetail?.accountID,
+        policy: null,
+        isReportArchived: result?.private_isArchived,
         pendingDeleteMemberAccountIDs,
         conciergeReportID,
-    );
+    });
     result.subtitle = subtitle;
 
     // Set login and accountID only for single participant cases (used in SearchOption context)
@@ -641,7 +640,7 @@ function getReportOption({
     pendingDeleteMemberAccountIDs,
 }: GetReportOptionParams): OptionData {
     const {translate, dateFnsLocale, convertToDisplayString, formatPhoneNumber} = localize;
-    const report = getReportOrDraftReport(participant.reportID, undefined, undefined, reportDraft);
+    const report = getReportOrDraftReport({reportID: participant.reportID, reportDraft});
     const visibleParticipantAccountIDs = getParticipantsAccountIDsForDisplay(report, undefined, true);
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
 
@@ -942,7 +941,6 @@ function isReportSelected(reportOption: SearchOptionData, selectedOptions: Array
         return false;
     }
 
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     return selectedOptions.some((option) => (option.accountID && option.accountID === reportOption.accountID) || (option.reportID && option.reportID === reportOption.reportID));
 }
 
@@ -1030,15 +1028,22 @@ function processReport(
     };
 }
 
+/** Whether the report belongs to the default workspace (activePolicyID) and is owned by the current user. Combine with a workspace chat check. */
+function isOwnDefaultWorkspaceChat(report: Pick<Report, 'policyID' | 'ownerAccountID'>, currentUserAccountID: number, activePolicyID: string | undefined): boolean {
+    return !!activePolicyID && report.policyID === activePolicyID && report.ownerAccountID === currentUserAccountID;
+}
+
 /**
- * Sort Report objects by self-DM status, archived status, and last visible action.
+ * Sort Report objects by self-DM / default workspace chat status, archived status, and last visible action.
  * Mirrors recentReportComparator's isSelfDM priority so the raw top-N cap in createFilteredOptionList
  * can't exclude the self-DM report before recentReportComparator gets a chance to keep it.
+ * The user's own expense chat in the default workspace gets the same priority, so it is kept even when it has no recent activity.
  */
-const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArchivedMap): string => {
+const reportSortComparator = (report: Report, privateIsArchivedMap: PrivateIsArchivedMap, currentUserAccountID: number, activePolicyID: string | undefined): string => {
     const isArchived = privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
     const isSelfDM = report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM;
-    return `${isSelfDM ? 1 : 0}_${isArchived ? 0 : 1}_${report.lastVisibleActionCreated ?? ''}`;
+    const isDefaultWorkspaceChat = report.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT && isOwnDefaultWorkspaceChat(report, currentUserAccountID, activePolicyID);
+    return `${isSelfDM || isDefaultWorkspaceChat ? 1 : 0}_${isArchived ? 0 : 1}_${report.lastVisibleActionCreated ?? ''}`;
 };
 
 /** Builds an option list with pre-filtered reports and lazy contact shells. */
@@ -1231,6 +1236,8 @@ function createFilteredOptionList(
          */
         pendingDeleteMemberAccountIDsByReportID?: Record<string, string[]>;
         formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+        /** The user's default workspace. Its expense chat is always kept by the recent-reports cap */
+        activePolicyID?: string;
     },
     rules: OnyxCollection<Rule>,
     policyTags?: OnyxCollection<PolicyTagLists>,
@@ -1252,6 +1259,7 @@ function createFilteredOptionList(
         locale,
         pendingDeleteMemberAccountIDsByReportID,
         formatPhoneNumber,
+        activePolicyID,
     } = options;
 
     // Use the cache-key locale for translated contact fields.
@@ -1294,6 +1302,7 @@ function createFilteredOptionList(
         currentUserAccountID,
         pendingDeleteMemberAccountIDsByReportID,
         currentUserLogin,
+        activePolicyID,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
     if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {
@@ -1311,9 +1320,11 @@ function createFilteredOptionList(
         return !!report;
     });
 
-    // Step 2: Select the top N reports by priority (self-DM, then non-archived, then most recent).
+    // Step 2: Select the top N reports by priority (self-DM and default workspace chat, then non-archived, then most recent).
     // In search mode, skip sorting because we return all reports anyway - sorting is unnecessary
-    const sortedReports = isSearching ? reportsArray : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap), maxRecentReports).options;
+    const sortedReports = isSearching
+        ? reportsArray
+        : optionsOrderBy(reportsArray, (report) => reportSortComparator(report, privateIsArchivedMap, currentUserAccountID, activePolicyID), maxRecentReports).options;
 
     // Step 3: If search term is present, build report map with ONLY 1:1 DM reports
     // This allows personal details to have valid 1:1 DM reportIDs for proper avatar display
@@ -1901,11 +1912,8 @@ function getUserToInviteOption({
         userToInvite.displayName = displayValue;
         userToInvite.alternateText = displayValue;
     } else {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         userToInvite.text = userToInvite.text || displayValue;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         userToInvite.displayName = userToInvite.displayName || displayValue;
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         userToInvite.alternateText = userToInvite.alternateText || displayValue;
     }
 
@@ -1935,6 +1943,7 @@ function isValidReport(
         isDefaultRoomsBetaEnabled = false,
         includeMultipleParticipantReports = false,
         includeOwnedWorkspaceChats = false,
+        excludeWorkspacesWithoutCreateExpensePermission = false,
         includeThreads = false,
         includeTasks = false,
         includeMoneyRequests = false,
@@ -1956,7 +1965,7 @@ function isValidReport(
         conciergeReportID,
     } = config;
     const topmostReportId = Navigation.getTopmostReportId();
-    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations);
+    const doesReportHaveViolations = !!getViolatingReportIDForRBRInLHN(option.item, transactionViolations, policy);
 
     const shouldBeInOptionList = shouldReportBeInOptionList({
         report: option.item,
@@ -1996,6 +2005,10 @@ function isValidReport(
     }
 
     if (isPolicyExpenseChat && !includeOwnedWorkspaceChats) {
+        return false;
+    }
+
+    if (isPolicyExpenseChat && excludeWorkspacesWithoutCreateExpensePermission && !canCreateExpensesOnPolicy(policy)) {
         return false;
     }
 
@@ -2383,6 +2396,7 @@ function getValidOptions(
         localeCompare,
         isTrackIntentUser,
         isOffline,
+        activePolicyID,
         ...config
     }: GetOptionsConfig,
     localize: {translate: LocalizedTranslate; formatPhoneNumber: LocaleContextProps['formatPhoneNumber']},
@@ -2481,14 +2495,18 @@ function getValidOptions(
                 },
                 draftComment,
                 chatReport,
-                // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); hasExpensifyGuidesEmails falls back to allPersonalDetails
+                // TODO: Pass guideAccountIDs in Phase B. hasExpensifyGuidesEmails falls back to the personal details store until then. See https://github.com/Expensify/App/issues/66413.
                 isDefaultRoom(report.item) ? hasExpensifyGuidesEmails(Object.keys(report.item?.participants ?? {}).map(Number), undefined) : false,
                 report.reportID ? reportAttributesDerived?.[report.reportID]?.isEmpty : undefined,
             );
         };
 
+        // Rank the user's default workspace chat first among workspace chats, so the per-group limit keeps it even when it has no recent activity
+        const isDefaultWorkspaceChat = (report: SearchOption<Report>) => isWorkspaceChat(report) && isOwnDefaultWorkspaceChat(report, currentUserAccountID, activePolicyID);
+        const comparator = activePolicyID ? (report: SearchOption<Report>) => `${isDefaultWorkspaceChat(report) ? 1 : 0}_${recentReportComparator(report)}` : recentReportComparator;
+
         let selfDMChats: Array<SearchOption<Report>>;
-        const groupedOptions = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, recentReportComparator, maxElements, filteringFunction);
+        const groupedOptions = optionsOrderAndGroupBy([isSelfDMChat, isWorkspaceChat], options.reports, comparator, maxElements, filteringFunction);
         [selfDMChats, workspaceChats, recentReportOptions] = groupedOptions.options;
 
         hasMore = hasMore || groupedOptions.hasMore;
@@ -2900,9 +2918,7 @@ function formatMemberForList(member: SearchOptionData): MemberForList {
     const accountID = member.accountID;
 
     return {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         text: member.text || member.displayName || '',
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         alternateText: member.alternateText || member.login || '',
 
         keyForList: member.keyForList || String(accountID ?? CONST.DEFAULT_NUMBER_ID) || '',

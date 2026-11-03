@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {IntegrationEntityMap} from '@src/types/onyx/Policy';
 
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 function QuickbooksLocationsPage({policy}: WithPolicyProps) {
@@ -40,18 +40,15 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
     const canUseTagsForLocations = canImportLocationsAsTags(qboConfig);
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(isSwitchOn);
 
-    const updateQuickbooksOnlineSyncLocations = useCallback(
-        (settingValue: IntegrationEntityMap) => {
-            if (settingValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD && !isControlPolicy(policy)) {
-                Navigation.navigate(
-                    ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.REPORT_FIELDS_FEATURE.qbo.locations, ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
-                );
-                return;
-            }
-            updateQuickbooksOnlineSyncLocationsAction(policyID, settingValue, qboConfig?.syncLocations);
-        },
-        [policy, policyID, qboConfig?.syncLocations],
-    );
+    const updateQuickbooksOnlineSyncLocations = (settingValue: IntegrationEntityMap) => {
+        if (settingValue === CONST.INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD && !isControlPolicy(policy)) {
+            Navigation.navigate(
+                ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.REPORT_FIELDS_FEATURE.qbo.locations, ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_LOCATIONS.getRoute(policyID)),
+            );
+            return;
+        }
+        updateQuickbooksOnlineSyncLocationsAction(policyID, settingValue, qboConfig?.syncLocations);
+    };
     // If we previously selected tags but now we have the line items restriction, we need to switch to report fields
     useEffect(() => {
         if (!shouldSwitchLocationsToReportFields(qboConfig)) {

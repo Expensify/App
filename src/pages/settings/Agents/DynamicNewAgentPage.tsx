@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import BlockingView from '@components/BlockingViews/BlockingView';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -7,10 +8,12 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePolicy from '@hooks/usePolicy';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useSuggestedAgents from '@hooks/useSuggestedAgents';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -21,6 +24,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {canMemberWrite} from '@libs/PolicyUtils';
 
 import {clearNewAgentAvatarDraft, clearNewAgentTemplate, setNewAgentTemplate, getAgentTemplates} from '@userActions/Agent';
 
@@ -79,16 +83,20 @@ type DynamicNewAgentPageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 
 function DynamicNewAgentPage({route}: DynamicNewAgentPageProps) {
     const policyID = route.params?.policyID;
+    const policy = usePolicy(policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Bot']);
     const illustrations = useMemoizedLazyIllustrations(['Lightbulb']);
     const {data: templates, isLoading} = useSuggestedAgents();
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
 
     const hasTemplates = templates.length > 0;
     const shouldShowLoadingIndicator = isLoading && !hasTemplates && !isOffline;
     const shouldShowEmptyState = !hasTemplates && (!isLoading || isOffline);
+    const isAddingCompanyAgent = !!policyID;
+    const canWriteAgents = isAddingCompanyAgent ? canMemberWrite(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.AGENTS) : true;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.AGENT_NEW.path);
 
     useEffect(() => {
@@ -185,11 +193,13 @@ function DynamicNewAgentPage({route}: DynamicNewAgentPageProps) {
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
         >
-            <HeaderWithBackButton
-                title={translate('newAgentPage.title')}
-                onBackButtonPress={() => Navigation.goBack(backPath)}
-            />
-            {body}
+            <FullPageNotFoundView shouldShow={!canWriteAgents}>
+                <HeaderWithBackButton
+                    title={translate('newAgentPage.title')}
+                    onBackButtonPress={() => Navigation.goBack(backPath)}
+                />
+                {body}
+            </FullPageNotFoundView>
         </ScreenWrapper>
     );
 }

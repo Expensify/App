@@ -2,7 +2,7 @@ import {useActivePolicyContext} from '@components/ActivePolicyProvider';
 import {useSession} from '@components/OnyxListItemProvider';
 
 import isTeachersUnitePolicyID from '@libs/isTeachersUnitePolicyID';
-import {canSubmitPerDiemExpenseFromWorkspace, getPolicyRole, isGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
+import {canCreateExpensesOnPolicy, canSubmitPerDiemExpenseFromWorkspace, isGroupPolicy, isPolicyMemberWithoutPendingDelete, isTimeTrackingEnabled} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,15 +22,10 @@ function checkForUserPendingDelete(login: string, policy: OnyxEntry<Policy>) {
     return isPolicyMemberWithoutPendingDelete(login, policy);
 }
 
-function isPolicyMemberByRole(policy: OnyxEntry<Policy>, login: string) {
-    const role = getPolicyRole(policy, login);
-    return !!role && (Object.values(CONST.POLICY.ROLE) as string[]).includes(role);
-}
-
 function isPolicyValidForMovingExpenses(policy: OnyxEntry<Policy>, login: string, isPerDiemRequest?: boolean, isTimeRequest?: boolean) {
     return (
         checkForUserPendingDelete(login, policy) &&
-        isPolicyMemberByRole(policy, login) &&
+        canCreateExpensesOnPolicy(policy, login) &&
         isGroupPolicy(policy) &&
         policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
         // Teachers Unite doesn't support reimbursement, so it can never be a destination for moving/reporting an expense.

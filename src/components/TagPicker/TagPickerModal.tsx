@@ -1,33 +1,19 @@
-import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
-import type PopoverWithMeasuredContentProps from '@components/PopoverWithMeasuredContent/types';
+import AnchoredSelectionListPopover from '@components/AnchoredSelectionListPopover';
+import type {AnchoredSelectionListPopoverProps} from '@components/AnchoredSelectionListPopover';
 
-import useKeyboardState from '@hooks/useKeyboardState';
 import useOnyx from '@hooks/useOnyx';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getTagList} from '@libs/PolicyUtils';
+import {getCountOfEnabledTagsOfList, getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import type {ComponentRef} from 'react';
-
-import React, {useRef} from 'react';
-import {View} from 'react-native';
+import React, {useState} from 'react';
 
 import TagPicker from '.';
 
-const DEFAULT_ANCHOR_ALIGNMENT = {
-    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-};
-
 type TagPickerModalProps = {
-    onClose: () => void;
-
     /** The policy whose tags should be shown */
     policyID: string | undefined;
 
@@ -45,39 +31,29 @@ type TagPickerModalProps = {
     /** Called when the user confirms a tag selection */
     onSelected?: (tag: string) => void;
 
-    /** Height of the picker. Defaults to the full dropdown height. */
-    popoverHeight?: number;
-} & Omit<PopoverWithMeasuredContentProps, 'anchorRef' | 'children' | 'onClose'>;
+    /** Index of the tag list to show. Defaults to the first list */
+    tagListIndex?: number;
+
+    /** Number of enabled tags at which the search input appears. The content height estimate uses the same value. */
+    searchInputThreshold?: number;
+} & Omit<AnchoredSelectionListPopoverProps, 'optionCount' | 'isSearchable' | 'title' | 'backButtonSentryLabel' | 'headerActions' | 'children'>;
 
 function TagPickerModal({
-    isVisible,
-    onClose,
-    anchorPosition,
     policyID,
     selectedTag = '',
     transactionTag,
     hasDependentTags,
     shouldShowGLCode,
     onSelected,
-    anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
-    shouldMeasureAnchorPositionFromTop = false,
-    shouldSwitchPositionIfOverflow = true,
-    popoverHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+    tagListIndex = 0,
+    searchInputThreshold = CONST.STANDARD_LIST_ITEM_LIMIT,
+    onClose,
+    ...popoverProps
 }: TagPickerModalProps) {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision (bottom-docked only when isSmallScreenWidth)
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {isKeyboardActive} = useKeyboardState();
-
-    const anchorRef = useRef<ComponentRef<typeof View>>(null);
-    const popoverDimensions = {
-        width: CONST.POPOVER_DROPDOWN_WIDTH,
-        height: popoverHeight,
-    };
-
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const tagListName = getTagList(policyTags, 0).name;
+    const [renderedRowCount, setRenderedRowCount] = useState<number>();
+    const policyTagList = getTagList(policyTags, tagListIndex);
+    const tagsCount = getCountOfEnabledTagsOfList(policyTagList.tags);
 
     const handleTagSelected = (item: Partial<OptionData>) => {
         // If clicking the same tag that's already selected, treat it as deselection
@@ -90,37 +66,28 @@ function TagPickerModal({
     };
 
     return (
-        <PopoverWithMeasuredContent
-            anchorRef={anchorRef}
-            isVisible={isVisible}
+        <AnchoredSelectionListPopover
+            {...popoverProps}
             onClose={onClose}
-            anchorPosition={anchorPosition}
-            popoverDimensions={popoverDimensions}
-            anchorAlignment={anchorAlignment}
-            innerContainerStyle={StyleUtils.getWidthStyle(popoverDimensions.width)}
-            restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
-            shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
-            shouldEnableNewFocusManagement
-            shouldMeasureAnchorPositionFromTop={shouldMeasureAnchorPositionFromTop}
-            shouldSkipRemeasurement
-            shouldDisplayBelowModals
-            enableEdgeToEdgeBottomSafeAreaPadding
+            optionCount={renderedRowCount ?? tagsCount}
+            isSearchable={tagsCount >= searchInputThreshold}
+            title={policyTagList.name}
+            backButtonSentryLabel={CONST.SENTRY_LABEL.TAG_PICKER_MODAL.BACK_BUTTON}
         >
-            <View style={[StyleUtils.getHeight(popoverDimensions.height), styles.flexColumn, styles.pt4]}>
-                <TagPicker
-                    policyID={policyID}
-                    tagListName={tagListName}
-                    tagListIndex={0}
-                    selectedTag={selectedTag}
-                    transactionTag={transactionTag}
-                    hasDependentTags={hasDependentTags}
-                    shouldShowGLCode={shouldShowGLCode}
-                    onSubmit={handleTagSelected}
-                    addBottomSafeAreaPadding={isSmallScreenWidth && !isKeyboardActive}
-                    shouldAutoFocusSearchInput
-                />
-            </View>
-        </PopoverWithMeasuredContent>
+            <TagPicker
+                onRenderedRowCountChange={setRenderedRowCount}
+                policyID={policyID}
+                tagListName={policyTagList.name}
+                tagListIndex={tagListIndex}
+                selectedTag={selectedTag}
+                transactionTag={transactionTag}
+                hasDependentTags={hasDependentTags}
+                shouldShowGLCode={shouldShowGLCode}
+                onSubmit={handleTagSelected}
+                shouldAutoFocusSearchInput
+                searchInputThreshold={searchInputThreshold}
+            />
+        </AnchoredSelectionListPopover>
     );
 }
 

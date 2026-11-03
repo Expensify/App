@@ -58,6 +58,10 @@ function InsightsDataTable({rows, isLoading}: InsightsDataTableProps) {
     return (
         <View style={[styles.chartInlineTable, cardPaddingHorizontal]}>
             {rows.map(({item, point}) => {
+                // Only time buckets have points without a group, and the table lists ranked groups
+                if (!item) {
+                    return null;
+                }
                 const primaryValue = point.values[CHART_SERIES_KEY.PRIMARY];
                 const comparedValue = point.values[CHART_SERIES_KEY.COMPARISON];
                 const hasChange = primaryValue !== undefined && comparedValue !== undefined && primaryValue !== comparedValue;
