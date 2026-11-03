@@ -223,7 +223,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
             integrationToDisconnect,
             shouldDisconnectIntegrationBeforeConnecting,
         });
-        Navigation.setParams({
+        navigation.setParams({
             newConnectionName: undefined,
             isIntuitEnterpriseSuite: undefined,
             integrationToDisconnect: undefined,
