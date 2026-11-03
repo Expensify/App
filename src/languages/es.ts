@@ -2124,14 +2124,14 @@ const translations: TranslationDeepObject<typeof en> = {
                         return `Esperando a que un administrador solucione ellos problemas.`;
                 }
             },
-            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (actor, actorType, _eta, _etaType) => {
+            [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE]: (actor, actorType, _eta, _etaType, isBill = false) => {
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Esperando a que <strong>tú</strong> apruebes los gastos.`;
+                        return isBill ? `Esperando a que <strong>tú</strong> apruebes la factura.` : `Esperando a que <strong>tú</strong> apruebes los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Esperando a que <strong>${actor}</strong> apruebe los gastos.`;
+                        return isBill ? `Esperando a que <strong>${actor}</strong> apruebe la factura.` : `Esperando a que <strong>${actor}</strong> apruebe los gastos.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Esperando a que un administrador apruebe los gastos.`;
+                        return isBill ? `Esperando a que un administrador apruebe la factura.` : `Esperando a que un administrador apruebe los gastos.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_EXPORT]: (actor, actorType, _eta, _etaType) => {

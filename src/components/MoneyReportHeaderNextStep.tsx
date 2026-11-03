@@ -23,7 +23,12 @@ function MoneyReportHeaderNextStep({reportID}: MoneyReportHeaderNextStepProps) {
     const showNextStepSkeleton = !optimisticNextStep && !!isLoadingInitialReportActions && !isOffline;
 
     if (showNextStepBar) {
-        return <MoneyReportHeaderStatusBar nextStep={optimisticNextStep} />;
+        return (
+            <MoneyReportHeaderStatusBar
+                nextStep={optimisticNextStep}
+                reportID={reportID}
+            />
+        );
     }
 
     if (showNextStepSkeleton) {

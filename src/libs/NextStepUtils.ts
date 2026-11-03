@@ -127,6 +127,7 @@ function buildNextStepMessage(
     dateFnsLocale: DateFnsLocale | undefined,
     currentUserAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    reportType?: Report['type'],
 ): string {
     // Escape actor name to prevent HTML injection since this will be rendered as HTML
     const actor = Str.safeEscape(getDisplayNameForParticipant({accountID: nextStep.actorAccountID, formatPhoneNumber, hiddenTranslation: translate('common.hidden')}) ?? '');
@@ -158,10 +159,14 @@ function buildNextStepMessage(
     }
 
     const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
-    const message =
-        nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
-            ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
-            : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    let message: string;
+    if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT) {
+        message = translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency);
+    } else if (nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE) {
+        message = translate('nextStep.message.waitingToApprove', actor, actorType, eta, etaType, reportType === CONST.REPORT.TYPE.BILL);
+    } else {
+        message = translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    }
     return `<next-step>${message}</next-step>`;
 }
 

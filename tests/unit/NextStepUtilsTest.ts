@@ -1228,6 +1228,35 @@ describe('libs/NextStepUtils', () => {
     });
 
     describe('buildNextStepMessage', () => {
+        describe.each([
+            {reportType: CONST.REPORT.TYPE.BILL, approvalTarget: 'the bill'},
+            {reportType: CONST.REPORT.TYPE.EXPENSE, approvalTarget: 'expenses'},
+            {reportType: undefined, approvalTarget: 'expenses'},
+        ])('approval wording for report type $reportType', ({reportType, approvalTarget}) => {
+            it.each([
+                {actorAccountID: 780072, expectedActor: '<strong>you</strong>'},
+                {actorAccountID: 780073, expectedActor: '<strong>Approver</strong>'},
+                {actorAccountID: -1, expectedActor: 'an admin'},
+            ])('names the approval target for actor $actorAccountID', async ({actorAccountID, expectedActor}) => {
+                // Given bills and expense reports share the same approval next step from Auth.
+                const otherApproverAccountID = 780073;
+                await IntlStore.load(CONST.LOCALES.EN);
+                await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[otherApproverAccountID]: {accountID: otherApproverAccountID, displayName: 'Approver'}});
+                await waitForBatchedUpdates();
+                const nextStep: ReportNextStep = {
+                    messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                    icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                    actorAccountID,
+                };
+
+                // When the header renders that next step for this report type.
+                const message = buildNextStepMessage(nextStep, translateLocal, undefined, 780072, formatPhoneNumber, reportType);
+
+                // Then the message names the bill only for bills and keeps the approver's identity.
+                expect(message).toBe(`<next-step>Waiting for ${expectedActor} to approve ${approvalTarget}.</next-step>`);
+            });
+        });
+
         it('resolves the actor name through the provided translate function', async () => {
             const hiddenActorAccountID = 780070;
             // The actor has no displayName/login, so its name resolves to the hidden label provided by translate.
