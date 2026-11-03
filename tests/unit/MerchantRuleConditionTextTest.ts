@@ -87,6 +87,26 @@ describe('Expense default condition text', () => {
         expect(getConditionText(filters)).toBe('Category is "Meals"');
     });
 
+    it.each([
+        ['a currency', FILTER.CURRENCY, ['USD']],
+        ['a card', FILTER.CARD_ID, [CARD_ID]],
+        ['a tax rate', FILTER.TAX_RATE, [TAX_RATE_KEY]],
+        ['a submitter', FILTER.FROM, [SUBMITTER_ACCOUNT_ID]],
+        ['a merchant type', 'merchantType', ['airlines']],
+        ['a reimbursable flag', FILTER.REIMBURSABLE, ['yes']],
+    ])('leaves out %s matched on with an operator the editor cannot express', (_conditionName, field, values) => {
+        // Given a rule excluding a value rather than requiring it, which the editor keeps read-only
+        const filters: RuleFilterNode = {
+            operator: AND,
+            left: {left: FIELD.CATEGORY, operator: EQUAL_TO, right: 'Meals'},
+            right: {left: field, operator: NOT_EQUAL_TO, right: values},
+        };
+
+        // When the row's condition text is built
+        // Then only the category reads, rather than the clause claiming the rule requires what it excludes
+        expect(getConditionText(filters)).toBe('Category is "Meals"');
+    });
+
     it('falls back to the stored ID when a member has left the workspace', () => {
         // Given a rule matching on someone who is no longer listed
         const filters: RuleFilterNode = {left: FILTER.FROM, operator: EQUAL_TO, right: ['99999']};

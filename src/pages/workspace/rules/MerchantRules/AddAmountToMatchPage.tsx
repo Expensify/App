@@ -64,9 +64,10 @@ function AddAmountToMatchPage({route}: AddAmountToMatchPageProps) {
     const goBack = () => Navigation.goBack(backToRoute);
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
-        const amount = values[MERCHANT_RULE_INPUT_IDS.AMOUNT_TO_MATCH];
-        const amountInCents = amount ? convertToBackendAmount(Number(amount)) : 0;
-        updateDraftMerchantRule({amountToMatch: amountInCents ? String(amountInCents) : ''});
+        const amount = values[MERCHANT_RULE_INPUT_IDS.AMOUNT_TO_MATCH]?.trim();
+        // Keyed off the input rather than the converted amount, so a rule can match on $0 rather than losing the
+        // condition to a zero that reads as an empty field.
+        updateDraftMerchantRule({amountToMatch: amount ? String(convertToBackendAmount(Number(amount))) : ''});
         goBack();
     };
 

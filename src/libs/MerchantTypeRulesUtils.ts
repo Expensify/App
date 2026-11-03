@@ -285,29 +285,49 @@ function getOtherConditionText(
 ): string {
     const {SYNTAX_OPERATORS, BOOLEAN} = CONST.SEARCH;
 
+    // Every field below is a list the editor builds with an equals, whose values the engine reads as alternatives.
+    // A stored `neq` on one of them inverts what the rule matches, and the editor keeps such a rule read-only, so
+    // wording it as an equals would describe the opposite of what it does.
+    const isEqualityMatch = operator === SYNTAX_OPERATORS.EQUAL_TO;
+
     if (field === CONDITION.CURRENCY) {
+        if (!isEqualityMatch) {
+            return '';
+        }
         return translate('workspace.rules.expenseDefaultsTable.currencyIs', values.join(', '));
     }
 
     if (field === CONDITION.CARD) {
+        if (!isEqualityMatch) {
+            return '';
+        }
         return translate('workspace.rules.expenseDefaultsTable.cardIs', values.map((cardID) => conditionNames.cards?.[cardID] ?? cardID).join(', '));
     }
 
     if (field === CONDITION.TAX_RATE) {
+        if (!isEqualityMatch) {
+            return '';
+        }
         return translate('workspace.rules.expenseDefaultsTable.taxRateIs', values.map((externalID) => getTaxRateDisplayName(policy, externalID) || externalID).join(', '));
     }
 
     if (field === CONDITION.SUBMITTER) {
+        if (!isEqualityMatch) {
+            return '';
+        }
         return translate('workspace.rules.expenseDefaultsTable.submitterIs', values.map((accountID) => conditionNames.submitters?.[accountID] ?? accountID).join(', '));
     }
 
     if (field === CONDITION.MERCHANT_TYPE) {
+        if (!isEqualityMatch) {
+            return '';
+        }
         return translate('workspace.rules.expenseDefaultsTable.merchantTypeIs', values.map((merchantType) => getMerchantTypeLabel(merchantType, translate)).join(', '));
     }
 
     if (field === CONDITION.REIMBURSABLE || field === CONDITION.BILLABLE) {
         const value = values.at(0);
-        if (values.length !== 1 || (value !== BOOLEAN.YES && value !== BOOLEAN.NO)) {
+        if (!isEqualityMatch || values.length !== 1 || (value !== BOOLEAN.YES && value !== BOOLEAN.NO)) {
             return '';
         }
         const booleanLabel = translate(value === BOOLEAN.YES ? 'common.yes' : 'common.no');

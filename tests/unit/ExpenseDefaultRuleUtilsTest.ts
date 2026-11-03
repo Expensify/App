@@ -307,6 +307,15 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(rule?.filters).toEqual({left: AMOUNT, operator: GREATER_THAN, right: '3000'});
         });
 
+        it('keeps a zero amount condition rather than reading it as a cleared field', () => {
+            // Given a form matching on expenses over nothing, which is every expense that costs something
+            const rule = buildExpenseDefaultRule({amountToMatch: '0', amountMatchType: GREATER_THAN, category: 'Coffee'}, policy);
+
+            // When its filters are read
+            // Then the comparison survives, because zero is an amount rather than an empty input
+            expect(rule?.filters).toEqual({left: AMOUNT, operator: GREATER_THAN, right: '0'});
+        });
+
         it('defaults an unset amount match type to matching the amount itself', () => {
             // Given a form with an amount but no match type, which is what the picker leaves behind
             const rule = buildExpenseDefaultRule({amountToMatch: '3000', category: 'Coffee'}, policy);

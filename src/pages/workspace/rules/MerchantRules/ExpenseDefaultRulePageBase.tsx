@@ -327,7 +327,8 @@ function ExpenseDefaultRulePageBase({
     // A rule matches on every condition it carries, so all three rows are offered together.
     const categoriesToMatch = form?.categoriesToMatch ?? [];
     const hasCategoryCondition = categoriesToMatch.length > 0;
-    const hasMerchantCondition = !!form?.merchantToMatch;
+    // Asked of the form rather than of the rows, so a condition added later offers Reset without being listed here.
+    const hasAnyCondition = hasExpenseDefaultConditions(form ?? {});
 
     /** Clears every condition and every default. */
     const resetRule = () => {
@@ -891,9 +892,7 @@ function ExpenseDefaultRulePageBase({
                     <Header.Actions>
                         {/* Only while a condition is set, and only on an unsaved rule, since clearing the conditions of
                         a saved rule would leave it matching everything. A locked category isn't the admin's to clear. */}
-                        {canWriteRules && !isEditing && !isCategoryLocked && (hasMerchantCondition || hasCategoryCondition || hasTagCondition) && (
-                            <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>
-                        )}
+                        {canWriteRules && !isEditing && !isCategoryLocked && hasAnyCondition && <TextLink onPress={resetRule}>{translate('common.reset')}</TextLink>}
                     </Header.Actions>
                     {!!deleteIconButtonProps && <Header.IconButton {...deleteIconButtonProps} />}
                 </HeaderWithBackButtonAndTitle>
