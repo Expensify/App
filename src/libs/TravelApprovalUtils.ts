@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import type {BookingApproval} from '@src/types/onyx/ReportNameValuePairs';
 import type ReportNameValuePairs from '@src/types/onyx/ReportNameValuePairs';
 
+import {addDays, differenceInDays, differenceInHours} from 'date-fns';
 import {fromZonedTime} from 'date-fns-tz';
 
 import DateUtils from './DateUtils';
@@ -72,6 +73,18 @@ function getEarliestOutstandingBooking(tripData: TripRoomData, now: Date = new D
     return earliestBooking;
 }
 
+/** The time left until a deadline: days and hours when it's a day or more away, since minutes don't matter then, otherwise hours and minutes */
+function getTimeLeftText(translate: LocalizedTranslate, deadline: Date, now: Date): string {
+    const days = differenceInDays(deadline, now);
+    if (days < 1) {
+        return DateUtils.getFormattedDuration(translate, Math.floor((deadline.getTime() - now.getTime()) / 1000));
+    }
+
+    const hours = differenceInHours(deadline, addDays(now, days));
+    const daysText = translate('common.durationDays', {count: days});
+    return hours ? `${daysText} ${translate('common.durationHours', {count: hours})}` : daysText;
+}
+
 /** The deadline line for an outstanding booking, or undefined when it has none to show */
 function getBookingDeadlineText(translate: LocalizedTranslate, booking: BookingApproval | undefined, now: Date = new Date()): string | undefined {
     const deadline = getBookingDeadlineDate(booking);
@@ -79,7 +92,7 @@ function getBookingDeadlineText(translate: LocalizedTranslate, booking: BookingA
         return undefined;
     }
 
-    const timeLeft = DateUtils.getFormattedDuration(translate, Math.floor((deadline.getTime() - now.getTime()) / 1000));
+    const timeLeft = getTimeLeftText(translate, deadline, now);
 
     if (booking.approvalType === CONST.TRAVEL.BOOKING_APPROVAL.TYPE.SOFT) {
         return translate('travel.approval.deadline.softApproval', timeLeft);
