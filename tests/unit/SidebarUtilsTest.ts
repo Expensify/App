@@ -5060,6 +5060,8 @@ describe('SidebarUtils', () => {
                     reports,
                     updatedReportsKeys: [iouReportKey],
                     currentReportId: iouReport.reportID,
+                    policies: {},
+                    session: undefined,
                     isInFocusMode: false,
                     isDefaultRoomsBetaEnabled: false,
                     transactions: {},
@@ -5090,6 +5092,8 @@ describe('SidebarUtils', () => {
                     reports: {...reports, [`${ONYXKEYS.COLLECTION.REPORT}${readThread.reportID}`]: readThread},
                     updatedReportsKeys: [iouReportKey],
                     currentReportId: iouReport.reportID,
+                    policies: {},
+                    session: undefined,
                     isInFocusMode: false,
                     isDefaultRoomsBetaEnabled: false,
                     transactions: {},
@@ -5309,6 +5313,8 @@ describe('SidebarUtils', () => {
                 // When the LHN report set is built
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: iouReport.reportID,
+                    policies: {},
+                    session: undefined,
                     reports,
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -5338,6 +5344,8 @@ describe('SidebarUtils', () => {
                 // When the LHN report set is built and summarized for the Inbox tabs
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: iouReport.reportID,
+                    policies: {},
+                    session: undefined,
                     reports: {
                         ...reports,
                         [`${ONYXKEYS.COLLECTION.REPORT}${oldIOUReport.reportID}`]: oldIOUReport,
@@ -5371,6 +5379,8 @@ describe('SidebarUtils', () => {
                 // When the LHN report set is built
                 const result = SidebarUtils.getReportsToDisplayInLHN({
                     currentReportId: iouReport.reportID,
+                    policies: {},
+                    session: undefined,
                     reports: {...reports, [`${ONYXKEYS.COLLECTION.REPORT}${readThread.reportID}`]: readThread},
                     isDefaultRoomsBetaEnabled: false,
                     priorityMode: CONST.PRIORITY_MODE.DEFAULT,
