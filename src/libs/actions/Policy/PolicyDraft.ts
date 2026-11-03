@@ -5,6 +5,7 @@
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {generateHexadecimalValue} from '@libs/NumberUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 
 import type {OnboardingPurpose} from '@userActions/Welcome/OnboardingFlow';
 
@@ -122,37 +123,47 @@ type NewWorkspaceWorkflowsOptions = {
     /** If the workspace type is submit */
     isSubmitWorkspace: boolean;
 
+    /** The workspace type being created */
+    workspaceType?: ValueOf<typeof CONST.POLICY.TYPE>;
+
     /** Explicit pick from the workspace creation feature map, when the flow offers one */
     workflowsFeatureEnabled?: boolean;
 
-    /** The account level onboarding choice, which the server prefers over this creation's choice */
+    /** The account level onboarding choice */
     introSelectedChoice?: OnboardingPurpose;
 
-    /** The choice passed for this creation, only used when the account has no persisted choice */
+    /** The choice passed for this creation */
     engagementChoice?: OnboardingPurpose;
 };
 
-/** Onboarding choices the server ships the Workflows feature enabled for */
-function isWorkflowsOnboardingChoice(choice: OnboardingPurpose): boolean {
-    return choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || choice === CONST.ONBOARDING_CHOICES.EMPLOYER || choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
-}
-
 /**
- * Mirrors how the server resolves the Workflows feature for a new workspace: an explicit feature map pick wins,
- * then submit workspaces, then the account's onboarding choice falling back to this creation's choice.
+ * Determines whether workflows feature is enabled by default on a workspace
  */
-function shouldEnableWorkflowsByDefaultForNewWorkspace({isSubmitWorkspace, workflowsFeatureEnabled, introSelectedChoice, engagementChoice}: NewWorkspaceWorkflowsOptions): boolean {
+function shouldEnableWorkflowsByDefaultForNewWorkspace({
+    isSubmitWorkspace,
+    workspaceType,
+    workflowsFeatureEnabled,
+    introSelectedChoice,
+    engagementChoice,
+}: NewWorkspaceWorkflowsOptions): boolean {
     if (workflowsFeatureEnabled !== undefined) {
         return workflowsFeatureEnabled;
     }
     if (isSubmitWorkspace) {
         return true;
     }
-    // The account's choice wins whenever it is set, otherwise we fall back to the choice made for this creation
-    if (introSelectedChoice) {
-        return isWorkflowsOnboardingChoice(introSelectedChoice);
+    if (workspaceType === CONST.POLICY.TYPE.CORPORATE && engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && introSelectedChoice === CONST.ONBOARDING_CHOICES.ADMIN) {
+        return false;
     }
-    return !engagementChoice || isWorkflowsOnboardingChoice(engagementChoice);
+    if (engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE || engagementChoice === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+        return false;
+    }
+    return (
+        !engagementChoice ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ||
+        engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND ||
+        isTrackOnboardingChoice(engagementChoice)
+    );
 }
 
 function getApprovalModeForNewWorkspace(
@@ -200,7 +211,6 @@ function createDraftInitialWorkspace({
     const {customUnits, outputCurrency} = buildOptimisticDistanceRateCustomUnits(currency);
     const shouldEnableWorkflowsByDefault =
         !introSelected?.choice || introSelected.choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM || introSelected.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
-    const isWorkflowFeatureEnabled = shouldEnableWorkflowsByDefaultForNewWorkspace({isSubmitWorkspace: type === CONST.POLICY.TYPE.SUBMIT, introSelectedChoice: introSelected?.choice});
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY_DRAFTS>> = [
         {
@@ -242,7 +252,7 @@ function createDraftInitialWorkspace({
                     approvalMode: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
-                areWorkflowsEnabled: isWorkflowFeatureEnabled,
+                areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 defaultBillable: false,
                 defaultReimbursable: true,
                 disabledFields: {defaultBillable: true, reimbursable: false},
