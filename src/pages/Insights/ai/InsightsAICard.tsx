@@ -18,10 +18,10 @@ function InsightsAICard({insight, insightsScope}: InsightsAICardProps) {
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.pl3, styles.gap3, styles.justifyContentBetween]}>
+        <View style={[styles.gap3, styles.justifyContentBetween]}>
             <Text
                 variant="h2"
-                style={styles.insightsAICardText}
+                style={[styles.ml3, styles.insightsAICardText]}
             >
                 {insight.text}
             </Text>
