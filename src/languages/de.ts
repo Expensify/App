@@ -7862,6 +7862,10 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
+            talkYourOnboardingSpecialist: 'Chatten Sie mit Ihrer Kundenbetreuung.',
+            talkYourAccountManager: 'Chatte mit deiner/deinem Account Manager/in.',
+            talkToConcierge: 'Chatte mit Concierge.',
+            needAnotherAccounting: 'Benötigen Sie eine weitere Buchhaltungssoftware?',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:

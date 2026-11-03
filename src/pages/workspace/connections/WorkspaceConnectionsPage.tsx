@@ -17,11 +17,13 @@ import TabSelectorContextProvider from '@components/TabSelector/TabSelectorConte
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import TextLink from '@components/TextLink';
 
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -34,7 +36,9 @@ import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 import {openPolicyAccountingPage, openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {isControlPolicy} from '@libs/PolicyUtils';
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {hasAccountingConnections, isControlPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -50,9 +54,12 @@ import variables from '@styles/variables';
 import {clearPolicyErrorField, openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {ConnectionName} from '@src/types/onyx/Policy';
 
-import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -102,10 +109,10 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const policyID = policy?.id;
     const styles = useThemeStyles();
     const theme = useTheme();
-    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'QuestionMark']);
     const illustrations = useMemoizedLazyIllustrations(['EmptyShelves']);
     const {translate} = useLocalize();
-    const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isMediumScreenWidth, isLargeScreenWidth} = useResponsiveLayout();
     const shouldUseSingleColumn = shouldUseNarrowLayout || isMediumScreenWidth;
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const {isBetaEnabled} = usePermissions();
@@ -114,7 +121,10 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const {canWrite: canWriteAccounting} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
     const [lastSelectedTab, setLastSelectedTab] = useState<ConnectionsTab | undefined>();
     const [mergeSetupFlow, setMergeSetupFlow] = useState<MergeSetupFlow | undefined>();
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const route = useRoute();
+    const navigation = useNavigation<PlatformStackNavigationProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.CONNECTIONS>>();
     const params = route.params as RouteParams | undefined;
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.connections');
 
@@ -162,14 +172,28 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
 
     const openSuggestIntegration = () => openConciergeAnywhere({forceConcierge: true});
 
-    // The panels go back to Connections without a tab, so a tab left in the params would stop Back from finding this page
+    // Admins with a guide can ask them for help picking an accounting integration while they don't have one yet
+    const shouldShowAccountingHelpLink =
+        !!account?.guideDetails?.email &&
+        !hasAccountingConnections(policy) &&
+        canWriteAccounting &&
+        (selectedTab === CONST.TAB.CONNECTIONS.ALL || selectedTab === CONST.TAB.CONNECTIONS.ACCOUNTING);
+    let accountingHelpLink = {text: translate('workspace.accounting.talkToConcierge'), reportID: conciergeReportID};
+    if (policy?.chatReportIDAdmins) {
+        accountingHelpLink = {text: translate('workspace.accounting.talkYourOnboardingSpecialist'), reportID: policy.chatReportIDAdmins.toString()};
+    } else if (account?.accountManagerAccountID) {
+        accountingHelpLink = {text: translate('workspace.accounting.talkYourAccountManager'), reportID: account.accountManagerReportID};
+    }
+
+    // The panels go back to Connections without a tab, so a tab left in the params would stop Back from finding this page.
+    // This clears it on this page's own route, because this can run while the navigation that opened the page is still in flight.
     const linkedTab = params?.tab;
     useFocusEffect(() => {
         if (!linkedTab) {
             return;
         }
         setLastSelectedTab(linkedTab);
-        Navigation.setParams({tab: undefined});
+        navigation.setParams({tab: undefined});
     });
 
     // Upgrade and setup flows that leave the app come back here with the integration to connect in the route params.
@@ -375,6 +399,21 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                             fill={theme.icon}
                         />
                     </PressableWithFeedback>
+                )}
+                {shouldShowAccountingHelpLink && (
+                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.mt7]}>
+                        <Icon
+                            src={icons.QuestionMark}
+                            width={20}
+                            height={20}
+                            fill={theme.icon}
+                            additionalStyles={styles.mr3}
+                        />
+                        <View style={isLargeScreenWidth ? styles.flexRow : styles.flexColumn}>
+                            <Text style={styles.textSupporting}>{translate('workspace.accounting.needAnotherAccounting')}</Text>
+                            <TextLink onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(String(accountingHelpLink.reportID)))}>{accountingHelpLink.text}</TextLink>
+                        </View>
+                    </View>
                 )}
             </ScrollView>
         </ScreenWrapper>

@@ -7802,6 +7802,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
+            talkYourOnboardingSpecialist: 'Chat met je accountmanager.',
+            talkYourAccountManager: 'Chat met je accountmanager.',
+            talkToConcierge: 'Chat met Concierge.',
+            needAnotherAccounting: 'Nog een boekhoudprogramma nodig?',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:

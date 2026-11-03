@@ -7813,6 +7813,10 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
+            talkYourOnboardingSpecialist: 'Converse com seu executivo de contas.',
+            talkYourAccountManager: 'Converse com seu gerente de conta.',
+            talkToConcierge: 'Converse com o Concierge.',
+            needAnotherAccounting: 'Precisa de outro software de contabilidade?',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
