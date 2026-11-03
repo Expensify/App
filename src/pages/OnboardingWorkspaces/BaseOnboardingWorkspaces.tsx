@@ -8,9 +8,11 @@ import BareUserListItem from '@components/SelectionList/ListItem/BareUserListIte
 import Text from '@components/Text';
 
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
+import useContinueJoinWorkspaceOnboarding from '@hooks/useContinueJoinWorkspaceOnboarding';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingIntent from '@hooks/useOnboardingIntent';
@@ -58,7 +60,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
         // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
         isSmallScreenWidth,
-        shouldUseNarrowLayout,
     } = useResponsiveLayout();
     const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
@@ -80,10 +81,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         hasOutstandingChildTask: joinWorkspaceTaskHasOutstandingChildTask,
         parentReportAction: joinWorkspaceTaskParentReportAction,
     } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.JOIN_WORKSPACE);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-    });
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const isAnonymousUser = useIsAnonymousUser();
 
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
     const isValidated = isCurrentUserValidated(loginList, currentUserEmail);
@@ -95,6 +94,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const isSelfTourViewed = hasSeenTourSelector(onboardingValues);
     const isVsb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const isSmb = onboardingValues?.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.SMB;
     const onboardingIntent = useOnboardingIntent({isJoinWorkspaceTask: route.params?.isJoinWorkspaceTask === 'true'});
@@ -109,6 +109,17 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const [accessiblePoliciesRequestID, setAccessiblePoliciesRequestID] = useState<string | undefined>();
     const isFinishingOnboarding = useRef(false);
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
+    const continueJoinWorkspaceOnboarding = useContinueJoinWorkspaceOnboarding({
+        session,
+        loginList,
+        onboardingValues,
+        onboardingPersonalDetails,
+        introSelected,
+        conciergeReportID,
+        conciergeChat,
+        reportNameValuePairs,
+        delegateAccountID,
+    });
     const returnToOriginReport = useReturnToOriginReport();
     // Nothing in this stack to go back to. The work email merge and the private domain screen force-replace into this
     // screen, so it is the only route there. `canGoBack()` can't answer this: it bubbles to the root stack.
@@ -157,7 +168,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         setOnboardingAdminsChatReportID();
         setOnboardingPolicyID(policy.policyID);
 
-        if (isJoiningCompanyWorkspace && !onboardingPersonalDetails?.firstName.trim()) {
+        if (isJoiningCompanyWorkspace && !onboardingPersonalDetails?.firstName?.trim()) {
             Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
             return;
         }
@@ -179,7 +190,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         });
 
         if (shouldUseSubmitFlow) {
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, shouldUseNarrowLayout);
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID);
             return;
         }
 
@@ -188,6 +199,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
             conciergeReportID,
             reportNameValuePairs,
+            isAnonymousUser,
             policy.automaticJoiningEnabled ? policy.policyID : undefined,
             undefined,
             false,
@@ -250,7 +262,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
-    // Empty deps keep this cleanup tied to losing focus rather than to the data below changing, so the guard only
+    // Stable setter deps keep this cleanup tied to losing focus rather than to the data below changing, so the guard only
     // clears when the screen is actually left and a later focus can retry.
     useFocusEffect(
         useCallback(
@@ -258,15 +270,16 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 setHasRequestedAccessiblePolicies(false);
                 setAccessiblePoliciesRequestID(undefined);
             },
-            [],
+            [setHasRequestedAccessiblePolicies, setAccessiblePoliciesRequestID],
         ),
     );
 
     useFocusEffect(
         useCallback(() => {
             // Guarded by a ref instead of by omitting the loading/count dependencies: an empty response leaves the
-            // count at 0, so reacting to those updates would immediately issue another request.
-            if (!isValidated || joinablePoliciesLength > 0 || hasRequestedAccessiblePolicies) {
+            // count at 0, so reacting to those updates would immediately issue another request. Joining the last
+            // listed workspace also empties the list, which must not start a lookup while onboarding is finishing.
+            if (!isValidated || joinablePoliciesLength > 0 || hasRequestedAccessiblePolicies || isFinishingOnboarding.current) {
                 return;
             }
 
@@ -282,11 +295,27 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
             setHasRequestedAccessiblePolicies(true);
             setAccessiblePoliciesRequestID(getAccessiblePolicies());
-        }, [accessiblePoliciesActionRequestID, hasRequestedAccessiblePolicies, isValidated, joinablePoliciesLength, joinablePoliciesLoading]),
+        }, [
+            accessiblePoliciesActionRequestID,
+            hasRequestedAccessiblePolicies,
+            isValidated,
+            joinablePoliciesLength,
+            joinablePoliciesLoading,
+            setHasRequestedAccessiblePolicies,
+            setAccessiblePoliciesRequestID,
+        ]),
     );
 
+    const continueJoinWorkspaceOnboardingFromEffect = useEffectEvent(continueJoinWorkspaceOnboarding);
+
     useEffect(() => {
-        if (accessiblePoliciesActionRequestID !== accessiblePoliciesRequestID || joinablePoliciesLoading !== false || joinablePoliciesErrors || joinablePoliciesLength > 0) {
+        if (
+            isFinishingOnboarding.current ||
+            accessiblePoliciesActionRequestID !== accessiblePoliciesRequestID ||
+            joinablePoliciesLoading !== false ||
+            joinablePoliciesErrors ||
+            joinablePoliciesLength > 0
+        ) {
             return;
         }
 
@@ -306,7 +335,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         if (!isJoiningCompanyWorkspace) {
             return;
         }
-        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute(), {forceReplace: true});
+        continueJoinWorkspaceOnboardingFromEffect({forceReplace: true});
     }, [
         conciergeChat,
         conciergeReportID,
@@ -336,7 +365,8 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     }, [conciergeChat, delegateAccountID, introSelected?.joinWorkspace, joinWorkspaceTaskReport, joinablePoliciesLength, session?.email, shouldCreateJoinWorkspaceTaskOnExit]);
 
     useEffect(() => {
-        if (joinablePoliciesLoading !== false || joinablePoliciesLength > 0 || !defaultPolicy?.id) {
+        // The Join Workspace flow handles empty results above, including completion when a name is already saved.
+        if (isJoiningCompanyWorkspace || joinablePoliciesLoading !== false || joinablePoliciesLength > 0 || !defaultPolicy?.id) {
             return;
         }
 
@@ -349,7 +379,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             automaticJoiningEnabled: false,
             policyType: defaultPolicy.type,
         });
-    }, [joinablePoliciesLoading, joinablePoliciesLength, defaultPolicy?.id, defaultPolicy?.name, defaultPolicy?.owner, defaultPolicy?.type]);
+    }, [isJoiningCompanyWorkspace, joinablePoliciesLoading, joinablePoliciesLength, defaultPolicy?.id, defaultPolicy?.name, defaultPolicy?.owner, defaultPolicy?.type]);
 
     const skipJoiningWorkspaces = () => {
         setOnboardingErrorMessage(null);
@@ -388,7 +418,16 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             });
             setOnboardingAdminsChatReportID();
 
-            navigateAfterOnboardingWithMicrotaskQueue(isSmallScreenWidth, isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS), conciergeReportID, reportNameValuePairs, undefined, undefined, false);
+            navigateAfterOnboardingWithMicrotaskQueue(
+                isSmallScreenWidth,
+                isBetaEnabled(CONST.BETAS.DEFAULT_ROOMS),
+                conciergeReportID,
+                reportNameValuePairs,
+                isAnonymousUser,
+                undefined,
+                undefined,
+                false,
+            );
             return;
         }
 

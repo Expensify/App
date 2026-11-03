@@ -1,15 +1,13 @@
 ---
 title: Connect to QuickBooks Online
 description: Integrate QuickBooks Online with Expensify
-keywords: [New Expensify, QuickBooks Online, QBO integration, connect QuickBooks, reconnect QuickBooks, accounting sync, Expensify control plan, accounting sync, QuickBooks ISE, QuickBooks Essentials,Quickbooks Simple Start]
+keywords: [New Expensify, QuickBooks Online, QBO integration, connect QuickBooks, reconnect QuickBooks, accounting sync, Expensify control plan, accounting sync, QuickBooks Essentials,Quickbooks Simple Start]
 internalScope: Audience is Workspace Admins. Covers connecting and reconnecting QuickBooks Online to Expensify and supported features. Does not cover QuickBooks Desktop or advanced accounting configuration. QuickBooks Online, QBO integration, connect QuickBooks Online, reconnect QuickBooks, QuickBooks Online red dot error, Intuit login error, accounting sync, Workspace Admin, automate expense syncing
 order: 1
 ---
 
 
 To use the QuickBooks Online connection, you must have a **QuickBooks Online account** and an Expensify **Collect** plan.
-
-**Intuit Enterprise Suite** is a separate connection, listed directly below **QuickBooks Online** on the **Accounting** page, and it requires the **Control** plan. Learn how to [connect to Intuit Enterprise Suite](/articles/new-expensify/connections/quickbooks-online/Connect-to-Intuit-Enterprise-Suite).
 
 The **QuickBooks Self-Employed** subscription is not supported.
 
@@ -19,20 +17,20 @@ The **QuickBooks Self-Employed** subscription is not supported.
 
 Expensify's QuickBooks Online integration includes different features depending on your subscription level. While some options may appear in the app, you’ll see an error if your plan doesn’t support them.
 
-| Feature                    | Simple Start | Essentials | Essentials Plus | Intuit Enterprise Suite |
-|----------------------------|--------------|------------|-----------------|------------------------|
-| Expense Reports            | ✅            | ✅          | ✅               | ✅                      |
-| GL Accounts as Categories  | ✅            | ✅          | ✅               | ✅                      |
-| Credit Card Transactions   | ✅            | ✅          | ✅               | ✅                      |
-| Debit Card Transaction     |              | ✅          | ✅               | ✅                      |
-| Classes                    |              | ✅          | ✅               | ✅                      |
-| Customers                  |              | ✅          | ✅               | ✅                      |
-| Projects                   |              | ✅          | ✅               | ✅                      |
-| Vendor Bills               |              | ✅          | ✅               | ✅                      |
-| Journal Entries            |              | ✅          | ✅               | ✅                      |
-| Tax                        |              | ✅          | ✅               | ✅                      |
-| Billable                   |              |            | ✅               | ✅                      |
-| Location                   |              |            | ✅               | ✅                      |
+| Feature                    | Simple Start | Essentials | Essentials Plus |
+|----------------------------|--------------|------------|-----------------|
+| Expense Reports            | ✅            | ✅          | ✅               |
+| GL Accounts as Categories  | ✅            | ✅          | ✅               |
+| Credit Card Transactions   | ✅            | ✅          | ✅               |
+| Debit Card Transaction     |              | ✅          | ✅               |
+| Classes                    |              | ✅          | ✅               |
+| Customers                  |              | ✅          | ✅               |
+| Projects                   |              | ✅          | ✅               |
+| Vendor Bills               |              | ✅          | ✅               |
+| Journal Entries            |              | ✅          | ✅               |
+| Tax                        |              | ✅          | ✅               |
+| Billable                   |              |            | ✅               |
+| Location                   |              |            | ✅               |
 
 ---
 

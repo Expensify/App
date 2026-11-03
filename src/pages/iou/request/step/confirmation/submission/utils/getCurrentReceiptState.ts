@@ -10,14 +10,15 @@ type GetCurrentReceiptStateParams = {
     item: Transaction;
     receiptFiles: Record<string, Receipt>;
     canEnterScanFieldsManually: boolean;
+    isPolicyExpenseChat: boolean;
 };
 
-function getCurrentReceiptState({item, receiptFiles, canEnterScanFieldsManually}: GetCurrentReceiptStateParams): ValueOf<typeof CONST.IOU.RECEIPT_STATE> | undefined {
+function getCurrentReceiptState({item, receiptFiles, canEnterScanFieldsManually, isPolicyExpenseChat}: GetCurrentReceiptStateParams): ValueOf<typeof CONST.IOU.RECEIPT_STATE> | undefined {
     const receipt = receiptFiles[item.transactionID];
     if (!receipt || !canEnterScanFieldsManually || receipt.isTestReceipt || receipt.isTestDriveReceipt || !isScanRequestTransactionUtils(item)) {
         return undefined;
     }
-    return hasAllManuallyEnteredScanFields(item) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
+    return hasAllManuallyEnteredScanFields(item, isPolicyExpenseChat) ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCAN_READY;
 }
 
 export default getCurrentReceiptState;

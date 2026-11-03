@@ -15,8 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 type MockUseCreateReportParams = {
-    onCreateReport: (shouldDismissEmptyReportsConfirmation?: boolean) => void;
-    groupPoliciesWithChatEnabled: unknown[] | readonly never[];
+    onCreateReport: (policy: unknown, shouldDismissEmptyReportsConfirmation?: boolean) => void;
     onNavigateToWorkspaceSelection: () => void;
     shouldHandleNavigationBack: boolean;
     shouldSkipEmptyReportConfirmation?: boolean;
@@ -37,8 +36,6 @@ const mockUseOnyx = jest.fn<unknown[], [key: string, options?: MockOnyxOptions]>
 const isBetaEnabledByDefault = (beta: string) => beta !== CONST.BETAS.PREVENT_SPOTNANA_TRAVEL;
 const mockIsBetaEnabled = jest.fn(isBetaEnabledByDefault);
 const mockCanSendInvoice = jest.fn<boolean, unknown[]>(() => false);
-const mockGetDefaultChatEnabledPolicy = jest.fn((policies: unknown[]) => (policies.length === 1 ? policies.at(0) : undefined));
-const mockGetGroupPoliciesWhereReportCanBeCreated = jest.fn<unknown[], [policies: unknown, currentUserLogin?: string]>();
 const mockShouldShowPolicy = jest.fn<boolean, unknown[]>(() => true);
 const mockHasAcceptedTravelTerms = jest.fn(() => false);
 const mockIsPaidGroupPolicy = jest.fn(() => false);
@@ -165,8 +162,6 @@ jest.mock('@libs/openTravelDotLink', () => ({
 
 jest.mock('@libs/PolicyUtils', () => ({
     canSendInvoice: (...args: unknown[]) => mockCanSendInvoice(...args),
-    getDefaultChatEnabledPolicy: (policies: unknown[]) => mockGetDefaultChatEnabledPolicy(policies),
-    getGroupPoliciesWhereReportCanBeCreated: (policies: unknown, currentUserLogin?: string) => mockGetGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin),
     hasAcceptedTravelTerms: () => mockHasAcceptedTravelTerms(),
     isPaidGroupPolicy: () => mockIsPaidGroupPolicy(),
     shouldShowPolicy: (...args: unknown[]) => mockShouldShowPolicy(...args),
@@ -220,24 +215,21 @@ describe('useCreateNavigationSuggestions', () => {
         mockHasAcceptedTravelTerms.mockReturnValue(false);
         mockIsPaidGroupPolicy.mockReturnValue(false);
         mockIsBetaEnabled.mockImplementation(isBetaEnabledByDefault);
-        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
         mockIsOnSearchMoneyRequestReportPage.mockReturnValue(false);
         mockIsRestrictedPolicyCreation = false;
         mockCreateReportIsVisible = true;
         jest.mocked(Navigation.isTopmostRouteModalScreen).mockReturnValue(false);
     });
 
-    it('uses shared report policy eligibility and renders only available Create actions', () => {
+    it('renders only available Create actions', () => {
+        // Given useCreateReport reports "Create report" as not visible (e.g. policies or the domain lock still loading)
         mockCreateReportIsVisible = false;
+
+        // When the Search router builds its Create suggestions
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
-        expect(mockGetGroupPoliciesWhereReportCanBeCreated).toHaveBeenCalledWith(policies, session.email);
-        expect(mockUseCreateReport).toHaveBeenCalledWith(
-            expect.objectContaining({
-                groupPoliciesWithChatEnabled: [],
-                shouldHandleNavigationBack: false,
-            }),
-        );
+        // Then "Create report" is left out and the remaining actions keep their order
+        expect(mockUseCreateReport).toHaveBeenCalledWith(expect.objectContaining({shouldHandleNavigationBack: false}));
         expect(result.current.map((item) => item.keyForList)).toEqual(['create_expense', 'create_trackDistance', 'create_chat']);
     });
 
@@ -279,11 +271,14 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('does not create a report without a default policy', () => {
+        // Given the Search router has handed its create callback to useCreateReport
         renderHook(() => useCreateNavigationSuggestions());
-
         const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
-        act(() => onCreateReport?.());
 
+        // When the hook resolves no workspace and calls back with undefined
+        act(() => onCreateReport?.(undefined));
+
+        // Then no report is created and nothing navigates, rather than creating a report with no workspace
         expect(createNewReport).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
@@ -377,15 +372,15 @@ describe('useCreateNavigationSuggestions', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_MY_TRIPS.getRoute(submitPolicy.id));
     });
 
-    it('passes Submit eligibility and exposes permission-gated actions', () => {
-        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([submitPolicy]);
+    it('exposes permission-gated actions', () => {
+        // Given a user who can send invoices and has no workspace of their own yet
         mockCanSendInvoice.mockReturnValue(true);
         mockShouldShowPolicy.mockReturnValue(false);
 
+        // When the Search router builds its Create suggestions and the invoice and workspace actions are run
         const {result} = renderHook(() => useCreateNavigationSuggestions());
 
-        expect(mockGetGroupPoliciesWhereReportCanBeCreated).toHaveBeenCalledWith(policies, session.email);
-        expect(mockUseCreateReport).toHaveBeenCalledWith(expect.objectContaining({groupPoliciesWithChatEnabled: [submitPolicy]}));
+        // Then both gated actions are listed alongside the always-available ones and start their own flows
         expect(result.current.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat', 'create_invoice', 'create_workspace']);
 
         act(() => result.current.find((item) => item.keyForList === 'create_invoice')?.action?.());
@@ -417,12 +412,14 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('creates a report and navigates through the Reports root', () => {
-        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([submitPolicy]);
+        // Given the Search router has handed its create callback to useCreateReport
         renderHook(() => useCreateNavigationSuggestions());
-
         const onCreateReport = mockUseCreateReport.mock.calls.at(0)?.at(0)?.onCreateReport;
-        act(() => onCreateReport?.(true));
 
+        // When the hook resolves a workspace and calls back with it
+        act(() => onCreateReport?.(submitPolicy, true));
+
+        // Then the report is created on that workspace, and the Reports root is pushed first so back returns to the list
         expect(createNewReport).toHaveBeenCalledWith(expect.anything(), false, true, submitPolicy, false, mockGetCurrencyDecimals, undefined, false, true);
         expect(clearLastSearchParams).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: false});
@@ -430,16 +427,17 @@ describe('useCreateNavigationSuggestions', () => {
     });
 
     it('reads the underlying search report route when Create report actions run', () => {
-        mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([submitPolicy]);
+        // Given the router rendered without checking the route, and the user is now on a Search report page
         renderHook(() => useCreateNavigationSuggestions());
-
         expect(mockIsOnSearchMoneyRequestReportPage).not.toHaveBeenCalled();
         mockIsOnSearchMoneyRequestReportPage.mockReturnValue(true);
 
+        // When the create and workspace-selector callbacks run
         const createReportParams = mockUseCreateReport.mock.calls.at(0)?.at(0);
-        act(() => createReportParams?.onCreateReport());
+        act(() => createReportParams?.onCreateReport(submitPolicy));
         act(() => createReportParams?.onNavigateToWorkspaceSelection());
 
+        // Then the route is read at action time, so both replace the Search report page instead of stacking on it
         expect(clearLastSearchParams).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenNthCalledWith(1, 'reports', {forceReplace: true});
         expect(Navigation.navigate).toHaveBeenNthCalledWith(2, 'report/created-report', {forceReplace: true});

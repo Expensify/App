@@ -1,7 +1,8 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 
 import {getExportLabelForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate, isStandardExportTemplateLabel} from '@libs/AccountingUtils';
-import {getTrimmedUserSearchQueryPreservingComma, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {getTrimmedUserSearchQueryPreservingComma, parseForAutocomplete, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
+import {parse} from '@libs/SearchParser/autocompleteParser';
 
 import CONST from '@src/CONST';
 
@@ -38,6 +39,71 @@ describe('SearchAutocompleteUtils', () => {
                 {start: 5, type: 'mention-user', length: 7}, // type:expense
                 {start: 18, type: 'mention-here', length: 16}, // from:john@example.com (john is in userLogins but treated as current user context)
                 {start: 44, type: 'mention-user', length: 3}, // currency:USD
+            ]);
+        });
+
+        it('should highlight in: filter when no type is set', () => {
+            // Given an in: filter without an explicit type, which resolves to type:chat
+            const input = 'in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then the in: value is highlighted as valid
+            expect(result).toEqual([{start: 3, type: 'mention-user', length: 6}]);
+        });
+
+        it('should highlight in: filter for type:chat', () => {
+            // Given an in: filter with type:chat, which supports in:
+            const input = 'type:chat in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then both the type and the in: value are highlighted as valid
+            expect(result).toEqual([
+                {start: 5, type: 'mention-user', length: 4},
+                {start: 13, type: 'mention-user', length: 6},
+            ]);
+        });
+
+        it('should not highlight in: filter for type:expense', () => {
+            // Given an in: filter with type:expense, which does not support in:
+            const input = 'type:expense in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then only the type is highlighted, so the user can see in: is not valid for expenses
+            expect(result).toEqual([{start: 5, type: 'mention-user', length: 7}]);
+        });
+
+        it('should use the last type filter to decide whether to highlight in:', () => {
+            // Given type:expense followed by type:chat, where the search parser uses the last type (chat)
+            const input = 'type:expense type:chat in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then both types and the in: value are highlighted as valid
+            expect(result).toEqual([
+                {start: 5, type: 'mention-user', length: 7},
+                {start: 18, type: 'mention-user', length: 4},
+                {start: 26, type: 'mention-user', length: 6},
+            ]);
+        });
+
+        it('should not highlight in: when the last type filter does not support it', () => {
+            // Given type:chat followed by type:expense, where the search parser uses the last type (expense)
+            const input = 'type:chat type:expense in:123456';
+
+            // When the query is parsed for live markdown
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then only the types are highlighted, so the user can see in: is not valid for expenses
+            expect(result).toEqual([
+                {start: 5, type: 'mention-user', length: 4},
+                {start: 15, type: 'mention-user', length: 7},
             ]);
         });
 
@@ -155,6 +221,19 @@ describe('SearchAutocompleteUtils', () => {
             const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
 
             expect(result).toEqual([]);
+        });
+
+        it('should highlight VENDOR filter with a typed vendor name', () => {
+            // Given a typed vendor filter, whose names are matched by text on the server
+            const input = 'vendor:"Acme Tools"';
+
+            // When the input is parsed for highlighting
+            const result = parseForLiveMarkdown(input, currentUserName, mockSubstitutionMap, mockUserLogins, mockCurrencyList, mockCategoryList, mockTagList, mockExportedToList);
+
+            // Then the vendor value is highlighted like other free-text filters
+            expect(result).toEqual([
+                {start: 7, type: 'mention-user', length: 12}, // vendor:"Acme Tools"
+            ]);
         });
 
         it('should highlight EXPORTED_TO filter when value is in predefined integrations or custom template list', () => {
@@ -613,5 +692,76 @@ describe('SearchAutocompleteUtils', () => {
                 expect(isStandardExportTemplateLabel('Custom Export Layout')).toBe(false);
             });
         });
+    });
+});
+
+describe('ordinary autocomplete parser boundaries', () => {
+    afterEach(() => jest.restoreAllMocks());
+
+    it('returns the original generated object with extra properties and escaped offsets', () => {
+        // Given the real parser result, with an unused property at the generated-result boundary.
+        const query = 'merchant:"Acme\\,Inc"';
+        const parsed: unknown = parse(query);
+        if (typeof parsed !== 'object' || parsed === null) {
+            throw new Error('Expected the ordinary generated parser object');
+        }
+        Object.defineProperty(parsed, 'extra', {value: 'Unused parser metadata', enumerable: true});
+        const parser = jest.spyOn(jest.requireActual<{parse: typeof parse}>('@libs/SearchParser/autocompleteParser'), 'parse').mockReturnValueOnce(parsed);
+        // When the existing ordinary consumer handles it.
+        const result = parseForAutocomplete(query);
+        // Then narrowing preserves identity, extras and source widths instead of projecting fields.
+        expect(result).toBe(parsed);
+        expect(result).toHaveProperty('extra', 'Unused parser metadata');
+        expect(result?.ranges).toEqual([{key: 'merchant', negated: false, value: 'Acme,Inc', start: 9, length: 11}]);
+        expect(parser).toHaveBeenCalledWith(query);
+    });
+
+    const unknownLibraryResult: unknown = parse('from:alice', {peg$library: true});
+    test.each([
+        {description: 'library wrapper', result: unknownLibraryResult},
+        {description: 'absent result', result: null},
+        {description: 'invalid range value', result: {autocomplete: null, ranges: [{key: 'from', value: null, start: 5, length: 0}]}},
+        {description: 'invalid autocomplete offset', result: {autocomplete: {key: 'from', value: '', start: '5', length: 0}, ranges: []}},
+    ])('returns no highlights for $description', ({result}) => {
+        // Given an erased result that cannot prove the consumed ordinary fields.
+        const parser = jest.spyOn(jest.requireActual<{parse: typeof parse}>('@libs/SearchParser/autocompleteParser'), 'parse').mockReturnValue(result);
+        const log = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const emptyList = createSharedValueMock<string[]>([]);
+        // When each existing consumer handles the same boundary result.
+        expect(parseForAutocomplete('from:alice')).toBeUndefined();
+        // Then autocomplete logs once while live markdown safely skips highlighting.
+        expect(log).toHaveBeenCalledTimes(1);
+        expect(parseForLiveMarkdown('from:alice', '', {}, emptyList, emptyList, emptyList, emptyList, emptyList)).toEqual([]);
+        expect(parser).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps real parser exceptions caught for autocomplete and propagated for live markdown', () => {
+        // Given the real parser rejecting an unsupported input type at its public boundary.
+        const log = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const emptyList = createSharedValueMock<string[]>([]);
+        // When a deliberately malformed input reaches the existing consumers.
+        // @ts-expect-error This malformed runtime input tests the parser's existing exception handling.
+        expect(parseForAutocomplete(null)).toBeUndefined();
+        // Then the same production parser exception propagates through live markdown.
+        expect(() => {
+            // @ts-expect-error Keep the exception limited to the invalid parser input.
+            parseForLiveMarkdown(null, '', {}, emptyList, emptyList, emptyList, emptyList, emptyList);
+        }).toThrow();
+        expect(log).toHaveBeenCalledTimes(1);
+    });
+
+    test.each([
+        ['columns:date', [{start: 8, type: 'mention-user', length: 4}]],
+        ['columns:unknown-column', []],
+        ['report-field-Custom:value', [{start: 20, type: 'mention-user', length: 5}]],
+        ['createdBy:alice ReportID:123 TAXRATE:20', []],
+        ['merchant:""', []],
+    ])('highlights the real parser result for %s', (query, expected) => {
+        // Given actual generated ranges and empty lookup data, without substituting the parser.
+        const emptyList = createSharedValueMock<string[]>([]);
+        // When live markdown applies its existing highlighting rules.
+        const result = parseForLiveMarkdown(query, '', {}, emptyList, emptyList, emptyList, emptyList, emptyList);
+        // Then column equality, dynamic keys and unsupported key spelling retain their outcomes.
+        expect(result).toEqual(expected);
     });
 });

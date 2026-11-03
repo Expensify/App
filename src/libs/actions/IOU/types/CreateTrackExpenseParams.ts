@@ -42,6 +42,7 @@ type CreateTrackExpenseParams = {
     currentReportActionID?: string;
     existingTransactionThreadReportID?: string;
     existingTransactionThreadCreatedReportActionID?: string;
+    existingActionableWhisperReportActionID?: string;
     isASAPSubmitBetaEnabled: boolean;
     currentUser: CurrentUser;
     introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
@@ -66,4 +67,9 @@ type CreateTrackExpenseParams = {
     reusableDistanceRoutes?: OnyxTypes.ReusableDistanceRoute[];
 };
 
-export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};
+/** Saved with a failed track's receipt error, because the failure deletes the whisper and a retry needs its ID to rebuild it. */
+type TrackExpenseRetryParams = {
+    actionableWhisperReportActionID: string;
+};
+
+export type {CreateTrackExpenseParams, TrackExpenseAccountantParams, TrackExpenseRetryParams};

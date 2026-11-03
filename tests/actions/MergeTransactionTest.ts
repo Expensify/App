@@ -4,7 +4,6 @@ import {addComment, openReport} from '@libs/actions/Report';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMergeFieldUpdatedValues} from '@libs/MergeTransactionUtils';
-import {getLoginsByAccountIDs} from '@libs/PersonalDetailsUtils';
 import {getOriginalMessage, getReportAction, isActionOfType} from '@libs/ReportActionsUtils';
 import {buildTransactionThread} from '@libs/ReportUtils';
 
@@ -1223,12 +1222,11 @@ describe('mergeTransactionRequest', () => {
 
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
             jest.advanceTimersByTime(10);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
+            const participants = participantAccountIDs.flatMap((accountID) => {
+                const login = allPersonalDetails?.[accountID]?.login;
+                return login ? [{login, accountID, accountIDForOptimisticData: accountID}] : [];
+            });
             openReport({
                 conciergeChat: undefined,
                 hasReportActions: true,
@@ -1421,12 +1419,11 @@ describe('mergeTransactionRequest', () => {
 
             const allPersonalDetails = await getOnyxValue(ONYXKEYS.PERSONAL_DETAILS_LIST);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
-            const userLogins = getLoginsByAccountIDs(participantAccountIDs, allPersonalDetails);
             jest.advanceTimersByTime(10);
-            const participants = userLogins.map((login, index) => ({
-                login,
-                accountID: participantAccountIDs.at(index),
-            }));
+            const participants = participantAccountIDs.flatMap((accountID) => {
+                const login = allPersonalDetails?.[accountID]?.login;
+                return login ? [{login, accountID, accountIDForOptimisticData: accountID}] : [];
+            });
             openReport({
                 conciergeChat: undefined,
                 hasReportActions: true,
@@ -1827,6 +1824,7 @@ describe('getTransactionsForMerging', () => {
             report: undefined,
             currentUserLogin: undefined,
             rules: undefined,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -1917,6 +1915,7 @@ describe('getTransactionsForMerging', () => {
             rules: undefined,
             allPolicies,
             allReports,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2001,6 +2000,7 @@ describe('getTransactionsForMerging', () => {
             rules: undefined,
             allPolicies,
             allReports,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2091,6 +2091,7 @@ describe('getTransactionsForMerging', () => {
             rules: undefined,
             allPolicies,
             allReports,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2174,6 +2175,7 @@ describe('getTransactionsForMerging', () => {
             rules: undefined,
             allPolicies,
             allReports,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2276,6 +2278,7 @@ describe('getTransactionsForMerging', () => {
             rules: undefined,
             allPolicies,
             allReports,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2368,6 +2371,7 @@ describe('getTransactionsForMerging', () => {
             rules: undefined,
             allPolicies,
             allReports,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 
@@ -2402,6 +2406,7 @@ describe('getTransactionsForMerging', () => {
             report,
             currentUserLogin: 'approver@example.com',
             rules: undefined,
+            personalDetails: undefined,
         });
         await waitForBatchedUpdates();
 

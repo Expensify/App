@@ -17,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type {SignInPageRef} from './SignInPage';
 
@@ -33,7 +33,7 @@ function SignInModal() {
     // Use of SignInPageWrapped (with shouldEnableMaxHeight prop in SignInPageWrapper) is a workaround for Safari not supporting interactive-widget=resizes-content.
     // This allows better scrolling experience after keyboard shows for modals with input, that are larger than remaining screen height.
     // More info https://github.com/Expensify/App/pull/62799#issuecomment-2943136220.
-    const SignInPageBase = useMemo(() => (isMobileSafari() ? SignInPageWrapped : SignInPage), []);
+    const SignInPageBase = isMobileSafari() ? SignInPageWrapped : SignInPage;
 
     useEffect(() => {
         const isAnonymousUser = session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS;

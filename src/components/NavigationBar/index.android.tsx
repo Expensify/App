@@ -5,7 +5,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
 
-import {useMemo} from 'react';
 import {View} from 'react-native';
 
 /** NavigationBar renders a semi-translucent background behind the three-button navigation bar on Android. */
@@ -15,7 +14,7 @@ function NavigationBar() {
     const {insets, paddingBottom} = useSafeAreaPaddings();
     const {isOffline} = useNetwork();
 
-    const navigationBarType = useMemo(() => StyleUtils.getNavigationBarType(insets), [StyleUtils, insets]);
+    const navigationBarType = StyleUtils.getNavigationBarType(insets);
     const isSoftKeyNavigation = navigationBarType === CONST.NAVIGATION_BAR_TYPE.SOFT_KEYS;
 
     return isSoftKeyNavigation ? <View style={[isOffline ? styles.appBG : styles.translucentNavigationBarBG, styles.stickToBottom, {height: paddingBottom}]} /> : null;

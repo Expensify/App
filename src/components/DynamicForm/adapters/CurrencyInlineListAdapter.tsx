@@ -6,6 +6,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 
+import type {ComponentRef, Ref} from 'react';
+
 import React from 'react';
 import {View} from 'react-native';
 
@@ -18,15 +20,21 @@ type CurrencyInlineListAdapterProps = ForwardedFSClassProps & {
 
     /** Validation error shown under the list */
     errorText?: string;
+
+    /** Lets FormProvider scroll to the field when the user asks to fix the errors */
+    ref?: Ref<ComponentRef<typeof View>>;
 };
 
 /** The searchable currency list shown as the page itself, for a currency field that is alone on its page */
-function CurrencyInlineListAdapter({value, onInputChange = () => {}, errorText = '', forwardedFSClass}: CurrencyInlineListAdapterProps) {
+function CurrencyInlineListAdapter({value, onInputChange = () => {}, errorText = '', forwardedFSClass, ref}: CurrencyInlineListAdapterProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
     return (
-        <View fsClass={forwardedFSClass}>
+        <View
+            ref={ref}
+            fsClass={forwardedFSClass}
+        >
             <CurrencySelectionList
                 searchInputLabel={translate('common.currency')}
                 initiallySelectedCurrencyCode={value === '' ? undefined : value}

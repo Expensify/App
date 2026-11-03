@@ -1,5 +1,5 @@
 diff --git a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
-index 5a152a3d182..d2d69feda98 100644
+index f729d3ecbf1..8f349432b40 100644
 --- a/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 +++ b/node_modules/@react-navigation/bottom-tabs/lib/module/unstable/NativeBottomTabView.native.js
 @@ -39,6 +39,10 @@ export function NativeBottomTabView({
@@ -31,7 +31,7 @@ index 5a152a3d182..d2d69feda98 100644
      if (!route) {
        console.error(`Received 'tabSelected' for route that doesn't exist: ${selectedScreenKey}`);
        return;
-@@ -121,7 +125,7 @@ export function NativeBottomTabView({
+@@ -123,7 +127,7 @@ export function NativeBottomTabView({
        routeKey: selectedScreenKey,
        provenance
      };
@@ -40,7 +40,7 @@ index 5a152a3d182..d2d69feda98 100644
      if (!route) {
        console.error(`Received 'tabSelectionRejected' for route that doesn't exist: ${selectedScreenKey}`);
        return;
-@@ -150,7 +154,7 @@ export function NativeBottomTabView({
+@@ -154,7 +158,7 @@ export function NativeBottomTabView({
      });
      navigation.emit({
        type: 'tabPress',
@@ -49,7 +49,7 @@ index 5a152a3d182..d2d69feda98 100644
      });
    };
    const currentOptions = descriptors[state.routes[state.index].key]?.options;
-@@ -204,7 +208,7 @@ export function NativeBottomTabView({
+@@ -208,7 +212,7 @@ export function NativeBottomTabView({
    return /*#__PURE__*/_jsxs(SafeAreaProviderCompat, {
      children: [/*#__PURE__*/_jsx(Tabs.Host, {
        navStateRequest: {
@@ -58,7 +58,7 @@ index 5a152a3d182..d2d69feda98 100644
          baseProvenance: nativeState.confirmed.provenance
        },
        rejectStaleNavStateUpdates: true,
-@@ -302,7 +306,7 @@ export function NativeBottomTabView({
+@@ -306,7 +310,7 @@ export function NativeBottomTabView({
              closing: true,
              route
            }),
@@ -67,7 +67,7 @@ index 5a152a3d182..d2d69feda98 100644
            preventNativeSelection: tabBarSelectionEnabled === false,
            badgeValue: tabBarBadge?.toString(),
            title: tabTitle,
-@@ -370,6 +374,7 @@ export function NativeBottomTabView({
+@@ -374,6 +378,7 @@ export function NativeBottomTabView({
              },
              overrideScrollViewContentInsetAdjustmentBehavior
            },
@@ -75,7 +75,7 @@ index 5a152a3d182..d2d69feda98 100644
            children: /*#__PURE__*/_jsx(Deferred, {
              lazy: lazy,
              visible: isFocused || isPreloaded,
-@@ -383,8 +388,8 @@ export function NativeBottomTabView({
+@@ -387,8 +392,8 @@ export function NativeBottomTabView({
                  children: render()
                })
              })

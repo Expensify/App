@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 
 import type {ImageProps, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import type {ImageObjectPosition} from './Image/types';
@@ -47,6 +47,9 @@ type ImageWithSizeCalculationProps = {
 
     /** Low-resolution URI shown as a placeholder while the full image loads */
     previewUri?: string;
+
+    /** Identity of the picture for the native image view, see BaseImageProps */
+    recyclingKey?: string;
 };
 
 /**
@@ -68,10 +71,11 @@ function ImageWithSizeCalculation({
     onLoad,
     resizeMode,
     previewUri,
+    recyclingKey,
 }: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
-    const source = useMemo(() => (typeof url === 'string' ? {uri: url} : url), [url]);
+    const source = typeof url === 'string' ? {uri: url} : url;
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url});
@@ -79,6 +83,7 @@ function ImageWithSizeCalculation({
     };
 
     return (
+        // Thumbnails are sized for the image alone, so the Retry notice would be clipped inside them.
         <ImageWithLoading
             containerStyles={[styles.w100, styles.h100, style]}
             style={[styles.w100, styles.h100]}
@@ -98,10 +103,12 @@ function ImageWithSizeCalculation({
             loadingIconSize={loadingIconSize}
             loadingIndicatorStyles={loadingIndicatorStyles}
             previewUri={previewUri}
+            recyclingKey={recyclingKey}
+            shouldShowTimeoutNotice={false}
         />
     );
 }
 
 ImageWithSizeCalculation.displayName = 'ImageWithSizeCalculation';
 
-export default React.memo(ImageWithSizeCalculation);
+export default ImageWithSizeCalculation;

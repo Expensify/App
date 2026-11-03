@@ -26,12 +26,9 @@ type RejectReasonFormViewProps = {
 
     /** Link to previous page */
     backTo?: Route;
-
-    /** Whether the form can be submitted while offline (defaults to true) */
-    enabledWhenOffline?: boolean;
 };
 
-function RejectReasonFormView({backTo, validate, onSubmit, enabledWhenOffline = true}: RejectReasonFormViewProps) {
+function RejectReasonFormView({backTo, validate, onSubmit}: RejectReasonFormViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
@@ -52,7 +49,7 @@ function RejectReasonFormView({backTo, validate, onSubmit, enabledWhenOffline = 
                 style={[styles.flexGrow1, styles.ph5]}
                 onSubmit={onSubmit}
                 validate={validate}
-                enabledWhenOffline={enabledWhenOffline}
+                enabledWhenOffline
                 shouldHideFixErrorsAlert
                 buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             >

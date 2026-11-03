@@ -1,13 +1,17 @@
 import AmountForm from '@components/AmountForm';
 import CurrencyPicker from '@components/CurrencyPicker';
 import DatePicker from '@components/DatePicker';
-import getLocalizedText, {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
+import DynamicFormOnFileTextInput from '@components/DynamicForm/components/DynamicFormOnFileTextInput';
+import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
+import hasProvidedAnswer from '@components/DynamicForm/utils/hasProvidedAnswer';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import PercentageForm from '@components/PercentageForm';
 import TextInput from '@components/TextInput';
 
 import getTextInputAutocorrectProps from '@libs/getTextInputAutocorrectProps';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {DynamicFormNumberField, DynamicFormTextField} from '@src/types/onyx';
@@ -43,25 +47,31 @@ function getTextHint(field: DynamicFormTextField | DynamicFormNumberField, trans
 
 function renderTextInput(
     field: DynamicFormTextField | DynamicFormNumberField,
-    {translate}: DynamicFieldContext,
+    {values, translate}: DynamicFieldContext,
     inputProps: DynamicFieldInputProps<string>,
     inputMode: InputModeOptions | undefined,
     isMultiline = false,
 ): DynamicFieldInput {
+    const textInputProps = {
+        ...inputProps,
+        label: getInputLabel(field, translate),
+        hint: getTextHint(field, translate),
+        maxLength: field.maxLength,
+        inputMode,
+        multiline: isMultiline,
+        autoGrowHeight: isMultiline,
+        maxAutoGrowHeight: isMultiline ? variables.textInputAutoGrowMaxHeight : undefined,
+        ...(isMultiline ? {} : getTextInputAutocorrectProps()),
+    };
     return {
         isMenuRow: false,
         showsDescription: true,
-        input: (
+        input: hasProvidedAnswer(field, values) ? (
+            <DynamicFormOnFileTextInput {...textInputProps} />
+        ) : (
             <InputWrapper
                 InputComponent={TextInput}
-                {...inputProps}
-                label={getFieldLabel(field, translate)}
-                hint={getTextHint(field, translate)}
-                maxLength={field.maxLength}
-                inputMode={inputMode}
-                multiline={isMultiline}
-                autoGrowHeight={isMultiline}
-                {...(isMultiline ? {} : getTextInputAutocorrectProps())}
+                {...textInputProps}
             />
         ),
     };
@@ -71,16 +81,20 @@ function renderTextInput(
 const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' | 'amount' | 'percent'> = {
     text: (field, context, inputProps) => renderTextInput(field, context, inputProps, getTextInputMode(field), field.multiline),
     number: (field, context, inputProps) => renderTextInput(field, context, inputProps, CONST.INPUT_MODE.NUMERIC),
-    date: (field, {translate}, inputProps) => {
+    date: (field, {translate, styles}, inputProps) => {
         const isDateOfBirth = field.rule === 'dateOfBirth';
         return {
             isMenuRow: false,
+            showsDescription: true,
             input: (
                 <InputWrapper
                     InputComponent={DatePicker}
                     {...inputProps}
-                    label={getFieldLabel(field, translate)}
+                    label={getInputLabel(field, translate)}
+                    hint={getLocalizedText(translate, field.descriptionKey, field.description)}
                     placeholder={translate('common.dateFormat')}
+                    // DatePicker adds its own vertical margin, while the field row already spaces it like every other input
+                    wrapperStyle={styles.mv0}
                     // A date of birth can only be picked within the ages getDynamicFieldErrors accepts
                     minDate={isDateOfBirth ? subYears(new Date(), CONST.DATE_BIRTH.MAX_AGE) : undefined}
                     maxDate={isDateOfBirth ? subYears(new Date(), CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT) : undefined}
@@ -97,7 +111,7 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                 <InputWrapper
                     InputComponent={AmountForm}
                     {...inputProps}
-                    label={getFieldLabel(field, translate)}
+                    label={getInputLabel(field, translate)}
                     currency={amountCurrency}
                     displayAsTextInput
                     isCurrencyPressable={false}
@@ -111,7 +125,8 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
             isMenuRow: false,
             input: (
                 <>
-                    <View style={[styles.mhn5, styles.mb2]}>
+                    {/* The picker is a push row, so it pulls into the field row's padding to sit as far from its neighbors as a push row does */}
+                    <View style={[styles.mhn5, styles.mtn1, styles.mb3]}>
                         <InputWrapper
                             InputComponent={CurrencyPicker}
                             inputID={field.currencyKey}
@@ -120,6 +135,8 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
                             // A sensitive currency is not drafted, so the picker starts from the one kept in memory
                             defaultValue={amountCurrency}
                             label={translate('common.currency')}
+                            accessibilityLabel={`${translate('common.currency')}, ${getFieldLabel(field, translate)}`}
+                            shouldReadErrorWithLabel
                         />
                     </View>
                     {amountInput}
@@ -129,11 +146,13 @@ const TEXT_RENDERERS: Pick<DynamicFieldRendererMap, 'text' | 'number' | 'date' |
     },
     percent: (field, {translate}, inputProps) => ({
         isMenuRow: false,
+        showsDescription: true,
         input: (
             <InputWrapper
                 InputComponent={PercentageForm}
                 {...inputProps}
-                label={getFieldLabel(field, translate)}
+                label={getInputLabel(field, translate)}
+                hint={getLocalizedText(translate, field.descriptionKey, field.description)}
             />
         ),
     }),
