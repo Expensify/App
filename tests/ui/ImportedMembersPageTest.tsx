@@ -93,7 +93,7 @@ function buildControlPolicyForPeopleAdmin(): Policy {
 }
 
 function buildControlPolicy(): Policy {
-    return {...buildSubmitPolicy(), name: 'Test Control Workspace', type: CONST.POLICY.TYPE.CORPORATE} as Policy;
+    return {...buildSubmitPolicy(), name: 'Test Control Workspace', type: CONST.POLICY.TYPE.CORPORATE};
 }
 
 function buildSpreadsheet(mappedColumns: string[], data: string[][]): ImportedSpreadsheet {

@@ -52,6 +52,8 @@ export type {default as UpdateRilletSyncTaxRatesParams} from './UpdateRilletSync
 export type {default as UpdateRilletFieldMappingParams} from './UpdateRilletFieldMappingParams';
 export type {default as UpdateRilletCreditCardAccountParams} from './UpdateRilletCreditCardAccountParams';
 export type {default as UpdateRilletDefaultVendorParams} from './UpdateRilletDefaultVendorParams';
+export type {default as UpdateRilletReimbursableExpensesExportDestinationParams} from './UpdateRilletReimbursableExpensesExportDestinationParams';
+export type {default as UpdateRilletReimbursementAccountParams} from './UpdateRilletReimbursementAccountParams';
 export type {default as UpdateRilletExportDateParams} from './UpdateRilletExportDateParams';
 export type {default as UpdateRilletExporterParams} from './UpdateRilletExporterParams';
 export type {default as UpdateRilletExportToMultipleAccountsParams} from './UpdateRilletExportToMultipleAccountsParams';
@@ -653,6 +655,7 @@ export type {default as GetCorpayOnboardingFieldsParams} from './GetCorpayOnboar
 export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboardingCompanyDetailsParams';
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
+export type {default as UpdateWiseOnboardingAdditionalDataParams} from './UpdateWiseOnboardingAdditionalDataParams';
 export type {default as DeleteAppReportParams} from './DeleteAppReportParams';
 export type {default as MergeReportsParams} from './MergeReportsParams';
 export type {default as SaveCorpayOnboardingDirectorInformationParams} from './SaveCorpayOnboardingDirectorInformationParams';
@@ -691,6 +694,8 @@ export type {default as ExportSearchWithTemplateParams} from './ExportSearchWith
 export type {default as QueueExportSearchItemsToCSVParams} from './QueueExportSearchItemsToCSVParams';
 export type {default as QueueExportSearchWithTemplateParams} from './QueueExportSearchWithTemplateParams';
 export type {default as QueueBulkPayReportsParams} from './QueueBulkPayReportsParams';
+export type {default as QueueBulkApproveReportsParams} from './QueueBulkApproveReportsParams';
+export type {default as QueueBulkSubmitReportsParams} from './QueueBulkSubmitReportsParams';
 export type {default as QueueBulkMarkAsExportedParams} from './QueueBulkMarkAsExportedParams';
 export type {default as AssignReportToMeParams} from './AssignReportToMeParams';
 export type {default as AddReportApproverParams} from './AddReportApproverParams';

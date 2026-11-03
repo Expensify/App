@@ -1543,10 +1543,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Wenn Sie keine Website haben, können Sie stattdessen das LinkedIn- oder Social-Media-Profil Ihres Unternehmens angeben.',
         invalidDomainError: 'Du hast eine ungültige Domain eingegeben. Um fortzufahren, gib bitte eine gültige Domain ein.',
         publicDomainError: 'Sie haben eine öffentliche Domain eingegeben. Um fortzufahren, geben Sie bitte eine private Domain ein.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 Ausgabe',
-                other: (count: number) => `${count} Ausgaben`,
+                one: (count: number) => `${formattedCount ?? count} Ausgabe`,
+                other: (count: number) => `${formattedCount ?? count} Ausgaben`,
             };
         },
         deleteExpense: () => ({
@@ -4453,6 +4453,7 @@ ${amount} für ${merchant} – ${date}`,
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} mit der Endung ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Die Fragen auf dieser Seite haben sich geändert',
+        onFile: 'Vorhanden',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Der SWIFT/BIC muss 8 oder 11 Zeichen lang sein, mit 6 Buchstaben gefolgt von 2 oder 5 Buchstaben oder Ziffern.',
@@ -5902,9 +5903,6 @@ ${amount} für ${merchant} – ${date}`,
                     ? `Legen Sie einen Standardlieferanten fest, der auf erstattungsfähige Ausgaben angewendet wird, für die es keinen passenden Lieferanten in Sage Intacct gibt.`
                     : `Ausgaben, die keinen Ihrer Sage Intacct-Lieferanten zugeordnet werden können, werden standardmäßig diesem Lieferanten zugewiesen.`,
             exportDescription: 'Konfigurieren Sie, wie Expensify Daten nach Sage Intacct exportiert.',
-            exportPreferredExporterNote:
-                'Der bevorzugte Exporteur kann jede Workspace-Adminperson sein, muss jedoch auch Domain-Admin sein, wenn du in den Domaineinstellungen unterschiedliche Exportkonten für einzelne Firmenkarten festlegst.',
-            exportPreferredExporterSubNote: 'Sobald festgelegt, sieht die bevorzugte exportierende Person die zu exportierenden Berichte in ihrem Konto.',
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: `Bitte fügen Sie das Konto in Sage Intacct hinzu und synchronisieren Sie die Verbindung erneut`,
             autoSync: 'Automatische Synchronisierung',
@@ -6486,9 +6484,17 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie Konten in Rillet hinzu und synchronisieren Sie die Verbindung erneut',
             exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Rillet exportiert werden.',
-            exportReimbursable: {label: 'Erstattungsfähige Ausgaben exportieren als', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Lieferantenrechnungen'}}},
+            exportReimbursable: {
+                label: 'Erstattungsfähige Ausgaben exportieren als',
+                values: {
+                    REIMBURSEMENT: {label: 'Aufgeschlüsselte Erstattungen'},
+                    VENDOR_BILL: {label: 'Aufgeschlüsselte Lieferantenrechnungen'},
+                },
+                description:
+                    'Wir erstellen für jeden Expensify-Bericht eine aufgeschlüsselte Lieferantenrechnung oder Erstattung. Wenn der Zeitraum geschlossen ist, buchen wir in den nächsten offenen Zeitraum.',
+            },
             exportDate: {
-                label: 'Rechnungsdatum des Lieferanten',
+                label: 'Datum der FiBu-Wirkung',
                 description: 'Verwenden Sie dieses Datum beim Exportieren von Berichten nach Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6527,8 +6533,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 },
             },
             syncReimbursedReports: 'Erstattete Berichte synchronisieren',
-            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erzeugt.',
-            billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie aus, von wo Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Rillet.'},
+            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Zahlung erstellt.',
             syncExpensifyCardSettlements: 'Expensify Kartenabrechnungen synchronisieren',
             settlementAccount: {label: 'Verrechnungskonto für Expensify Karte', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
             syncTravelBillingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
@@ -6570,6 +6575,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description:
                     'Wenn Ihr Unternehmen die Währungumrechnungskosten für eine im Ausland getätigte Zahlung übernimmt, buchen wir diese Kosten in Rillet auf dieses Konto als Buchungssatz.',
             },
+            reimbursementAccount: {
+                label: 'Erstattungskonto',
+                description: 'Wählen Sie aus, wohin erstattungsfähige Ausgaben exportiert werden sollen.',
+                accountRequiredError: 'Bitte wählen Sie ein Rillet-Erstattungskonto aus.',
+            },
+            achPaymentAccount: {label: 'ACH-Zahlungskonto', description: 'Wählen Sie aus, von wo Berichte bezahlt werden sollen, und wir erstellen die Zahlung in Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry-Einrichtung',
@@ -7038,6 +7049,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             updateFailureMessage: 'Beim Aktualisieren der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
             createFailureMessage: 'Beim Erstellen der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
             addCategory: 'Kategorie hinzufügen',
+            createCategoryFromSearch: (categoryName: string) => `Kategorie „${categoryName}“ erstellen`,
             editCategory: 'Kategorie bearbeiten',
             editCategories: 'Kategorien bearbeiten',
             findCategory: 'Kategorie finden',
@@ -7576,10 +7588,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             reimbursementAccount: 'Erstattungskonto',
             welcomeNote: 'Bitte verwende meinen neuen Arbeitsbereich',
             delayedSubmission: 'verspätete Einreichung',
-            merchantRules: 'Händlerregeln',
+            merchantRules: 'Standardausgaben',
             merchantRulesCount: () => ({
-                one: '1 Händlerregel',
-                other: (count: number) => `${count} Händlerregeln`,
+                one: '1 Standard-Ausgabe',
+                other: (count: number) => `${count} Ausgabenvorgaben`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Sie sind dabei, ${newWorkspaceName ?? ''} mit ${totalMembers ?? 0} Mitgliedern aus dem ursprünglichen Workspace zu erstellen und zu teilen.`,
@@ -8136,8 +8148,7 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 },
             },
             preferredExporter: 'Bevorzugte*r Exporteur*in',
-            exportPreferredExporterNote:
-                'Der bevorzugte Exporteur kann jede Workspace-Adminperson sein, muss jedoch auch Domain-Admin sein, wenn du in den Domaineinstellungen unterschiedliche Exportkonten für einzelne Firmenkarten festlegst.',
+            exportPreferredExporterNote: 'Die bevorzugte exportierende Person kann jede beliebige Workspace-Admin sein.',
             exportPreferredExporterSubNote: 'Sobald festgelegt, sieht die bevorzugte exportierende Person die zu exportierenden Berichte in ihrem Konto.',
             exportAs: 'Exportieren als',
             exportOutOfPocket: 'Auslagen exportieren als',
@@ -8963,8 +8974,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 matchType: 'Abgleichstyp',
                 matchTypeContains: 'Enthält',
                 matchTypeExact: 'Exakte Übereinstimmung',
-                duplicateRuleTitle: 'Ähnliche Händlerregel existiert bereits',
-                duplicateRulePrompt: (merchantName: string) => `Ihre bestehende Regel für „${merchantName}“ hat Vorrang vor dieser. Trotzdem speichern?`,
+                duplicateRuleTitle: 'Ähnliche Regel existiert bereits',
+                duplicateRulePrompt: (conditionName: string) => `Ihre vorhandene Regel für „${conditionName}“ hat Vorrang vor dieser. Trotzdem speichern?`,
                 saveAnyway: 'Trotzdem speichern',
                 applyToExistingUnsubmittedExpenses: 'Auf bestehende nicht eingereichte Ausgaben anwenden',
                 findRule: 'Händlerregel finden',
@@ -8974,18 +8985,8 @@ Fordern Sie Spesendetails wie Belege und Beschreibungen an, legen Sie Limits und
                 thenApplyFollowingDefaults: 'Wenden Sie dann die folgenden Standardwerte an:',
                 vendorUnavailable: 'Anbieter nicht verfügbar',
                 confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus',
-                confirmErrorCategoryTax: 'Bitte wählen Sie einen Steuersatz aus',
-                confirmErrorCondition: 'Bitte geben Sie einen Händler ein',
-                confirmErrorConditionAndDefault: 'Geben Sie einen Händler ein und wenden Sie mindestens eine Standardeinstellung an',
-                turnOnTaxesFirstTitle: 'Schalten Sie zuerst Steuern ein',
-                turnOnTaxesFirstPrompt: 'Kategorienregeln legen einen Standardsteuersatz fest. Aktivieren Sie Steuern in Ihren Workspace-Einstellungen, um sie zu verwenden.',
-                categoryRulesApplyGoingForwardTitle: 'Kategorienregeln gelten ab jetzt',
-                categoryRulesApplyGoingForwardPrompt: 'Ein Standardsatz für Steuern gilt für neue Ausgaben in dieser Kategorie. Bereits vorhandene Ausgaben werden nicht geändert.',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
-                    'Der ausgewählte Steuersatz ist jetzt die Voreinstellung für Ihren Workspace, daher ist diese Regel nicht mehr gültig. Wählen Sie einen anderen Steuersatz.',
-                addTaxRateFirstTitle: 'Fügen Sie zuerst einen Steuersatz hinzu',
-                addTaxRateFirstPrompt:
-                    'Kategorienregeln legen einen standardmäßigen Steuersatz fest. Fügen Sie einen anderen Steuersatz als den Standard Ihres Arbeitsbereichs hinzu, um sie zu verwenden.',
+                confirmErrorCondition: 'Bitte fügen Sie mindestens eine Bedingung hinzu',
+                confirmErrorConditionAndDefault: 'Fügen Sie mindestens eine Bedingung hinzu und wenden Sie mindestens eine Standardeinstellung an',
                 createRuleFromExpenseAction: 'Regel erstellen',
                 createRuleFromExpensePrompt: 'um Ihre Änderungen auf alle Ausgaben anzuwenden, die Ihren Kriterien entsprechen.',
             },
@@ -9171,6 +9172,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Erlaubt ${shownCount > 1 ? 'Währungen' : 'Währung'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
                 defaultRulesCannotBeDeleted: 'Standardregeln können nicht gelöscht werden',
+                tags: 'Tags',
+                multipleConditions: 'Mehrere Bedingungen',
             },
             agentRules: {
                 title: 'Agentenregeln',
@@ -9316,9 +9319,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 findRule: 'Regel suchen',
                 rename: 'Umbenennen',
                 update: 'Aktualisieren',
-                merchantIs: (merchant: string) => `Händler ist „${merchant}“`,
                 merchantTypeIs: (merchantType: string) => `Händlertyp ist „${merchantType}"`,
                 categoryIs: (category: string) => `Kategorie ist „${category}“`,
+                tagIs: (tag: string) => `Tag ist „${tag}“`,
+                merchantContains: (merchant: string) => `Händler enthält „${merchant}“`,
+                merchantExactlyMatches: (merchant: string) => `Händler stimmt exakt mit „${merchant}“ überein`,
             },
             merchantTypeRule: {merchantType: 'Händlerart', saveRule: 'Regel speichern', confirmErrorCategory: 'Bitte wählen Sie eine Kategorie aus.'},
             requireFieldsTable: {
@@ -9388,14 +9393,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 cta: 'KI-Regel hinzufügen',
             },
             categoriesDisabledEmptyState: {title: 'Kategorien sind nicht aktiviert', subtitle: 'Aktivieren Sie Kategorien, um Ihre Ausgaben besser zu kontrollieren.'},
-            expenseDefaultType: {
-                title: 'Standardspesen übernehmen',
-                subtitle: 'Worauf soll diese Regel angewendet werden?',
-                merchant: 'Händler',
-                merchantDescription: 'Felder bei Ausgaben eines bestimmten Händlers aktualisieren',
-                category: 'Kategorie',
-                categoryDescription: 'Legen Sie einen Standardsteuersatz für eine bestimmte Kategorie fest',
-            },
             taxesDisabledEmptyState: {
                 title: 'Steuern sind nicht aktiviert',
                 subtitle: 'Aktivieren Sie Steuern, um anfallende Steuern zu dokumentieren und zurückzufordern.',
@@ -11825,6 +11822,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} ist erforderlich`,
         reportContainsExpensesWithViolations: 'Der Bericht enthält Ausgaben mit Verstößen.',
+        reportHasErrors: 'Der Bericht enthält Fehler.',
     },
     violationDismissal: {
         rter: {
@@ -12321,7 +12319,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             theresAReportWithErrors: 'Es gibt einen Bericht mit Fehlern',
             theresAWorkspaceWithCustomUnitsErrors: 'Es gibt einen Workspace mit Fehlern bei benutzerdefinierten Einheiten',
             theresAProblemWithAWorkspaceMember: 'Es gibt ein Problem mit einem Workspace-Mitglied',
-            theresAProblemWithAWorkspaceQBOExport: 'Es gab ein Problem mit einer Exporteinstellung für die Workspace-Verbindung.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Es gab ein Problem mit einer Exporteinstellung für die Workspace-Verbindung.',
             theresAProblemWithAContactMethod: 'Es gibt ein Problem mit einer Kontaktmethode',
             aContactMethodRequiresVerification: 'Eine Kontaktmethode erfordert eine Verifizierung',
             theresAProblemWithAPaymentMethod: 'Es gibt ein Problem mit einer Zahlungsmethode',

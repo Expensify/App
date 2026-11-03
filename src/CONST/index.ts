@@ -1055,6 +1055,13 @@ const CONST = {
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
+        /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
+        ONBOARDING_STEP: {
+            BUSINESS: 'business',
+            REPRESENTATIVE: 'representative',
+            BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
+            BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
+        },
         /** Wise's state for one KYC requirement */
         KYC_REQUIREMENT_STATE: {
             NOT_PROVIDED: 'NOT_PROVIDED',
@@ -1463,7 +1470,6 @@ const CONST = {
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
-        GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         TRAVEL_CODING_SYNC: 'travelCodingSync',
@@ -1479,6 +1485,7 @@ const CONST = {
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
+        SCAN_FLASH_TORCH: 'scanFlashTorch',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -4258,6 +4265,7 @@ const CONST = {
         EXPORT_DATE: 'exportDate',
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonReimbursable',
+        REIMBURSEMENT_ACCOUNT_CODE: 'reimbursementAccountCode',
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
@@ -4281,6 +4289,7 @@ const CONST = {
 
     RILLET_EXPORT_REIMBURSABLE: {
         VENDOR_BILL: 'VENDOR_BILL',
+        REIMBURSEMENT: 'REIMBURSEMENT',
     },
 
     RILLET_EXPORT_NON_REIMBURSABLE: {
@@ -4308,6 +4317,8 @@ const CONST = {
 
     RILLET_ACCOUNT_SUBTYPE: {
         CREDIT_CARD: 'Credit Card',
+        ACCOUNTS_PAYABLE: 'Accounts Payable',
+        OTHER_LONG_TERM_LIABILITY: 'Other Long Term Liability',
     },
 
     DUALENTRY_CONFIG: {
@@ -5065,13 +5076,10 @@ const CONST = {
         /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
         EXPENSE_DEFAULTS_SECTION: {
             CATEGORIES: 'categories',
+            TAGS: 'tags',
             MERCHANTS: 'merchants',
+            MULTIPLE_CONDITIONS: 'multipleConditions',
             MERCHANT_TYPES: 'merchantTypes',
-        },
-        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
-        EXPENSE_DEFAULT_RULE_TYPE: {
-            MERCHANT: 'merchant',
-            CATEGORY: 'category',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
@@ -8854,6 +8862,11 @@ const CONST = {
             PREVIOUS_PERIOD: 'previousPeriod',
             AVERAGE: 'average',
         },
+        /** What a chart plots for each group: the money it totals, or how many expenses it holds */
+        CHART_METRIC: {
+            AMOUNT: 'amount',
+            COUNT: 'count',
+        },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
             STATUS: 'status',
@@ -9643,6 +9656,7 @@ const CONST = {
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
+                AMOUNT: 'amount',
                 BILLABLE: 'billable',
                 CATEGORY: 'category',
                 COMMENT: 'comment',
@@ -9738,7 +9752,7 @@ const CONST = {
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
-        HAS_QBO_EXPORT_ERROR: 'hasQBOExportError',
+        HAS_REIMBURSEMENT_EXPORT_ERROR: 'hasReimbursementExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
         HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
         HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
@@ -10910,6 +10924,7 @@ const CONST = {
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
+                TAG_RULE_ITEM: 'WorkspaceRules-TagRuleItem',
                 REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
                 REQUIRE_FIELDS_RULE_DESCRIBE: 'WorkspaceRules-RequireFieldsRuleDescribe',
