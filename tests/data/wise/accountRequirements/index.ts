@@ -40,8 +40,8 @@ function getRefreshKey(currency: string, fieldKey: string, value: string): strin
 
 /** Wise's reply to a refresh, by getRefreshKey */
 const WISE_ACCOUNT_REQUIREMENT_REFRESHES = new Map<string, WiseAccountRequirement[]>([
-    [getRefreshKey('JPY', 'bankCode', '1000'), JPY_BANK_1000 as WiseAccountRequirement[]],
-    [getRefreshKey('JPY', 'bankCode', '6677'), JPY_BANK_6677 as WiseAccountRequirement[]],
+    [getRefreshKey('JPY', 'bankCode', '1000'), JPY_BANK_1000],
+    [getRefreshKey('JPY', 'bankCode', '6677'), JPY_BANK_6677],
 ]);
 
 export {WISE_ACCOUNT_REQUIREMENT_REFRESHES, getRefreshKey};

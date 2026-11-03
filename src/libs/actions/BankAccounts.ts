@@ -49,7 +49,7 @@ import type {BankAccountList, InitiatingBankAccountUnlock, LastPaymentMethod, La
 import type {BankAccountAdditionalData} from '@src/types/onyx/BankAccount';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 import type {BankAccountStep, ReimbursementAccountStep, ReimbursementAccountSubStep} from '@src/types/onyx/ReimbursementAccount';
-import type {OnyxData} from '@src/types/onyx/Request';
+import type {AnyOnyxData, OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -1381,12 +1381,16 @@ function createWiseBankAccount(country: string, currency: string | undefined, in
     if (confirmVerificationOfPayee) {
         parameters.confirmVerificationOfPayee = true;
     }
-    const onyxData: OnyxData<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> = {
+    const onyxData: AnyOnyxData = {
         optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isLoading: true, isSuccess: null, errors: null, errorFields: null}}],
         successData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isSuccess: true}}],
         finallyData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, value: {isLoading: false}}],
     };
     API.write(WRITE_COMMANDS.CREATE_WISE_BANK_ACCOUNT, parameters, onyxData);
+}
+
+function clearWiseBankAccountCreation() {
+    Onyx.set(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, null);
 }
 
 function clearWiseBankAccountFields() {
@@ -2162,6 +2166,7 @@ export {
     clearReimbursementAccountSaveCorpayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
     clearWiseBankAccountFields,
+    clearWiseBankAccountCreation,
     createWiseBankAccount,
     finishCorpayBankAccountOnboarding,
     shareBankAccountAndSetPayer,

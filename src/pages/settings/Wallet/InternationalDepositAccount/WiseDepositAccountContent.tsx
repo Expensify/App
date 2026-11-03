@@ -15,7 +15,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CountrySelectionList from '@pages/settings/Wallet/CountrySelectionList';
 
-import {clearWiseBankAccountFields, createWiseBankAccount, getWiseBankAccountFields} from '@userActions/BankAccounts';
+import {clearWiseBankAccountCreation, clearWiseBankAccountFields, createWiseBankAccount, getWiseBankAccountFields} from '@userActions/BankAccounts';
 import {clearDraftValues, setDraftValues} from '@userActions/FormActions';
 
 import CONST from '@src/CONST';
@@ -24,13 +24,21 @@ import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 
 import React, {useEffect, useState} from 'react';
-import Onyx from 'react-native-onyx';
 
 type WiseDepositAccountContentProps = {
     backTo?: Route;
 };
 
 const COUNTRIES = Object.keys(CONST.ALL_COUNTRIES).filter((countryISO) => !CONST.CORPAY_FIELDS.EXCLUDED_COUNTRIES.includes(countryISO));
+
+type WiseBankAccountCreationState = {
+    isSuccess?: boolean | null;
+    verificationOfPayee?: unknown;
+};
+
+function isWiseBankAccountCreationState(value: unknown): value is WiseBankAccountCreationState {
+    return typeof value === 'object' && value !== null && (!('isSuccess' in value) || value.isSuccess === null || typeof value.isSuccess === 'boolean');
+}
 
 function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     const {translate} = useLocalize();
@@ -44,6 +52,8 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     const payoutType = wiseBankAccountFields?.payoutType;
     const formCurrency = wiseBankAccountFields?.currency;
     const schema = wiseBankAccountFields?.schema;
+    const formStateValue: unknown = formState;
+    const creationState = isWiseBankAccountCreationState(formStateValue) ? formStateValue : undefined;
 
     useEffect(() => {
         if (!schema) {
@@ -83,22 +93,19 @@ function WiseDepositAccountContent({backTo}: WiseDepositAccountContentProps) {
     };
 
     // LOCAL TEST ONLY: close the flow once CreateWiseBankAccount succeeds
-    const isCreated = !!(formState as Record<string, unknown> | undefined)?.isSuccess;
+    const isCreated = !!creationState?.isSuccess;
     useEffect(() => {
         if (!isCreated) {
             return;
         }
-        Onyx.merge(ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM, {isSuccess: null, verificationOfPayee: null});
+        clearWiseBankAccountCreation();
         leaveFlow();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isCreated]);
 
     // LOCAL TEST ONLY: a second submit after a verification-of-payee prompt confirms it
     const submitForm = () => {
-        const hasVerificationOfPayee = !!(formState as Record<string, unknown> | undefined)?.verificationOfPayee;
-        if (hasVerificationOfPayee) {
-            console.log('[Wise test] verificationOfPayee', (formState as Record<string, unknown>).verificationOfPayee);
-        }
+        const hasVerificationOfPayee = !!creationState?.verificationOfPayee;
         createWiseBankAccount(selectedCountry, wiseBankAccountFields?.currency, {...(draftValues ?? {})}, hasVerificationOfPayee);
     };
 
