@@ -19,7 +19,7 @@ import {
     isQBORefreshTokenExpiringSoonSelector,
     isTimeTrackingEnabled,
     shouldShowEmployeeListError,
-    shouldShowQBOReimbursableExportDestinationAccountError,
+    shouldShowReimbursableExportDestinationAccountError,
     shouldShowSyncError,
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
@@ -166,7 +166,7 @@ function getWorkspaceMenuItems({
         !isEmptyObject(policy?.errorFields?.[CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED] ?? {}) ||
         !isEmptyObject(policy?.errorFields?.[CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED] ?? {});
     const getConnectionsBrickRoadIndicator = () => {
-        if (hasSyncError || shouldShowQBOReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError || hasConnectionFeatureError) {
+        if (hasSyncError || shouldShowReimbursableExportDestinationAccountError(policy) || hasHRError || shouldShowEnterCredentialsError || hasConnectionFeatureError) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
         }
         if (isMergeHRCompleteSetupNeeded(policy) || isQBORefreshTokenExpiringSoonSelector(policy)) {

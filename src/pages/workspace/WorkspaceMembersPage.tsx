@@ -158,6 +158,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
     const {showLockedAccountModal} = useLockedAccountActions();
     const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
     const {isBetaEnabled} = usePermissions();
+    const isMultipleApproversBetaEnabled = isBetaEnabled(CONST.BETAS.MULTIPLE_APPROVERS);
     const [membersSelectedForBulkEditCount = 0] = useOnyx(ONYXKEYS.RAM_ONLY_WORKSPACE_MEMBERS_SELECTED_FOR_BULK_EDIT, {selector: (selection) => selection?.accountIDs.length});
 
     // A bulk office location or work arrangement change clears the members it was given once it is applied, which
@@ -692,7 +693,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                         return;
                     }
                     close(() => {
-                        downloadMembersCSV(policyID, showDownloadErrorModal, translate);
+                        downloadMembersCSV(policyID, isMultipleApproversBetaEnabled, showDownloadErrorModal, translate);
                     });
                 },
                 value: CONST.POLICY.SECONDARY_ACTIONS.DOWNLOAD_CSV,

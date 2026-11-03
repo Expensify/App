@@ -61,6 +61,9 @@ const MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connecti
 const CLAUDE_CONNECT_URL = 'https://claude.ai/directory/connectors/expensify';
 const CLAUDE_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Claude-to-Expensify-Using-MCP';
 const CURSOR_MCP_HELP_URL = 'https://help.expensify.com/articles/new-expensify/connections/connect-ai-assistants/Connect-Cursor-to-Expensify-Using-MCP';
+const DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL = 'https://help.expensify.com/articles/new-expensify/reports-and-expenses/Distance-Expenses#how-to-reuse-a-route-from-a-frequent-trip';
+const DISTANCE_RATES_AUTO_UPDATE_HELP_URL =
+    'https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates#how-to-automatically-update-distance-rates-when-government-rates-change';
 const XERO_PARTNER_LINK = 'https://referrals.xero.com/uzfjy4uegog2-v0pj1v';
 const UBER_TERMS_LINK = 'https://www.uber.com/us/en/business/sign-up/terms/expense-partners/';
 const PLATFORM_OS_MACOS = 'Mac OS';
@@ -711,6 +714,7 @@ const CONST = {
         DUALENTRY: 'DualEntry',
         CAMPFIRE: 'Campfire',
         DIGITS: 'Digits',
+        ZOHO_BOOKS: 'Zoho Books',
         BUSINESS_CENTRAL: 'Dynamics 365 Business Central',
     },
 
@@ -794,6 +798,8 @@ const CONST = {
     CLAUDE_CONNECT_URL,
     CLAUDE_MCP_HELP_URL,
     CURSOR_MCP_HELP_URL,
+    DISTANCE_EXPENSES_FREQUENT_TRIPS_HELP_URL,
+    DISTANCE_RATES_AUTO_UPDATE_HELP_URL,
     XERO_PARTNER_LINK,
     UBER_TERMS_LINK,
     APP_DOWNLOAD_LINKS: {
@@ -845,6 +851,7 @@ const CONST = {
         PRODUCT_UPDATE_JULY_2026: 'productUpdateJuly2026',
         PRODUCT_UPDATE_AUGUST_2026: 'productUpdateAugust2026',
         PRODUCT_UPDATE_SEPTEMBER_2026: 'productUpdateSeptember2026',
+        PRODUCT_UPDATE_OCTOBER_2026: 'productUpdateOctober2026',
     },
     BANK_ACCOUNT: {
         PLAID_WRONG_ACCOUNT_ERROR_FIELD: 'plaidWrongAccount',
@@ -1047,6 +1054,13 @@ const CONST = {
             ACTION_REQUIRED: 'ACTION_REQUIRED',
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
+        },
+        /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
+        ONBOARDING_STEP: {
+            BUSINESS: 'business',
+            REPRESENTATIVE: 'representative',
+            BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
+            BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
         },
         /** Wise's state for one KYC requirement */
         KYC_REQUIREMENT_STATE: {
@@ -1463,6 +1477,7 @@ const CONST = {
         ARCHIVE_POLICIES: 'archivePolicies',
         MERGE_ATS: 'mergeATSConnections',
         REPORT_MERGE: 'reportMerge',
+        INSIGHTS_AI: 'insightsAI',
         INSIGHTS_COMPLIANCE: 'insightsCompliance',
         NL_FILTERS: 'nlFilters',
         SUPPORT_TICKET: 'supportTicket',
@@ -1471,6 +1486,7 @@ const CONST = {
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
+        SCAN_FLASH_TORCH: 'scanFlashTorch',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -2308,6 +2324,7 @@ const CONST = {
                     UNASSIGN_COMPANY_CARD: 'POLICYCHANGELOG_UNASSIGN_COMPANY_CARD',
                     UPDATE_CARD_FEED_LIABILITY: 'POLICYCHANGELOG_UPDATE_CARD_FEED_LIABILITY',
                     UPDATE_CARD_FEED_STATEMENT_PERIOD: 'POLICYCHANGELOG_UPDATE_CARD_FEED_STATEMENT_PERIOD',
+                    UPDATE_CARD_FEED_REIMBURSABLE: 'POLICYCHANGELOG_UPDATE_CARD_FEED_REIMBURSABLE',
                     LEAVE_POLICY: 'POLICYCHANGELOG_LEAVE_POLICY',
                     ARCHIVE_POLICY: 'POLICYCHANGELOG_ARCHIVE_POLICY',
                     UNARCHIVE_POLICY: 'POLICYCHANGELOG_UNARCHIVE_POLICY',
@@ -2876,6 +2893,8 @@ const CONST = {
         // Leaving a tab is paid inside the navigate-to-inbox-tab span, so the same tap costs more from some tabs.
         ATTRIBUTE_SOURCE_TAB: 'source_tab',
         ATTRIBUTE_MS_SINCE_PRELOAD: 'ms_since_preload',
+        // `<Area>-<Action>` part of a `<Area>-<Action>-<Detail>` data-sentry-label, stamped on INP spans so the dashboard can group them.
+        ATTRIBUTE_INP_CATEGORY: 'inp.category',
         // The tap also kicked off an OpenReport request, so exclude these from render-only comparisons.
         ATTRIBUTE_WAITED_ON_OPEN_REPORT: 'waited_on_open_report',
         ATTRIBUTE_WAS_LIST_EMPTY: 'was_list_empty',
@@ -3930,6 +3949,7 @@ const CONST = {
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
         DEFAULT_VENDOR: 'defaultVendor',
+        CREDIT_CARD_ACCOUNT: 'creditCardAccount',
         TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE: 'travelInvoicingJournalPostingPreference',
         REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
@@ -3977,6 +3997,9 @@ const CONST = {
                 'enable-oauth': 'enableOAuth',
                 'enable-rest': 'enableRestWebServices',
             },
+        },
+        AUTH_TYPE: {
+            OAUTH2: 'oauth2',
         },
         IMPORT_CUSTOM_FIELDS: {
             CUSTOM_SEGMENTS: 'customSegments',
@@ -4062,12 +4085,14 @@ const CONST = {
     },
 
     NETSUITE_EXPORT_DESTINATION: {
+        CREDIT_CARD_CHARGE: 'CREDIT_CARD_CHARGE',
         EXPENSE_REPORT: 'EXPENSE_REPORT',
         VENDOR_BILL: 'VENDOR_BILL',
         JOURNAL_ENTRY: 'JOURNAL_ENTRY',
     },
 
     NETSUITE_MAP_EXPORT_DESTINATION: {
+        CREDIT_CARD_CHARGE: 'creditCardCharge',
         EXPENSE_REPORT: 'expenseReport',
         VENDOR_BILL: 'vendorBill',
         JOURNAL_ENTRY: 'journalEntry',
@@ -4241,6 +4266,7 @@ const CONST = {
         EXPORT_DATE: 'exportDate',
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonReimbursable',
+        REIMBURSEMENT_ACCOUNT_CODE: 'reimbursementAccountCode',
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
@@ -4264,6 +4290,7 @@ const CONST = {
 
     RILLET_EXPORT_REIMBURSABLE: {
         VENDOR_BILL: 'VENDOR_BILL',
+        REIMBURSEMENT: 'REIMBURSEMENT',
     },
 
     RILLET_EXPORT_NON_REIMBURSABLE: {
@@ -4291,6 +4318,8 @@ const CONST = {
 
     RILLET_ACCOUNT_SUBTYPE: {
         CREDIT_CARD: 'Credit Card',
+        ACCOUNTS_PAYABLE: 'Accounts Payable',
+        OTHER_LONG_TERM_LIABILITY: 'Other Long Term Liability',
     },
 
     DUALENTRY_CONFIG: {
@@ -6100,6 +6129,13 @@ const CONST = {
             LAST_BUSINESS_DAY_OF_MONTH: 'LAST_BUSINESS_DAY_OF_MONTH',
             CUSTOM_DAY_OF_MONTH: 'CUSTOM_DAY_OF_MONTH',
         },
+        FEED_REIMBURSABLE: {
+            FORCE_YES: 'force_yes',
+            FORCE_NO: 'force_no',
+            DEFAULT_YES: 'default_yes',
+            DEFAULT_NO: 'default_no',
+        },
+        FEED_REIMBURSABLE_LEGACY_NONE: 'none',
         CARD_NAME: {
             CASH: '__CASH__',
         },
@@ -6125,6 +6161,11 @@ const CONST = {
              * Name of Card NVP for NetSuite custom export accounts
              */
             NVP_NETSUITE_EXPORT_ACCOUNT: 'netsuite_export_payable_account',
+
+            /**
+             * Name of Card NVP for NetSuite custom credit card charge export accounts
+             */
+            NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT: 'netsuite_export_credit_card_account',
 
             /**
              * Name of Card NVP for NetSuite custom vendors
@@ -6192,6 +6233,11 @@ const CONST = {
              * Name of Card NVP for NetSuite custom export accounts
              */
             NVP_NETSUITE_EXPORT_ACCOUNT_POLICY_ID: 'netsuite_export_payable_account_policy_id',
+
+            /**
+             * Name of Card NVP for NetSuite custom credit card charge export accounts
+             */
+            NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT_POLICY_ID: 'netsuite_export_credit_card_account_policy_id',
 
             /**
              * Name of Card NVP for NetSuite custom vendors
@@ -7338,6 +7384,8 @@ const CONST = {
         SCROLLBAR: 'scrollbar',
         /** Use for text fields that are used for searching. */
         SEARCHBOX: 'searchbox',
+        /** Use for dividers, including focusable ones that resize the areas on either side. */
+        SEPARATOR: 'separator',
         /** Use for adjustable elements like sliders. */
         SLIDER: 'slider',
         /** Use for a button that opens a list of choices. */
@@ -9671,6 +9719,11 @@ const CONST = {
         REIMBURSABLE: 'reimbursable',
         BILLABLE: 'billable',
         VENDOR: 'vendor',
+
+        // The members import has these columns for every approver of a member's workflow, so their roles end with the approver's position, like `approverLimit2`
+        APPROVER: 'approver',
+        APPROVER_LIMIT: 'approverLimit',
+        APPROVER_OVER_LIMIT_APPROVER: 'approverOverLimitApprover',
     },
 
     IMPORT_SPREADSHEET: {
@@ -9683,6 +9736,9 @@ const CONST = {
         MULTI_LEVEL_TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags#import-multi-level-tags-from-a-spreadsheet',
         IMPORT_TRANSACTIONS_ARTICLE_LINK:
             'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-and-manage-personal-cards/Import-Personal-Card-Transactions-From-a-Spreadsheet',
+
+        // How many approvers the members import reads for each member
+        MAX_APPROVERS: 10,
     },
 
     // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
@@ -9694,7 +9750,7 @@ const CONST = {
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
-        HAS_QBO_EXPORT_ERROR: 'hasQBOExportError',
+        HAS_REIMBURSEMENT_EXPORT_ERROR: 'hasReimbursementExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
         HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
         HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
@@ -10138,6 +10194,9 @@ const CONST = {
         COLUMN_RESIZE: {
             /** Narrowest drag width. Low enough to hide most content, but wide enough to keep the column's edge reachable. */
             MIN_WIDTH: 48,
+
+            /** How far, in px, one arrow key press on a focused column edge moves it. */
+            KEYBOARD_STEP: 8,
 
             /** Share of the heading's height the grip spans, centred vertically. The heading spans the header row, padding included. */
             GRIP_HEIGHT_RATIO: 0.4,
