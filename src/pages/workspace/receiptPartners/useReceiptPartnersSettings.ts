@@ -23,7 +23,7 @@ type UseReceiptPartnersSettingsOptions = {
     onDisconnectConfirmed?: (disconnect: () => void) => void;
 };
 
-/** State and actions for the workspace's receipt partner connections, shared by the Receipt partners page and its Connections panel */
+/** State and actions for the workspace's receipt partner connections, used by the Connections receipt partners panel */
 function useReceiptPartnersSettings(policyID: string, {onDisconnectConfirmed}: UseReceiptPartnersSettingsOptions = {}) {
     const icons = useMemoizedLazyExpensifyIcons(['Key', 'NewWindow', 'Trashcan']);
     const {translate} = useLocalize();

@@ -133,6 +133,7 @@ import {
     getUpdatedBudgetMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getUpdatedCardFeedReimbursableMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedEmployeeOfficeLocationMessage,
     getUpdatedIndividualBudgetNotificationMessage,
@@ -409,13 +410,13 @@ function resolveLastActionContext(
     let lastActionReport: OnyxEntry<Report>;
     if (isInviteOrRemovedAction(lastAction)) {
         const lastActionOriginalMessage = getOriginalMessage(lastAction);
-        lastActionReport = lastActionOriginalMessage?.reportID ? getReportOrDraftReport(String(lastActionOriginalMessage.reportID)) : undefined;
+        lastActionReport = lastActionOriginalMessage?.reportID ? getReportOrDraftReport({reportID: String(lastActionOriginalMessage.reportID)}) : undefined;
     }
     return {
         lastAction,
         lastActionReport,
-        movedFromReport: getReportOrDraftReport(getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)),
-        movedToReport: getReportOrDraftReport(getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)),
+        movedFromReport: getReportOrDraftReport({reportID: getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM)}),
+        movedToReport: getReportOrDraftReport({reportID: getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO)}),
     };
 }
 
@@ -482,6 +483,7 @@ function getLastMessageTextForReport({
     rules,
     bankAccountList,
     formatPhoneNumber,
+    lastActionTransaction,
 }: {
     translate: LocalizedTranslate;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
@@ -513,6 +515,9 @@ function getLastMessageTextForReport({
 
     /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
     bankAccountList?: OnyxEntry<BankAccountList>;
+
+    /** The transaction of `lastAction`. Pass it from a subscription so a memoized caller doesn't read an outdated module-level copy. */
+    lastActionTransaction?: OnyxEntry<Transaction>;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
@@ -583,12 +588,13 @@ function getLastMessageTextForReport({
                 policy,
                 isForListPreview: true,
                 bankAccountList,
+                linkedTransaction: lastActionTransaction,
             },
             formatPhoneNumber,
         );
         lastMessageTextFromReport = formatReportLastMessageText(Parser.htmlToText(properSchemaForMoneyRequestMessage));
     } else if (isReportPreviewAction(lastReportAction)) {
-        const iouReport = getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastReportAction));
+        const iouReport = getReportOrDraftReport({reportID: getIOUReportIDFromReportActionPreview(lastReportAction)});
         const iouReportID = iouReport?.reportID;
         const reportCache = iouReportID ? visibleReportActionsDataParam?.[iouReportID] : undefined;
         const visibleReportActionsForIOUReport = reportCache && Object.keys(reportCache).length > 0 ? visibleReportActionsDataParam : undefined;
@@ -678,7 +684,7 @@ function getLastMessageTextForReport({
     } else if (isTaskAction(lastReportAction)) {
         lastMessageTextFromReport = formatReportLastMessageText(getTaskReportActionMessage(translate, lastReportAction).text);
     } else if (isCreatedTaskReportAction(lastReportAction)) {
-        lastMessageTextFromReport = getTaskCreatedMessage(translate, lastReportAction, getReportOrDraftReport(lastReportAction?.childReportID));
+        lastMessageTextFromReport = getTaskCreatedMessage(translate, lastReportAction, getReportOrDraftReport({reportID: lastReportAction?.childReportID}));
     } else if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED) ||
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
@@ -919,6 +925,9 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
         lastMessageTextFromReport = getUpdatedCardFeedStatementPeriodMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE)) {
+        lastMessageTextFromReport = getUpdatedCardFeedReimbursableMessage(translate, lastReportAction);
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED)) {
         lastMessageTextFromReport = getWorkspaceFeatureEnabledMessage(translate, lastReportAction);
@@ -1213,6 +1222,9 @@ type GetReportAlternateTextParams = {
 
     /** The current user's bank accounts, used to name the account a report was paid with in the preview. */
     bankAccountList?: OnyxEntry<BankAccountList>;
+
+    /** The transaction of `lastAction`, see `getLastMessageTextForReport`. */
+    lastActionTransaction?: OnyxEntry<Transaction>;
 };
 
 /**
@@ -1252,6 +1264,7 @@ function getReportAlternateText({
     convertToDisplayStringWithoutCurrency,
     rules,
     bankAccountList,
+    lastActionTransaction,
 }: GetReportAlternateTextParams): string | undefined {
     let alternateText: string | undefined;
     const isChatRoomReport = isChatRoom(report);
@@ -1316,6 +1329,7 @@ function getReportAlternateText({
             rules,
             bankAccountList,
             formatPhoneNumber,
+            lastActionTransaction,
         });
 
     const getLastActorDisplayNamePrefix = () =>
@@ -1585,6 +1599,8 @@ function getReportAlternateText({
             alternateText = getUpdatedCardFeedLiabilityMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
             alternateText = getUpdatedCardFeedStatementPeriodMessage(translate, lastAction);
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE)) {
+            alternateText = getUpdatedCardFeedReimbursableMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUDIT_RATE) {
             alternateText = getUpdatedAuditRateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_APPROVER_RULE) {
