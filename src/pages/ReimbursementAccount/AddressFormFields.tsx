@@ -55,6 +55,9 @@ type AddressFormProps = ForwardedFSClassProps & {
     shouldSaveDraft?: boolean;
 
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Styles of the city input, which sits 24px below the street unless the caller spaces its inputs differently */
+    cityContainerStyles?: StyleProp<ViewStyle>;
     shouldDisplayCountrySelector?: boolean;
     shouldDisplayStateSelector?: boolean;
     stateSelectorLabel?: string;
@@ -92,6 +95,7 @@ function AddressFormFields({
     inputKeys,
     streetTranslationKey,
     containerStyles,
+    cityContainerStyles,
     shouldDisplayCountrySelector = false,
     shouldDisplayStateSelector = true,
     stateSelectorLabel,
@@ -124,7 +128,6 @@ function AddressFormFields({
                     inputID={inputKeys?.street}
                     shouldSaveDraft={shouldSaveDraft}
                     label={translate(streetTranslationKey)}
-                    containerStyles={styles.mt6}
                     value={values?.street}
                     defaultValue={defaultValues?.street}
                     errorText={errors?.street ? translate('bankAccount.error.addressStreet') : ''}
@@ -146,7 +149,7 @@ function AddressFormFields({
                 value={values?.city}
                 defaultValue={defaultValues?.city}
                 errorText={errors?.city ? translate('bankAccount.error.addressCity') : ''}
-                containerStyles={styles.mt6}
+                containerStyles={cityContainerStyles ?? styles.mt6}
                 forwardedFSClass={forwardedFSClass}
                 autoComplete="address-line2"
             />

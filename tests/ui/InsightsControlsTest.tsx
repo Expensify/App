@@ -166,6 +166,9 @@ describe('Insights controls', () => {
         const toolbar = screen.getByTestId('InsightsCaptureControls');
         const exportButton = within(toolbar).getByTestId('InsightsExportButton');
 
+        // Then each filter and Export share one container, so wide layouts can wrap each pill independently
+        expect(toolbar.children).toHaveLength(5);
+
         // Then the button shows a small spinner, keeps its label in the captured subtree, and cannot start another export
         expect(within(exportButton).UNSAFE_getByType(ActivityIndicator).props.size).toBe(16);
         expect(within(exportButton).getByText(/^(Export|common\.export)$/)).toBeVisible();

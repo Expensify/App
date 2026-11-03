@@ -12,13 +12,15 @@ import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
+import {getPersonalDetail} from '@libs/PersonalDetailsStore';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getDistanceRateCustomUnit, isTaxTrackingEnabled, resolveCurrentTaxCode} from '@libs/PolicyUtils';
-import {getChatReportFromMoneyRequestReport, getTransactionDetails, isInvoiceRoom, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
+import {getChatReportFromMoneyRequestReport, getTransactionDetails, isInvoiceRoom, isOneOnOneChat, isPolicyExpenseChat as isPolicyExpenseChatReportUtil, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptSubmitted} from '@libs/telemetry/ReceiptObservability';
 import {
-    getCategoryTaxDetails,
     getDefaultTaxCode,
     getDistanceInMeters,
     getDistanceRateTaxUpdates,
@@ -56,7 +58,7 @@ import type {
 import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {Accountant, Attendee, Participant} from '@src/types/onyx/IOU';
 import type {Unit} from '@src/types/onyx/Policy';
-import type {Comment, Receipt} from '@src/types/onyx/Transaction';
+import type {Comment, Receipt, SplitShares} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {Locale as DateFnsLocale} from 'date-fns';
@@ -637,13 +639,94 @@ function getMoneyRequestParticipantsFromReport(report: OnyxEntry<Report>, curren
 }
 
 /**
+ * Gets the participants for a draft from the attached report. Each participant keeps their login, and a recipient created
+ * offline also keeps the reportID of their 1:1 chat, like a recipient picked from the participant list does. A recipient
+ * created offline has an optimistic accountID that is dropped from personal details once the request syncs. The login and
+ * the chat are saved in the draft so getParticipantsOption and getSyncedParticipantAccountIDs can still find the real
+ * account, even when the confirmation page only opens after the sync.
+ */
+function getMoneyRequestDraftParticipantsFromReport(report: OnyxEntry<Report>, currentUserAccountID?: number): Participant[] {
+    const chatReport = getChatReportFromMoneyRequestReport(report);
+    const isOneOnOneChatReport = isOneOnOneChat(chatReport, currentUserAccountID);
+    return getMoneyRequestParticipantsFromReport(report, currentUserAccountID).map((participant) => {
+        const personalDetail = getPersonalDetail(participant.accountID);
+        const login = participant.login ?? personalDetail?.login;
+        const reportID = participant.reportID ?? (isOneOnOneChatReport && personalDetail?.isOptimisticPersonalDetail ? chatReport?.reportID : undefined);
+        return {...participant, ...(login ? {login} : {}), ...(reportID ? {reportID} : {})};
+    });
+}
+
+/**
+ * Maps each draft participant whose optimistic accountID was dropped from personal details, once the request that
+ * created the recipient synced, to the real accountID. The login finds the real account when the server returns it with
+ * a login. The server can leave the login off an existing Expensify account, so a lone recipient falls back to the other
+ * participant of the 1:1 chat the draft points to, which now lists the real account. That fallback only applies when the
+ * draft saved that chat as the recipient's chat, so a newly picked recipient is never swapped for the chat's recipient.
+ */
+function getSyncedParticipantAccountIDs(
+    participants: Participant[] | undefined,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    chatReport: OnyxEntry<Report>,
+    currentUserAccountID: number,
+): Record<number, number> {
+    // Only a participant whose accountID is no longer in personal details can need a sync, so return early on the
+    // confirmation page's renders while no sync is pending
+    const staleParticipants = (participants ?? []).filter(
+        (participant): participant is Participant & {accountID: number} => !!participant.accountID && !personalDetails?.[participant.accountID],
+    );
+    if (staleParticipants.length === 0) {
+        return {};
+    }
+    const chatAccountIDs = Object.keys(chatReport?.participants ?? {}).map(Number);
+    const accountIDFromChat =
+        participants?.length === 1 && isOneOnOneChat(chatReport, currentUserAccountID) ? chatAccountIDs.find((accountID) => accountID !== currentUserAccountID) : undefined;
+    const syncedAccountIDs: Record<number, number> = {};
+    for (const participant of staleParticipants) {
+        const accountIDFromLogin = participant.login ? getPersonalDetailByEmail(addSMSDomainIfPhoneNumber(participant.login))?.accountID : undefined;
+        const syncedAccountID = accountIDFromLogin ?? (participant.reportID && participant.reportID === chatReport?.reportID ? accountIDFromChat : undefined);
+        if (!syncedAccountID || syncedAccountID === participant.accountID || !personalDetails?.[syncedAccountID]) {
+            continue;
+        }
+        syncedAccountIDs[participant.accountID] = syncedAccountID;
+    }
+    return syncedAccountIDs;
+}
+
+/**
+ * Moves the draft's participants and split shares from optimistic accountIDs to the real ones found by
+ * getSyncedParticipantAccountIDs, so the confirmation page shows, validates and submits against the same accountID.
+ */
+function setMoneyRequestParticipantsSyncedAccountIDs(transaction: OnyxEntry<Transaction>, syncedAccountIDs: Record<number, number>) {
+    if (!transaction?.transactionID || isEmptyObject(syncedAccountIDs)) {
+        return;
+    }
+    const participants = transaction.participants?.map((participant) => {
+        const syncedAccountID = participant.accountID ? syncedAccountIDs[participant.accountID] : undefined;
+        return syncedAccountID ? {...participant, accountID: syncedAccountID} : participant;
+    });
+    const splitShares: SplitShares = {};
+    for (const [staleAccountID, syncedAccountID] of Object.entries(syncedAccountIDs)) {
+        const splitShare = transaction.splitShares?.[Number(staleAccountID)];
+        if (!splitShare) {
+            continue;
+        }
+        splitShares[Number(staleAccountID)] = null;
+        splitShares[syncedAccountID] = splitShare;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {
+        participants,
+        ...(isEmptyObject(splitShares) ? {} : {splitShares}),
+    });
+}
+
+/**
  * Sets the participants for an IOU based on the attached report
  * @param transactionID of the transaction to set the participants of
  * @param report attached to the transaction
  * @param participantsAutoAssigned whether participants were auto assigned
  */
 function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<Report>, currentUserAccountID?: number, participantsAutoAssigned = true) {
-    const participants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
+    const participants = getMoneyRequestDraftParticipantsFromReport(report, currentUserAccountID);
     return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         participants,
         participantsAutoAssigned,
@@ -662,7 +745,7 @@ function updateLastLocationPermissionPrompt() {
 }
 
 function setMultipleMoneyRequestParticipantsFromReport(transactionIDs: string[], reportValue: OnyxEntry<Report>, currentUserAccountID: number) {
-    const participants = getMoneyRequestParticipantsFromReport(reportValue, currentUserAccountID);
+    const participants = getMoneyRequestDraftParticipantsFromReport(reportValue, currentUserAccountID);
     const updatedTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${string}`, NullishDeep<Transaction>> = {};
     for (const transactionID of transactionIDs) {
         updatedTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] = {
@@ -702,13 +785,7 @@ function setMoneyRequestTaxRateValues(transactionID: string, taxRateValues: TaxR
  * @param policy - The policy object, or undefined for P2P transactions where tax info should be cleared
  * @param isMovingFromTrackExpense - If the expense is moved from Track Expense
  */
-function setMoneyRequestCategory(
-    transactionID: string,
-    category: string,
-    policy: OnyxEntry<Policy>,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    isMovingFromTrackExpense?: boolean,
-) {
+function setMoneyRequestCategory(transactionID: string, category: string, policy: OnyxEntry<Policy>, isMovingFromTrackExpense?: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
         category,
     });
@@ -720,16 +797,6 @@ function setMoneyRequestCategory(
             taxCode: '',
             taxAmount: null,
             taxValue: null,
-        });
-        return;
-    }
-    const transaction = getAllTransactionDrafts()[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
-    const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(category, transaction, policy, getCurrencyDecimals);
-    if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
-        setMoneyRequestTaxRateValues(transactionID, {
-            taxCode: categoryTaxCode,
-            taxAmount: categoryTaxAmount,
-            taxValue: categoryTaxValue,
         });
     }
 }
@@ -1102,6 +1169,7 @@ function updateDistanceRateOnExpenseDateChange({
     isDraft,
     personalPolicyOutputCurrency,
     getCurrencyDecimals,
+    rules,
 }: {
     transactionID: string;
     transaction: OnyxEntry<Transaction>;
@@ -1115,6 +1183,7 @@ function updateDistanceRateOnExpenseDateChange({
     isDraft: boolean;
     personalPolicyOutputCurrency: string | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    rules: OnyxCollection<Rule>;
 }) {
     if (!isDistanceRequest(transaction) || !(isPolicyExpenseChat || isTrackExpense)) {
         return;
@@ -1136,7 +1205,7 @@ function updateDistanceRateOnExpenseDateChange({
     if (rateChanged && rateID && isTaxTrackingEnabled(isPolicyExpenseChat || isTrackExpense || isExpenseUnreported(transaction), effectivePolicy, isDistanceRequest(transaction))) {
         const mileageRates = DistanceRequestUtils.getMileageRates(effectivePolicy);
         const distanceUnit = mileageRates[rateID] ? DistanceRequestUtils.getDistanceUnit(transaction, mileageRates[rateID]) : transaction?.comment?.customUnit?.distanceUnit;
-        const {taxAmount, taxCode, taxValue} = getDistanceRateTaxUpdates(effectivePolicy, transaction, rateID, getCurrencyDecimals, distanceUnit);
+        const {taxAmount, taxCode, taxValue} = getDistanceRateTaxUpdates(effectivePolicy, transaction, rateID, rules, getCurrencyDecimals, distanceUnit);
         setMoneyRequestTaxRate(transactionID, taxCode || null, isDraft);
         setMoneyRequestTaxAmount(transactionID, taxAmount, isDraft);
         setMoneyRequestTaxValue(transactionID, taxValue ?? null, isDraft);
@@ -1178,6 +1247,9 @@ export {
     startMoneyRequest,
     startDistanceRequest,
     setMoneyRequestParticipants,
+    getMoneyRequestDraftParticipantsFromReport,
+    getSyncedParticipantAccountIDs,
+    setMoneyRequestParticipantsSyncedAccountIDs,
     getMoneyRequestParticipantsFromReport,
     setMoneyRequestParticipantsFromReport,
     getIOURequestPolicyID,

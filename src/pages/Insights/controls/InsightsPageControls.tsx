@@ -48,7 +48,7 @@ function InsightsPageControls({filters, defaultFilters, onChange, onExport, isEx
     const icons = useMemoizedLazyExpensifyIcons(['Export']);
 
     const controls = (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, !shouldUseNarrowLayout && [styles.flexWrap, styles.flexShrink1]]}>
+        <>
             <InsightsDateControl
                 value={filters.date}
                 onChange={(date) => onChange({date})}
@@ -66,7 +66,7 @@ function InsightsPageControls({filters, defaultFilters, onChange, onExport, isEx
                 defaultValue={defaultFilters.groupCurrency}
                 onChange={(groupCurrency) => onChange({groupCurrency})}
             />
-        </View>
+        </>
     );
 
     // Keep the label visible during export so the captured button does not become an empty loading state.

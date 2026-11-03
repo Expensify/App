@@ -1,4 +1,5 @@
 /** Owns dashboard capture readiness and the lifetime of one export attempt. */
+import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 
@@ -8,7 +9,6 @@ import Log from '@libs/Log';
 import type {InsightsDashboardID} from '@src/types/onyx';
 
 import {useCallback, useRef, useState} from 'react';
-import {Alert} from 'react-native';
 
 import type {InsightsCaptureRef} from './exportInsightsDashboard/types';
 import type {InsightsFilters} from './insightsFilters';
@@ -16,6 +16,7 @@ import type {InsightsFilters} from './insightsFilters';
 import getInsightsExportFileName from './getInsightsExportFileName';
 
 function useInsightsExport(dashboardID: InsightsDashboardID, filters: InsightsFilters) {
+    const {showConfirmModal} = useConfirmModal();
     const {translate} = useLocalize();
     const theme = useTheme();
     const headerRef: InsightsCaptureRef = useRef(null);
@@ -55,7 +56,12 @@ function useInsightsExport(dashboardID: InsightsDashboardID, filters: InsightsFi
             await exportInsightsDashboard({headerRef, controlsRef, contentRef, backgroundColor: theme.appBG, fileName: getInsightsExportFileName(dashboardID, filters.date, translate)});
         } catch (error) {
             Log.warn('[Insights] Could not export dashboard', {error: getErrorMessage(error)});
-            Alert.alert(translate('common.genericErrorMessage'));
+            showConfirmModal({
+                title: translate('genericErrorPage.title'),
+                prompt: translate('common.genericErrorMessage'),
+                confirmText: translate('common.ok'),
+                shouldShowCancelButton: false,
+            });
         } finally {
             exportInFlight.current = false;
             setIsExporting(false);

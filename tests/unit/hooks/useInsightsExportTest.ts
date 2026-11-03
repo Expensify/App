@@ -11,7 +11,16 @@ import useInsightsExport from '@pages/Insights/useInsightsExport';
 import CONST from '@src/CONST';
 
 import {createElement} from 'react';
-import {Alert, View} from 'react-native';
+import {View} from 'react-native';
+
+import type * as MockUseConfirmModalUtil from '../../utils/mockUseConfirmModal';
+
+import {mockShowConfirmModal, resetMockConfirmModal} from '../../utils/mockUseConfirmModal';
+
+jest.mock('@hooks/useConfirmModal', () => {
+    const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../../utils/mockUseConfirmModal');
+    return mockUseConfirmModal;
+});
 
 jest.mock('@hooks/useLocalize', () => () => ({translate: (key: string) => key}));
 jest.mock('@hooks/useTheme', () => () => ({appBG: '#ffffff'}));
@@ -39,6 +48,7 @@ function Dashboard({isLoading, showChart = true}: {isLoading: boolean; showChart
 describe('useInsightsExport', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        resetMockConfirmModal();
         jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
             callback(0);
             return 0;
@@ -101,7 +111,6 @@ describe('useInsightsExport', () => {
     it('keeps only one export in flight and restores the button after failure', async () => {
         // Given a ready dashboard whose capture has not finished
         const {result} = renderHook(() => useInsightsExport(CONST.INSIGHTS.DASHBOARD.SPEND, filters));
-        const alert = jest.spyOn(Alert, 'alert');
         const logWarning = jest.spyOn(Log, 'warn');
         let rejectCapture: (error: Error) => void = () => {};
         jest.mocked(exportInsightsDashboard).mockImplementationOnce(
@@ -129,10 +138,15 @@ describe('useInsightsExport', () => {
             await firstExport;
         });
 
-        // Then the button recovers, the generic error is shown, and retry can succeed
+        // Then the button recovers, a cross-platform error modal opens, and retry can succeed
         expect(result.current.isExporting).toBe(false);
         expect(logWarning).toHaveBeenCalledWith('[Insights] Could not export dashboard', {error: 'Capture failed'});
-        expect(alert).toHaveBeenCalledWith('common.genericErrorMessage');
+        expect(mockShowConfirmModal).toHaveBeenCalledWith({
+            title: 'genericErrorPage.title',
+            prompt: 'common.genericErrorMessage',
+            confirmText: 'common.ok',
+            shouldShowCancelButton: false,
+        });
         await act(async () => result.current.exportDashboard());
         expect(exportInsightsDashboard).toHaveBeenCalledTimes(2);
     });

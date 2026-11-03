@@ -1,33 +1,21 @@
 import type {FormOnyxValues} from '@components/Form/types';
-import {useSearchQueryContext} from '@components/Search/SearchContext';
 
-import useAllTransactionViolations from '@hooks/useAllTransactionViolations';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useCreateAndApplyCategory from '@hooks/useCreateAndApplyCategory';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
-import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
-import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
+import useUpdateTransactionCategory from '@hooks/useUpdateTransactionCategory';
 
-import {getIOURequestPolicyID, setMoneyRequestCategory} from '@libs/actions/IOU/MoneyRequest';
-import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
-import {updateMoneyRequestCategory} from '@libs/actions/IOU/UpdateMoneyRequest';
-import {createPolicyCategory} from '@libs/actions/Policy/Category';
+import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getSelectedWorkspacePolicyID, pickReportForPolicy} from '@libs/IOUUtils';
 import findAllMatchingDynamicSuffixes from '@libs/Navigation/helpers/dynamicRoutesUtils/findAllMatchingDynamicSuffixes';
 import getPathWithoutDynamicSuffix from '@libs/Navigation/helpers/dynamicRoutesUtils/getPathWithoutDynamicSuffix';
 import Navigation from '@libs/Navigation/Navigation';
-import {hasTags} from '@libs/PolicyUtils';
 import {isSelfDM} from '@libs/ReportUtils';
-import StringUtils from '@libs/StringUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import CategoryForm from '@pages/workspace/categories/CategoryForm';
@@ -37,8 +25,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import {loginSelector} from '@selectors/PersonalDetails';
 import React from 'react';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -59,14 +45,7 @@ function DynamicIOURequestStepCategoryCreate({
     },
     transaction,
 }: DynamicIOURequestStepCategoryCreateProps) {
-    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {translate} = useLocalize();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const delegateAccountID = useDelegateAccountID();
-    const {isBetaEnabled, isBetaEnabledOrUnknown} = usePermissions();
-    const isVendorMatchingBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.VENDOR_MATCHING);
-    const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const {currentSearchHash} = useSearchQueryContext();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path);
     const categorySuffixMatch = findAllMatchingDynamicSuffixes(backPath).find((match) => match.pattern === DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.path);
     const basePath = categorySuffixMatch ? getPathWithoutDynamicSuffix(categorySuffixMatch.pathUsedForMatching, categorySuffixMatch.actualSuffix, categorySuffixMatch.pattern) : backPath;
@@ -95,106 +74,27 @@ function DynamicIOURequestStepCategoryCreate({
     const policy = policyFromTransaction ?? (isEditingSplit && isSelfDM(report) ? policyForMovingExpenses : undefined);
     const policyID = policy?.id;
 
-    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
-    const allTransactionViolations = useAllTransactionViolations(transaction?.transactionID ?? transactionID);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
-    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportReal?.parentReportID ?? reportDraft?.parentReportID)}`);
-    const [iouReportOwnerLogin] = usePersonalDetail(parentReport?.ownerAccountID, loginSelector);
-    const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
 
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
 
-    const policyHasTags = hasTags(policyTags);
-    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
-
-    const {
-        taskReport: setupCategoryTaskReport,
-        taskParentReport: setupCategoryTaskParentReport,
-        isOnboardingTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
-        hasOutstandingChildTask,
-        parentReportAction,
-    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES);
-
-    const {
-        taskReport: setupCategoriesAndTagsTaskReport,
-        taskParentReport: setupCategoriesAndTagsTaskParentReport,
-        isOnboardingTaskParentReportArchived: isSetupCategoriesAndTagsTaskParentReportArchived,
-        hasOutstandingChildTask: setupCategoriesAndTagsHasOutstandingChildTask,
-        parentReportAction: setupCategoriesAndTagsParentReportAction,
-    } = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.SETUP_CATEGORIES_AND_TAGS);
+    const {updateCategory} = useUpdateTransactionCategory({
+        transactionID,
+        transaction,
+        report,
+        policy,
+        policyCategories,
+        isEditing,
+        isEditingSplit,
+    });
+    const createAndApplyCategory = useCreateAndApplyCategory({policyID, updateCategory});
 
     const createCategory = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FORM>) => {
-        const categoryName = StringUtils.sanitizeName(values.categoryName);
-
         if (!policyID) {
             return;
         }
 
-        // 1. Create the category in the workspace (optimistic update, queued API call).
-        createPolicyCategory({
-            policyID,
-            categoryName,
-            isSetupCategoriesTaskParentReportArchived: isSetupCategoryTaskParentReportArchived,
-            setupCategoryTaskReport,
-            setupCategoryTaskParentReport,
-            currentUserAccountID: currentUserPersonalDetails.accountID,
-            hasOutstandingChildTask,
-            parentReportAction,
-            setupCategoriesAndTagsTaskReport,
-            setupCategoriesAndTagsTaskParentReport,
-            isSetupCategoriesAndTagsTaskParentReportArchived,
-            setupCategoriesAndTagsHasOutstandingChildTask,
-            setupCategoriesAndTagsParentReportAction,
-            policyHasTags,
-            reviewWorkspaceSettingsTaskData: getReviewWorkspaceSettingsTaskCompletion(),
-        });
-
-        // 2. Apply the newly created category to the transaction.
-        const policyCategoriesWithNewCategory = {
-            ...policyCategories,
-            [categoryName]: {
-                name: categoryName,
-                enabled: true,
-                errors: null,
-                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-            },
-        };
-
-        if (isEditingSplit && transaction) {
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, getCurrencyDecimals, getCurrencySymbol, policy);
-        } else if (isEditing && report) {
-            updateMoneyRequestCategory({
-                isVendorMatchingBetaEnabled,
-                transactionID: transaction?.transactionID ?? transactionID,
-                transaction,
-                transactionThreadReport: report,
-                parentReport,
-                iouReportOwnerLogin,
-                category: categoryName,
-                policy,
-                policyTagList: policyTags,
-                policyCategories: policyCategoriesWithNewCategory,
-                policyRecentlyUsedCategories,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-                currentUserEmailParam: currentUserPersonalDetails.login ?? '',
-                isASAPSubmitBetaEnabled,
-                hash: currentSearchHash,
-                delegateAccountID,
-                reportPolicyTags,
-                isTrackIntentUser,
-                violations: allTransactionViolations,
-                getCurrencyDecimals,
-                getCurrencySymbol,
-                rules,
-            });
-        } else {
-            setMoneyRequestCategory(transactionID, categoryName, policy, getCurrencyDecimals);
-        }
-
+        createAndApplyCategory(values.categoryName);
         Navigation.goBack(basePath);
     };
 
