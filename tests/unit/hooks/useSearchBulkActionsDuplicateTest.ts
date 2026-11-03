@@ -31,6 +31,7 @@ jest.mock('@libs/actions/IOU/Duplicate', () => ({
 jest.mock('@libs/actions/Search', () => ({
     // The hook and shouldShowDeleteOption resolve report actions through this helper, so the real implementation has to stay available
     getReportActionsFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getReportActionsFromSearchSnapshot,
+    getPolicyFromSearchSnapshot: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getPolicyFromSearchSnapshot,
     openSearchCardFiltersPage: jest.fn(),
     getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
