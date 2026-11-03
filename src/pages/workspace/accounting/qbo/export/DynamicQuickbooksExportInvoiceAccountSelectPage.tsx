@@ -26,7 +26,7 @@ import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Account} from '@src/types/onyx/Policy';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 type CardListItem = ListItem & {
     value: Account;
@@ -42,43 +42,34 @@ function DynamicQuickbooksExportInvoiceAccountSelectPage({policy}: WithPolicyCon
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECT.path);
 
     const policyID = policy?.id;
-    const data: CardListItem[] = useMemo(
-        () =>
-            accountsReceivable?.map((account) => ({
-                value: account,
-                text: account.name,
-                keyForList: account.name,
-                isSelected: account.id === qboConfig?.receivableAccount?.id,
-            })) ?? [],
-        [qboConfig?.receivableAccount, accountsReceivable],
-    );
+    const data: CardListItem[] =
+        accountsReceivable?.map((account) => ({
+            value: account,
+            text: account.name,
+            keyForList: account.name,
+            isSelected: account.id === qboConfig?.receivableAccount?.id,
+        })) ?? [];
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.goBack(backPath);
-    }, [backPath]);
+    };
 
-    const selectExportInvoice = useCallback(
-        (row: CardListItem) => {
-            if (row.value.id !== qboConfig?.receivableAccount?.id) {
-                updateQuickbooksOnlineReceivableAccount(policyID, row.value, qboConfig?.receivableAccount);
-            }
-            goBack();
-        },
-        [qboConfig?.receivableAccount, policyID, goBack],
-    );
+    const selectExportInvoice = (row: CardListItem) => {
+        if (row.value.id !== qboConfig?.receivableAccount?.id) {
+            updateQuickbooksOnlineReceivableAccount(policyID, row.value, qboConfig?.receivableAccount);
+        }
+        goBack();
+    };
 
-    const listEmptyContent = useMemo(
-        () => (
-            <BlockingView
-                icon={illustrations.Telescope}
-                iconWidth={variables.emptyListIconWidth}
-                iconHeight={variables.emptyListIconHeight}
-                title={translate('workspace.qbo.noAccountsFound')}
-                subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
-                containerStyle={styles.pb10}
-            />
-        ),
-        [illustrations.Telescope, translate, styles.pb10, integrationName],
+    const listEmptyContent = (
+        <BlockingView
+            icon={illustrations.Telescope}
+            iconWidth={variables.emptyListIconWidth}
+            iconHeight={variables.emptyListIconHeight}
+            title={translate('workspace.qbo.noAccountsFound')}
+            subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
+            containerStyle={styles.pb10}
+        />
     );
 
     return (

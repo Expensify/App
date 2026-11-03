@@ -75,7 +75,7 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 
-let mockPersonalDetails: PersonalDetailsList = {};
+let mockPersonalDetails: PersonalDetailsList | undefined = {};
 
 /** Renders inside the live personal details context, which the component reads while there is no Search snapshot. */
 const renderWithPersonalDetails = (ui: React.ReactElement) => render(<PersonalDetailsContext.Provider value={mockPersonalDetails}>{ui}</PersonalDetailsContext.Provider>);
@@ -370,5 +370,26 @@ describe('InvoiceRoomAvatar (connected)', () => {
 
         // Then the subscript gets the default avatar seeded from the workspace name
         expect(mockCapturedSubscriptAvatarProps.secondaryAvatar).toEqual({...RECEIVER_WORKSPACE_ICON, source: getDefaultWorkspaceAvatar(RECEIVER_POLICY_NAME)});
+    });
+    it.each([false, true])('keeps the person fallback when live details are unavailable, outside provider: %s', (outside) => {
+        // Given the receiver exists but its live personal details have not arrived
+        mockPersonalDetails = undefined;
+        const avatar = (
+            <InvoiceRoomAvatar
+                invoiceReceiver={INDIVIDUAL_RECEIVER}
+                primaryAvatar={SENDER_ICON}
+                size={CONST.AVATAR_SIZE.DEFAULT}
+            />
+        );
+        // When the real receiver resolver sees the raw null or undefined context value
+        if (outside) {
+            render(avatar);
+        } else {
+            renderWithPersonalDetails(avatar);
+        }
+        // Then both states retain the visible sender-only fallback layout
+        expect(screen.getByTestId('MockedSingleAvatar')).toBeOnTheScreen();
+        expect(mockCapturedSingleAvatarProps.avatar).toBe(SENDER_ICON);
+        expect(mockCapturedSingleAvatarProps.size).toBe(CONST.AVATAR_SIZE.DEFAULT);
     });
 });

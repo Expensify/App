@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 
 import type {ImageProps, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {FullScreenLoadingIndicatorIconSize} from './FullscreenLoadingIndicator';
 import type {ImageObjectPosition} from './Image/types';
@@ -75,7 +75,7 @@ function ImageWithSizeCalculation({
 }: ImageWithSizeCalculationProps) {
     const styles = useThemeStyles();
 
-    const source = useMemo(() => (typeof url === 'string' ? {uri: url} : url), [url]);
+    const source = typeof url === 'string' ? {uri: url} : url;
 
     const onError = () => {
         Log.hmmm('Unable to fetch image to calculate size', {url});
@@ -111,4 +111,4 @@ function ImageWithSizeCalculation({
 
 ImageWithSizeCalculation.displayName = 'ImageWithSizeCalculation';
 
-export default React.memo(ImageWithSizeCalculation);
+export default ImageWithSizeCalculation;

@@ -6,6 +6,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
 
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -22,10 +23,12 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {SageIntacctMappingName, SageIntacctMappingValue} from '@src/types/onyx/Policy';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -56,6 +59,7 @@ function getDisplayTypeTranslationKeys(displayType?: SageIntacctMappingValue): D
 }
 
 function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPageProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -115,7 +119,13 @@ function SageIntacctToggleMappingsPage({route}: SageIntacctToggleMappingsPagePro
                 isToggleTriggered={shouldAnimateAccordionSection}
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([mappingName], config?.pendingFields)}>
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName)))}>
+                    <MenuItem.Root
+                        onPress={callFunctionIfActionIsAllowed(
+                            () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.getRoute(policyID, mappingName)),
+                            false,
+                            session,
+                        )}
+                    >
                         <MenuItemField.Row
                             name={translate('workspace.common.displayedAs')}
                             value={translationKeys?.titleKey ? translate(translationKeys?.titleKey) : undefined}

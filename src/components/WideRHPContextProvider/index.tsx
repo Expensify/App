@@ -8,7 +8,7 @@ import type {NavigationRoute} from '@libs/Navigation/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {createContext, useContext, useEffect, useRef, useState} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -124,12 +124,12 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const {isWideRHPBelow, isSuperWideRHPBelow} = getIsRHPDisplayedBelow(focusedRoute?.key, allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
 
     // Updates the Wide RHP visible keys table from the all keys table
-    const syncRHPKeys = useCallback(() => {
+    const syncRHPKeys = () => {
         const {visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys} = getVisibleRHPKeys(allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
         setWideRHPRouteKeys(visibleWideRHPRouteKeys);
         setSuperWideRHPRouteKeys(visibleSuperWideRHPRouteKeys);
         setExpandedRHPProgress(visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys);
-    }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys]);
+    };
 
     const clearWideRHPKeys = () => {
         setWideRHPRouteKeys([]);
@@ -298,5 +298,6 @@ export {
     thirdOverlayProgress,
     useWideRHPState,
     useWideRHPActions,
+    WideRHPStateContext,
 };
 export type {RHPWidth} from './types';

@@ -39,6 +39,10 @@ function isOwnAttachmentURL(href: string, reportActionID: string | undefined): b
     return !!reportActionID && attachmentAnchorURLRegex.test(href) && href.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1) === reportActionID;
 }
 
+function isFileCardAnchor(attributes: string, label: string, reportActionID: string | undefined): boolean {
+    return !holdsMedia(label) && (isAttachmentAnchorTag(attributes) || isOwnAttachmentURL(getAnchorHref(attributes) ?? '', reportActionID));
+}
+
 /**
  * A file anchor renders as a card, and native Text cannot lay a card out inside an inline run: it collapses, overlaps
  * the line above or hides the "(edited)" label after it. Each file anchor gets its own block instead, which is how an
@@ -50,17 +54,25 @@ function wrapAttachmentAnchorsInBlocks(html: string, reportActionID: string | un
         return html;
     }
     return html.replaceAll(ANCHOR_TAG_REGEX, (match: string, attributes: string, label: string) => {
-        if (holdsMedia(label)) {
+        if (!isFileCardAnchor(attributes, label, reportActionID)) {
             return match;
         }
-        if (isAttachmentAnchorTag(attributes)) {
-            return `<attachment-block><a ${attributes}>${label}</a></attachment-block>`;
-        }
-        if (!isOwnAttachmentURL(getAnchorHref(attributes) ?? '', reportActionID)) {
-            return match;
-        }
-        return `<attachment-block><a ${attributes} ${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}">${label}</a></attachment-block>`;
+        const restoredID = isAttachmentAnchorTag(attributes) ? '' : ` ${CONST.ATTACHMENT_ID_ATTRIBUTE}="${reportActionID}"`;
+        return `<attachment-block><a ${attributes}${restoredID}>${label}</a></attachment-block>`;
     });
 }
 
-export {getAnchorHref, isAttachmentAnchor, isAttachmentAnchorTag, isOwnAttachmentURL, wrapAttachmentAnchorsInBlocks};
+// The parser only reads an anchor as "[Attachment]" while it carries `data-expensify-source`, which the server drops on edit.
+function replaceAttachmentAnchorsWithText(html: string, reportActionID: string | undefined): string {
+    if (!html.includes('<a ')) {
+        return html;
+    }
+    return html.replaceAll(ANCHOR_TAG_REGEX, (match: string, attributes: string, label: string) => {
+        if (!isFileCardAnchor(attributes, label, reportActionID)) {
+            return match;
+        }
+        return `${CONST.ATTACHMENT_MESSAGE_TEXT}${match.endsWith('<br />') ? '<br />' : ''}`;
+    });
+}
+
+export {getAnchorHref, isAttachmentAnchor, isAttachmentAnchorTag, isOwnAttachmentURL, replaceAttachmentAnchorsWithText, wrapAttachmentAnchorsInBlocks};

@@ -9,6 +9,7 @@ import ScrollView from '@components/ScrollView';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useAppLoadSkeletonVisibility} from '@hooks/useInFlightRequests';
+import useIsMobileWebLandscape from '@hooks/useIsMobileWebLandscape';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -46,10 +47,14 @@ const RIGHT_COLUMN_TEST_ID = 'homePageRightColumn';
 
 function HomePage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const shouldScrollMainHeader = useIsMobileWebLandscape();
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.HOME);
-    const tabRootScrollProps = useTabRootScrollProps([styles.homePageContentContainer, pageGutter], {hasBottomSafeAreaPadding: true, hasOfflineIndicatorPadding: true});
+    const tabRootScrollProps = useTabRootScrollProps([styles.homePageContentContainer, !shouldScrollMainHeader && pageGutter], {
+        hasBottomSafeAreaPadding: true,
+        hasOfflineIndicatorPadding: true,
+    });
     const {translate} = useLocalize();
     const triggerScrollEvent = useScrollEventEmitter();
     useDocumentTitle(translate('common.home'));
@@ -138,6 +143,14 @@ function HomePage() {
         </>
     );
 
+    const topBar = (
+        <TopBar
+            breadcrumbLabel={translate('common.home')}
+            shouldShowLoadingBar={isForYouLoading}
+            shouldDisplayHelpButton
+        />
+    );
+
     return (
         <View
             ref={receiptDropTargetRef}
@@ -154,11 +167,7 @@ function HomePage() {
                     enableEdgeToEdgeBottomSafeAreaPadding={false}
                     {...tabRootScreenWrapperProps}
                 >
-                    <TopBar
-                        breadcrumbLabel={translate('common.home')}
-                        shouldShowLoadingBar={isForYouLoading}
-                        shouldDisplayHelpButton
-                    />
+                    {!shouldScrollMainHeader && topBar}
                     <ScrollView
                         style={styles.homePageScrollView}
                         {...tabRootScrollProps}
@@ -167,12 +176,13 @@ function HomePage() {
                         addBottomSafeAreaPadding
                         keyboardShouldPersistTaps="handled"
                     >
+                        {shouldScrollMainHeader && topBar}
                         {!shouldUseNarrowLayout && (
                             <View style={styles.centeredContentWidthLimiter}>
                                 <QuickCreationActionsBar />
                             </View>
                         )}
-                        <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>{homeLayout}</View>
+                        <View style={[styles.homePageMainLayout(shouldUseNarrowLayout), shouldScrollMainHeader && pageGutter]}>{homeLayout}</View>
                     </ScrollView>
                     <PortalHost name="suggestions" />
                 </ScreenWrapper>

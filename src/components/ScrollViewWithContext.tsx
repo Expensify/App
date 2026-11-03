@@ -4,7 +4,7 @@ import type {ComponentRef, ForwardedRef, ReactNode} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
 
-import React, {createContext, useMemo, useRef, useState} from 'react';
+import React, {createContext, useRef, useState} from 'react';
 
 import type {ScrollViewProps} from './ScrollView';
 
@@ -45,13 +45,10 @@ function ScrollViewWithContext({onScroll, scrollEventThrottle, children, ref, ..
         setContentOffsetY(event.nativeEvent.contentOffset.y);
     };
 
-    const contextValue = useMemo(
-        () => ({
-            scrollViewRef,
-            contentOffsetY,
-        }),
-        [scrollViewRef, contentOffsetY],
-    );
+    const contextValue = {
+        scrollViewRef,
+        contentOffsetY,
+    };
 
     return (
         <ScrollView

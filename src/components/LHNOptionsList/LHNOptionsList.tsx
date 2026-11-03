@@ -15,6 +15,7 @@ import CONST from '@src/CONST';
 
 import type {FlashListProps, FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
+import type {LayoutChangeEvent} from 'react-native';
 
 import {useRoute} from '@react-navigation/native';
 import {FlashList} from '@shopify/flash-list';
@@ -31,7 +32,16 @@ const keyExtractor = (reportID: string) => `report_${reportID}`;
 const platform = getPlatform();
 const isWeb = platform === CONST.PLATFORM.WEB;
 
-function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
+function LHNOptionsList({
+    style,
+    contentContainerStyles,
+    data,
+    onSelectRow,
+    optionMode,
+    shouldDisableFocusOptions = false,
+    onFirstItemRendered = () => {},
+    listHeaderComponent,
+}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
     const route = useRoute();
@@ -48,8 +58,18 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const extraData = [data.length, optionMode, isOffline];
+    const hasListHeader = !!listHeaderComponent;
     const savedScrollIndex = getScrollIndex(route);
-    const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= 0 && savedScrollIndex < data.length ? savedScrollIndex : undefined;
+    // With a list header, index 0 is left to the list's natural start: FlashList restores an index to the row's offset
+    // plus the header's height, so restoring 0 would scroll the header away.
+    const minRestorableScrollIndex = hasListHeader ? 1 : 0;
+    const initialScrollIndex = isWeb && savedScrollIndex !== undefined && savedScrollIndex >= minRestorableScrollIndex && savedScrollIndex < data.length ? savedScrollIndex : undefined;
+
+    // Kept in a ref rather than state: onScroll is the only reader, and the header's height must never trigger a re-render.
+    const listHeaderHeightRef = useRef(0);
+    const onListHeaderLayout = (event: LayoutChangeEvent) => {
+        listHeaderHeightRef.current = event.nativeEvent.layout.height;
+    };
 
     // When the first item renders we want to call the onFirstItemRendered callback.
     // At this point in time we know that the list is actually displaying items.
@@ -88,7 +108,13 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         }
         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
         if (isWeb) {
-            saveScrollIndex(route, Math.floor(e.nativeEvent.contentOffset.y / estimatedItemSize));
+            // The list header is part of the content, so discount its height before converting the offset to a
+            // row index. Otherwise the restored index overshoots by however many rows the header covers. The header
+            // can be removed without a remount (e.g. on rotation), which leaves its last height in the ref, so only
+            // discount it while a header is rendered.
+            const listHeaderHeight = hasListHeader ? listHeaderHeightRef.current : 0;
+            const rowsOffset = Math.max(e.nativeEvent.contentOffset.y - listHeaderHeight, 0);
+            saveScrollIndex(route, Math.floor(rowsOffset / estimatedItemSize));
         }
         triggerScrollEvent();
     };
@@ -118,6 +144,8 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         flashListRef.current.scrollToOffset({offset: 0});
     }, [previousOptionMode, optionMode]);
 
+    const listHeader = hasListHeader ? <View onLayout={onListHeaderLayout}>{listHeaderComponent}</View> : undefined;
+
     return (
         <View style={style ?? styles.flex1}>
             <LHNTooltipContextProvider data={data}>
@@ -136,6 +164,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     onLayout={onLayout}
                     onScroll={onScroll}
                     initialScrollIndex={initialScrollIndex}
+                    ListHeaderComponent={listHeader}
                     maintainVisibleContentPosition={{disabled: true}}
                     drawDistance={250}
                     removeClippedSubviews
