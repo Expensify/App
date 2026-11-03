@@ -78,9 +78,8 @@ function registerSignInTool(registerTool: (tool: AppductTool) => void) {
 
             if (state.account?.accountExists) {
                 // Returning account: the remaining step is the emailed magic
-                // code, which no CI run can read. The caller must mint a fresh
-                // alias, not retry.
-                return {ok: false, reason: 'account exists and needs the emailed magic code; mint a new alias email'};
+                // code, which this tool cannot read, so retrying will not help.
+                return {ok: false, reason: 'account already exists and needs the emailed magic code to sign in'};
             }
 
             if (state.account?.errors && Object.keys(state.account.errors).length > 0) {
