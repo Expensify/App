@@ -22,11 +22,11 @@ type VerifyWiseBankAccountProps = {
 /** Asks the admin to send Wise the info it needs before global reimbursements can be enabled on the bank account */
 function VerifyWiseBankAccount({bankAccountID, bankAccountLastFour}: VerifyWiseBankAccountProps) {
     const {translate} = useLocalize();
-    const icons = useMemoizedLazyExpensifyIcons(['Globe']);
+    const icons = useMemoizedLazyExpensifyIcons(['GlobeWithCard']);
 
     return (
         <BaseWidgetItem
-            icon={icons.Globe}
+            icon={icons.GlobeWithCard}
             title={translate('homePage.timeSensitiveSection.verifyWiseBankAccount.title')}
             subtitle={translate('homePage.timeSensitiveSection.verifyWiseBankAccount.subtitle', {bankAccountLastFour})}
             ctaText={translate('homePage.forYouSection.begin')}
