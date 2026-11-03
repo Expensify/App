@@ -332,6 +332,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pm: 'PM',
         tbd: 'À déterminer',
         selectCurrency: 'Sélectionner une devise',
+        any: 'Toutes',
+        anyCurrency: 'N’importe quelle devise',
         selectSymbolOrCurrency: 'Sélectionner un symbole ou une devise',
         card: 'Carte',
         mcc: 'MCC',
@@ -1268,6 +1270,14 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Oups ! Vous avez associé un seul champ (« ${fieldName} ») à plusieurs colonnes. Veuillez vérifier et réessayer.`,
         emptyMappedField: (fieldName: string) => `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs vides. Veuillez vérifier et réessayer.`,
         invalidApprovalLimit: 'Les limites d’approbation doivent être des montants valides dans la devise de l’espace de travail.',
+        approverColumn: (position: number) => `Approbateur ${position}`,
+        approverLimitColumn: (position: number) => `Limite de l'approbateur ${position}`,
+        approverOverLimitApproverColumn: (position: number) => `Approbateur ${position} au-delà de la limite d’approbation`,
+        approversOutOfOrder: (rowNumber: number) =>
+            `Oups ! Il manque un approbateur à la ligne ${rowNumber}. Veuillez lister les approbateurs dans l’ordre, en commençant par l’Approbateur 1, puis réessayez.`,
+        approverRepeated: (rowNumber: number) => `Oups ! La ligne ${rowNumber} indique le même approbateur plus d’une fois. Veuillez examiner et réessayer.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `Oups ! La ligne ${rowNumber} a une limite d’approbation sans approbateur au-delà de cette limite, ou un approbateur au-delà de la limite sans limite d’approbation. Veuillez examiner et réessayer.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Oups ! Le champ (« ${fieldName} ») contient une ou plusieurs valeurs de plus de ${limit} caractères. Veuillez vérifier et réessayer.`,
         importSuccessfulTitle: 'Importation réussie',
@@ -4450,6 +4460,7 @@ ${amount} pour ${merchant} - ${date}`,
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} se terminant par ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Les questions de cette page ont changé',
+        onFile: 'Enregistré',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Le code SWIFT/BIC doit comporter 8 ou 11 caractères, avec 6 lettres suivies de 2 ou 5 lettres ou chiffres.',
@@ -6084,8 +6095,24 @@ ${amount} pour ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Compte de carte de crédit',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? "Nous utiliserons ce compte pour les cartes qui n'ont pas leur propre compte d'exportation."
+                    : "Choisissez un compte par défaut. Nous l'utiliserons pour les cartes qui n'ont pas leur propre compte d'exportation.",
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet
+                    ? "Nous utiliserons ce fournisseur pour les dépenses qui n'ont pas de fournisseur."
+                    : "Choisissez un fournisseur par défaut. Nous l'utiliserons pour les dépenses qui n'ont pas de fournisseur.",
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Frais de carte de crédit',
+                        nonReimbursableDescription:
+                            "Les dépenses des cartes d'entreprise seront exportées vers NetSuite en tant que frais de carte de crédit individuels, datés de chaque achat.",
+                        legacyTaxHelper:
+                            "Les frais de carte de crédit ne prennent pas en charge le NetSuite legacy tax. Si vous utilisez le legacy tax, choisissez un autre type d'exportation.",
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Notes de frais',
                         reimbursableDescription: 'Les dépenses payées de votre poche seront exportées sous forme de notes de frais vers NetSuite.',
@@ -6469,9 +6496,17 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: 'Veuillez ajouter des comptes dans Rillet et synchroniser à nouveau la connexion',
             exportDescription: 'Configurez comment les données Expensify sont exportées vers Rillet.',
-            exportReimbursable: {label: 'Exporter les dépenses remboursables en tant que', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Factures fournisseurs'}}},
+            exportReimbursable: {
+                label: 'Exporter les dépenses remboursables en tant que',
+                values: {
+                    REIMBURSEMENT: {label: 'Remboursements détaillés'},
+                    VENDOR_BILL: {label: 'Factures fournisseur détaillées'},
+                },
+                description:
+                    'Nous créerons une facture fournisseur détaillée ou un remboursement pour chaque note de frais Expensify. Si la période est clôturée, nous l’enregistrerons sur la prochaine période ouverte.',
+            },
             exportDate: {
-                label: 'Date de la facture fournisseur',
+                label: 'Date d’impact dans le grand livre',
                 description: 'Utiliser cette date lors de l’exportation des notes de frais vers Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6513,8 +6548,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 },
             },
             syncReimbursedReports: 'Synchroniser les notes de frais remboursées',
-            syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un règlement de facture est généré sur ce compte.',
-            billPaymentAccount: {label: 'Compte de paiement des factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans Rillet.'},
+            syncReimbursedReportsDescription: 'Lorsqu’une note de frais est payée par virement ACH, un paiement est généré sur ce compte.',
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.'},
             syncTravelBillingSettlements: 'Synchroniser les règlements de facturation de voyage consolidée',
@@ -6556,6 +6590,12 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 description:
                     'Lorsque votre entreprise prend en charge les frais de conversion de devise sur un paiement effectué à l’étranger, nous comptabiliserons ces frais sur ce compte dans Rillet sous forme d’écriture de journal.',
             },
+            reimbursementAccount: {
+                label: 'Compte de remboursement',
+                description: 'Choisissez où exporter les dépenses remboursables.',
+                accountRequiredError: 'Veuillez sélectionner un compte de remboursement Rillet.',
+            },
+            achPaymentAccount: {label: 'Compte de paiement ACH', description: 'Choisissez l’origine de paiement des notes de frais et nous créerons le paiement dans Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Configuration DualEntry',
@@ -6829,6 +6869,18 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Dernier jour du mois',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Dernier jour ouvrable du mois',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Jour du mois personnalisé',
+            },
+            reimbursable: {
+                title: 'Remboursable',
+                description: 'Choisissez comment les transactions par carte doivent être créées. Les nouvelles transactions suivront ces règles.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Toujours remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Toujours remboursé aux employés',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Toujours non remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Jamais remboursé aux employés',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Le plus souvent remboursé aux employés',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Non remboursable',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Parfois remboursé aux employés',
             },
             assign: 'Assigner',
             assignCard: 'Assigner une carte',
@@ -10391,6 +10443,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             `Autoriser les porteurs de carte ${enabled ? 'activé' : 'Désactivé'} à supprimer les transactions de carte pour le flux de cartes « ${feedName} »`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `a modifié le jour de fin de période de relevé du flux de carte « ${feedName} »${newValue ? ` à « ${newValue} »` : ''}${previousValue ? ` (précédemment « ${previousValue} »)` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `a modifié le paramètre de remboursement du flux de cartes "${feedName}"${newValue ? ` en "${newValue}"` : ''}${previousValue ? ` (auparavant "${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `a ajouté le champ de note de frais ${fieldType} « ${fieldName} »${defaultValue ? ` avec la valeur par défaut « ${defaultValue} »` : ''}`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
@@ -10760,7 +10814,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Jamais',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Mois dernier',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Ce mois-ci',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Depuis le début de l’année',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Cette année',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: '12 derniers mois',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Cette semaine',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Semaine dernière',
@@ -11719,6 +11773,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         keepThisOne: 'Garder celui-ci',
         confirmDetails: `Confirmez les informations que vous conservez`,
         confirmDuplicatesInfo: `Les doublons que vous ne conservez pas seront mis à la disposition du déclarant pour qu’il les supprime.`,
+        confirmDuplicatesRemovedInfo: `Les doublons que vous ne conservez pas seront supprimés.`,
         hold: 'Cette dépense a été mise en attente',
         resolvedDuplicates: 'a résolu le doublon',
         companyCardRequired: 'Achats par carte d’entreprise obligatoires',
@@ -11813,6 +11868,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} est obligatoire`,
         reportContainsExpensesWithViolations: 'La note de frais contient des dépenses avec des violations.',
+        reportHasErrors: 'La note de frais contient des erreurs.',
     },
     violationDismissal: {
         rter: {
@@ -12310,7 +12366,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             theresAReportWithErrors: 'Il y a une note de frais avec des erreurs',
             theresAWorkspaceWithCustomUnitsErrors: 'Il existe un espace de travail avec des erreurs d’unités personnalisées',
             theresAProblemWithAWorkspaceMember: 'Il y a un problème avec un membre de l’espace de travail',
-            theresAProblemWithAWorkspaceQBOExport: 'Un problème s’est produit avec un paramètre d’exportation de connexion d’espace de travail.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Un problème est survenu avec un paramètre d’exportation de connexion d’espace de travail.',
             theresAProblemWithAContactMethod: 'Un problème est survenu avec une méthode de contact',
             aContactMethodRequiresVerification: 'Une méthode de contact nécessite une vérification',
             theresAProblemWithAPaymentMethod: 'Un problème est survenu avec un moyen de paiement',

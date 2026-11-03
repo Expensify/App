@@ -72,7 +72,13 @@ import TelemetrySpanManager from '@pages/iou/request/step/confirmation/Telemetry
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from '@pages/iou/request/step/withWritableReportOrNotFound';
 
-import {copyScanResultsToMovedExpenseDraft, getIOURequestPolicyID, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
+import {
+    copyScanResultsToMovedExpenseDraft,
+    getIOURequestPolicyID,
+    getSyncedParticipantAccountIDs,
+    setMoneyRequestParticipantsFromReport,
+    setMoneyRequestParticipantsSyncedAccountIDs,
+} from '@userActions/IOU/MoneyRequest';
 import {setMoneyRequestReceipt} from '@userActions/IOU/Receipt';
 
 import CONST from '@src/CONST';
@@ -166,6 +172,7 @@ function IOURequestStepConfirmationContent({
         transactions,
         transaction,
         existingTransaction,
+        optimisticTransaction,
         currentTransactionID,
         currentTransactionIndex,
         setCurrentTransactionID,
@@ -271,15 +278,10 @@ function IOURequestStepConfirmationContent({
     // The user can fill in the amount, merchant and date on the Scan tab instead of waiting for SmartScan, so the Scan
     // confirmation reveals those fields behind "Show more" as well. This only applies to a scan being created: a
     // tracked expense being moved already carries real values, and its emptiness
-    // can't be told from the `isAmountSet` / `isMerchantSet` / `isCreatedSet` flags a fresh draft uses. Splits are
-    // excluded too because StartSplitBill takes no amount/merchant/date (the details are filled in once the receipt
-    // has been scanned), and so are test receipts, whose values are fixed.
+    // can't be told from the `isAmountSet` / `isMerchantSet` / `isCreatedSet` flags a fresh draft uses. Test receipts
+    // are excluded too, since their values are fixed. A split scan sends the entered values with StartSplitBill.
     const canEnterScanFieldsManually =
-        requestType === CONST.IOU.REQUEST_TYPE.SCAN &&
-        !isMovingTransactionFromTrackExpense &&
-        iouType !== CONST.IOU.TYPE.SPLIT &&
-        !transaction?.receipt?.isTestReceipt &&
-        !transaction?.receipt?.isTestDriveReceipt;
+        requestType === CONST.IOU.REQUEST_TYPE.SCAN && !isMovingTransactionFromTrackExpense && !transaction?.receipt?.isTestReceipt && !transaction?.receipt?.isTestDriveReceipt;
 
     const gpsRequired = transaction?.amount === 0 && iouType !== CONST.IOU.TYPE.SPLIT && Object.values(receiptFiles).length && isScanRequest(transaction);
     let headerTitle;
@@ -310,6 +312,20 @@ function IOURequestStepConfirmationContent({
         }
         setMoneyRequestParticipantsFromReport(transaction.transactionID, transactionReport, currentUserPersonalDetails.accountID);
     }, [transactionReport, currentUserPersonalDetails.accountID, transaction?.transactionID, iouType]);
+
+    // A recipient created offline keeps an optimistic accountID in the draft until the request that created them syncs.
+    // Move the draft to the real accountID then, so the existing chat is found and split shares stay on the shown row.
+    // This only reads the draft and Onyx, so it also works when the sync happened before this page opened. Until a
+    // participant's accountID drops out of personal details, getSyncedParticipantAccountIDs returns early and nothing is merged.
+    useEffect(() => {
+        const syncedParticipantAccountIDs = getSyncedParticipantAccountIDs(
+            optimisticTransaction?.participants,
+            personalDetails,
+            participantReport ?? transactionReport,
+            currentUserPersonalDetails.accountID,
+        );
+        setMoneyRequestParticipantsSyncedAccountIDs(optimisticTransaction, syncedParticipantAccountIDs);
+    }, [optimisticTransaction, personalDetails, participantReport, transactionReport, currentUserPersonalDetails.accountID]);
 
     const participantsPolicies = useParticipantsPolicies(transaction?.participants ?? []);
 
