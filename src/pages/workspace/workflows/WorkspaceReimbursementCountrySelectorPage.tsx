@@ -32,6 +32,7 @@ import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import React, {useState} from 'react';
 
@@ -41,6 +42,7 @@ type WorkspaceReimbursementCountrySelectorPageProps = WithPolicyOnyxProps &
 type CountryOption = Option & {
     isDisabledCheckbox: boolean;
     isInteractive: boolean;
+    pendingAction?: PendingAction;
 };
 
 function WorkspaceReimbursementCountrySelectorPage({policy, route}: WorkspaceReimbursementCountrySelectorPageProps) {
@@ -73,6 +75,8 @@ function WorkspaceReimbursementCountrySelectorPage({policy, route}: WorkspaceRei
                 isDisabledCheckbox: isLocked,
                 isInteractive: !isLocked,
                 searchValue: StringUtils.sanitizeString(`${countryISO}${countryName}`),
+                // Pending rows are only faded. A delete pending action would hide the row, so every pending country uses update
+                pendingAction: policy?.reimbursement?.countries?.[countryISO]?.pendingAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined,
             };
         });
     const orderedCountryOptions = moveInitialSelectionToTop(countryOptions, initialSelectedCountryISOs);
