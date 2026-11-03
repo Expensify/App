@@ -13,6 +13,7 @@ import useLoadSearchCardData from '@hooks/useLoadSearchCardData';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -47,6 +48,7 @@ import {isOneTransactionReport} from '@libs/ReportUtils';
 import {searchKeyToSavedSearchID} from '@libs/SearchKeyUtils';
 import {buildCannedSearchQuery, buildSearchQueryString, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {
+    canEditSearchColumns,
     createAndOpenSearchTransactionThread,
     doesSearchItemMatchSort,
     getValidGroupBy,
@@ -212,6 +214,8 @@ function Search({
 
     const isExpenseReportType = type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const shouldReturnTripRooms = useShouldReturnTripRooms(type);
+    const {isBetaEnabled} = usePermissions();
+    const shouldShowColumnMenu = isBetaEnabled(CONST.BETAS.PINNABLE_TABLE_COLUMNS) && canEditSearchColumns(type, shouldReturnTripRooms);
 
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     // getSections only needs the boolean (it gates attendees on unreported transactions for the
@@ -1606,7 +1610,7 @@ function Search({
                 isExpenseReportView={isExpenseReportType || shouldReturnTripRooms}
                 isActionColumnWide={isActionColumnWide}
             >
-                {!!getHideColumnHandler && <SearchColumnMenu getHideColumnHandler={getHideColumnHandler} />}
+                {shouldShowColumnMenu && <SearchColumnMenu getHideColumnHandler={getHideColumnHandler} />}
             </SearchTableHeader>
         </View>
     );
