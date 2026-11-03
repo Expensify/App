@@ -12,6 +12,8 @@ import type {FileObject} from '@src/types/utils/Attachment';
 
 import Onyx from 'react-native-onyx';
 
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
+
 const ACCOUNT_ID = 1;
 const DELEGATE_ACCOUNT_ID = '99';
 const TIMEZONE = 'Europe/Warsaw';
@@ -118,6 +120,29 @@ describe('useAskConcierge', () => {
 
             // Then it targets the Concierge report
             expect(result.current.conciergeTargetReportID).toBe(CONCIERGE_REPORT_ID);
+        });
+
+        it('does not rerender when the thread open in the side panel gets a reply', async () => {
+            // Given web, with the side panel showing the thread of an earlier Concierge question
+            mockIsInSidePanel = true;
+            await seedReports();
+            const conciergeThread = {reportID: '300', parentReportID: CONCIERGE_REPORT_ID} as Report;
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${conciergeThread.reportID}`, conciergeThread);
+            mockSidePanelReportID = conciergeThread.reportID;
+            let renderCount = 0;
+            renderHook(() => {
+                renderCount++;
+                return useAskConcierge();
+            });
+            await waitForBatchedUpdates();
+            const renderCountBeforeReply = renderCount;
+
+            // When Concierge replies in that thread
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${conciergeThread.reportID}`, {lastMessageText: 'Spend is up because of travel.'});
+            await waitForBatchedUpdates();
+
+            // Then the hook does not rerender, since the reply leaves the thread's parent, and so the target, unchanged
+            expect(renderCount).toBe(renderCountBeforeReply);
         });
 
         it('targets Concierge on native, where there is no side panel', async () => {
