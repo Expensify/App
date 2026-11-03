@@ -1,4 +1,5 @@
 import {navigateToConciergeChat} from '@libs/actions/Report';
+import {waitForUserSignIn} from '@libs/actions/Session';
 import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import {setDeepLinkToOpenAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
@@ -92,6 +93,43 @@ describe('openReportFromDeepLink before onboarding', () => {
         jest.clearAllMocks();
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
+    });
+
+    it.each([
+        ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: '123'}),
+        ROUTES.SEARCH_REPORT.getRoute({reportID: '123'}),
+        ROUTES.SEARCH_REPORT.getRoute({reportID: '123', reportActionID: '456', backTo: 'search?q=type:invoice'}),
+    ])('replays %s after sign-in for a workspace member who does not need onboarding', async (route) => {
+        // Given a workspace member can skip onboarding without completing its stored flag.
+        focusOn(NAVIGATORS.TAB_NAVIGATOR);
+        let finishSignIn: (() => void) | undefined;
+        jest.mocked(waitForUserSignIn).mockImplementationOnce(
+            () =>
+                new Promise<boolean>((resolve) => {
+                    finishSignIn = () => resolve(true);
+                }),
+        );
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+
+        // When the link arrives before sign-in and OpenApp supplies workspace membership afterward.
+        openReportFromDeepLink(`${APP_URL}/${route}`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+        await waitForBatchedUpdates();
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+        finishSignIn?.();
+        await waitForBatchedUpdates();
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
+        await waitForBatchedUpdates();
+
+        // Then the complete destination opens once instead of waiting for onboarding the member will never see.
+        try {
+            expect(mockedNavigation.navigate).toHaveBeenCalledTimes(1);
+            expect(mockedNavigation.navigate).toHaveBeenCalledWith(route, expect.objectContaining({waitForTransition: true}));
+            expect(mockedSetDeepLinkToOpenAfterOnboarding).not.toHaveBeenCalled();
+        } finally {
+            // Finish pending subscriptions after a failed assertion so the next test cannot consume this link.
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            await waitForBatchedUpdates();
+        }
     });
 
     it('parks the link instead of opening it under the onboarding modal', async () => {
