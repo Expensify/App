@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useReportIDToNameMap from '@hooks/useReportIDToNameMap';
+import useReportIDToNameMap, {getReportIDToNameMapForRoomsInMarkdown} from '@hooks/useReportIDToNameMap';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
@@ -88,5 +88,55 @@ describe('useReportIDToNameMap', () => {
         });
 
         expect(result.current).toBe(firstResult);
+    });
+});
+
+describe('getReportIDToNameMapForRoomsInMarkdown', () => {
+    const adminsRoomID = '1';
+    const announceRoomID = '2';
+    const expenseReportID = '3';
+    const unnamedReportID = '4';
+    const reportIDToName = {[adminsRoomID]: '#admins', [announceRoomID]: '#announce', [expenseReportID]: 'Expense Report', [unnamedReportID]: unnamedReportID};
+
+    it('keeps only the rooms whose name appears in the markdown', () => {
+        // Given a draft that mentions one of the rooms
+        const markdown = 'hello #admins';
+
+        // When narrowing the map to that draft
+        const map = getReportIDToNameMapForRoomsInMarkdown(reportIDToName, markdown);
+
+        // Then only the mentioned room is kept, so a deferred edit does not persist every report name
+        expect(map).toEqual({[adminsRoomID]: '#admins'});
+    });
+
+    it('skips reports that are not rooms even when their name appears in the markdown', () => {
+        // Given a draft that contains the name of an expense report and the reportID used as a fallback name, but no room
+        const markdown = 'see Expense Report 4 #';
+
+        // When narrowing the map to that draft
+        const map = getReportIDToNameMapForRoomsInMarkdown(reportIDToName, markdown);
+
+        // Then nothing is kept, because only rooms can be mentioned in markdown and their names start with #
+        expect(map).toEqual({});
+    });
+
+    it('returns undefined when the markdown has no #', () => {
+        // Given a draft without any # character, so it cannot mention a room
+        const markdown = 'hello admins';
+
+        // When narrowing the map to that draft
+        const map = getReportIDToNameMapForRoomsInMarkdown(reportIDToName, markdown);
+
+        // Then no map is returned, so the deferred edit stores nothing
+        expect(map).toBeUndefined();
+    });
+
+    it('returns undefined when no map is passed', () => {
+        // Given a caller that has no reportIDToName map, like tests calling editReportComment without one
+        // When narrowing it to a draft that mentions a room
+        const map = getReportIDToNameMapForRoomsInMarkdown(undefined, 'hello #admins');
+
+        // Then there is nothing to narrow
+        expect(map).toBeUndefined();
     });
 });

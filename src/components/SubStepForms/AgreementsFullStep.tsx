@@ -20,7 +20,7 @@ import CONST from '@src/CONST';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 import type {FileObject} from '@src/types/utils/Attachment';
 
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 function IsAuthorizedToUseBankAccountLabel() {
@@ -100,18 +100,16 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
     const [uploadedBankStatement, setUploadedBankStatement] = useState<FileObject[]>(bankStatementDefaultValue ?? []);
 
     const isDocusignStepRequired = requiresDocusignStep(currency);
-    const stepFields = useMemo(() => {
-        const fields: Array<FormOnyxKeys<TFormID>> = [
-            inputIDs.authorizedToBindClientToAgreement,
-            inputIDs.provideTruthfulInformation,
-            inputIDs.agreeToTermsAndConditions,
-            inputIDs.consentToPrivacyNotice,
-        ];
-        if (bankStatementInputID) {
-            fields.push(bankStatementInputID);
-        }
-        return fields;
-    }, [inputIDs.authorizedToBindClientToAgreement, inputIDs.provideTruthfulInformation, inputIDs.agreeToTermsAndConditions, inputIDs.consentToPrivacyNotice, bankStatementInputID]);
+    const fields: Array<FormOnyxKeys<TFormID>> = [
+        inputIDs.authorizedToBindClientToAgreement,
+        inputIDs.provideTruthfulInformation,
+        inputIDs.agreeToTermsAndConditions,
+        inputIDs.consentToPrivacyNotice,
+    ];
+    if (bankStatementInputID) {
+        fields.push(bankStatementInputID);
+    }
+    const stepFields = fields;
 
     const handleSelectBankStatement = (files: FileObject[]) => {
         if (!bankStatementInputID) {
@@ -148,30 +146,27 @@ function AgreementsFullStep<TFormID extends keyof OnyxFormValuesMapping>({
         onBackButtonPress();
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
-            const errors = getFieldRequiredErrors(values, stepFields, translate);
+    const validate = (values: FormOnyxValues<TFormID>): FormInputErrors<TFormID> => {
+        const errors = getFieldRequiredErrors(values, stepFields, translate);
 
-            if (Object.hasOwn(errors, inputIDs.authorizedToBindClientToAgreement)) {
-                errors[inputIDs.authorizedToBindClientToAgreement] = translate('agreementsStep.error.authorized');
-            }
+        if (Object.hasOwn(errors, inputIDs.authorizedToBindClientToAgreement)) {
+            errors[inputIDs.authorizedToBindClientToAgreement] = translate('agreementsStep.error.authorized');
+        }
 
-            if (Object.hasOwn(errors, inputIDs.provideTruthfulInformation)) {
-                errors[inputIDs.provideTruthfulInformation] = translate('agreementsStep.error.certify');
-            }
+        if (Object.hasOwn(errors, inputIDs.provideTruthfulInformation)) {
+            errors[inputIDs.provideTruthfulInformation] = translate('agreementsStep.error.certify');
+        }
 
-            if (Object.hasOwn(errors, inputIDs.agreeToTermsAndConditions)) {
-                errors[inputIDs.agreeToTermsAndConditions] = translate('common.error.acceptTerms');
-            }
+        if (Object.hasOwn(errors, inputIDs.agreeToTermsAndConditions)) {
+            errors[inputIDs.agreeToTermsAndConditions] = translate('common.error.acceptTerms');
+        }
 
-            if (Object.hasOwn(errors, inputIDs.consentToPrivacyNotice)) {
-                errors[inputIDs.consentToPrivacyNotice] = translate('agreementsStep.error.consent');
-            }
+        if (Object.hasOwn(errors, inputIDs.consentToPrivacyNotice)) {
+            errors[inputIDs.consentToPrivacyNotice] = translate('agreementsStep.error.consent');
+        }
 
-            return errors;
-        },
-        [inputIDs.agreeToTermsAndConditions, inputIDs.authorizedToBindClientToAgreement, inputIDs.consentToPrivacyNotice, inputIDs.provideTruthfulInformation, stepFields, translate],
-    );
+        return errors;
+    };
 
     return (
         <InteractiveStepWrapper

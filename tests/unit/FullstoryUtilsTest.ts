@@ -40,6 +40,8 @@ describe('FullstoryUtils', () => {
             userMetadata: {
                 freeTrialEndDate: '2099-05-31 23:59:59',
                 paidMember: true,
+                npsScore: 9,
+                npsResponseDate: '2026-05-03 09:30:00',
             },
         });
 
@@ -57,9 +59,11 @@ describe('FullstoryUtils', () => {
             free_trial_status: 'active',
             plan_type: 'collect',
             paid_member: true,
+            nps_score: 9,
         });
         expect(userVars.days_till_trial_end).toBeGreaterThan(0);
         expect(userVars.free_trial_end_date?.toISOString()).toBe('2099-05-31T23:59:59.000Z');
+        expect(userVars.nps_response_date?.toISOString()).toBe('2026-05-03T09:30:00.000Z');
     });
 
     it('builds page viewed event metadata', () => {

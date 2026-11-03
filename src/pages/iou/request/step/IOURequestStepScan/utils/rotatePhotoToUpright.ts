@@ -1,6 +1,7 @@
 /**
  * Rotates a captured still so the receipt reads upright. Returns undefined when the photo is already upright.
  */
+import releaseQuietly from '@libs/cameraCapture/releaseQuietly';
 import {JPEG_QUALITY} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import Log from '@libs/Log';
@@ -30,15 +31,6 @@ function getUprightRotation({width, height, rotation = 0}: PhotoSize, orientatio
         return undefined;
     }
     return orientation === 'right' ? 270 : 90;
-}
-
-/** The garbage collector can't see the native memory a 12 MP bitmap holds, so free it as soon as the photo is saved. */
-function releaseQuietly(releasable: {release: () => void}) {
-    try {
-        releasable.release();
-    } catch (error) {
-        Log.warn('[PhotoUpgrade] could not release a native image', {error: error instanceof Error ? error.message : String(error)});
-    }
 }
 
 function rotatePhotoToUpright(stillPath: string, orientation?: CameraOrientation): Promise<string | undefined> {

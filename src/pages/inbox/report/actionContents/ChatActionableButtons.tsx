@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {resolveSuggestedFollowup} from '@libs/actions/Report/SuggestedFollowup';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
 import type {Followup} from '@libs/ReportActionFollowupUtils';
@@ -37,7 +38,7 @@ import {dismissTrackExpenseActionableWhisper, resolveConciergeCategoryOptions, r
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
@@ -57,7 +58,7 @@ function AddPaymentCardButton() {
             <Button
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => {
-                    Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD);
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.ADD_PAYMENT_CARD.path));
                 }}
             >
                 <Button.Text>{translate('subscription.cardSection.addCardButton')}</Button.Text>
