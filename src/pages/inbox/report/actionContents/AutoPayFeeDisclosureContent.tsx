@@ -1,3 +1,6 @@
+/**
+ * Concierge comment in #admins warning that Auto Pay can't preview cross-border rates and fees once Global Reimbursements is on.
+ */
 import RenderHTML from '@components/RenderHTML';
 
 import useLocalize from '@hooks/useLocalize';
