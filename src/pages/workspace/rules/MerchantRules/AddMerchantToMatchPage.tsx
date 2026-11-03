@@ -15,7 +15,7 @@ import {updateDraftMerchantRule} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isRequiredFulfilled, isValidInputLength} from '@libs/ValidationUtils';
+import {isValidInputLength} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,6 +32,23 @@ type AddMerchantToMatchPageProps = PlatformStackScreenProps<
     SettingsNavigatorParamList,
     typeof SCREENS.WORKSPACE.RULES_MERCHANT_MERCHANT_TO_MATCH | typeof SCREENS.WORKSPACE.DYNAMIC_RULES_MERCHANT_MERCHANT_TO_MATCH
 >;
+
+/**
+ * The byte length of a merchant to match that is too long to store, or undefined when it is storable.
+ *
+ * A rule no longer has to match on a merchant, so an empty value clears that condition rather than being an
+ * error. The editor still refuses to save a rule once nothing is left to match on.
+ */
+function getMerchantToMatchLengthError(value: string): number | undefined {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+        return undefined;
+    }
+
+    const {isValid, byteLength} = isValidInputLength(trimmedValue, CONST.MERCHANT_NAME_MAX_BYTES);
+
+    return isValid ? undefined : byteLength;
+}
 
 function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
     const {policyID, ruleID} = route.params;
@@ -70,16 +87,10 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
             return errors;
         }
 
-        const trimmedValue = fieldValue.trim();
+        const byteLength = getMerchantToMatchLengthError(fieldValue);
 
-        if (!isRequiredFulfilled(fieldValue)) {
-            errors[fieldID] = translate('common.error.fieldRequired');
-        } else {
-            const {isValid, byteLength} = isValidInputLength(trimmedValue, CONST.MERCHANT_NAME_MAX_BYTES);
-
-            if (!isValid) {
-                errors[fieldID] = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
-            }
+        if (byteLength !== undefined) {
+            errors[fieldID] = translate('common.error.characterLimitExceedCounter', byteLength, CONST.MERCHANT_NAME_MAX_BYTES);
         }
 
         return errors;
@@ -136,3 +147,4 @@ function AddMerchantToMatchPage({route}: AddMerchantToMatchPageProps) {
 AddMerchantToMatchPage.displayName = 'AddMerchantToMatchPage';
 
 export default AddMerchantToMatchPage;
+export {getMerchantToMatchLengthError};
