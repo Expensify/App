@@ -1,7 +1,7 @@
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {getValidGroupBy} from '@libs/SearchUIUtils';
+import {getValidGroupBy, isSearchDataLoaded} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -24,7 +24,8 @@ function useSearchLoadingState(queryJSON: SearchQueryJSON | undefined, searchRes
         return false;
     }
 
-    const hasNoData = searchResults?.data === undefined;
+    // Data left over from another query doesn't count, or Search mounts with it and shows its empty state while the new query loads.
+    const hasNoData = searchResults?.data === undefined || !isSearchDataLoaded(searchResults, queryJSON);
     const validGroupBy = getValidGroupBy(queryJSON.groupBy);
     const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
 
