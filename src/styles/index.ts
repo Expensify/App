@@ -3654,7 +3654,10 @@ const staticStyles = (theme: ThemeColors) =>
         // the device font size.
         moneyRequestFieldRow: {
             minHeight: variables.inputHeight,
-            paddingHorizontal: 8,
+            paddingLeft: 8,
+            // With the caret's 4px margin this puts it 19px in from the border, where a text input's icon sits
+            // (8px of container padding plus 11px around the icon), so the fields' right icons line up
+            paddingRight: 15,
             paddingVertical: 6,
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusNormal,
