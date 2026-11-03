@@ -50,7 +50,7 @@ type ApprovalWorkflowSource = {
     /** Provider to name as the workflow's source (e.g. `'Workday'`, `'Greenhouse'`). */
     providerName: string;
 
-    /** That connection's own settings page, where the routing is actually configured. */
+    /** The Connections tab that lists that connection, where the routing is actually configured. */
     settingsRoute: Route;
 };
 
@@ -58,13 +58,13 @@ function getApprovalWorkflowSource(policy: OnyxEntry<Policy>, policyID: string |
     if (isAnyHRConnected(policy)) {
         return {
             providerName: getConnectedHRProvider(policy)?.displayName ?? '',
-            settingsRoute: ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID),
+            settingsRoute: ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.PEOPLE),
         };
     }
     if (isAnyRecruitingReadOnlyWorkflowMode(policy)) {
         return {
             providerName: getConnectedATSProvider(policy)?.displayName ?? '',
-            settingsRoute: ROUTES.WORKSPACE_CONNECTIONS_RECRUITING.getRoute(policyID),
+            settingsRoute: ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.RECRUITING),
         };
     }
     return undefined;
