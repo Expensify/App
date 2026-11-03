@@ -49,7 +49,7 @@ function InsightsExplainButton({explainPrompt, insightsScope, isAccented = false
                 fill={glyphColor}
                 hoverFill={glyphColor}
             />
-            <Button.Text style={[styles.textMicroBold, isAccented ? styles.link : styles.textSupporting]}>{translate('reportActionContextMenu.explain')}</Button.Text>
+            <Button.Text style={[styles.textMicroBold, isAccented ? styles.link : styles.textSupporting]}>{translate('insightsPage.explain')}</Button.Text>
         </Button>
     );
 }
