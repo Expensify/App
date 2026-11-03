@@ -162,6 +162,7 @@ describe('actions/IOU/TrackExpense', () => {
             const recentWaypoints = (await getOnyxValue(ONYXKEYS.NVP_RECENT_WAYPOINTS)) ?? [];
             const hiddenReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: undefined,
+                policies: {},
                 reports: {[selfDMReportKey]: selfDMReport},
                 isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -175,6 +176,7 @@ describe('actions/IOU/TrackExpense', () => {
                 reportAttributes: undefined,
                 guideAccountIDs: [],
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${distanceTransaction.transactionID}`, distanceTransaction);
@@ -222,6 +224,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             const optimisticReportsToDisplay = SidebarUtils.getReportsToDisplayInLHN({
                 currentReportId: 'different-report-id',
+                policies: {},
                 reports: {[selfDMReportKey]: optimisticSelfDMReport},
                 isDefaultRoomsBetaEnabled: false,
                 priorityMode: CONST.PRIORITY_MODE.DEFAULT,
@@ -235,6 +238,7 @@ describe('actions/IOU/TrackExpense', () => {
                 reportAttributes: undefined,
                 guideAccountIDs: [],
                 conciergeReportID: undefined,
+                session: undefined,
             });
 
             expect(hiddenReportsToDisplay).not.toHaveProperty(selfDMReportKey);

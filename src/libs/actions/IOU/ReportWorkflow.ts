@@ -214,7 +214,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               predictedNextStatus,
               isTrackIntentUser,
           });
-    const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
+    const chatReport = getReportOrDraftReport({reportID: expenseReport.chatReportID});
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -1027,7 +1027,7 @@ function submitReport({
 
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
-    const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
+    const parentReport = getReportOrDraftReport({reportID: expenseReport.parentReportID});
     const trimmedManagerEmail = managerEmail?.trim();
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList, personalDetailsByLogins) : undefined;
     const resolvedManagerAccountIDFromEmail = managerAccountIDFromPopover ?? managerAccountIDFromEmail;
@@ -1109,6 +1109,8 @@ function submitReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                // Clear errors from a previous failed submit
+                errors: null,
                 ...(shouldAddOptimisticSubmitAction
                     ? {
                           lastMessageText: getReportActionText(optimisticSubmittedReportAction),
@@ -1136,6 +1138,8 @@ function submitReport({
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
+                // Clear errors from a previous failed submit
+                errors: null,
                 // For DEW policies, don't optimistically update stateNum, statusNum, or nextStep
                 ...(isDEWPolicy
                     ? {}
