@@ -667,6 +667,7 @@ function useAutocompleteSuggestions({
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.DUE_DATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED: {
             const filteredDatePresets = getDatePresets(autocompleteKey, true)
                 .filter((datePreset) => datePreset.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.has(datePreset.toLowerCase()))

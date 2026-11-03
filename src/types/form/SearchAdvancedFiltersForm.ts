@@ -33,6 +33,8 @@ const TEXT_FILTER_KEYS = new Set<SearchTextFilterKeys>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_USER_ID,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTER_PAYROLL_ID,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ORDER_DEAL_NUMBERS,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.INVOICE_NUMBER,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.PO_NUMBER,
     CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT,
 ]);
 
@@ -45,6 +47,7 @@ const DATE_FILTER_KEYS: SearchDateFilterKeys[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWN,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.DUE_DATE,
 ];
 
 const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [
@@ -279,6 +282,18 @@ const FILTER_KEYS = {
     ATTENDEE_NOT: 'attendeeNot',
     ATTENDEE: 'attendee',
     REPORT_FIELD: 'reportField',
+
+    INVOICE_NUMBER_NOT: 'invoiceNumberNot',
+    INVOICE_NUMBER: 'invoiceNumber',
+
+    DUE_DATE_NOT: 'dueDateNot',
+    DUE_DATE_ON: 'dueDateOn',
+    DUE_DATE_AFTER: 'dueDateAfter',
+    DUE_DATE_BEFORE: 'dueDateBefore',
+    DUE_DATE_RANGE: 'dueDateRange',
+
+    PO_NUMBER_NOT: 'poNumberNot',
+    PO_NUMBER: 'poNumber',
 
     COLUMNS: 'columns',
     LIMIT: 'limit',
@@ -616,6 +631,15 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.WITHDRAWAL_ID_NOT,
         FILTER_KEYS.TITLE,
         FILTER_KEYS.REPORT_FIELD,
+        FILTER_KEYS.INVOICE_NUMBER_NOT,
+        FILTER_KEYS.INVOICE_NUMBER,
+        FILTER_KEYS.DUE_DATE_NOT,
+        FILTER_KEYS.DUE_DATE_ON,
+        FILTER_KEYS.DUE_DATE_AFTER,
+        FILTER_KEYS.DUE_DATE_BEFORE,
+        FILTER_KEYS.DUE_DATE_RANGE,
+        FILTER_KEYS.PO_NUMBER_NOT,
+        FILTER_KEYS.PO_NUMBER,
         FILTER_KEYS.TITLE_NOT,
         FILTER_KEYS.COLUMNS,
     ]),
@@ -986,6 +1010,19 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.ATTENDEE]: string[];
         [FILTER_KEYS.ATTENDEE_NOT]: string[];
         [FILTER_KEYS.REPORT_FIELD]: string;
+
+        [FILTER_KEYS.INVOICE_NUMBER_NOT]: string;
+        [FILTER_KEYS.INVOICE_NUMBER]: string;
+
+        [FILTER_KEYS.DUE_DATE_NOT]: string;
+        [FILTER_KEYS.DUE_DATE_ON]: string;
+        [FILTER_KEYS.DUE_DATE_AFTER]: string;
+        [FILTER_KEYS.DUE_DATE_BEFORE]: string;
+        [FILTER_KEYS.DUE_DATE_RANGE]: string;
+
+        [FILTER_KEYS.PO_NUMBER_NOT]: string;
+        [FILTER_KEYS.PO_NUMBER]: string;
+
         [FILTER_KEYS.LIMIT]: string;
 
         [FILTER_KEYS.FOOTER_COUNT]: SearchFooterCount;

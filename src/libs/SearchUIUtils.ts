@@ -6192,6 +6192,18 @@ const FILTER_VIEW_MAP = {
         labelKey: 'workspace.common.reportField',
         icon: 'Tag',
     },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.INVOICE_NUMBER]: {
+        labelKey: 'common.invoiceNumber',
+        icon: 'Tag',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.DUE_DATE]: {
+        labelKey: 'common.dueDate',
+        icon: 'CalendarSolid',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.PO_NUMBER]: {
+        labelKey: 'common.poNumber',
+        icon: 'Tag',
+    },
 } satisfies Partial<Record<SyntaxFilterKey, FilterView>>;
 
 function getDateDisplayValue(syntaxKey: SearchDateFilterKeys, form: Partial<SearchAdvancedFiltersForm>, translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined): string {
