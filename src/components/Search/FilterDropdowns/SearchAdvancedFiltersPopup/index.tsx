@@ -94,6 +94,7 @@ const INITIAL_FILTER = CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE;
 /** The filters whose contents are derived from the whole contact list, the one derivation heavy enough to be felt. */
 const DEFERRED_CONTENT_FILTERS = new Set<SearchFilter['key']>([
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE,

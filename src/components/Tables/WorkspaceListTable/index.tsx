@@ -132,10 +132,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
 
     // Submit workspaces lock every member, including the owner, to the Editor role, so Editors there get the same archived access as Admins.
     const canAccessArchived = ({role, type}: Pick<WorkspaceRowData, 'role' | 'type'>) =>
-        role === CONST.POLICY.ROLE.ADMIN ||
-        role === CONST.POLICY.ROLE.OWNER ||
-        role === CONST.POLICY.ROLE.AUDITOR ||
-        (type === CONST.POLICY.TYPE.SUBMIT && role === CONST.POLICY.ROLE.EDITOR);
+        role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.AUDITOR || (type === CONST.POLICY.TYPE.SUBMIT && role === CONST.POLICY.ROLE.EDITOR);
     const canSeeFilter = canUseArchivePolicies && workspaces.some(canAccessArchived);
     const searchBarComponent = (
         <Table.FilterBar
