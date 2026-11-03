@@ -198,6 +198,7 @@ function InsightsChartWidget({
                             view={view}
                             groupBy={groupBy}
                             data={data}
+                            metric={chart.metric}
                             isLoading={isLoading}
                             comparison={comparison}
                             shouldShowRunningTotal={shouldShowRunningTotal}
@@ -208,9 +209,10 @@ function InsightsChartWidget({
                             tooltipFooter={openDetails ? <Text style={[styles.chartTooltipText, styles.link, styles.mt2]}>{translate('insightsPage.viewDetails')}</Text> : undefined}
                             renderDetails={
                                 shouldShowTable
-                                    ? ({rows}) => (
+                                    ? ({rows, formatValue}) => (
                                           <InsightsDataTable
                                               rows={rows}
+                                              formatValue={formatValue}
                                               isLoading={isLoading}
                                           />
                                       )

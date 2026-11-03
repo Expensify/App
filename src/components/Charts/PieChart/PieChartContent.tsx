@@ -51,6 +51,7 @@ function PieChartCanvas({
     series,
     valueUnit,
     valueUnitPosition,
+    formatValue: formatValueOverride,
     onSlicePress,
     onTooltipPress,
     tooltipFooter,
@@ -90,7 +91,7 @@ function PieChartCanvas({
     const [{key: primarySeriesKey}] = series;
     const processedSlices = processDataIntoSlices(data, primarySeriesKey, pieGeometry);
 
-    const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
+    const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition, formatValue: formatValueOverride});
 
     /** Data index of the slice at the given point, or -1 when the point is outside the slices */
     const findDataIndexAt = (x: number, y: number) => {
