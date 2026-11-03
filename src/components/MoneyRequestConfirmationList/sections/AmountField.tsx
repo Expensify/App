@@ -89,6 +89,7 @@ function AmountField({
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const amountInputRef = useRef<BaseTextInputRef | null>(null);
+    const currencyButtonRef = useRef<View>(null);
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const transactionSlice = useTransactionSelector(transactionID, amountSliceSelector);
@@ -105,8 +106,9 @@ function AmountField({
     const isAmountFieldDisabled = didConfirm || isReadOnly || shouldShowTimeRequestFields || isDistanceRequest || isScanningReceipt;
     // The read-only row only opens the amount page for a form whose amount the user could have typed in the first
     // place. A distance or time amount is computed from the fields below it, so its row has nothing to open and is
-    // not offered as a control at all: no caret, no hover, no press.
-    const canOpenAmountPage = !isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields;
+    // not offered as a control at all: no caret, no hover, no press. A scanning receipt's amount comes from SmartScan,
+    // so its row is locked the same way until the scan finishes.
+    const canOpenAmountPage = !isReadOnly && !isDistanceRequest && !shouldShowTimeRequestFields && !isScanningReceipt;
     const isP2P = isParticipantP2P(getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID).at(0));
     // `common.error.fieldRequired` is shared with the date field, so only surface it on the amount input when the
     // amount itself is the missing value. `isConfirmationAmountMissing` is the same predicate validation raises the
@@ -347,6 +349,7 @@ function AmountField({
                 headerText={translate('common.selectCurrency')}
                 value={effectiveCurrency}
                 onInputChange={updateCurrency}
+                launcherRef={currencyButtonRef}
             />
             {!isAmountFieldDisabled ? (
                 <View style={[styles.mh4, styles.mv2, styles.flexRow, styles.gap2]}>
@@ -368,6 +371,7 @@ function AmountField({
                             shouldShowCurrencyButton={shouldShowAmountButtons}
                             shouldShowBigNumberPad={false}
                             onCurrencyButtonPress={showCurrencyPicker}
+                            currencyButtonRef={currencyButtonRef}
                             onFocus={() => {
                                 setIsAmountInputFocused(true);
                             }}
