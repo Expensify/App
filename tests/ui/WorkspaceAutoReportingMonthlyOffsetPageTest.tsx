@@ -4,6 +4,7 @@ import SelectionList from '@components/SelectionList';
 
 import WorkspaceAutoReportingMonthlyOffsetPage from '@pages/workspace/workflows/WorkspaceAutoReportingMonthlyOffsetPage';
 
+import CONST from '@src/CONST';
 import type {Policy} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
@@ -70,8 +71,8 @@ const Page = WorkspaceAutoReportingMonthlyOffsetPage as unknown as React.Compone
 function pageElement(offset: number) {
     return (
         <Page
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the offset field is read in this page
-            policy={{id: 'policy1', autoReportingOffset: offset} as Policy}
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- only the frequency and offset fields are read in this page
+            policy={{id: 'policy1', autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY, autoReportingOffset: offset} as Policy}
             route={{params: {policyID: 'policy1'}}}
         />
     );

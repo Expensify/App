@@ -58,6 +58,7 @@ const AMOUNT_FILTER_KEYS: SearchAmountFilterKeys[] = [
 const NEGATABLE_FILTER_KEYS = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+    CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_BY,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS,
     CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
@@ -211,6 +212,9 @@ const FILTER_KEYS = {
     FROM_NOT: 'fromNot',
     FROM: 'from',
 
+    APPROVER_NOT: 'approverNot',
+    APPROVER: 'approver',
+
     TO_NOT: 'toNot',
     TO: 'to',
 
@@ -296,6 +300,8 @@ const ALLOWED_TYPE_FILTERS: Record<string, Set<string>> = {
         FILTER_KEYS.STATUS_NOT,
         FILTER_KEYS.FROM,
         FILTER_KEYS.FROM_NOT,
+        FILTER_KEYS.APPROVER,
+        FILTER_KEYS.APPROVER_NOT,
         FILTER_KEYS.TO,
         FILTER_KEYS.TO_NOT,
         FILTER_KEYS.KEYWORD,
@@ -909,6 +915,9 @@ type SearchAdvancedFiltersForm = Form<
 
         [FILTER_KEYS.FROM]: string[];
         [FILTER_KEYS.FROM_NOT]: string[];
+
+        [FILTER_KEYS.APPROVER]: string[];
+        [FILTER_KEYS.APPROVER_NOT]: string[];
 
         [FILTER_KEYS.PAYER]: string;
         [FILTER_KEYS.PAYER_NOT]: string;
