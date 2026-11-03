@@ -4894,6 +4894,10 @@ const CONST = {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
         MAX_RECENT_ATTENDEES: 40,
 
+        // Tells a payment failure apart from other errors on a report preview. Numeric so a real error, which is
+        // keyed on microseconds, still wins in getLatestErrorMessageField.
+        PAY_FAILURE_PREVIEW_ERROR_KEY: 0,
+
         // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
@@ -10438,6 +10442,7 @@ const CONST = {
         },
         INSIGHTS: {
             CONTROL_DATE: 'Insights-ControlDate',
+            CONTROL_EXPORT: 'Insights-ControlExport',
             CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
