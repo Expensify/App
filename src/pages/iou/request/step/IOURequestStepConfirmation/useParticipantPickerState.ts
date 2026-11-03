@@ -1,5 +1,4 @@
 import type useBlockDistanceRequest from '@hooks/useBlockDistanceRequest';
-import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultParticipants from '@hooks/useDefaultParticipants';
 import useOnyx from '@hooks/useOnyx';
@@ -58,7 +57,6 @@ function useParticipantPickerState({
     isManualRequest,
     blockDistanceRequestIfNeeded,
 }: UseParticipantPickerStateParams) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
@@ -67,7 +65,7 @@ function useParticipantPickerState({
 
     const sourceReportID = transaction?.reportID ?? reportID;
     const sourceReport = sourceReportID
-        ? getReportOrDraftReport(sourceReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${sourceReportID}`] ?? {})
+        ? getReportOrDraftReport({reportID: sourceReportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${sourceReportID}`] ?? {}})
         : undefined;
     const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
     const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
@@ -141,7 +139,7 @@ function useParticipantPickerState({
         const selectedPolicyID =
             selectedParticipant?.policyID ??
             (selectedParticipant?.reportID
-                ? getReportOrDraftReport(selectedParticipant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${selectedParticipant.reportID}`] ?? {})
+                ? getReportOrDraftReport({reportID: selectedParticipant.reportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${selectedParticipant.reportID}`] ?? {}})
                       ?.policyID
                 : undefined);
         if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
@@ -235,7 +233,7 @@ function useParticipantPickerState({
                         });
                         setCustomUnitRateID(transactionIDToUpdate, p2pRateID, transactionToUpdate, undefined, false, personalPolicy?.outputCurrency);
                     }
-                    setMoneyRequestCategory(transactionIDToUpdate, '', undefined, getCurrencyDecimals);
+                    setMoneyRequestCategory(transactionIDToUpdate, '', undefined);
                     setMoneyRequestTag(transactionIDToUpdate, '');
                 } else {
                     const workspacePolicy = selectedPolicy;
@@ -260,7 +258,7 @@ function useParticipantPickerState({
                     // policy so the previous workspace's category-derived tax is cleared along with the category.
                     if (firstParticipant.policyID && firstParticipant.policyID !== policyID) {
                         const defaultCategory = isDistanceRequest ? (getDistanceRateCustomUnit(workspacePolicy)?.defaultCategory ?? '') : '';
-                        setMoneyRequestCategory(transactionIDToUpdate, defaultCategory, undefined, getCurrencyDecimals);
+                        setMoneyRequestCategory(transactionIDToUpdate, defaultCategory, undefined);
                         setMoneyRequestTag(transactionIDToUpdate, '');
                     }
                 }

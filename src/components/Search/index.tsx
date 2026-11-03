@@ -17,7 +17,7 @@ import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
-import useSearchAutoRefetch from '@hooks/useSearchAutoRefetch';
+import useSearchAutoRefetch, {getPolicyIDsFromSearchResults} from '@hooks/useSearchAutoRefetch';
 import useSearchListContentContainerStyle from '@hooks/useSearchListContentContainerStyle';
 import useSearchShouldCalculateTotals, {getSearchRequestOffsetForMissingAllMatchingCount} from '@hooks/useSearchShouldCalculateTotals';
 import useShouldReturnTripRooms from '@hooks/useShouldReturnTripRooms';
@@ -52,6 +52,7 @@ import {
     getValidGroupBy,
     getWideAmountIndicators,
     isCashBackWithdrawalGroup,
+    isCreatedDateType,
     isGroupedItemArray,
     isReportActionListItemType,
     isSearchDataLoaded,
@@ -91,7 +92,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
-import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
+import {createMemberCustomFieldsSelector, fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type {SaveSearch} from '@src/types/onyx';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -217,8 +218,6 @@ function Search({
     // attendee tracking on the moving policy toggles. Rows derive their own display gate independently.
     const isAttendeesEnabledForMovingPolicy = shouldShowAttendees(CONST.IOU.TYPE.SUBMIT, policyForMovingExpenses);
 
-    const [, cardFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-
     const isSnapshotPending = isSearchPending(searchResults);
 
     // gate on state: loading so it self-clears — Onyx resolves loading on every response
@@ -264,6 +263,10 @@ function Search({
     const shouldCalculateTotalsOnRetry = useSearchShouldCalculateTotals(currentSearchKey, true, areAllMatchingItemsSelected);
 
     const previousReportActions = usePrevious(reportActions);
+    const searchResultPolicyIDs = useStableArrayReference(getPolicyIDsFromSearchResults(searchResults?.data));
+    const memberCustomFieldsSelector = useMemo(() => createMemberCustomFieldsSelector(searchResultPolicyIDs), [searchResultPolicyIDs]);
+    const [memberCustomFields] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: memberCustomFieldsSelector});
+    const previousMemberCustomFields = usePrevious(memberCustomFields);
     const {translate} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
@@ -285,9 +288,6 @@ function Search({
     const isSearchResultsEmptyRef = useRef(isSearchResultsEmpty);
     isSearchResultsEmptyRef.current = isSearchResultsEmpty;
 
-    // When grouping by card, we need cardFeeds to display feed names
-    const isCardFeedsLoading = validGroupBy === CONST.SEARCH.GROUP_BY.CARD && cardFeedsResult?.status === 'loading';
-
     useEffect(() => {
         if (prevValidGroupBy === validGroupBy) {
             return;
@@ -305,6 +305,8 @@ function Search({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
+        memberCustomFields,
+        previousMemberCustomFields,
     });
 
     const {
@@ -426,7 +428,7 @@ function Search({
     // that component state would have lost. `null` means the code for these errors has not been stored yet.
     const responseStatusCode = searchResults?.search?.responseJsonCode ?? null;
     const hasUnresolvedErrors = hasErrors && responseStatusCode === null;
-    const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors || isCardFeedsLoading);
+    const isWaitingForInitialData = !shouldUseLiveData && !isOffline && (!isDataLoaded || isSearchLoadingWithNoResults || hasUnresolvedErrors);
     const shouldShowLoadingState = isDeferringHeavyWork || isWaitingForInitialData;
     const shouldShowRowSkeleton = (!skeletonWasDisplayed || shouldShowLoadingState) && showPendingExpensePlaceholder && !hasErrors;
 
@@ -443,12 +445,11 @@ function Search({
         Log.info('[Search] Showing skeleton', false, {
             isOffline,
             isDataLoaded,
-            isCardFeedsLoading,
             isSearchLoading: !!searchResults?.search?.isLoading,
             hasErrors,
             shouldUseLiveData,
         });
-    }, [hasErrors, isCardFeedsLoading, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
+    }, [hasErrors, isDataLoaded, isOffline, searchResults?.search?.isLoading, shouldShowLoadingState, shouldUseLiveData]);
 
     useEffect(() => {
         /** We only want to display the skeleton for the status filters the first time we load them for a specific data type */
@@ -1336,9 +1337,11 @@ function Search({
     // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
     // Memoized above the early returns: this file doesn't compile with React Compiler, and a new object re-renders every row.
     const isActionColumnWide = isTask || hasDeletedTransaction;
+    const isDateColumnCreated = isCreatedDateType(type);
     const columnSizeOptions: GetReportTableColumnStylesParams = useMemo(
         () => ({
             isActionColumnWide,
+            isDateColumnCreated,
             isDateColumnWide: yearIndicators.shouldShowYearCreated,
             isSubmittedColumnWide: yearIndicators.shouldShowYearSubmitted,
             isApprovedColumnWide: yearIndicators.shouldShowYearApproved,
@@ -1351,6 +1354,7 @@ function Search({
         }),
         [
             isActionColumnWide,
+            isDateColumnCreated,
             yearIndicators.shouldShowYearCreated,
             yearIndicators.shouldShowYearSubmitted,
             yearIndicators.shouldShowYearApproved,

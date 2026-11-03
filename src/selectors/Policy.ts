@@ -30,7 +30,7 @@ import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card, FullPolicySnapshot, Policy, PolicyConnectionSyncProgress, PolicyReportField} from '@src/types/onyx';
+import type {Card, FullPolicySnapshot, Policy, PolicyConnectionSyncProgress, PolicyEmployee, PolicyReportField} from '@src/types/onyx';
 import type {PolicyConnectionName, PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
 import ObjectUtils from '@src/types/utils/ObjectUtils';
 
@@ -346,6 +346,34 @@ const createPoliciesByIDsSelector = (policyIDs: string[]) => {
     };
 };
 
+type MemberCustomFields = Pick<PolicyEmployee, ValueOf<typeof CONST.CUSTOM_FIELD_KEYS>>;
+
+type MemberCustomFieldsByPolicyID = Record<string, Record<string, MemberCustomFields>>;
+
+/**
+ * Creates a selector returning only the member custom fields of the given policies, keyed by policy ID and then
+ * by member login, so a consumer watching for custom field edits doesn't re-render on every other policy write.
+ */
+const createMemberCustomFieldsSelector = (policyIDs: string[]) => {
+    const customFieldKeys = Object.values(CONST.CUSTOM_FIELD_KEYS);
+
+    return (policies: OnyxCollection<Policy>): MemberCustomFieldsByPolicyID => {
+        const customFieldsByPolicyID: MemberCustomFieldsByPolicyID = {};
+        for (const policyID of policyIDs) {
+            const employeeList = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList;
+            if (!employeeList) {
+                continue;
+            }
+            const customFieldsByLogin: Record<string, MemberCustomFields> = {};
+            for (const [login, employee] of Object.entries(employeeList)) {
+                customFieldsByLogin[login] = Object.fromEntries(customFieldKeys.map((key) => [key, employee[key]]));
+            }
+            customFieldsByPolicyID[policyID] = customFieldsByLogin;
+        }
+        return customFieldsByPolicyID;
+    };
+};
+
 const policyTimeTrackingSelector = (policy: OnyxEntry<Policy>) =>
     policy && {
         outputCurrency: policy.outputCurrency,
@@ -624,7 +652,7 @@ const groupByPolicyAccountIDPoliciesSelector = (policies: OnyxCollection<Policy>
         return m;
     }, new Map<number, Policy>());
 
-export type {PolicySelector, TimeSensitiveAdminPolicy};
+export type {MemberCustomFieldsByPolicyID, PolicySelector, TimeSensitiveAdminPolicy};
 export {
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
@@ -641,6 +669,7 @@ export {
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForAssignedCardsSelector,
     createPoliciesByIDsSelector,
+    createMemberCustomFieldsSelector,
     policyTimeTrackingSelector,
     createIOURequestStartPoliciesSelector,
     policyMapper,
