@@ -189,10 +189,10 @@ function MoneyRequestReportTransactionsNavigation({currentTransactionID, shouldD
     // press waits on a parent action that never resolves: the pay action isn't an expense-creation action.
     const isPrevSentMoneyReport =
         !!reportedParentReportActions?.isPrevSentMoneyReport ||
-        isSentMoneyReportSelector(snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevTransactionReportID}`] as OnyxEntry<OnyxTypes.ReportActions>);
+        isSentMoneyReportSelector(snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${prevTransactionReportID}`]);
     const isNextSentMoneyReport =
         !!reportedParentReportActions?.isNextSentMoneyReport ||
-        isSentMoneyReportSelector(snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextTransactionReportID}`] as OnyxEntry<OnyxTypes.ReportActions>);
+        isSentMoneyReportSelector(snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${nextTransactionReportID}`]);
 
     // Live report actions win over the snapshot: the snapshot only fills in siblings the live pass couldn't resolve
     // (i.e. unreported ones). A search snapshot is a point-in-time copy, so for a reported transaction it can hold an
