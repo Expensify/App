@@ -21,6 +21,7 @@ import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import {getIsOffline} from '@libs/NetworkState';
 import openExternalLink from '@libs/openExternalLink';
 import {findLastAccessedReport, getReportIDFromLink, getReportOrDraftReport, getRouteFromLink, isMoneyRequestReport} from '@libs/ReportUtils';
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 import shouldSkipDeepLinkNavigation from '@libs/shouldSkipDeepLinkNavigation';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import * as Url from '@libs/Url';
@@ -36,7 +37,7 @@ import SCREENS from '@src/SCREENS';
 import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import type {IntroSelected, PersonalDetailsList, Report, ReportNameValuePairs, Session} from '@src/types/onyx';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {Connection, OnyxCollection, OnyxEntry, OnyxValue} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
@@ -46,6 +47,14 @@ import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn
 import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
+const pendingDeepLinkCleanups = new Set<() => void>();
+
+registerSessionCleanupCallback(() => {
+    for (const cleanup of pendingDeepLinkCleanups) {
+        cleanup();
+    }
+});
+
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -535,11 +544,25 @@ function openReportFromDeepLink(
         // `false` when the user still had to onboard as this deep link was captured (fresh sign-up, or a
         // stale react-native-web URL); honoring it after onboarding flashes the "Not here" page (#91437).
         let initialHasCompletedGuidedSetupFlow: boolean | undefined;
+        let latestOnboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>;
+        let hasNonPersonalPolicy = false;
+        let isPending = true;
+        const connections: Connection[] = [];
+
+        const cleanup = () => {
+            isPending = false;
+            for (const connection of connections) {
+                Onyx.disconnect(connection);
+            }
+            pendingDeepLinkCleanups.delete(cleanup);
+        };
+
         // Subscribe to onboarding data using connectWithoutView to determine if user has completed the onboarding flow without affecting UI
-        const connection = Onyx.connectWithoutView({
+        const onboardingSubscription = {
             key: ONYXKEYS.NVP_ONBOARDING,
-            callback: (val) => {
-                if (!val && !isAnonymousUser()) {
+            callback: (val: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>) => {
+                latestOnboarding = val;
+                if (!isPending || (!val && !isAnonymousUser())) {
                     return;
                 }
 
@@ -549,6 +572,10 @@ function openReportFromDeepLink(
                 }
 
                 Navigation.waitForProtectedRoutes().then(() => {
+                    if (!isPending) {
+                        return;
+                    }
+
                     if (route && isAnonymousUser() && !canAnonymousUserAccessRoute(route)) {
                         signOutAndRedirectToSignIn(true);
                         return;
@@ -561,13 +588,14 @@ function openReportFromDeepLink(
                         return;
                     }
 
-                    const handleDeeplinkNavigation = () => {
-                        // We want to disconnect the connection so it won't trigger the deeplink again
-                        // every time the data is changed, for example, when re-login.
-                        Onyx.disconnect(connection);
+                    const state = navigationRef.getRootState();
+                    const currentFocusedRoute = findFocusedRoute(state);
+                    const isOnboardingOpen = state.routes.some((stateRoute) => stateRoute.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) || isOnboardingFlowName(currentFocusedRoute?.name);
+                    // Workspace members skip onboarding, but joining a workspace during an open flow must not interrupt it.
+                    const shouldSkipOnboarding = hasNonPersonalPolicy && !isOnboardingOpen;
 
-                        const state = navigationRef.getRootState();
-                        const currentFocusedRoute = findFocusedRoute(state);
+                    const handleDeeplinkNavigation = () => {
+                        cleanup();
 
                         const deeplinkRoute = route as Route;
 
@@ -632,7 +660,7 @@ function openReportFromDeepLink(
                         // Opening the link while onboarding still owns the screen flashes the "Not here" page, so hand it to
                         // navigateAfterOnboarding, which runs after the modal is gone and would otherwise lose it.
                         const deferUntilAfterOnboarding = () => {
-                            if (initialHasCompletedGuidedSetupFlow !== false || shouldDropDeepLink()) {
+                            if (initialHasCompletedGuidedSetupFlow !== false || shouldSkipOnboarding || shouldDropDeepLink()) {
                                 return false;
                             }
 
@@ -696,12 +724,25 @@ function openReportFromDeepLink(
                         openDeepLink();
                     };
 
-                    if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser()) {
+                    if (hasCompletedGuidedSetupFlowSelector(val) || isAnonymousUser() || shouldSkipOnboarding) {
                         handleDeeplinkNavigation();
                     }
                 });
             },
-        });
+        };
+
+        connections.push(Onyx.connectWithoutView(onboardingSubscription));
+        // OpenApp may load membership after onboarding data. This action runs outside React, so useOnyx cannot observe that change here.
+        connections.push(
+            Onyx.connectWithoutView({
+                key: ONYXKEYS.HAS_NON_PERSONAL_POLICY,
+                callback: (value) => {
+                    hasNonPersonalPolicy = !!value;
+                    onboardingSubscription.callback(latestOnboarding);
+                },
+            }),
+        );
+        pendingDeepLinkCleanups.add(cleanup);
     });
 }
 

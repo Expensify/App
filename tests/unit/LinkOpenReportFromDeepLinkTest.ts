@@ -4,6 +4,7 @@ import {setOnboardingErrorMessage} from '@libs/actions/Welcome';
 import {setDeepLinkToOpenAfterOnboarding} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
 
 import {openReportFromDeepLink} from '@src/libs/actions/Link';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -142,6 +143,42 @@ describe('openReportFromDeepLink before onboarding', () => {
         // Then it is handed to the post-onboarding navigation rather than opened now, which would flash the "Not here" page
         expect(mockedSetDeepLinkToOpenAfterOnboarding).toHaveBeenCalledTimes(1);
         expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('keeps an open onboarding flow in charge even after the user joins a workspace', async () => {
+        // Given joining a workspace during onboarding must not dismiss the remaining steps.
+        focusOn(SCREENS.ONBOARDING.PURPOSE);
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+
+        // When a Search report link is captured while the flow still owns the screen.
+        openReportFromDeepLink(`${APP_URL}/search/view/123/456`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+        await waitForBatchedUpdates();
+
+        // Then membership does not bypass that flow, and the link is parked only after completion.
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+        expect(mockedSetDeepLinkToOpenAfterOnboarding).not.toHaveBeenCalled();
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await waitForBatchedUpdates();
+        expect(mockedSetDeepLinkToOpenAfterOnboarding).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not replay a pending link into a later account after session cleanup', async () => {
+        // Given the first account has a pending link while its onboarding state is incomplete.
+        focusOn(NAVIGATORS.TAB_NAVIGATOR);
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        openReportFromDeepLink(`${APP_URL}/search/view/123/456`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+        await waitForBatchedUpdates();
+
+        // When that session ends and a different account loads its workspace and onboarding data.
+        runSessionCleanupCallbacks();
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await waitForBatchedUpdates();
+
+        // Then neither an immediate replay nor a parked callback carries the previous account's target forward.
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+        expect(mockedSetDeepLinkToOpenAfterOnboarding).not.toHaveBeenCalled();
     });
 
     it('opens a parked link only once report data has loaded', async () => {
