@@ -31,7 +31,7 @@ import type {ComponentRef} from 'react';
 
 import {canSwitchAccountsSelector} from '@selectors/Account';
 import {Str} from 'expensify-common';
-import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {PopoverMenuItem} from './PopoverMenu';
@@ -139,14 +139,11 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     };
 
     // Anchor the menu to the bottom-left of the Switch button so it opens directly below it.
-    const measureDelegatorMenuPosition = useCallback(
-        () =>
-            calculatePopoverPosition(buttonRef, {
-                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-            }),
-        [calculatePopoverPosition],
-    );
+    const measureDelegatorMenuPosition = () =>
+        calculatePopoverPosition(buttonRef, {
+            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+        });
 
     // Keep the menu anchored to the button if the window is resized while it is open.
     useLayoutEffect(() => {
@@ -265,36 +262,29 @@ function AccountSwitcherButton({isScreenFocused}: AccountSwitcherButtonProps) {
     const isButtonTrailingItemOfRow = shouldUseNarrowLayout && isInLandscapeMode;
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
-    const tooltipProps = shouldShowProductTrainingTooltip
-        ? {
-              shouldRender: shouldShowProductTrainingTooltip,
-              renderTooltipContent: renderProductTrainingTooltip,
-              anchorAlignment: {
-                  // Center on the button so the pointer lands on the button's center rather than off by its right edge.
-                  // The tooltip is wider than the room left of the window gutter, so the body still gets pulled left and
-                  // only the pointer ends up truly centered.
-                  horizontal: isButtonTrailingItemOfRow ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
-                  vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-              },
-              shiftVertical: variables.accountSwitcherTooltipShiftVertical,
-              // The nudge squares the right-aligned tooltip up against the gutter. Centered alignment subtracts it back
-              // out of the pointer offset, which would drag the pointer off the button's center, so drop it.
-              shiftHorizontal: isButtonTrailingItemOfRow ? variables.accountSwitcherTooltipShiftHorizontal : 0,
-              // Native ignores the keep-on-screen clamp unless we opt in.
-              computeHorizontalShiftForNative: true,
-              wrapperStyle: styles.productTrainingTooltipWrapper,
-              onTooltipPress: onPressSwitcher,
-              // The switcher lives in the settings sidebar, which isn't the navigation-focused screen on wide layouts.
-              // Without this the educational tooltip is suppressed (it relies on the screen being focused), so keep it shown until dismissed.
-              shouldHideOnNavigate: false,
-              // On narrow layouts the switcher scrolls away with the settings list, so the tooltip has to follow it or get out of the way.
-              // On wide layouts it sits in the fixed top bar, where scrolling never moves the anchor.
-              shouldHideOnScroll: shouldUseNarrowLayout,
-          }
-        : {
-              text: translate('delegate.copilotAccess'),
-              shouldRender: canSwitchAccounts || isWaitingForAccountData,
-          };
+    let tooltipProps;
+    if (shouldShowProductTrainingTooltip) {
+        tooltipProps = {
+            shouldRender: shouldShowProductTrainingTooltip,
+            renderTooltipContent: renderProductTrainingTooltip,
+            anchorAlignment: {
+                horizontal: isButtonTrailingItemOfRow ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER,
+                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+            },
+            shiftVertical: variables.accountSwitcherTooltipShiftVertical,
+            shiftHorizontal: isButtonTrailingItemOfRow ? variables.accountSwitcherTooltipShiftHorizontal : 0,
+            computeHorizontalShiftForNative: true,
+            wrapperStyle: styles.productTrainingTooltipWrapper,
+            onTooltipPress: onPressSwitcher,
+            shouldHideOnNavigate: false,
+            shouldHideOnScroll: shouldUseNarrowLayout,
+        };
+    } else {
+        tooltipProps = {
+            text: translate('delegate.copilotAccess'),
+            shouldRender: canSwitchAccounts || isWaitingForAccountData,
+        };
+    }
 
     if (!canSwitchAccounts && !isWaitingForAccountData) {
         return null;

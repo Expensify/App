@@ -18,8 +18,8 @@ import {importMerchantRulesSpreadsheet} from '@libs/actions/Policy/Rules';
 import {openPolicyVendorsPage} from '@libs/actions/Policy/Vendor';
 import Tab from '@libs/actions/Tab';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
-import {getMerchantRuleFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
-import type {MerchantRuleFormValues} from '@libs/ExpenseDefaultRuleUtils';
+import {getExpenseDefaultFormValues, getPolicyExpenseDefaultRules} from '@libs/ExpenseDefaultRuleUtils';
+import type {ExpenseDefaultFormValues} from '@libs/ExpenseDefaultRuleUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -45,7 +45,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 /** Column roles that update the matched expense; at least one must be mapped alongside a merchant filter */
 const ACTION_COLUMNS: string[] = [
@@ -63,14 +63,20 @@ const ACTION_COLUMNS: string[] = [
  * spreadsheet rows that would recreate a rule the policy already has (e.g. the same spreadsheet
  * imported twice) as well as duplicate rows within the same spreadsheet.
  */
-function getRuleContentKey(formValues: Partial<MerchantRuleFormValues>): string {
+function getRuleContentKey(formValues: Partial<ExpenseDefaultFormValues>): string {
     return JSON.stringify([
         formValues.matchType ?? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
         formValues.merchantToMatch?.toLowerCase() ?? '',
+        // A spreadsheet can't set these conditions, but a rule the policy already has can carry them, and a rule
+        // that matches on more than the row does is a different rule.
+        formValues.categoriesToMatch ?? [],
+        formValues.tagsToMatch ?? [],
         formValues.merchant ?? '',
         formValues.category ?? '',
         formValues.tag ?? '',
         formValues.comment ?? '',
+        formValues.amount ?? null,
+        formValues.tax ?? null,
         formValues.reimbursable ?? null,
         formValues.billable ?? null,
         formValues.vendorID ?? null,
@@ -205,7 +211,7 @@ function parseSpreadsheetRules(
     const seenRuleKeys = new Set(
         getPolicyExpenseDefaultRules(existingRules, policy?.id)
             .filter(({rule}) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
-            .map(({rule}) => getMerchantRuleFormValues(rule))
+            .map(({rule}) => getExpenseDefaultFormValues(rule))
             .filter((formValues) => !!formValues)
             .map(getRuleContentKey),
     );
@@ -249,7 +255,7 @@ function parseSpreadsheetRules(
             continue;
         }
 
-        const formValues: Partial<MerchantRuleFormValues> = {
+        const formValues: Partial<ExpenseDefaultFormValues> = {
             merchantToMatch,
             matchType: merchantIsValue ? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO : CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
             ...(updatedMerchant && {merchant: updatedMerchant}),
@@ -319,24 +325,24 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
 
     // Fetch categories if they're not loaded (e.g. after a cache clear) so imported category cells are
     // validated against the policy's real category list instead of an empty one
-    const fetchPolicyCategories = useCallback(() => {
+    const fetchPolicyCategories = () => {
         if (!policy?.areCategoriesEnabled || policyCategories) {
             return;
         }
         openPolicyCategoriesPage(policyID);
-    }, [policyID, policy?.areCategoriesEnabled, policyCategories]);
+    };
 
-    const fetchPolicyVendors = useCallback(() => {
+    const fetchPolicyVendors = () => {
         if (!isVendorFeatureAvailable || policyVendors !== undefined) {
             return;
         }
         openPolicyVendorsPage(policyID);
-    }, [isVendorFeatureAvailable, policyID, policyVendors]);
+    };
 
-    const fetchDependencies = useCallback(() => {
+    const fetchDependencies = () => {
         fetchPolicyCategories();
         fetchPolicyVendors();
-    }, [fetchPolicyCategories, fetchPolicyVendors]);
+    };
 
     const {isOffline} = useNetwork({onReconnect: fetchDependencies});
 
@@ -408,10 +414,7 @@ function ImportedMerchantRulesPage({route}: ImportedMerchantRulesPageProps) {
 
     // Parse once and reuse the result for both the offline button-enablement check and the import itself, so the
     // button can never be enabled offline for an import that actually needs the (non-retryable) API call
-    const parsedRules = useMemo(
-        () => parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories, rules, isVendorListReady, policyVendors),
-        [spreadsheet, containsHeader, policy, policyCategories, rules, isVendorListReady, policyVendors],
-    );
+    const parsedRules = parseSpreadsheetRules(spreadsheet, containsHeader, policy, policyCategories, rules, isVendorListReady, policyVendors);
 
     // When categories are enabled but not yet cached (e.g. after a cache clear, before the on-focus fetch), the
     // category lookup is empty so every category is wrongly flagged invalid. Invalid-category counts are only

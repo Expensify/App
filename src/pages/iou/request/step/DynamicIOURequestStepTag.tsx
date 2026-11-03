@@ -31,7 +31,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -84,34 +84,35 @@ function DynamicIOURequestStepTag({
     const transactionTag = getTag(currentTransaction);
     const tag = getTag(currentTransaction, tagListIndex);
 
-    const policyTagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+    const policyTagLists = getTagLists(policyTags);
 
-    const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
+    const hasDependentTags = hasDependentTagsPolicyUtils(policy, policyTags);
 
     // Surface the parent (original) transaction's tag for SPLIT_EXPENSE edits so the user can
     // re-select an "orphaned" tag from a deleted source workspace even when the active workspace
     // has no tags configured. Without this the picker would render an empty list with no way to
     // restore the previously selected value.
     const [allTransactionsForSplitParent] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const parentTransactionTag = useMemo(() => {
-        if (!isEditingSplit) {
-            return '';
-        }
+    let parentTransactionTag;
+    if (!isEditingSplit) {
+        parentTransactionTag = '';
+    } else {
         const parentTransactionID = transaction?.comment?.originalTransactionID;
         if (!parentTransactionID) {
-            return '';
+            parentTransactionTag = '';
+        } else {
+            const parentTransaction = allTransactionsForSplitParent?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${parentTransactionID}`];
+            parentTransactionTag = parentTransaction?.tag ?? '';
         }
-        const parentTransaction = allTransactionsForSplitParent?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${parentTransactionID}`];
-        return parentTransaction?.tag ?? '';
-    }, [isEditingSplit, transaction?.comment?.originalTransactionID, allTransactionsForSplitParent]);
+    }
 
-    const additionalTagsToInclude = useMemo(() => {
-        if (!parentTransactionTag) {
-            return undefined;
-        }
+    let additionalTagsToInclude: string[] | undefined;
+    if (!parentTransactionTag) {
+        additionalTagsToInclude = undefined;
+    } else {
         const parentTagAtIndex = getTagArrayFromName(parentTransactionTag).at(tagListIndex);
-        return parentTagAtIndex ? [parentTagAtIndex] : undefined;
-    }, [parentTransactionTag, tagListIndex]);
+        additionalTagsToInclude = parentTagAtIndex ? [parentTagAtIndex] : undefined;
+    }
 
     // Backfill the policy's tags here too, not just inside TagPicker: on a lazy-loaded account an absent collection
     // makes `hasEnabledTags` false, so without this the empty state renders, TagPicker never mounts, and the read it

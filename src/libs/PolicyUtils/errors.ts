@@ -79,9 +79,32 @@ function shouldShowCustomUnitsError(policy: OnyxEntry<Policy>): boolean {
     return isPolicyAdmin(policy) && Object.keys(policy?.customUnits?.errors ?? {}).length > 0;
 }
 
-function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
-    const qboConfig = policy?.connections?.quickbooksOnline?.config;
-    return isPolicyAdmin(policy) && !!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount;
+function shouldShowReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>, connectionNames?: readonly ConnectionName[]): boolean {
+    if (!isPolicyAdmin(policy)) {
+        return false;
+    }
+    const connectionsToCheck = connectionNames ?? getAccountingConnectionNames();
+    for (const connection of connectionsToCheck) {
+        switch (connection) {
+            case CONST.POLICY.CONNECTIONS.NAME.QBO: {
+                const qboConfig = policy?.connections?.[connection]?.config;
+                if (!!qboConfig?.reimbursableExpensesExportDestination && !qboConfig.reimbursableExpensesAccount) {
+                    return true;
+                }
+                break;
+            }
+            case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
+                const rilletConfig = policy?.connections?.[connection]?.config;
+                if (rilletConfig?.export?.reimbursable === CONST.RILLET_EXPORT_REIMBURSABLE.REIMBURSEMENT && !rilletConfig.export.reimbursementAccountCode) {
+                    return true;
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    return false;
 }
 
 /**
@@ -93,7 +116,7 @@ function getPolicyBrickRoadIndicatorStatus(policy: OnyxEntry<Policy>, isConnecti
         shouldShowCustomUnitsError(policy) ||
         shouldShowPolicyErrorFields(policy) ||
         shouldShowSyncError(policy, isConnectionInProgress, getAccountingConnectionNames()) ||
-        shouldShowQBOReimbursableExportDestinationAccountError(policy) ||
+        shouldShowReimbursableExportDestinationAccountError(policy) ||
         shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy))
     ) {
         return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
@@ -140,7 +163,7 @@ export {
     shouldShowSyncError,
     shouldShowPolicyError,
     shouldShowCustomUnitsError,
-    shouldShowQBOReimbursableExportDestinationAccountError,
+    shouldShowReimbursableExportDestinationAccountError,
     getPolicyBrickRoadIndicatorStatus,
     isMergeHRCompleteSetupNeededSelector,
     isQBORefreshTokenExpiringSoonSelector,
