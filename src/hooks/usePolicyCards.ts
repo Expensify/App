@@ -1,10 +1,10 @@
-import useCardFeedsForDisplay from '@hooks/useCardFeedsForDisplay';
-import useCardsLists from '@hooks/useCardsLists';
-import useDefaultFundID from '@hooks/useDefaultFundID';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
+
+import useCardFeedsForDisplay from './useCardFeedsForDisplay';
+import useCardsLists from './useCardsLists';
+import useDefaultFundID from './useDefaultFundID';
 
 /**
  * The cards a rule on this workspace can match on, across its Expensify Card and company card feeds.
