@@ -4266,6 +4266,7 @@ const CONST = {
         EXPORT_DATE: 'exportDate',
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonReimbursable',
+        REIMBURSEMENT_ACCOUNT_CODE: 'reimbursementAccountCode',
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
@@ -4289,6 +4290,7 @@ const CONST = {
 
     RILLET_EXPORT_REIMBURSABLE: {
         VENDOR_BILL: 'VENDOR_BILL',
+        REIMBURSEMENT: 'REIMBURSEMENT',
     },
 
     RILLET_EXPORT_NON_REIMBURSABLE: {
@@ -4316,6 +4318,8 @@ const CONST = {
 
     RILLET_ACCOUNT_SUBTYPE: {
         CREDIT_CARD: 'Credit Card',
+        ACCOUNTS_PAYABLE: 'Accounts Payable',
+        OTHER_LONG_TERM_LIABILITY: 'Other Long Term Liability',
     },
 
     DUALENTRY_CONFIG: {
@@ -9746,7 +9750,7 @@ const CONST = {
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
-        HAS_QBO_EXPORT_ERROR: 'hasQBOExportError',
+        HAS_REIMBURSEMENT_EXPORT_ERROR: 'hasReimbursementExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
         HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
         HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',

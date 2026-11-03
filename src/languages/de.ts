@@ -6486,9 +6486,17 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             noAccountsFound: 'Keine Konten gefunden',
             noAccountsFoundDescription: 'Bitte fügen Sie Konten in Rillet hinzu und synchronisieren Sie die Verbindung erneut',
             exportDescription: 'Konfigurieren Sie, wie Expensify-Daten nach Rillet exportiert werden.',
-            exportReimbursable: {label: 'Erstattungsfähige Ausgaben exportieren als', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Lieferantenrechnungen'}}},
+            exportReimbursable: {
+                label: 'Erstattungsfähige Ausgaben exportieren als',
+                values: {
+                    REIMBURSEMENT: {label: 'Aufgeschlüsselte Erstattungen'},
+                    VENDOR_BILL: {label: 'Aufgeschlüsselte Lieferantenrechnungen'},
+                },
+                description:
+                    'Wir erstellen für jeden Expensify-Bericht eine aufgeschlüsselte Lieferantenrechnung oder Erstattung. Wenn der Zeitraum geschlossen ist, buchen wir in den nächsten offenen Zeitraum.',
+            },
             exportDate: {
-                label: 'Rechnungsdatum des Lieferanten',
+                label: 'Datum der FiBu-Wirkung',
                 description: 'Verwenden Sie dieses Datum beim Exportieren von Berichten nach Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6527,8 +6535,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 },
             },
             syncReimbursedReports: 'Erstattete Berichte synchronisieren',
-            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Rechnungszahlung erzeugt.',
-            billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie aus, von wo Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Rillet.'},
+            syncReimbursedReportsDescription: 'Wenn ein Bericht per ACH bezahlt wird, wird in diesem Konto eine Zahlung erstellt.',
             syncExpensifyCardSettlements: 'Expensify Kartenabrechnungen synchronisieren',
             settlementAccount: {label: 'Verrechnungskonto für Expensify Karte', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
             syncTravelBillingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
@@ -6570,6 +6577,12 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 description:
                     'Wenn Ihr Unternehmen die Währungumrechnungskosten für eine im Ausland getätigte Zahlung übernimmt, buchen wir diese Kosten in Rillet auf dieses Konto als Buchungssatz.',
             },
+            reimbursementAccount: {
+                label: 'Erstattungskonto',
+                description: 'Wählen Sie aus, wohin erstattungsfähige Ausgaben exportiert werden sollen.',
+                accountRequiredError: 'Bitte wählen Sie ein Rillet-Erstattungskonto aus.',
+            },
+            achPaymentAccount: {label: 'ACH-Zahlungskonto', description: 'Wählen Sie aus, von wo Berichte bezahlt werden sollen, und wir erstellen die Zahlung in Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry-Einrichtung',
@@ -12322,7 +12335,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             theresAReportWithErrors: 'Es gibt einen Bericht mit Fehlern',
             theresAWorkspaceWithCustomUnitsErrors: 'Es gibt einen Workspace mit Fehlern bei benutzerdefinierten Einheiten',
             theresAProblemWithAWorkspaceMember: 'Es gibt ein Problem mit einem Workspace-Mitglied',
-            theresAProblemWithAWorkspaceQBOExport: 'Es gab ein Problem mit einer Exporteinstellung für die Workspace-Verbindung.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Es gab ein Problem mit einer Exporteinstellung für die Workspace-Verbindung.',
             theresAProblemWithAContactMethod: 'Es gibt ein Problem mit einer Kontaktmethode',
             aContactMethodRequiresVerification: 'Eine Kontaktmethode erfordert eine Verifizierung',
             theresAProblemWithAPaymentMethod: 'Es gibt ein Problem mit einer Zahlungsmethode',
