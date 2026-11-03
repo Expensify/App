@@ -101,6 +101,29 @@ beforeEach(() => {
 });
 
 describe('Session', () => {
+    test.each([false, true])('invalidates both cached credentials for debugging (delayed=%s)', async (isDelayed) => {
+        // Given API and image credentials that must both stop working during debug invalidation
+        NetworkStore.setAuthToken('old-api-token', 'old-image-token');
+        jest.useFakeTimers();
+
+        try {
+            // When debugging invalidates the session immediately or after its 15-second delay
+            if (isDelayed) {
+                SessionUtil.expireSessionWithDelay();
+                jest.advanceTimersByTime(15000);
+            } else {
+                SessionUtil.invalidateAuthToken();
+            }
+
+            // Then neither request path can reuse its previous credential before Onyx subscribers run
+            expect(NetworkStore.getAuthToken()).toBe('pizza');
+            expect(NetworkStore.getEncryptedAuthToken()).toBe('pizza');
+        } finally {
+            jest.useRealTimers();
+        }
+        await waitForBatchedUpdates();
+    });
+
     describe('callFunctionIfActionIsAllowed', () => {
         test('blocks a non-anonymous action for a passed anonymous session even when the stored session is signed in', async () => {
             // Given a signed-in session stored in Onyx
