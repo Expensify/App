@@ -46,6 +46,7 @@ import {View} from 'react-native';
 
 import GlobalReimbursementsEnabledIcon from './GlobalReimbursementsEnabledIcon';
 import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
+import WiseMoreInfoNeededRow from './WiseMoreInfoNeededRow';
 
 type ConnectionStatusDetails = {
     statusText: string;
@@ -91,6 +92,9 @@ type PaymentMethodItem = PaymentMethod & {
 
     /** Wallet the addition was requested from, used to name it in the "Review" CTA row */
     digitalWalletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>;
+
+    /** ID of the bank account Wise asked for more info on, which shows the "Review" CTA row */
+    wiseMoreInfoNeededBankAccountID?: number;
 
     /** Whether the bank account is set up for global reimbursements, which shows a globe next to its name */
     isGlobalReimbursementsEnabled?: boolean;
@@ -353,6 +357,12 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                     cardID={digitalWalletApprovalCardID}
                     walletProvider={item.digitalWalletProvider}
                     style={[styles.pv3, cardPaddingHorizontal]}
+                />
+            )}
+            {!!item.wiseMoreInfoNeededBankAccountID && (
+                <WiseMoreInfoNeededRow
+                    bankAccountID={item.wiseMoreInfoNeededBankAccountID}
+                    style={[styles.mb2, cardPaddingHorizontal]}
                 />
             )}
             {isChaseAccountConnectedViaPlaid && (

@@ -15,7 +15,14 @@ import usePermissions from '@hooks/usePermissions';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBankAccountConnectionStatus, getBankAccountState, canLinkPlaid, isGlobalReimbursementsEnabled, isPersonalBankAccountMissingInfo} from '@libs/BankAccountUtils';
+import {
+    getBankAccountConnectionStatus,
+    getBankAccountState,
+    canLinkPlaid,
+    isGlobalReimbursementsEnabled,
+    isPersonalBankAccountMissingInfo,
+    isWiseMoreInfoNeeded,
+} from '@libs/BankAccountUtils';
 import type {BankAccountConnectionStatus} from '@libs/BankAccountUtils';
 import {getAssignedCardFeedAccess, getPolicyIDsNamedByCardFeeds} from '@libs/CardFeedUtils';
 import {
@@ -640,8 +647,12 @@ function PaymentMethodList({
                     ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_LINK_PLAID.getRoute(methodID.toString())))
                     : undefined;
 
+            // Like the connection status, the Wise prompt belongs to the Wallet page and not to the pickers that reuse this list
+            const shouldShowWiseMoreInfoNeeded = shouldShowConnectionStatus && isWiseGlobalReimbursementsEnabled && isWiseMoreInfoNeeded(paymentMethod);
+
             return {
                 ...paymentMethod,
+                wiseMoreInfoNeededBankAccountID: shouldShowWiseMoreInfoNeeded ? methodID : undefined,
                 title: paymentMethod.title?.includes(CONST.MASKED_PAN_PREFIX) ? paymentMethod.accountData?.additionalData?.bankName : paymentMethod.title,
                 onPress: paymentMethodPress,
                 onThreeDotsMenuPress: paymentMethodThreeDotsPress,

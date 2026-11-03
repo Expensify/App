@@ -17,6 +17,7 @@ import {
     isPersonalBankAccountMissingInfo,
     isUserAddressVerificationRequired,
     isUserDOBVerificationRequired,
+    isWiseMoreInfoNeeded,
     PERSONAL_INFO_STEP,
     shouldSetUpGlobalReimbursementsBeforePaying,
 } from '@libs/BankAccountUtils';
@@ -26,6 +27,8 @@ import CONST from '@src/CONST';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {Account, BankAccount, BankAccountList, Policy, Session} from '@src/types/onyx';
 import type AccountData from '@src/types/onyx/AccountData';
+
+import type {ValueOf} from 'type-fest';
 
 import createMock from '../utils/createMock';
 
@@ -1162,6 +1165,44 @@ describe('BankAccountUtils', () => {
             // When picking the account for the Workspace banner
             // Then nothing is returned, so the banner never points to an account queued for removal
             expect(getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy, bankAccountList)).toBeUndefined();
+        });
+    });
+
+    describe('isWiseMoreInfoNeeded', () => {
+        const createBankAccount = (status?: ValueOf<typeof CONST.WISE.ONBOARDING_STATUS>, pendingAction?: BankAccount['pendingAction']) =>
+            createMock<BankAccount>({
+                accountData: {bankAccountID: 1, additionalData: {wise: {status}}},
+                pendingAction,
+            });
+
+        it('returns true when Wise asked for more info', () => {
+            // Given an account whose Wise onboarding is waiting on more info Wise asked for
+            const bankAccount = createBankAccount(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED);
+
+            // When checking whether the admin has to send Wise more info
+            // Then it does, so the Wallet row and the Home task prompt the admin
+            expect(isWiseMoreInfoNeeded(bankAccount)).toBe(true);
+        });
+
+        it.each([CONST.WISE.ONBOARDING_STATUS.IN_REVIEW, CONST.WISE.ONBOARDING_STATUS.APPROVED, CONST.WISE.ONBOARDING_STATUS.NOT_APPROVED, undefined])(
+            'returns false when the onboarding status is %s',
+            (status) => {
+                // Given an account whose Wise onboarding is not waiting on the admin
+                const bankAccount = createBankAccount(status);
+
+                // When checking whether the admin has to send Wise more info
+                // Then it does not, so the prompts go away once the admin sends the info
+                expect(isWiseMoreInfoNeeded(bankAccount)).toBe(false);
+            },
+        );
+
+        it('returns false when the account is pending deletion', () => {
+            // Given an account Wise asked for more info on, deleted while offline
+            const bankAccount = createBankAccount(CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+
+            // When checking whether the admin has to send Wise more info
+            // Then it does not, so nothing points to an account queued for removal
+            expect(isWiseMoreInfoNeeded(bankAccount)).toBe(false);
         });
     });
 });

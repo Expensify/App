@@ -298,6 +298,13 @@ function getWorkspaceWiseGlobalReimbursementsBannerBankAccountID(policy: OnyxEnt
     return bankAccountID;
 }
 
+/** Whether Wise asked for more info on the account's global reimbursements onboarding and the admin still has to send it */
+function isWiseMoreInfoNeeded(bankAccount: OnyxEntry<Pick<OnyxTypes.BankAccount, 'accountData' | 'pendingAction'>>): boolean {
+    return (
+        bankAccount?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && bankAccount?.accountData?.additionalData?.wise?.status === CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED
+    );
+}
+
 function doesPolicyHavePartiallySetupBankAccount(bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>, policyID: string) {
     if (!bankAccountList) {
         return false;
@@ -471,6 +478,7 @@ export {
     isGlobalReimbursementsEnabled,
     getWiseGlobalReimbursementsBannerBankAccountID,
     getWorkspaceWiseGlobalReimbursementsBannerBankAccountID,
+    isWiseMoreInfoNeeded,
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,
