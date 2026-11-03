@@ -4,7 +4,6 @@ import MoneyRequestViewReportFields from '@components/MoneyRequestReportView/Mon
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
-import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -12,7 +11,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportTransactions from '@hooks/useReportTransactions';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -46,7 +44,6 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -93,14 +90,6 @@ function MoneyReportView({
 }: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    // Inside the RHP `shouldUseNarrowLayout` is always true, so it cannot tell the wide RHP from a narrow screen
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
-    const {wideRHPRouteKeys} = useWideRHPState();
-    const route = useRoute();
-    // In the wide RHP the receipt has its own pane, so these fields open the details column and line up with its
-    // "Receipt" heading, which takes its top space from the column rather than the heading.
-    const isReceiptInline = !wideRHPRouteKeys.includes(route.key) || isSmallScreenWidth;
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -181,7 +170,8 @@ function MoneyReportView({
                             <>
                                 {isCombinedReport && (
                                     <View
-                                        style={[styles.ph5, isReceiptInline && styles.pt4, styles.pb2, styles.userSelectNone]}
+                                        // The list's own top padding gives the space above the heading
+                                        style={[styles.ph5, styles.pb2, styles.userSelectNone]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                     >
                                         <Text variant="labelStrong">{translate('workspace.common.reportFields')}</Text>
