@@ -11,6 +11,7 @@ import FileUploadAdapter from '@components/DynamicForm/adapters/FileUploadAdapte
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import ListFieldAdapter from '@components/DynamicForm/adapters/ListFieldAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
+import ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import DynamicFormFields from '@components/DynamicForm/components/DynamicFormFields';
 import type {DynamicFormValues} from '@components/DynamicForm/types';
@@ -22,6 +23,8 @@ import PushRowWithModal from '@components/PushRowWithModal';
 import RadioButtons from '@components/RadioButtons';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import type {DynamicFormContentItem, DynamicFormField, DynamicFormFieldType, DynamicFormHeading, DynamicFormSchemaField} from '@src/types/onyx';
@@ -37,6 +40,7 @@ type CapturedInputProps = {
     forwardedFSClass?: string;
     hint?: string;
     inputMode?: string;
+    maxAutoGrowHeight?: number;
     items?: Array<{value: string; label: string}>;
     optionsList?: Record<string, string>;
     renamedInputKeys?: Record<string, string>;
@@ -57,6 +61,13 @@ const mockInputWrapper = jest.fn((props: CapturedInputProps) => props.inputID);
 jest.mock('@components/Form/InputWrapper', () => ({
     __esModule: true,
     default: (props: CapturedInputProps) => mockInputWrapper(props),
+}));
+
+const mockOnFileTextInput = jest.fn((props: {inputID: string; label?: string; shouldSaveDraft?: boolean}) => props.inputID);
+
+jest.mock('@components/DynamicForm/components/DynamicFormOnFileTextInput', () => ({
+    __esModule: true,
+    default: (props: {inputID: string}) => mockOnFileTextInput(props),
 }));
 
 jest.mock('@hooks/useLocalize', () =>
@@ -101,6 +112,7 @@ type RenderFieldsOptions = {
 
 function renderFields(content: DynamicFormContentItem[], values: DynamicFormValues = {}, {currency, maxFileSize, onRefreshRequirements, isLoneFieldInHeadline}: RenderFieldsOptions = {}) {
     mockInputWrapper.mockClear();
+    mockOnFileTextInput.mockClear();
     render(
         <DynamicFormFields
             content={content}
@@ -185,6 +197,29 @@ describe('DynamicFormFields', () => {
         // Then only the regular field saves its draft
         expect(rendered.get('ssn')?.shouldSaveDraft).toBe(false);
         expect(rendered.get('nationality')?.shouldSaveDraft).toBe(true);
+    });
+
+    it('draws a sensitive answer the server holds with the on-file input', () => {
+        // Given a resumed SSN the server holds, which it never sends back
+        const ssn: DynamicFormField = {key: 'ssn', type: 'text', required: true, sensitive: true};
+
+        // When its page renders
+        renderFields([ssn, otherQuestion], {ssnProvided: true});
+
+        // Then the on-file input draws it, which shows the mask until the user clears it, with the label and the draft rule the field would get anyway
+        expect(mockOnFileTextInput).toHaveBeenCalledWith(expect.objectContaining({inputID: 'ssn', label: 'ssn', shouldSaveDraft: false}));
+    });
+
+    it('shows no mask on a sensitive field the server does not hold', () => {
+        // Given an SSN the user has not given yet
+        const ssn: DynamicFormField = {key: 'ssn', type: 'text', required: true, sensitive: true};
+
+        // When the field renders
+        const rendered = renderFields([ssn, otherQuestion]);
+
+        // Then the input is a plain one, with nothing suggesting an answer is on file
+        expect(mockOnFileTextInput).not.toHaveBeenCalled();
+        expect(rendered.get('ssn')?.InputComponent).toBe(TextInput);
     });
 
     it.each(FIELD_TYPES)('refills a sensitive %s field from the answer kept in memory', (type) => {
@@ -498,9 +533,9 @@ describe('DynamicFormFields', () => {
         // When it renders
         const rendered = renderFields([homeAddress]);
 
-        // Then the user sees and can correct every part, each stored under the field key, under a heading screen reader users can jump to
+        // Then the user sees and can correct every part, each stored under the field key, with no extra heading since every part is labeled
         expect([...rendered.keys()]).toEqual(['homeAddress', 'homeAddress.city', 'homeAddress.state', 'homeAddress.zipCode', 'homeAddress.country']);
-        expect(screen.getByRole('heading', {name: 'Home address'})).toBeOnTheScreen();
+        expect(screen.queryByText('Home address')).not.toBeOnTheScreen();
     });
 
     it('opens the numeric keyboard for a text field whose regex takes digits only', () => {
@@ -525,6 +560,19 @@ describe('DynamicFormFields', () => {
 
         // Then the phone keyboard opens, since the schema names the rule rather than the keyboard
         expect(rendered.get('phone')?.inputMode).toBe(CONST.INPUT_MODE.TEL);
+    });
+
+    it('caps the height a multiline text field grows to, and leaves a single-line one uncapped', () => {
+        // Given a multiline business description next to a single-line name
+        const businessDescription: DynamicFormField = {key: 'businessDescription', type: 'text', required: true, multiline: true};
+        const name: DynamicFormField = {key: 'name', type: 'text', required: true};
+
+        // When they render
+        const rendered = renderFields([businessDescription, name]);
+
+        // Then only the multiline field stops growing at the shared limit, so a long answer scrolls inside its input instead of pushing the page down
+        expect(rendered.get('businessDescription')?.maxAutoGrowHeight).toBe(variables.textInputAutoGrowMaxHeight);
+        expect(rendered.get('name')?.maxAutoGrowHeight).toBeUndefined();
     });
 
     it('asks the screen to refetch the schema only when a refreshing field changes', () => {
@@ -726,6 +774,25 @@ describe('DynamicFormFields', () => {
         expect(sharedPage.get('ownsQuarter')?.InputComponent).toBe(YesNoAdapter);
         expect(lonePage.get('ownsQuarter')?.InputComponent).toBe(YesNoAdapter);
         expect(consent.get('acceptTerms')?.InputComponent).toBe(CheckboxWithLabel);
+    });
+
+    it('asks a boolean as a link with its own wording for each answer when the schema asks for one', () => {
+        // Given an opt-out the user taps, worded differently once tapped so the second tap reads as undoing the first
+        const hasNoSSN: DynamicFormField = {
+            key: 'hasNoSSN',
+            label: "I don't have an SSN",
+            toggledLabel: 'I have an SSN',
+            type: 'boolean',
+            required: false,
+            presentation: 'link',
+        };
+
+        // When it renders
+        const rendered = renderFields([hasNoSSN, otherQuestion]);
+
+        // Then it is a link carrying both wordings, with no label drawn above it, since the link text is the question
+        expect(rendered.get('hasNoSSN')).toMatchObject({InputComponent: ToggleLinkAdapter, label: "I don't have an SSN", toggledLabel: 'I have an SSN'});
+        expect(screen.queryByText("I don't have an SSN")).not.toBeOnTheScreen();
     });
 
     it('asks for the state only in countries the state picker covers', () => {
