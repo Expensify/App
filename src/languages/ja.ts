@@ -11597,6 +11597,7 @@ ${reportName}`,
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} は必須です`,
         reportContainsExpensesWithViolations: 'レポートに違反のある経費が含まれています。',
+        reportHasErrors: 'レポートにエラーがあります。',
     },
     violationDismissal: {
         rter: {
