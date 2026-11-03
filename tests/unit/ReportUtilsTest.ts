@@ -3729,7 +3729,6 @@ describe('ReportUtils', () => {
                         originalMessage: {
                             feedName: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
                             bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
-                            fundID: 123,
                             policyID: '1',
                         },
                     };

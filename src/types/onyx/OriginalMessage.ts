@@ -1509,9 +1509,6 @@ type OriginalMessageCompanyCardConnectionBroken = {
 
     /** The feed's bank, used as the feed name when the feed has no custom name */
     bank?: CompanyCardFeedWithNumber;
-
-    /** The account ID of the domain or workspace that holds the feed */
-    fundID?: number;
 };
 
 /**
