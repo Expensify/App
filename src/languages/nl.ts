@@ -3647,6 +3647,9 @@ ${amount} voor ${merchant} - ${date}`,
         appSection: {
             title: 'App-voorkeuren',
         },
+        distanceSection: {
+            title: 'Afstandsvoorkeuren',
+        },
         testSection: {
             title: 'Testvoorkeuren',
             subtitle: 'Instellingen om de app te debuggen en testen op staging.',

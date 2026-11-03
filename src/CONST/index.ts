@@ -11124,6 +11124,7 @@ const CONST = {
             LANGUAGE: 'SettingsPreferences-Language',
             PAYMENT_CURRENCY: 'SettingsPreferences-PaymentCurrency',
             THEME: 'SettingsPreferences-Theme',
+            HOME_ADDRESS: 'SettingsPreferences-HomeAddress',
         },
         SETTINGS_SECURITY: {
             TWO_FACTOR_AUTH: 'SettingsSecurity-TwoFactorAuth',

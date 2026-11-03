@@ -141,6 +141,7 @@ const SCREENS = {
             LANGUAGE: 'Settings_Preferences_Language',
             THEME: 'Settings_Preferences_Theme',
             PAYMENT_CURRENCY: 'Settings_Payment_Currency',
+            HOME_ADDRESS: 'Settings_Preferences_HomeAddress',
         },
 
         AGENTS: {

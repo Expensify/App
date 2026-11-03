@@ -3828,6 +3828,9 @@ const translations = {
         appSection: {
             title: 'App preferences',
         },
+        distanceSection: {
+            title: 'Distance preferences',
+        },
         testSection: {
             title: 'Test preferences',
             subtitle: 'Settings to help debug and test the app on staging.',
