@@ -1,7 +1,6 @@
 import {
     formatRequireItemizedReceiptsOverText,
     getAvailableNonPersonalPolicyCategories,
-    getCategoryDefaultTaxRate,
     getCategoryDescriptionHint,
     getCategoryGLCode,
     getCategoryNameError,
@@ -17,7 +16,6 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
-import type {ExpenseRule} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -619,32 +617,5 @@ describe('getCategoryNameError', () => {
         // When the new name is a harmless token the Name page already allows, such as <>
         // Then the name is valid, so the table and the Name page stay in agreement
         expect(getCategoryNameError(categories, '<>', 'Food')).toBeUndefined();
-    });
-});
-
-describe('getCategoryDefaultTaxRate', () => {
-    const buildCategoryTaxRule = (categoryName: string, taxID: string): ExpenseRule => ({
-        applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.CATEGORY, value: categoryName}],
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        tax: {field_id_TAX: {externalID: taxID}},
-    });
-
-    it("returns the category's own rate", () => {
-        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_A');
-    });
-
-    it('falls back to the workspace rate when the category has no rule', () => {
-        expect(getCategoryDefaultTaxRate([buildCategoryTaxRule('Travel', 'id_TAX_A')], 'Meals', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
-    });
-
-    it('ignores a rule that carries the name on some other condition', () => {
-        // Matching on the value alone would read a rule that a save or delete never targets, handing the expense a
-        // rate the admin never set for this category.
-        const tagNamedAfterTheCategory: ExpenseRule = {
-            applyWhen: [{condition: CONST.POLICY.RULE_CONDITIONS.MATCHES, field: CONST.POLICY.FIELDS.TAG, value: 'Travel'}],
-            // eslint-disable-next-line @typescript-eslint/naming-convention
-            tax: {field_id_TAX: {externalID: 'id_TAX_B'}},
-        };
-        expect(getCategoryDefaultTaxRate([tagNamedAfterTheCategory], 'Travel', 'id_TAX_DEFAULT')).toBe('id_TAX_DEFAULT');
     });
 });

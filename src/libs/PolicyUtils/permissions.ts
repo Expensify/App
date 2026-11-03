@@ -46,7 +46,7 @@ const isPolicyOwner = (policy: OnyxInputOrEntry<Pick<Policy, 'ownerAccountID'>>,
  * workspace configuration, so their membership is governed by that configuration and not by this screen — see the
  * expense chat rules in `contributingGuides/philosophies/SECURITY.md`. That covers admins, the policy owner,
  * approvers, who are auto-added to the chats of everybody who submits to them, and members with read-only access to all
- * reports (auditors and payments admins), who are default members of every workspace chat.
+ * reports (auditors, card admins, and payments admins), who are default members of every workspace chat.
  *
  * Fails closed on a missing `login`: without one we cannot resolve the member's role, and offering removal for a
  * member whose role is unknown could remove a workspace admin. Both the member list and the member details page must
@@ -119,6 +119,7 @@ const ROLE_PERMISSION_BUNDLES: Record<string, Partial<Record<PolicyFeature, Poli
         [CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.ROOMS]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
         [CONST.POLICY.POLICY_FEATURE.CREATE_EXPENSES]: CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE,
+        [CONST.POLICY.POLICY_FEATURE.ALL_REPORTS]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
     },
     [CONST.POLICY.ROLE.PEOPLE_ADMIN]: {
         [CONST.POLICY.POLICY_FEATURE.OVERVIEW]: CONST.POLICY.POLICY_FEATURE_ACCESS.READ,
@@ -181,7 +182,7 @@ function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature
 }
 
 /**
- * Whether the role can see every workspace report but can't administer them. Today that means Auditor and Payments Admin.
+ * Whether the role can see every workspace report but can't administer them. Today that means Auditor, Card Admin, and Payments Admin.
  * These members must not get room administration, such as editing a room's avatar or description.
  *
  * When `login` belongs to somebody other than the current user, it must be passed so the role comes from the employee list.
