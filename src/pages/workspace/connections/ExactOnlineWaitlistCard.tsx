@@ -25,7 +25,8 @@ function ExactOnlineWaitlistCard({policyID}: ExactOnlineWaitlistCardProps) {
                 styles.workspaceSectionMoreFeaturesItem,
                 styles.p0,
                 styles.overflowHidden,
-                shouldUseNarrowLayout || isMediumScreenWidth ? [styles.flexBasis100, StyleUtils.getMinimumWidth(0)] : styles.connectionCard,
+                // Uses width, not flexBasis, since native Yoga caches a flexBasis percentage across rotations.
+                shouldUseNarrowLayout || isMediumScreenWidth ? [styles.flexBasisAuto, styles.w100, StyleUtils.getMinimumWidth(0)] : styles.connectionCard,
             ]}
         >
             <ExactOnlineWaitlistRow

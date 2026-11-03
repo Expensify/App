@@ -6,7 +6,7 @@ name: Test syncVersions script
 on:
   pull_request:
     types: [opened, synchronize]
-    branches-ignore: [staging, production]
+    branches-ignore: [production]
     paths: ['.github/scripts/syncVersions.sh', 'tests/tooling/SyncVersions.test.ts', '.github/workflows/testSyncVersions.yml']
 
 concurrency:
@@ -15,6 +15,7 @@ concurrency:
 
 jobs:
   testSyncVersions:
+    if: github.actor != 'os-botify[bot]'
     runs-on: blacksmith-6vcpu-macos-latest
     steps:
       - name: Check out
