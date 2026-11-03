@@ -3030,6 +3030,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Acepto los <a href="${CONST.WISE.TERMS_URL}">términos y condiciones</a> y la <a href="${CONST.WISE.PRIVACY_URL}">política de privacidad</a> de Wise.`,
                 wiseTermsAccessibilityLabel: 'Acepto los términos y condiciones y la política de privacidad de Wise.',
                 error: 'Acepta todos los términos para continuar.',
+                alreadySubmitted: 'Esta empresa ya se envió a Wise para su revisión.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Se necesita más información',

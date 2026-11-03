@@ -657,6 +657,7 @@ export type {SaveCorpayOnboardingCompanyDetailsParams} from './SaveCorpayOnboard
 export type {default as AcceptSpotnanaTermsParams} from './AcceptSpotnanaTermsParams';
 export type {default as SaveCorpayOnboardingBeneficialOwnerParams} from './SaveCorpayOnboardingBeneficialOwnerParams';
 export type {default as UpdateWiseOnboardingAdditionalDataParams} from './UpdateWiseOnboardingAdditionalDataParams';
+export type {default as SubmitWiseBusinessOnboardingParams} from './SubmitWiseBusinessOnboardingParams';
 export type {default as DeleteAppReportParams} from './DeleteAppReportParams';
 export type {default as MergeReportsParams} from './MergeReportsParams';
 export type {default as SaveCorpayOnboardingDirectorInformationParams} from './SaveCorpayOnboardingDirectorInformationParams';
