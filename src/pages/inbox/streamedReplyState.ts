@@ -1,5 +1,5 @@
 import Parser from '@libs/Parser';
-import type {ConciergeDraftEvent} from '@libs/Pusher/types';
+import type {StreamedReplyEvent} from '@libs/Pusher/types';
 import {getParsedComment} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -7,7 +7,7 @@ import type {ReportAction} from '@src/types/onyx';
 
 import {Str} from 'expensify-common';
 
-type ConciergeDraft = {
+type StreamedReply = {
     /** Currently rendered markdown. Pusher pacing may intentionally lag this behind the latest server snapshot. */
     bodyMarkdown?: string;
     /** Current server markdown snapshot held by the Pusher pacer so remounts can resume revealing banked text. */
@@ -17,23 +17,23 @@ type ConciergeDraft = {
     /** Server event sequence for the current Pusher target snapshot. */
     pusherTargetSequence?: number;
     /** Newer server markdown snapshots queued behind the current Pusher target. */
-    pusherQueuedTargetEvents?: ConciergeDraftEvent[];
+    pusherQueuedTargetEvents?: StreamedReplyEvent[];
     /** Completion event held while the Pusher pacer is still revealing banked text. */
-    pusherPendingCompletionEvent?: ConciergeDraftEvent;
+    pusherPendingCompletionEvent?: StreamedReplyEvent;
     /** Terminal lifecycle event used to reject stale chunks after a content-free completion. */
-    pusherTerminalEvent?: ConciergeDraftEvent;
+    pusherTerminalEvent?: StreamedReplyEvent;
     /** Number of UTF-16 source units consumed from the current Pusher target. */
     pusherVisibleSourceOffset?: number;
     /** Source markdown prefix consumed from the current Pusher target, used to detect server-side corrections. */
     pusherVisibleSourceMarkdown?: string;
     reportAction: ReportAction;
     sequence: number;
-    status: ConciergeDraftEvent['status'];
+    status: StreamedReplyEvent['status'];
     streamSessionID: string;
     terminalReason?: string;
 };
 
-type BuildConciergeDraftReportActionParams = {
+type BuildStreamedReplyReportActionParams = {
     actorAccountID?: number;
     accountIDToName?: Record<string, string>;
     bodyMarkdown?: string;
@@ -58,19 +58,19 @@ type MarkdownConstruct = {
     suffix?: string;
 };
 
-type VisibleConciergeDraftMarkdown = {
+type VisibleStreamedReplyMarkdown = {
     bodyMarkdown: string;
     sourceMarkdown: string;
     sourceOffset: number;
 };
 
-const CONCIERGE_DRAFT_STATUS = {
+const STREAMED_REPLY_STATUS = {
     STARTED: 'started',
     UPDATED: 'updated',
     COMPLETED: 'completed',
     FAILED: 'failed',
     CLEARED: 'cleared',
-} as const satisfies Record<string, ConciergeDraftEvent['status']>;
+} as const satisfies Record<string, StreamedReplyEvent['status']>;
 
 const CODE_BLOCK_DELIMITER = '```';
 const INLINE_CODE_DELIMITER = '`';
@@ -586,7 +586,7 @@ function stripIncompleteMarkdown(markdown: string): string {
     return result;
 }
 
-function buildConciergeDraftReportAction({
+function buildStreamedReplyReportAction({
     actorAccountID,
     accountIDToName,
     bodyMarkdown,
@@ -595,7 +595,7 @@ function buildConciergeDraftReportAction({
     reportActionID,
     reportID,
     isGroupPolicyReport,
-}: BuildConciergeDraftReportActionParams): ReportAction | null {
+}: BuildStreamedReplyReportActionParams): ReportAction | null {
     // ExpensiMark escapes entities that the server renders as literal text, so recognized entities wait for final HTML.
     // Match named/numeric candidates with an optional semicolon, or a bare trailing '&'.
     // Hold unfinished candidates at the snapshot boundary; the decoder lets completed literals such as '&D;' stream.
@@ -631,12 +631,12 @@ function buildConciergeDraftReportAction({
     } as ReportAction;
 }
 
-function getNextVisibleConciergeDraftMarkdown(
+function getNextVisibleStreamedReplyMarkdown(
     currentBodyMarkdown: string,
     targetBodyMarkdown: string,
     currentSourceOffset = currentBodyMarkdown.length,
     currentSourceMarkdown = currentBodyMarkdown,
-): VisibleConciergeDraftMarkdown {
+): VisibleStreamedReplyMarkdown {
     const safeSourceLength = getSafeMarkdownSourceLength(targetBodyMarkdown);
     const normalizedCurrentSourceOffset = Math.min(currentSourceOffset, safeSourceLength);
 
@@ -681,52 +681,52 @@ function getNextVisibleConciergeDraftMarkdown(
 }
 
 // Module-level cache so a chat re-mount (ReportScreen unmount/remount on chat
-// switch) preserves the in-progress draft. Without this the gate's local state
+// switch) preserves the in-progress reply. Without this the gate's local state
 // resets to null on every revisit and the synthetic bubble disappears for the
 // remount + Onyx-hydration window. Keyed by reportID; entries are evicted by
-// `setCachedDraft(reportID, null)` when the reducer returns null
+// `setCachedReply(reportID, null)` when the reducer returns null
 // (completed/failed/cleared).
-const draftCache = new Map<string, ConciergeDraft>();
+const replyCache = new Map<string, StreamedReply>();
 
-function getCachedDraft(reportID: string): ConciergeDraft | null {
-    return draftCache.get(reportID) ?? null;
+function getCachedReply(reportID: string): StreamedReply | null {
+    return replyCache.get(reportID) ?? null;
 }
 
-function setCachedDraft(reportID: string, draft: ConciergeDraft | null): void {
-    if (draft) {
-        draftCache.set(reportID, draft);
+function setCachedReply(reportID: string, reply: StreamedReply | null): void {
+    if (reply) {
+        replyCache.set(reportID, reply);
     } else {
-        draftCache.delete(reportID);
+        replyCache.delete(reportID);
     }
 }
 
-function applyConciergeDraftEvent(
-    currentDraft: ConciergeDraft | null,
-    event: ConciergeDraftEvent,
+function applyStreamedReplyEvent(
+    currentReply: StreamedReply | null,
+    event: StreamedReplyEvent,
     reportID: string,
     isGroupPolicyReport: boolean,
     accountIDToName?: Record<string, string>,
-): ConciergeDraft | null {
+): StreamedReply | null {
     if (event.reportID !== reportID) {
-        return currentDraft;
+        return currentReply;
     }
 
-    const isSameStreamSession = currentDraft?.streamSessionID === event.streamSessionID;
+    const isSameStreamSession = currentReply?.streamSessionID === event.streamSessionID;
 
-    if (isSameStreamSession && event.sequence <= currentDraft.sequence) {
-        return currentDraft;
+    if (isSameStreamSession && event.sequence <= currentReply.sequence) {
+        return currentReply;
     }
 
-    if (!isSameStreamSession && currentDraft && event.status !== CONCIERGE_DRAFT_STATUS.STARTED && event.status !== CONCIERGE_DRAFT_STATUS.UPDATED) {
-        return currentDraft;
+    if (!isSameStreamSession && currentReply && event.status !== STREAMED_REPLY_STATUS.STARTED && event.status !== STREAMED_REPLY_STATUS.UPDATED) {
+        return currentReply;
     }
 
-    if (event.status === CONCIERGE_DRAFT_STATUS.FAILED || event.status === CONCIERGE_DRAFT_STATUS.CLEARED) {
-        return isSameStreamSession ? null : currentDraft;
+    if (event.status === STREAMED_REPLY_STATUS.FAILED || event.status === STREAMED_REPLY_STATUS.CLEARED) {
+        return isSameStreamSession ? null : currentReply;
     }
 
     const nextReportAction =
-        buildConciergeDraftReportAction({
+        buildStreamedReplyReportAction({
             actorAccountID: event.actorAccountID,
             accountIDToName,
             bodyMarkdown: event.bodyMarkdown,
@@ -735,14 +735,14 @@ function applyConciergeDraftEvent(
             reportActionID: event.reportActionID,
             reportID: event.reportID,
             isGroupPolicyReport,
-        }) ?? currentDraft?.reportAction;
+        }) ?? currentReply?.reportAction;
 
     if (!nextReportAction) {
-        return currentDraft;
+        return currentReply;
     }
 
     return {
-        bodyMarkdown: event.bodyMarkdown ?? currentDraft?.bodyMarkdown,
+        bodyMarkdown: event.bodyMarkdown ?? currentReply?.bodyMarkdown,
         reportAction: nextReportAction,
         sequence: event.sequence,
         status: event.status,
@@ -751,5 +751,5 @@ function applyConciergeDraftEvent(
     };
 }
 
-export {applyConciergeDraftEvent, CONCIERGE_DRAFT_STATUS, getCachedDraft, getNextVisibleConciergeDraftMarkdown, setCachedDraft, stripIncompleteMarkdown};
-export type {ConciergeDraft};
+export {applyStreamedReplyEvent, STREAMED_REPLY_STATUS, getCachedReply, getNextVisibleStreamedReplyMarkdown, setCachedReply, stripIncompleteMarkdown};
+export type {StreamedReply};

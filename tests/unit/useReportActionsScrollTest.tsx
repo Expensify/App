@@ -196,7 +196,7 @@ function buildParams(overrides: Partial<ScrollParams> = {}): ScrollParams {
         unreadMarkerReportActionID: null,
         unreadMarkerReportActionIndex: -1,
         hasNewerActions: false,
-        draftAutoScrollKey: '',
+        streamedReplyAutoScrollKey: '',
         actionBadgeTargetIndex: -1,
         sortedAllReportActionsForPagination: [],
         treatAsNoPaginationAnchor: false,
@@ -625,9 +625,9 @@ describe('useReportActionsScroll', () => {
         it('auto-scrolls to bottom when a new draft key arrives near the bottom and the newest action is present', async () => {
             mockScrollOffsetRef.current = 0;
 
-            const {rerender} = await renderScroll({draftAutoScrollKey: ''});
+            const {rerender} = await renderScroll({streamedReplyAutoScrollKey: ''});
 
-            rerender(buildParams({draftAutoScrollKey: 'draft-1'}));
+            rerender(buildParams({streamedReplyAutoScrollKey: 'draft-1'}));
 
             expect(mockSetIsFloatingMessageCounterVisible).toHaveBeenCalledWith(false);
             expect(mockScrollToBottom).toHaveBeenCalled();
@@ -636,10 +636,10 @@ describe('useReportActionsScroll', () => {
         it('does not auto-scroll on a new draft key when scrolled away from the bottom', async () => {
             mockScrollOffsetRef.current = 9999;
 
-            const {rerender} = await renderScroll({draftAutoScrollKey: ''});
+            const {rerender} = await renderScroll({streamedReplyAutoScrollKey: ''});
             mockScrollToBottom.mockClear();
 
-            rerender(buildParams({draftAutoScrollKey: 'draft-1'}));
+            rerender(buildParams({streamedReplyAutoScrollKey: 'draft-1'}));
 
             expect(mockScrollToBottom).not.toHaveBeenCalled();
         });

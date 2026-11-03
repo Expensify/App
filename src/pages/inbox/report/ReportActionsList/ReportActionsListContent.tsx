@@ -144,7 +144,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
         linkedReportActionID,
         unreadMarkerReportActionID,
     });
-    const {listData, reportActionIDToDisplayIndex, unreadMarkerListIndex, focusRequestedReportActionID, draftAutoScrollKey, isDraftPendingCompletion} = reportActionsListData;
+    const {listData, reportActionIDToDisplayIndex, unreadMarkerListIndex, focusRequestedReportActionID, streamedReplyAutoScrollKey, isReplyPendingCompletion} = reportActionsListData;
 
     const {listID, listProps, shouldBeAlignedToTop, isFloatingMessageCounterVisible, isActionBadgeAboveViewport, scrollToBottomAndMarkReportAsRead, scrollToActionBadgeTarget} =
         useReportActionsListScroll({
@@ -158,7 +158,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
             completeSkippedMarkAsRead,
             unreadMarkerReportActionID,
             unreadMarkerReportActionIndex: unreadMarkerListIndex,
-            draftAutoScrollKey,
+            streamedReplyAutoScrollKey,
             focusRequestedReportActionID,
             actionBadgeTargetID: reportAttributes?.actionTargetReportActionID,
             linkedReportActionID,
@@ -193,7 +193,7 @@ function ReportActionsListContent({reportID, conciergeChat, onLayout}: ReportAct
             )}
             <ReportActionsListHeader
                 reportID={reportID}
-                isDraftPendingCompletion={isDraftPendingCompletion}
+                isReplyPendingCompletion={isReplyPendingCompletion}
             />
         </>
     );

@@ -6,11 +6,11 @@ type ReportActionsListHeaderProps = {
     reportID: string;
 
     /** Whether a Concierge draft is still streaming in — hides the thinking indicator only while the reply is actively revealing, not after it completes */
-    isDraftPendingCompletion?: boolean;
+    isReplyPendingCompletion?: boolean;
 };
 
-function ReportActionsListHeader({reportID, isDraftPendingCompletion}: ReportActionsListHeaderProps) {
-    if (isDraftPendingCompletion) {
+function ReportActionsListHeader({reportID, isReplyPendingCompletion}: ReportActionsListHeaderProps) {
+    if (isReplyPendingCompletion) {
         return null;
     }
 

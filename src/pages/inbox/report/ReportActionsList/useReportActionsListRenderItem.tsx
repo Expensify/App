@@ -60,9 +60,9 @@ function useReportActionsListRenderItem({
     expandSystemMessageRun,
     focusRequestedReportActionID,
     onExpandedSystemMessageReady,
-    draftMessageHTML,
-    draftReportActionID,
-    isDraftPendingCompletion,
+    streamedReplyHTML,
+    streamedReplyActionID,
+    isReplyPendingCompletion,
     unreadMarkerReportActionID,
     linkedReportActionID,
     onShowPreviousMessages,
@@ -96,7 +96,7 @@ function useReportActionsListRenderItem({
 
     // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
     const latestConciergeFeedbackActionIDs =
-        reportNameValuePairs?.conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
+        reportNameValuePairs?.conciergeFeedbackForReportActionID || isReplyPendingCompletion || hasNewerActions
             ? getEmptyArray<string>()
             : getFeedbackPromptActionIDs(renderedVisibleReportActions, persistedReportActionIDs, customAgentAccountIDs);
 
@@ -134,7 +134,7 @@ function useReportActionsListRenderItem({
         const previousReportAction = listData.at(index + 1);
         const previousRun = previousReportAction ? runsByAnchorReportActionID.get(previousReportAction.reportActionID) : undefined;
         const isAfterCollapsedRun = !!previousRun && !previousRun.isExpanded;
-        const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
+        const shouldDisableContextMenuForStreamedReply = isReplyPendingCompletion && streamedReplyActionID === reportAction.reportActionID;
 
         return (
             <ReportActionPositionContextProvider
@@ -180,7 +180,7 @@ function useReportActionsListRenderItem({
                         }
                         shouldUseThreadDividerLine={shouldUseThreadDividerLine}
                         isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReportAction}
-                        shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                        shouldDisableContextMenuForStreamedReply={shouldDisableContextMenuForStreamedReply}
                     />
                 )}
                 {!!reportStable?.reportID && (
@@ -201,9 +201,9 @@ function useReportActionsListRenderItem({
     const extraData = [
         shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined,
         isArchivedNonExpenseReport(report, isReportArchived),
-        draftReportActionID,
-        draftMessageHTML,
-        isDraftPendingCompletion,
+        streamedReplyActionID,
+        streamedReplyHTML,
+        isReplyPendingCompletion,
         latestConciergeFeedbackActionIDs,
         expandedSystemMessageReportActionIDs,
         focusRequestedReportActionID,

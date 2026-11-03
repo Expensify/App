@@ -21,11 +21,11 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {useActionListRef} from '@pages/inbox/ActionListContext';
 import type * as ActionListContextModule from '@pages/inbox/ActionListContext';
 import {useConciergeChatHistoryActions, useConciergeChatHistoryState} from '@pages/inbox/ConciergeChatHistoryContext';
-import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import useScrollToEditingReportAction from '@pages/inbox/report/useScrollToEditingReportAction';
+import {useStreamedReply, useStreamedReplyActions} from '@pages/inbox/StreamedReplyContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,9 +84,9 @@ jest.mock('@pages/inbox/ConciergeChatHistoryContext', () => ({
     useConciergeChatHistoryState: jest.fn(),
     useConciergeChatHistoryActions: jest.fn(),
 }));
-jest.mock('@pages/inbox/ConciergeDraftContext', () => ({
-    useConciergeDraft: jest.fn(),
-    useConciergeDraftActions: jest.fn(),
+jest.mock('@pages/inbox/StreamedReplyContext', () => ({
+    useStreamedReply: jest.fn(),
+    useStreamedReplyActions: jest.fn(),
 }));
 
 const mockUseNetwork = useNetwork as jest.MockedFunction<typeof useNetwork>;
@@ -99,8 +99,8 @@ const mockUseParentReportAction = useParentReportAction as jest.MockedFunction<t
 const mockUseIsInSidePanel = useIsInSidePanel as jest.MockedFunction<typeof useIsInSidePanel>;
 const mockUseSidePanelState = useSidePanelState as jest.MockedFunction<typeof useSidePanelState>;
 const mockUseReportTransactionsCollection = useReportTransactionsCollection as jest.MockedFunction<typeof useReportTransactionsCollection>;
-const mockUseConciergeDraft = useConciergeDraft as jest.MockedFunction<typeof useConciergeDraft>;
-const mockUseConciergeDraftActions = useConciergeDraftActions as jest.MockedFunction<typeof useConciergeDraftActions>;
+const mockUseStreamedReply = useStreamedReply as jest.MockedFunction<typeof useStreamedReply>;
+const mockUseStreamedReplyActions = useStreamedReplyActions as jest.MockedFunction<typeof useStreamedReplyActions>;
 const mockUseConciergeChatHistoryState = useConciergeChatHistoryState as jest.MockedFunction<typeof useConciergeChatHistoryState>;
 const mockUseConciergeChatHistoryActions = useConciergeChatHistoryActions as jest.MockedFunction<typeof useConciergeChatHistoryActions>;
 
@@ -192,7 +192,7 @@ const getCapturedListProps = (): MockInvertedFlashListProps | undefined => mockI
 const getRenderedReportActionsListItemProps = (
     reportAction: OnyxTypes.ReportAction,
     index = 0,
-): {shouldDisableContextMenuForConciergeDraft?: boolean; isLatestConciergeFeedbackAction?: boolean; displayAsGroup?: boolean} => {
+): {shouldDisableContextMenuForStreamedReply?: boolean; isLatestConciergeFeedbackAction?: boolean; displayAsGroup?: boolean} => {
     const renderedItem = getCapturedListProps()?.renderItem?.({item: reportAction, index});
 
     if (!React.isValidElement<{children: React.ReactNode}>(renderedItem)) {
@@ -200,8 +200,8 @@ const getRenderedReportActionsListItemProps = (
     }
 
     const child = React.Children.toArray(renderedItem.props.children).find(
-        (item): item is React.ReactElement<{shouldDisableContextMenuForConciergeDraft?: boolean}> =>
-            React.isValidElement<{shouldDisableContextMenuForConciergeDraft?: boolean}>(item) && 'shouldDisableContextMenuForConciergeDraft' in item.props,
+        (item): item is React.ReactElement<{shouldDisableContextMenuForStreamedReply?: boolean}> =>
+            React.isValidElement<{shouldDisableContextMenuForStreamedReply?: boolean}>(item) && 'shouldDisableContextMenuForStreamedReply' in item.props,
     );
 
     if (!child) {
@@ -356,15 +356,15 @@ describe('ReportActionsList (body)', () => {
         mockUseIsInSidePanel.mockReturnValue(false);
         mockUseSidePanelState.mockReturnValue(defaultSidePanelState);
         mockUseReportTransactionsCollection.mockReturnValue({});
-        mockUseConciergeDraft.mockReturnValue({
-            draftReportAction: null,
-            hasActiveDraft: false,
-            isDraftPendingCompletion: false,
+        mockUseStreamedReply.mockReturnValue({
+            streamedReplyAction: null,
+            hasActiveReply: false,
+            isReplyPendingCompletion: false,
         });
-        mockUseConciergeDraftActions.mockReturnValue({
-            clearDraft: jest.fn(),
-            dispatchLocalDraftEvent: jest.fn(),
-            revealDraftFromReportAction: jest.fn(),
+        mockUseStreamedReplyActions.mockReturnValue({
+            clearStreamedReply: jest.fn(),
+            dispatchLocalReplyEvent: jest.fn(),
+            revealStreamedReplyFromReportAction: jest.fn(),
         });
         mockUseConciergeChatHistoryState.mockReturnValue({showFullHistory: false, isHistoryCollapsedByUser: false});
         mockUseConciergeChatHistoryActions.mockReturnValue({setShowFullHistory: jest.fn(), collapseHistory: jest.fn()});
@@ -580,10 +580,10 @@ describe('ReportActionsList (body)', () => {
         it('keeps the unread target aligned with a synthetic draft in ordinary chats', () => {
             // Given an unread action whose rendered index shifts when a newer draft is inserted.
             mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: 'system-older', unreadMarkerReportActionIndex: 1});
-            mockUseConciergeDraft.mockReturnValue({
-                draftReportAction: {...getSystemAction(2), reportActionID: 'draft-before-unread', created: '2023-01-01 00:04:00.000'},
-                hasActiveDraft: true,
-                isDraftPendingCompletion: true,
+            mockUseStreamedReply.mockReturnValue({
+                streamedReplyAction: {...getSystemAction(2), reportActionID: 'draft-before-unread', created: '2023-01-01 00:04:00.000'},
+                hasActiveReply: true,
+                isReplyPendingCompletion: true,
             });
 
             // When an ordinary chat uses the same list without system-message collapsing.
@@ -598,10 +598,10 @@ describe('ReportActionsList (body)', () => {
     describe('Concierge Feedback Prompt', () => {
         beforeEach(() => {
             mockUseNetwork.mockReturnValue({isOffline: false});
-            mockUseConciergeDraft.mockReturnValue({
-                draftReportAction: null,
-                hasActiveDraft: false,
-                isDraftPendingCompletion: false,
+            mockUseStreamedReply.mockReturnValue({
+                streamedReplyAction: null,
+                hasActiveReply: false,
+                isReplyPendingCompletion: false,
             });
         });
 
@@ -705,10 +705,10 @@ describe('ReportActionsList (body)', () => {
         });
 
         it('marks nothing while a Concierge answer is still streaming', () => {
-            mockUseConciergeDraft.mockReturnValue({
-                draftReportAction: {...conciergeReply, message: [{type: 'COMMENT', html: 'Here', text: 'Here'}]},
-                hasActiveDraft: true,
-                isDraftPendingCompletion: true,
+            mockUseStreamedReply.mockReturnValue({
+                streamedReplyAction: {...conciergeReply, message: [{type: 'COMMENT', html: 'Here', text: 'Here'}]},
+                hasActiveReply: true,
+                isReplyPendingCompletion: true,
             });
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
@@ -724,10 +724,10 @@ describe('ReportActionsList (body)', () => {
             // Given a completed draft whose HTML serialization differs from its saved reply
             const completedDraft: OnyxTypes.ReportAction = {...conciergeReply, message: [{type: 'COMMENT', html: 'Here&apos;s it', text: "Here's it"}]};
             const savedReply: OnyxTypes.ReportAction = {...conciergeReply, message: [{type: 'COMMENT', html: "Here's it", text: "Here's it"}]};
-            mockUseConciergeDraft.mockReturnValue({
-                draftReportAction: completedDraft,
-                hasActiveDraft: true,
-                isDraftPendingCompletion: false,
+            mockUseStreamedReply.mockReturnValue({
+                streamedReplyAction: completedDraft,
+                hasActiveReply: true,
+                isReplyPendingCompletion: false,
             });
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
@@ -775,10 +775,10 @@ describe('ReportActionsList (body)', () => {
     });
 
     describe('Concierge Draft Context Menu', () => {
-        // extraData is an array, so isDraftPendingCompletion is read by its position
+        // extraData is an array, so isReplyPendingCompletion is read by its position
         const DRAFT_PENDING_EXTRA_DATA_INDEX = 4;
 
-        const conciergeDraftReportAction: OnyxTypes.ReportAction = {
+        const streamedReplyReportAction: OnyxTypes.ReportAction = {
             reportID: mockReport.reportID,
             reportActionID: 'concierge-draft',
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
@@ -797,46 +797,46 @@ describe('ReportActionsList (body)', () => {
         });
 
         it('disables the context menu while the Concierge draft is still streaming', () => {
-            mockUseConciergeDraft.mockReturnValue({
-                draftReportAction: conciergeDraftReportAction,
-                hasActiveDraft: true,
-                isDraftPendingCompletion: true,
+            mockUseStreamedReply.mockReturnValue({
+                streamedReplyAction: streamedReplyReportAction,
+                hasActiveReply: true,
+                isReplyPendingCompletion: true,
             });
 
             renderReportActionsList();
 
-            expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
-            expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(true);
+            expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === streamedReplyReportAction.reportActionID)).toBe(true);
+            expect(getRenderedReportActionsListItemProps(streamedReplyReportAction).shouldDisableContextMenuForStreamedReply).toBe(true);
             expect((getCapturedListProps()?.extraData as unknown[]).at(DRAFT_PENDING_EXTRA_DATA_INDEX)).toBe(true);
         });
 
         it('enables the context menu after the Concierge draft finishes streaming', () => {
-            mockUseConciergeDraft.mockReturnValue({
-                draftReportAction: conciergeDraftReportAction,
-                hasActiveDraft: true,
-                isDraftPendingCompletion: false,
+            mockUseStreamedReply.mockReturnValue({
+                streamedReplyAction: streamedReplyReportAction,
+                hasActiveReply: true,
+                isReplyPendingCompletion: false,
             });
 
             renderReportActionsList();
 
-            expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
-            expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(false);
+            expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === streamedReplyReportAction.reportActionID)).toBe(true);
+            expect(getRenderedReportActionsListItemProps(streamedReplyReportAction).shouldDisableContextMenuForStreamedReply).toBe(false);
             expect((getCapturedListProps()?.extraData as unknown[]).at(DRAFT_PENDING_EXTRA_DATA_INDEX)).toBe(false);
         });
 
         it('reconciles a pending draft when the matching persisted action has identical HTML', async () => {
             // Given a saved reply matching the last draft update while its completion event is missing
             const persistedReportAction = mockReportActions.at(-1);
-            const revealDraftFromReportAction = jest.fn();
-            mockUseConciergeDraft.mockReturnValue({
-                draftReportAction: persistedReportAction ?? null,
-                hasActiveDraft: true,
-                isDraftPendingCompletion: true,
+            const revealStreamedReplyFromReportAction = jest.fn();
+            mockUseStreamedReply.mockReturnValue({
+                streamedReplyAction: persistedReportAction ?? null,
+                hasActiveReply: true,
+                isReplyPendingCompletion: true,
             });
-            mockUseConciergeDraftActions.mockReturnValue({
-                clearDraft: jest.fn(),
-                dispatchLocalDraftEvent: jest.fn(),
-                revealDraftFromReportAction,
+            mockUseStreamedReplyActions.mockReturnValue({
+                clearStreamedReply: jest.fn(),
+                dispatchLocalReplyEvent: jest.fn(),
+                revealStreamedReplyFromReportAction,
             });
 
             // When the saved reply reaches the list
@@ -844,36 +844,36 @@ describe('ReportActionsList (body)', () => {
 
             // Then the saved identity completes reconciliation even without a change to its HTML
             await waitFor(() => {
-                expect(revealDraftFromReportAction).toHaveBeenCalledWith(persistedReportAction);
+                expect(revealStreamedReplyFromReportAction).toHaveBeenCalledWith(persistedReportAction);
             });
         });
 
         it('clears a completed draft when its saved action is outside the visible page', async () => {
             // Given a saved reply outside the pagination window while its draft is still revealing
             const persistedReportAction: OnyxTypes.ReportAction = {
-                ...conciergeDraftReportAction,
+                ...streamedReplyReportAction,
                 reportActionID: 'persisted-outside-visible-page',
             };
             const revealingDraft: OnyxTypes.ReportAction = {...persistedReportAction, message: [{type: 'COMMENT', html: 'Bot', text: 'Bot'}]};
-            const clearDraft = jest.fn();
-            const revealDraftFromReportAction = jest.fn();
+            const clearStreamedReply = jest.fn();
+            const revealStreamedReplyFromReportAction = jest.fn();
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
                 reportActions: mockReportActions,
                 sortedAllReportActions: [...mockReportActions, persistedReportAction],
             });
             const revealingDraftState = {
-                draftReportAction: revealingDraft,
-                hasActiveDraft: true,
-                isDraftPendingCompletion: true,
+                streamedReplyAction: revealingDraft,
+                hasActiveReply: true,
+                isReplyPendingCompletion: true,
             };
             const TestDraftContext = React.createContext(revealingDraftState);
-            const useTestConciergeDraft = () => React.useContext(TestDraftContext);
-            mockUseConciergeDraft.mockImplementation(useTestConciergeDraft);
-            mockUseConciergeDraftActions.mockReturnValue({
-                clearDraft,
-                dispatchLocalDraftEvent: jest.fn(),
-                revealDraftFromReportAction,
+            const useTestStreamedReply = () => React.useContext(TestDraftContext);
+            mockUseStreamedReply.mockImplementation(useTestStreamedReply);
+            mockUseStreamedReplyActions.mockReturnValue({
+                clearStreamedReply,
+                dispatchLocalReplyEvent: jest.fn(),
+                revealStreamedReplyFromReportAction,
             });
 
             // When the list reconciles against all saved actions
@@ -888,14 +888,14 @@ describe('ReportActionsList (body)', () => {
 
             // Then the partial draft remains visible until its saved content finishes revealing
             await waitFor(() => {
-                expect(revealDraftFromReportAction).toHaveBeenCalledWith(persistedReportAction);
+                expect(revealStreamedReplyFromReportAction).toHaveBeenCalledWith(persistedReportAction);
             });
             expect(getCapturedVisibleActions()).toContain(revealingDraft);
-            expect(clearDraft).not.toHaveBeenCalled();
+            expect(clearStreamedReply).not.toHaveBeenCalled();
 
             // When the reveal completes without changing the visible pagination window
             rerender(
-                <TestDraftContext.Provider value={{draftReportAction: persistedReportAction, hasActiveDraft: true, isDraftPendingCompletion: false}}>
+                <TestDraftContext.Provider value={{streamedReplyAction: persistedReportAction, hasActiveReply: true, isReplyPendingCompletion: false}}>
                     <ReportActionsList
                         reportID={mockReport.reportID}
                         conciergeChat={undefined}
@@ -905,7 +905,7 @@ describe('ReportActionsList (body)', () => {
 
             // Then the synthetic bubble disappears and its cached draft is cleared
             await waitFor(() => {
-                expect(clearDraft).toHaveBeenCalledTimes(1);
+                expect(clearStreamedReply).toHaveBeenCalledTimes(1);
             });
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === persistedReportAction.reportActionID)).toBe(false);
         });
@@ -913,7 +913,7 @@ describe('ReportActionsList (body)', () => {
         it('shows server followups after a local reply completes even when the pending add flag remains', () => {
             // Given a completed local reply and a later server merge that adds followups but leaves the pending add flag
             const completedDraft: OnyxTypes.ReportAction = {
-                ...conciergeDraftReportAction,
+                ...streamedReplyReportAction,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 isOptimisticAction: true,
             };
@@ -923,21 +923,21 @@ describe('ReportActionsList (body)', () => {
                 message: [{type: 'COMMENT', html: savedHTML, text: 'Bot reply'}],
                 originalMessage: {html: savedHTML, whisperedTo: []},
             };
-            const clearDraft = jest.fn();
+            const clearStreamedReply = jest.fn();
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
                 reportActions: [mergedReportAction, ...mockReportActions],
                 sortedAllReportActions: [mergedReportAction, ...mockReportActions],
             });
-            mockUseConciergeDraft.mockReturnValue({
-                draftReportAction: completedDraft,
-                hasActiveDraft: true,
-                isDraftPendingCompletion: false,
+            mockUseStreamedReply.mockReturnValue({
+                streamedReplyAction: completedDraft,
+                hasActiveReply: true,
+                isReplyPendingCompletion: false,
             });
-            mockUseConciergeDraftActions.mockReturnValue({
-                clearDraft,
-                dispatchLocalDraftEvent: jest.fn(),
-                revealDraftFromReportAction: jest.fn(),
+            mockUseStreamedReplyActions.mockReturnValue({
+                clearStreamedReply,
+                dispatchLocalReplyEvent: jest.fn(),
+                revealStreamedReplyFromReportAction: jest.fn(),
             });
 
             // When the saved reply reaches the open chat without a refresh
@@ -946,40 +946,40 @@ describe('ReportActionsList (body)', () => {
             // Then the server's followups are displayed and the completed local draft is retired
             expect(getCapturedVisibleActions()).toContain(mergedReportAction);
             expect(getCapturedVisibleActions()).not.toContain(completedDraft);
-            expect(clearDraft).toHaveBeenCalledTimes(1);
+            expect(clearStreamedReply).toHaveBeenCalledTimes(1);
         });
 
-        it.each([true, false])('retires an optimistic local reply only after draft completion (pending: %s)', (isDraftPendingCompletion) => {
+        it.each([true, false])('retires an optimistic local reply only after draft completion (pending: %s)', (isReplyPendingCompletion) => {
             // Given a matching local reply whose pending add flag does not indicate whether its reveal has finished
             const optimisticReportAction: OnyxTypes.ReportAction = {
-                ...conciergeDraftReportAction,
+                ...streamedReplyReportAction,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 isOptimisticAction: true,
             };
-            const clearDraft = jest.fn();
-            const revealDraftFromReportAction = jest.fn();
+            const clearStreamedReply = jest.fn();
+            const revealStreamedReplyFromReportAction = jest.fn();
             mockUsePaginatedReportActions.mockReturnValue({
                 ...defaultPaginatedReportActionsResult,
                 reportActions: [optimisticReportAction, ...mockReportActions],
                 sortedAllReportActions: [optimisticReportAction, ...mockReportActions],
             });
-            mockUseConciergeDraft.mockReturnValue({
-                draftReportAction: optimisticReportAction,
-                hasActiveDraft: true,
-                isDraftPendingCompletion,
+            mockUseStreamedReply.mockReturnValue({
+                streamedReplyAction: optimisticReportAction,
+                hasActiveReply: true,
+                isReplyPendingCompletion,
             });
-            mockUseConciergeDraftActions.mockReturnValue({
-                clearDraft,
-                dispatchLocalDraftEvent: jest.fn(),
-                revealDraftFromReportAction,
+            mockUseStreamedReplyActions.mockReturnValue({
+                clearStreamedReply,
+                dispatchLocalReplyEvent: jest.fn(),
+                revealStreamedReplyFromReportAction,
             });
 
             // When the list renders the draft beside that placeholder
             renderReportActionsList();
 
             // Then an unfinished reveal stays active, while a completed reveal lets future Onyx updates appear
-            expect(revealDraftFromReportAction).not.toHaveBeenCalled();
-            expect(clearDraft).toHaveBeenCalledTimes(isDraftPendingCompletion ? 0 : 1);
+            expect(revealStreamedReplyFromReportAction).not.toHaveBeenCalled();
+            expect(clearStreamedReply).toHaveBeenCalledTimes(isReplyPendingCompletion ? 0 : 1);
             expect(getCapturedVisibleActions()).toContain(optimisticReportAction);
         });
     });

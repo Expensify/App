@@ -52,7 +52,7 @@ type ConciergeReasoningEvent = {
     actorAccountID?: number;
 };
 
-type ConciergeDraftEvent = {
+type StreamedReplyEvent = {
     reportID: string;
     reportActionID: string;
     streamSessionID: string;
@@ -72,8 +72,8 @@ type ConciergeDraftEvent = {
     actorAccountID?: number;
 };
 
-type ConciergeDraftEventsEvent = {
-    events: ConciergeDraftEvent[];
+type StreamedReplyEventsEvent = {
+    events: StreamedReplyEvent[];
 };
 
 type PusherEventMap = {
@@ -81,12 +81,12 @@ type PusherEventMap = {
     [TYPE.USER_IS_LEAVING_ROOM]: UserIsLeavingRoomEvent;
     [TYPE.AGENT_ZERO_PROCESSING_STATUS]: AgentZeroProcessingStatusEvent;
     [TYPE.CONCIERGE_REASONING]: ConciergeReasoningEvent;
-    [TYPE.CONCIERGE_DRAFT_EVENTS]: ConciergeDraftEventsEvent;
-    [TYPE.CONCIERGE_DRAFT_STARTED]: ConciergeDraftEvent;
-    [TYPE.CONCIERGE_DRAFT_UPDATED]: ConciergeDraftEvent;
-    [TYPE.CONCIERGE_DRAFT_COMPLETED]: ConciergeDraftEvent;
-    [TYPE.CONCIERGE_DRAFT_FAILED]: ConciergeDraftEvent;
-    [TYPE.CONCIERGE_DRAFT_CLEARED]: ConciergeDraftEvent;
+    [TYPE.CONCIERGE_DRAFT_EVENTS]: StreamedReplyEventsEvent;
+    [TYPE.CONCIERGE_DRAFT_STARTED]: StreamedReplyEvent;
+    [TYPE.CONCIERGE_DRAFT_UPDATED]: StreamedReplyEvent;
+    [TYPE.CONCIERGE_DRAFT_COMPLETED]: StreamedReplyEvent;
+    [TYPE.CONCIERGE_DRAFT_FAILED]: StreamedReplyEvent;
+    [TYPE.CONCIERGE_DRAFT_CLEARED]: StreamedReplyEvent;
 };
 
 type EventData<EventName extends string> = {chunk?: string; id?: string; index?: number; final?: boolean} & (EventName extends keyof PusherEventMap
@@ -141,8 +141,8 @@ export type {
     Args,
     UserIsTypingEvent,
     UserIsLeavingRoomEvent,
-    ConciergeDraftEvent,
-    ConciergeDraftEventsEvent,
+    StreamedReplyEvent,
+    StreamedReplyEventsEvent,
     EventData,
     EventCallbackError,
     ChunkedDataEvents,

@@ -1,7 +1,7 @@
 /** Tracks requested Concierge replies and updates the browser favicon until they are read. */
 import Log from '@libs/Log';
 import Pusher from '@libs/Pusher';
-import type {ConciergeDraftEvent} from '@libs/Pusher/types';
+import type {StreamedReplyEvent} from '@libs/Pusher/types';
 import {setConciergeAttention} from '@libs/UnreadIndicatorUpdater/updateUnread';
 
 import CONFIG from '@src/CONFIG';
@@ -137,7 +137,7 @@ function completeRequest(responseReportActionID: string) {
     updateIndicator();
 }
 
-function handleDraftEvent(event: ConciergeDraftEvent) {
+function handleDraftEvent(event: StreamedReplyEvent) {
     const request = requests.get(event.reportActionID);
     if (!request || (event.actorAccountID ?? CONST.ACCOUNT_ID.CONCIERGE) !== CONST.ACCOUNT_ID.CONCIERGE) {
         return;

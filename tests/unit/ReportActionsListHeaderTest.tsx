@@ -29,7 +29,7 @@ describe('ReportActionsListHeader', () => {
         render(
             <ReportActionsListHeader
                 reportID={REPORT_ID}
-                isDraftPendingCompletion
+                isReplyPendingCompletion
             />,
         );
         expect(screen.queryByTestId('ConciergeThinkingMessage')).toBeNull();

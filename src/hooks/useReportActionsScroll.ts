@@ -57,7 +57,7 @@ type UseReportActionsScrollParams = {
     /** Sorted actions that should be visible to the user */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
 
-    /** Actions actually rendered by the list (may include a synthetic draft), used for mount scroll positioning */
+    /** Actions actually rendered by the list (may include a synthetic reply), used for mount scroll positioning */
     renderedVisibleReportActions: OnyxTypes.ReportAction[];
 
     /** Maps hidden canonical actions to the summary row used by the list. */
@@ -84,8 +84,8 @@ type UseReportActionsScrollParams = {
     /** Whether the report has newer actions to load */
     hasNewerActions: boolean;
 
-    /** Stable key that changes when a streamed concierge draft becomes visible, used to trigger autoscroll */
-    draftAutoScrollKey: string;
+    /** Stable key that changes when a streamed reply becomes visible, used to trigger autoscroll */
+    streamedReplyAutoScrollKey: string;
 
     /** The index of the action badge target in the rendered actions list (-1 if none) */
     actionBadgeTargetIndex: number;
@@ -158,7 +158,7 @@ function useReportActionsScroll({
     unreadMarkerReportActionID,
     unreadMarkerReportActionIndex,
     hasNewerActions,
-    draftAutoScrollKey,
+    streamedReplyAutoScrollKey,
     actionBadgeTargetIndex,
     sortedAllReportActionsForPagination,
     treatAsNoPaginationAnchor,
@@ -308,10 +308,10 @@ function useReportActionsScroll({
         resetKey: `${reportID}:${linkedReportActionID}`,
     });
 
-    const previousDraftAutoScrollKey = usePrevious(draftAutoScrollKey);
+    const previousStreamedReplyAutoScrollKey = usePrevious(streamedReplyAutoScrollKey);
 
     useEffect(() => {
-        if (!draftAutoScrollKey || previousDraftAutoScrollKey === draftAutoScrollKey) {
+        if (!streamedReplyAutoScrollKey || previousStreamedReplyAutoScrollKey === streamedReplyAutoScrollKey) {
             return;
         }
 
@@ -323,7 +323,7 @@ function useReportActionsScroll({
         requestAnimationFrame(() => {
             reportScrollManager.scrollToBottom();
         });
-    }, [draftAutoScrollKey, hasNewestReportAction, previousDraftAutoScrollKey, reportScrollManager, scrollOffsetRef, setIsFloatingMessageCounterVisible]);
+    }, [streamedReplyAutoScrollKey, hasNewestReportAction, previousStreamedReplyAutoScrollKey, reportScrollManager, scrollOffsetRef, setIsFloatingMessageCounterVisible]);
 
     const scheduleInitialScrollToBottom = useEffectEvent(() => {
         if (initialScrollKey) {

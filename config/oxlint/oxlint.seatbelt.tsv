@@ -1175,7 +1175,6 @@
 "../../src/pages/home/YourSpendSection/SpendSummaryRow.tsx"	"@typescript-eslint/no-deprecated/MenuItemWithTopDescription"	1
 "../../src/pages/home/YourSpendSection/useYourSpendData.ts"	"no-restricted-imports"	1
 "../../src/pages/inbox/cleanStaleReportActionBackToParam.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
-"../../src/pages/inbox/conciergeDraftState.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/inbox/hooks/useReportWasDeleted.ts"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/ReactionListWrapper.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/actionContents/ActionContentRouter.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -1229,6 +1228,8 @@
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/NewWorkspaceMenuItem.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/menuItems/TravelMenuItem.tsx"	"no-restricted-imports"	1
 "../../src/pages/inbox/sidebar/FABPopoverContent/useScanActions.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../src/pages/inbox/streamedReplyState.ts"	"@typescript-eslint/no-deprecated/originalMessage"	1
+"../../src/pages/inbox/streamedReplyState.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../src/pages/Insights/InsightsDashboard.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/Insights/InsightsPage.tsx"	"rulesdir/no-onyx-loading-status"	1
 "../../src/pages/Insights/useInsightsFilters.ts"	"rulesdir/no-onyx-loading-status"	3
@@ -2465,9 +2466,10 @@
 "../../tests/unit/pages/DynamicReportDetailsPage/useReportDetailsReportNameTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/pages/DynamicReportDetailsPage/useReportDetailsRequestDataTest.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
 "../../tests/unit/pages/DynamicReportDetailsPage/useReportDetailsRequestDataTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
-"../../tests/unit/pages/inbox/ConciergeDraftContext.test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/pages/inbox/report/HomeAddressRequiredContent.test.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	2
 "../../tests/unit/pages/inbox/report/ReportActionEditMessageContext.test.tsx"	"no-restricted-imports"	1
+"../../tests/unit/pages/inbox/StreamedReplyContext.test.tsx"	"@typescript-eslint/no-deprecated/originalMessage"	1
+"../../tests/unit/pages/inbox/StreamedReplyContext.test.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/pages/Search/SearchChangeApproverPageTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/pages/settings/AddAgentPageTest.tsx"	"@typescript-eslint/no-unnecessary-type-assertion"	1
 "../../tests/unit/PaymentUtilsTest.ts"	"@typescript-eslint/no-unnecessary-type-assertion"	1

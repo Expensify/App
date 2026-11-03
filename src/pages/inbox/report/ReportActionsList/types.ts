@@ -36,7 +36,7 @@ type UseReportActionsListScrollParams = Pick<
     | 'completeSkippedMarkAsRead'
     | 'unreadMarkerReportActionID'
     | 'unreadMarkerReportActionIndex'
-    | 'draftAutoScrollKey'
+    | 'streamedReplyAutoScrollKey'
 > &
     Pick<ReturnType<typeof useReportActionsPresentation>, 'reportActionIDToDisplayIndex' | 'focusRequestedReportActionID'> &
     Pick<UseReportActionsListDataParams, 'linkedReportActionID'> &
@@ -55,9 +55,9 @@ type UseReportActionsListRenderItemParams = Pick<
     | 'expandSystemMessageRun'
     | 'focusRequestedReportActionID'
     | 'onExpandedSystemMessageReady'
-    | 'draftMessageHTML'
-    | 'draftReportActionID'
-    | 'isDraftPendingCompletion'
+    | 'streamedReplyHTML'
+    | 'streamedReplyActionID'
+    | 'isReplyPendingCompletion'
 > &
     Pick<UseReportActionsListDataParams, 'reportNameValuePairs' | 'linkedReportActionID' | 'unreadMarkerReportActionID'> &
     Pick<ReportActionsListProps, 'reportID'> & {

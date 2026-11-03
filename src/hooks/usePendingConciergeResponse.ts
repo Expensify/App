@@ -4,12 +4,12 @@ import AgentZeroOptimisticStore, {MAX_AGE_MS} from '@libs/AgentZeroOptimisticSto
 import {ACCELERATED_REMAINING_MS, getOptimisticRevealDurationMS, MIN_TRICKLE_TOKEN_COUNT, TICK_INTERVAL_MS, TRICKLE_HARD_CAP_MS} from '@libs/ConciergeRevealUtils';
 import Log from '@libs/Log';
 import {rand64} from '@libs/NumberUtils';
-import type {ConciergeDraftEvent} from '@libs/Pusher/types';
+import type {StreamedReplyEvent} from '@libs/Pusher/types';
 import {parseFollowupsFromHtml} from '@libs/ReportActionFollowupUtils';
 import tokenizeForReveal from '@libs/ReportActionFollowupUtils/tokenizeForReveal';
 import {getReportActionHtml} from '@libs/ReportActionsUtils';
 
-import {useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
+import {useStreamedReplyActions} from '@pages/inbox/StreamedReplyContext';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -26,7 +26,7 @@ import useOnyx from './useOnyx';
 const PENDING_FOLLOWUP_LIST_HARD_CAP_MS = MAX_AGE_MS;
 
 /**
- * Long Concierge replies trickle into `ConciergeDraftContext`; short ones keep
+ * Long Concierge replies trickle into `StreamedReplyContext`; short ones keep
  * the binary reveal at `displayAfter`. `REPORT_ACTIONS` is written at completion.
  */
 function usePendingConciergeResponse(reportID: string | undefined) {
@@ -43,20 +43,20 @@ function usePendingConciergeResponse(reportID: string | undefined) {
     const pendingFollowupActionSelector = (actions: OnyxEntry<ReportActions>): ReportAction | undefined =>
         pendingFollowupActionID && actions ? actions[pendingFollowupActionID] : undefined;
     const [pendingFollowupAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: pendingFollowupActionSelector});
-    const {dispatchLocalDraftEvent} = useConciergeDraftActions();
+    const {dispatchLocalReplyEvent} = useStreamedReplyActions();
 
     const tokens = tokenizeForReveal(fullHtml);
     const accelerateRef = useRef<((nowMs: number) => void) | null>(null);
 
     // Captured into a ref so the trickle effect can re-run only on the IDs that
     // identify a distinct Concierge reply. Composer typing, unrelated Onyx emits,
-    // and ConciergeDraftActions context refreshes all produce reference churn for
+    // and StreamedReplyActions context refreshes all produce reference churn for
     // pendingResponse/tokens/fullHtml — without this snapshot, those non-content
     // updates would cancel the running interval and restart the reveal. The
     // useEffect keeps ref writes in the commit phase (React-Compiler-safe).
-    const trickleInputsRef = useRef({pendingResponse, fullHtml, tokens, dispatchLocalDraftEvent, persistedAction});
+    const trickleInputsRef = useRef({pendingResponse, fullHtml, tokens, dispatchLocalReplyEvent, persistedAction});
     useEffect(() => {
-        trickleInputsRef.current = {pendingResponse, fullHtml, tokens, dispatchLocalDraftEvent, persistedAction};
+        trickleInputsRef.current = {pendingResponse, fullHtml, tokens, dispatchLocalReplyEvent, persistedAction};
     });
 
     // Reconciliation: when the canonical reportComment lands in REPORT_ACTIONS
@@ -168,14 +168,14 @@ function usePendingConciergeResponse(reportID: string | undefined) {
         // "acceleration fired" check that selects the completion reason below.
         let arrival: {progress: number; elapsedMs: number} | undefined;
 
-        const dispatch = (status: ConciergeDraftEvent['status'], finalRenderedHTML: string) => {
+        const dispatch = (status: StreamedReplyEvent['status'], finalRenderedHTML: string) => {
             if (cancelled) {
                 return;
             }
             sequence += 1;
             // Read dispatch fn from the ref so a context-provider refresh doesn't pin
             // the trickle to a stale handler. The ref always points at the latest.
-            trickleInputsRef.current.dispatchLocalDraftEvent({
+            trickleInputsRef.current.dispatchLocalReplyEvent({
                 reportID,
                 reportActionID,
                 streamSessionID: session,

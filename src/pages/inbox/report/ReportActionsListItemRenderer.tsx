@@ -55,7 +55,7 @@ type ReportActionsListItemRendererProps = {
     isHarvestCreatedExpenseReport?: boolean;
 
     /** Whether context menu should be disabled for the active Concierge draft */
-    shouldDisableContextMenuForConciergeDraft?: boolean;
+    shouldDisableContextMenuForStreamedReply?: boolean;
 
     /** Parent links of the report and its ancestors, used to clear related errors on dismiss */
     reportsParentHierarchy: OnyxCollection<ReportHierarchyInfo>;
@@ -80,7 +80,7 @@ function ReportActionsListItemRenderer({
     shouldHighlight = false,
     parentReportActionForTransactionThread,
     isHarvestCreatedExpenseReport = false,
-    shouldDisableContextMenuForConciergeDraft = false,
+    shouldDisableContextMenuForStreamedReply = false,
     isLatestConciergeFeedbackAction = false,
     reportsParentHierarchy,
     onExpandedSystemMessageReady,
@@ -159,7 +159,7 @@ function ReportActionsListItemRenderer({
             shouldUseThreadDividerLine={shouldUseThreadDividerLine}
             shouldHighlight={shouldHighlight}
             isHarvestCreatedExpenseReport={isHarvestCreatedExpenseReport}
-            shouldDisplayContextMenu={!shouldDisableContextMenuForConciergeDraft}
+            shouldDisplayContextMenu={!shouldDisableContextMenuForStreamedReply}
             isLatestConciergeFeedbackAction={isLatestConciergeFeedbackAction}
             reportsParentHierarchy={reportsParentHierarchy}
             onExpandedSystemMessageReady={onExpandedSystemMessageReady}

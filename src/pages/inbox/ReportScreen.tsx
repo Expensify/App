@@ -30,7 +30,6 @@ import type ReportScreenNavigationProps from './types';
 
 import {ActionListContextProvider} from './ActionListContext';
 import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
-import {ConciergeDraftProvider} from './ConciergeDraftContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import OneTransactionThreadRedirectHandler from './OneTransactionThreadRedirectHandler';
@@ -48,6 +47,7 @@ import ReportNavigateAwayHandler from './ReportNavigateAwayHandler';
 import ReportNonEssentialsDeferredMount from './ReportNonEssentialsDeferredMount';
 import ReportNotFoundGuard from './ReportNotFoundGuard';
 import ReportRouteParamHandler from './ReportRouteParamHandler';
+import {StreamedReplyProvider} from './StreamedReplyContext';
 import WideRHPReceiptPanel from './WideRHPReceiptPanel';
 
 type ReportScreenProps = ReportScreenNavigationProps & {
@@ -152,7 +152,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                                     <WideRHPReceiptPanel />
                                                 </ReportNonEssentialsDeferredMount>
                                                 <AgentZeroStatusProvider reportID={reportIDFromRoute}>
-                                                    <ConciergeDraftProvider reportID={reportIDFromRoute}>
+                                                    <StreamedReplyProvider reportID={reportIDFromRoute}>
                                                         <View
                                                             style={[
                                                                 styles.flex1,
@@ -172,7 +172,7 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                                                 <ReportFooter />
                                                             </ReportNonEssentialsDeferredMount>
                                                         </View>
-                                                    </ConciergeDraftProvider>
+                                                    </StreamedReplyProvider>
                                                 </AgentZeroStatusProvider>
                                             </View>
                                         </OfflineWithFeedback>

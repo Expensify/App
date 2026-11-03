@@ -32,12 +32,12 @@ import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
 
 import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
 import {useActionListRef} from '@pages/inbox/ActionListContext';
-import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import {ReportActionPositionContextProvider, ReportActionScrollToNewestContext} from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import useReportActionsPresentation from '@pages/inbox/report/useReportActionsPresentation';
+import {useStreamedReply} from '@pages/inbox/StreamedReplyContext';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -112,8 +112,8 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     const reportID = report?.reportID;
 
     const {reportActions: unfilteredReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, linkedReportActionID);
-    const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
-    const draftReportActionID = draftReportAction?.reportActionID;
+    const {streamedReplyAction, isReplyPendingCompletion} = useStreamedReply();
+    const streamedReplyActionID = streamedReplyAction?.reportActionID;
 
     const {reportActions, reportTransactions, transactions, hasPendingDeletionTransaction, reportTransactionIDs, reportActionIDs} = useMoneyRequestReportData(
         reportIDFromRoute,
@@ -170,7 +170,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
 
     // Skip inside the thread the backend opens after a thumbs down, while a Concierge answer is still streaming, and while newer actions are not loaded because the newest reply may not be in the list yet
     const latestConciergeFeedbackActionIDs =
-        conciergeFeedbackForReportActionID || isDraftPendingCompletion || hasNewerActions
+        conciergeFeedbackForReportActionID || isReplyPendingCompletion || hasNewerActions
             ? getEmptyArray<string>()
             : getFeedbackPromptActionIDs(visibleReportActionsNewestFirst, reportActionIDs, customAgentAccountIDs);
 
@@ -285,7 +285,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
             !isAfterCollapsedRun &&
             !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
             hasNextActionMadeBySameActor(visibleReportActions, canonicalIndex, isOffline);
-        const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
+        const shouldDisableContextMenuForStreamedReply = isReplyPendingCompletion && streamedReplyActionID === reportAction.reportActionID;
         const isNewestReportAction = indexWithinReportActions === displayReportActions.length - 1;
 
         return (
@@ -319,7 +319,7 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
                             shouldHideThreadDividerLine
                             linkedReportActionID={linkedReportActionID}
                             isHarvestCreatedExpenseReport={shouldShowHarvestCreatedAction}
-                            shouldDisableContextMenuForConciergeDraft={shouldDisableContextMenuForConciergeDraft}
+                            shouldDisableContextMenuForStreamedReply={shouldDisableContextMenuForStreamedReply}
                             isLatestConciergeFeedbackAction={latestConciergeFeedbackActionIDs.includes(reportAction.reportActionID)}
                             reportsParentHierarchy={reportsParentHierarchy}
                             onExpandedSystemMessageReady={
@@ -333,8 +333,8 @@ function MoneyRequestReportActionsListContent({reportIDFromRoute, onLayout}: Mon
     };
 
     const reportActionsExtraData = [
-        draftReportActionID,
-        isDraftPendingCompletion,
+        streamedReplyActionID,
+        isReplyPendingCompletion,
         latestConciergeFeedbackActionIDs,
         expandedSystemMessageReportActionIDs,
         unreadMarkerReportActionID,

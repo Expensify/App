@@ -4,11 +4,11 @@ import useOnyx from '@hooks/useOnyx';
 import usePendingConciergeResponse from '@hooks/usePendingConciergeResponse';
 
 import Pusher from '@libs/Pusher';
-import type {ConciergeDraftEvent, ConciergeDraftEventsEvent} from '@libs/Pusher/types';
+import type {StreamedReplyEvent, StreamedReplyEventsEvent} from '@libs/Pusher/types';
 import {getReportActionHtml} from '@libs/ReportActionMessageUtils';
 
-import {ConciergeDraftProvider, useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
-import {applyConciergeDraftEvent, getCachedDraft, setCachedDraft} from '@pages/inbox/conciergeDraftState';
+import {StreamedReplyProvider, useStreamedReply, useStreamedReplyActions} from '@pages/inbox/StreamedReplyContext';
+import {applyStreamedReplyEvent, getCachedReply, setCachedReply} from '@pages/inbox/streamedReplyState';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,7 +63,7 @@ const TARGET_BODY_MARKDOWN = 'Hello';
 const COMPLETED_BODY_MARKDOWN = 'Hello world';
 const NEXT_BODY_MARKDOWN = 'HelloWorld';
 const FINAL_RENDERED_HTML = '<comment>Server final response</comment>';
-const PUSHER_DRAFT_PACE_INTERVAL_MS = 10;
+const PUSHER_REPLY_PACE_INTERVAL_MS = 10;
 const SHORT_FINAL_RENDERED_HTML = '<comment>OK</comment>';
 const LONG_FINAL_RENDERED_TEXT = Array.from({length: 12}, (_, index) => `Streaming response ${index}`).join(' ');
 const LONG_FINAL_RENDERED_HTML = `<comment>${LONG_FINAL_RENDERED_TEXT}</comment>`;
@@ -85,7 +85,7 @@ function getFirstMessageText(reportAction: ReportAction | null): string | undefi
     return message.at(0)?.text;
 }
 
-function createDraftEvent(bodyMarkdown: string, overrides: Partial<ConciergeDraftEvent> = {}): ConciergeDraftEvent {
+function createDraftEvent(bodyMarkdown: string, overrides: Partial<StreamedReplyEvent> = {}): StreamedReplyEvent {
     return {
         reportID: REPORT_ID,
         reportActionID: REPORT_ACTION_ID,
@@ -113,7 +113,7 @@ function createReportAction(html: string, overrides: Partial<ReportAction> = {})
     } as ReportAction;
 }
 
-function emitPusherEvent(eventType: string, event: ConciergeDraftEvent | ConciergeDraftEventsEvent) {
+function emitPusherEvent(eventType: string, event: StreamedReplyEvent | StreamedReplyEventsEvent) {
     const subscriptionCall = getMockPusherSubscribe().mock.calls.find(([, subscribedEventType]) => subscribedEventType === eventType);
     const callback = subscriptionCall?.[2];
 
@@ -135,22 +135,22 @@ function triggerVisibilityChange(isVisible: boolean) {
 // as ReportActionsList does. Both use the real draft provider.
 function useReconciledPendingResponse() {
     usePendingConciergeResponse(REPORT_ID);
-    const state = useConciergeDraft();
-    const {revealDraftFromReportAction} = useConciergeDraftActions();
+    const state = useStreamedReply();
+    const {revealStreamedReplyFromReportAction} = useStreamedReplyActions();
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`);
     const savedAction = reportActions?.[REPORT_ACTION_ID];
 
     useEffect(() => {
-        if (!state.draftReportAction || !savedAction) {
+        if (!state.streamedReplyAction || !savedAction) {
             return;
         }
-        revealDraftFromReportAction(savedAction);
-    }, [state.draftReportAction, savedAction, revealDraftFromReportAction]);
+        revealStreamedReplyFromReportAction(savedAction);
+    }, [state.streamedReplyAction, savedAction, revealStreamedReplyFromReportAction]);
 
     return {...state, savedAction};
 }
 
-describe('ConciergeDraftContext', () => {
+describe('StreamedReplyContext', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -159,25 +159,25 @@ describe('ConciergeDraftContext', () => {
         getMockPusherSubscribe().mockClear();
         mockIsVisible = true;
         mockVisibilityCallbacks.clear();
-        setCachedDraft(REPORT_ID, null);
+        setCachedReply(REPORT_ID, null);
         await Onyx.clear();
         await Onyx.set(ONYXKEYS.CONCIERGE_REPORT_ID, REPORT_ID);
         await waitForBatchedUpdates();
     });
 
     afterEach(async () => {
-        setCachedDraft(REPORT_ID, null);
+        setCachedReply(REPORT_ID, null);
         jest.restoreAllMocks();
         await Onyx.clear();
     });
 
     it('resumes pending completion after remount and applies the cached final HTML', async () => {
         // Given a cached draft with pending completion
-        const visibleDraft = applyConciergeDraftEvent(null, createDraftEvent('H'), REPORT_ID, false);
+        const visibleDraft = applyStreamedReplyEvent(null, createDraftEvent('H'), REPORT_ID, false);
         if (!visibleDraft) {
             throw new Error('Expected visible draft to be created');
         }
-        setCachedDraft(REPORT_ID, {
+        setCachedReply(REPORT_ID, {
             ...visibleDraft,
             pusherTargetBodyMarkdown: TARGET_BODY_MARKDOWN,
             pusherTargetSequence: 1,
@@ -189,16 +189,16 @@ describe('ConciergeDraftContext', () => {
             }),
         });
 
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
         // When the provider remounts
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         // Then the cached completion applies final HTML after pacing catches up
         await waitFor(() => {
-            expect(getCachedDraft(REPORT_ID)?.status).toBe('completed');
-            expect(getFirstMessageText(result.current.draftReportAction)).toBe('Server final response');
+            expect(getCachedReply(REPORT_ID)?.status).toBe('completed');
+            expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('Server final response');
         });
-        expect(getCachedDraft(REPORT_ID)?.pusherPendingCompletionEvent).toBeUndefined();
+        expect(getCachedReply(REPORT_ID)?.pusherPendingCompletionEvent).toBeUndefined();
 
         unmount();
     });
@@ -206,8 +206,8 @@ describe('ConciergeDraftContext', () => {
     it('does not apply completed final HTML until the paced Pusher target is fully visible', async () => {
         let now = 1000;
         jest.spyOn(Date, 'now').mockImplementation(() => now);
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -217,10 +217,10 @@ describe('ConciergeDraftContext', () => {
         act(() => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(TARGET_BODY_MARKDOWN));
         });
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('H');
 
         // When completion arrives before the visible body reaches the target
-        now += PUSHER_DRAFT_PACE_INTERVAL_MS;
+        now += PUSHER_REPLY_PACE_INTERVAL_MS;
         act(() => {
             emitPusherEvent(
                 Pusher.TYPE.CONCIERGE_DRAFT_COMPLETED,
@@ -234,9 +234,9 @@ describe('ConciergeDraftContext', () => {
         });
 
         // Then final HTML waits until the banked text is visible
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('He');
-        expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Server final response');
-        expect(result.current.isDraftPendingCompletion).toBe(true);
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('He');
+        expect(getFirstMessageText(result.current.streamedReplyAction)).not.toBe('Server final response');
+        expect(result.current.isReplyPendingCompletion).toBe(true);
 
         unmount();
     });
@@ -244,8 +244,8 @@ describe('ConciergeDraftContext', () => {
     it('catches up paced Pusher drafts from elapsed time when visibility returns', async () => {
         let now = 1000;
         jest.spyOn(Date, 'now').mockImplementation(() => now);
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -254,30 +254,30 @@ describe('ConciergeDraftContext', () => {
         act(() => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(TARGET_BODY_MARKDOWN));
         });
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('H');
 
         act(() => {
             triggerVisibilityChange(false);
         });
 
-        now += 4 * PUSHER_DRAFT_PACE_INTERVAL_MS;
+        now += 4 * PUSHER_REPLY_PACE_INTERVAL_MS;
         act(() => {
             triggerVisibilityChange(true);
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('Hello');
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('Hello');
 
         act(() => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(NEXT_BODY_MARKDOWN, {sequence: 2}));
         });
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('HelloW');
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('HelloW');
 
-        now += PUSHER_DRAFT_PACE_INTERVAL_MS;
+        now += PUSHER_REPLY_PACE_INTERVAL_MS;
         act(() => {
             triggerVisibilityChange(true);
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('HelloWo');
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('HelloWo');
 
         unmount();
     });
@@ -285,8 +285,8 @@ describe('ConciergeDraftContext', () => {
     it('preserves elapsed catch-up across queued Pusher targets when visibility returns', async () => {
         let now = 1000;
         jest.spyOn(Date, 'now').mockImplementation(() => now);
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -295,7 +295,7 @@ describe('ConciergeDraftContext', () => {
         act(() => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(TARGET_BODY_MARKDOWN));
         });
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('H');
 
         act(() => {
             triggerVisibilityChange(false);
@@ -304,19 +304,19 @@ describe('ConciergeDraftContext', () => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(NEXT_BODY_MARKDOWN, {sequence: 2}));
         });
 
-        now += 9 * PUSHER_DRAFT_PACE_INTERVAL_MS;
+        now += 9 * PUSHER_REPLY_PACE_INTERVAL_MS;
         act(() => {
             triggerVisibilityChange(true);
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe(NEXT_BODY_MARKDOWN);
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe(NEXT_BODY_MARKDOWN);
 
         unmount();
     });
 
     it('applies buffered completed Pusher drafts when visibility returns', async () => {
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -340,23 +340,23 @@ describe('ConciergeDraftContext', () => {
             );
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Server final response');
-        expect(result.current.isDraftPendingCompletion).toBe(true);
+        expect(getFirstMessageText(result.current.streamedReplyAction)).not.toBe('Server final response');
+        expect(result.current.isReplyPendingCompletion).toBe(true);
 
         act(() => {
             triggerVisibilityChange(true);
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('Server final response');
-        expect(result.current.isDraftPendingCompletion).toBe(false);
-        expect(getCachedDraft(REPORT_ID)?.pusherPendingCompletionEvent).toBeUndefined();
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('Server final response');
+        expect(result.current.isReplyPendingCompletion).toBe(false);
+        expect(getCachedReply(REPORT_ID)?.pusherPendingCompletionEvent).toBeUndefined();
 
         unmount();
     });
 
     it('trickles finalRenderedHTML-only Pusher events before completing the draft', async () => {
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -375,17 +375,17 @@ describe('ConciergeDraftContext', () => {
                 );
             });
 
-            const initialText = getFirstMessageText(result.current.draftReportAction);
+            const initialText = getFirstMessageText(result.current.streamedReplyAction);
             expect(initialText?.length).toBeGreaterThan(0);
             expect(initialText).not.toBe(LONG_FINAL_RENDERED_TEXT);
-            expect(result.current.isDraftPendingCompletion).toBe(true);
+            expect(result.current.isReplyPendingCompletion).toBe(true);
 
             act(() => {
                 jest.advanceTimersByTime(15_100);
             });
 
-            expect(getFirstMessageText(result.current.draftReportAction)).toBe(LONG_FINAL_RENDERED_TEXT);
-            expect(result.current.isDraftPendingCompletion).toBe(false);
+            expect(getFirstMessageText(result.current.streamedReplyAction)).toBe(LONG_FINAL_RENDERED_TEXT);
+            expect(result.current.isReplyPendingCompletion).toBe(false);
         } finally {
             unmount();
             jest.useRealTimers();
@@ -393,8 +393,8 @@ describe('ConciergeDraftContext', () => {
     });
 
     it('reveals short finalRenderedHTML-only Pusher events immediately', async () => {
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -411,15 +411,15 @@ describe('ConciergeDraftContext', () => {
             );
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('OK');
-        expect(result.current.isDraftPendingCompletion).toBe(false);
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('OK');
+        expect(result.current.isReplyPendingCompletion).toBe(false);
 
         unmount();
     });
 
     it('paces bodyMarkdown from a completed Pusher event before applying final HTML', async () => {
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -429,7 +429,7 @@ describe('ConciergeDraftContext', () => {
         act(() => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(TARGET_BODY_MARKDOWN));
         });
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('H');
 
         // When completion includes final markdown and server HTML
         act(() => {
@@ -444,14 +444,14 @@ describe('ConciergeDraftContext', () => {
         });
 
         // Then the completed markdown is held as the next Pusher target and final HTML waits for pacing
-        expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Server final response');
-        expect(getCachedDraft(REPORT_ID)?.pusherQueuedTargetEvents?.at(0)?.bodyMarkdown).toBe(COMPLETED_BODY_MARKDOWN);
-        expect(result.current.isDraftPendingCompletion).toBe(true);
+        expect(getFirstMessageText(result.current.streamedReplyAction)).not.toBe('Server final response');
+        expect(getCachedReply(REPORT_ID)?.pusherQueuedTargetEvents?.at(0)?.bodyMarkdown).toBe(COMPLETED_BODY_MARKDOWN);
+        expect(result.current.isReplyPendingCompletion).toBe(true);
 
         await waitFor(() => {
-            expect(getCachedDraft(REPORT_ID)?.status).toBe('completed');
-            expect(getFirstMessageText(result.current.draftReportAction)).toBe('Server final response');
-            expect(result.current.isDraftPendingCompletion).toBe(false);
+            expect(getCachedReply(REPORT_ID)?.status).toBe('completed');
+            expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('Server final response');
+            expect(result.current.isReplyPendingCompletion).toBe(false);
         });
 
         unmount();
@@ -459,8 +459,8 @@ describe('ConciergeDraftContext', () => {
 
     it('renders bodyMarkdown from a completed Pusher event without final HTML', async () => {
         // Given a mounted draft provider with no prior Pusher target
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -476,21 +476,21 @@ describe('ConciergeDraftContext', () => {
             );
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
-        expect(result.current.isDraftPendingCompletion).toBe(true);
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('H');
+        expect(result.current.isReplyPendingCompletion).toBe(true);
 
         // Then the completed markdown becomes fully visible
         await waitFor(() => {
-            expect(getCachedDraft(REPORT_ID)?.status).toBe('completed');
-            expect(getFirstMessageText(result.current.draftReportAction)).toBe(TARGET_BODY_MARKDOWN);
+            expect(getCachedReply(REPORT_ID)?.status).toBe('completed');
+            expect(getFirstMessageText(result.current.streamedReplyAction)).toBe(TARGET_BODY_MARKDOWN);
         });
 
         unmount();
     });
 
     it('ignores stale draft chunks that arrive after a content-free completion', async () => {
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -507,21 +507,21 @@ describe('ConciergeDraftContext', () => {
                 }),
             );
         });
-        expect(result.current.draftReportAction).toBeNull();
+        expect(result.current.streamedReplyAction).toBeNull();
 
         act(() => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_STARTED, createDraftEvent('Here', {sequence: 1, status: 'started'}));
         });
 
-        expect(result.current.draftReportAction).toBeNull();
-        expect(getCachedDraft(REPORT_ID)).toBeNull();
+        expect(result.current.streamedReplyAction).toBeNull();
+        expect(getCachedReply(REPORT_ID)).toBeNull();
 
         unmount();
     });
 
     it('ignores delayed lower-sequence chunks after an active body draft receives a content-free completion', async () => {
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -530,7 +530,7 @@ describe('ConciergeDraftContext', () => {
         act(() => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent('Here', {sequence: 1}));
         });
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('H');
 
         act(() => {
             emitPusherEvent(
@@ -544,21 +544,21 @@ describe('ConciergeDraftContext', () => {
             );
         });
 
-        expect(getCachedDraft(REPORT_ID)?.pusherTerminalEvent?.sequence).toBe(3);
+        expect(getCachedReply(REPORT_ID)?.pusherTerminalEvent?.sequence).toBe(3);
 
         act(() => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent('Wrong delayed chunk', {sequence: 2}));
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Wrong delayed chunk');
-        expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe('Here');
+        expect(getFirstMessageText(result.current.streamedReplyAction)).not.toBe('Wrong delayed chunk');
+        expect(getCachedReply(REPORT_ID)?.pusherTargetBodyMarkdown).toBe('Here');
 
         unmount();
     });
 
     it('ignores delayed lower-sequence chunks after a batched content-free completion', async () => {
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -578,15 +578,15 @@ describe('ConciergeDraftContext', () => {
             });
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
-        expect(getCachedDraft(REPORT_ID)?.pusherTerminalEvent?.sequence).toBe(3);
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('H');
+        expect(getCachedReply(REPORT_ID)?.pusherTerminalEvent?.sequence).toBe(3);
 
         act(() => {
             emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent('Wrong delayed chunk', {sequence: 2}));
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).not.toBe('Wrong delayed chunk');
-        expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe('Here');
+        expect(getFirstMessageText(result.current.streamedReplyAction)).not.toBe('Wrong delayed chunk');
+        expect(getCachedReply(REPORT_ID)?.pusherTargetBodyMarkdown).toBe('Here');
 
         unmount();
     });
@@ -596,11 +596,11 @@ describe('ConciergeDraftContext', () => {
         const bodyMarkdown = 'Here &lt;client team&gt;';
         const finalText = `${CANONICAL_FINAL_TEXT} <client team>`;
         const finalRenderedHTML = `<comment>${CANONICAL_FINAL_TEXT} &lt;client team&gt;</comment>`;
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
         const {result, unmount} = renderHook(
             () => ({
-                actions: useConciergeDraftActions(),
-                state: useConciergeDraft(),
+                actions: useStreamedReplyActions(),
+                state: useStreamedReply(),
             }),
             {wrapper},
         );
@@ -614,17 +614,17 @@ describe('ConciergeDraftContext', () => {
             act(() => {
                 emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, createDraftEvent(bodyMarkdown));
             });
-            expect(getFirstMessageText(result.current.state.draftReportAction)).toBe('H');
+            expect(getFirstMessageText(result.current.state.streamedReplyAction)).toBe('H');
 
             act(() => {
                 jest.advanceTimersByTime(100);
             });
-            expect(getFirstMessageText(result.current.state.draftReportAction)).toBe('Here ');
-            expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe(bodyMarkdown);
-            const visibleSourceOffset = getCachedDraft(REPORT_ID)?.pusherVisibleSourceOffset;
+            expect(getFirstMessageText(result.current.state.streamedReplyAction)).toBe('Here ');
+            expect(getCachedReply(REPORT_ID)?.pusherTargetBodyMarkdown).toBe(bodyMarkdown);
+            const visibleSourceOffset = getCachedReply(REPORT_ID)?.pusherVisibleSourceOffset;
             expect(visibleSourceOffset).toBeGreaterThan('Here &'.length);
-            expect(getCachedDraft(REPORT_ID)?.bodyMarkdown).toBe(bodyMarkdown.slice(0, visibleSourceOffset));
-            expect(getCachedDraft(REPORT_ID)?.pusherVisibleSourceMarkdown).toBe(bodyMarkdown.slice(0, visibleSourceOffset));
+            expect(getCachedReply(REPORT_ID)?.bodyMarkdown).toBe(bodyMarkdown.slice(0, visibleSourceOffset));
+            expect(getCachedReply(REPORT_ID)?.pusherVisibleSourceMarkdown).toBe(bodyMarkdown.slice(0, visibleSourceOffset));
 
             // When completion is missing or has no content, the saved action supplies the final HTML
             if (completionEvent === 'content-free') {
@@ -641,14 +641,14 @@ describe('ConciergeDraftContext', () => {
                 });
             }
 
-            expect(result.current.state.isDraftPendingCompletion).toBe(true);
-            expect(getFirstMessageText(result.current.state.draftReportAction)).not.toBe(finalText);
+            expect(result.current.state.isReplyPendingCompletion).toBe(true);
+            expect(getFirstMessageText(result.current.state.streamedReplyAction)).not.toBe(finalText);
 
             act(() => {
-                result.current.actions.revealDraftFromReportAction(createReportAction(finalRenderedHTML));
+                result.current.actions.revealStreamedReplyFromReportAction(createReportAction(finalRenderedHTML));
             });
 
-            expect(getFirstMessageText(result.current.state.draftReportAction)).not.toBe(finalText);
+            expect(getFirstMessageText(result.current.state.streamedReplyAction)).not.toBe(finalText);
 
             act(() => {
                 jest.advanceTimersByTime(2_000);
@@ -656,10 +656,10 @@ describe('ConciergeDraftContext', () => {
 
             // Then the complete literal text replaces the prefix in the same action
             await waitFor(() => {
-                expect(getFirstMessageText(result.current.state.draftReportAction)).toBe(finalText);
-                expect(getReportActionHtml(result.current.state.draftReportAction)).toBe(finalRenderedHTML);
-                expect(result.current.state.draftReportAction?.reportActionID).toBe(REPORT_ACTION_ID);
-                expect(result.current.state.isDraftPendingCompletion).toBe(false);
+                expect(getFirstMessageText(result.current.state.streamedReplyAction)).toBe(finalText);
+                expect(getReportActionHtml(result.current.state.streamedReplyAction)).toBe(finalRenderedHTML);
+                expect(result.current.state.streamedReplyAction?.reportActionID).toBe(REPORT_ACTION_ID);
+                expect(result.current.state.isReplyPendingCompletion).toBe(false);
             });
         } finally {
             unmount();
@@ -669,11 +669,11 @@ describe('ConciergeDraftContext', () => {
 
     it('completes a pending draft from a matching persisted action with identical HTML', async () => {
         // Given a fully revealed draft whose terminal completion event never arrived
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
         const {result, unmount} = renderHook(
             () => ({
-                actions: useConciergeDraftActions(),
-                state: useConciergeDraft(),
+                actions: useStreamedReplyActions(),
+                state: useStreamedReply(),
             }),
             {wrapper},
         );
@@ -689,17 +689,17 @@ describe('ConciergeDraftContext', () => {
                 jest.advanceTimersByTime(100);
             });
 
-            expect(getFirstMessageText(result.current.state.draftReportAction)).toBe('OK');
-            expect(result.current.state.isDraftPendingCompletion).toBe(true);
+            expect(getFirstMessageText(result.current.state.streamedReplyAction)).toBe('OK');
+            expect(result.current.state.isReplyPendingCompletion).toBe(true);
 
             // When the saved action provides the same content as the last streamed update
             act(() => {
-                result.current.actions.revealDraftFromReportAction(createReportAction(SHORT_FINAL_RENDERED_HTML));
+                result.current.actions.revealStreamedReplyFromReportAction(createReportAction(SHORT_FINAL_RENDERED_HTML));
             });
 
             // Then the durable reply completes the draft without requiring another Pusher event
-            expect(getFirstMessageText(result.current.state.draftReportAction)).toBe('OK');
-            expect(result.current.state.isDraftPendingCompletion).toBe(false);
+            expect(getFirstMessageText(result.current.state.streamedReplyAction)).toBe('OK');
+            expect(result.current.state.isReplyPendingCompletion).toBe(false);
         } finally {
             unmount();
             jest.useRealTimers();
@@ -707,8 +707,8 @@ describe('ConciergeDraftContext', () => {
     });
 
     it('applies ordered batched Pusher draft events', async () => {
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -720,19 +720,19 @@ describe('ConciergeDraftContext', () => {
             });
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('H');
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('H');
 
         await waitFor(() => {
-            expect(getCachedDraft(REPORT_ID)?.pusherTargetBodyMarkdown).toBe(TARGET_BODY_MARKDOWN);
-            expect(getCachedDraft(REPORT_ID)?.pusherTargetSequence).toBe(2);
+            expect(getCachedReply(REPORT_ID)?.pusherTargetBodyMarkdown).toBe(TARGET_BODY_MARKDOWN);
+            expect(getCachedReply(REPORT_ID)?.pusherTargetSequence).toBe(2);
         });
 
         unmount();
     });
 
     it('reveals short finalRenderedHTML-only batched Pusher draft events immediately', async () => {
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
 
         await waitFor(() => {
             expect(Pusher.subscribe).toHaveBeenCalledTimes(6);
@@ -750,8 +750,8 @@ describe('ConciergeDraftContext', () => {
             });
         });
 
-        expect(getFirstMessageText(result.current.draftReportAction)).toBe('OK');
-        expect(result.current.isDraftPendingCompletion).toBe(false);
+        expect(getFirstMessageText(result.current.streamedReplyAction)).toBe('OK');
+        expect(result.current.isReplyPendingCompletion).toBe(false);
 
         unmount();
     });
@@ -759,8 +759,8 @@ describe('ConciergeDraftContext', () => {
     it.each([SHORT_FINAL_RENDERED_HTML, LONG_FINAL_RENDERED_HTML])('preserves canonical HTML when a reply finishes: %s', async (bodyHTML) => {
         // Given HTML whose self-closing tags and entities change during reveal tokenization.
         const html = `${bodyHTML}<br/><p>Jack &amp; Jill&#39;s expenses</p>`;
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
         await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(6));
         jest.useFakeTimers();
 
@@ -770,8 +770,8 @@ describe('ConciergeDraftContext', () => {
             act(() => jest.advanceTimersByTime(15_100));
 
             // Then completion retains the exact server HTML, including its original serialization.
-            expect(result.current.isDraftPendingCompletion).toBe(false);
-            expect(getReportActionHtml(result.current.draftReportAction)).toBe(html);
+            expect(result.current.isReplyPendingCompletion).toBe(false);
+            expect(getReportActionHtml(result.current.streamedReplyAction)).toBe(html);
         } finally {
             unmount();
             jest.useRealTimers();
@@ -782,8 +782,8 @@ describe('ConciergeDraftContext', () => {
         // Given a reply with followups that contain a long hidden pregenerated answer.
         const followups = FOLLOWUP_LIST_HTML.replace('Open your workspace settings.', LONG_FINAL_RENDERED_TEXT.repeat(10));
         const html = `${LONG_FINAL_RENDERED_HTML}${followups}`;
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => useConciergeDraft(), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => useStreamedReply(), {wrapper});
         await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(6));
         jest.useFakeTimers();
 
@@ -793,11 +793,11 @@ describe('ConciergeDraftContext', () => {
             act(() => jest.advanceTimersByTime(8_000));
 
             // Then only the answer body is revealed until the full message can be displayed.
-            expect(result.current.isDraftPendingCompletion).toBe(true);
-            expect(getReportActionHtml(result.current.draftReportAction)).not.toContain('<followup-list');
+            expect(result.current.isReplyPendingCompletion).toBe(true);
+            expect(getReportActionHtml(result.current.streamedReplyAction)).not.toContain('<followup-list');
             act(() => jest.advanceTimersByTime(8_000));
-            expect(result.current.isDraftPendingCompletion).toBe(false);
-            expect(getReportActionHtml(result.current.draftReportAction)).toBe(html);
+            expect(result.current.isReplyPendingCompletion).toBe(false);
+            expect(getReportActionHtml(result.current.streamedReplyAction)).toBe(html);
         } finally {
             unmount();
             jest.useRealTimers();
@@ -807,9 +807,9 @@ describe('ConciergeDraftContext', () => {
     it('retires a completed draft when a followup is selected and allows the next reply to stream', async () => {
         // Given a completed cached reply, including HTML normalized by an older reveal implementation.
         const html = `${LONG_FINAL_RENDERED_HTML}<br/>${FOLLOWUP_LIST_HTML}`;
-        setCachedDraft(
+        setCachedReply(
             REPORT_ID,
-            applyConciergeDraftEvent(
+            applyStreamedReplyEvent(
                 null,
                 createDraftEvent('', {
                     status: 'completed',
@@ -820,28 +820,28 @@ describe('ConciergeDraftContext', () => {
                 false,
             ),
         );
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => ({state: useConciergeDraft(), actions: useConciergeDraftActions()}), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => ({state: useStreamedReply(), actions: useStreamedReplyActions()}), {wrapper});
         await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(6));
         jest.useFakeTimers();
 
         try {
             // When selecting a followup changes only the saved message's followup markup.
             const selectedHTML = html.replace('<followup-list source="concierge">', '<followup-list selected>');
-            act(() => result.current.actions.revealDraftFromReportAction(createReportAction(selectedHTML)));
+            act(() => result.current.actions.revealStreamedReplyFromReportAction(createReportAction(selectedHTML)));
 
             // Then the list can use the saved answer immediately, without replaying the old draft.
-            expect(result.current.state.draftReportAction).toBeNull();
-            expect(result.current.state.isDraftPendingCompletion).toBe(false);
-            expect(getCachedDraft(REPORT_ID)).toBeNull();
+            expect(result.current.state.streamedReplyAction).toBeNull();
+            expect(result.current.state.isReplyPendingCompletion).toBe(false);
+            expect(getCachedReply(REPORT_ID)).toBeNull();
 
             // Delayed updates cannot recreate the cleared draft, through either subscription path.
             const lateEvent = createDraftEvent('Old answer', {sequence: 2});
             act(() => emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_UPDATED, lateEvent));
-            expect(result.current.state.draftReportAction).toBeNull();
+            expect(result.current.state.streamedReplyAction).toBeNull();
             act(() => emitPusherEvent(Pusher.TYPE.CONCIERGE_DRAFT_EVENTS, {events: [lateEvent]}));
-            expect(result.current.state.draftReportAction).toBeNull();
-            expect(getCachedDraft(REPORT_ID)).toBeNull();
+            expect(result.current.state.streamedReplyAction).toBeNull();
+            expect(getCachedReply(REPORT_ID)).toBeNull();
 
             // And a new answer still starts its own stream normally.
             act(() =>
@@ -854,8 +854,8 @@ describe('ConciergeDraftContext', () => {
                     }),
                 ),
             );
-            expect(result.current.state.draftReportAction?.reportActionID).toBe('789');
-            expect(result.current.state.isDraftPendingCompletion).toBe(true);
+            expect(result.current.state.streamedReplyAction?.reportActionID).toBe('789');
+            expect(result.current.state.isReplyPendingCompletion).toBe(true);
         } finally {
             unmount();
             jest.useRealTimers();
@@ -864,14 +864,14 @@ describe('ConciergeDraftContext', () => {
 
     it('appends followups to an already revealed body without restarting it', async () => {
         // Given a fully visible body waiting for the saved message and its followups.
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
-        const {result, unmount} = renderHook(() => ({state: useConciergeDraft(), actions: useConciergeDraftActions()}), {wrapper});
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
+        const {result, unmount} = renderHook(() => ({state: useStreamedReply(), actions: useStreamedReplyActions()}), {wrapper});
         await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(6));
         jest.useFakeTimers();
 
         try {
             act(() =>
-                result.current.actions.dispatchLocalDraftEvent(
+                result.current.actions.dispatchLocalReplyEvent(
                     createDraftEvent('', {
                         bodyMarkdown: undefined,
                         finalRenderedHTML: LONG_FINAL_RENDERED_HTML,
@@ -881,11 +881,11 @@ describe('ConciergeDraftContext', () => {
 
             // When the saved message adds followups, no answer text remains to animate.
             const html = `${LONG_FINAL_RENDERED_HTML}${FOLLOWUP_LIST_HTML}`;
-            act(() => result.current.actions.revealDraftFromReportAction(createReportAction(html)));
+            act(() => result.current.actions.revealStreamedReplyFromReportAction(createReportAction(html)));
 
             // Then followups appear immediately and the answer remains fully visible.
-            expect(getReportActionHtml(result.current.state.draftReportAction)).toBe(html);
-            expect(result.current.state.isDraftPendingCompletion).toBe(false);
+            expect(getReportActionHtml(result.current.state.streamedReplyAction)).toBe(html);
+            expect(result.current.state.isReplyPendingCompletion).toBe(false);
         } finally {
             unmount();
             jest.useRealTimers();
@@ -902,7 +902,7 @@ describe('ConciergeDraftContext', () => {
         // The API's HTML sanitizer adds these attributes to links before Auth saves the answer.
         const savedBody = sanitizeLink ? html.replace('href="https://help.expensify.com/"', 'href="https://help.expensify.com/" target="_blank" rel="noreferrer noopener"') : html;
         const savedHTML = `${savedBody}${FOLLOWUP_LIST_HTML}`;
-        const wrapper = ({children}: PropsWithChildren) => <ConciergeDraftProvider reportID={REPORT_ID}>{children}</ConciergeDraftProvider>;
+        const wrapper = ({children}: PropsWithChildren) => <StreamedReplyProvider reportID={REPORT_ID}>{children}</StreamedReplyProvider>;
         const {result, unmount} = renderHook(useReconciledPendingResponse, {wrapper});
         await waitFor(() => expect(Pusher.subscribe).toHaveBeenCalledTimes(6));
         jest.useFakeTimers();
@@ -919,7 +919,7 @@ describe('ConciergeDraftContext', () => {
                 act(() => jest.advanceTimersByTime(80));
             }
             act(() => jest.advanceTimersByTime(arrivalMS % 80));
-            let previousLength = getFirstMessageText(result.current.draftReportAction)?.length ?? 0;
+            let previousLength = getFirstMessageText(result.current.streamedReplyAction)?.length ?? 0;
             expect(previousLength).toBeGreaterThan(0);
 
             // When the matching saved action arrives before the local animation finishes.
@@ -929,23 +929,23 @@ describe('ConciergeDraftContext', () => {
 
             // Then early arrivals keep the visible text and continue at the local timer's cadence.
             if (arrivalMS === 400) {
-                expect(getFirstMessageText(result.current.draftReportAction)?.length).toBe(previousLength);
+                expect(getFirstMessageText(result.current.streamedReplyAction)?.length).toBe(previousLength);
             }
             for (let elapsed = 80; elapsed <= 2000; elapsed += 80) {
                 act(() => jest.advanceTimersByTime(80));
-                if (arrivalMS !== 400 || !result.current.isDraftPendingCompletion) {
+                if (arrivalMS !== 400 || !result.current.isReplyPendingCompletion) {
                     continue;
                 }
-                const visibleLength = getFirstMessageText(result.current.draftReportAction)?.length ?? 0;
+                const visibleLength = getFirstMessageText(result.current.streamedReplyAction)?.length ?? 0;
                 expect(visibleLength).toBeGreaterThan(previousLength);
-                expect(getReportActionHtml(result.current.draftReportAction)).not.toContain('<followup-list');
+                expect(getReportActionHtml(result.current.streamedReplyAction)).not.toContain('<followup-list');
                 previousLength = visibleLength;
             }
 
             // And even late arrivals finish, retiring the draft so the saved answer and buttons can render.
-            expect(result.current.isDraftPendingCompletion).toBe(false);
-            expect(result.current.draftReportAction).toBeNull();
-            expect(getCachedDraft(REPORT_ID)).toBeNull();
+            expect(result.current.isReplyPendingCompletion).toBe(false);
+            expect(result.current.streamedReplyAction).toBeNull();
+            expect(getCachedReply(REPORT_ID)).toBeNull();
             expect(getReportActionHtml(result.current.savedAction)).toBe(savedHTML);
         } finally {
             unmount();

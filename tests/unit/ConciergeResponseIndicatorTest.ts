@@ -1,7 +1,7 @@
 import trackConciergeResponse from '@libs/ConciergeResponseIndicator';
 import Pusher from '@libs/Pusher';
 import type EventType from '@libs/Pusher/EventType';
-import type {ConciergeDraftEvent} from '@libs/Pusher/types';
+import type {StreamedReplyEvent} from '@libs/Pusher/types';
 import updateUnread, {setPageTitle, setUnreadUpdateCallback} from '@libs/UnreadIndicatorUpdater/updateUnread';
 
 import CONFIG from '@src/CONFIG';
@@ -28,7 +28,7 @@ jest.mock('@libs/Pusher', () => ({
     },
 }));
 
-type DraftListener = (event: ConciergeDraftEvent | {events: ConciergeDraftEvent[]}) => void;
+type DraftListener = (event: StreamedReplyEvent | {events: StreamedReplyEvent[]}) => void;
 const listeners = new Map<string, Set<DraftListener>>();
 const questionID = '100';
 const responseID = '200';
@@ -69,8 +69,8 @@ function favicon() {
     return document.getElementById('favicon')?.getAttribute('href');
 }
 
-function emit(overrides: Partial<ConciergeDraftEvent> = {}, batch = false) {
-    const event: ConciergeDraftEvent = {
+function emit(overrides: Partial<StreamedReplyEvent> = {}, batch = false) {
+    const event: StreamedReplyEvent = {
         reportID,
         reportActionID: responseID,
         streamSessionID: 'session',

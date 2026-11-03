@@ -18,8 +18,8 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const mockDispatchLocalDraftEvent = jest.fn();
 
-jest.mock('@pages/inbox/ConciergeDraftContext', () => ({
-    useConciergeDraftActions: () => ({dispatchLocalDraftEvent: mockDispatchLocalDraftEvent}),
+jest.mock('@pages/inbox/StreamedReplyContext', () => ({
+    useStreamedReplyActions: () => ({dispatchLocalReplyEvent: mockDispatchLocalDraftEvent}),
 }));
 
 const REPORT_ID = '1';
