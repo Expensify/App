@@ -15,6 +15,7 @@ import {ACTIVE_LABEL_SCALE, ACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE, INAC
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
 import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
+import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -69,6 +70,7 @@ function BaseTextInput({
     onInputChange = () => {},
     multiline = false,
     shouldLabelStayOnSingleLine = false,
+    shouldShowLabelTooltipWhenTruncated = false,
     shouldInterceptSwipe = false,
     autoCorrect = true,
     prefixCharacter = '',
@@ -121,6 +123,7 @@ function BaseTextInput({
     const [width, setWidth] = useState<number | null>(null);
     const [prefixCharacterPadding, setPrefixCharacterPadding] = useState<number>(CONST.CHARACTER_WIDTH);
     const [isPrefixCharacterPaddingCalculated, setIsPrefixCharacterPaddingCalculated] = useState(() => !prefixCharacter);
+    const [isLabelTruncated, setIsLabelTruncated] = useState(false);
 
     const labelScale = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE);
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y);
@@ -377,244 +380,255 @@ function BaseTextInput({
                 style={[containerStyles]}
                 {...(shouldInterceptSwipe && SwipeInterceptPanResponder.panHandlers)}
             >
-                <PressableWithoutFeedback
-                    role={CONST.ROLE.PRESENTATION}
-                    onPress={onPress}
-                    tabIndex={-1}
-                    accessible={false}
-                    // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
-                    // or if multiline is not supplied we calculate the text input height, using onLayout.
-                    onLayout={onLayout}
-                    style={[
-                        autoGrowHeight &&
-                            !isAutoGrowHeightMarkdown &&
-                            styles.autoGrowHeightInputContainer(
-                                textInputHeight + (shouldAddPaddingBottom ? styles.textInputContainer.padding : 0),
-                                variables.componentSizeLarge,
-                                typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
-                            ),
-                        isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
-                        !isMultiline && styles.componentHeightLarge,
-                        touchableInputWrapperStyle,
-                    ]}
-                    sentryLabel={sentryLabel}
+                {/* Only `text` changes with truncation, so the input below is never remounted and keeps its focus. */}
+                <Tooltip
+                    shouldRender={shouldShowLabelTooltipWhenTruncated}
+                    text={isLabelTruncated ? label : undefined}
                 >
-                    <View
+                    <PressableWithoutFeedback
+                        role={CONST.ROLE.PRESENTATION}
+                        onPress={onPress}
+                        tabIndex={-1}
+                        accessible={false}
+                        // When autoGrowHeight is true we calculate the width for the text input, so it will break lines properly
+                        // or if multiline is not supplied we calculate the text input height, using onLayout.
+                        onLayout={onLayout}
                         style={[
-                            newTextInputContainerStyles,
-
-                            // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
-                            autoGrow && !newTextInputContainerStyles?.minWidth && styles.mnw2,
+                            autoGrowHeight &&
+                                !isAutoGrowHeightMarkdown &&
+                                styles.autoGrowHeightInputContainer(
+                                    textInputHeight + (shouldAddPaddingBottom ? styles.textInputContainer.padding : 0),
+                                    variables.componentSizeLarge,
+                                    typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
+                                ),
+                            isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
+                            !isMultiline && styles.componentHeightLarge,
+                            touchableInputWrapperStyle,
                         ]}
+                        sentryLabel={sentryLabel}
                     >
-                        {hasLabel ? (
-                            <>
-                                {/* Adding this background to the label only for multiline text input,
-                to prevent text overlapping with label when scrolling */}
-                                {isMultiline && (
-                                    <View
-                                        style={[
-                                            styles.textInputLabelBackground,
-                                            styles.pointerEventsNone,
-                                            inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabledContainer,
-                                        ]}
-                                    />
-                                )}
-                                <TextInputLabel
-                                    label={label}
-                                    labelTranslateY={labelTranslateY}
-                                    labelScale={labelScale}
-                                    for={inputProps.nativeID}
-                                    isMultiline={isMultiline}
-                                    shouldLabelStayOnSingleLine={shouldLabelStayOnSingleLine}
-                                />
-                            </>
-                        ) : null}
                         <View
                             style={[
-                                !isMarkdownEnabled && styles.flex1,
-                                styles.textInputAndIconContainer,
-                                isMultiline && hasLabel && styles.textInputMultilineContainer,
-                                styles.pointerEventsBoxNone,
+                                newTextInputContainerStyles,
+
+                                // When autoGrow is on and minWidth is not supplied, add a minWidth to allow the input to be focusable.
+                                autoGrow && !newTextInputContainerStyles?.minWidth && styles.mnw2,
                             ]}
                         >
-                            {!!iconLeft && (
-                                <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
-                                    <Icon
-                                        src={iconLeft}
-                                        fill={theme.icon}
-                                        height={variables.iconSizeNormal}
-                                        width={variables.iconSizeNormal}
+                            {hasLabel ? (
+                                <>
+                                    {/* Adding this background to the label only for multiline text input,
+                to prevent text overlapping with label when scrolling */}
+                                    {isMultiline && (
+                                        <View
+                                            style={[
+                                                styles.textInputLabelBackground,
+                                                styles.pointerEventsNone,
+                                                inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabledContainer,
+                                            ]}
+                                        />
+                                    )}
+                                    <TextInputLabel
+                                        label={label}
+                                        labelTranslateY={labelTranslateY}
+                                        labelScale={labelScale}
+                                        for={inputProps.nativeID}
+                                        isMultiline={isMultiline}
+                                        shouldLabelStayOnSingleLine={shouldLabelStayOnSingleLine}
+                                        onTruncationChange={shouldShowLabelTooltipWhenTruncated ? setIsLabelTruncated : undefined}
                                     />
-                                </View>
-                            )}
-                            {!!prefixCharacter && (
-                                <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
-                                    <Text
-                                        onLayout={(event) => {
-                                            if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
+                                </>
+                            ) : null}
+                            <View
+                                style={[
+                                    !isMarkdownEnabled && styles.flex1,
+                                    styles.textInputAndIconContainer,
+                                    isMultiline && hasLabel && styles.textInputMultilineContainer,
+                                    styles.pointerEventsBoxNone,
+                                ]}
+                            >
+                                {!!iconLeft && (
+                                    <View style={[styles.textInputLeftIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                        <Icon
+                                            src={iconLeft}
+                                            fill={theme.icon}
+                                            height={variables.iconSizeNormal}
+                                            width={variables.iconSizeNormal}
+                                        />
+                                    </View>
+                                )}
+                                {!!prefixCharacter && (
+                                    <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
+                                        <Text
+                                            onLayout={(event) => {
+                                                if (event.nativeEvent.layout.width === 0 && event.nativeEvent.layout.height === 0) {
+                                                    return;
+                                                }
+                                                setPrefixCharacterPadding(event?.nativeEvent?.layout.width);
+                                                setIsPrefixCharacterPaddingCalculated(true);
+                                            }}
+                                            tabIndex={-1}
+                                            style={[
+                                                styles.textInputPrefix,
+                                                !hasLabel && styles.pv0,
+                                                styles.pointerEventsNone,
+                                                inputProps.disabled && shouldUseDisabledStyles && styles.textSupporting,
+                                                prefixStyle,
+                                            ]}
+                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                            shouldUseDefaultLineHeight={shouldUseDefaultLineHeightForPrefix}
+                                        >
+                                            {prefixCharacter}
+                                        </Text>
+                                    </View>
+                                )}
+                                <InputComponent
+                                    ref={(element: HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
+                                        const baseTextInputRef = element as BaseTextInputRef | null;
+                                        if (typeof ref === 'function') {
+                                            ref(baseTextInputRef);
+                                        } else if (ref && 'current' in ref) {
+                                            // eslint-disable-next-line no-param-reassign
+                                            ref.current = baseTextInputRef;
+                                        }
+
+                                        input.current = element as HTMLInputElement | null;
+                                    }}
+                                    {...inputProps}
+                                    // Filter out role="presentation" so it doesn't strip the native
+                                    // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
+                                    role={role === CONST.ROLE.PRESENTATION ? undefined : role}
+                                    autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
+                                    placeholder={newPlaceholder}
+                                    placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
+                                    underlineColorAndroid="transparent"
+                                    style={[
+                                        styles.flex1,
+                                        styles.w100,
+                                        inputStyle,
+                                        (!hasLabel || isMultiline) && styles.pv0,
+                                        inputPaddingLeft,
+                                        inputPaddingRight,
+                                        inputProps.secureTextEntry && styles.secureInput,
+
+                                        // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
+                                        // for the issue mentioned here https://github.com/Expensify/App/issues/26735
+                                        // Set overflow property to enable the parent flexbox to shrink its size
+                                        // (See https://github.com/Expensify/App/issues/41766)
+                                        !isMultiline && isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
+
+                                        // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
+                                        ...(autoGrowHeight && !isAutoGrowHeightMarkdown
+                                            ? [
+                                                  StyleUtils.getAutoGrowHeightInputStyle(
+                                                      textInputHeight,
+                                                      typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0,
+                                                      autoGrowVerticalInset,
+                                                  ),
+                                                  styles.verticalAlignTop,
+                                              ]
+                                            : []),
+                                        isAutoGrowHeightMarkdown ? [StyleUtils.getMarkdownMaxHeight(maxAutoGrowHeight), styles.verticalAlignTop] : undefined,
+                                        // Add disabled color theme when field is not editable.
+                                        inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabled,
+                                        styles.pointerEventsAuto,
+                                    ]}
+                                    multiline={isMultiline}
+                                    maxLength={maxLength}
+                                    onFocus={onFocus}
+                                    onBlur={onBlur}
+                                    onChangeText={setValue}
+                                    secureTextEntry={passwordHidden}
+                                    onPressOut={inputProps.onPress}
+                                    showSoftInputOnFocus={!disableKeyboard}
+                                    inputMode={inputMode}
+                                    value={uncontrolled ? undefined : value}
+                                    selection={inputProps.selection}
+                                    readOnly={isReadOnly}
+                                    defaultValue={defaultValue}
+                                    markdownStyle={markdownStyle}
+                                    accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
+                                    accessibilityValue={accessibilityValue}
+                                    keyboardType={inputProps.keyboardType}
+                                    aria-describedby={inputHelpText ? helpMessageTextID : undefined}
+                                    aria-invalid={errorText ? true : undefined}
+                                />
+                                {!!suffixCharacter && (
+                                    <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
+                                        <Text
+                                            tabIndex={-1}
+                                            style={[styles.textInputSuffix, !hasLabel && styles.pv0, styles.pointerEventsNone, suffixStyle]}
+                                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                        >
+                                            {suffixCharacter}
+                                        </Text>
+                                    </View>
+                                )}
+                                {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && !inputProps.isLoading && (
+                                    <View
+                                        onLayout={() => {
+                                            if (didScrollToEndRef.current || !input.current) {
                                                 return;
                                             }
-                                            setPrefixCharacterPadding(event?.nativeEvent?.layout.width);
-                                            setIsPrefixCharacterPaddingCalculated(true);
+                                            scrollToRight(input.current);
+                                            didScrollToEndRef.current = true;
                                         }}
-                                        tabIndex={-1}
-                                        style={[
-                                            styles.textInputPrefix,
-                                            !hasLabel && styles.pv0,
-                                            styles.pointerEventsNone,
-                                            inputProps.disabled && shouldUseDisabledStyles && styles.textSupporting,
-                                            prefixStyle,
-                                        ]}
-                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                        shouldUseDefaultLineHeight={shouldUseDefaultLineHeightForPrefix}
                                     >
-                                        {prefixCharacter}
-                                    </Text>
-                                </View>
-                            )}
-                            <InputComponent
-                                ref={(element: HTMLFormElement | AnimatedTextInputRef | AnimatedMarkdownTextInputRef | null): void => {
-                                    const baseTextInputRef = element as BaseTextInputRef | null;
-                                    if (typeof ref === 'function') {
-                                        ref(baseTextInputRef);
-                                    } else if (ref && 'current' in ref) {
-                                        // eslint-disable-next-line no-param-reassign
-                                        ref.current = baseTextInputRef;
-                                    }
-
-                                    input.current = element as HTMLInputElement | null;
-                                }}
-                                {...inputProps}
-                                // Filter out role="presentation" so it doesn't strip the native
-                                // semantics of the <input>. Other roles (e.g. searchbox) are preserved.
-                                role={role === CONST.ROLE.PRESENTATION ? undefined : role}
-                                autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
-                                placeholder={newPlaceholder}
-                                placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
-                                underlineColorAndroid="transparent"
-                                style={[
-                                    styles.flex1,
-                                    styles.w100,
-                                    inputStyle,
-                                    (!hasLabel || isMultiline) && styles.pv0,
-                                    inputPaddingLeft,
-                                    inputPaddingRight,
-                                    inputProps.secureTextEntry && styles.secureInput,
-
-                                    // Explicitly change boxSizing attribute for mobile chrome in order to apply line-height
-                                    // for the issue mentioned here https://github.com/Expensify/App/issues/26735
-                                    // Set overflow property to enable the parent flexbox to shrink its size
-                                    // (See https://github.com/Expensify/App/issues/41766)
-                                    !isMultiline && isMobileChrome() && {boxSizing: 'content-box', height: undefined, ...styles.overflowAuto},
-
-                                    // Stop scrollbar flashing when breaking lines with autoGrowHeight enabled.
-                                    ...(autoGrowHeight && !isAutoGrowHeightMarkdown
-                                        ? [
-                                              StyleUtils.getAutoGrowHeightInputStyle(textInputHeight, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0, autoGrowVerticalInset),
-                                              styles.verticalAlignTop,
-                                          ]
-                                        : []),
-                                    isAutoGrowHeightMarkdown ? [StyleUtils.getMarkdownMaxHeight(maxAutoGrowHeight), styles.verticalAlignTop] : undefined,
-                                    // Add disabled color theme when field is not editable.
-                                    inputProps.disabled && shouldUseDisabledStyles && styles.textInputDisabled,
-                                    styles.pointerEventsAuto,
-                                ]}
-                                multiline={isMultiline}
-                                maxLength={maxLength}
-                                onFocus={onFocus}
-                                onBlur={onBlur}
-                                onChangeText={setValue}
-                                secureTextEntry={passwordHidden}
-                                onPressOut={inputProps.onPress}
-                                showSoftInputOnFocus={!disableKeyboard}
-                                inputMode={inputMode}
-                                value={uncontrolled ? undefined : value}
-                                selection={inputProps.selection}
-                                readOnly={isReadOnly}
-                                defaultValue={defaultValue}
-                                markdownStyle={markdownStyle}
-                                accessibilityLabel={inputProps.accessibilityLabel ?? accessibilityLabel}
-                                accessibilityValue={accessibilityValue}
-                                keyboardType={inputProps.keyboardType}
-                                aria-describedby={inputHelpText ? helpMessageTextID : undefined}
-                                aria-invalid={errorText ? true : undefined}
-                            />
-                            {!!suffixCharacter && (
-                                <View style={[styles.textInputSuffixWrapper, suffixContainerStyle]}>
-                                    <Text
-                                        tabIndex={-1}
-                                        style={[styles.textInputSuffix, !hasLabel && styles.pv0, styles.pointerEventsNone, suffixStyle]}
-                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                    >
-                                        {suffixCharacter}
-                                    </Text>
-                                </View>
-                            )}
-                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && !inputProps.isLoading && (
-                                <View
-                                    onLayout={() => {
-                                        if (didScrollToEndRef.current || !input.current) {
-                                            return;
-                                        }
-                                        scrollToRight(input.current);
-                                        didScrollToEndRef.current = true;
-                                    }}
-                                >
-                                    <TextInputClearButton
-                                        onPressButton={() => {
-                                            setValue('');
-                                            onClearInput?.();
-                                        }}
-                                        iconSize={clearButtonIconSize}
-                                        style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
-                                        sentryLabel={sentryLabel ? `${sentryLabel}-ClearButton` : undefined}
+                                        <TextInputClearButton
+                                            onPressButton={() => {
+                                                setValue('');
+                                                onClearInput?.();
+                                            }}
+                                            iconSize={clearButtonIconSize}
+                                            style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), clearButtonStyle]}
+                                            sentryLabel={sentryLabel ? `${sentryLabel}-ClearButton` : undefined}
+                                        />
+                                    </View>
+                                )}
+                                {!!inputProps.isLoading && !shouldShowClearButton && (
+                                    <ActivityIndicator
+                                        color={theme.iconSuccessFill}
+                                        style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
                                     />
-                                </View>
-                            )}
-                            {!!inputProps.isLoading && !shouldShowClearButton && (
-                                <ActivityIndicator
-                                    color={theme.iconSuccessFill}
-                                    style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff), styles.ml1, loadingSpinnerStyle]}
-                                />
-                            )}
-                            {/* Render rightHandSideComponent only when clear button is not shown
+                                )}
+                                {/* Render rightHandSideComponent only when clear button is not shown
                             This prevents UI conflicts between clear button and custom components like flip/currency buttons */}
-                            {!shouldShowClearButton && shouldHideClearButton && !inputProps.isLoading && !!rightHandSideComponent && (
-                                <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}>{rightHandSideComponent}</View>
-                            )}
-                            {!!inputProps.secureTextEntry && (
-                                <Checkbox
-                                    style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
-                                    onPress={togglePasswordVisibility}
-                                    onMouseDown={(e) => {
-                                        e.preventDefault();
-                                    }}
-                                    accessibilityLabel={translate('common.visible')}
-                                >
-                                    <Icon
-                                        src={passwordHidden ? expensifyIcons.Eye : expensifyIcons.EyeDisabled}
-                                        fill={theme.icon}
-                                    />
-                                </Checkbox>
-                            )}
-                            {!inputProps.secureTextEntry && !!icon && (
-                                <View
-                                    style={[
-                                        StyleUtils.getTextInputIconContainerStyles(hasLabel, includeIconPadding, verticalPaddingDiff),
-                                        !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone,
-                                        iconContainerStyle,
-                                    ]}
-                                >
-                                    <Icon
-                                        src={icon}
-                                        fill={theme.icon}
-                                    />
-                                </View>
-                            )}
+                                {!shouldShowClearButton && shouldHideClearButton && !inputProps.isLoading && !!rightHandSideComponent && (
+                                    <View style={[StyleUtils.getTextInputIconContainerStyles(hasLabel, false, verticalPaddingDiff)]}>{rightHandSideComponent}</View>
+                                )}
+                                {!!inputProps.secureTextEntry && (
+                                    <Checkbox
+                                        style={StyleUtils.getTextInputIconContainerStyles(hasLabel, true, verticalPaddingDiff)}
+                                        onPress={togglePasswordVisibility}
+                                        onMouseDown={(e) => {
+                                            e.preventDefault();
+                                        }}
+                                        accessibilityLabel={translate('common.visible')}
+                                    >
+                                        <Icon
+                                            src={passwordHidden ? expensifyIcons.Eye : expensifyIcons.EyeDisabled}
+                                            fill={theme.icon}
+                                        />
+                                    </Checkbox>
+                                )}
+                                {!inputProps.secureTextEntry && !!icon && (
+                                    <View
+                                        style={[
+                                            StyleUtils.getTextInputIconContainerStyles(hasLabel, includeIconPadding, verticalPaddingDiff),
+                                            !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone,
+                                            iconContainerStyle,
+                                        ]}
+                                    >
+                                        <Icon
+                                            src={icon}
+                                            fill={theme.icon}
+                                        />
+                                    </View>
+                                )}
+                            </View>
                         </View>
-                    </View>
-                </PressableWithoutFeedback>
+                    </PressableWithoutFeedback>
+                </Tooltip>
                 {!!inputHelpText && (
                     <FormHelpMessage
                         nativeID={helpMessageTextID}

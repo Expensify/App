@@ -4891,6 +4891,10 @@ const CONST = {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
         MAX_RECENT_ATTENDEES: 40,
 
+        // Tells a payment failure apart from other errors on a report preview. Numeric so a real error, which is
+        // keyed on microseconds, still wins in getLatestErrorMessageField.
+        PAY_FAILURE_PREVIEW_ERROR_KEY: 0,
+
         // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
@@ -5752,6 +5756,8 @@ const CONST = {
             SEK: 'SE',
             ZAR: 'ZA',
         },
+        // The country that publishes fuel-band rates, which replace its standard rate on workspaces tracking distance tax
+        GOVERNMENT_RATE_FUEL_BAND_COUNTRY: 'GB',
         // EUR is shared by several supported countries, so an EUR workspace picks the country itself
         GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES: ['AT', 'BE', 'FI', 'DE', 'NL', 'PT', 'ES'] as const,
         // Unit each country publishes its rates in
@@ -10246,6 +10252,12 @@ const CONST = {
             CTA: 'WiseGlobalReimbursementsWorkspaceBanner-CTA',
             DISMISS: 'WiseGlobalReimbursementsWorkspaceBanner-Dismiss',
         },
+        WISE_ACCEPT_TERMS: {
+            CONFIRM: 'WiseAcceptTerms-Confirm',
+        },
+        WISE_MORE_INFO_NEEDED: {
+            CONTINUE: 'WiseMoreInfoNeeded-Continue',
+        },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
             DISMISS: 'ProductMarketingWindow-Dismiss',
@@ -10607,6 +10619,7 @@ const CONST = {
         },
         PAYMENT_METHOD_LIST_ITEM: {
             CHASE_ACCOUNT_HELP: 'PaymentMethodListItem-ChaseAccountHelp',
+            GLOBAL_REIMBURSEMENTS_ENABLED: 'PaymentMethodListItem-GlobalReimbursementsEnabled',
         },
         EMOJI_PICKER: {
             BUTTON: 'EmojiPicker-Button',
