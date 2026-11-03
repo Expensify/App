@@ -1,4 +1,5 @@
 import {beginSignIn, signUpUser} from '@userActions/Session';
+import IntlStore from '@src/languages/IntlStore';
 
 import type {AppductTool} from './types';
 
@@ -86,7 +87,7 @@ function registerSignInTool(registerTool: (tool: AppductTool) => void) {
                 return {ok: false, reason: `beginSignIn failed: ${JSON.stringify(state.account.errors)}`};
             }
 
-            signUpUser(email, undefined);
+            signUpUser(email, IntlStore.getCurrentLocale(), undefined, undefined, state.session);
             const ok = await waitFor(isSignedIn, deadline - Date.now());
             if (!ok) {
                 return {ok: false, reason: `no session token within ${budget}ms`, state: accountSnapshot()};
