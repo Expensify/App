@@ -126,6 +126,23 @@ describe('fraud review actions', () => {
             expect(getRequestParams()).toEqual({transactionID: TRANSACTION_ID, transactionRecognized: false});
             expect(typeof getLocallyProcessedTimestamp()).toBe('string');
         });
+
+        it('swallows a failed request instead of leaving an unhandled rejection', async () => {
+            // Given the request fails, e.g. because of a network error after the cardholder left the screen
+            mockMakeRequestWithSideEffects.mockRejectedValue(new Error('Network request failed'));
+            const unhandledRejection = jest.fn();
+            process.on('unhandledRejection', unhandledRejection);
+
+            // When the cardholder backs out of the review
+            fireAndForgetReportFraudulentTransaction({transactionID: TRANSACTION_ID});
+            await new Promise((resolve) => {
+                setTimeout(resolve, 0);
+            });
+            process.off('unhandledRejection', unhandledRejection);
+
+            // Then nothing surfaces as an unhandled rejection, since nobody waits for this request
+            expect(unhandledRejection).not.toHaveBeenCalled();
+        });
     });
 
     describe('isTransactionStillPendingFraudReview', () => {

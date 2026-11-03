@@ -10,7 +10,7 @@ import type {MultifactorAuthenticationActionParams, MultifactorAuthenticationRea
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LocallyProcessed3DSChallengeReviews} from '@src/types/onyx';
+import type {LocallyProcessed3DSChallengeReviews, LocallyProcessedFraudTransactionReviews} from '@src/types/onyx';
 
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
@@ -55,6 +55,31 @@ function cleanUpLocallyProcessed3DSTransactionReviews(entriesToDelete: string[])
     }
     Onyx.merge(ONYXKEYS.LOCALLY_PROCESSED_3DS_TRANSACTION_REVIEWS, value);
 }
+
+// Keeps LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS in sync with the server queue. Non-render code, so it can't use useOnyx
+let locallyProcessedFraudTransactionReviews: OnyxEntry<LocallyProcessedFraudTransactionReviews> = {};
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS,
+    callback: (storedLocallyProcessedFraudTransactionReviews) => {
+        locallyProcessedFraudTransactionReviews = storedLocallyProcessedFraudTransactionReviews;
+    },
+});
+
+// The server sends null for an empty fraud review queue, so a missing queue means every local entry is answered
+Onyx.connectWithoutView({
+    key: ONYXKEYS.TRANSACTIONS_PENDING_FRAUD_REVIEW,
+    callback: (queue) => {
+        if (!locallyProcessedFraudTransactionReviews) {
+            return;
+        }
+        const transactionIDsToCleanUp = Object.keys(locallyProcessedFraudTransactionReviews).filter((transactionID) => !queue?.[transactionID]);
+        if (transactionIDsToCleanUp.length === 0) {
+            return;
+        }
+        Onyx.merge(ONYXKEYS.LOCALLY_PROCESSED_FRAUD_TRANSACTION_REVIEWS, Object.fromEntries(transactionIDsToCleanUp.map((transactionID) => [transactionID, null])));
+    },
+});
 
 /**
  * The rest of this file is concerned with MFA-related API calls
@@ -481,13 +506,9 @@ async function reportFraudulentTransaction({transactionID}: Pick<RecordFraudFeed
     }
 }
 
-/** Reports the transaction as fraud without waiting for a response or handling errors */
+/** Reports the transaction as fraud without waiting for the response */
 function fireAndForgetReportFraudulentTransaction({transactionID}: Pick<RecordFraudFeedbackParams, 'transactionID'>) {
-    makeRequestWithSideEffects(
-        SIDE_EFFECT_REQUEST_COMMANDS.RECORD_FRAUD_FEEDBACK,
-        {transactionID, transactionRecognized: false},
-        {optimisticData: getLocallyProcessedFraudReviewOptimisticData(transactionID)},
-    );
+    reportFraudulentTransaction({transactionID});
 }
 
 function getDeviceBiometricsOnyxKey(accountID: number): `${typeof ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS}${string}` {
