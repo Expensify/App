@@ -30,6 +30,9 @@ type CurrencyPickerProps = {
 
     /** The button that opens the picker. When passed, focus returns to it after the picker closes. */
     launcherRef?: FocusTrapForModalProps['launcherRef'];
+
+    /** Whether the picker dims what is behind it when it opens over a wider pane, such as the wide RHP */
+    shouldKeepBackdropInNarrowPane?: boolean;
 };
 
 function IOURequestStepCurrencyModal({
@@ -40,6 +43,7 @@ function IOURequestStepCurrencyModal({
     excludeCurrencies,
     shouldAllowEmptySelection = false,
     launcherRef,
+    shouldKeepBackdropInNarrowPane = false,
     onInputChange = () => {},
 }: CurrencyPickerProps) {
     const {translate} = useLocalize();
@@ -61,6 +65,7 @@ function IOURequestStepCurrencyModal({
             shouldReturnFocus={!!launcherRef}
             launcherRef={launcherRef}
             onBackdropPress={hidePickerModal}
+            shouldKeepRightDockedBackdropInNarrowPane={shouldKeepBackdropInNarrowPane}
             shouldUseModalPaddingStyle={false}
             shouldHandleNavigationBack
             enableEdgeToEdgeBottomSafeAreaPadding

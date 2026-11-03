@@ -131,18 +131,31 @@ describe('CategoryPickerModal', () => {
         // When the pop-over opens with its header, for a user who can add categories
         renderSheet({onAddCategory: jest.fn()});
 
-        // Then the header keeps its title and add button, but has no back button
+        // Then the header names the list next to its add button, but needs no back button since a click outside closes it
         expect(screen.queryByLabelText('common.back')).toBeNull();
         expect(screen.getByText('common.category')).toBeOnTheScreen();
         expect(screen.getByLabelText('workspace.categories.addCategory')).toBeOnTheScreen();
     });
 
-    it('shows no header for users who cannot create a category', () => {
-        // Given a user who cannot add categories, e.g. a member or a workspace synced with an accounting integration
+    it('titles the bottom sheet for users who cannot create a category', () => {
+        // Given a phone, and a user who cannot add categories, e.g. a member or a workspace synced with an accounting integration
+        // When the sheet opens
+        renderSheet();
+
+        // Then the sheet still says what it picks and offers a way back, but no add button, matching the full page that hides its "+" for them
+        expect(screen.getByLabelText('common.back')).toBeOnTheScreen();
+        expect(screen.getByText('common.category')).toBeOnTheScreen();
+        expect(screen.queryByLabelText('workspace.categories.addCategory')).toBeNull();
+    });
+
+    it('shows no header in the wide pop-over for users who cannot create a category', () => {
+        // Given a wide layout, and a user who cannot add categories
+        mockIsSmallScreenWidth = false;
+
         // When the pop-over opens
         renderSheet();
 
-        // Then there is no back button, add button or header, matching the full page that hides its "+" for them
+        // Then the header has nothing to hold, since the pop-over anchored to its field needs no back button or title
         expect(screen.queryByLabelText('workspace.categories.addCategory')).toBeNull();
         expect(screen.queryByLabelText('common.back')).toBeNull();
         expect(screen.queryByText('common.category')).toBeNull();
@@ -273,17 +286,9 @@ describe('CategoryPickerModal', () => {
             renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
 
-            // Then the sheet is one row tall plus the bottom safe area it pads itself with, leaving no empty space below the row
-            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + SAFE_AREA_PADDING_BOTTOM);
-        });
-
-        it('keeps the header 20px from the top of the sheet, which already pads its own top', async () => {
-            // Given a phone, and a user who can add categories, so the sheet shows a header above the single category
-            // When the expense form's category list opens
-            renderSheet({onAddCategory: jest.fn(), shouldFitContentHeight: true});
-            await waitForBatchedUpdates();
-
-            // Then the list drops its own 16px top padding under the header, since the sheet's padding plus the header's 4px already make 20px
+            // Then the sheet is the header plus one row plus the bottom safe area it pads itself with, leaving no empty space
+            // below the row. The list drops its own 16px top padding under the header, since the sheet's padding plus the
+            // header's 4px already make 20px.
             const {result: styles} = renderHook(() => useThemeStyles());
             expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + SELECTION_LIST_POPOVER_HEADER_HEIGHT - styles.current.pt4.paddingTop + SAFE_AREA_PADDING_BOTTOM);
         });
@@ -320,8 +325,9 @@ describe('CategoryPickerModal', () => {
             renderSheet({shouldFitContentHeight: true});
             await waitForBatchedUpdates();
 
-            // Then the sheet is exactly one row tall, with no padding for a home indicator the keyboard already hides
-            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT);
+            // Then the sheet is the header plus exactly one row, with no padding for a home indicator the keyboard already hides
+            const {result: styles} = renderHook(() => useThemeStyles());
+            expect(mockPopoverProps?.popoverDimensions?.height).toBe(ONE_ROW_HEIGHT + SELECTION_LIST_POPOVER_HEADER_HEIGHT - styles.current.pt4.paddingTop);
         });
     });
 

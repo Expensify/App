@@ -78,7 +78,8 @@ type UseTransactionInlineEditReturn = {
     onEditMerchant: (newMerchant: string) => void;
     onEditDescription: (newDescription: string) => void;
     onEditCategory: (newCategory: string) => void;
-    onEditAmount: (newAmount: number) => void;
+    /** Saves a new amount, and a new currency when given. A rejected amount goes to `onError` when given, or to a toast. */
+    onEditAmount: (newAmount: number, newCurrency?: string, onError?: (message: string) => void) => void;
     onEditTag: (newTag: string) => void;
     /**
      * Ref that should be written in onPressIn and checked in onPress to suppress
@@ -257,8 +258,13 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         editTransactionCategoryInline(getEditParams(), newCategory);
     };
 
-    const onEditAmount = (newAmount: number) => {
-        showInlineEditError(editTransactionAmountInline(translate, getEditParams(), newAmount));
+    const onEditAmount = (newAmount: number, newCurrency?: string, onError?: (message: string) => void) => {
+        const error = editTransactionAmountInline(translate, getEditParams(), newAmount, newCurrency);
+        if (error && onError) {
+            onError(error);
+            return;
+        }
+        showInlineEditError(error);
     };
 
     const onEditTag = (newTag: string) => {

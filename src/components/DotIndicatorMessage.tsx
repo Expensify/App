@@ -198,6 +198,7 @@ function DotIndicatorMessage({messages = {}, style, type, textStyles, isSelectab
             >
                 <Icon
                     src={expensifyIcons.DotIndicator}
+                    size={CONST.ICON_SIZE.EXTRA_SMALL}
                     fill={isErrorMessage ? theme.danger : theme.success}
                 />
             </View>

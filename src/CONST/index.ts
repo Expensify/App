@@ -10675,8 +10675,14 @@ const CONST = {
         TAG_PICKER_MODAL: {
             BACK_BUTTON: 'TagPickerModal-BackButton',
         },
+        REPORT_FIELD_OPTIONS_POPOVER: {
+            BACK_BUTTON: 'ReportFieldOptionsPopover-BackButton',
+        },
         TAX_PICKER_MODAL: {
             BACK_BUTTON: 'TaxPickerModal-BackButton',
+        },
+        DISTANCE_RATE_PICKER_MODAL: {
+            BACK_BUTTON: 'DistanceRatePickerModal-BackButton',
         },
         REPORT_PICKER_MODAL: {
             BACK_BUTTON: 'ReportPickerModal-BackButton',
@@ -10723,6 +10729,7 @@ const CONST = {
             CONFIRMATION_REMOVE_EXPENSE_BUTTON: 'MoneyRequest-ConfirmationRemoveExpenseButton',
             CONFIRMATION_PAY_BUTTON: 'MoneyRequest-ConfirmationPayButton',
             GOOGLE_MERCHANT_SEARCH_BUTTON: 'MoneyRequest-GoogleMerchantSearchButton',
+            ADD_CATEGORY_BUTTON: 'MoneyRequest-AddCategoryButton',
         },
         SPLIT_EXPENSE: {
             ADD_SPLIT_BUTTON: 'SplitExpense-AddSplitButton',

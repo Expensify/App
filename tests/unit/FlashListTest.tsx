@@ -139,3 +139,31 @@ describe('FlashList - scroll events before the first layout', () => {
         expect(onViewableItemsChanged).toHaveBeenCalledWith(expect.objectContaining({viewableItems: expect.arrayContaining([expect.objectContaining({index: 0, isViewable: true})])}));
     });
 });
+
+describe('FlashList - removing items', () => {
+    type Item = {id: string; height: number};
+
+    const keyExtractor = (item: Item) => item.id;
+
+    it('keeps the measured size of the items after a removed item', () => {
+        // Given a measured list whose last item is much taller than the others, like the expense details at the top of an inverted expense thread
+        const data: Item[] = [
+            {id: 'a', height: 56},
+            {id: 'b', height: 76},
+            {id: 'c', height: 871},
+        ];
+        const manager = new RecyclerViewManager<Item>(createMock<RecyclerViewProps<Item>>({data, keyExtractor}));
+        manager.updateLayoutParams({width: 100, height: 375}, 0);
+        manager.modifyChildrenLayout(
+            data.map((item, index) => ({index, dimensions: {width: 100, height: item.height}})),
+            data.length,
+        );
+
+        // When an item before the tall one is removed, and the next render reads the layouts before anything is measured again
+        manager.updateProps(createMock<RecyclerViewProps<Item>>({data: [data.at(0), data.at(2)].filter((item) => !!item), keyExtractor}));
+
+        // Then the tall item keeps its own height instead of taking the removed item's, so the content never shrinks below the viewport and the browser does not reset the scroll position
+        expect(manager.getLayout(1).height).toBe(871);
+        expect(manager.getChildContainerDimensions().height).toBe(56 + 871);
+    });
+});

@@ -51,6 +51,9 @@ type MenuItemRootProps = PropsWithChildren &
          */
         style?: StyleProp<ViewStyle>;
 
+        /** Background of an interactive row while hovered, in place of the default hover color */
+        hoveredStyle?: StyleProp<ViewStyle>;
+
         /** Whether explicitly marked child text can start native browser text selection */
         shouldAllowTextSelection?: boolean;
 
@@ -75,6 +78,7 @@ function MenuItemRoot({
     testID,
     accessibilityLabel,
     style,
+    hoveredStyle,
     shouldAllowTextSelection = false,
     accessibilityState,
     shouldBeAccessible = true,
@@ -166,7 +170,7 @@ function MenuItemRoot({
                                 style,
                                 StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: isHovered, isPressed: pressed, isDisabled, isInteractive}), true),
                                 isDisabled && styles.buttonOpacityDisabled,
-                                isHovered && isInteractive && !pressed && styles.hoveredComponentBG,
+                                isHovered && isInteractive && !pressed && (hoveredStyle ?? styles.hoveredComponentBG),
                             ] as StyleProp<ViewStyle>
                         }
                         disabled={isDisabled}

@@ -123,8 +123,10 @@ function ExpenseFieldDropdown({renderDropdown, shouldOpenInDropdown, onPress, li
         shouldOpenAbove: false,
     });
 
-    const maxContainerHeight = MAX_CONTAINER_HEIGHT + listHeaderHeight;
-    const minUsableHeight = MIN_USABLE_HEIGHT + listHeaderHeight;
+    // The anchored pop-over on a wide layout leaves the header's title out, so only the bottom sheet makes room for it
+    const anchoredListHeaderHeight = isSmallScreenWidth ? listHeaderHeight : 0;
+    const maxContainerHeight = MAX_CONTAINER_HEIGHT + anchoredListHeaderHeight;
+    const minUsableHeight = MIN_USABLE_HEIGHT + anchoredListHeaderHeight;
 
     const closeDropdown = () => setIsVisible(false);
 

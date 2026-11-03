@@ -625,6 +625,7 @@ function MoneyRequestReceiptView({
 
     const receiptPendingAction = isDistanceRequest ? getPendingFieldAction('waypoints') : getPendingFieldAction('receipt');
     const isReceiptOfflinePending = isOffline && !!receiptPendingAction;
+    const isAuditMessageBelowEmptyState = shouldShowReceiptEmptyState && !hasReceiptUploadError && !!shouldShowAuditMessage && !hasReceipt && !isDisplayedInWideRHP;
     const receiptAuditMessagesRow = (
         <View style={[styles.mt3, isEmptyObject(errors) && isDisplayedInWideRHP && styles.mb3]}>
             <ReceiptAuditMessages notes={receiptImageViolations} />
@@ -674,7 +675,8 @@ function MoneyRequestReceiptView({
             {shouldShowReceiptEmptyState && (
                 <OfflineWithFeedback
                     pendingAction={getPendingFieldAction('receipt')}
-                    style={[styles.mt3, isEmptyObject(errors) && styles.mb3, styles.flex1]}
+                    // A message right below the empty state brings its own 8px gap, so the empty state adds none
+                    style={[styles.mt3, isEmptyObject(errors) && !isAuditMessageBelowEmptyState && styles.mb3, styles.flex1]}
                     contentContainerStyle={styles.flex1}
                 >
                     <ReceiptEmptyState
