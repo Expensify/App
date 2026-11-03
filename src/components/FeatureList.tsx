@@ -1,4 +1,5 @@
 import useLocalize from '@hooks/useLocalize';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -16,6 +17,7 @@ import {View} from 'react-native';
 import type DotLottieAnimation from './LottieAnimations/types';
 
 import Button from './Button';
+import Icon from './Icon';
 import MenuItem from './MenuItem';
 import Section from './Section';
 
@@ -85,7 +87,9 @@ function FeatureList({
     renderSubtitle,
 }: FeatureListProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const iconContainerStyle = [styles.popoverMenuIcon, StyleUtils.getAvatarWidthStyle(CONST.AVATAR_SIZE.DEFAULT)];
 
     return (
         <Section
@@ -108,16 +112,22 @@ function FeatureList({
                             key={translationKey}
                             style={styles.w100}
                         >
-                            <MenuItem
-                                title={translate(translationKey)}
-                                icon={icon}
-                                iconWidth={variables.menuIconSize}
-                                iconHeight={variables.menuIconSize}
-                                interactive={false}
-                                displayInDefaultIconColor
-                                wrapperStyle={[styles.p0, styles.cursorAuto]}
-                                numberOfLinesTitle={0}
-                            />
+                            <MenuItem.Root style={[styles.p0, styles.cursorAuto]}>
+                                <MenuItem.Row>
+                                    <MenuItem.Leading>
+                                        <View style={iconContainerStyle}>
+                                            <Icon
+                                                src={icon}
+                                                width={variables.menuIconSize}
+                                                height={variables.menuIconSize}
+                                            />
+                                        </View>
+                                    </MenuItem.Leading>
+                                    <MenuItem.Content>
+                                        <MenuItem.Title numberOfLines={0}>{translate(translationKey)}</MenuItem.Title>
+                                    </MenuItem.Content>
+                                </MenuItem.Row>
+                            </MenuItem.Root>
                         </View>
                     ))}
                 </View>
