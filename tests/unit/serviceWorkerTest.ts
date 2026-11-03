@@ -12,10 +12,17 @@ type NavigationOptions = {
     }>;
 };
 
-type NavigationHandler = (options: {url: URL}) => Promise<Response>;
+class MockFetchEvent {
+    resultingClientId: string;
 
-const mockNormalNavigation = jest.fn<Promise<Response>, [{url: URL}]>();
-const mockUpgradeNavigation = jest.fn<Promise<Response>, [{url: URL}]>();
+    constructor(resultingClientId: string) {
+        this.resultingClientId = resultingClientId;
+    }
+}
+
+type NavigationHandler = (options: {url: URL; event?: MockFetchEvent}) => Promise<Response>;
+
+const mockUpgradeNavigation = jest.fn<Promise<Response>, [{url: URL; event?: MockFetchEvent}]>();
 const mockNetworkOnly = jest.fn<{plugins: NavigationOptions['plugins']; handle: NavigationHandler}, [NavigationOptions]>();
 const mockNavigationRoute = jest.fn<void, [NavigationHandler, {denylist: RegExp[]}]>();
 const mockRegistrationOrder: string[] = [];
@@ -40,30 +47,41 @@ jest.mock('workbox-strategies', () => ({
 describe('service worker navigation', () => {
     beforeAll(() => {
         Object.defineProperty(globalThis, 'skipWaiting', {configurable: true, value: mockSkipWaiting});
+        Object.defineProperty(globalThis, 'FetchEvent', {configurable: true, value: MockFetchEvent});
     });
 
     afterAll(() => {
         Reflect.deleteProperty(globalThis, 'skipWaiting');
+        Reflect.deleteProperty(globalThis, 'FetchEvent');
     });
 
     beforeEach(() => {
+        jest.useFakeTimers();
         jest.clearAllMocks();
+        mockUpgradeNavigation.mockReset();
+        mockUpgradeNavigation.mockResolvedValue(createMock<Response>({type: 'basic'}));
         mockRegistrationOrder.length = 0;
         mockNetworkOnly.mockImplementation((options) => ({
             plugins: options.plugins,
-            handle: options.networkTimeoutSeconds ? mockNormalNavigation : mockUpgradeNavigation,
+            handle: mockUpgradeNavigation,
         }));
+        mockMatchPrecache.mockResolvedValue(createMock<Response>({}));
         jest.isolateModules(() => {
             jest.requireActual('../../web/service-worker');
         });
     });
 
-    it('handles navigation before precache routes can return stale HTML', () => {
+    afterEach(() => {
+        jest.clearAllTimers();
+        jest.useRealTimers();
+    });
+
+    it('registers navigation before precache routes so upgrades can bypass cached HTML', () => {
         // Given the worker has both navigation and precache handlers
         // When it registers its routes
-        // Then / and /index.html reach the network handler before the precache handler
+        // Then upgrades to / and /index.html reach the navigation handler before cache-first routes
         expect(mockRegistrationOrder).toEqual(['route', 'precache', 'route']);
-        expect(mockNetworkOnly.mock.calls.at(0)?.[0].networkTimeoutSeconds).toBe(3);
+        expect(mockNetworkOnly.mock.calls.at(0)?.[0].networkTimeoutSeconds).toBeUndefined();
     });
 
     it('preserves the browser navigation request instead of reconstructing it', () => {
@@ -79,29 +97,115 @@ describe('service worker navigation', () => {
         ['/r/123', false],
         [`/r/123?${APP_UPDATE_QUERY_PARAM}=true`, true],
         [`/index.html?${APP_UPDATE_QUERY_PARAM}=true`, true],
-    ])('selects the expected timeout policy for %s', async (pathname, isUpgrade) => {
-        // Given normal and upgrade navigations share validation and offline error handling
+    ])('uses cached HTML for ordinary visits and the network for upgrades to %s', async (pathname, isUpgrade) => {
+        // Given a saved shell is available and only upgrades require fresh HTML
         const handler = mockNavigationRoute.mock.calls.at(0)?.[0];
         const options = {url: new URL(pathname, 'https://new.expensify.com')};
 
         // When the worker handles a navigation
         await handler?.(options);
 
-        // Then only upgrade navigations bypass the three-second timeout
-        expect(mockNetworkOnly.mock.calls.at(1)?.[0].networkTimeoutSeconds).toBeUndefined();
-        expect(mockNetworkOnly.mock.calls.at(1)?.[0].plugins).toBe(mockNetworkOnly.mock.calls.at(0)?.[0].plugins);
+        // Then ordinary visits do not start a network request and upgrades do not wait on a cache read
+        expect(mockNetworkOnly.mock.calls.at(0)?.[0].networkTimeoutSeconds).toBeUndefined();
         expect(mockUpgradeNavigation).toHaveBeenCalledTimes(isUpgrade ? 1 : 0);
-        expect(mockNormalNavigation).toHaveBeenCalledTimes(isUpgrade ? 0 : 1);
+        expect(mockMatchPrecache).toHaveBeenCalledTimes(isUpgrade ? 0 : 1);
     });
 
-    it.each(['/index.html', '/index.html?test=1', '/', '/r/123', '/settings/profile'])("checks the network for '%s'", (pathname) => {
+    it('returns the saved shell without waiting for the network', async () => {
+        // Given the network would never respond but a complete installed shell is available
+        const response = createMock<Response>({});
+        mockMatchPrecache.mockResolvedValue(response);
+        mockUpgradeNavigation.mockImplementationOnce(() => new Promise<Response>(() => {}));
+        const handler = mockNavigationRoute.mock.calls.at(0)?.[0];
+
+        // When an ordinary visit opens the app
+        const result = await handler?.({url: new URL('https://new.expensify.com/r/123')});
+
+        // Then it opens the saved shell without starting the request that would hang
+        expect(result).toBe(response);
+        expect(mockUpgradeNavigation).not.toHaveBeenCalled();
+    });
+
+    it('tries the network when the installed shell is missing', async () => {
+        // Given an ordinary visit has no cached HTML
+        mockMatchPrecache.mockResolvedValueOnce(undefined);
+        const response = createMock<Response>({});
+        mockUpgradeNavigation.mockResolvedValueOnce(response);
+        const handler = mockNavigationRoute.mock.calls.at(0)?.[0];
+        const options = {url: new URL('https://new.expensify.com/r/123')};
+
+        // When the app is opened
+        const result = await handler?.(options);
+
+        // Then it can still load from the network instead of returning an empty response
+        expect(mockUpgradeNavigation).toHaveBeenCalledWith(options);
+        expect(result).toBe(response);
+    });
+
+    it('tries the network when reading the installed shell fails', async () => {
+        // Given cache access fails but the network can still load the app
+        const error = new Error('Cache Storage unavailable');
+        mockMatchPrecache.mockRejectedValueOnce(error);
+        const response = createMock<Response>({});
+        mockUpgradeNavigation.mockResolvedValueOnce(response);
+        const logError = jest.spyOn(console, 'error').mockImplementation(() => {});
+        const handler = mockNavigationRoute.mock.calls.at(0)?.[0];
+
+        // When an ordinary navigation attempts to read the saved shell
+        const result = await handler?.({url: new URL('https://new.expensify.com')});
+
+        // Then it reports the cache failure and uses the network response
+        expect(logError).toHaveBeenCalledWith('Failed to read the saved app; trying the network.', error);
+        expect(result).toBe(response);
+        logError.mockRestore();
+    });
+
+    it('keeps upgrade redirects on the network even if the server drops the marker', async () => {
+        // Given an upgrade redirect whose destination must not use the saved older app
+        const response = createMock<Response>({type: 'basic'});
+        const redirect = createMock<Response>({type: 'opaqueredirect'});
+        mockUpgradeNavigation.mockResolvedValueOnce(redirect).mockResolvedValueOnce(response);
+        const handler = mockNavigationRoute.mock.calls.at(0)?.[0];
+        const event = new MockFetchEvent('upgrading-page');
+
+        // When the browser follows the redirect to a URL without the upgrade marker
+        await handler?.({url: new URL(`https://new.expensify.com/redirect?${APP_UPDATE_QUERY_PARAM}=true`), event});
+        const result = await handler?.({url: new URL('https://new.expensify.com/destination'), event: new MockFetchEvent(event.resultingClientId)});
+
+        // Then the destination still loads fresh HTML and cannot pick up the saved older shell
+        expect(result).toBe(response);
+        expect(mockMatchPrecache).not.toHaveBeenCalled();
+
+        // When the redirect has been consumed and another ordinary visit is made
+        await handler?.({url: new URL('https://new.expensify.com/ordinary'), event});
+
+        // Then the temporary redirect state is gone, so the saved app can be used normally again
+        expect(mockMatchPrecache).toHaveBeenCalledWith('/index.html');
+    });
+
+    it('forgets an abandoned upgrade redirect', async () => {
+        // Given an upgrade redirect that never comes back to this worker
+        mockUpgradeNavigation.mockResolvedValueOnce(createMock<Response>({type: 'opaqueredirect'}));
+        const handler = mockNavigationRoute.mock.calls.at(0)?.[0];
+        const event = new MockFetchEvent('abandoned-upgrade');
+        await handler?.({url: new URL(`https://new.expensify.com/redirect?${APP_UPDATE_QUERY_PARAM}=true`), event});
+
+        // When the short-lived redirect state expires
+        jest.advanceTimersByTime(60 * 1000);
+        await handler?.({url: new URL('https://new.expensify.com/ordinary'), event});
+
+        // Then no redirect state is retained and ordinary visits use the saved app
+        expect(mockMatchPrecache).toHaveBeenCalledWith('/index.html');
+    });
+
+    it.each(['/index.html', '/index.html?test=1', '/', '/r/123', '/settings/profile'])("handles app navigation to '%s'", (pathname) => {
         // Given a navigation to the app shell or a deep link
         const denylist = mockNavigationRoute.mock.calls.at(0)?.[1].denylist;
 
         // When the navigation is matched
         const isDenied = denylist?.some((pattern) => pattern.test(pathname));
 
-        // Then it is not allowed to fall through to cache-first precaching
+        // Then navigation handling can choose the saved shell or upgrade path
         expect(isDenied).toBe(false);
     });
 
@@ -116,13 +220,13 @@ describe('service worker navigation', () => {
         expect(isDenied).toBe(true);
     });
 
-    it('falls back to the installed shell on network failure or timeout', async () => {
+    it('falls back to the installed shell when an upgrade network request fails', async () => {
         // Given the installed worker has a shell with matching precached assets
         const response = createMock<Response>({});
         mockMatchPrecache.mockResolvedValue(response);
         const plugin = mockNetworkOnly.mock.calls.at(0)?.[0].plugins.at(0);
 
-        // When the bounded network strategy cannot provide HTML
+        // When the upgrade network strategy cannot provide HTML
         const fallback = await plugin?.handlerDidError();
 
         // Then the worker uses its installed shell instead of a partially downloaded release
