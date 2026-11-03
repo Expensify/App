@@ -169,22 +169,8 @@ describe('SAMLSignInPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com', undefined);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
         expect(clearSignInData).not.toHaveBeenCalled();
-    });
-
-    it('passes the stored session email to the sign-in', async () => {
-        // Given the session email is stored when the browser returns the token
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.SESSION, {email: 'user@saml.example.com'});
-        });
-
-        // When the page signs in with the returned token
-        renderPage();
-        await waitForBatchedUpdatesWithAct();
-
-        // Then the session email reaches the sign-in, which compares it against the login instead of reading the session itself
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com', 'user@saml.example.com');
     });
 
     it('signs in with the token after a sign-in the user started', async () => {
@@ -195,6 +181,6 @@ describe('SAMLSignInPage', () => {
         renderPage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com', undefined);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
     });
 });
