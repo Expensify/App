@@ -11,7 +11,7 @@ import {useEffect} from 'react';
 
 import type {UseReportActionsListDataParams} from './types';
 
-import getReportActionsWithDraft from './getReportActionsWithDraft';
+import getReportActionsWithStreamedReply from './getReportActionsWithStreamedReply';
 
 /** Prepares the rendered report rows, including streamed Concierge drafts, support surveys, and collapsed system messages. */
 function useReportActionsListData({sortedVisibleReportActions, reportNameValuePairs, sessionStartTime, linkedReportActionID, unreadMarkerReportActionID}: UseReportActionsListDataParams) {
@@ -33,7 +33,7 @@ function useReportActionsListData({sortedVisibleReportActions, reportNameValuePa
         : undefined;
 
     const shouldHideDraft = !!(showHiddenHistory && sessionStartTime && draftReportAction && draftReportAction.created < sessionStartTime);
-    const {visibleReportActions, isSyntheticDraftVisible} = getReportActionsWithDraft({
+    const {reportActionsWithStreamedReply, isSyntheticDraftVisible} = getReportActionsWithStreamedReply({
         sortedVisibleReportActions,
         draftReportAction,
         isDraftPendingCompletion,
@@ -43,18 +43,18 @@ function useReportActionsListData({sortedVisibleReportActions, reportNameValuePa
 
     const shouldFilterSupportTicketSurveys =
         isSupportTicket(report) &&
-        visibleReportActions.some(
+        reportActionsWithStreamedReply.some(
             (action) =>
                 action.actionName === CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY &&
                 (shouldHideSupportTicketSurvey || action.reportActionID !== latestSupportTicketSurveyAction?.reportActionID),
         );
     const renderedVisibleReportActions = shouldFilterSupportTicketSurveys
-        ? visibleReportActions.filter(
+        ? reportActionsWithStreamedReply.filter(
               (action) =>
                   action.actionName !== CONST.REPORT.ACTIONS.TYPE.SUPPORT_SURVEY ||
                   (!shouldHideSupportTicketSurvey && action.reportActionID === latestSupportTicketSurveyAction?.reportActionID),
           )
-        : visibleReportActions;
+        : reportActionsWithStreamedReply;
 
     const shouldCollapseSystemMessages = isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report) || isTransactionThread(parentReportAction);
     const {

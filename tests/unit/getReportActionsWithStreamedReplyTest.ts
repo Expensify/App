@@ -1,4 +1,4 @@
-import getReportActionsWithDraft from '@pages/inbox/report/ReportActionsList/getReportActionsWithDraft';
+import getReportActionsWithStreamedReply from '@pages/inbox/report/ReportActionsList/getReportActionsWithStreamedReply';
 
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
@@ -17,7 +17,7 @@ Object.freeze(older);
 
 const defaults = {sortedVisibleReportActions: actions, draftReportAction: reply, isDraftPendingCompletion: true, hasPersistedDraft: false, shouldHideDraft: false};
 
-describe('getReportActionsWithDraft', () => {
+describe('getReportActionsWithStreamedReply', () => {
     it.each([
         {label: 'no reply', overrides: {draftReportAction: null}},
         {label: 'a reply excluded by hidden history', overrides: {shouldHideDraft: true}},
@@ -26,9 +26,9 @@ describe('getReportActionsWithDraft', () => {
         // Given a reply which does not need a synthetic row.
         const params = {...defaults, ...overrides};
         // When the insertion decision is made.
-        const result = getReportActionsWithDraft(params);
+        const result = getReportActionsWithStreamedReply(params);
         // Then no copy or synthetic reply is introduced.
-        expect(result.visibleReportActions).toBe(actions);
+        expect(result.reportActionsWithStreamedReply).toBe(actions);
         expect(result.isSyntheticDraftVisible).toBe(false);
     });
 
@@ -40,10 +40,10 @@ describe('getReportActionsWithDraft', () => {
         // Given a reply that belongs before, between, or after the visible actions.
         const draftReportAction = createAction('reply', created);
         // When it is included in the list.
-        const result = getReportActionsWithDraft({...defaults, draftReportAction});
+        const result = getReportActionsWithStreamedReply({...defaults, draftReportAction});
         // Then the source is untouched and only the required array copy is returned.
-        expect(result.visibleReportActions.map((action) => action.reportActionID)).toEqual(expected);
-        expect(result.visibleReportActions).not.toBe(actions);
+        expect(result.reportActionsWithStreamedReply.map((action) => action.reportActionID)).toEqual(expected);
+        expect(result.reportActionsWithStreamedReply).not.toBe(actions);
         expect(result.isSyntheticDraftVisible).toBe(true);
         expect(actions).toEqual([newer, older]);
     });
@@ -54,10 +54,10 @@ describe('getReportActionsWithDraft', () => {
         const source = [newer, savedReply, older];
         Object.freeze(source);
         // When the partial reply takes its place temporarily.
-        const result = getReportActionsWithDraft({...defaults, sortedVisibleReportActions: source, hasPersistedDraft: true});
+        const result = getReportActionsWithStreamedReply({...defaults, sortedVisibleReportActions: source, hasPersistedDraft: true});
         // Then it replaces rather than duplicates the action and preserves the saved source.
-        expect(result.visibleReportActions).toEqual([newer, reply, older]);
-        expect(result.visibleReportActions.at(1)).toBe(reply);
+        expect(result.reportActionsWithStreamedReply).toEqual([newer, reply, older]);
+        expect(result.reportActionsWithStreamedReply.at(1)).toBe(reply);
         expect(source.at(1)).toBe(savedReply);
         expect(result.isSyntheticDraftVisible).toBe(true);
     });
@@ -67,9 +67,9 @@ describe('getReportActionsWithDraft', () => {
         const placeholder = {...reply, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD};
         const source = [newer, placeholder, older];
         // When completion is known but no confirmed saved action has been found.
-        const result = getReportActionsWithDraft({...defaults, sortedVisibleReportActions: source, isDraftPendingCompletion: false});
+        const result = getReportActionsWithStreamedReply({...defaults, sortedVisibleReportActions: source, isDraftPendingCompletion: false});
         // Then the placeholder stays authoritative without a synthetic copy.
-        expect(result.visibleReportActions).toBe(source);
+        expect(result.reportActionsWithStreamedReply).toBe(source);
         expect(result.isSyntheticDraftVisible).toBe(false);
     });
 
@@ -78,9 +78,9 @@ describe('getReportActionsWithDraft', () => {
         const timestamp = reply.created;
         const source = [createAction('20', timestamp), createAction('10', timestamp)];
         // When a reply with an intermediate ID arrives.
-        const result = getReportActionsWithDraft({...defaults, sortedVisibleReportActions: source, draftReportAction: createAction('15', timestamp)});
+        const result = getReportActionsWithStreamedReply({...defaults, sortedVisibleReportActions: source, draftReportAction: createAction('15', timestamp)});
         // Then the existing report-action comparator decides its position.
-        expect(result.visibleReportActions.map((action) => action.reportActionID)).toEqual(['20', '15', '10']);
+        expect(result.reportActionsWithStreamedReply.map((action) => action.reportActionID)).toEqual(['20', '15', '10']);
         expect(result.isSyntheticDraftVisible).toBe(true);
     });
 
@@ -88,9 +88,9 @@ describe('getReportActionsWithDraft', () => {
         // Given a synthetic CREATED action whose timestamp is ahead of the reply.
         const created = {...createAction('created', '2030-01-01 00:00:00.000'), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED};
         // When the reply is inserted into that list.
-        const result = getReportActionsWithDraft({...defaults, sortedVisibleReportActions: [created]});
+        const result = getReportActionsWithStreamedReply({...defaults, sortedVisibleReportActions: [created]});
         // Then CREATED remains the oldest row rather than taking timestamp precedence.
-        expect(result.visibleReportActions).toEqual([reply, created]);
+        expect(result.reportActionsWithStreamedReply).toEqual([reply, created]);
         expect(result.isSyntheticDraftVisible).toBe(true);
     });
 
@@ -98,9 +98,9 @@ describe('getReportActionsWithDraft', () => {
         // Given no visible actions and a reply that still needs to be shown.
         const source: ReportAction[] = [];
         // When the reply is included.
-        const result = getReportActionsWithDraft({...defaults, sortedVisibleReportActions: source});
+        const result = getReportActionsWithStreamedReply({...defaults, sortedVisibleReportActions: source});
         // Then the reply is present without mutating the empty source.
-        expect(result.visibleReportActions).toEqual([reply]);
+        expect(result.reportActionsWithStreamedReply).toEqual([reply]);
         expect(source).toEqual([]);
         expect(result.isSyntheticDraftVisible).toBe(true);
     });
