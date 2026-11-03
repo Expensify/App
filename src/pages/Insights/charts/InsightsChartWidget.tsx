@@ -35,6 +35,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {format} from 'date-fns';
 import React from 'react';
 import {View} from 'react-native';
+import Animated, {FadeIn} from 'react-native-reanimated';
 
 import InsightsDataTable from './InsightsDataTable';
 
@@ -163,35 +164,41 @@ function InsightsChartWidget({
                 ) : null
             }
         >
-            {state === INSIGHTS_CHART_STATE.OFFLINE && <ChartOfflineState />}
-            {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
-            {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
-            {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
-                <View style={cardPaddingBottom}>
-                    <SearchChartView
-                        queryJSON={queryJSON}
-                        view={view}
-                        groupBy={groupBy}
-                        data={data}
-                        isLoading={isLoading}
-                        comparison={comparison}
-                        shouldShowRunningTotal={shouldShowRunningTotal}
-                        chartContainerStyle={cardPaddingHorizontal}
-                        shouldShowSinglePointAsBar
-                        shouldShowGroupLabels={false}
-                        renderDetails={
-                            shouldShowTable
-                                ? ({rows}) => (
-                                      <InsightsDataTable
-                                          rows={rows}
-                                          isLoading={isLoading}
-                                      />
-                                  )
-                                : undefined
-                        }
-                    />
-                </View>
-            )}
+            {/* Loading and ready share a key, so data landing doesn't replay the fade over the skeleton */}
+            <Animated.View
+                key={isLoading ? INSIGHTS_CHART_STATE.READY : state}
+                entering={FadeIn.duration(CONST.SEARCH.ANIMATION.FADE_DURATION)}
+            >
+                {state === INSIGHTS_CHART_STATE.OFFLINE && <ChartOfflineState />}
+                {state === INSIGHTS_CHART_STATE.ERROR && <ChartErrorState onRetry={onRetry} />}
+                {state === INSIGHTS_CHART_STATE.EMPTY && <ChartEmptyState testID={`insightsChartEmptyState-${chart.graphKey}`} />}
+                {(state === INSIGHTS_CHART_STATE.LOADING || state === INSIGHTS_CHART_STATE.READY) && (
+                    <View style={cardPaddingBottom}>
+                        <SearchChartView
+                            queryJSON={queryJSON}
+                            view={view}
+                            groupBy={groupBy}
+                            data={data}
+                            isLoading={isLoading}
+                            comparison={comparison}
+                            shouldShowRunningTotal={shouldShowRunningTotal}
+                            chartContainerStyle={cardPaddingHorizontal}
+                            shouldShowSinglePointAsBar
+                            shouldShowGroupLabels={false}
+                            renderDetails={
+                                shouldShowTable
+                                    ? ({rows}) => (
+                                          <InsightsDataTable
+                                              rows={rows}
+                                              isLoading={isLoading}
+                                          />
+                                      )
+                                    : undefined
+                            }
+                        />
+                    </View>
+                )}
+            </Animated.View>
         </WidgetContainer>
     );
 }

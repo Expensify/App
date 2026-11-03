@@ -3,12 +3,10 @@ import {describe, expect, it} from 'bun:test';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import type {ESLintJSONResult} from '../../scripts/lint/eslint/ESLintLinter';
 import type {OxlintConfig, OxlintDiagnostic} from '../../scripts/lint/oxlint/OxlintLinter';
 import type {LintMessage, LinterResult} from '../../scripts/lint/types';
 
 import {oxlintCodeToESLintRuleID} from '../../config/oxlint/ruleNames.mjs';
-import {normalizeESLintResults, parseESLintStdout} from '../../scripts/lint/eslint/ESLintLinter';
 import JSONFormatter from '../../scripts/lint/formatters/JSONFormatter';
 import StylishFormatter from '../../scripts/lint/formatters/StylishFormatter';
 import Linter from '../../scripts/lint/Linter';
@@ -27,7 +25,7 @@ import {
     shardFiles,
 } from '../../scripts/lint/oxlint/OxlintLinter';
 import {filterReactCompilerMessages, shouldPersistCompilerCache} from '../../scripts/lint/processors/ReactCompilerFilter';
-import Seatbelt, {SEATBELT_TSV_BY_LINTER, parseSeatbeltTSV, resolveSeatbeltOptions} from '../../scripts/lint/processors/Seatbelt';
+import Seatbelt, {SEATBELT_TSV_RELATIVE, parseSeatbeltTSV, resolveSeatbeltOptions} from '../../scripts/lint/processors/Seatbelt';
 import {NO_DEPRECATED_RULE_ID, stratifyMessages} from '../../scripts/lint/processors/StratifyNoDeprecated';
 import {LINT_SEVERITY} from '../../scripts/lint/types';
 
@@ -86,10 +84,11 @@ describe('resolveSeatbeltOptions', () => {
         expect(options.allowIncreaseRules).toEqual(new Set(['no-console']));
     });
 
-    it('defaults to the ESLint baseline and takes a per-linter override', () => {
-        expect(resolveSeatbeltOptions(root, {}).seatbeltFile).toBe(`${root}/${SEATBELT_TSV_BY_LINTER.eslint}`);
-        expect(resolveSeatbeltOptions(root, {}, SEATBELT_TSV_BY_LINTER.oxlint).seatbeltFile).toBe(`${root}/${SEATBELT_TSV_BY_LINTER.oxlint}`);
-        expect(SEATBELT_TSV_BY_LINTER.eslint).not.toBe(SEATBELT_TSV_BY_LINTER.oxlint);
+    it('points at the committed oxlint baseline', () => {
+        // Given a project root and no seatbelt env vars
+        // When the options are resolved
+        // Then the seatbelt file is the committed TSV under that root, so CI and local runs ratchet the same baseline
+        expect(resolveSeatbeltOptions(root, {}).seatbeltFile).toBe(`${root}/${SEATBELT_TSV_RELATIVE}`);
     });
 
     it('parses SEATBELT_INCREASE=ALL', () => {
@@ -100,71 +99,6 @@ describe('resolveSeatbeltOptions', () => {
         expect(resolveSeatbeltOptions(root, {SEATBELT_DISABLE: '0'}).disable).toBe(false);
         expect(resolveSeatbeltOptions(root, {SEATBELT_DISABLE: 'false'}).disable).toBe(false);
         expect(resolveSeatbeltOptions(root, {SEATBELT_FROZEN: '1'}).frozen).toBe(true);
-    });
-});
-
-describe('extractJSONArray via runESLint stdout', () => {
-    it('normalizes results even when babel logs wrap the JSON array', () => {
-        const wrapped = `babel.config.js\n  - running in: undefined\n${JSON.stringify([
-            {
-                filePath: '/repo/src/a.ts',
-                messages: [
-                    {
-                        ruleId: 'no-console',
-                        severity: 2,
-                        message: 'nope',
-                        line: 3,
-                        column: 4,
-                    },
-                ],
-            },
-        ])}\n`;
-        const start = wrapped.indexOf('[');
-        const end = wrapped.lastIndexOf(']');
-        const parsed: unknown = JSON.parse(wrapped.slice(start, end + 1));
-        if (!Array.isArray(parsed)) {
-            throw new Error('expected JSON array');
-        }
-        const [first] = normalizeESLintResults(
-            parsed.filter((value): value is ESLintJSONResult => {
-                return typeof value === 'object' && value !== null && 'filePath' in value && 'messages' in value;
-            }),
-        );
-        expect(first?.messages.at(0)?.ruleID).toBe('no-console');
-    });
-});
-
-describe('normalizeESLintResults', () => {
-    it('copies ESLint JSON into the linter-agnostic message shape', () => {
-        const [result] = normalizeESLintResults([
-            {
-                filePath: '/repo/src/a.ts',
-                messages: [
-                    {
-                        ruleId: 'no-console',
-                        severity: 2,
-                        message: 'nope',
-                        line: 3,
-                        column: 4,
-                    },
-                ],
-            },
-        ]);
-        expect(result.filePath).toBe('/repo/src/a.ts');
-        expect(result.messages).toEqual([
-            {
-                filePath: '/repo/src/a.ts',
-                ruleID: 'no-console',
-                severity: LINT_SEVERITY.ERROR,
-                message: 'nope',
-                line: 3,
-                column: 4,
-                endLine: undefined,
-                endColumn: undefined,
-                suggestions: undefined,
-                fix: undefined,
-            },
-        ]);
     });
 });
 
@@ -626,7 +560,7 @@ describe('oxlint rule names', () => {
         };
         const reachable = new Set(configuredRules.map((rule) => oxlintCodeToESLintRuleID(toDiagnosticCode(rule))));
 
-        const {data} = parseSeatbeltTSV(fs.readFileSync(path.join(root, SEATBELT_TSV_BY_LINTER.oxlint), 'utf8'));
+        const {data} = parseSeatbeltTSV(fs.readFileSync(path.join(root, SEATBELT_TSV_RELATIVE), 'utf8'));
         const seatbeltRuleIDs = new Set(
             [...data.values()].flatMap((file) => file.lines.map((line) => (line.ruleID.startsWith(`${NO_DEPRECATED_RULE_ID}/`) ? NO_DEPRECATED_RULE_ID : line.ruleID))),
         );
@@ -700,22 +634,5 @@ describe('Pipeline', () => {
         const result = await pipeline.run(['.']);
         expect(result.exitCode).toBe(2);
         expect(result.reportText).toBe('oops');
-    });
-
-    it('treats a JSON parse failure with ESLint exit 0 or 1 as fatal', async () => {
-        const parsed = parseESLintStdout('not json', '', 1);
-        expect(parsed.exitCode).toBe(2);
-        expect(parsed.files).toEqual([]);
-        expect(parsed.stderr).toContain('Failed to parse ESLint JSON output');
-
-        const pipeline = new Pipeline('/tmp', new StubLinter(parsed), [new Seatbelt(resolveSeatbeltOptions('/tmp', {SEATBELT_DISABLE: '1'}))], new StylishFormatter('/tmp', false));
-        const result = await pipeline.run(['.']);
-        expect(result.exitCode).toBe(2);
-        expect(result.reportText).toContain('Failed to parse ESLint JSON output');
-        expect(parseESLintStdout('', '', 0).exitCode).toBe(2);
-    });
-
-    it('preserves a linter crash exit code above 2 on parse failure', () => {
-        expect(parseESLintStdout('', 'oom', 137).exitCode).toBe(137);
     });
 });
