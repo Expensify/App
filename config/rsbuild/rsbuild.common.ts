@@ -409,7 +409,7 @@ const getCommonConfiguration = async ({file = '.env', platform = 'web', isDevSer
             },
             assetPrefix: '/',
             sourceMap: {
-                js: isDevelopment ? 'eval-source-map' : 'source-map',
+                js: 'source-map',
             },
             cleanDistPath: true,
             copy: [
