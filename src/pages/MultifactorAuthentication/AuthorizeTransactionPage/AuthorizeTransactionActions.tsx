@@ -16,9 +16,15 @@ type MultifactorAuthenticationAuthorizeTransactionActionsProps = {
     onAuthorize: () => void;
     onDeny: () => void;
     isLoading: boolean | undefined;
+
+    /** Defaults to "Deny" */
+    denyText?: string;
+
+    /** Defaults to "Approve" */
+    authorizeText?: string;
 };
 
-function MultifactorAuthenticationAuthorizeTransactionActions({onAuthorize, onDeny, isLoading}: MultifactorAuthenticationAuthorizeTransactionActionsProps) {
+function MultifactorAuthenticationAuthorizeTransactionActions({onAuthorize, onDeny, isLoading, denyText, authorizeText}: MultifactorAuthenticationAuthorizeTransactionActionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -37,7 +43,7 @@ function MultifactorAuthenticationAuthorizeTransactionActions({onAuthorize, onDe
                         style={styles.flex1}
                         onPress={onDeny}
                     >
-                        <Button.Text>{translate('multifactorAuthentication.reviewTransaction.deny')}</Button.Text>
+                        <Button.Text>{denyText ?? translate('multifactorAuthentication.reviewTransaction.deny')}</Button.Text>
                     </Button>
                     <Button
                         sentryLabel={CONST.SENTRY_LABEL.MULTIFACTOR_AUTHENTICATION.AUTHORIZE_TRANSACTION_APPROVE}
@@ -46,7 +52,7 @@ function MultifactorAuthenticationAuthorizeTransactionActions({onAuthorize, onDe
                         style={styles.flex1}
                         onPress={onAuthorize}
                     >
-                        <Button.Text>{translate('multifactorAuthentication.reviewTransaction.approve')}</Button.Text>
+                        <Button.Text>{authorizeText ?? translate('multifactorAuthentication.reviewTransaction.approve')}</Button.Text>
                     </Button>
                 </>
             )}

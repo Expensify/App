@@ -8,6 +8,7 @@ import type {Payload as AddToDigitalWalletPayload} from './AddToDigitalWallet';
 import type {Payload as AuthorizeTransactionPayload} from './AuthorizeTransaction';
 import type {Payload as ChangePINPayload} from './ChangePIN';
 import type {Payload as RevealPINPayload} from './RevealPIN';
+import type {Payload as ReviewFraudTransactionPayload} from './ReviewFraudTransaction';
 import type {Payload as SetPersonalDetailsAndRevealCardDetailsPayload} from './SetPersonalDetailsAndRevealCardDetails';
 import type {Payload as SetPINOrderCardPayload} from './SetPINOrderCard';
 
@@ -17,6 +18,7 @@ import BiometricsTest from './BiometricsTest';
 import ChangePIN from './ChangePIN';
 import customConfig from './DefaultUserInterface';
 import RevealPIN from './RevealPIN';
+import ReviewFraudTransaction from './ReviewFraudTransaction';
 import SetPersonalDetailsAndRevealCardDetails from './SetPersonalDetailsAndRevealCardDetails';
 import SetPINOrderCard from './SetPINOrderCard';
 
@@ -29,6 +31,7 @@ type Payloads = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: EmptyObject;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: SetPINOrderCardPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: AuthorizeTransactionPayload;
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVIEW_FRAUD_TRANSACTION]: ReviewFraudTransactionPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN]: RevealPINPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.CHANGE_PIN]: ChangePINPayload;
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS]: SetPersonalDetailsAndRevealCardDetailsPayload;
@@ -42,6 +45,7 @@ const Configs = {
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST]: customConfig(BiometricsTest),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PIN_ORDER_CARD]: customConfig(SetPINOrderCard),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION]: customConfig(AuthorizeTransaction),
+    [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVIEW_FRAUD_TRANSACTION]: customConfig(ReviewFraudTransaction),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.REVEAL_PIN]: customConfig(RevealPIN),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.CHANGE_PIN]: customConfig(ChangePIN),
     [CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.SET_PERSONAL_DETAILS_AND_REVEAL_CARD_DETAILS]: customConfig(SetPersonalDetailsAndRevealCardDetails),

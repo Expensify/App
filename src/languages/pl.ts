@@ -781,6 +781,17 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptThisDevice: 'Na pewno? Będziesz potrzebować kodu zabezpieczającego przy następnym potwierdzeniu na tym urządzeniu.',
             confirmationPromptMultiple: 'Na pewno? Będziesz potrzebować kodu zabezpieczającego przy następnej weryfikacji na tych urządzeniach.',
         },
+        fraudReview: {
+            doYouRecognizeTransaction: 'Czy rozpoznajesz tę transakcję?',
+            weDeclinedSuspiciousTransaction: 'Odrzuciliśmy podejrzaną transakcję na Twojej Karcie Expensify. Sprawdź szczegóły i daj nam znać, czy ją rozpoznajesz.',
+            unrecognizedButton: 'Nie, to nie ja',
+            recognizedButton: 'Tak, rozpoznaję',
+            tryAgain: 'Spróbuj ponownie',
+            giveItAnotherTry: 'Spróbuj jeszcze raz',
+            thankYouForConfirming: 'Dziękujemy za potwierdzenie, że to Twoja transakcja. Spróbuj ponownie u sprzedawcy.',
+            freezeCard: 'Zamroź kartę',
+            ifYouCloseWeWillFreezeCard: 'Jeśli zamkniesz ten ekran, będziemy musieli zamrozić Twoją kartę. Aby znowu z niej korzystać, trzeba będzie ją odmrozić.',
+        },
         unsupportedDevice: {
             unsupportedDevice: 'Nieobsługiwane urządzenie',
             pleaseDownloadMobileApp: `Ta akcja nie jest obsługiwana na Twoim urządzeniu. Pobierz aplikację Expensify z <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> lub <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Sklepu Google Play</a> i spróbuj ponownie.`,

@@ -247,6 +247,7 @@ import type TableColumnWidths from './TableColumnWidths';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type TransactionPending3DSReview from './TransactionPending3DSReview';
+import type TransactionPendingFraudReview from './TransactionPendingFraudReview';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type TransactionsPendingFraudReview from './TransactionsPendingFraudReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -290,6 +291,7 @@ export type {
     AssignCard,
     TransactionPending3DSReview,
     TransactionsPending3DSReview,
+    TransactionPendingFraudReview,
     TransactionsPendingFraudReview,
     BankAccount,
     BankAccountList,

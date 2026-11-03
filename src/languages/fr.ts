@@ -774,6 +774,17 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptThisDevice: 'Êtes-vous sûr ? Vous aurez besoin d’un code de sécurité pour la prochaine vérification sur cet appareil.',
             confirmationPromptMultiple: 'Vous êtes sûr(e) ? Vous aurez besoin d’un code de sécurité pour la prochaine vérification sur ces appareils.',
         },
+        fraudReview: {
+            doYouRecognizeTransaction: 'Reconnaissez-vous cette transaction ?',
+            weDeclinedSuspiciousTransaction: 'Nous avons refusé une transaction suspecte sur votre Carte Expensify. Veuillez vérifier les détails et nous dire si vous la reconnaissez.',
+            unrecognizedButton: "Non, ce n'était pas moi",
+            recognizedButton: 'Oui, je la reconnais',
+            tryAgain: 'Réessayer',
+            giveItAnotherTry: 'Réessayez',
+            thankYouForConfirming: "Merci d'avoir confirmé que cette transaction venait de vous. Veuillez réessayer auprès du commerçant.",
+            freezeCard: 'Geler la carte',
+            ifYouCloseWeWillFreezeCard: "Si vous fermez cet écran, nous devrons geler votre carte. Vous devrez la dégeler pour l'utiliser à nouveau.",
+        },
         unsupportedDevice: {
             unsupportedDevice: 'Appareil non pris en charge',
             pleaseDownloadMobileApp: `Cette action n'est pas prise en charge sur votre appareil. Veuillez télécharger l'application Expensify depuis l'<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou le <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> et réessayer.`,

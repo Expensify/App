@@ -5971,6 +5971,11 @@ const ROUTES = {
         route: 'multifactor-authentication/authorize-transaction/:transactionID',
         getRoute: (transactionID: string) => `multifactor-authentication/authorize-transaction/${transactionID}` as const,
     },
+
+    MULTIFACTOR_AUTHENTICATION_REVIEW_TRANSACTION: {
+        route: 'multifactor-authentication/review-transaction/:transactionID',
+        getRoute: (transactionID: string) => `multifactor-authentication/review-transaction/${transactionID}` as const,
+    },
     DOMAIN_LOCK_ACCOUNT: {
         route: 'domain/:domainAccountID/members/:accountID/lock-account',
         getRoute: (domainAccountID: number, accountID: number) => `domain/${domainAccountID}/members/${accountID}/lock-account` as const,

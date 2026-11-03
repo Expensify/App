@@ -2803,6 +2803,8 @@ const CONST = {
         BREADCRUMB_CATEGORY_MFA: 'mfa',
         BREADCRUMB_CATEGORY_3DS_NAVIGATION: '3ds.navigation',
         BREADCRUMB_CATEGORY_3DS_AUTHORIZE: '3ds.authorize',
+        BREADCRUMB_CATEGORY_FRAUD_REVIEW_NAVIGATION: 'fraudReview.navigation',
+        BREADCRUMB_CATEGORY_FRAUD_REVIEW_SCREEN: 'fraudReview.screen',
         BREADCRUMB_CATEGORY_SAML_AUTH_SESSION: 'saml.auth_session',
         BREADCRUMB_CATEGORY_BOOTSPLASH_FLOW: 'bootsplash.flow',
         BREADCRUMB_CATEGORY_MODULE_INIT: 'module.init',

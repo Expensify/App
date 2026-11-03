@@ -772,6 +772,17 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptThisDevice: 'Tem certeza? Você vai precisar de um código de segurança para a próxima verificação neste dispositivo.',
             confirmationPromptMultiple: 'Tem certeza? Você vai precisar de um código de segurança na próxima verificação nesses dispositivos.',
         },
+        fraudReview: {
+            doYouRecognizeTransaction: 'Você reconhece esta transação?',
+            weDeclinedSuspiciousTransaction: 'Recusamos uma transação suspeita no seu Cartão Expensify. Revise os detalhes e nos diga se você a reconhece.',
+            unrecognizedButton: 'Não, não fui eu',
+            recognizedButton: 'Sim, reconheço',
+            tryAgain: 'Tentar novamente',
+            giveItAnotherTry: 'Tente novamente',
+            thankYouForConfirming: 'Obrigado por confirmar que a transação era sua. Tente novamente no estabelecimento.',
+            freezeCard: 'Congelar cartão',
+            ifYouCloseWeWillFreezeCard: 'Se você fechar esta tela, teremos que congelar seu cartão. Você precisará descongelá-lo para usá-lo novamente.',
+        },
         unsupportedDevice: {
             unsupportedDevice: 'Dispositivo não compatível',
             pleaseDownloadMobileApp: `Esta ação não é compatível com seu dispositivo. Baixe o app do Expensify na <a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> ou na <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Play Store</a> e tente novamente.`,

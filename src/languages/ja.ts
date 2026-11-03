@@ -765,6 +765,17 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptThisDevice: '本当によろしいですか？このデバイスで次回の認証を行うには、セキュリティコードが必要になります。',
             confirmationPromptMultiple: 'よろしいですか？その端末で次回の認証を行うには、セキュリティコードが必要になります。',
         },
+        fraudReview: {
+            doYouRecognizeTransaction: 'この取引に心当たりはありますか？',
+            weDeclinedSuspiciousTransaction: 'お使いのExpensifyカードで不審な取引を拒否しました。詳細を確認し、心当たりがあるかお知らせください。',
+            unrecognizedButton: 'いいえ、身に覚えがありません',
+            recognizedButton: 'はい、あります',
+            tryAgain: '再試行',
+            giveItAnotherTry: 'もう一度お試しください',
+            thankYouForConfirming: 'ご自身の取引であることを確認いただきありがとうございます。加盟店でもう一度お試しください。',
+            freezeCard: 'カードを凍結',
+            ifYouCloseWeWillFreezeCard: 'この画面を閉じると、カードを凍結する必要があります。再度使用するには凍結を解除してください。',
+        },
         unsupportedDevice: {
             unsupportedDevice: '未対応のデバイス',
             pleaseDownloadMobileApp: `この操作はお使いのデバイスではサポートされていません。<a href="${CONST.APP_DOWNLOAD_LINKS.IOS}">App Store</a> または <a href="${CONST.APP_DOWNLOAD_LINKS.ANDROID}">Google Playストア</a> からExpensifyアプリをダウンロードして、もう一度お試しください。`,

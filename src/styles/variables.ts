@@ -632,6 +632,8 @@ export default {
     humptyDumptyWidth: 245,
     cardReaderWidth: 224,
     cardReaderHeight: 260,
+    cardPosRefreshWidth: 224,
+    cardPosRefreshHeight: 261,
     humptyDumptyHeight: 165,
     magnifyingGlassSpyMouthClosedWidth: 161,
     magnifyingGlassSpyMouthClosedHeight: 169,
