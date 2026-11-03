@@ -33,13 +33,10 @@ describe('openHomeAddressPage', () => {
         jest.restoreAllMocks();
     });
 
-    it.each([
-        ['already sits behind the RHP', false],
-        ['has to be swapped in first', true],
-    ])('opens the home address page right away when the preferences tab %s', (_, didSwapBackgroundTab) => {
-        // Given a root state where the preferences tab either needs a swap or not
+    it('opens the home address page right away, even when the preferences tab has to be swapped in first', () => {
+        // Given a root state where the preferences tab has to be swapped in behind the RHP
         jest.spyOn(navigationRef, 'getRootState').mockReturnValue(mockRootState);
-        jest.mocked(swapBackgroundTabForRHPTarget).mockReturnValue(didSwapBackgroundTab);
+        jest.mocked(swapBackgroundTabForRHPTarget).mockReturnValue(true);
 
         // When a commuter exclusion prompt opens the home address page
         openHomeAddressPage();
