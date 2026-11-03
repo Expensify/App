@@ -29,7 +29,7 @@ type InsightsFilters = {
 };
 
 const DEFAULT_INSIGHTS_FILTERS: Omit<InsightsFilters, 'groupCurrency'> = {
-    date: {preset: CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE},
+    date: {preset: CONST.SEARCH.DATE_PRESETS.THIS_YEAR},
     policyIDs: [],
     groupBy: CONST.SEARCH.GROUP_BY.MONTH,
 };

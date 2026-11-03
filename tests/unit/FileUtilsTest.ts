@@ -560,6 +560,29 @@ describe('FileUtils', () => {
 
             expect(clonedFile).toEqual({uri: 'file://image.jpeg', name: 'image.jpeg', type: 'image/jpeg'});
         });
+
+        it('should keep the width and height when creating a file on native', () => {
+            // Given a native file that carries its dimensions
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+            const file = Object.assign(new File(['content'], 'image.jpeg', {type: 'image/jpeg'}), {uri: 'file://image.jpeg', width: 4000, height: 3000});
+
+            const clonedFile = createFile(file);
+
+            // Then the dimensions are kept, because the optimistic attachment uses them to render at the right aspect ratio
+            expect(clonedFile).toEqual({uri: 'file://image.jpeg', name: 'image.jpeg', type: 'image/jpeg', width: 4000, height: 3000});
+        });
+
+        it('should not add width and height keys on native when the dimensions are missing', () => {
+            // Given a native file without dimensions
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.ANDROID);
+            const file = Object.assign(new File(['content'], 'image.jpeg', {type: 'image/jpeg'}), {uri: 'file://image.jpeg', width: undefined, height: undefined});
+
+            const clonedFile = createFile(file);
+
+            // Then the keys are absent, because the optimistic HTML would otherwise write data-expensify-width="undefined"
+            expect(clonedFile).not.toHaveProperty('width');
+            expect(clonedFile).not.toHaveProperty('height');
+        });
     });
 
     describe('resizeImageIfNeeded', () => {
@@ -582,6 +605,21 @@ describe('FileUtils', () => {
             // Then the result keeps the resized blob uri, so the attachment preview can load it instead of spinning forever
             expect(result).toBeInstanceOf(File);
             expect(result.uri).toBe('blob:http://localhost/resized');
+        });
+
+        it('should keep the resized width and height on native when the image is larger than the max size', async () => {
+            // Given an image on iOS that is larger than the max attachment size, and an image manipulator that returns the resized dimensions
+            jest.mocked(getPlatform).mockReturnValue(CONST.PLATFORM.IOS);
+            jest.mocked(ImageSize.getSize).mockResolvedValue({width: 6000, height: 4000});
+            jest.mocked(getImageManipulator).mockResolvedValue(
+                Object.assign(new File(['resized'], 'large.jpg', {type: 'image/jpeg'}), {uri: 'file://resized.jpg', width: 3000, height: 2000}),
+            );
+            const file = {uri: 'file://large.jpg', name: 'large.jpg', type: 'image/jpeg', size: CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE + 1};
+
+            const result = await resizeImageIfNeeded(file);
+
+            // Then the result keeps the resized dimensions, so the optimistic thumbnail doesn't jump from a square to the real aspect ratio
+            expect(result).toEqual({uri: 'file://resized.jpg', name: 'large.jpg', type: 'image/jpeg', width: 3000, height: 2000});
         });
     });
 
