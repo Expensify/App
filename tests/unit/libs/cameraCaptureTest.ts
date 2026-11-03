@@ -40,6 +40,25 @@ describe('captureSnapshotToPath', () => {
         // Then the error arrives as a rejection, so the caller's catch can reset the shutter and show the alert
         await expect(capture).rejects.toThrow('Camera Preview is not yet ready!');
     });
+
+    it('reports the snapshot time and the file write time separately', async () => {
+        // Given a clock where the snapshot returns 20ms after the call and the JPEG write takes 30ms more
+        const nowSpy = jest.spyOn(performance, 'now').mockReturnValueOnce(0).mockReturnValueOnce(20).mockReturnValueOnce(50);
+        const dispose = jest.fn();
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The mock only implements takeSnapshot, which is all captureSnapshotToPath calls
+        const camera = {
+            takeSnapshot: () => Promise.resolve({width: 1440, height: 1920, saveToFileAsync: jest.fn(() => Promise.resolve()), dispose}),
+        } as unknown as CameraRef;
+
+        // When a snapshot is captured
+        const result = await captureSnapshotToPath(camera, '/receipts/receipt.jpg');
+
+        // Then both phases are reported and the native image is released
+        expect(result.captureDurationMs).toBe(20);
+        expect(result.saveDurationMs).toBe(30);
+        expect(dispose).toHaveBeenCalledTimes(1);
+        nowSpy.mockRestore();
+    });
 });
 
 describe('capturePhotoToPath', () => {
@@ -66,7 +85,25 @@ describe('capturePhotoToPath', () => {
 
         // Then it is written to the plain path, sized as displayed, and its native buffer is released
         expect(saveToFileAsync).toHaveBeenCalledWith('/receipts/receipt.jpg');
-        expect(result).toEqual({path: '/receipts/receipt.jpg', width: 3024, height: 4032, orientation: 'right'});
+        expect(result).toMatchObject({path: '/receipts/receipt.jpg', width: 3024, height: 4032, orientation: 'right'});
+        expect(typeof result.captureDurationMs).toBe('number');
+        expect(typeof result.saveDurationMs).toBe('number');
         expect(dispose).toHaveBeenCalledTimes(1);
+    });
+
+    it('reports the camera time and the file write time separately', async () => {
+        // Given a clock where the camera returns the photo 60ms after the call and the write takes 15ms more,
+        // so the scan span can tell a slow camera from a slow disk
+        const nowSpy = jest.spyOn(performance, 'now').mockReturnValueOnce(100).mockReturnValueOnce(160).mockReturnValueOnce(175);
+        const {photo} = createPhoto();
+        const output = createOutput(() => Promise.resolve(photo));
+
+        // When a photo is captured into the receipts folder
+        const result = await capturePhotoToPath(output, {flashMode: 'off'}, 'file:///receipts/receipt.jpg');
+
+        // Then each phase is reported on its own
+        expect(result.captureDurationMs).toBe(60);
+        expect(result.saveDurationMs).toBe(15);
+        nowSpy.mockRestore();
     });
 });
