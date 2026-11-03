@@ -18196,6 +18196,82 @@ describe('ReportUtils', () => {
                 reportAction: reportActionWithError,
             });
         });
+        describe('a pay failure mirrored onto the chat report preview', () => {
+            const PAY_FAILURE_KEY = CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY;
+            const PAY_FAILURE_MESSAGE = 'The payment failed because the expense report was deleted.';
+            // A real error is keyed on microseconds. Named so the key stays a computed one, which the naming-convention rule requires.
+            const OTHER_ERROR_KEY = 1700000000000000;
+
+            function buildReportPreview(isDeleted: boolean, errors?: ReportAction['errors']): ReportAction {
+                return {
+                    ...createRandomReportAction(80001),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    // An empty message array is how a deleted preview reaches the client, see hasDeletedMessage.
+                    message: isDeleted ? [] : [{type: 'COMMENT', html: 'Expense', text: 'Expense'}],
+                    originalMessage: {linkedReportID: '80002'},
+                    shouldShow: true,
+                    errors,
+                } as ReportAction;
+            }
+
+            it('surfaces the mirror once the preview is deleted, so the chat row gets a red dot', () => {
+                // Given the payer's expense report was deleted, leaving the mirrored failure on the chat's deleted preview
+                const deletedPreview = buildReportPreview(true, {[PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE});
+
+                // When the LHN aggregates the chat's errors
+                const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                    report,
+                    {...reportActions, [deletedPreview.reportActionID]: deletedPreview},
+                    allTransactions,
+                    currentUserAccountID,
+                );
+
+                // Then the deleted preview is counted, or nothing would point the payer at the only message explaining the failure
+                expect(errors).toEqual({[PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE});
+                expect(reportAction).toEqual(deletedPreview);
+            });
+
+            it('stays quiet while the preview is still live', () => {
+                // Given the expense report still exists, so its pay action already shows the failure inline
+                const livePreview = buildReportPreview(false, {[PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE});
+
+                // When the LHN aggregates the chat's errors
+                const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                    report,
+                    {...reportActions, [livePreview.reportActionID]: livePreview},
+                    allTransactions,
+                    currentUserAccountID,
+                );
+
+                // Then the chat row shows nothing, because the red dot belongs on the expense report the payer can still open
+                expect(errors).toEqual({});
+                expect(reportAction).toBeUndefined();
+            });
+
+            it('keeps ignoring other deleted actions that carry errors', () => {
+                // Given a deleted comment that still holds an error, which the aggregator has always skipped
+                const deletedComment: ReportAction = {
+                    ...createRandomReportAction(80003),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    message: [],
+                    errors: {[OTHER_ERROR_KEY]: 'Unexpected error. Please try again later.'},
+                };
+
+                // When the LHN aggregates the chat's errors
+                const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                    report,
+                    {...reportActions, [deletedComment.reportActionID]: deletedComment},
+                    allTransactions,
+                    currentUserAccountID,
+                );
+
+                // Then it is still skipped, so letting the deleted preview through did not widen the filter
+                expect(errors).toEqual({});
+                expect(reportAction).toBeUndefined();
+            });
+        });
         it('should return smart scan error for the top-most parent report with smart scan error', async () => {
             const transactionID = '12345';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction1.reportID}`, {

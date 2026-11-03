@@ -143,6 +143,8 @@ jest.mock('@libs/ReportActionsUtils', () => ({
     isTransactionThread: () => mockIsTransactionThread,
     isSentMoneyReportAction: () => mockIsSentMoneyReportAction,
     isReportPreviewAction: () => mockIsReportPreviewAction,
+    // This suite never builds a deleted report preview, so the real function reduces to the action's own errors.
+    getVisibleReportActionErrors: (reportAction?: ReportAction) => reportAction?.errors ?? {},
 }));
 
 // --- ReportUtils ---
