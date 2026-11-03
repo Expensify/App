@@ -688,6 +688,8 @@ describe('SearchAutocompleteUtils', () => {
 });
 
 describe('ordinary autocomplete parser boundaries', () => {
+    const noKnownValues: KnownFilterValues = {userLogins: new Set(), currencies: new Set(), categories: new Set(), tags: new Set(), exportedTo: new Set()};
+
     afterEach(() => jest.restoreAllMocks());
 
     it('returns the original generated object with extra properties and escaped offsets', () => {
@@ -718,7 +720,6 @@ describe('ordinary autocomplete parser boundaries', () => {
         // Given an erased result that cannot prove the consumed ordinary fields.
         const parser = jest.spyOn(jest.requireActual<{parse: typeof parse}>('@libs/SearchParser/autocompleteParser'), 'parse').mockReturnValue(result);
         const log = jest.spyOn(console, 'error').mockImplementation(() => {});
-        const noKnownValues: KnownFilterValues = {userLogins: new Set(), currencies: new Set(), categories: new Set(), tags: new Set(), exportedTo: new Set()};
         // When each existing consumer handles the same boundary result.
         expect(parseForAutocomplete('from:alice')).toBeUndefined();
         // Then autocomplete logs once while live markdown safely skips highlighting.
@@ -730,7 +731,6 @@ describe('ordinary autocomplete parser boundaries', () => {
     it('keeps real parser exceptions caught for autocomplete and propagated for live markdown', () => {
         // Given the real parser rejecting an unsupported input type at its public boundary.
         const log = jest.spyOn(console, 'error').mockImplementation(() => {});
-        const noKnownValues: KnownFilterValues = {userLogins: new Set(), currencies: new Set(), categories: new Set(), tags: new Set(), exportedTo: new Set()};
         // When a deliberately malformed input reaches the existing consumers.
         // @ts-expect-error This malformed runtime input tests the parser's existing exception handling.
         expect(parseForAutocomplete(null)).toBeUndefined();
@@ -750,7 +750,6 @@ describe('ordinary autocomplete parser boundaries', () => {
         ['merchant:""', []],
     ])('highlights the real parser result for %s', (query, expected) => {
         // Given actual generated ranges and empty lookup data, without substituting the parser.
-        const noKnownValues: KnownFilterValues = {userLogins: new Set(), currencies: new Set(), categories: new Set(), tags: new Set(), exportedTo: new Set()};
         // When live markdown applies its existing highlighting rules.
         const result = parseForLiveMarkdown(query, '', {}, noKnownValues);
         // Then column equality, dynamic keys and unsupported key spelling retain their outcomes.

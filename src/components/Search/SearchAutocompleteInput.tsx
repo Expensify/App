@@ -28,8 +28,6 @@ import Animated, {interpolateColor, useAnimatedStyle, useSharedValue} from 'reac
 
 import type {SubstitutionMap} from './SearchRouter/getQueryWithSubstitutions';
 
-const EMPTY_AUTOCOMPLETE_LIST: string[] = [];
-
 type SearchAutocompleteInputProps = {
     /** Value of TextInput */
     value: string;
@@ -106,10 +104,10 @@ function SearchAutocompleteInput({
     const {currencyList} = useCurrencyListState();
     const currencies = new Set(Object.keys(currencyList).filter((currencyCode) => !currencyList[currencyCode]?.retired));
 
-    const [categoryNames = EMPTY_AUTOCOMPLETE_LIST] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: getAutocompleteCategories});
+    const [categoryNames] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {selector: getAutocompleteCategories});
     const categories = new Set(categoryNames);
 
-    const [tagNames = EMPTY_AUTOCOMPLETE_LIST] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: getAutocompleteTags});
+    const [tagNames] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: getAutocompleteTags});
     const tags = new Set(tagNames);
 
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});

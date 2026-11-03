@@ -69,7 +69,7 @@ export default function useExportedToFilterOptions(): UseExportedToFilterDataRes
         standardAndCustomExportTemplates.push(filterValue);
     }
 
-    // React Compiler stops memoizing a value made before a hook call and used after it, so the policy IDs are read again here.
+    // React Compiler stops memoizing a value made before a hook call and passed to a function after it, unless the hook also received it, so the policy IDs are read again here.
     const policyIDs = getFilterFromQuery(currentSearchQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
     const connectedIntegrationNames = policyIDs.value?.length === 0 ? new Set<string>() : getConnectedIntegrationNamesForPolicies(policies, policyIDs);
 

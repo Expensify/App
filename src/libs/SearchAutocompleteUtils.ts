@@ -25,11 +25,11 @@ const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
 type AutocompleteParserRange = Pick<SearchAutocompleteQueryRange, 'value' | 'start' | 'length'> & {key: string};
 type AutocompleteParserResult = {autocomplete: AutocompleteParserRange | null; ranges: AutocompleteParserRange[]};
 type KnownFilterValues = {
-    userLogins: Set<string>;
-    currencies: Set<string>;
-    categories: Set<string>;
-    tags: Set<string>;
-    exportedTo: Set<string>;
+    userLogins: ReadonlySet<string>;
+    currencies: ReadonlySet<string>;
+    categories: ReadonlySet<string>;
+    tags: ReadonlySet<string>;
+    exportedTo: ReadonlySet<string>;
 };
 
 /** The generated parser also produces non-canonical keys. Only prove the fields used by ordinary query consumers. */
