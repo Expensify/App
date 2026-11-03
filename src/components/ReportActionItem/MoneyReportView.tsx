@@ -4,6 +4,7 @@ import MoneyRequestViewReportFields from '@components/MoneyRequestReportView/Mon
 import SpacerView from '@components/SpacerView';
 import Text from '@components/Text';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
+import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -11,6 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useReportTransactions from '@hooks/useReportTransactions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,6 +37,7 @@ import AnimatedEmptyStateBackground from '@pages/inbox/report/AnimatedEmptyState
 
 import {fontScale} from '@styles/typography';
 
+import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
@@ -43,6 +46,7 @@ import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {useRoute} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 
@@ -89,6 +93,14 @@ function MoneyReportView({
 }: MoneyReportViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+    // Inside the RHP `shouldUseNarrowLayout` is always true, so it cannot tell the wide RHP from a narrow screen
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {wideRHPRouteKeys} = useWideRHPState();
+    const route = useRoute();
+    // In the wide RHP the receipt has its own pane, so these fields open the details column and line up with its
+    // "Receipt" heading, which takes its top space from the column rather than the heading.
+    const isReceiptInline = !wideRHPRouteKeys.includes(route.key) || isSmallScreenWidth;
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(report?.reportID)}`);
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -166,13 +178,25 @@ function MoneyReportView({
                         {/* One-expense reports edit their fields in place like the multi-expense report view does, one field
                             per row since this screen reads as a single expense rather than a table. */}
                         {shouldDisplayReportFields && (!isCombinedReport || !isOnlyTitleFieldEnabled) && (
-                            <MoneyRequestViewReportFields
-                                report={report}
-                                policy={policy}
-                                pendingAction={pendingAction}
-                                style={styles.mt5}
-                                shouldUseSingleColumn
-                            />
+                            <>
+                                {isCombinedReport && (
+                                    <View
+                                        style={[styles.ph5, isReceiptInline && styles.pt4, styles.pb2, styles.userSelectNone]}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                    >
+                                        <Text variant="labelStrong">{translate('workspace.common.reportFields')}</Text>
+                                    </View>
+                                )}
+                                <MoneyRequestViewReportFields
+                                    report={report}
+                                    policy={policy}
+                                    pendingAction={pendingAction}
+                                    // Under a heading the fields are spaced like the expense's own: 8px after the heading's 8px, and
+                                    // 8px before the divider's 12px.
+                                    style={isCombinedReport ? [styles.mt2, styles.mb2] : styles.mt5}
+                                    shouldUseSingleColumn
+                                />
+                            </>
                         )}
                         {shouldShowTotalRow && (
                             <View style={[styles.flexRow, styles.pointerEventsNone, styles.containerWithSpaceBetween, styles.ph5, styles.pv2]}>
@@ -242,7 +266,14 @@ function MoneyReportView({
                     </>
                 )}
             </View>
-            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotalRow) && renderThreadDivider}
+            {(shouldShowReportField || shouldShowBreakdown || shouldShowTotalRow) &&
+                (isCombinedReport ? (
+                    // The divider above the comments, with the comments heading's 16px folded into its bottom margin,
+                    // since the expense's "Details" heading below it brings no top space of its own
+                    <View style={[styles.reportHorizontalRule, styles.borderBottom, styles.mt3, styles.mb7]} />
+                ) : (
+                    renderThreadDivider
+                ))}
         </>
     );
 }
