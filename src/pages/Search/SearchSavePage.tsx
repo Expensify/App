@@ -83,6 +83,7 @@ function FilterBankAccountValue({value}: FilterValueProps) {
 function FilterValue({filterKey, value}: FilterValueWithKeyProps) {
     if (
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM ||
+        filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVER ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.TO ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ATTENDEE ||
         filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.ASSIGNEE ||
