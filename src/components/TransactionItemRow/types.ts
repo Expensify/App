@@ -1,3 +1,4 @@
+import type {InlineEditSaveResult} from '@components/EditableCell/types';
 import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import type {SearchColumnType, TableColumnSize} from '@components/Search/types';
 
@@ -125,12 +126,12 @@ type TransactionItemRowProps = {
     /** Enables the full-height hover target layout for the main table row content. */
     shouldUseFullHeightEditableCellHoverTarget?: boolean;
     /** Callbacks for inline cell editing */
-    onEditDate?: (newDate: string) => void;
-    onEditMerchant?: (newMerchant: string) => void;
-    onEditDescription?: (newDescription: string) => void;
-    onEditCategory?: (newCategory: string) => void;
-    onEditAmount?: (newAmount: number) => void;
-    onEditTag?: (newTag: string) => void;
+    onEditDate?: (newDate: string) => InlineEditSaveResult;
+    onEditMerchant?: (newMerchant: string) => InlineEditSaveResult;
+    onEditDescription?: (newDescription: string) => InlineEditSaveResult;
+    onEditCategory?: (newCategory: string) => InlineEditSaveResult;
+    onEditAmount?: (newAmount: number) => InlineEditSaveResult;
+    onEditTag?: (newTag: string) => InlineEditSaveResult;
 
     /** Per-field edit permissions — controls whether the cell shows editable affordance */
     canEditDate?: boolean;
