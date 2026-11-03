@@ -125,6 +125,7 @@ export default {
     // The deny is skipped when the server has already approved or denied the transaction, since it could only be rejected.
     callback: async (isSuccessful, callbackInput, payload) => {
         const isTransactionSettled = !!callbackInput.reason && SETTLED_TRANSACTION_REASONS.has(callbackInput.reason);
+
         // isAuthorizeTransactionPayload is a type guard - we know that payload here will always be an AuthorizeTransaction Payload, but the type guard lets Typescript guarantee it
         if (!isSuccessful && !isTransactionSettled && isAuthorizeTransactionPayload(payload)) {
             fireAndForgetDenyTransaction({transactionID: payload.transactionID});

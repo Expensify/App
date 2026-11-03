@@ -25,7 +25,13 @@ import CONST from '@src/CONST';
 import type {StateValue} from 'xstate';
 
 import {createActorAtState, createFlowContext, sendExecuteScenarioActionDone, sendRequestRegistrationChallengeDone} from 'tests/utils/mfa/flowActors';
-import createInitEvent, {MFA_TEST_AUTH_METHOD, MFA_TEST_CANCEL_ERROR, MFA_TEST_REGISTRATION_CHALLENGE, MFA_TEST_SCENARIO_RESPONSE, MFA_TEST_SIGNED_CHALLENGE} from 'tests/utils/mfa/flowFixtures';
+import createInitEvent, {
+    MFA_TEST_AUTH_METHOD,
+    MFA_TEST_CANCEL_ERROR,
+    MFA_TEST_REGISTRATION_CHALLENGE,
+    MFA_TEST_SCENARIO_RESPONSE,
+    MFA_TEST_SIGNED_CHALLENGE,
+} from 'tests/utils/mfa/flowFixtures';
 import {createActorDoneEvent} from 'tests/utils/mfa/flowPaths';
 import waitForBatchedUpdates from 'tests/utils/waitForBatchedUpdates';
 import {createActor, fromPromise, matchesState, SimulatedClock} from 'xstate';
@@ -56,8 +62,7 @@ const FINALIZING_OUTCOME = {[MFA_STATE.OUTCOME]: MFA_STATE.FINALIZING_OUTCOME};
 const AUTHORIZING = {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.SIGNING_CHALLENGE}};
 const EXECUTING_SCENARIO_ACTION = {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.EXECUTING_SCENARIO_ACTION}};
 
-/** How long a confirmed cancel waits for its requests before the flow fails on its own. */
-const CANCEL_TIMEOUT_MS = 60 * 1000;
+const CANCEL_TIMEOUT_MS = CONST.MULTIFACTOR_AUTHENTICATION.CANCEL_TIMEOUT_MS;
 
 /** Never settles, so the invoked actor stays running until the machine stops it. */
 const pendingCancelScenario = fromPromise<CancelScenarioOutput, CancelScenarioInput>(() => new Promise(() => {}));

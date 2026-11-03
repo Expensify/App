@@ -353,6 +353,9 @@ const SHARED_VALUES = {
     /** All states the MFA state machine can be in. See {@link MFA_STATE}. */
     MFA_STATE,
 
+    /** How long a confirmed cancel waits for its requests before the flow fails on its own. */
+    CANCEL_TIMEOUT_MS: 60 * 1000,
+
     /** Stable testIDs shared between MFA views and tests. */
     TEST_ID: {
         INITIAL_SCREEN: 'MultifactorAuthenticationInitialScreen',

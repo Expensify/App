@@ -121,8 +121,7 @@ const authorizeActor = fromPromise<AuthorizeOutput, AuthorizeInput>(async ({inpu
 /**
  * Calls the scenario's backend API command (e.g. approving the transaction) with the signed challenge and
  * returns its result. The request can't be taken back once sent, so stopping this actor never aborts it. No
- * rollback happens after the action fails, matching `registerCredentialActor`'s contract. See `denying` in
- * `mfaMachine.ts` for how the result is used when the user confirms a cancel while the request is in flight.
+ * rollback happens after the action fails, matching `registerCredentialActor`'s contract.
  */
 const executeScenarioActionActor = fromPromise<ExecuteScenarioActionOutput, ExecuteScenarioActionInput>(async ({input}) => {
     const scenarioResult = await input.runScenarioAction({
@@ -153,11 +152,10 @@ const executeScenarioActionActor = fromPromise<ExecuteScenarioActionOutput, Exec
  */
 const finalizeOutcomeActor = fromPromise<FinalizeOutcomeOutput, FinalizeOutcomeInput>(async ({input}) => {
     const isSuccessful = input.error === undefined;
-    // Odd but deliberate parity with legacy: `message` carries the reason, not the message, and
-    // `httpStatusCode` does not fall back to the error's. The reveal and set-PIN callbacks only read `body`.
+    // Odd but deliberate parity with legacy: `httpStatusCode` does not fall back to the error's.
+    // The reveal and set-PIN callbacks only read `body`; AuthorizeTransaction's reads `reason`.
     const callbackInput: MultifactorAuthenticationCallbackInput = {
         httpStatusCode: input.scenarioResponse?.httpStatusCode,
-        message: input.scenarioResponse?.reason ?? input.error?.reason,
         reason: input.scenarioResponse?.reason ?? input.error?.reason,
         body: input.scenarioResponse?.body,
     };

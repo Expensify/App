@@ -67,7 +67,7 @@ describe('MFA cancel through to the outcome', () => {
 
         // Then the cancel runs through the normal failure outcome, so the callback and telemetry learn the flow was cancelled
         expect(actor.getSnapshot().context.error).toEqual(canceledError);
-        expect(callback).toHaveBeenCalledWith(false, {httpStatusCode: undefined, message: REASON.LOCAL_ERRORS.CANCELED, reason: REASON.LOCAL_ERRORS.CANCELED, body: undefined}, undefined);
+        expect(callback).toHaveBeenCalledWith(false, {httpStatusCode: undefined, reason: REASON.LOCAL_ERRORS.CANCELED, body: undefined}, undefined);
         await waitFor(actor, () => trackMFAFlowOutcomeMock.mock.calls.length > 0);
         expect(trackMFAFlowOutcomeMock).toHaveBeenCalledWith(expect.objectContaining({isSuccessful: false, error: canceledError, isAuthorizationComplete: false}));
 
@@ -88,11 +88,7 @@ describe('MFA cancel through to the outcome', () => {
         // Then the deny error, not a generic cancel, reaches the callback and telemetry, so callers learn the transaction was denied
         expect(onCancel).toHaveBeenCalledWith(payload);
         expect(actor.getSnapshot().context.error).toBe(deniedError);
-        expect(callback).toHaveBeenCalledWith(
-            false,
-            {httpStatusCode: undefined, message: REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, reason: REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, body: undefined},
-            payload,
-        );
+        expect(callback).toHaveBeenCalledWith(false, {httpStatusCode: undefined, reason: REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, body: undefined}, payload);
         await waitFor(actor, () => trackMFAFlowOutcomeMock.mock.calls.length > 0);
         expect(trackMFAFlowOutcomeMock).toHaveBeenCalledWith(expect.objectContaining({isSuccessful: false, error: deniedError}));
 

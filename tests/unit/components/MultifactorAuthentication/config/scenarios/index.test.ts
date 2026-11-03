@@ -70,7 +70,6 @@ describe('MultifactorAuthentication Scenarios Config', () => {
             true,
             {
                 httpStatusCode: 200,
-                message: undefined,
                 body: {},
             },
             undefined,
@@ -129,7 +128,7 @@ describe('MultifactorAuthentication Scenarios Config', () => {
                 false,
                 {
                     httpStatusCode: 401,
-                    message: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
+                    reason: CONST.MULTIFACTOR_AUTHENTICATION.REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION,
                     body: {},
                 },
                 validPayload,
@@ -146,7 +145,6 @@ describe('MultifactorAuthentication Scenarios Config', () => {
                 true,
                 {
                     httpStatusCode: 200,
-                    message: undefined,
                     body: {},
                 },
                 undefined,

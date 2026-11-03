@@ -44,14 +44,14 @@ describe('cancelScenario actor', () => {
             expect(snapshot.output).toBe(deniedError);
         });
 
-        it('leaves the legacy warning breadcrumb with the returned error', async () => {
+        it('adds a warning breadcrumb with the returned error', async () => {
             // Given a scenario whose onCancel resolves with a deny error
             const deniedError = createMFAErrorFromApiResponse(200, REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, undefined);
 
             // When the cancel runs
             await runCancelScenarioActor({onCancel: jest.fn().mockResolvedValue(deniedError), payload: PAYLOAD});
 
-            // Then the breadcrumb keeps its legacy label and level, so existing telemetry queries still match cancels
+            // Then a warning breadcrumb records the cancel with the error it returned
             expect(addMFABreadcrumbMock).toHaveBeenCalledWith('Flow cancelled with onCancel', deniedError, 'warning');
         });
 
@@ -73,12 +73,12 @@ describe('cancelScenario actor', () => {
             expect(snapshot.output).toEqual(createLocalMFAError(REASON.LOCAL_ERRORS.CANCELED, 'User cancelled the MFA flow'));
         });
 
-        it('leaves the legacy warning breadcrumb with the CANCELED reason', async () => {
+        it('adds a warning breadcrumb with the CANCELED reason', async () => {
             // Given a scenario with no cancel logic of its own
             // When the cancel runs
             await runCancelScenarioActor({onCancel: undefined, payload: undefined});
 
-            // Then the legacy breadcrumb is kept, so telemetry for plain cancels matches the old flow
+            // Then a warning breadcrumb records the plain cancel with its reason
             expect(addMFABreadcrumbMock).toHaveBeenCalledWith('Flow cancelled', {reason: REASON.LOCAL_ERRORS.CANCELED}, 'warning');
         });
     });
