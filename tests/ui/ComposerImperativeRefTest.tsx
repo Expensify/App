@@ -110,6 +110,10 @@ jest.mock('react-native-image-size', () => ({
     __esModule: true,
     default: {getSize: (uri: string) => mockGetImageSize(uri)},
 }));
+// Jest resolves the iOS/web variant, which leaves the reported size as is, so use the Android one that applies the rotation.
+jest.mock('@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize', () =>
+    jest.requireActual<Record<string, unknown>>('@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize/index.android'),
+);
 jest.mock('@pages/inbox/report/ReportActionEditMessageContext', () => ({
     useReportActionActiveEditActions: () => ({
         setEditingMessage: jest.fn<
@@ -525,8 +529,8 @@ describe('Composer imperative refs', () => {
         expect(onPasteFile).toHaveBeenCalledWith({uri: 'file:///photo', name: 'photo.png', type: 'image/png', size: 7});
     });
 
-    it('swaps the dimensions of a pasted image that is displayed sideways', async () => {
-        // Given a pasted photo whose EXIF orientation rotates it by 90 degrees.
+    it('applies the platform orientation rule to the dimensions of a pasted photo', async () => {
+        // Given a pasted photo that the image size library reports as rotated by 90 degrees.
         mockGetImageSize.mockResolvedValueOnce({width: 640, height: 480, rotation: 90});
         const onPasteFile = jest.fn<ReturnType<NonNullable<ComposerProps['onPasteFile']>>, Parameters<NonNullable<ComposerProps['onPasteFile']>>>();
         const paste = renderNativeComposerForPaste(onPasteFile);

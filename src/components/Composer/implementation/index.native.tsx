@@ -9,6 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import getDeviceOrientationAwareImageSize from '@libs/cropOrRotateImage/getDeviceOrientationAwareImageSize';
 import {containsOnlyEmojis} from '@libs/EmojiUtils';
 import {getExtensionFromMimeType, splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import getLandscapeTextInputRefProxy from '@libs/getLandscapeTextInputRefProxy';
@@ -42,10 +43,9 @@ function addImageDimensions(file: FileObject): Promise<FileObject> {
         return Promise.resolve(file);
     }
     return ImageSize.getSize(file.uri)
-        .then(({width, height, rotation}) => {
-            // The EXIF orientation can make the image display sideways, in which case its displayed sides are swapped.
-            const isDisplayedSideways = rotation === 90 || rotation === 270;
-            return {...file, width: isDisplayedSideways ? height : width, height: isDisplayedSideways ? width : height};
+        .then((imageSize) => {
+            const {imageWidth, imageHeight} = getDeviceOrientationAwareImageSize({imageSize});
+            return {...file, width: imageWidth, height: imageHeight};
         })
         .catch(() => file);
 }
