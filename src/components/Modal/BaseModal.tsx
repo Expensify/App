@@ -229,6 +229,7 @@ function BaseModal({
     // its wrapper over the backdrop above it, where it swallows the taps meant to dismiss the modal.
     useEffect(() => {
         if (type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED || !canUseTouchScreen || !isSmallScreenWidth || !avoidKeyboard) {
+            setModalOverlapsWithTopSafeArea(false);
             return;
         }
         const {paddingTop} = StyleUtils.getPlatformSafeAreaPadding(insets);
