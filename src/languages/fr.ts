@@ -12849,6 +12849,10 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
             one: "Les dépenses de 1 note de frais n'ont pas pu être supprimées.",
             other: `Les dépenses de ${count} notes de frais n'ont pas pu être supprimées.`,
         }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: "1 note de frais n'a pas pu être déplacée.",
+            other: `${count} notes de frais n'ont pas pu être déplacées.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renouvelez votre abonnement pour une durée de 12 mois, du ${startDate} au ${endDate}.`,

@@ -12257,6 +12257,10 @@ ${reportName}`,
             one: '无法删除 1 份报表的报销费用。',
             other: `无法删除 ${count} 份报表的报销费用。`,
         }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 份报表无法移动。',
+            other: `${count} 份报表无法移动。`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `将您的订阅续订为 12 个月期限，自 ${startDate} 至 ${endDate}。`,

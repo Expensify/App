@@ -12731,6 +12731,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
             one: 'Uitgaven in 1 rapport konden niet worden verwijderd.',
             other: `Uitgaven in ${count} rapporten konden niet worden verwijderd.`,
         }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 rapport kon niet worden verplaatst.',
+            other: `${count} rapporten konden niet worden verplaatst.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Verleng je abonnement voor een periode van 12 maanden, van ${startDate} tot ${endDate}.`,

@@ -12727,6 +12727,10 @@ Aqui está um *comprovante de teste* para mostrar como funciona:`,
             one: 'As despesas de 1 relatório não puderam ser excluídas.',
             other: `As despesas de ${count} relatórios não puderam ser excluídas.`,
         }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 relatório não pôde ser movido.',
+            other: `${count} relatórios não puderam ser movidos.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renove sua assinatura por um período de 12 meses, de ${startDate} a ${endDate}.`,

@@ -12762,6 +12762,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             one: 'Le spese di 1 report non hanno potuto essere eliminate.',
             other: `Le spese di ${count} report non hanno potuto essere eliminate.`,
         }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 report non può essere spostato.',
+            other: `${count} report non hanno potuto essere spostati.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Rinnova il tuo abbonamento per un periodo di 12 mesi, dal ${startDate} al ${endDate}.`,

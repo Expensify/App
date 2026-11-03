@@ -12567,6 +12567,10 @@ ${reportName}`,
             one: '1件のレポートの経費を削除できませんでした。',
             other: `${count} 件のレポートの経費を削除できませんでした。`,
         }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1件のレポートを移動できませんでした。',
+            other: `${count} 件のレポートを移動できませんでした。`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `${startDate} から ${endDate} までの12か月契約でサブスクリプションを更新します。`,

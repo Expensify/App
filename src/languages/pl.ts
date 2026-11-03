@@ -12759,6 +12759,10 @@ Oto *paragon testowy*, żeby pokazać Ci, jak to działa:`,
             one: 'Nie udało się usunąć wydatków w 1 raporcie.',
             other: `Nie udało się usunąć wydatków w ${count} raportach.`,
         }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: 'Nie udało się przenieść 1 raportu.',
+            other: `Nie udało się przenieść ${count} raportów.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Odnów swoją subskrypcję na 12-miesięczny okres, od ${startDate} do ${endDate}.`,

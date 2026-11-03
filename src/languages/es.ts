@@ -13075,6 +13075,10 @@ ${reportName}`,
             one: 'Los gastos de 1 informe no se pudieron eliminar.',
             other: `No se pudieron eliminar los gastos en ${count} informes.`,
         }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: 'No se pudo mover 1 informe.',
+            other: `No se pudieron mover ${count} informes.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) => `Renueva tu suscripción por un período de 12 meses, desde ${startDate} hasta ${endDate}.`,

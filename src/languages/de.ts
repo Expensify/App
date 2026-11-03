@@ -12814,6 +12814,10 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             one: 'Ausgaben in 1 Bericht konnten nicht gelöscht werden.',
             other: `Ausgaben in ${count} Berichten konnten nicht gelöscht werden.`,
         }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: '1 Bericht konnte nicht verschoben werden.',
+            other: `${count} Berichte konnten nicht verschoben werden.`,
+        }),
     },
     earlyRenewal: {
         confirmationDescription: ({startDate, endDate}: {startDate: string; endDate: string}) =>

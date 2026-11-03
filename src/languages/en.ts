@@ -12856,6 +12856,10 @@ const translations = {
             one: "1 report couldn't be deleted.",
             other: `${count} reports couldn't be deleted.`,
         }),
+        notMovedBody: ({count}: {count: number}) => ({
+            one: "1 report couldn't be moved.",
+            other: `${count} reports couldn't be moved.`,
+        }),
         expensesNotDeletedBody: ({count}: {count: number}) => ({
             one: "Expenses on 1 report couldn't be deleted.",
             other: `Expenses on ${count} reports couldn't be deleted.`,

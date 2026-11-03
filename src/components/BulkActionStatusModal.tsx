@@ -58,6 +58,7 @@ const FAILED_BODIES = {
     [CONST.SEARCH.BULK_ACTION_TYPES.UNHOLD]: 'bulkAction.notUnheldBody',
     [CONST.SEARCH.BULK_ACTION_TYPES.REJECT]: 'bulkAction.notRejectedBody',
     [CONST.SEARCH.BULK_ACTION_TYPES.DELETE]: 'bulkAction.notDeletedBody',
+    [CONST.SEARCH.BULK_ACTION_TYPES.CHANGE_WORKSPACE]: 'bulkAction.notMovedBody',
     [CONST.BULK_ACTION.DELETE_EXPENSES]: 'bulkAction.expensesNotDeletedBody',
 } as const satisfies Record<BulkActionType, TranslationPaths>;
 
