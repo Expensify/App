@@ -1,7 +1,6 @@
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import useEnvironment from '@hooks/useEnvironment';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -9,7 +8,7 @@ import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 
 import Navigation from '@libs/Navigation/Navigation';
 
-import openDigitsSignIn from '@pages/workspace/accounting/digits/openDigitsSignIn';
+import useStartDigitsOAuth from '@pages/workspace/accounting/digits/useStartDigitsOAuth';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,11 +20,11 @@ import type {ConnectToDigitsFlowProps} from './types';
 
 function ConnectToDigitsFlow({policyID}: ConnectToDigitsFlowProps) {
     const {translate} = useLocalize();
-    const {environmentURL} = useEnvironment();
     const {showConfirmModal} = useConfirmModal();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const hasReusablePoliciesConnectedToDigits = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DIGITS, policyID);
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policyID);
+    const startDigitsOAuth = useStartDigitsOAuth();
 
     const promptCurrencyChange = async () => {
         // An open or partially set up bank account blocks the currency page, so only offer the change when it can be completed
@@ -56,7 +55,7 @@ function ConnectToDigitsFlow({policyID}: ConnectToDigitsFlowProps) {
         }
 
         // On web the sign-in opens in a new tab, so it has to open here, within the connect press's user-gesture window
-        openDigitsSignIn(policyID, environmentURL);
+        startDigitsOAuth(policyID);
         // This needs to run once as the flow either opens the sign-in or navigates away
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);

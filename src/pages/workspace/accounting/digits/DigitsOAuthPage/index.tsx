@@ -15,10 +15,10 @@ function DigitsOAuthPage({route}: DigitsOAuthPageProps) {
 
     useEffect(() => {
         // On web the connect flow opens the Digits sign-in inline (new tab), so this screen has no content. It is only
-        // reached via a deep link, so just return to the workspace accounting page. We wait for the RHP open transition
+        // reached via a deep link, so just return to the workspace connections page. We wait for the RHP open transition
         // to finish first, otherwise goBack fires mid-transition and is dropped.
         const handle = TransitionTracker.runAfterTransitions({
-            callback: () => Navigation.goBack(ROUTES.POLICY_ACCOUNTING.getRoute(policyID)),
+            callback: () => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID)),
             waitForUpcomingTransition: true,
         });
         return () => handle.cancel();

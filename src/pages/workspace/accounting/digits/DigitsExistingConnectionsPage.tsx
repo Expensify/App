@@ -5,7 +5,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
-import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useReusablePoliciesConnectedTo from '@hooks/useReusablePoliciesConnectedTo';
@@ -22,14 +21,14 @@ import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
-import openDigitsSignIn from './openDigitsSignIn';
+import useStartDigitsOAuth from './useStartDigitsOAuth';
 
 type DigitsExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DIGITS_EXISTING_CONNECTIONS>;
 
 function DigitsExistingConnectionsPage({route}: DigitsExistingConnectionsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {environmentURL} = useEnvironment();
+    const startDigitsOAuth = useStartDigitsOAuth();
     const icons = useMemoizedLazyExpensifyIcons(['LinkCopy']);
     const policyID: string = route.params.policyID;
     const {reusablePoliciesConnectedTo: reusablePoliciesConnectedToDigits} = useReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DIGITS, policyID);
@@ -64,7 +63,8 @@ function DigitsExistingConnectionsPage({route}: DigitsExistingConnectionsPagePro
                 <MenuItemNavigation
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}
-                    onPress={() => openDigitsSignIn(policyID, environmentURL)}
+                    onPress={() => startDigitsOAuth(policyID)}
+                    sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.CREATE_NEW_CONNECTION}
                 />
                 <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>
                 <MenuItemList
