@@ -53,7 +53,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({
 
     const transactionReportID = getNonEmptyStringOnyxID(transactionItem.reportID);
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionReportID}`);
-    const transactionPolicy = usePolicy(transactionReport?.policyID ?? transactionItem.policyID);
+    const transactionPolicy = usePolicy(transactionReport?.policyID);
 
     useSyncFocus(pressableRef, !!isFocused, shouldSyncFocus);
 
