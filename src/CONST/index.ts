@@ -2622,6 +2622,7 @@ const CONST = {
         RHP_ENTER_OFFSET_PX_WEB: 60,
     },
     FAB_MENU_ITEM_IDS: {
+        CREATE_BILL: 'create-bill',
         QUICK_ACTION: 'quick-action',
         EXPENSE: 'expense',
         TRACK_DISTANCE: 'track-distance',

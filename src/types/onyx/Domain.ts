@@ -18,6 +18,9 @@ type Domain = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Validation code for the domain */
     validateCode?: string;
 
+    /** Email of the domain's technical contact, who receives the bills created for the domain. Empty when the domain has none. */
+    technicalContactEmail?: string;
+
     isValidationPending?: boolean;
     hasValidationSucceeded?: boolean;
 

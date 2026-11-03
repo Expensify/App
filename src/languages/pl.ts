@@ -38,8 +38,13 @@ const translations: TranslationDeepObject<typeof en> = {
     billPay: {
         bill: 'Rachunek',
         bills: 'Rachunki',
+        createBill: 'Utwórz rachunek',
+        vendorEmail: 'E-mail dostawcy',
+        attachPDF: 'Załącz PDF',
         markAsPaid: 'Oznacz jako opłacone',
         paymentFailed: 'Nie udało się opłacić tego rachunku. Spróbuj ponownie.',
+        createFailed: 'Nie udało się utworzyć tego rachunku. Spróbuj ponownie.',
+        primaryContactHint: (domain) => `Główna osoba kontaktowa odpowiada za kontakt w domenie ${domain} i otrzyma rachunki wysłane na adres płatności tej domeny ${domain}@expensify.cash.`,
     },
     common: {
         durationDays: ({count}: {count: number}) => ({

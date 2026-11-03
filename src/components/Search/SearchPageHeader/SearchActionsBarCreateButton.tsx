@@ -2,6 +2,7 @@ import Button from '@components/Button';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 
+import useCanCreateBill from '@hooks/useCanCreateBill';
 import useCreateReport from '@hooks/useCreateReport';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -36,7 +37,8 @@ import {View} from 'react-native';
 function SearchActionsBarCreateButton() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'Location', 'Document', 'Receipt', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'Location', 'Document', 'Receipt', 'Coins', 'Cash', 'Transfer', 'MoneyCircle', 'InvoiceGeneric']);
+    const canCreateBill = useCanCreateBill();
 
     const createButtonRef = useRef<ComponentRef<typeof View>>(null);
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
@@ -121,6 +123,15 @@ function SearchActionsBarCreateButton() {
                       icon: expensifyIcons.Document,
                       text: translate('report.newReport.createReport'),
                       onSelected: createReport,
+                  },
+              ]
+            : []),
+        ...(canCreateBill
+            ? [
+                  {
+                      icon: expensifyIcons.InvoiceGeneric,
+                      text: translate('billPay.createBill'),
+                      onSelected: () => interceptAnonymousUser(() => Navigation.navigate(ROUTES.CREATE_BILL), session),
                   },
               ]
             : []),

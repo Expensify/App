@@ -38,8 +38,13 @@ const translations: TranslationDeepObject<typeof en> = {
     billPay: {
         bill: '账单',
         bills: '账单',
+        createBill: '创建账单',
+        vendorEmail: '供应商邮箱',
+        attachPDF: '附加 PDF',
         markAsPaid: '标记为已支付',
         paymentFailed: '无法支付此账单。请重试。',
+        createFailed: '无法创建此账单。请重试。',
+        primaryContactHint: (domain) => `主要联系人是 ${domain} 的主要联络人，并将收到发送至此域名账单支付地址 ${domain}@expensify.cash 的账单。`,
     },
     common: {
         durationDays: ({count}: {count: number}) => ({

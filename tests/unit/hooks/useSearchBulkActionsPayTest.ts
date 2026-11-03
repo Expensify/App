@@ -7,7 +7,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 
-import payBill from '@libs/actions/BillPay';
+import {payBill} from '@libs/actions/BillPay';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {getLastPolicyPaymentMethod, queueBulkPayReports} from '@libs/actions/Search';
 import type * as SearchActions from '@libs/actions/Search';
@@ -29,8 +29,7 @@ jest.mock('@libs/actions/IOU/PayMoneyRequest', () => ({
 }));
 
 jest.mock('@libs/actions/BillPay', () => ({
-    __esModule: true,
-    default: jest.fn(),
+    payBill: jest.fn(),
 }));
 
 // On iOS the offline modal is deferred until the payment popover finishes dismissing (via TransitionTracker),

@@ -1,17 +1,20 @@
-/** Pays bills with PayMoneyRequest, and invoices through Classic's reimbursement flows. */
+/** Creates bills through Classic's intake flow, and pays bills with PayMoneyRequest and invoices through Classic's reimbursement flows. */
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {write} from '@libs/API';
-import type {PayMoneyRequestParams} from '@libs/API/parameters';
+import type {CreateBillParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {isBillReport} from '@libs/BillPayUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
-import {buildOptimisticIOUReportAction, getReimbursableTotal} from '@libs/ReportUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {buildOptimisticIOUReportAction, generateReportID, getReimbursableTotal} from '@libs/ReportUtils';
 import type {SearchKey} from '@libs/SearchKeyUtils';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import type {OnyxData} from '@src/types/onyx/Request';
@@ -22,6 +25,8 @@ import Onyx from 'react-native-onyx';
 
 import mergeAdditionalPayOnyxData from './IOU/mergeAdditionalPayOnyxData';
 import {getSearchPayOnyxData} from './Search';
+
+type CreateBillInput = Omit<CreateBillParams, 'reportID' | 'invoiceReportID' | 'submitterEmail'> & {vendorEmail: string};
 
 type PayBillParams = {
     /** The bill or received invoice to pay */
@@ -167,5 +172,45 @@ function payBill({report, paymentMethodType, bankAccountID, accountNumber, searc
     write(WRITE_COMMANDS.PAY_MONEY_REQUEST, params, mergeAdditionalPayOnyxData(onyxData, searchData));
 }
 
-export default payBill;
+function createBill(params: CreateBillInput, accountID: number) {
+    const {vendorEmail, ...requestParams} = params;
+    const reportID = generateReportID();
+    const invoiceReportID = generateReportID();
+    const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const;
+    write(
+        WRITE_COMMANDS.CREATE_BILL,
+        {...requestParams, submitterEmail: vendorEmail, reportID, invoiceReportID},
+        {
+            optimisticData: [
+                {
+                    onyxMethod: Onyx.METHOD.SET,
+                    key,
+                    value: {
+                        reportID,
+                        type: CONST.REPORT.TYPE.BILL,
+                        reportName: params.merchant,
+                        ownerAccountID: accountID,
+                        total: -params.amount,
+                        currency: params.currency,
+                        created: params.date,
+                        stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                        statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                        pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+                    },
+                },
+                {
+                    onyxMethod: Onyx.METHOD.MERGE,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+                    value: {invoiceID: invoiceReportID},
+                },
+            ],
+            successData: [{onyxMethod: Onyx.METHOD.MERGE, key, value: {pendingFields: {createChat: null}}}],
+            failureData: [{onyxMethod: Onyx.METHOD.MERGE, key, value: {pendingFields: {createChat: null}, errors: getMicroSecondOnyxErrorWithTranslationKey('billPay.createFailed')}}],
+        },
+    );
+    Navigation.dismissModal();
+    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.BILL}), searchKey: CONST.SEARCH.SEARCH_KEYS.BILLS}));
+}
+
+export {createBill, payBill};
 export type {PayBillParams};
