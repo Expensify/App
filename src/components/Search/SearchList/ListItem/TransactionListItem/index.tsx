@@ -22,7 +22,7 @@ import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchActionPressInputs from '@hooks/useSearchActionPressInputs';
+import useSearchActionPress from '@hooks/useSearchActionPress';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
@@ -231,10 +231,10 @@ function TransactionListItemInner<TItem extends ListItem>({
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress} = useSearchSubmitPopoverGuard();
-    const readSearchActionPressInputs = useSearchActionPressInputs();
+    const beginSearchActionPress = useSearchActionPress();
 
     const handleActionButtonPress = async (event?: Parameters<typeof onSelectRow>[2]) => {
-        const pressTimeInputs = await readSearchActionPressInputs(liveTransactionItem.action);
+        const pressTimeInputs = await beginSearchActionPress(liveTransactionItem.action);
         if (!pressTimeInputs) {
             return;
         }

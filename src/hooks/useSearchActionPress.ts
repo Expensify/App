@@ -17,10 +17,10 @@ const EMPTY_SEARCH_ACTION_INPUTS: SearchActionInputs = {
 };
 
 /**
- * Reads the press-time inputs for a Search row action and resolves to undefined when the submit-to popover intercepted the press.
+ * Begins a Search row action press: resolves its press-time inputs, or undefined when the submit-to popover intercepted the press.
  * The intercept runs before the first await because its one-shot flag resets in a microtask.
  */
-function useSearchActionPressInputs() {
+function useSearchActionPress() {
     const {interceptSearchSubmitPress} = useSearchSubmitPopoverGuard();
     const {readSearchActionInputs} = usePaymentContext();
 
@@ -32,5 +32,5 @@ function useSearchActionPressInputs() {
     };
 }
 
-export default useSearchActionPressInputs;
+export default useSearchActionPress;
 export {EMPTY_SEARCH_ACTION_INPUTS};

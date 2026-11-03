@@ -1,6 +1,6 @@
 import {renderHook} from '@testing-library/react-native';
 
-import useSearchActionPressInputs, {EMPTY_SEARCH_ACTION_INPUTS} from '@hooks/useSearchActionPressInputs';
+import useSearchActionPress, {EMPTY_SEARCH_ACTION_INPUTS} from '@hooks/useSearchActionPress';
 
 import CONST from '@src/CONST';
 
@@ -18,7 +18,7 @@ jest.mock('@hooks/usePaymentContext', () => ({
 
 const PRESS_TIME_INPUTS = {...EMPTY_SEARCH_ACTION_INPUTS, amountOwed: 1234};
 
-describe('useSearchActionPressInputs', () => {
+describe('useSearchActionPress', () => {
     beforeEach(() => {
         mockInterceptSearchSubmitPress.mockReset().mockReturnValue(false);
         mockReadSearchActionInputs.mockReset().mockResolvedValue(PRESS_TIME_INPUTS);
@@ -27,7 +27,7 @@ describe('useSearchActionPressInputs', () => {
     it('intercepts the press before the first await when the submit-to popover just closed', async () => {
         // Given this press just dismissed the submit-to popover, so the intercept reports it
         mockInterceptSearchSubmitPress.mockReturnValue(true);
-        const {result} = renderHook(() => useSearchActionPressInputs());
+        const {result} = renderHook(() => useSearchActionPress());
 
         // When the row reads its press-time inputs for Submit
         const pendingInputs = result.current(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -41,7 +41,7 @@ describe('useSearchActionPressInputs', () => {
 
     it('reads the inputs once for an action that uses them', async () => {
         // Given no popover to intercept the press and a Submit action
-        const {result} = renderHook(() => useSearchActionPressInputs());
+        const {result} = renderHook(() => useSearchActionPress());
 
         // When the row reads its press-time inputs
         const inputs = await result.current(CONST.SEARCH.ACTION_TYPES.SUBMIT);
@@ -53,7 +53,7 @@ describe('useSearchActionPressInputs', () => {
 
     it('skips the read for an action that only navigates', async () => {
         // Given no popover to intercept the press and a View action
-        const {result} = renderHook(() => useSearchActionPressInputs());
+        const {result} = renderHook(() => useSearchActionPress());
 
         // When the row reads its press-time inputs
         const inputs = await result.current(CONST.SEARCH.ACTION_TYPES.VIEW);

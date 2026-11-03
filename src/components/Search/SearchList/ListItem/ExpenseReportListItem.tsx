@@ -25,7 +25,7 @@ import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchActionPressInputs from '@hooks/useSearchActionPressInputs';
+import useSearchActionPress from '@hooks/useSearchActionPress';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -215,7 +215,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress} = useSearchSubmitPopoverGuard();
-    const readSearchActionPressInputs = useSearchActionPressInputs();
+    const beginSearchActionPress = useSearchActionPress();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = Object.values(reportTransactions);
     const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
@@ -253,7 +253,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         });
 
     const handleOnButtonPress = async () => {
-        const pressTimeInputs = await readSearchActionPressInputs(liveReportItem.action);
+        const pressTimeInputs = await beginSearchActionPress(liveReportItem.action);
         if (!pressTimeInputs) {
             return;
         }

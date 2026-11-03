@@ -23,7 +23,7 @@ import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSearchActionPressInputs from '@hooks/useSearchActionPressInputs';
+import useSearchActionPress from '@hooks/useSearchActionPress';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -314,10 +314,10 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
 
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
     const {shouldDisableSearchSubmitPress} = useSearchSubmitPopoverGuard();
-    const readSearchActionPressInputs = useSearchActionPressInputs();
+    const beginSearchActionPress = useSearchActionPress();
 
     const handleOnButtonPress = async (event?: ModifiedMouseEvent) => {
-        const pressTimeInputs = await readSearchActionPressInputs(reportItem.action);
+        const pressTimeInputs = await beginSearchActionPress(reportItem.action);
         if (!pressTimeInputs) {
             return;
         }
