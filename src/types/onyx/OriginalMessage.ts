@@ -132,6 +132,18 @@ type OriginalMessageSmartScanFailed = {
     reasoning?: string;
 };
 
+/** Fields present on any action that restricts push notifications to a subset of account IDs */
+type OriginalMessagePushNotification = {
+    /** Account IDs for whom this action is marked as important */
+    importantForAccountIDs?: number[];
+
+    /** Whether push notifications should be scoped to actionableForAccountIDs only */
+    shouldScopePushToActionableAccounts?: boolean;
+
+    /** Account IDs that should receive push notifications when shouldScopePushToActionableAccounts is true */
+    actionableForAccountIDs?: number[];
+};
+
 /** Model of `add comment` report action */
 type OriginalMessageAddComment = {
     /** HTML content of the comment */
@@ -156,7 +168,7 @@ type OriginalMessageAddComment = {
 
     /** The AgentZero request ID that produced this comment, surfaced for internal tracing in non-production builds */
     agentZeroRequestID?: string;
-};
+} & OriginalMessagePushNotification;
 
 /** Model of `actionable mention whisper` report action */
 type OriginalMessageActionableMentionWhisper = {
@@ -1883,6 +1895,7 @@ export type {
     OriginalMessageMovedTransaction,
     PolicyBudgetFrequency,
     OriginalMessageMarkedReimbursed,
+    OriginalMessagePushNotification,
     OriginalMessageReimbursed,
     OriginalMessageSettlementAccountLocked,
     ViolationsSnapshot,

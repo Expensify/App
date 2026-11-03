@@ -30,6 +30,7 @@ import type {
     DecisionName,
     JoinWorkspaceResolution,
     OriginalMessageChangeLog,
+    OriginalMessagePushNotification,
     OriginalMessageExportIntegration,
     OriginalMessageMarkedReimbursed,
     OriginalMessageReimbursed,
@@ -1112,35 +1113,22 @@ function isWhisperActionTargetedToOthers(reportAction: OnyxInputOrEntry<ReportAc
  * Whether the action asks to notify only its actionableForAccountIDs and the current user isn't one of them
  */
 function isPushScopedToOthers(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
-    const originalMessage = reportAction ? getOriginalMessage(reportAction) : undefined;
-    if (
-        !originalMessage ||
-        typeof originalMessage !== 'object' ||
-        !('shouldScopePushToActionableAccounts' in originalMessage) ||
-        originalMessage.shouldScopePushToActionableAccounts !== true
-    ) {
+    const originalMessage = reportAction ? (getOriginalMessage(reportAction) as OriginalMessagePushNotification | undefined) : undefined;
+    if (!originalMessage?.shouldScopePushToActionableAccounts || !originalMessage.actionableForAccountIDs?.length) {
         return false;
     }
-    const actionableForAccountIDs: unknown = 'actionableForAccountIDs' in originalMessage ? originalMessage.actionableForAccountIDs : undefined;
-    if (!Array.isArray(actionableForAccountIDs) || actionableForAccountIDs.length === 0) {
-        return false;
-    }
-    return !actionableForAccountIDs.some((accountID) => accountID === currentUserAccountID);
+    return !originalMessage.actionableForAccountIDs.some((accountID) => accountID === currentUserAccountID);
 }
 
 /**
  * Whether the action is marked as important for the current user via importantForAccountIDs
  */
 function isImportantForCurrentUser(reportAction: OnyxInputOrEntry<ReportAction>, currentUserAccountID: number): boolean {
-    const originalMessage = reportAction ? getOriginalMessage(reportAction) : undefined;
-    if (!originalMessage || typeof originalMessage !== 'object' || !('importantForAccountIDs' in originalMessage)) {
+    const originalMessage = reportAction ? (getOriginalMessage(reportAction) as OriginalMessagePushNotification | undefined) : undefined;
+    if (!originalMessage?.importantForAccountIDs?.length) {
         return false;
     }
-    const importantForAccountIDs: unknown = originalMessage.importantForAccountIDs;
-    if (!Array.isArray(importantForAccountIDs) || importantForAccountIDs.length === 0) {
-        return false;
-    }
-    return importantForAccountIDs.some((accountID) => accountID === currentUserAccountID);
+    return originalMessage.importantForAccountIDs.some((accountID) => accountID === currentUserAccountID);
 }
 
 function isReimbursementQueuedAction(reportAction: OnyxInputOrEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_QUEUED> {

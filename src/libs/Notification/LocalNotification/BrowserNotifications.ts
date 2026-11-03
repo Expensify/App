@@ -178,7 +178,6 @@ export default {
                 const rawMessage = reportAction.message;
                 const messages: Message[] = Array.isArray(rawMessage) ? rawMessage.filter((m): m is Message => m !== undefined) : [];
                 plainTextMessage = messages
-                    .filter((m) => m.style === 'normal')
                     .map((m) => m.text ?? '')
                     .join(' ')
                     .trim();
