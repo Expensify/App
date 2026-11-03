@@ -59,6 +59,7 @@ function putOnHold({
     initialReportID,
     initialReport,
     transactionReport,
+    transactionReportActions,
     isOffline,
     currentUserLogin,
     currentUserAccountID,
@@ -74,6 +75,7 @@ function putOnHold({
     initialReportID: string | undefined;
     initialReport: OnyxEntry<OnyxTypes.Report>;
     transactionReport: OnyxEntry<OnyxTypes.Report>;
+    transactionReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isOffline: boolean;
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -95,7 +97,7 @@ function putOnHold({
     // If there is no existing transaction thread report, we should create one
     // This way we ensure every held request has a dedicated thread for comments
     if (!initialReportID) {
-        const moneyRequestReport = getReportOrDraftReport(transaction?.reportID);
+        const moneyRequestReport = getReportOrDraftReport({reportID: transaction?.reportID});
         createdThread = buildTransactionThread(iouAction, moneyRequestReport, currentUserAccountID, undefined, reportID);
     }
 
@@ -362,7 +364,7 @@ function putOnHold({
 
     API.write(WRITE_COMMANDS.HOLD_MONEY_REQUEST, params, {optimisticData, successData, failureData});
 
-    const currentReportID = getDisplayedReportID(reportID, isOffline);
+    const currentReportID = getDisplayedReportID(reportID, isOffline, transactionReportActions);
     Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, undefined, true));
 }
 
@@ -371,6 +373,7 @@ function putTransactionsOnHold({
     allReports,
     comment,
     reportID,
+    reportActions,
     isOffline,
     currentUserLogin,
     currentUserAccountID,
@@ -385,6 +388,7 @@ function putTransactionsOnHold({
     allReports: OnyxCollection<OnyxTypes.Report>;
     comment: string;
     reportID: string;
+    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isOffline: boolean;
     currentUserLogin: string;
     currentUserAccountID: number;
@@ -409,6 +413,7 @@ function putTransactionsOnHold({
             initialReportID: childReportID,
             initialReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`],
             transactionReport: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`],
+            transactionReportActions: reportActions,
             isOffline,
             currentUserLogin,
             currentUserAccountID,
@@ -885,7 +890,7 @@ function getReportFromHoldRequestsOnyxData({
 
         optimisticHoldReportExpenseActionIDs.push({optimisticReportActionID: reportActionID, oldReportActionID: holdReportAction.reportActionID});
 
-        const heldReport = getReportOrDraftReport(holdReportAction.childReportID);
+        const heldReport = getReportOrDraftReport({reportID: holdReportAction.childReportID});
         if (heldReport) {
             updateHeldReports[`${ONYXKEYS.COLLECTION.REPORT}${heldReport.reportID}`] = {
                 parentReportActionID: reportActionID,
@@ -1135,7 +1140,7 @@ function changeMoneyRequestHoldStatus(
     }
     const moneyRequestReportID = reportAction?.reportID;
 
-    const moneyRequestReport = getReportOrDraftReport(String(moneyRequestReportID));
+    const moneyRequestReport = getReportOrDraftReport({reportID: String(moneyRequestReportID)});
     if (!moneyRequestReportID || !moneyRequestReport) {
         return;
     }

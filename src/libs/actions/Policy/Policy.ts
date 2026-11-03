@@ -338,6 +338,8 @@ type SetWorkspaceReimbursementActionParams = {
     shouldUpdateLastPaymentMethod?: boolean;
     currentReimbursementChoice: Policy['reimbursementChoice'];
     currentAchAccount: Policy['achAccount'];
+    currentIsCollectDepositAccountsEnabled?: Policy['isCollectDepositAccountsEnabled'];
+    currentReimbursementCountries?: NonNullable<Policy['reimbursement']>['countries'];
     bankAccountList?: BankAccountList;
 };
 
@@ -1489,6 +1491,8 @@ function setWorkspaceReimbursement({
     shouldUpdateLastPaymentMethod,
     currentReimbursementChoice,
     currentAchAccount,
+    currentIsCollectDepositAccountsEnabled,
+    currentReimbursementCountries,
     bankAccountList = {},
 }: SetWorkspaceReimbursementActionParams) {
     const lastUsedPaymentMethod = typeof lastPaymentMethod === 'string' ? lastPaymentMethod : lastPaymentMethod?.expense?.name;
@@ -1621,6 +1625,23 @@ function setWorkspaceReimbursement({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.BANK_ACCOUNT_LIST,
             value: failureBankAccountList,
+        });
+    }
+
+    // Turning payments off also stops collecting employee bank details and clears the reimbursement countries
+    if (reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {isCollectDepositAccountsEnabled: false, reimbursement: {countries: null}},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            value: {
+                isCollectDepositAccountsEnabled: currentIsCollectDepositAccountsEnabled ?? null,
+                reimbursement: {countries: currentReimbursementCountries ?? null},
+            },
         });
     }
 
@@ -2972,6 +2993,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                     reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                    timeZone: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                     type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3085,6 +3107,7 @@ function buildPolicyData(options: BuildPolicyDataOptions): OnyxData<BuildPolicyD
                     reimbursementChoice: null,
                     name: null,
                     outputCurrency: null,
+                    timeZone: null,
                     address: null,
                     description: null,
                     type: null,
@@ -3591,6 +3614,7 @@ function buildOptimisticDuplicatePolicy(
             reimbursementChoice: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             name: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             outputCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            timeZone: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             address: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             description: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             type: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3758,6 +3782,7 @@ function buildDuplicatePolicyData(policy: Policy, options: DuplicatePolicyDataOp
                     reimbursementChoice: null,
                     name: null,
                     outputCurrency: null,
+                    timeZone: null,
                     address: null,
                     description: null,
                     type: null,
@@ -8343,8 +8368,6 @@ export {
     enablePolicyConnections,
     enablePolicyHR,
     enablePolicyRecruiting,
-    enablePolicyMCP,
-    enablePolicyReceiptPartners,
     enablePolicyFeatureForConnection,
     enablePolicyReportFields,
     enablePolicyInvoiceFields,
