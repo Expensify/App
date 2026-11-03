@@ -1,8 +1,5 @@
-// The real package ships ESM only, which Jest cannot load under --experimental-vm-modules.
-// Tests that import the app setup only need the registration entry point to exist.
-const registerTool = jest.fn(() => ({remove: jest.fn()}));
+// The real package is ESM-only, which Jest cannot load.
+const registerTool = jest.fn();
 
-export {
-    // eslint-disable-next-line import/prefer-default-export
-    registerTool,
-};
+// eslint-disable-next-line import/prefer-default-export
+export {registerTool};

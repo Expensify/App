@@ -1,6 +1,6 @@
 import {registerTool} from '@appduct/react-native';
 
-import registerStateTools from './registerStateTools';
+import tools from './tools';
 
 // The native module is debug-only and a no-op in release; the __DEV__ guard also keeps the tool
 // code out of release startup.
@@ -8,12 +8,10 @@ function registerAppductTools() {
     if (!__DEV__) {
         return;
     }
-    // The /auto side effect subscribes the default client to deep links (the
-    // link URL arrives via Linking/getInitialURL), so `appduct sessions link
-    // --open android` reaches the client. Required, not imported: the import
-    // would ship in release bundles, where the native module is a no-op.
+    // /auto subscribes the default client to deep links. Required, not imported: an import would
+    // ship in release bundles.
     require('@appduct/react-native/auto');
-    registerStateTools(registerTool);
+    tools.forEach((tool) => registerTool(tool));
 }
 
 export default registerAppductTools;
