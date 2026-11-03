@@ -3118,6 +3118,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Ik ga akkoord met de <a href="${CONST.WISE.TERMS_URL}">algemene voorwaarden</a> en het <a href="${CONST.WISE.PRIVACY_URL}">privacybeleid</a> van Wise.`,
                 wiseTermsAccessibilityLabel: 'Ik ga akkoord met de algemene voorwaarden en het privacybeleid van Wise.',
                 error: 'Accepteer alle voorwaarden om door te gaan.',
+                alreadySubmitted: 'Dit bedrijf is al ter beoordeling naar Wise verstuurd.',
             },
         },
         wiseGlobalReimbursementsIntro: {

@@ -191,6 +191,9 @@ type AccountSettingsParamList = {
     };
     [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS]: {
         bankAccountID: string;
+
+        /** Set when the onboarding started from a workspace's Workflows */
+        policyID?: string;
     };
     [SCREENS.SETTINGS.WALLET.EDIT_BANK_ACCOUNT_NICKNAME]: {
         bankAccountID: string;

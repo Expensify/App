@@ -3127,6 +3127,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Ich stimme den <a href="${CONST.WISE.TERMS_URL}">Allgemeinen Geschäftsbedingungen</a> und der <a href="${CONST.WISE.PRIVACY_URL}">Datenschutzerklärung</a> von Wise zu.`,
                 wiseTermsAccessibilityLabel: 'Ich stimme den Allgemeinen Geschäftsbedingungen und der Datenschutzerklärung von Wise zu.',
                 error: 'Bitte akzeptieren Sie alle Bedingungen, um fortzufahren.',
+                alreadySubmitted: 'Dieses Unternehmen wurde bereits zur Prüfung an Wise übermittelt.',
             },
         },
         wiseGlobalReimbursementsIntro: {

@@ -3155,6 +3155,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Akceptuję <a href="${CONST.WISE.TERMS_URL}">regulamin</a> i <a href="${CONST.WISE.PRIVACY_URL}">politykę prywatności</a> Wise.`,
                 wiseTermsAccessibilityLabel: 'Akceptuję regulamin i politykę prywatności Wise.',
                 error: 'Zaakceptuj wszystkie warunki, aby kontynuować.',
+                alreadySubmitted: 'Ta firma została już wysłana do Wise do weryfikacji.',
             },
         },
         wiseGlobalReimbursementsIntro: {

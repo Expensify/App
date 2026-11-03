@@ -773,6 +773,7 @@ const WRITE_COMMANDS = {
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
     UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA: 'UpdateWiseOnboardingAdditionalData',
+    SUBMIT_WISE_BUSINESS_ONBOARDING: 'SubmitWiseBusinessOnboarding',
     DELETE_APP_REPORT: 'DeleteAppReport',
     MERGE_REPORTS: 'MergeReports',
     SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION: 'SaveCorpayOnboardingDirectorInformation',
@@ -1287,6 +1288,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS]: Parameters.GetCorpayBankAccountFieldsParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER]: Parameters.SaveCorpayOnboardingBeneficialOwnerParams;
     [WRITE_COMMANDS.UPDATE_WISE_ONBOARDING_ADDITIONAL_DATA]: Parameters.UpdateWiseOnboardingAdditionalDataParams;
+    [WRITE_COMMANDS.SUBMIT_WISE_BUSINESS_ONBOARDING]: Parameters.SubmitWiseBusinessOnboardingParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION]: Parameters.SaveCorpayOnboardingDirectorInformationParams;
     [WRITE_COMMANDS.ASK_FOR_CORPAY_SIGNER_INFORMATION]: Parameters.AskForCorpaySignerInformationParams;
     [WRITE_COMMANDS.SEND_REMINDER_FOR_CORPAY_SINGER_INFORMATION]: Parameters.SendReminderForCorpaySignerInformationParams;

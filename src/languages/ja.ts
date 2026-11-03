@@ -3094,6 +3094,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Wiseの<a href="${CONST.WISE.TERMS_URL}">利用規約</a>および<a href="${CONST.WISE.PRIVACY_URL}">プライバシーポリシー</a>に同意します。`,
                 wiseTermsAccessibilityLabel: 'Wiseの利用規約およびプライバシーポリシーに同意します。',
                 error: '続行するにはすべての規約に同意してください。',
+                alreadySubmitted: 'このビジネスはすでに審査のためにWiseに送信されています。',
             },
         },
         wiseGlobalReimbursementsIntro: {

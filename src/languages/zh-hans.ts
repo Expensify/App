@@ -3018,6 +3018,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `我同意 Wise 的<a href="${CONST.WISE.TERMS_URL}">条款和条件</a>以及<a href="${CONST.WISE.PRIVACY_URL}">隐私政策</a>。`,
                 wiseTermsAccessibilityLabel: '我同意 Wise 的条款和条件以及隐私政策。',
                 error: '请接受所有条款以继续。',
+                alreadySubmitted: '该企业已提交给 Wise 进行审核。',
             },
         },
         wiseGlobalReimbursementsIntro: {
