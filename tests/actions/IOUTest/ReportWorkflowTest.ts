@@ -412,6 +412,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 initialReportID: expenseReport.reportID,
                 initialReport: expenseReport,
                 transactionReport: expenseReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: CARLOS_EMAIL,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
@@ -560,6 +561,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 initialReportID: expenseReport.reportID,
                 initialReport: expenseReport,
                 transactionReport: expenseReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: CARLOS_EMAIL,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
@@ -691,6 +693,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 initialReportID: expenseReport.reportID,
                 initialReport: expenseReport,
                 transactionReport: expenseReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: CARLOS_EMAIL,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
@@ -825,6 +828,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 initialReportID: expenseReport.reportID,
                 initialReport: expenseReport,
                 transactionReport: expenseReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: CARLOS_EMAIL,
                 currentUserAccountID: CARLOS_ACCOUNT_ID,
@@ -3428,6 +3432,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             approveMoneyRequest({
+                personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -3471,6 +3476,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             approveMoneyRequest({
+                personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -3525,6 +3531,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}` as const;
 
             approveMoneyRequest({
+                personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -4655,6 +4662,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
         const createApproveMoneyRequestParams = (expenseReport: Report, expenseReportPolicy: OnyxEntry<Policy>) => ({
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            personalDetailsByLogins: {},
             expenseReport,
             expenseReportPolicy,
             rules: undefined,
@@ -4740,6 +4748,12 @@ describe('actions/IOU/ReportWorkflow', () => {
         const managerEmail = 'manager@test.com';
         const employeeEmail = 'employee@test.com';
         const seniorManagerEmail = 'seniormanager@test.com';
+        const personalDetailsByLogins = {
+            [adminEmail]: {accountID: adminAccountID, login: adminEmail},
+            [managerEmail]: {accountID: managerAccountID, login: managerEmail},
+            [employeeEmail]: {accountID: employeeAccountID, login: employeeEmail},
+            [seniorManagerEmail]: {accountID: seniorManagerAccountID, login: seniorManagerEmail},
+        };
 
         let expenseReport: Report;
         let policy: Policy;
@@ -4848,6 +4862,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Admin approves the report
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -4902,6 +4917,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -4955,6 +4971,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // When the admin approves the report
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -5000,6 +5017,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Admin approves the report
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -5041,6 +5059,11 @@ describe('actions/IOU/ReportWorkflow', () => {
         const adminEmail = 'admin@test.com';
         const managerEmail = 'manager@test.com';
         const employeeEmail = 'employee@test.com';
+        const personalDetailsByLogins = {
+            [adminEmail]: {accountID: adminAccountID, login: adminEmail},
+            [managerEmail]: {accountID: managerAccountID, login: managerEmail},
+            [employeeEmail]: {accountID: employeeAccountID, login: employeeEmail},
+        };
 
         let expenseReport: Report;
         let policy: Policy;
@@ -5127,6 +5150,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report (no take control actions)
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -5160,6 +5184,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
@@ -5191,6 +5216,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: updatedReport,
@@ -5252,6 +5278,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report
             approveMoneyRequest({
+                personalDetailsByLogins,
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: singleApproverReport,
@@ -5313,6 +5340,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             })
                 .then(() => {
                     approveMoneyRequest({
+                        personalDetailsByLogins,
                         rules: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
                         expenseReport: normalReport,
@@ -5445,6 +5473,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             const newExpenseReportID = approveMoneyRequest({
+                personalDetailsByLogins: {},
                 rules: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
