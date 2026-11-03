@@ -46,7 +46,17 @@ type PieChartCanvasProps = Omit<PieChartProps, 'isLoading'> & {
     chartWidth: number;
 };
 
-function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true, shouldUseResponsiveLegend = false, chartWidth}: PieChartCanvasProps) {
+function PieChartCanvas({
+    data,
+    series,
+    valueUnit,
+    valueUnitPosition,
+    formatValue: formatValueOverride,
+    onSlicePress,
+    shouldShowLegend = true,
+    shouldUseResponsiveLegend = false,
+    chartWidth,
+}: PieChartCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -79,7 +89,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
     const [{key: primarySeriesKey}] = series;
     const processedSlices = processDataIntoSlices(data, primarySeriesKey, pieGeometry);
 
-    const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
+    const {formatValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition, formatValue: formatValueOverride});
 
     /** Data index of the slice at the given point, or -1 when the point is outside the slices */
     const findDataIndexAt = (x: number, y: number) => {
@@ -131,7 +141,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 
     const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
 
-    const {setIsTouchPinned, onTooltipDismiss, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
+    const {setIsTouchPinned, dismissTooltip, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
         matchedIndex.set(-1);
         setIsHoveringOverPie(false);
     });
@@ -280,7 +290,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
                     chartWidth={donutWidth}
                     initialTooltipPosition={tooltipPosition}
                     onChartMoved={onChartMoved}
-                    onDismiss={onTooltipDismiss}
+                    onDismiss={dismissTooltip}
                 />
             </Animated.View>
         </GestureDetector>

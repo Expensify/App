@@ -203,6 +203,7 @@ function WalletPage() {
                 isSelfTourViewed,
                 hasCompletedGuidedSetupFlow,
                 conciergePersonalDetails,
+                delegateAccountID,
             });
             return;
         }
