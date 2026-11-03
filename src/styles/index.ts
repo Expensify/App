@@ -3670,6 +3670,11 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.highlightBG,
         },
 
+        // Review aid toggled with "b", see `useReadOnlyFieldBorderToggle`
+        moneyRequestFieldRowDisabledBordered: {
+            borderColor: theme.bordersBold,
+        },
+
         // Fill behind `moneyRequestFieldRow`. The row's own background would cover anything drawn under it, so the
         // fill is a layer of its own for a highlight animation to take over.
         moneyRequestFieldRowFill: {
