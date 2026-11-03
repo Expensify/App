@@ -6,6 +6,7 @@ import {
 } from '@libs/actions/MultifactorAuthentication';
 import {makeRequestWithSideEffects} from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 import MARQETA_VALUES from '@libs/MultifactorAuthentication/shared/MarqetaValues';
 import VALUES from '@libs/MultifactorAuthentication/shared/VALUES';
 
@@ -127,21 +128,20 @@ describe('fraud review actions', () => {
             expect(typeof getLocallyProcessedTimestamp()).toBe('string');
         });
 
-        it('swallows a failed request instead of leaving an unhandled rejection', async () => {
+        it('handles a failed request instead of leaving it unhandled', async () => {
             // Given the request fails, e.g. because of a network error after the cardholder left the screen
             mockMakeRequestWithSideEffects.mockRejectedValue(new Error('Network request failed'));
-            const unhandledRejection = jest.fn();
-            process.on('unhandledRejection', unhandledRejection);
+            const logSpy = jest.spyOn(Log, 'hmmm');
 
             // When the cardholder backs out of the review
             fireAndForgetReportFraudulentTransaction({transactionID: TRANSACTION_ID});
             await new Promise((resolve) => {
                 setTimeout(resolve, 0);
             });
-            process.off('unhandledRejection', unhandledRejection);
 
-            // Then nothing surfaces as an unhandled rejection, since nobody waits for this request
-            expect(unhandledRejection).not.toHaveBeenCalled();
+            // Then the failure is caught and logged, since nobody waits for this request to report it
+            expect(logSpy).toHaveBeenCalledWith('[MFA] Failed to report fraudulent transaction', expect.anything());
+            logSpy.mockRestore();
         });
     });
 
