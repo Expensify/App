@@ -4,6 +4,8 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {hasHoverSupport} from '@libs/DeviceCapabilities';
+
 import type {AIInsight, InsightsScope} from '@src/types/onyx';
 
 import type {ReactNode} from 'react';
@@ -46,7 +48,7 @@ function InsightsAICardRow({insights, insightsScope, isLoading}: InsightsAICardR
     return (
         <ScrollView
             horizontal
-            showsHorizontalScrollIndicator={false}
+            showsHorizontalScrollIndicator={hasHoverSupport()}
             style={[pageGutterEdgeToEdge, shouldUseNarrowLayout ? styles.pv5 : styles.pv10]}
             contentContainerStyle={pageGutter}
         >

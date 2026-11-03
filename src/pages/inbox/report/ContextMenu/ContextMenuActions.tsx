@@ -119,6 +119,7 @@ import {
     getUpdatedBudgetMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getUpdatedCardFeedReimbursableMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedEmployeeOfficeLocationMessage,
     getUpdatedIndividualBudgetNotificationMessage,
@@ -144,6 +145,7 @@ import {
     getWorkspaceCustomUnitSubRateUpdatedMessage,
     getWorkspaceCustomUnitUpdatedMessage,
     getWorkspaceDescriptionUpdatedMessage,
+    getWorkspaceRulesDocumentUpdatedMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceFrequencyUpdateMessage,
     getWorkspaceReimbursementUpdateMessage,
@@ -351,6 +353,10 @@ type ContextMenuActionPayload = {
     currentUserAccountID: number;
     report: OnyxEntry<ReportType>;
     policy?: OnyxEntry<Policy>;
+
+    /** The lastModified of the full policy snapshot for the report's policy */
+    fullPolicySnapshotLastModified?: number;
+
     selection: string;
     close: () => void;
     transitionActionSheetState: (params: {type: string; payload?: Record<string, unknown>}) => void;
@@ -683,12 +689,16 @@ const ContextMenuActions: ContextMenuAction[] = [
                 isOffline,
                 personalDetails,
                 reportIDToName,
+                report,
+                fullPolicySnapshotLastModified,
             },
         ) => {
             if (isMoneyRequestAction(reportAction) || isMoneyRequestAction(moneyRequestAction)) {
                 const editExpense = () => {
                     const childReportID = reportAction?.childReportID;
-                    openReport({reportID: childReportID, introSelected, personalDetails, hasReportActions: !!childReportActions, currentUserAccountID, conciergeChat});
+                    // The child report shares the policy of the report the action lives in
+                    const fullPolicySnapshot = report?.policyID && fullPolicySnapshotLastModified ? {policyID: report.policyID, lastModified: fullPolicySnapshotLastModified} : undefined;
+                    openReport({reportID: childReportID, introSelected, personalDetails, hasReportActions: !!childReportActions, currentUserAccountID, conciergeChat, fullPolicySnapshot});
                     Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
                 };
                 if (closePopover) {
@@ -1168,6 +1178,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(Str.htmlDecode(getWorkspaceNameUpdatedMessage(translate, reportAction)));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION) {
                     setClipboardMessage(getWorkspaceDescriptionUpdatedMessage(translate, reportAction));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULES_DOCUMENT) {
+                    setClipboardMessage(getWorkspaceRulesDocumentUpdatedMessage(translate, reportAction, true));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
                     Clipboard.setString(getWorkspaceCurrencyUpdateMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
@@ -1198,7 +1210,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getCleanedTagName(getTagListUpdatedMessage(translate, reportAction)));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED) {
                     Clipboard.setString(getCleanedTagName(getTagListUpdatedRequiredMessage(translate, reportAction)));
-                } else if (isTagModificationAction(reportAction.actionName)) {
+                } else if (isTagModificationAction(reportAction?.actionName)) {
                     Clipboard.setString(getCleanedTagName(getWorkspaceTagUpdateMessage(translate, reportAction)));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT) {
                     Clipboard.setString(getWorkspaceCustomUnitUpdatedMessage(translate, reportAction));
@@ -1222,65 +1234,65 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getWorkspaceReportFieldDeleteMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
                     setClipboardMessage(getWorkspaceUpdateFieldMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED) {
                     Clipboard.setString(getWorkspaceFeatureEnabledMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED) {
                     Clipboard.setString(getWorkspaceAttendeeTrackingUpdateMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER) {
                     Clipboard.setString(getDefaultApproverUpdateMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO) {
                     Clipboard.setString(getSubmitsToUpdateMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO) {
                     Clipboard.setString(getForwardsToUpdateMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OVER_LIMIT_FORWARDS_TO) {
                     Clipboard.setString(getOverLimitForwardsToUpdateMessage(translate, reportAction, convertToDisplayString));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_APPROVAL_LIMIT) {
                     Clipboard.setString(getApprovalLimitUpdateMessage(translate, reportAction, convertToDisplayString));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
                     Clipboard.setString(getAutoPayApprovedReportsEnabledMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED) {
                     Clipboard.setString(getRequireCompanyCardsEnabledMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_CATEGORIZE_NEW_EXPENSES) {
                     Clipboard.setString(getAutoCategorizeNewExpensesMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY) {
                     Clipboard.setString(getRequiresCategoryMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG) {
                     Clipboard.setString(getRequiresTagMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE) {
                     Clipboard.setString(getCurrencyConversionFeeMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
                     Clipboard.setString(getAutoReimbursementMessage(translate, reportAction, convertToDisplayString));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE) {
                     Clipboard.setString(getCategoryTaxRateMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY) {
                     Clipboard.setString(getMccGroupCategoryMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_NAME) {
                     Clipboard.setString(getInvoiceCompanyNameUpdateMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_INVOICE_COMPANY_WEBSITE) {
                     Clipboard.setString(getInvoiceCompanyWebsiteUpdateMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSER) {
                     Clipboard.setString(getReimburserUpdateMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_ENABLED) {
                     Clipboard.setString(getWorkspaceReimbursementUpdateMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ACH_ACCOUNT) {
                     Clipboard.setString(getUpdateACHAccountMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS) {
                     Clipboard.setString(getCompanyAddressUpdateMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
                     Clipboard.setString(getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, reportAction, convertToDisplayString));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT) {
                     Clipboard.setString(getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translate, reportAction, convertToDisplayString));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
                     Clipboard.setString(getPolicyChangeLogMaxExpenseAmountMessage(translate, reportAction, convertToDisplayString));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE) {
                     Clipboard.setString(getPolicyChangeLogMaxExpenseAgeMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
                     Clipboard.setString(getPolicyChangeLogDefaultBillableMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_REIMBURSABLE) {
                     Clipboard.setString(getPolicyChangeLogDefaultReimbursableMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED) {
                     Clipboard.setString(getPolicyChangeLogDefaultTitleEnforcedMessage(translate, reportAction));
-                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_OWNERSHIP) {
                     setClipboardMessage(Parser.htmlToText(getUpdatedOwnershipMessage(translate, reportAction, policy) ?? ''));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION)) {
                     const {fromReportID} = parseMovedTransactionReportIDs(reportAction);
@@ -1404,7 +1416,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE) {
                     setClipboardMessage(getPolicyChangeLogAddEmployeeMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE) {
-                    setClipboardMessage(getPolicyChangeLogUpdateEmployee(translate, reportAction));
+                    setClipboardMessage(getPolicyChangeLogUpdateEmployee(translate, reportAction, convertToDisplayString));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE) {
                     setClipboardMessage(getPolicyChangeLogDeleteMemberMessage(translate, reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
@@ -1455,6 +1467,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getUpdatedCardFeedLiabilityMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_STATEMENT_PERIOD)) {
                     setClipboardMessage(getUpdatedCardFeedStatementPeriodMessage(translate, reportAction));
+                } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE)) {
+                    setClipboardMessage(getUpdatedCardFeedReimbursableMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE)) {
                     setClipboardMessage(getTravelUpdateMessage(translate, reportAction));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_AUTO_SELECT_DISTANCE_RATE)) {
@@ -1799,7 +1813,7 @@ const ContextMenuActions: ContextMenuAction[] = [
 
             // Hide Delete for per-diem expense split children in selfDM — users must edit the
             // splits instead (matches the secondary "More" menu behavior).
-            const chatReport = getReportOrDraftReport(reportIDParam);
+            const chatReport = getReportOrDraftReport({reportID: reportIDParam});
             if (isSelfDM(chatReport) && iouTransaction) {
                 const originalTransaction = transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${iouTransaction.comment?.originalTransactionID}`];
                 if (isExpenseSplit(iouTransaction, originalTransaction) && isPerDiemRequest(originalTransaction ?? iouTransaction)) {

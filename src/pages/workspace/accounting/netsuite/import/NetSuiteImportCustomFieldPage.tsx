@@ -28,7 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type {StyleProp, TextStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type ImportCustomFieldsKeys = ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>;
@@ -82,38 +82,32 @@ function NetSuiteImportCustomFieldPage({
     const config = policy?.connections?.netsuite?.options?.config;
     const data = config?.syncOptions?.[importCustomField] ?? [];
 
-    const listEmptyComponent = useMemo(
-        () => (
-            <WorkspaceEmptyStateSection
-                shouldStyleAsCard={false}
-                title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
-                icon={illustrations.FolderWithPapers}
-                subtitleComponent={
-                    <HelpLinkComponent
-                        importCustomField={importCustomField}
-                        styles={styles}
-                        translate={translate}
-                        alignmentStyle={styles.textAlignCenter}
-                    />
-                }
-                containerStyle={[styles.flex1, styles.justifyContentCenter]}
-            />
-        ),
-        [importCustomField, styles, translate, illustrations.FolderWithPapers],
-    );
-
-    const listHeaderComponent = useMemo(
-        () => (
-            <View style={[styles.ph5, styles.flexRow]}>
+    const listEmptyComponent = (
+        <WorkspaceEmptyStateSection
+            shouldStyleAsCard={false}
+            title={translate(`workspace.netsuite.import.importCustomFields.${importCustomField}.emptyTitle`)}
+            icon={illustrations.FolderWithPapers}
+            subtitleComponent={
                 <HelpLinkComponent
                     importCustomField={importCustomField}
                     styles={styles}
                     translate={translate}
-                    alignmentStyle={styles.textAlignLeft}
+                    alignmentStyle={styles.textAlignCenter}
                 />
-            </View>
-        ),
-        [styles, importCustomField, translate],
+            }
+            containerStyle={[styles.flex1, styles.justifyContentCenter]}
+        />
+    );
+
+    const listHeaderComponent = (
+        <View style={[styles.ph5, styles.flexRow]}>
+            <HelpLinkComponent
+                importCustomField={importCustomField}
+                styles={styles}
+                translate={translate}
+                alignmentStyle={styles.textAlignLeft}
+            />
+        </View>
     );
 
     return (

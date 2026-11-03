@@ -137,6 +137,8 @@ function DynamicIOURequestStepDistanceRate({
     // This keeps the problematic rate shown as selected so the user understands what they need to change.
     const [pendingRateID, setPendingRateID] = useState<string | undefined>();
 
+    const [draftRateID, setDraftRateID] = useState<string | undefined>();
+
     const rates = DistanceRequestUtils.getMileageRates(policy, false, currentRateID);
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseUtil(action);
     const transactionUnit = transaction?.comment?.customUnit?.distanceUnit;
@@ -156,7 +158,7 @@ function DynamicIOURequestStepDistanceRate({
             currentTransaction?.comment?.customUnit?.customUnitRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
                 ? DistanceRequestUtils.getDistanceUnit(currentTransaction, rate)
                 : rate.unit;
-        const effectiveRateID = pendingRateID ?? currentRateID;
+        const effectiveRateID = draftRateID ?? pendingRateID ?? currentRateID;
         const isSelected = effectiveRateID
             ? effectiveRateID === rate.customUnitRateID && !hasUnitMismatchForMovingTrackExpense
             : DistanceRequestUtils.getDefaultMileageRate(policy)?.customUnitRateID === rate.customUnitRateID;
@@ -276,6 +278,20 @@ function DynamicIOURequestStepDistanceRate({
         saveAndNavigateBack();
     }
 
+    const confirmButtonOptions = isEditing
+        ? {
+              showButton: true,
+              text: translate('common.save'),
+              onConfirm: () => {
+                  if (!draftRateID) {
+                      return;
+                  }
+                  selectDistanceRate(draftRateID);
+              },
+              isDisabled: !draftRateID || draftRateID === currentRateID,
+          }
+        : undefined;
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.rate')}
@@ -295,7 +311,16 @@ function DynamicIOURequestStepDistanceRate({
             <SelectionList
                 data={orderedOptions}
                 ListItem={SingleSelectListItem}
-                onSelectRow={({value}) => selectDistanceRate(value ?? '')}
+                onSelectRow={({value}) => {
+                    if (!isEditing) {
+                        selectDistanceRate(value ?? '');
+                        return;
+                    }
+                    // Clear a previous over-limit error so it doesn't linger against a rate the user has moved away from.
+                    setFormError('');
+                    setDraftRateID(value);
+                }}
+                confirmButtonOptions={confirmButtonOptions}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={pinnedRateID}
                 shouldScrollToFocusedIndexOnMount={false}

@@ -2,7 +2,7 @@
 /* eslint-disable max-classes-per-file */
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Report, ReportAction, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 
@@ -453,6 +453,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'created':
         case 'submitted':
         case 'approved':
+        case 'paid':
         case 'lastMessageText':
         case 'lastVisibleActionCreated':
         case 'lastReadTime':
@@ -484,6 +485,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'orderDealNumbers':
         case 'debitedCurrency':
         case 'creditedCurrency':
+        case 'withdrawalIDs':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -638,6 +640,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 debitedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                withdrawalIDs: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -685,6 +688,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 hasReportBeenReopened: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 submitted: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 approved: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                paid: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 isExportedToIntegration: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasExportError: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 export: CONST.RED_BRICK_ROAD_PENDING_ACTION,
@@ -1636,21 +1640,37 @@ type RBRReasonAndReportAction = {
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getReasonAndReportActionForRBRInLHNRow(
-    report: Report,
-    chatReport: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions>,
-    transactions: OnyxCollection<Transaction>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    hasViolations: boolean,
-    reportErrors: Errors,
-    isOffline: boolean,
-    currentUserAccountID: number,
+type GetReasonAndReportActionForRBRInLHNRowParams = {
+    report: Report;
+    policy: OnyxEntry<Policy>;
+    chatReport: OnyxEntry<Report>;
+    reportActions: OnyxEntry<ReportActions>;
+    transactions: OnyxCollection<Transaction>;
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    hasViolations: boolean;
+    reportErrors: Errors;
+    isOffline: boolean;
+    currentUserAccountID: number;
+    isArchivedReport?: boolean;
+};
+
+function getReasonAndReportActionForRBRInLHNRow({
+    report,
+    policy,
+    chatReport,
+    reportActions,
+    transactions,
+    transactionViolations,
+    hasViolations,
+    reportErrors,
+    isOffline,
+    currentUserAccountID,
     isArchivedReport = false,
-): RBRReasonAndReportAction | null {
+}: GetReasonAndReportActionForRBRInLHNRowParams): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
         SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
             report,
+            policy,
             chatReport,
             reportActions,
             hasViolations,

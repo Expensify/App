@@ -58,6 +58,20 @@ describe('localize', () => {
 
     afterEach(() => Onyx.clear());
 
+    it.each([
+        [1, 'pokaż 1 aktualizację'],
+        [2, 'pokaż 2 aktualizacje'],
+        [12, 'pokaż 12 aktualizacji'],
+        [22, 'pokaż 22 aktualizacje'],
+    ])('uses Polish plural categories for %s collapsed updates', async (count, expected) => {
+        // Given the Polish locale loaded through the real localization store
+        await IntlStore.load(CONST.LOCALES.PL);
+        // When the summary is translated, its plural handler receives a numeric count
+        const message = Localize.translate(CONST.LOCALES.PL, 'report.collapsedSystemMessages', {count});
+        // Then few and many forms are selected without a handwritten modulo expression
+        expect(message).toBe(expected);
+    });
+
     describe('formatList', () => {
         test.each([
             [

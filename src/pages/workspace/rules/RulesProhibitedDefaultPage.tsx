@@ -25,7 +25,7 @@ import type {ProhibitedExpenses} from '@src/types/onyx/Policy';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type ProhibitedExpensesProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_PROHIBITED_DEFAULT>;
@@ -64,7 +64,7 @@ function RulesProhibitedDefaultPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const initialProhibitedExpenses = useMemo(() => getProhibitedExpensesState(policy?.prohibitedExpenses), [policy?.prohibitedExpenses]);
+    const initialProhibitedExpenses = getProhibitedExpensesState(policy?.prohibitedExpenses);
     const [draftProhibitedExpenses, setDraftProhibitedExpenses] = useState(initialProhibitedExpenses);
     const syncedPolicyIDRef = useRef<string | undefined>(undefined);
 
@@ -81,12 +81,9 @@ function RulesProhibitedDefaultPage({
         setDraftProhibitedExpenses(getProhibitedExpensesState(policy.prohibitedExpenses));
     }, [policy?.id, policy?.isLoading, policy?.prohibitedExpenses]);
 
-    const hasChanges = useMemo(
-        () => PROHIBITED_EXPENSE_KEYS.some((key) => draftProhibitedExpenses[key] !== initialProhibitedExpenses[key]),
-        [draftProhibitedExpenses, initialProhibitedExpenses],
-    );
+    const hasChanges = PROHIBITED_EXPENSE_KEYS.some((key) => draftProhibitedExpenses[key] !== initialProhibitedExpenses[key]);
 
-    const handleSave = useCallback(() => {
+    const handleSave = () => {
         if (!hasChanges) {
             Navigation.goBack();
             return;
@@ -96,14 +93,14 @@ function RulesProhibitedDefaultPage({
 
         setPolicyProhibitedExpenses(policyID, prohibitedExpensesToSave, policy?.prohibitedExpenses);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-    }, [draftProhibitedExpenses, hasChanges, policy?.prohibitedExpenses, policyID]);
+    };
 
-    const handleToggle = useCallback((prohibitedExpense: ProhibitedExpenseKey) => {
+    const handleToggle = (prohibitedExpense: ProhibitedExpenseKey) => {
         setDraftProhibitedExpenses((previousProhibitedExpenses) => ({
             ...previousProhibitedExpenses,
             [prohibitedExpense]: !previousProhibitedExpenses[prohibitedExpense],
         }));
-    }, []);
+    };
 
     return (
         <AccessOrNotFoundWrapper

@@ -8,10 +8,10 @@ import TSVUtils from '../../utils/TSVUtils';
 import Processor from '../Processor';
 import {LINT_SEVERITY} from '../types';
 
-const SEATBELT_NAME = 'eslint-seatbelt';
-const SEATBELT_TSV_RELATIVE = 'config/eslint/eslint.seatbelt.tsv';
+const SEATBELT_NAME = 'seatbelt';
+const SEATBELT_TSV_RELATIVE = 'config/oxlint/oxlint.seatbelt.tsv';
 const DEFAULT_FILE_HEADER = `# ${SEATBELT_NAME} temporarily allowed errors
-# docs: https://github.com/justjake/${SEATBELT_NAME}#readme`;
+# docs: contributingGuides/LINTING.md#seatbelt`;
 
 type SeatbeltFileLine = {
     filename: string;
@@ -194,7 +194,7 @@ function messageFrozenUnderMaxErrorCountText(seatbeltFilename: string, errorCoun
     const fixedMessage = fixed === 1 ? 'error' : 'errors';
     return `[${SEATBELT_NAME}]: SEATBELT_FROZEN: Expected ${maxErrorCount} ${pluralErrors(maxErrorCount)}, found ${errorCount}.
 If you fixed ${fixed} ${fixedMessage}, thank you, but you'll need to update the seatbelt file to match.
-Try running eslint, then committing ${seatbeltFilename}.`.trim();
+Try running npm run lint, then committing ${seatbeltFilename}.`.trim();
 }
 
 function messageFrozenUnderMaxErrorCount(message: LintMessage, seatbeltFilename: string, errorCount: number, maxErrorCount: number): LintMessage {
@@ -476,7 +476,8 @@ async function applySeatbelt(messages: LintMessage[], options: SeatbeltOptions, 
     const shouldWrite = anyChanged && !options.frozen && !options.readOnly;
     if (pruned > 0) {
         const verb = shouldWrite ? 'removed' : 'would remove';
-        console.log(`eslint-seatbelt: ${verb} ${pruned} baseline row(s) for deleted files`);
+        // stdout carries the --format=json report.
+        console.error(`${SEATBELT_NAME}: ${verb} ${pruned} baseline row(s) for deleted files`);
     }
     if (shouldWrite) {
         await writeTSVAtomically(options.seatbeltFile, tsv);
@@ -536,5 +537,16 @@ function resolveSeatbeltOptions(projectRoot: string, env: NodeJS.ProcessEnv = pr
 }
 
 export default Seatbelt;
-export {applySeatbelt, canonicalizeMessages, compareMessages, countRuleIDs, parseSeatbeltTSV, resolveSeatbeltOptions, serializeSeatbeltTSV, transformMessages, updateMaxErrors};
+export {
+    SEATBELT_TSV_RELATIVE,
+    applySeatbelt,
+    canonicalizeMessages,
+    compareMessages,
+    countRuleIDs,
+    parseSeatbeltTSV,
+    resolveSeatbeltOptions,
+    serializeSeatbeltTSV,
+    transformMessages,
+    updateMaxErrors,
+};
 export type {SeatbeltApplyResult, SeatbeltFileData};

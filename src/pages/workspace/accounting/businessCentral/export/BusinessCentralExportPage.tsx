@@ -185,6 +185,7 @@ function BusinessCentralExportPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="BusinessCentralExportPage"
             headerTitle="workspace.accounting.export"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}

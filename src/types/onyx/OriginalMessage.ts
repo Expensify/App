@@ -4,6 +4,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {ValueOf} from 'type-fest';
 
 import type {CardID} from './Card';
+import type {FeedReimbursable} from './CardFeeds';
 import type {PolicyRuleTaxRate} from './ExpenseRule';
 import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
@@ -547,6 +548,12 @@ type OriginalMessagePolicyChangeLog = {
     newDescription?: string;
     oldDescription?: string;
 
+    /** Whether an existing expense policy document was replaced (true) or a first one added (false) */
+    isReplacement?: boolean;
+
+    /** Workspace whose expense policy document changed, used to link to its Overview page */
+    policyID?: string;
+
     /** Report field type */
     fieldType?: string;
 
@@ -558,8 +565,8 @@ type OriginalMessagePolicyChangeLog = {
     /** Array of field changes for consolidated employee updates */
     fields?: Array<{
         field: string;
-        oldValue: string;
-        newValue: string;
+        oldValue: string | number;
+        newValue: string | number;
     }>;
 
     /** Report field name */
@@ -740,6 +747,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Name of company card feed */
     feedName?: string;
 
+    /** Type of the card feed added to the workspace */
+    feedType?: ValueOf<typeof CONST.COMPANY_CARD.LINK_FEED_TYPE>;
+
     /** Last four digits of a company card */
     cardLastFour?: string;
 
@@ -754,6 +764,12 @@ type OriginalMessagePolicyChangeLog = {
 
     /** Previous statement period end day for a company card feed */
     previousStatementPeriodEndDay?: string;
+
+    /** Reimbursable setting of a company card feed */
+    forceReimbursable?: FeedReimbursable;
+
+    /** Previous reimbursable setting of a company card feed */
+    previousForceReimbursable?: FeedReimbursable;
 
     /** Whether the user joined the workspace via joining link */
     didJoinPolicy?: boolean;
@@ -1451,6 +1467,9 @@ type OriginalMessageDemotedFromWorkspace = {
 
     /** The old role of the employee that is being demoted */
     oldRole: string;
+
+    /** The new role of the employee that is being demoted. Missing on actions created before the role was included */
+    newRole?: string;
 
     /** The accountID of the member who was demoted from workspace */
     whisperedTo: number[];

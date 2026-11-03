@@ -1,8 +1,9 @@
-import ActivityIndicator from '@components/ActivityIndicator';
+import {useReportChartLoading} from '@components/Charts/components/ChartReveal';
 import ChartTooltipLayer from '@components/Charts/components/ChartTooltipLayer';
 import {CHART_GESTURE_TOUCH_ACTION, TOOLTIP_BAR_GAP, useChartLabelFormats, useTouchPinnedTooltip} from '@components/Charts/hooks';
 import type {ChartDataPoint, ChartProps, PieSlice, UnitPosition} from '@components/Charts/types';
 import {findSliceAtPosition, getPrimaryValue, processDataIntoSlices} from '@components/Charts/utils';
+import {hasRoomForSideLegend} from '@components/Charts/utils/chartHeights';
 import VictoryTheme, {CHART_CONTENT_MIN_HEIGHT} from '@components/Charts/VictoryTheme';
 import Text from '@components/Text';
 
@@ -65,7 +66,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
     const canvasHeight = CHART_CONTENT_MIN_HEIGHT;
 
     // Side by side when the legend keeps at least its minimum width next to a square donut. Otherwise stacked.
-    const isLegendSideBySide = shouldUseResponsiveLegend && shouldShowLegend && chartWidth - canvasHeight - VictoryTheme.pie.legendGap >= VictoryTheme.pie.legendMinWidth;
+    const isLegendSideBySide = shouldUseResponsiveLegend && shouldShowLegend && hasRoomForSideLegend(chartWidth);
     const donutWidth = isLegendSideBySide ? canvasHeight : chartWidth;
 
     const radius = Math.min(donutWidth, canvasHeight) / 2;
@@ -130,7 +131,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 
     const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
 
-    const {setIsTouchPinned, onTooltipDismiss, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
+    const {setIsTouchPinned, dismissTooltip, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
         matchedIndex.set(-1);
         setIsHoveringOverPie(false);
     });
@@ -206,6 +207,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 
     // One legend entry: a color dot plus the slice name, wired to drive the tooltip on hover.
     // The responsive variant gives each slice its own row with the dot aligned to the first line. The default variant is an inline item for the wrapping row below the donut.
+    // `getPieChartLoadingHeight` reserves the wrapping row as one line of normal-size text, so the label has to keep that size.
     const renderLegendEntry = (slice: PieSlice, isResponsiveRow: boolean) => {
         const dot = <View style={[styles.pieChartLegendDot, StyleUtils.getBackgroundColorStyle(slice.color)]} />;
         return (
@@ -278,12 +280,13 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
                     chartWidth={donutWidth}
                     initialTooltipPosition={tooltipPosition}
                     onChartMoved={onChartMoved}
-                    onDismiss={onTooltipDismiss}
+                    onDismiss={dismissTooltip}
                 />
             </Animated.View>
         </GestureDetector>
     );
 
+    // `getPieChartLoadingHeight` rebuilds the height of both layouts below from the same theme values, so update it with any change to their structure or spacing.
     if (shouldUseResponsiveLegend) {
         return (
             <View style={isLegendSideBySide ? styles.pieChartResponsiveRow : styles.pieChartResponsiveColumn}>
@@ -304,18 +307,10 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 }
 
 function PieChartContent({isLoading = false, chartWidth, ...canvasProps}: PieChartContentProps) {
-    const styles = useThemeStyles();
-
-    if (!isLoading && canvasProps.data.length === 0) {
-        return null;
-    }
+    useReportChartLoading(isLoading);
 
     if (isLoading || chartWidth === null) {
-        return (
-            <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator size="large" />
-            </View>
-        );
+        return null;
     }
 
     return (

@@ -24,6 +24,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {hasCompletedGuidedSetupFlowSelector, hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedByPolicyIDSelector} from '@src/selectors/Policy';
 import type {SearchResults} from '@src/types/onyx';
 
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
@@ -91,6 +92,7 @@ function SearchStaticList({
     const delegateAccountID = useDelegateAccountID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const [fullPolicySnapshotLastModifiedByPolicyID] = useOnyx(ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT, {selector: fullPolicySnapshotLastModifiedByPolicyIDSelector});
 
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingSearchWrite() || Navigation.getIsFullscreenPreInsertedUnderRHP());
 
@@ -160,6 +162,7 @@ function SearchStaticList({
                 delegateAccountID,
                 IOUTransactionID: item.reportAction?.childReportID,
                 shouldNavigate: shouldOpenTransactionThread,
+                fullPolicySnapshotLastModifiedByPolicyID,
             });
             if (shouldOpenTransactionThread) {
                 return;
@@ -355,39 +358,42 @@ function SearchStaticList({
             style={styles.flex1}
             onLayout={onLayout}
         >
-            {!shouldUseNarrowLayout && columns.length > 0 && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, pageGutterMargin]}>
-                    {canSelectMultiple && (
-                        <View
-                            accessibilityElementsHidden
-                            importantForAccessibility="no-hide-descendants"
-                        >
-                            <Checkbox
-                                accessibilityLabel={translate('workspace.people.selectAll')}
-                                isChecked={false}
-                                disabled
-                                containerStyle={styles.m0}
-                                onPress={() => {}}
+            {!shouldUseNarrowLayout &&
+                columns.length > 0 && (
+                    // The headings span the row's full height, so the checkbox carries the vertical padding instead.
+                    <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.pv0, styles.pb0, pageGutterMargin]}>
+                        {canSelectMultiple && (
+                            <View
+                                style={styles.pv2}
+                                accessibilityElementsHidden
+                                importantForAccessibility="no-hide-descendants"
+                            >
+                                <Checkbox
+                                    accessibilityLabel={translate('workspace.people.selectAll')}
+                                    isChecked={false}
+                                    disabled
+                                    containerStyle={styles.m0}
+                                    onPress={() => {}}
+                                />
+                            </View>
+                        )}
+                        <View style={[styles.pr9, styles.flex1, styles.alignSelfStretch]}>
+                            <SearchTableHeader
+                                canSelectMultiple={canSelectMultiple}
+                                columns={columns}
+                                type={type}
+                                onSortPress={() => {}}
+                                sortBy={sortBy}
+                                sortOrder={sortOrder}
+                                shouldShowYear={false}
+                                isAmountColumnWide={false}
+                                isTaxAmountColumnWide={false}
+                                shouldShowSorting={false}
+                                groupBy={validGroupBy}
                             />
                         </View>
-                    )}
-                    <View style={[styles.pr9, styles.flex1]}>
-                        <SearchTableHeader
-                            canSelectMultiple={canSelectMultiple}
-                            columns={columns}
-                            type={type}
-                            onSortPress={() => {}}
-                            sortBy={sortBy}
-                            sortOrder={sortOrder}
-                            shouldShowYear={false}
-                            isAmountColumnWide={false}
-                            isTaxAmountColumnWide={false}
-                            shouldShowSorting={false}
-                            groupBy={validGroupBy}
-                        />
                     </View>
-                </View>
-            )}
+                )}
             <FlatList
                 data={sortedData}
                 renderItem={shouldUseNarrowLayout ? renderItem : (info) => renderWideItem(info, sortedData.length)}
