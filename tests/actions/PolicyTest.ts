@@ -1433,7 +1433,7 @@ describe('actions/Policy', () => {
             });
         });
 
-        it('create a new workspace with enabled workflows if the onboarding choice is newDotEmployer', async () => {
+        it('create a new workspace with disabled workflows if the onboarding choice is newDotEmployer', async () => {
             const policyID = Policy.generatePolicyID();
             // When a new workspace is created with introSelected set to EMPLOYER
             Policy.createWorkspace({
@@ -1458,8 +1458,8 @@ describe('actions/Policy', () => {
             await TestHelper.getOnyxData({
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 callback: (policy) => {
-                    // Then workflows are enabled.
-                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
+                    // Then workflows are not enabled.
+                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
                 },
             });
         });
