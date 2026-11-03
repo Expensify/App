@@ -48,8 +48,10 @@ function AddAmountPage({route}: AddAmountPageProps) {
     const goBack = () => Navigation.goBack(backToRoute);
 
     const onSubmit = ({amount}: FormOnyxValues<typeof ONYXKEYS.FORMS.MERCHANT_RULE_FORM>) => {
-        const amountInCents = amount ? convertToBackendAmount(Number(amount)) : 0;
-        updateDraftMerchantRule({amount: amountInCents ? String(amountInCents) : ''});
+        const typedAmount = amount?.trim();
+        // Keyed off the input rather than the converted amount, so a rule can set $0 rather than losing the
+        // default to a zero that reads as an empty field.
+        updateDraftMerchantRule({amount: typedAmount ? String(convertToBackendAmount(Number(typedAmount))) : ''});
         goBack();
     };
 

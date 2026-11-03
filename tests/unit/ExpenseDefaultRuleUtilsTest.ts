@@ -249,11 +249,29 @@ describe('ExpenseDefaultRuleUtils', () => {
             expect(getExpenseDefaultFormValues(buildExpenseDefaultRule(formValues, policy))).toEqual(formValues);
         });
 
-        it('leaves out an amount of zero, which is not a default', () => {
-            // Given a rule whose amount was cleared
+        it('keeps an amount of zero, which is an amount rather than a cleared field', () => {
+            // Given a rule setting the amount to zero
+            const rule = buildExpenseDefaultRule({merchantToMatch: 'Starbucks', amount: '0'}, policy);
+
+            // When it is built
+            // Then the action survives, and zero is stored without a sign because negating it would store -0
+            expect(rule?.actions).toEqual(toIndexMap([{name: ACTION.SET, field: FIELD.AMOUNT, value: 0}]));
+        });
+
+        it('reads an amount of zero back into the form rather than locking the rule', () => {
+            // Given that rule, where a positive amount would mean a credit the form cannot express
+            const rule = buildExpenseDefaultRule({merchantToMatch: 'Starbucks', amount: '0'}, policy);
+
+            // When it is read back
+            // Then the amount returns as typed and the rule stays editable
+            expect(getExpenseDefaultFormValues(rule)?.amount).toBe('0');
+        });
+
+        it('leaves out an amount that was never entered', () => {
+            // Given a rule whose amount field is empty
             // When it is built
             // Then nothing is set, so the rule has no default and is not built
-            expect(buildExpenseDefaultRule({merchantToMatch: 'Starbucks', amount: '0'}, policy)).toBeUndefined();
+            expect(buildExpenseDefaultRule({merchantToMatch: 'Starbucks', amount: ''}, policy)).toBeUndefined();
         });
 
         it('is read-only for a rule that sets a credit', () => {
