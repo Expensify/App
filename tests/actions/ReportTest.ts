@@ -7933,10 +7933,9 @@ describe('actions/Report', () => {
         });
 
         /**
-         * This wrapper used to hardcode `hasCompletedGuidedSetupFlow: undefined`. On the existing-Concierge-DM path
-         * `navigateToAndOpenReport` treats `undefined` as "onboarding pending" (`?? false`), so an onboarding OpenReport was
-         * enqueued even for users who had completed onboarding. The `false` test is a control showing this setup reaches the
-         * OpenReport branch; the `true` test pins that the caller's flag is now forwarded.
+         * Set up an existing Concierge DM so the tests can find it without a cached conciergeReportID.
+         * With the ADMIN onboarding choice, navigateToAndOpenReport enqueues OpenReport when
+         * hasCompletedGuidedSetupFlow indicates setup is pending and skips it when setup is complete.
          */
         const setUpExistingConciergeChat = async () => {
             const TEST_USER_LOGIN = 'test@user.com';
@@ -7963,8 +7962,8 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
         };
 
-        // The describe-level MANAGE_TEAM choice runs onboarding in a workspace chat rather than in Concierge, so it
-        // never enqueues an OpenReport here. ADMIN keeps onboarding on the Concierge chat, which is the branch under test.
+        // ADMIN is supported by the onboarding check in navigateToAndOpenReport; the shared MANAGE_TEAM choice is not.
+        // Use ADMIN so these tests exercise whether hasCompletedGuidedSetupFlow controls the OpenReport request.
         const ONBOARDING_INTRO_SELECTED: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
         it('should forward hasCompletedGuidedSetupFlow false so the onboarding OpenReport is enqueued', async () => {
@@ -7987,12 +7986,12 @@ describe('actions/Report', () => {
             );
             await waitForBatchedUpdates();
 
-            // Then the onboarding OpenReport is enqueued so the server creates the guided setup tasks/messages
+            // Then one OpenReport request is sent for the pending onboarding flow
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
         });
 
         it('should forward hasCompletedGuidedSetupFlow true so the onboarding OpenReport is skipped', async () => {
-            // Given the same user and the same locally-known Concierge DM
+            // Given a signed in user with an existing Concierge DM and no cached conciergeReportID
             await setUpExistingConciergeChat();
 
             // When deleting a report and navigating to Concierge with onboarding reported as already completed
@@ -8011,8 +8010,7 @@ describe('actions/Report', () => {
             );
             await waitForBatchedUpdates();
 
-            // Then no onboarding OpenReport is enqueued, proving the caller's flag reaches this branch
-            // instead of the discarded `undefined` the wrapper used to pass
+            // Then no OpenReport request is sent because guided setup is complete
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 0);
         });
     });

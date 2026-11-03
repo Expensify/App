@@ -5383,7 +5383,7 @@ type ClearCreateChatErrorParams = {
     /** The stored Concierge report ID, when the client already knows it */
     conciergeReportID: string | undefined;
 
-    /** The onboarding choice the user made, used when the Concierge chat has to be created */
+    /** The user's onboarding choice, used when opening or creating the Concierge chat */
     introSelected: OnyxEntry<IntroSelected>;
 
     /** The account ID of the current user */
@@ -5395,16 +5395,16 @@ type ClearCreateChatErrorParams = {
     /** Whether the user has completed the guided setup (onboarding) flow */
     hasCompletedGuidedSetupFlow: boolean | undefined;
 
-    /** Personal details of the report owner, used to build the Concierge chat participants */
+    /** The report owner's personal details, included in the lookup list passed to navigateToConciergeChat */
     reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>;
 
-    /** Personal details of the current user, used to build the Concierge chat participants */
+    /** The current user's personal details, included in the lookup list passed to navigateToConciergeChat */
     currentUserPersonalDetail: OnyxEntry<PersonalDetails>;
 
-    /** Personal details of Concierge, used to build the Concierge chat participants */
+    /** Concierge's personal details, included in the lookup list passed to navigateToConciergeChat */
     conciergePersonalDetail: OnyxEntry<PersonalDetails>;
 
-    /** The optimistic personal details to clean up when the optimistic chat failed to be created */
+    /** Personal details used to identify optimistic records to remove after chat creation fails */
     optimisticPersonalDetails: OnyxEntry<PersonalDetailsList>;
 
     /** The accountID of the copilot acting on behalf of the current user, if any */
