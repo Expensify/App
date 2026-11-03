@@ -187,6 +187,19 @@ describe('IOURequestStepVendor', () => {
         expect(data.find((item) => item.isSelected)?.keyForList).toBe('v03');
     });
 
+    it('keeps the "None" row on top of a short list even when the selected vendor sorts first alphabetically', () => {
+        // Given a short list (< item-limit threshold) whose selected vendor is already the first one alphabetically
+        mockState.policyVendors = buildPolicyVendors(5);
+
+        // When the picker opens with vendor 01 (the alphabetically first vendor) selected
+        renderPicker('v01');
+
+        // Then nothing is pinned on a short list, so the "None" row stays at the very top, above the selected vendor
+        const {data} = getListProps();
+        expect(data.at(0)?.keyForList).toBe('clear-vendor');
+        expect(data.at(1)?.keyForList).toBe('v01');
+    });
+
     it('hides the "None" row while searching', () => {
         // Given an open picker with a selected vendor
         mockState.policyVendors = buildPolicyVendors(13);

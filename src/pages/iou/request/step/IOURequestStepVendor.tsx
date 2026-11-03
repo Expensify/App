@@ -21,7 +21,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {withClearRow} from '@libs/ListUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getVendorEmptyState, hasVendorFeature, sortVendors} from '@libs/PolicyUtils';
-import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
+import moveInitialSelectionToTop, {shouldMoveInitialSelectionToTop} from '@libs/SelectionListOrderUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
@@ -121,7 +121,9 @@ function IOURequestStepVendor({
 
     // Pin the vendor selected when the page opened to the top of the full list, then filter, so it stays first both in the full list and in search results (filtering a pre-ordered list keeps the pinned row on top). No-ops for short lists.
     const orderedEnabledRows = moveInitialSelectionToTop(enabledRows, initialVendorID ? [initialVendorID] : []);
-    const isSelectionPinnedToTop = !!initialVendorID && orderedEnabledRows.at(0)?.value === initialVendorID;
+    // Only treat the selection as pinned when the list is long enough to pin. On a short list nothing is reordered, so a
+    // selection that merely sorts first alphabetically must keep the "None" row above it, not below.
+    const isSelectionPinnedToTop = shouldMoveInitialSelectionToTop(enabledRows.length) && !!initialVendorID && orderedEnabledRows.at(0)?.value === initialVendorID;
     const filteredEnabledRows = trimmedSearch ? orderedEnabledRows.filter((row) => (row.text ?? '').toLowerCase().includes(trimmedSearch)) : orderedEnabledRows;
 
     const disabledCurrentVendorRow: VendorListItem | undefined =
