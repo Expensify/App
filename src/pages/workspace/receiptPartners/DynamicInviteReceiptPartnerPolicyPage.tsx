@@ -1,4 +1,4 @@
-import ConfirmationPage from '@components/ConfirmationPage';
+import ConfirmationPageDefault from '@components/ConfirmationPage/composed/ConfirmationPageDefault';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -192,12 +192,11 @@ function DynamicInviteReceiptPartnerPolicyPage({route}: DynamicInviteReceiptPart
                     title={translate('workspace.receiptPartners.uber.allSet')}
                     onBackButtonPress={() => Navigation.goBack(backPath)}
                 />
-                <ConfirmationPage
+                <ConfirmationPageDefault
                     illustration={illustrations.ToddInCar}
                     illustrationStyle={styles.toddInCarIllustrationContainer}
                     heading={translate('workspace.receiptPartners.uber.readyToRoll')}
                     description={translate('workspace.receiptPartners.uber.takeBusinessRideMessage')}
-                    shouldShowButton
                     buttonText={translate('common.buttonConfirm')}
                     onButtonPress={() => Navigation.goBack(backPath)}
                     descriptionStyle={styles.colorMuted}

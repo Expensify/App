@@ -1,7 +1,7 @@
 ---
 title: Use Search Operators to Filter and Analyze
 description: Learn how to use search operators, filters, and grouping to find, organize, and analyze expenses, chats, reports, and tasks in Expensify.
-keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses, paid by filter, paid-by]
+keywords: [New Expensify, search operators, advanced filters, search rules, expense search, report search, chat filters, advanced search, group-by, view, chart, search syntax, bank account filter, custom field, international reimbursement IDs, transaction status filter, pending card expenses, posted card expenses, paid by filter, paid-by, vendor filter, rejected filter, declined, held filter, held expenses]
 internalScope: Audience is all Expensify members. Covers search operator syntax for filtering, grouping, and chart views. Does not cover saved search management or Search page UI navigation.
 ---
 
@@ -70,6 +70,7 @@ You can use the following operators to filter expenses:
 | `merchant:` | Filter by expense merchant name | `merchant:"Delta Air Lines"` |
 | `category:` | Filter by expense category label | `category:"Travel"` |
 | `tag:` | Filter by one or multiple tags | `tag:"Client A"` |
+| `vendor:` | Filter by the vendor assigned to an expense. Available only when one of your workspaces uses vendor matching. | `vendor:"Starbucks"` |
 | `amount:` / `purchase-amount:` | Filter by amount using `=`, `>`, `<`, `>=`, or `<=` | `amount:>100` |
 | `status:` | Filter by expense status (`unreported`, `draft`, `outstanding`, `approved`, `paid`, `done`) | `status:approved` |
 | `date:` | Filter by expense date using relative dates or comparison operators for a date range | `date:this-month` |
@@ -78,6 +79,8 @@ You can use the following operators to filter expenses:
 | `receipt-type:` | Filter by receipt type (`ereceipt`, `itemized`) | `receipt-type:itemized` |
 | `reimbursable:` | Filter by whether an expense is reimbursable (`yes` or `no`) | `reimbursable:yes` |
 | `billable:` | Filter by whether an expense is billable (`yes` or `no`) | `billable:no` |
+| `held:` | Filter by whether an expense is on hold (`yes` or `no`) | `held:yes` |
+| `declined:` | Filter by whether an expense was rejected (`yes` or `no`). Matches the **Rejected** filter | `declined:yes` |
 | `attendee:` | Filter by expense attendee using an email, phone number, display name, or `me` | `attendee:"Jason Mills"` |
 | `posted:` | Filter by the date a credit card expense was posted | `posted:last-statement` |
 | `transaction-status:` | Filter by whether a card expense is still `pending` or has `posted`. Accepts one value at a time, and only card expenses are returned. Available only when you have at least one card. | `transaction-status:pending` |
@@ -104,8 +107,9 @@ You can use the following operators to filter reports:
 | `amount-debited:` | Filter by the amount the company was debited when a report was reimbursed across currencies, in the settlement currency. Supports `=`, `>`, `<`, `>=`, `<=` | `amount-debited:>1000` |
 | `amount-reimbursed:` | Filter by the amount the member was reimbursed when a report was paid across currencies, in their deposit account's currency. Supports `=`, `>`, `<`, `>=`, `<=` | `amount-reimbursed:>1000` |
 | `withdrawn:` | Filter by ACH withdrawal date | `withdrawn:2024-01-15` |
-| `withdrawal-type:` | Filter by withdrawal type (`reimbursement`, `expensify-card`, `central-travel-invoicing`) | `withdrawal-type:reimbursement` |
+| `withdrawal-type:` | Filter by withdrawal type (`reimbursement`, `expensify-card`, `central-travel-billing`) | `withdrawal-type:reimbursement` |
 | `paid-status:` | Filter by how the report was paid (`markedAsPaid`, `withdrawing`, `confirmed`). Combine multiple values with commas | `paid-status:markedAsPaid,confirmed` |
+| `declined:` | Filter by whether a report was rejected (`yes` or `no`). Matches the **Rejected** filter | `declined:yes` |
 | `paid-by:` | Filter by the member who paid the report (email, phone, display name, or `me`). Combine multiple members with commas. Reports that have not been paid never match. This operator also works on expense, invoice, and trip searches | `paid-by:me,alice@acme.com` |
 | `action:` | Filter by blocking report action | `action:approve` |
 | `submitter-user-id:` | Filter by the Custom field 1 value set for the report submitter | `submitter-user-id:12345` |

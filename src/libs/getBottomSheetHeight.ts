@@ -23,14 +23,28 @@ type BottomSheetHeightParams = {
 
     /** Tallest the sheet may be regardless of the window. Defaults to the dropdown cap, `CONST.POPOVER_DROPDOWN_MAX_HEIGHT` */
     maxHeight?: number;
+
+    /** Whether the sheet fills the window up to the status bar, e.g. on a phone in landscape, instead of taking its preferred height */
+    shouldFillWindow?: boolean;
 };
 
 /**
- * Height to give the content of a bottom sheet so it fits on screen: capped by `maxHeight` and by the window, and, while
- * the keyboard is open, by the room between the keyboard and the status bar. `minHeight` never pushes the sheet past that cap.
+ * Height to give the content of a bottom sheet so it fits on screen: capped by `maxHeight` and by the window, or the whole
+ * window up to the status bar with `shouldFillWindow`, and, while the keyboard is open, by the room between the keyboard and
+ * the status bar. `minHeight` never pushes the sheet past that cap.
  */
-function getBottomSheetHeight({preferredHeight, windowHeight, keyboardHeight, topSafeAreaInset, minHeight, maxHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT}: BottomSheetHeightParams): number {
-    const cappedHeight = Math.min(preferredHeight, Math.min(maxHeight, windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO) - BOTTOM_SHEET_TOP_PADDING);
+function getBottomSheetHeight({
+    preferredHeight,
+    windowHeight,
+    keyboardHeight,
+    topSafeAreaInset,
+    minHeight,
+    maxHeight = CONST.POPOVER_DROPDOWN_MAX_HEIGHT,
+    shouldFillWindow = false,
+}: BottomSheetHeightParams): number {
+    const cappedHeight = shouldFillWindow
+        ? windowHeight - topSafeAreaInset - BOTTOM_SHEET_TOP_PADDING
+        : Math.min(preferredHeight, Math.min(maxHeight, windowHeight * CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO) - BOTTOM_SHEET_TOP_PADDING);
 
     if (!keyboardHeight) {
         return cappedHeight;

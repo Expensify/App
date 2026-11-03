@@ -4,6 +4,7 @@ import type {ChartDataPoint} from '@components/Charts';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -22,10 +23,12 @@ import {View} from 'react-native';
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
 import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
 
-import {buildChartSeries} from './buildChartSeries';
+import {buildChartSeries, isChartAverage} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
+import isPeriodAfterToday, {isEmptyPeriodAfterToday} from './isPeriodAfterToday';
+import applyRunningTotal from './runningTotal';
 import {useSearchQueryContext} from './SearchContext';
 
 type SearchChartViewProps = {
@@ -45,14 +48,20 @@ type SearchChartViewProps = {
     /** Whether a bar chart labels its bars and a donut chart shows its legend. Line chart labels always show. */
     shouldShowGroupLabels?: boolean;
 
+    /** Whether labels adapt to a constrained width: bar labels wrap to two centered lines and the donut legend uses the responsive side-by-side/stacked layout. Used by the Home widget. */
+    shouldUseResponsiveLabels?: boolean;
+
     /** Whether pressing a bar, point or slice opens Search filtered to it */
     shouldDrillDownOnPress?: boolean;
 
     /** Whether a line chart with a single point is drawn as a bar */
     shouldShowSinglePointAsBar?: boolean;
 
-    /** Rows the chart is compared against, drawn as a second series */
+    /** What the chart is compared against, drawn as a second series */
     comparison?: ChartComparison;
+
+    /** Plots each point as the spend accumulated from the start of the range, instead of each period's own total. Applies to time-grouped line charts. */
+    shouldShowRunningTotal?: boolean;
 
     /** Renders the details of the plotted groups below the chart */
     renderDetails?: (model: SearchChartModel) => React.ReactNode;
@@ -72,30 +81,46 @@ function SearchChartView({
     data,
     isLoading,
     shouldShowGroupLabels = true,
+    shouldUseResponsiveLabels = false,
     shouldDrillDownOnPress = true,
     shouldShowSinglePointAsBar = false,
     comparison,
+    shouldShowRunningTotal = false,
     renderDetails,
     chartContainerStyle,
 }: SearchChartViewProps) {
+    const theme = useTheme();
     const {preferredLocale, translate, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
-    const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
+    const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
-    const isSinglePointBar = shouldShowSinglePointAsBar && data.length === 1;
+    const emptyLaterKeys = new Set(data.filter((item) => isEmptyPeriodAfterToday(item, groupBy, today, dateFilterRange.start)).map((item) => item.keyForList));
+    const comparedKeysWithExpenses = new Set(comparison && !isChartAverage(comparison) ? comparison.data.filter((item) => !!item.count).map((item) => item.keyForList) : []);
+    const {data: chartData, comparison: chartComparison} = shouldShowRunningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
+
     const {series, rows} = buildChartSeries({
-        data,
-        comparison: isSinglePointBar ? undefined : comparison,
+        data: chartData,
+        comparison: chartComparison,
+        groupBy,
         view,
         getLabel,
         getShortLabel: view === CONST.SEARCH.VIEW.LINE ? (getLineChartLabel ?? getShortLabel) : getShortLabel,
         getCurrencyDecimals,
         getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
+        isLaterPeriod: (item) => {
+            const range = getDateRange?.(item);
+            return !!range && isPeriodAfterToday(range.start, today, dateFilterRange.start);
+        },
+        isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
+        hasComparedExpenses: (item) => comparedKeysWithExpenses.has(item.keyForList),
+        translate,
+        dateFnsLocale,
+        colorScheme: theme.colorScheme,
     });
     const points = rows.map((row) => row.point);
 
@@ -137,28 +162,31 @@ function SearchChartView({
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
                 shouldShowLabels={shouldShowGroupLabels}
+                shouldWrapLabels={shouldUseResponsiveLabels}
             />
         ),
-        [CONST.SEARCH.VIEW.LINE]: isSinglePointBar ? (
-            <BarChart
-                data={points}
-                series={series}
-                isLoading={isLoading}
-                onBarPress={onItemPress}
-                yAxisUnit={unit}
-                yAxisUnitPosition={unitPosition}
-            />
-        ) : (
-            <LineChart
-                data={points}
-                series={series}
-                isLoading={isLoading}
-                onPointPress={onItemPress}
-                labelSteps={labelSteps}
-                yAxisUnit={unit}
-                yAxisUnitPosition={unitPosition}
-            />
-        ),
+        [CONST.SEARCH.VIEW.LINE]:
+            shouldShowSinglePointAsBar && points.length === 1 ? (
+                <BarChart
+                    data={points}
+                    series={series}
+                    isLoading={isLoading}
+                    onBarPress={onItemPress}
+                    yAxisUnit={unit}
+                    yAxisUnitPosition={unitPosition}
+                />
+            ) : (
+                <LineChart
+                    data={points}
+                    series={series}
+                    isLoading={isLoading}
+                    onPointPress={onItemPress}
+                    labelSteps={labelSteps}
+                    shouldShowTooltipChange={!shouldShowRunningTotal || !isChartAverage(comparison)}
+                    yAxisUnit={unit}
+                    yAxisUnitPosition={unitPosition}
+                />
+            ),
         [CONST.SEARCH.VIEW.PIE]: (
             <PieChart
                 data={points}
@@ -168,6 +196,7 @@ function SearchChartView({
                 valueUnit={unit.value}
                 valueUnitPosition={unitPosition}
                 shouldShowLegend={shouldShowGroupLabels}
+                shouldUseResponsiveLegend={shouldUseResponsiveLabels}
             />
         ),
     };

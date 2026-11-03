@@ -10,6 +10,7 @@ import useCloseImportPage from '@hooks/useCloseImportPage';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -55,6 +56,8 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
     const {setIsClosing} = useCloseImportPage();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
+    const {isBetaEnabled} = usePermissions();
+    const isAppendingToExistingLists = hasAccountingConnections && isBetaEnabled(CONST.BETAS.INDIRECT_TAG_UPLOADS) && !!spreadsheet?.isAppendingToExistingLists;
 
     useEffect(() => {
         setImportedSpreadsheetIsFirstLineHeader(true);
@@ -79,12 +82,12 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
         closeImportPageAndModal();
     };
 
-    if (hasAccountingConnections) {
-        return <NotFoundPage />;
-    }
-
     if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
+    }
+
+    if (hasAccountingConnections && !isAppendingToExistingLists) {
+        return <NotFoundPage />;
     }
     return (
         <AccessOrNotFoundWrapper
@@ -123,22 +126,25 @@ function ImportMultiLevelTagsSettingsPage({route}: ImportMultiLevelTagsSettingsP
                         />
                     </View>
 
-                    <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                        <Text
-                            style={[styles.textNormal, styles.flex1, styles.mr2]}
-                            accessible={false}
-                            aria-hidden
-                        >
-                            {translate('workspace.tags.importMultiLevelTags.independentTags')}
-                        </Text>
-                        <Switch
-                            isOn={spreadsheet?.isImportingIndependentMultiLevelTags ?? true}
-                            accessibilityLabel={translate('workspace.tags.importMultiLevelTags.independentTags')}
-                            onToggle={(value) => {
-                                setImportedSpreadsheetIsImportingIndependentMultiLevelTags(value);
-                            }}
-                        />
-                    </View>
+                    {/* Appended tag lists are always independent, so the dependent option isn't offered */}
+                    {!isAppendingToExistingLists && (
+                        <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text
+                                style={[styles.textNormal, styles.flex1, styles.mr2]}
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('workspace.tags.importMultiLevelTags.independentTags')}
+                            </Text>
+                            <Switch
+                                isOn={spreadsheet?.isImportingIndependentMultiLevelTags ?? true}
+                                accessibilityLabel={translate('workspace.tags.importMultiLevelTags.independentTags')}
+                                onToggle={(value) => {
+                                    setImportedSpreadsheetIsImportingIndependentMultiLevelTags(value);
+                                }}
+                            />
+                        </View>
+                    )}
 
                     <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
                         <Text

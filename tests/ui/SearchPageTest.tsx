@@ -41,7 +41,7 @@ import type * as reactNavigationNativeImport from '@react-navigation/native';
 import type React from 'react';
 
 import {PortalProvider} from '@gorhom/portal';
-import {NavigationContainer} from '@react-navigation/native';
+import {CommonActions, NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../utils/createMock';
@@ -83,14 +83,23 @@ jest.mock('@hooks/useRootNavigationState', () => ({
             ],
         }),
 }));
+const mockClearFooterConversion = jest.fn<void, []>();
 jest.mock('@libs/actions/Search', () => ({
     ...jest.requireActual<typeof SearchActions>('@libs/actions/Search'),
     search: jest.fn(() => Promise.resolve(200)),
+    clearFooterConversion: () => mockClearFooterConversion(),
 }));
 
+const mockIsStaleWideTabPreMountRouteKey = jest.fn<boolean, [string | undefined]>(() => false);
+jest.mock('@libs/Navigation/helpers/wideTabPreMountRouteKey', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/Navigation/helpers/wideTabPreMountRouteKey'),
+    isStaleWideTabPreMountRouteKey: (key: string | undefined) => mockIsStaleWideTabPreMountRouteKey(key),
+}));
+
+const mockIsNavigationFocused = jest.fn(() => true);
 jest.mock('@react-navigation/core', () => ({
     ...jest.requireActual<typeof CoreNavigation>('@react-navigation/core'),
-    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: jest.fn(() => true)})),
+    useNavigation: jest.fn(() => ({getState: jest.fn(() => undefined), isFocused: mockIsNavigationFocused})),
 }));
 
 type ListProps = {onEndReached?: () => void; onViewableItemsChanged?: () => void; onSelectRow?: (item: SearchListItem) => void; ListFooterComponent?: unknown};
@@ -111,6 +120,7 @@ jest.mock('@components/Search/SearchList/BaseSearchList', () => ({
 type WriteActionsRender = {
     filteredData: SearchData;
     applySelection: SearchSelectionActionsValue['applySelection'];
+    selectAllMatchingItems: SearchSelectionActionsValue['selectAllMatchingItems'];
 };
 type WriteActionsProviderProps = Parameters<typeof SearchWriteActionsProviderModule.default>[0];
 
@@ -121,8 +131,8 @@ jest.mock('@components/Search/SearchWriteActionsProvider', () => {
     const {useSearchSelectionActions} = jest.requireActual<typeof SearchContext>('@components/Search/SearchContext');
     const {default: SearchWriteActionsProvider} = jest.requireActual<typeof SearchWriteActionsProviderModule>('@components/Search/SearchWriteActionsProvider');
     function MockSearchWriteActionsProvider(props: WriteActionsProviderProps) {
-        const {applySelection} = useSearchSelectionActions();
-        mockRenderWriteActions({filteredData: props.filteredData, applySelection});
+        const {applySelection, selectAllMatchingItems} = useSearchSelectionActions();
+        mockRenderWriteActions({filteredData: props.filteredData, applySelection, selectAllMatchingItems});
         return createElement(SearchWriteActionsProvider, props);
     }
     return {__esModule: true, default: MockSearchWriteActionsProvider};
@@ -311,6 +321,7 @@ describe('SearchPageNarrow', () => {
         mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
         mockSearchQueryParam.mockReturnValue(FAILED_QUERY);
         mockIsFocused.mockReturnValue(true);
+        mockIsNavigationFocused.mockReturnValue(true);
         listProps.onEndReached = undefined;
         listProps.onViewableItemsChanged = undefined;
         listProps.onSelectRow = undefined;
@@ -356,8 +367,12 @@ describe('SearchPageNarrow', () => {
         });
 
         // Then the query is requested again, because without that attempt the page renders its error view on every
-        // mount with nothing in flight
-        expect(mockSearch).toHaveBeenCalledTimes(1);
+        // mount with nothing in flight. The page and Search are the only two callers expected to ask for it, and
+        // search() collapses their asks into one request, so every call must be that same first page and the count
+        // must stay within those two. That upper bound is what fails here if the guard ever regresses into a loop.
+        expect(mockSearch).toHaveBeenCalled();
+        expect(mockSearch.mock.calls.length).toBeLessThanOrEqual(2);
+        expect(mockSearch.mock.calls.every(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash && params?.offset === 0)).toBe(true);
     });
 
     // Reproduces the reload case: the errored snapshot survives but the in-memory response code does not,
@@ -484,6 +499,51 @@ describe('SearchPageNarrow', () => {
         expect(screen.queryByText('Oops... Something went wrong')).toBeNull();
     });
 
+    it('requests a query again when its tab is shown after an earlier visit left it failed', async () => {
+        // Given the page requested the query and that request failed before the server could answer
+        const {rerender} = renderPage();
+        // A narrow tab switch only sets the route's params, and the search context reads the query from the root state
+        const switchToQuery = async (query: string) => {
+            mockSearchQueryParam.mockReturnValue(query);
+            await act(async () => {
+                navigationRef.dispatch({...CommonActions.setParams({q: query}), source: navigationRef.getCurrentRoute()?.key});
+            });
+            rerender(getSearchPage(query));
+            await act(async () => {
+                jest.runAllTimers();
+            });
+        };
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+        await setFailedSnapshot(CONST.JSON_CODE.NO_RESPONSE);
+        expect(screen.getByText('Refresh needed')).toBeTruthy();
+
+        // When the user switches to another tab and back, which keeps the page mounted and only remounts Search
+        await switchToQuery(EXPENSE_QUERY);
+        mockSearch.mockClear();
+        await switchToQuery(FAILED_QUERY);
+
+        // Then the failed query is requested again instead of staying on the refresh view until tapped
+        expect(mockSearch.mock.calls.some(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash)).toBe(true);
+    });
+
+    it('does not request a query again when the persisted response marks it invalid', async () => {
+        // Given a snapshot the server rejected as a malformed query, which no retry can fix
+        await setFailedSnapshot(CONST.JSON_CODE.INVALID_SEARCH_QUERY);
+        mockSearch.mockClear();
+
+        // When the page mounts on that query
+        renderPage();
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the query is not sent again, so the error view stays put instead of flashing a request that cannot succeed
+        expect(mockSearch.mock.calls.some(([params]) => params?.queryJSON?.hash === failedQueryJSON?.hash)).toBe(false);
+    });
+
     it('renders the empty state when a response without data reached the terminal loaded state', async () => {
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
@@ -532,6 +592,35 @@ describe('SearchPageNarrow', () => {
 
         expect(renderedPage.UNSAFE_getByType(SearchLoadingSkeleton)).toBeTruthy();
     });
+
+    it('renders the loading skeleton once a page mounted in the background is shown without results', async () => {
+        // Given a snapshot whose first response has not arrived yet
+        await act(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
+                search: {
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    offset: 0,
+                    hash: failedQueryJSON?.hash,
+                    isLoading: true,
+                    hasMoreResults: false,
+                    hasResults: false,
+                    state: CONST.SEARCH.SNAPSHOT_STATE.LOADING,
+                },
+            });
+        });
+
+        // When the page mounts unfocused, as native tab bars mount Spend at startup, and is then shown
+        mockIsNavigationFocused.mockReturnValue(false);
+        const renderedPage = renderPage();
+
+        await act(async () => {
+            jest.runAllTimers();
+        });
+
+        // Then the page keeps its loading skeleton instead of mounting Search with no results to show
+        expect(renderedPage.UNSAFE_getByType(SearchLoadingSkeleton)).toBeTruthy();
+    });
+
     it('does not repeat the first page the page-level setup already requested', async () => {
         // Given a query with no snapshot yet, so the page-level setup owns the first request
         mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
@@ -1002,6 +1091,56 @@ describe('SearchPageNarrow', () => {
             });
 
             expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+        });
+
+        it('asks for its next page without totals', async () => {
+            // Given Drafts showing its first page, whose response carried the report count
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
+            await seedTodoSnapshot(true, {reportCount: CONST.SEARCH.RESULTS_PAGE_SIZE + 10});
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            mockSearch.mockClear();
+
+            // When the list reaches its end
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the next page is asked for without totals, since a later page with totals would start the counted reports over without page 1's
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE}));
+            expect(mockSearch.mock.calls.some(([params]) => !!params?.shouldCalculateTotals)).toBe(false);
+        });
+
+        it('asks for a fresh count when every match is selected past the first page', async () => {
+            // Given Drafts paged past its first page, whose response carried the report count
+            await seedTodoReports(CONST.SEARCH.RESULTS_PAGE_SIZE + 10);
+            await seedTodoSnapshot(true, {reportCount: CONST.SEARCH.RESULTS_PAGE_SIZE + 10});
+            searchWritesLoadingState();
+            renderPage(TODO_QUERY);
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+            await act(async () => {
+                listProps.onEndReached?.();
+            });
+            await answerTodoPage(CONST.SEARCH.RESULTS_PAGE_SIZE, true);
+            mockSearch.mockClear();
+
+            // When every matching report is selected
+            await act(async () => {
+                lastWriteActionsRender()?.selectAllMatchingItems(true);
+            });
+            await act(async () => {
+                jest.advanceTimersByTime(0);
+            });
+
+            // Then the page on screen is asked for again with totals, so the count includes reports that left or joined since the first page
+            expect(mockSearch).toHaveBeenCalledWith(expect.objectContaining({offset: CONST.SEARCH.RESULTS_PAGE_SIZE, shouldCalculateTotals: true}));
         });
 
         it('shows the next rows only once the server answers their page, and ignores ends meanwhile', async () => {
@@ -1571,5 +1710,35 @@ describe('SearchPageNarrow', () => {
             // Then the rows stay at one page, because the missing snapshot's `hasMoreResults: false` is a default, not the server's answer
             expect(renderedRowKeys()).toHaveLength(CONST.SEARCH.RESULTS_PAGE_SIZE);
         });
+    });
+
+    it('clears the converted footer totals when the user leaves Search', async () => {
+        // Given a Search page the user has open
+        const page = renderPage();
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // When it unmounts because the user leaves Search
+        page.unmount();
+
+        // Then the converted footer totals are dropped, since they only apply to this visit
+        expect(mockClearFooterConversion).toHaveBeenCalled();
+    });
+
+    it('keeps the converted footer totals when a cancelled wide pre-mount of Search unmounts', async () => {
+        // Given a Search screen that was pre-mounted for a wide submit and then cancelled, so it was never shown
+        mockIsStaleWideTabPreMountRouteKey.mockReturnValue(true);
+        const page = renderPage();
+        await act(async () => {
+            jest.advanceTimersByTime(0);
+        });
+
+        // When that hidden screen unmounts
+        page.unmount();
+        mockIsStaleWideTabPreMountRouteKey.mockReturnValue(false);
+
+        // Then the totals stay, because they belong to the Search the user can still see
+        expect(mockClearFooterConversion).not.toHaveBeenCalled();
     });
 });

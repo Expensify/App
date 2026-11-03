@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy} from '@src/types/onyx';
+import type {FullPolicySnapshot, Policy} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -13,6 +13,7 @@ import {
     createHasWorkspaceToSubmitToSelector,
     createOwnedPaidPoliciesCountsSelector,
     createTimeSensitiveAdminPoliciesSelector,
+    fullPolicySnapshotLastModifiedByPolicyIDSelector,
     hasOnlyPersonalPoliciesSelector,
     hasReusablePoliciesConnectedToSelector,
     reusablePoliciesConnectedToSelector,
@@ -730,5 +731,20 @@ describe('createIsInternationalCountrySelector', () => {
         // When the employee adds a GB account
         // Then wire details are collected, because that workspace cannot pay anyone domestically
         expect(createIsInternationalCountrySelector('GB')(policies)).toBe(true);
+    });
+});
+
+describe('fullPolicySnapshotLastModifiedByPolicyIDSelector', () => {
+    it('maps each policyID to the lastModified of its full policy snapshot', () => {
+        // Given full policy snapshots for two policies and a snapshot without a lastModified
+        const snapshots: OnyxCollection<FullPolicySnapshot> = {
+            [`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy1`]: {lastModified: 123},
+            [`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy2`]: {lastModified: 456},
+            [`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}policy3`]: {},
+        };
+
+        // When the snapshots are mapped by policy
+        // Then each policyID comes from its key, and the snapshot without a lastModified is left out so it is never sent to OpenReport
+        expect(fullPolicySnapshotLastModifiedByPolicyIDSelector(snapshots)).toEqual({policy1: 123, policy2: 456});
     });
 });

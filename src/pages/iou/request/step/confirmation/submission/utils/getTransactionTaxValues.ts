@@ -16,24 +16,24 @@ type GetTransactionTaxValuesParams = {
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
     isPolicyExpenseChat: boolean;
-    isUnreported: boolean;
-    isTrackExpense: boolean;
-    isSelfDMDestination: boolean;
-    isDistanceRequest: boolean;
-    isPerDiemRequest: boolean;
-    isTimeRequest: boolean;
+    isUnreported?: boolean;
+    isTrackExpense?: boolean;
+    isSelfDMDestination?: boolean;
+    isDistanceRequest?: boolean;
+    isPerDiemRequest?: boolean;
+    isTimeRequest?: boolean;
 };
 
 function getTransactionTaxValues({
     transaction,
     policy,
     isPolicyExpenseChat,
-    isUnreported,
-    isTrackExpense,
-    isSelfDMDestination,
-    isDistanceRequest,
-    isPerDiemRequest,
-    isTimeRequest,
+    isUnreported = false,
+    isTrackExpense = false,
+    isSelfDMDestination = false,
+    isDistanceRequest = false,
+    isPerDiemRequest = false,
+    isTimeRequest = false,
 }: GetTransactionTaxValuesParams): TransactionTaxValues {
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const taxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';

@@ -65,6 +65,15 @@ function useDetachedSignEditingController({value, onInputChange, allowNegative =
         return false;
     };
 
+    // The pad deletes through this, so the sign goes first
+    const deleteBackward = () => {
+        if (deleteSignBeforeCaret()) {
+            return;
+        }
+
+        controller.deleteBackward();
+    };
+
     const handleKeyPress = (event: NumericEditingKeyPressEvent) => {
         const key = event.nativeEvent.key.toLowerCase();
 
@@ -79,7 +88,7 @@ function useDetachedSignEditingController({value, onInputChange, allowNegative =
         ...controller,
         isNegative,
         toggleSign,
-        deleteSignBeforeCaret,
+        deleteBackward,
         handleKeyPress,
     };
 }

@@ -47,7 +47,8 @@ function useComposerSuggestions({composerRef, selection, measureParentContainer,
 
     useEffect(() => {
         // We use the tag to store the native ID of the text input. Later, we use it in onSelectionChange to pick up the proper text input data.
-        tag.set(findNodeHandle(composerRef.current) ?? -1);
+        const input = composerRef.current;
+        tag.set(findNodeHandle(input && 'measure' in input ? input : null) ?? -1);
     }, [tag, composerRef]);
 
     useFocusedInputHandler(

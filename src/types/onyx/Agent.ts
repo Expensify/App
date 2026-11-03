@@ -13,10 +13,10 @@ type Agent = OnyxValueWithOfflineFeedback<{
     prompt: string;
 
     /** The agent owner account ID */
-    ownerAccountID: number;
+    ownerAccountID?: number;
 
     /** The agent owner account type (person, workspace or domain) */
-    ownerType: AgentOwnerType;
+    ownerType?: AgentOwnerType;
 
     /** Errors from the last failed action */
     errors?: Errors | null;

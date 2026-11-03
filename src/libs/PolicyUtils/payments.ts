@@ -11,6 +11,7 @@ import type {NullishDeep, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {canMemberWrite} from './permissions';
+import {isGroupPolicy} from './policyType';
 
 /**
  * Resolve the email of the workspace's Authorized Payer (reimburser), matching the canonical resolution used across the app.
@@ -76,6 +77,18 @@ function isPolicyPayer(policy: OnyxEntry<Policy>, currentUserLogin: string | und
 }
 
 /**
+ * Whether an admin/payments admin who isn't the designated workspace payer can still pay reports on the policy.
+ * Unlike `isPolicyPayer`/`isPayer`, this must not drive active prompting (badges, GBRs, next steps, pay to-dos), which stay payer-only.
+ */
+function canAdminPayReport(policy: OnyxInputOrEntry<Policy>, currentUserLogin: string): boolean {
+    const reimbursementChoice = getReimbursementChoice(policy);
+    const isReimbursementConfigured =
+        reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES || reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+
+    return isGroupPolicy(policy) && isReimbursementConfigured && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS);
+}
+
+/**
  * Resolves a workspace's reimbursement choice to one of the three values in `CONST.POLICY.REIMBURSEMENT_CHOICES`.
  * Comparing the raw field instead makes a workspace reporting a deprecated value look like it has reimbursement
  * disabled, which hides Pay on its approved reports.
@@ -108,4 +121,13 @@ function getReimburserAccountID(policy: OnyxEntry<Policy>): number {
     return reimburserEmail ? (getAccountIDsByLogins([reimburserEmail]).at(0) ?? -1) : -1;
 }
 
-export {getReimburserEmail, getOwnerChangePayerSuccessData, isPolicyPayer, getReimbursementChoice, arePaymentsEnabled, isAutoPayApprovedReportsAvailable, getReimburserAccountID};
+export {
+    getReimburserEmail,
+    getOwnerChangePayerSuccessData,
+    isPolicyPayer,
+    canAdminPayReport,
+    getReimbursementChoice,
+    arePaymentsEnabled,
+    isAutoPayApprovedReportsAvailable,
+    getReimburserAccountID,
+};

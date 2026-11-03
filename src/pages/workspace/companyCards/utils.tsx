@@ -6,6 +6,7 @@ import {sortDefaultToTop} from '@libs/ListUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getNetSuiteCreditCardAccounts} from '@libs/NetSuiteUtils';
 import {getSageIntacctNonReimbursableActiveDefaultVendor} from '@libs/PolicyUtils';
 
 import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
@@ -90,7 +91,8 @@ type ProgramAccountExport = {
     nvpKey:
         | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT
         | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_DUALENTRY_EXPORT_ACCOUNT
-        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT;
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_CAMPFIRE_EXPORT_ACCOUNT
+        | typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT;
 
     /** Every account, in connection order, because an account that is no longer offered can still be the resolved one */
     accounts: ProgramAccountOption[];
@@ -203,7 +205,7 @@ function getPolicyCardExportSettings(
     policy?: Policy,
     backTo?: string | undefined,
 ): CardExportSettings | undefined {
-    const basePath = ROUTES.POLICY_ACCOUNTING.getRoute(policyID);
+    const basePath = ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID);
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
     const defaultVendor = translate('workspace.accounting.defaultVendor');
@@ -341,6 +343,22 @@ function getPolicyCardExportSettings(
                             workspaceDefaultAccountID: config?.payableAcct,
                         },
                     };
+                case CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE: {
+                    return {
+                        description,
+                        exportPageLink,
+                        shouldShowMenuItem: true,
+                        // Journal entries and credit card charges keep separate card-level mappings, so selecting an account under one export type never overwrites the other
+                        exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT,
+                        accountSelection: {
+                            type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.SINGLE_ACCOUNT,
+                            nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_NETSUITE_EXPORT_CREDIT_CARD_ACCOUNT,
+                            accounts: normalizeAccounts(getNetSuiteCreditCardAccounts(policy)),
+                            defaultLabel: defaultAccount,
+                            workspaceDefaultAccountID: config?.creditCardAccount,
+                        },
+                    };
+                }
                 default:
                     return {description, exportPageLink, shouldShowMenuItem: false};
             }
@@ -388,7 +406,6 @@ function getPolicyCardExportSettings(
                             defaultLabel: defaultCard,
                             // A card with no export NVP of its own is titled from `defaultLabel`, so this id is never
                             // looked up. It is kept for parity with the other integrations.
-                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             workspaceDefaultAccountID: exportConfig?.nonReimbursableAccount || defaultVendorAccount?.id,
                         },
                     };
@@ -546,7 +563,38 @@ function getPolicyCardExportSettings(
         }
         case CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL: {
             const businessCentralExport = policy?.connections?.businessCentral?.config?.export;
-            const type = translate(`workspace.businessCentral.exportDestination.${businessCentralExport?.nonReimbursable ?? CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE}`);
+            const nonReimbursable = businessCentralExport?.nonReimbursable ?? CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.PURCHASE_INVOICE;
+
+            // A company card journal entry is settled from a bank account, which each card feed and card can override
+            if (businessCentralExport?.exportToMultipleAccounts && nonReimbursable === CONST.BUSINESS_CENTRAL_EXPORT_DESTINATION.JOURNAL_ENTRY) {
+                return {
+                    description: currentConnectionName
+                        ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, translate('workspace.businessCentral.cardAccount.label'))
+                        : undefined,
+                    exportType: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT,
+                    shouldHideMenuItemDescription: true,
+                    shouldShowMenuItemIcon: true,
+                    shouldShowMenuItem: true,
+                    accountSelection: {
+                        type: CONST.COMPANY_CARDS.EXPORT_RESOLVER.PROGRAM_ACCOUNT,
+                        nvpKey: CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_BUSINESS_CENTRAL_EXPORT_ACCOUNT,
+                        accounts: (policy?.connections?.businessCentral?.data?.bankAccounts ?? []).map((bankAccount) => ({
+                            id: bankAccount.id,
+                            label: `${bankAccount.number} ${bankAccount.name}`,
+                            keyForList: bankAccount.id,
+                            configKey: bankAccount.id,
+                            isSelectable: true,
+                        })),
+                        workspaceProgramAccountKey: businessCentralExport.nonReimbursableAccount,
+                        programAccountKeysByFeed: businessCentralExport.cardProgramAccounts,
+                        exportsToLabel: translate('common.exportsTo'),
+                        defaultTitleSuffix: translate('common.default').toLocaleLowerCase(),
+                        defaultOptionPrefix: translate('common.default'),
+                    },
+                };
+            }
+
+            const type = translate(`workspace.businessCentral.exportDestination.${nonReimbursable}`);
             const description = currentConnectionName ? translate('workspace.moreFeatures.companyCards.integrationExport', currentConnectionName, type) : undefined;
 
             // Card expenses export against a vendor for both destinations

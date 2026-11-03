@@ -62,9 +62,9 @@ function getMergeFinalApproverDisplayName(
     policyEmployeePersonalDetails: PersonalDetailsByLogin,
     translate: LocaleContextProps['translate'],
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-): string {
+): string | undefined {
     if (!finalApprover) {
-        return translate('workspace.merge.notSet');
+        return undefined;
     }
     return temporaryGetDisplayNameOrDefault({
         passedPersonalDetails: policyEmployeePersonalDetails[finalApprover],

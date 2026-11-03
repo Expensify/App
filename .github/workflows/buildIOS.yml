@@ -122,7 +122,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: |
-          RESULT=$(./node_modules/.bin/bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --hybrid=true --new-dot-root="$GITHUB_WORKSPACE")
+          # pod install resolves the same artifact through patched_ios_artifacts.rb, which picks the Hermes tag file from
+          # RCT_HERMES_V1_ENABLED. HybridApp pins that to '1' inside Mobile-Expensify/iOS/Podfile (invisible to this shell),
+          # so the cache key must assume Hermes V1 to stay in sync with what pod install downloads.
+          RESULT=$(./node_modules/.bin/bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --hybrid=true --new-dot-root="$GITHUB_WORKSPACE" --hermes-version-file="$GITHUB_WORKSPACE/node_modules/react-native/sdks/.hermesv1version")
           VERSION=$(echo "$RESULT" | jq -r '.version // "source"')
           if [ -z "$VERSION" ]; then
             echo "::error::Could not resolve react-native artifact version from resolve-artifacts.ts output: $RESULT"
