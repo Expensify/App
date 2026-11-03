@@ -207,6 +207,7 @@ import {
     isSettled,
     shouldReportShowSubscript,
 } from './ReportUtils';
+import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
 import {
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -1946,7 +1947,7 @@ function getTransactionsSections({
 
     for (const key of transactionKeys) {
         const transactionItem = data[key];
-        const report = getReportOrDraftReport(transactionItem.reportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+        const report = getReportOrDraftReport({reportID: transactionItem.reportID}) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
 
         const isActionLoading = !!isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${transactionItem.reportID}`);
         // Keep the tracked optimistic item visible before the server snapshot arrives, but only under
@@ -2500,8 +2501,8 @@ function getTaskSections(
             const formattedAssignee = temporaryGetDisplayNameOrDefault({passedPersonalDetails: assignee, translate, formatPhoneNumber});
             const formattedCreatedBy = temporaryGetDisplayNameOrDefault({passedPersonalDetails: createdBy, translate, formatPhoneNumber});
 
-            const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
-            const parentReport = getReportOrDraftReport(taskItem.parentReportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${taskItem.parentReportID}`];
+            const report = getReportOrDraftReport({reportID: taskItem.reportID}) ?? taskItem;
+            const parentReport = getReportOrDraftReport({reportID: taskItem.parentReportID}) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${taskItem.parentReportID}`];
 
             const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
             const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
@@ -2632,7 +2633,7 @@ function createAndOpenSearchTransactionThread({
 
     // The transaction thread can be created from the chat page and the snapshot data is stale
     if (hasActualTransactionThread) {
-        transactionThreadReport = getReportOrDraftReport(iouReportAction.childReportID);
+        transactionThreadReport = getReportOrDraftReport({reportID: iouReportAction.childReportID});
     }
 
     // Only create a new thread when there's no existing childReportID.
@@ -2644,7 +2645,7 @@ function createAndOpenSearchTransactionThread({
         const transaction = shouldPassTransactionData ? getTransactionFromTransactionListItem(item) : undefined;
         const transactionViolations = shouldPassTransactionData ? item.violations : undefined;
         const reportActionToPass = iouReportAction ?? item.reportAction ?? ({reportActionID} as OnyxTypes.ReportAction);
-        const iouReport = getReportOrDraftReport(item.reportID) ?? item.report;
+        const iouReport = getReportOrDraftReport({reportID: item.reportID}) ?? item.report;
         transactionThreadReport = createTransactionThreadReport({
             introSelected,
             conciergeChat,
@@ -2703,8 +2704,8 @@ function getReportActionsSections(
                 const reportID = reportIDFromKey;
                 const from = reportAction.accountID ? (data.personalDetailsList?.[reportAction.accountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
                 const report =
-                    getReportOrDraftReport(reportID) ??
-                    getReportOrDraftReport(reportAction.reportID) ??
+                    getReportOrDraftReport({reportID}) ??
+                    getReportOrDraftReport({reportID: reportAction.reportID}) ??
                     data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ??
                     data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ??
                     {};
@@ -3107,7 +3108,7 @@ function getReportSections({
             const transactionItem = {...data[key]};
             const reportAction = moneyRequestReportActionsByTransactionID.get(transactionItem.transactionID);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
-            const report = (getReportOrDraftReport(transactionItem.reportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`]) as OnyxTypes.Report | undefined;
+            const report = (getReportOrDraftReport({reportID: transactionItem.reportID}) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`]) as OnyxTypes.Report | undefined;
             const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
             const shouldShowBlankTo = !report || isOpenExpenseReport(report);
             const transactionViolations = getTransactionViolations(
@@ -5775,7 +5776,6 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
         CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
         CONST.SEARCH.DATE_PRESETS.THIS_QUARTER,
         CONST.SEARCH.DATE_PRESETS.THIS_YEAR,
-        CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
         CONST.SEARCH.DATE_PRESETS.LAST_WEEK,
         CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
         CONST.SEARCH.DATE_PRESETS.LAST_QUARTER,
@@ -6232,7 +6232,7 @@ function getAmountDisplayValue(
     const greaterThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
     const equalTo = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
 
-    const formatAmount = (val: string) => convertToDisplayStringWithoutCurrency(Number(val));
+    const formatAmount = (val: string) => getAmountFilterDisplayValue(val, convertToDisplayStringWithoutCurrency);
 
     if (equalTo) {
         return translate('search.filters.amount.equalTo', formatAmount(equalTo));
@@ -7227,7 +7227,9 @@ function getColumnsToShow({
         // so that the default search page path doesn't show extra columns.
         if (customResult || isExpenseReportView) {
             if (customResult) {
-                const reportForCustomColumns = Array.isArray(data) ? report : (getReportOrDraftReport(transaction.reportID) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]);
+                const reportForCustomColumns = Array.isArray(data)
+                    ? report
+                    : (getReportOrDraftReport({reportID: transaction.reportID}) ?? data[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`]);
                 for (const column of reportCustomColumns) {
                     if (hasReportCustomColumnValue(column, reportForCustomColumns)) {
                         columns[column] = true;
@@ -7466,7 +7468,7 @@ function getSearchTableRowInsetWidth(columnCount: number): number {
  */
 function getSearchTableRowChromeWidths(columnCount: number): RowChromeWidths {
     return {
-        selectionColumnWidth: variables.searchTableRowCheckboxWidth + SEARCH_TABLE_ROW_ARROW_WIDTH,
+        selectionColumnWidth: variables.tableCheckboxColumnWidth + SEARCH_TABLE_ROW_ARROW_WIDTH,
         totalGapWidth: (columnCount + 1) * variables.searchTableColumnGap,
         rowMarginWidth: variables.searchTableRowChromeWidth,
         rowPaddingWidth: 0,
@@ -7496,7 +7498,7 @@ function getTableMinWidth(
     // table scrolls at all. Only a caller that also passes real column widths has the rest of the arithmetic right;
     // adding it on top of the estimates below, which already run several columns over, makes a table reserve room twice
     // and scroll while it still has space.
-    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : variables.searchTableRowCheckboxWidth;
+    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : variables.tableCheckboxColumnWidth;
 
     for (const column of columns) {
         // A caller that knows a column's real minimum passes it in, so use that over the estimate below. The estimates

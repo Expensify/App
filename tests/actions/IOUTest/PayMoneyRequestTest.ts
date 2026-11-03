@@ -1048,6 +1048,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                         initialReportID: iouReport.reportID,
                         initialReport: iouReport,
                         transactionReport: iouReport,
+                        transactionReportActions: undefined,
                         isOffline: false,
                         currentUserLogin: RORY_EMAIL,
                         currentUserAccountID: RORY_ACCOUNT_ID,

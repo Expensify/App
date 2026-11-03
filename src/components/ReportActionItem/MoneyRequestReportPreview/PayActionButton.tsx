@@ -109,7 +109,7 @@ function PayActionButton() {
         } else if (hasHeldExpensesReportUtils(transactions)) {
             openHoldMenu(type, methodID, paymentMethod);
         } else if (chatReport && iouReport) {
-            const currentChatReport = getReportOrDraftReport(chatReportID) ?? chatReport;
+            const currentChatReport = getReportOrDraftReport({reportID: chatReportID}) ?? chatReport;
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
                 payInvoice({
