@@ -273,6 +273,14 @@ describe('getOptionData alternateText parity snapshots', () => {
             ).toMatchSnapshot();
         });
 
+        it('AUTO_PAY_FEE_DISCLOSURE with the admin from personal details', () => {
+            expect(
+                getAlternateText({
+                    lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE, {originalMessage: {policyID: '6', accountID: 2, bankName: 'Chase', lastFour: '1234'}}),
+                }),
+            ).toMatchSnapshot();
+        });
+
         it('ROOM invite with targetAccountIDs and room name from originalMessage', () => {
             expect(
                 getAlternateText({
