@@ -40,7 +40,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
-import {getIsOffline} from '@libs/NetworkState';
+import {getIsOffline, subscribe as subscribeNetworkState} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import {canAccessPolicyBankAccount} from '@libs/PolicyPaymentUtils';
@@ -1261,6 +1261,17 @@ type InFlightSearchRequest = {
     queuedRequestsCountWhenSent?: number;
 };
 
+/** Runs the search once the app is back online. */
+function searchWhenOnline(runSearch: () => Promise<string | number | undefined> | undefined) {
+    const unsubscribe = subscribeNetworkState(() => {
+        if (getIsOffline()) {
+            return;
+        }
+        unsubscribe();
+        runSearch();
+    });
+}
+
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls when both page-level
 // and Search-internal effects fire for the same query. A request that calculates totals or declares
 // save-recent-search intent is not equivalent to an in-flight request without it, so preserve one such
@@ -1443,6 +1454,22 @@ function search({
     const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal, shouldReturnTripRooms: isTripRoomsSearch, shouldDiscardStaleSnapshot};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
+    // Runs this search again, guarded and without a loading state, to refresh the rows already on screen.
+    const searchAgain = () =>
+        search({
+            queryJSON,
+            searchKey,
+            offset,
+            shouldCalculateTotals,
+            prevReportsLength,
+            isLoading: false,
+            shouldUpdateLastSearchParams,
+            shouldSaveRecentSearch,
+            shouldShowLoading: false,
+            shouldDiscardStaleSnapshot: true,
+            shouldReturnTripRooms,
+        });
+
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
     const {backendQueryJSON, limit} = getBackendQueryJSON(queryJSON);
     const query = {
@@ -1510,20 +1537,7 @@ function search({
                 // joining call runs instead, so it is guarded too.
                 if (wasSnapshotDropped || wasWriteQueuedSinceSent) {
                     inFlightRequestState.pendingShouldDiscardStaleSnapshot = true;
-                    inFlightRequestState.pendingUpgradeRequest ??= () =>
-                        search({
-                            queryJSON,
-                            searchKey,
-                            offset,
-                            shouldCalculateTotals,
-                            prevReportsLength,
-                            isLoading: false,
-                            shouldUpdateLastSearchParams,
-                            shouldSaveRecentSearch,
-                            shouldShowLoading: false,
-                            shouldDiscardStaleSnapshot: true,
-                            shouldReturnTripRooms,
-                        });
+                    inFlightRequestState.pendingUpgradeRequest ??= searchAgain;
                 }
                 if (wasSnapshotDropped) {
                     return result?.jsonCode;
@@ -1640,6 +1654,17 @@ function search({
     inFlightRequestState.promise = waitForWrites(READ_COMMANDS.SEARCH)
         .then(() => {
             endSpan(queueSpanId);
+
+            // A refetch that wants the guard, and its re-fire after a dropped snapshot, only refresh rows already on screen.
+            // The wait ends at once when the app is offline, and sending then would fail and replace those rows with an
+            // error, so it runs once the app is back online. A re-fire set up by a joining call runs in its place.
+            if (shouldDiscardStaleSnapshot && getIsOffline()) {
+                inFlightSearchRequests.delete(dedupeKey);
+                inFlightRequestState.pendingShouldDiscardStaleSnapshot = true;
+                searchWhenOnline(inFlightRequestState.pendingUpgradeRequest ?? searchAgain);
+                return undefined;
+            }
+
             inFlightRequestState.queuedRequestsCountWhenSent = getQueuedRequestsCount();
             if (inFlightRequestState.shouldDiscardStaleSnapshot) {
                 guardSearchAgainstStaleSnapshot(jsonQuery, inFlightRequestState.queuedRequestsCountWhenSent);

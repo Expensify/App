@@ -3,6 +3,7 @@ import {search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
 import {guardSearchAgainstStaleSnapshot, releaseStaleSnapshotGuard} from '@libs/Middleware/DiscardStaleSearchSnapshot';
+import {getIsOffline, subscribe as subscribeNetworkState} from '@libs/NetworkState';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -24,6 +25,12 @@ jest.mock('@libs/actions/PersistedRequests', () => ({
     getQueuedRequestsCount: jest.fn(() => 0),
 }));
 
+jest.mock('@libs/NetworkState', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/NetworkState'),
+    getIsOffline: jest.fn(() => false),
+    subscribe: jest.fn(() => () => {}),
+}));
+
 jest.mock('@libs/Middleware/DiscardStaleSearchSnapshot', () => ({
     guardSearchAgainstStaleSnapshot: jest.fn(),
     releaseStaleSnapshotGuard: jest.fn(() => false),
@@ -34,6 +41,8 @@ const mockedWaitForWrites = jest.mocked(waitForWrites);
 const mockedGuard = jest.mocked(guardSearchAgainstStaleSnapshot);
 const mockedRelease = jest.mocked(releaseStaleSnapshotGuard);
 const mockedGetQueuedRequestsCount = jest.mocked(getQueuedRequestsCount);
+const mockedGetIsOffline = jest.mocked(getIsOffline);
+const mockedSubscribeNetworkState = jest.mocked(subscribeNetworkState);
 
 function getQueryJSON() {
     const queryJSON = buildSearchQueryJSON('type:expense');
@@ -52,6 +61,42 @@ describe('search stale snapshot re-fire', () => {
         mockedMakeRequestWithSideEffects.mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
         mockedRelease.mockReturnValue(false);
         mockedGetQueuedRequestsCount.mockReturnValue(0);
+        mockedGetIsOffline.mockReturnValue(false);
+    });
+
+    it('waits until the app is back online to run again when it goes offline after its snapshot was dropped', async () => {
+        // Given a refetch whose snapshot gets dropped, and the app going offline before it runs again
+        const queryJSON = getQueryJSON();
+        mockedRelease.mockReturnValueOnce(true);
+        mockedMakeRequestWithSideEffects.mockImplementationOnce(() => {
+            mockedGetIsOffline.mockReturnValue(true);
+            return Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+        });
+
+        // When it finishes
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false, shouldDiscardStaleSnapshot: true});
+
+        // Then the re-fire isn't sent offline, where it would fail and replace the rows on screen with an error
+        expect(mockedMakeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+
+        // When the network state changes while the app is still offline
+        const onNetworkStateChange = mockedSubscribeNetworkState.mock.calls.at(-1)?.[0];
+        onNetworkStateChange?.();
+        await waitForBatchedUpdates();
+
+        // Then it keeps waiting
+        expect(mockedMakeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+
+        // When the app is back online
+        mockedGetIsOffline.mockReturnValue(false);
+        onNetworkStateChange?.();
+        await waitForBatchedUpdates();
+
+        // Then it runs again, guarded and without a loading state, so the snapshot gets the server's values after the edit
+        expect(mockedMakeRequestWithSideEffects).toHaveBeenCalledTimes(2);
+        expect(mockedGuard).toHaveBeenCalledTimes(2);
+        const refireOptimisticData = mockedMakeRequestWithSideEffects.mock.calls.at(1)?.[2]?.optimisticData ?? [];
+        expect(JSON.stringify(refireOptimisticData)).not.toContain('"isLoading":true');
     });
 
     it('runs the search again, without a loading state, when its snapshot was dropped', async () => {
