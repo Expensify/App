@@ -14,6 +14,9 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.WORKFLOWS_PAYER]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.TIMEZONE]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.CURRENCY]: {
         isForcedToChangeCurrency?: boolean;
         shouldStartExpensifyCardEnrollment?: boolean;
@@ -672,6 +675,30 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_OAUTH]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXISTING_CONNECTIONS]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_ORGANIZATION_SELECTOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_VENDOR_BILL_DATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_DEFAULT_COMPANY_CARD_VENDOR]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.ZOHO_BOOKS_COMPANY_CARD_ACCOUNT]: {
+        policyID: string;
+    };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_IMPORT]: {
         policyID: string;
     };
@@ -839,6 +866,9 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_VENDOR_SELECT]: {
         policyID: string;
         expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_CREDIT_CARD_ACCOUNT_SELECT]: {
+        policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_NETSUITE_EXPORT_EXPENSES_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
@@ -1460,6 +1490,7 @@ type WorkspaceSettingsParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_STATEMENT_CLOSE_DATE]: {
         policyID: string;
     };
+    [SCREENS.WORKSPACE.COMPANY_CARDS_SETTINGS_REIMBURSABLE]: {policyID: string};
     [SCREENS.WORKSPACE.DYNAMIC_EXPENSIFY_CARD_DETAILS]: {
         policyID: string;
         cardID: string;

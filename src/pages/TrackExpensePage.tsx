@@ -28,6 +28,7 @@ import {View} from 'react-native';
  *     - Else re-route to the login page
  */
 function TrackExpensePage() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const isUnmounted = useRef(false);
     const {isOffline} = useNetwork();
@@ -51,7 +52,7 @@ function TrackExpensePage() {
                     }, CONST.ANIMATED_TRANSITION);
                 }
             });
-        });
+        }, session);
     });
 
     useEffect(

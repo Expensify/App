@@ -1,0 +1,112 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
+index f7fc390..b5e82e2 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/appearance/TabsAppearanceApplicator.kt
+@@ -3,6 +3,7 @@ package com.swmansion.rnscreens.gamma.tabs.appearance
+ import android.annotation.SuppressLint
+ import android.content.Context
+ import android.content.res.ColorStateList
++import android.graphics.Color
+ import android.graphics.Typeface
+ import android.graphics.drawable.StateListDrawable
+ import android.util.TypedValue
+@@ -162,7 +163,7 @@ internal class TabsAppearanceApplicator(
+             // Bold is set here rather than with `setItemTextAppearanceActiveBoldEnabled`, which re-applies Material's text size
+             // to this label alone, so Material lifts the selected item by the size difference between the two labels.
+             largeLabel.setTextSize(TypedValue.COMPLEX_UNIT_PX, largeFontSize)
+-            largeLabel.setTypeface(fontFamily, Typeface.BOLD)
++            largeLabel.setTypeface(fontFamily, if (tabBarAppearance?.tabBarItemActiveIndicatorColor == Color.TRANSPARENT) Typeface.NORMAL else Typeface.BOLD)
+             largeLabel.letterSpacing = 0f
+         }
+     }
+diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h
+index d76842a..bc62e29 100644
+--- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h
++++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.h
+@@ -133,6 +133,8 @@ NS_ASSUME_NONNULL_BEGIN
+  */
+ @property (nonatomic, readwrite) BOOL rejectStaleNavigationStateUpdates;
+ 
++@property (nonatomic, readwrite) BOOL tabBarItemSelectionHidden;
++
+ /**
+  * Tell the controller that react provided tabs have changed (count / instances) & the child
+  * view controllers need to be updated.
+diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
+index 06c1957..bb2dcb0 100644
+--- a/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
++++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabBarController.mm
+@@ -177,6 +177,34 @@ - (void)detachFromParentContainerItem
+ 
+ #pragma mark - UIKit callbacks
+ 
++- (void)viewDidLayoutSubviews
++{
++  [super viewDidLayoutSubviews];
++  if (_tabBarItemSelectionHidden) {
++    [self updateTabBarItemSelectionIn:self.tabBar];
++  }
++}
++
++- (void)setTabBarItemSelectionHidden:(BOOL)tabBarItemSelectionHidden
++{
++  _tabBarItemSelectionHidden = tabBarItemSelectionHidden;
++  [self updateTabBarItemSelectionIn:self.tabBar];
++}
++
++// Private views that draw the iOS 26 liquid glass selection.
++- (void)updateTabBarItemSelectionIn:(UIView *)view
++{
++  for (UIView *subview in view.subviews) {
++    NSString *className = NSStringFromClass(subview.class);
++    if ([className hasSuffix:@"LiquidLensView"] || [className hasSuffix:@"SelectedContentView"] ||
++        [className hasSuffix:@"DestOutView"]) {
++      subview.hidden = _tabBarItemSelectionHidden;
++    } else {
++      [self updateTabBarItemSelectionIn:subview];
++    }
++  }
++}
++
+ - (void)didMoveToParentViewController:(UIViewController *)parent
+ {
+   [super didMoveToParentViewController:parent];
+@@ -353,6 +381,11 @@ - (void)userDidRepeatViewControllerSelection:(nonnull UIViewController *)viewCon
+ 
+ - (void)userDidSelectViewController:(nonnull UIViewController *)viewController
+ {
++  // The tab the user picked shows its selection right away, without waiting for JS to turn the prop off.
++  if (_tabBarItemSelectionHidden) {
++    self.tabBarItemSelectionHidden = NO;
++  }
++
+   // At this moment the `UITabBarController` model is already updated.
+   RCTAssert(self.selectedViewController == viewController,
+             @"[RNScreens] Expected UIKit to update selectedViewController");
+diff --git a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
+index 60c9ab2..fa2afb9 100644
+--- a/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
++++ b/node_modules/react-native-screens/ios/tabs/host/RNSTabsHostComponentView.mm
+@@ -254,6 +254,10 @@ - (void)updateProps:(const facebook::react::Props::Shared &)props
+     }
+   }
+ 
++  if (newComponentProps.tabBarItemSelectionHidden != oldComponentProps.tabBarItemSelectionHidden) {
++    _controller.tabBarItemSelectionHidden = newComponentProps.tabBarItemSelectionHidden;
++  }
++
+   if (newComponentProps.bottomAccessoryHidden != oldComponentProps.bottomAccessoryHidden) {
+     _bottomAccessoryHidden = newComponentProps.bottomAccessoryHidden;
+ #if RNS_TABS_BOTTOM_ACCESSORY_AVAILABLE
+diff --git a/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts b/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts
+index fcd0b7f..64b2a09 100644
+--- a/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts
++++ b/node_modules/react-native-screens/src/fabric/tabs/TabsHostIOSNativeComponent.ts
+@@ -77,6 +77,7 @@ export interface NativeProps extends ViewProps {
+ 
+   // General
+   tabBarHidden?: CT.WithDefault<boolean, false>;
++  tabBarItemSelectionHidden?: CT.WithDefault<boolean, false>;
+   nativeContainerBackgroundColor?: ColorValue | undefined;
+   colorScheme?: CT.WithDefault<TabsHostColorScheme, 'inherit'>;
+ 
