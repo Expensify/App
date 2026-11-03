@@ -46,7 +46,7 @@ describe('DiscardStaleSearchSnapshot middleware', () => {
 
     it('drops the snapshot of a guarded search when a write queued while it was in flight already finished', async () => {
         // Given a guarded search, and a write queued while it was in flight that finished and left the queue before its response
-        guardSearchAgainstStaleSnapshot(JSON_QUERY);
+        guardSearchAgainstStaleSnapshot(JSON_QUERY, 0);
         jest.mocked(getQueuedRequestsCount).mockReturnValue(1);
 
         // When its response comes back with the write queue empty
@@ -58,10 +58,10 @@ describe('DiscardStaleSearchSnapshot middleware', () => {
         expect(releaseStaleSnapshotGuard(JSON_QUERY)).toBe(true);
     });
 
-    it('keeps the snapshot of a guarded search when the only writes were queued before it was guarded', async () => {
-        // Given writes that were queued and finished before the search waited for the queue and guarded itself
+    it('keeps the snapshot of a guarded search when the only writes were queued before it was sent', async () => {
+        // Given writes that were queued and finished before the search waited for the queue and was sent
         jest.mocked(getQueuedRequestsCount).mockReturnValue(3);
-        guardSearchAgainstStaleSnapshot(JSON_QUERY);
+        guardSearchAgainstStaleSnapshot(JSON_QUERY, 3);
 
         // When its response comes back with no write queued since
         const response = await discardStaleSearchSnapshot(Promise.resolve(buildResponse()), buildRequest(), false);
@@ -71,9 +71,23 @@ describe('DiscardStaleSearchSnapshot middleware', () => {
         expect(releaseStaleSnapshotGuard(JSON_QUERY)).toBe(false);
     });
 
+    it('counts writes from when a search was sent, even when it is guarded later', async () => {
+        // Given a search sent when 1 request had been queued, then an edit's write queued and finished, and only then the
+        // search guarded by a refetch that joined it
+        jest.mocked(getQueuedRequestsCount).mockReturnValue(2);
+        guardSearchAgainstStaleSnapshot(JSON_QUERY, 1);
+
+        // When its response comes back with the write queue empty
+        const response = await discardStaleSearchSnapshot(Promise.resolve(buildResponse()), buildRequest(), false);
+
+        // Then the snapshot is dropped, because the search was sent before the edit and its response can't include it
+        expect(response?.onyxData?.map((update) => update.key)).toEqual([OTHER_KEY]);
+        expect(releaseStaleSnapshotGuard(JSON_QUERY)).toBe(true);
+    });
+
     it('drops the snapshot of a guarded search when a write was queued while it was in flight', async () => {
         // Given a guarded search, and a write (e.g. a quick second inline edit) queued while it was in flight
-        guardSearchAgainstStaleSnapshot(JSON_QUERY);
+        guardSearchAgainstStaleSnapshot(JSON_QUERY, 0);
         jest.mocked(getPersistedRequestsLength).mockReturnValue(1);
 
         // When its response comes back
@@ -87,7 +101,7 @@ describe('DiscardStaleSearchSnapshot middleware', () => {
 
     it('keeps the snapshot of a guarded search when no write is pending', async () => {
         // Given a guarded search and an idle write queue
-        guardSearchAgainstStaleSnapshot(JSON_QUERY);
+        guardSearchAgainstStaleSnapshot(JSON_QUERY, 0);
 
         // When its response comes back
         const response = await discardStaleSearchSnapshot(Promise.resolve(buildResponse()), buildRequest(), false);
@@ -110,7 +124,7 @@ describe('DiscardStaleSearchSnapshot middleware', () => {
 
     it('keeps the snapshot of another page of the same search while that search is guarded', async () => {
         // Given a guarded refetch of the first page, and a pending write
-        guardSearchAgainstStaleSnapshot(JSON_QUERY);
+        guardSearchAgainstStaleSnapshot(JSON_QUERY, 0);
         jest.mocked(getPersistedRequestsLength).mockReturnValue(1);
 
         // When the response of a "load more" page for the same hash comes back first
@@ -124,8 +138,8 @@ describe('DiscardStaleSearchSnapshot middleware', () => {
 
     it('keeps guarding a search after another guarded search for the same hash is released', async () => {
         // Given two guarded pages of the same search, and a pending write
-        guardSearchAgainstStaleSnapshot(JSON_QUERY);
-        guardSearchAgainstStaleSnapshot(NEXT_PAGE_JSON_QUERY);
+        guardSearchAgainstStaleSnapshot(JSON_QUERY, 0);
+        guardSearchAgainstStaleSnapshot(NEXT_PAGE_JSON_QUERY, 0);
         jest.mocked(getPersistedRequestsLength).mockReturnValue(1);
 
         // When the first one finishes and is released before the other's response comes back
@@ -139,7 +153,7 @@ describe('DiscardStaleSearchSnapshot middleware', () => {
 
     it('ignores requests other than Search', async () => {
         // Given a guarded search and a pending write
-        guardSearchAgainstStaleSnapshot(JSON_QUERY);
+        guardSearchAgainstStaleSnapshot(JSON_QUERY, 0);
         jest.mocked(getPersistedRequestsLength).mockReturnValue(1);
 
         // When a response for another command that happens to carry the same data comes back

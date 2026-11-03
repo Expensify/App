@@ -123,6 +123,7 @@ import {markExportInitiatedLocally} from './Export';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
+import {getQueuedRequestsCount} from './PersistedRequests';
 import {isCurrencySupportedForGlobalReimbursement} from './Policy/Policy';
 import {setOptimisticTransactionThread} from './Report';
 import {saveLastSearchParams} from './ReportNavigation';
@@ -1249,8 +1250,15 @@ type InFlightSearchRequest = {
     promise?: Promise<string | number | undefined>;
     pendingShouldCalculateTotals?: boolean;
     pendingShouldSaveRecentSearch?: boolean;
+    pendingShouldDiscardStaleSnapshot?: boolean;
     pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
     didSucceed?: boolean;
+    /** Whether its snapshot is dropped if a write is queued while it is in flight. A guarded refetch that joins it turns this on. */
+    shouldDiscardStaleSnapshot: boolean;
+    /** The query it sends, which keys its guard. */
+    jsonQuery?: string;
+    /** How many requests had been queued when it was sent after waiting for writes. Unset before that, and for a search that skips the wait. */
+    queuedRequestsCountWhenSent?: number;
 };
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls when both page-level
@@ -1371,14 +1379,28 @@ function search({
     /** Makes a trip search return one row per trip room instead of travel expenses. Only sent with the TravelApproval beta. */
     shouldReturnTripRooms?: boolean;
 }): Promise<string | number | undefined> | undefined {
+    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
+    const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
+
+    // A refetch that wants the guard joins the search already running for its key instead of sending its own, even while
+    // that search shows loading. That search started before the change that triggered the refetch, so it takes the guard,
+    // or a stale response could overwrite the change's optimistic values with the server's old ones.
+    if (shouldDiscardStaleSnapshot && inFlightRequest && !inFlightRequest.shouldDiscardStaleSnapshot) {
+        inFlightRequest.shouldDiscardStaleSnapshot = true;
+
+        // A search still waiting for writes guards itself once it is sent. One already sent is guarded now, counting every
+        // write queued since it was sent, because its response predates all of them.
+        if (inFlightRequest.jsonQuery !== undefined && inFlightRequest.queuedRequestsCountWhenSent !== undefined) {
+            guardSearchAgainstStaleSnapshot(inFlightRequest.jsonQuery, inFlightRequest.queuedRequestsCountWhenSent);
+        }
+    }
+
     if (isLoading || shouldPreventSearchAPI) {
         return;
     }
 
-    const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
     const isTripRoomsSearch = shouldReturnTripRooms && queryJSON.type === CONST.SEARCH.DATA_TYPES.TRIP;
     const {footerTotal} = getFooterSelectionFromQuery(queryJSON);
-    const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
         // Not just EXPENSE: any type can now need totals (e.g. EXPENSE_REPORT's reportCount). Gating this
         // to one type let a totals request for another type collide with an in-flight request and get
@@ -1397,6 +1419,7 @@ function search({
             // upgrade for the other. Only a single pending re-fire is kept.
             inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? inFlightRequest.shouldCalculateTotals) || shouldCalculateTotals;
             inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? inFlightRequest.shouldSaveRecentSearch) || shouldSaveRecentSearch;
+            inFlightRequest.pendingShouldDiscardStaleSnapshot = !!inFlightRequest.pendingShouldDiscardStaleSnapshot || shouldDiscardStaleSnapshot;
             inFlightRequest.pendingUpgradeRequest = () =>
                 search({
                     queryJSON,
@@ -1411,13 +1434,13 @@ function search({
                     // A re-fire that only adds the save flag returns the same results the finished request just showed,
                     // so it must not show loading again (the footer would flash its skeleton over the totals).
                     shouldShowLoading: !inFlightRequest.didSucceed || inFlightRequest.pendingShouldCalculateTotals !== inFlightRequest.shouldCalculateTotals,
-                    shouldDiscardStaleSnapshot,
+                    shouldDiscardStaleSnapshot: inFlightRequest.pendingShouldDiscardStaleSnapshot,
                     shouldReturnTripRooms,
                 });
         }
         return needsBreakdownRefire ? inFlightRequest.promise : undefined;
     }
-    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal, shouldReturnTripRooms: isTripRoomsSearch};
+    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch, footerTotal, shouldReturnTripRooms: isTripRoomsSearch, shouldDiscardStaleSnapshot};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     const onyxLoadingData = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals, shouldShowLoading);
@@ -1434,6 +1457,7 @@ function search({
         ...(isTripRoomsSearch && {shouldReturnTripRooms: true}),
     };
     const jsonQuery = serializeQueryJSONForBackend(query);
+    inFlightRequestState.jsonQuery = jsonQuery;
 
     if (shouldUpdateLastSearchParams) {
         saveLastSearchParams({
@@ -1474,8 +1498,18 @@ function search({
                 const response = result?.onyxData?.find((update) => update.key === snapshotKey)?.value as OnyxSearchResponse | undefined;
                 inFlightRequestState.didSucceed = result?.jsonCode === CONST.JSON_CODE.SUCCESS;
 
-                // The snapshot was dropped because writes were queued behind this search, so run it again once they land.
-                if (shouldDiscardStaleSnapshot && releaseStaleSnapshotGuard(jsonQuery)) {
+                const wasSnapshotDropped = inFlightRequestState.shouldDiscardStaleSnapshot && releaseStaleSnapshotGuard(jsonQuery);
+                // A refetch can join after the response already passed the guard, so its stale snapshot was applied. A write
+                // queued since the search was sent still needs a run that includes it.
+                const wasWriteQueuedSinceSent =
+                    inFlightRequestState.shouldDiscardStaleSnapshot &&
+                    inFlightRequestState.queuedRequestsCountWhenSent !== undefined &&
+                    getQueuedRequestsCount() > inFlightRequestState.queuedRequestsCountWhenSent;
+
+                // Writes were queued behind this search, so run it again once they land. A re-fire already set up by a
+                // joining call runs instead, so it is guarded too.
+                if (wasSnapshotDropped || wasWriteQueuedSinceSent) {
+                    inFlightRequestState.pendingShouldDiscardStaleSnapshot = true;
                     inFlightRequestState.pendingUpgradeRequest ??= () =>
                         search({
                             queryJSON,
@@ -1487,9 +1521,11 @@ function search({
                             shouldUpdateLastSearchParams,
                             shouldSaveRecentSearch,
                             shouldShowLoading: false,
-                            shouldDiscardStaleSnapshot,
+                            shouldDiscardStaleSnapshot: true,
                             shouldReturnTripRooms,
                         });
+                }
+                if (wasSnapshotDropped) {
                     return result?.jsonCode;
                 }
 
@@ -1565,7 +1601,7 @@ function search({
                 throw error;
             })
             .finally(() => {
-                if (shouldDiscardStaleSnapshot) {
+                if (inFlightRequestState.shouldDiscardStaleSnapshot) {
                     releaseStaleSnapshotGuard(jsonQuery);
                 }
                 inFlightSearchRequests.delete(dedupeKey);
@@ -1604,8 +1640,9 @@ function search({
     inFlightRequestState.promise = waitForWrites(READ_COMMANDS.SEARCH)
         .then(() => {
             endSpan(queueSpanId);
-            if (shouldDiscardStaleSnapshot) {
-                guardSearchAgainstStaleSnapshot(jsonQuery);
+            inFlightRequestState.queuedRequestsCountWhenSent = getQueuedRequestsCount();
+            if (inFlightRequestState.shouldDiscardStaleSnapshot) {
+                guardSearchAgainstStaleSnapshot(jsonQuery, inFlightRequestState.queuedRequestsCountWhenSent);
             }
             return startRequest();
         })

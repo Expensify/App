@@ -1,3 +1,4 @@
+import {getQueuedRequestsCount} from '@libs/actions/PersistedRequests';
 import {search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
@@ -5,12 +6,22 @@ import {guardSearchAgainstStaleSnapshot, releaseStaleSnapshotGuard} from '@libs/
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import type Response from '@src/types/onyx/Response';
+
+import type {OnyxKey} from 'react-native-onyx';
+
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API', () => ({
     makeRequestWithSideEffects: jest.fn(),
     waitForWrites: jest.fn(),
     write: jest.fn(),
     read: jest.fn(),
+}));
+
+jest.mock('@libs/actions/PersistedRequests', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@libs/actions/PersistedRequests'),
+    getQueuedRequestsCount: jest.fn(() => 0),
 }));
 
 jest.mock('@libs/Middleware/DiscardStaleSearchSnapshot', () => ({
@@ -22,6 +33,7 @@ const mockedMakeRequestWithSideEffects = jest.mocked(makeRequestWithSideEffects)
 const mockedWaitForWrites = jest.mocked(waitForWrites);
 const mockedGuard = jest.mocked(guardSearchAgainstStaleSnapshot);
 const mockedRelease = jest.mocked(releaseStaleSnapshotGuard);
+const mockedGetQueuedRequestsCount = jest.mocked(getQueuedRequestsCount);
 
 function getQueryJSON() {
     const queryJSON = buildSearchQueryJSON('type:expense');
@@ -39,6 +51,7 @@ describe('search stale snapshot re-fire', () => {
         mockedWaitForWrites.mockResolvedValue(undefined);
         mockedMakeRequestWithSideEffects.mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
         mockedRelease.mockReturnValue(false);
+        mockedGetQueuedRequestsCount.mockReturnValue(0);
     });
 
     it('runs the search again, without a loading state, when its snapshot was dropped', async () => {
@@ -81,6 +94,78 @@ describe('search stale snapshot re-fire', () => {
 
         // Then its response is never dropped, so the first results of a search always land
         expect(mockedGuard).not.toHaveBeenCalled();
+        expect(mockedMakeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+    });
+
+    it('guards a search already sent when a refetch that wants the guard joins it, even while it shows loading', async () => {
+        // Given a regular search sent when 5 requests had been queued, and still in flight
+        const queryJSON = getQueryJSON();
+        let resolveRequest: (value: Response<OnyxKey>) => void = () => {};
+        mockedMakeRequestWithSideEffects.mockReturnValueOnce(
+            new Promise((resolve) => {
+                resolveRequest = resolve;
+            }),
+        );
+        mockedGetQueuedRequestsCount.mockReturnValue(5);
+        const pageSearch = search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+        await waitForBatchedUpdates();
+        expect(mockedGuard).not.toHaveBeenCalled();
+
+        // When an edit queues a write and triggers a refetch that wants the guard while the results still show loading
+        mockedGetQueuedRequestsCount.mockReturnValue(6);
+        search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: true, shouldDiscardStaleSnapshot: true});
+
+        // Then the search in flight is guarded right away, with the query it sent and the count from when it was sent, so the
+        // edit's write counts against its response even if that write finishes first
+        const guardedJsonQuery = mockedGuard.mock.calls.at(0)?.[0];
+        expect(guardedJsonQuery).toEqual(expect.any(String));
+        expect(mockedGuard).toHaveBeenNthCalledWith(1, guardedJsonQuery, 5);
+        expect(mockedMakeRequestWithSideEffects).toHaveBeenNthCalledWith(1, READ_COMMANDS.SEARCH, expect.objectContaining({jsonQuery: guardedJsonQuery}), expect.anything());
+
+        // When its snapshot is dropped because the edit's write was queued while it was in flight
+        mockedRelease.mockReturnValueOnce(true);
+        resolveRequest({jsonCode: CONST.JSON_CODE.SUCCESS});
+        await pageSearch;
+
+        // Then it runs again, guarded, so the snapshot gets the server's values after the edit
+        expect(mockedMakeRequestWithSideEffects).toHaveBeenCalledTimes(2);
+        expect(mockedGuard).toHaveBeenCalledTimes(2);
+    });
+
+    it('runs again when a write was queued since it was sent, even if its snapshot passed the guard', async () => {
+        // Given a guarded search whose response passes the guard before a refetch for a new edit joins it
+        const queryJSON = getQueryJSON();
+        mockedMakeRequestWithSideEffects.mockImplementationOnce(() => {
+            mockedGetQueuedRequestsCount.mockReturnValue(1);
+            return Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS});
+        });
+
+        // When it finishes with the edit's write queued since it was sent
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false, shouldDiscardStaleSnapshot: true});
+
+        // Then it runs again, because the snapshot it applied can't include that write
+        expect(mockedMakeRequestWithSideEffects).toHaveBeenCalledTimes(2);
+    });
+
+    it('guards a search still waiting for writes once it is sent, when a refetch that wants the guard joins it', async () => {
+        // Given a regular search still waiting for the write queue to go idle
+        const queryJSON = getQueryJSON();
+        let finishWrites: () => void = () => {};
+        mockedWaitForWrites.mockReturnValueOnce(
+            new Promise((resolve) => {
+                finishWrites = () => resolve(undefined);
+            }),
+        );
+        const refreshSearch = search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false});
+
+        // When a refetch that wants the guard joins it
+        search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false, shouldDiscardStaleSnapshot: true});
+        expect(mockedGuard).not.toHaveBeenCalled();
+        finishWrites();
+        await refreshSearch;
+
+        // Then the joined search guards itself when it is sent, and only one request reaches the backend
+        expect(mockedGuard).toHaveBeenCalledTimes(1);
         expect(mockedMakeRequestWithSideEffects).toHaveBeenCalledTimes(1);
     });
 });
