@@ -52,6 +52,7 @@ import {
     getValidGroupBy,
     getWideAmountIndicators,
     isCashBackWithdrawalGroup,
+    isCreatedDateType,
     isGroupedItemArray,
     isReportActionListItemType,
     isSearchDataLoaded,
@@ -1345,9 +1346,11 @@ function Search({
     // column is. Read once here because they are decided across the whole search, not from the rows currently loaded.
     // Memoized above the early returns: this file doesn't compile with React Compiler, and a new object re-renders every row.
     const isActionColumnWide = isTask || hasDeletedTransaction;
+    const isDateColumnCreated = isCreatedDateType(type);
     const columnSizeOptions: GetReportTableColumnStylesParams = useMemo(
         () => ({
             isActionColumnWide,
+            isDateColumnCreated,
             isDateColumnWide: yearIndicators.shouldShowYearCreated,
             isSubmittedColumnWide: yearIndicators.shouldShowYearSubmitted,
             isApprovedColumnWide: yearIndicators.shouldShowYearApproved,
@@ -1360,6 +1363,7 @@ function Search({
         }),
         [
             isActionColumnWide,
+            isDateColumnCreated,
             yearIndicators.shouldShowYearCreated,
             yearIndicators.shouldShowYearSubmitted,
             yearIndicators.shouldShowYearApproved,
