@@ -166,6 +166,7 @@ import {View} from 'react-native';
 import {useOnyx as useOnyxWithoutSnapshots} from 'react-native-onyx';
 
 import MoneyRequestReceiptView from './MoneyRequestReceiptView';
+import AmountInputField from './MoneyRequestViewFields/AmountInputField';
 import CategoryFieldDropdown from './MoneyRequestViewFields/CategoryFieldDropdown';
 import DateInputField from './MoneyRequestViewFields/DateInputField';
 import DescriptionInputField from './MoneyRequestViewFields/DescriptionInputField';
@@ -1206,6 +1207,19 @@ function MoneyRequestView({
     const isInWideRHP = wideRHPRouteKeys.includes(route.key);
     const shouldShowReceipt = !isInWideRHP || isSmallScreenWidth || isFromReviewDuplicates || isFromMergeTransaction;
 
+    // Distance, time and per diem amounts are computed from other fields, a scanning receipt's amount comes from
+    // SmartScan, and a split amount is edited across its splits, so those keep the row that opens their own page.
+    const canEditAmountInline =
+        canEditAmount &&
+        !isDistanceRequest &&
+        !isTimeRequest &&
+        !isPerDiemRequest &&
+        !isTransactionScanning &&
+        !hasFailedScanAmountPlaceholder &&
+        !(shouldShowSplitIndicator && isSplitAvailable) &&
+        !isFromMergeTransaction &&
+        !isFromReviewDuplicates;
+
     const openAmountPage = () => {
         if (!transaction?.transactionID || !transactionThreadReport?.reportID) {
             return;
@@ -1391,16 +1405,29 @@ function MoneyRequestView({
                     <Text variant="labelStrong">{translate('common.details')}</Text>
                 </View>
                 <OfflineWithFeedback pendingAction={getPendingFieldAction('amount') ?? (amountTitle ? getPendingFieldAction('customUnitRateID') : undefined)}>
-                    <ExpenseFieldRow
-                        name={amountDescription}
-                        value={amountTitle}
-                        numberOfLinesValue={2}
-                        hintText={amountHintText}
-                        errorText={getErrorForField('amount')}
-                        onPress={openAmountPage}
-                        copyValue={amountTitle || undefined}
-                        isInteractive={canEditAmount}
-                    />
+                    {canEditAmountInline && !!transaction?.transactionID ? (
+                        <AmountInputField
+                            transactionID={transaction.transactionID}
+                            parentReportAction={parentReportAction}
+                            amount={actualAmount ?? 0}
+                            currency={actualCurrency ?? CONST.CURRENCY.USD}
+                            label={amountDescription}
+                            allowNegative={allowNegativeAmount}
+                            hintText={amountHintText}
+                            errorText={getErrorForField('amount')}
+                        />
+                    ) : (
+                        <ExpenseFieldRow
+                            name={amountDescription}
+                            value={amountTitle}
+                            numberOfLinesValue={2}
+                            hintText={amountHintText}
+                            errorText={getErrorForField('amount')}
+                            onPress={openAmountPage}
+                            copyValue={amountTitle || undefined}
+                            isInteractive={canEditAmount}
+                        />
+                    )}
                 </OfflineWithFeedback>
                 {!shouldHideEmptyDescription && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('comment')}>

@@ -92,8 +92,9 @@ const fieldLabel = (name: string) => new RegExp(`^${escapeRegExp(name)}(,|$)`);
 /** Matches the Amount row, whose name also carries the expense type, e.g. `iou.amount • iou.cash • Iou.reimbursable` */
 const amountLabel = /^iou\.amount/;
 
-/** A field row that can be edited is a button. A read-only row keeps its label but is not pressable. */
-const expectEditableRow = (label: RegExp) => expect(screen.getByRole('button', {name: label})).toBeOnTheScreen();
+/** An editable amount is the Create expense amount input, holding the amount of the test expense */
+const expectEditableAmountInput = () => expect(screen.getByDisplayValue(/^-?50\.00$/)).toBeOnTheScreen();
+/** A read-only row keeps its label but is not pressable */
 const expectReadOnlyRow = (label: RegExp) => {
     expect(screen.getByLabelText(label)).toBeOnTheScreen();
     expect(screen.queryByRole('button', {name: label})).not.toBeOnTheScreen();
@@ -215,7 +216,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expectEditableRow(amountLabel);
+            expectEditableAmountInput();
         });
 
         // An editable merchant is a text input holding the merchant
@@ -519,7 +520,7 @@ describe('MoneyRequestView edit fields', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expectEditableRow(amountLabel);
+            expectEditableAmountInput();
             expect(screen.getByDisplayValue('Coffee Shop')).toBeOnTheScreen();
             expect(screen.getByDisplayValue('2025-06-01')).toBeOnTheScreen();
         });
