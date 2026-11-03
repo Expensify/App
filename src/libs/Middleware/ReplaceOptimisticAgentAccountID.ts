@@ -128,7 +128,7 @@ const replaceOptimisticAgentAccountID: Middleware = (requestResponse) =>
             for (const [optimisticAccountIDKey, mappedAccountID] of Object.entries(mapping)) {
                 // Object.entries() returns any here.
                 const realAccountID: unknown = mappedAccountID;
-                // A null entry is a mapping that replaceOptimisticAgentWithActualAgent already consumed and cleared.
+                // Null entries represent removed mappings; valid mappings remain available to other tabs and old URLs.
                 if (typeof realAccountID !== 'number') {
                     continue;
                 }

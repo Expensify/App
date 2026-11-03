@@ -26,10 +26,11 @@ import KeyboardUtils from '@src/utils/keyboard';
 import type {ComponentRef} from 'react';
 
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type ThreeDotsMenuProps from './types';
+import type {ThreeDotsMenuHandle} from './types';
 
 /**
  * FlashList writes an explicit pixel width onto each row after the window has already resized, which moves this
@@ -136,27 +137,9 @@ function ThreeDotsMenu({
 
     const getMenuPosition = shouldSelfPosition ? calculateAndSetThreeDotsMenuPosition : getAnchorPosition;
     const getMenuPositionRef = useRef(getMenuPosition);
-    const isPopupMenuVisibleRef = useRef(isPopupMenuVisible);
-    // Compared inside the resize effect so opening the menu does not schedule a measurement of its own.
-    const windowSizeRef = useRef({windowWidth, windowHeight});
-
     useLayoutEffect(() => {
         getMenuPositionRef.current = getMenuPosition;
-        isPopupMenuVisibleRef.current = isPopupMenuVisible;
-    }, [getMenuPosition, isPopupMenuVisible]);
-
-    const refreshAnchorPosition = useCallback(() => {
-        const resolvePosition = getMenuPositionRef.current;
-        if (!isPopupMenuVisibleRef.current || !resolvePosition) {
-            return;
-        }
-        resolvePosition().then((value) => {
-            if (!isPopupMenuVisibleRef.current) {
-                return;
-            }
-            setPosition((previousPosition) => (previousPosition?.horizontal === value.horizontal && previousPosition?.vertical === value.vertical ? previousPosition : value));
-        });
-    }, []);
+    });
 
     const onThreeDotsPress = () => {
         if (isPopupMenuVisible) {
@@ -193,10 +176,21 @@ function ThreeDotsMenu({
         }
     };
 
-    useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean; onThreeDotsPress: () => void}> | undefined, () => ({
+    const updateMenuPosition = () => {
+        const resolvePosition = getMenuPositionRef.current;
+        if (!isPopupMenuVisible || !resolvePosition) {
+            return;
+        }
+        resolvePosition().then((value) => {
+            setPosition((previousPosition) => (previousPosition?.horizontal === value.horizontal && previousPosition?.vertical === value.vertical ? previousPosition : value));
+        });
+    };
+
+    useImperativeHandle(threeDotsMenuRef as React.RefObject<ThreeDotsMenuHandle & {onThreeDotsPress: () => void}> | undefined, () => ({
         isPopupMenuVisible,
         hidePopoverMenu,
         onThreeDotsPress,
+        updateMenuPosition,
     }));
     useEffect(() => {
         if ((!isBehindModal || !isPopupMenuVisible) && isContainerFocused) {
@@ -206,36 +200,20 @@ function ThreeDotsMenu({
     }, [hidePopoverMenu, isBehindModal, isPopupMenuVisible, isContainerFocused]);
 
     useLayoutEffect(() => {
-        // Record resizes that happen while the menu is closed so opening it later is not treated as a resize.
-        // While it is open, leave the recorded size unchanged until the deferred measurement runs. Updating it
-        // before that would swallow the change when this effect is cleaned up and run again.
-        if (!isPopupMenuVisible || !getMenuPositionRef.current) {
-            windowSizeRef.current = {windowWidth, windowHeight};
+        if (!getMenuPositionRef.current || !isPopupMenuVisible) {
             return;
         }
-        if (windowSizeRef.current.windowWidth === windowWidth && windowSizeRef.current.windowHeight === windowHeight) {
-            return;
-        }
-
-        // The row width lands after this commit, so measuring immediately would store the button's old coordinates.
-        const debouncedRefresh = debounce(() => {
-            windowSizeRef.current = {windowWidth, windowHeight};
-            refreshAnchorPosition();
-        }, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
-        debouncedRefresh();
-        return () => debouncedRefresh.cancel();
-    }, [windowWidth, windowHeight, isPopupMenuVisible, refreshAnchorPosition]);
+        const debouncedRepositionMenu = debounce(updateMenuPosition, CONST.TIMING.RESIZE_DEBOUNCE_TIME);
+        debouncedRepositionMenu();
+        return () => debouncedRepositionMenu.cancel();
+    }, [windowWidth, windowHeight, isPopupMenuVisible, updateMenuPosition]);
 
     useEffect(() => {
-        if (!isPopupMenuVisible || typeof HTMLElement === 'undefined') {
+        if (!isPopupMenuVisible || !(buttonRef.current instanceof HTMLElement)) {
             return;
         }
-        const anchor = buttonRef.current;
-        if (!(anchor instanceof HTMLElement)) {
-            return;
-        }
-        return subscribeToAnchorMovement(anchor, refreshAnchorPosition);
-    }, [isPopupMenuVisible, refreshAnchorPosition]);
+        return subscribeToAnchorMovement(buttonRef.current, updateMenuPosition);
+    }, [isPopupMenuVisible, updateMenuPosition]);
 
     const getIconFill = () => {
         if (!shouldChangeFillOnOpen) {

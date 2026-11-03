@@ -1,6 +1,7 @@
 import type {ChartComparison} from './buildChartSeries';
 import type {GroupedItem, SearchGroupBy} from './types';
 
+import {isChartAverage} from './buildChartSeries';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import {isTimeGroupBy} from './comparisonBuckets';
 
@@ -63,8 +64,8 @@ function accumulate(items: GroupedItem[], getDateRange: GetDateRange): GroupedIt
 
 /**
  * Turns per-period rows into running totals, where each point is the spend from the start of the range through that period.
- * A compared period accumulates the same way, so each line rises to its own range total. The Average snapshot keeps its
- * per-bucket value, drawing a flat reference line under the climbing total.
+ * A compared period accumulates the same way, so each line rises to its own range total. The Average is one value, so it
+ * stays a flat reference line under the climbing total.
  */
 function applyRunningTotal({data, comparison, groupBy}: RunningTotalParams): RunningTotalResult {
     const {getDateRange} = CHART_GROUP_BY_CONFIG[groupBy];
@@ -74,8 +75,8 @@ function applyRunningTotal({data, comparison, groupBy}: RunningTotalParams): Run
 
     const runningData = accumulate(data, getDateRange);
 
-    // Only another period accumulates alongside the current one. The Average snapshot stays per bucket, so it plots as a horizontal line.
-    if (!comparison?.periods) {
+    // Only another period accumulates alongside the current one.
+    if (!comparison || isChartAverage(comparison) || !comparison.periods) {
         return {data: runningData, comparison};
     }
 
