@@ -88,6 +88,7 @@ import {
     canSeeDefaultRoom,
     canUserPerformWriteAction,
     doesReportBelongToWorkspace,
+    doReportsHaveMatchingReportFieldValues,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
     getActionErrorsByTransaction,
@@ -204,6 +205,7 @@ import {
     isPayer,
     isPayOptional,
     isPolicyRelatedReport,
+    isReportExportedOrPending,
     isReportManager,
     isReportOutstanding,
     isReportPendingDelete,
@@ -385,6 +387,7 @@ jest.mock('@libs/PolicyUtils', () => {
         // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
         // aren't on it yet. Spread them from their own modules, which load fully.
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/features'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
         isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
@@ -6300,6 +6303,7 @@ describe('ReportUtils', () => {
                 initialReportID: transactionThreadReport.reportID,
                 initialReport: transactionThreadReport,
                 transactionReport: expenseReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
@@ -7519,7 +7523,7 @@ describe('ReportUtils', () => {
 
     describe('shouldDisplayThreadReplies', () => {
         it.each([
-            [CONST.REPORT.TYPE.SUPPORT_TICKET, false],
+            [CONST.REPORT.TYPE.SUPPORT_TICKET, true],
             [CONST.REPORT.TYPE.CHAT, true],
             [CONST.REPORT.TYPE.TASK, true],
         ] as const)('child report type %s shows the replies footer: %s', (childType, expected) => {
@@ -7535,7 +7539,7 @@ describe('ReportUtils', () => {
             // When the parent action is displayed in its original conversation
             const shouldShowReplies = shouldDisplayThreadReplies(reportAction, false);
 
-            // Then support-ticket previews omit the footer, while other threads keep it
+            // Then every thread with replies keeps the footer, support-ticket previews included
             expect(shouldShowReplies).toBe(expected);
         });
     });
@@ -11649,6 +11653,12 @@ describe('ReportUtils', () => {
     });
 
     describe('isUnread', () => {
+        beforeAll(async () => {
+            // Earlier tests switch the session to other accounts, and isUnread compares the last actor with the session account
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+        });
+
         it('returns false when the newest visible action was sent by the current user in a one-transaction report', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -11705,6 +11715,75 @@ describe('ReportUtils', () => {
             expect(isUnread(report, undefined, false, undefined)).toBe(true);
             expect(isUnread(report, undefined, false, undefined)).toBe(true);
         });
+
+        it('returns false when the current user sent the newest message and the report was not manually marked as unread', () => {
+            // Given a report whose newest message was sent by the current user, with lastReadTime behind it
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+            };
+
+            // When checking whether the report is unread
+            // Then it is read, because the user's own messages never make a report unread on their own
+            expect(isUnread(report, undefined, false, false)).toBe(false);
+        });
+
+        it('returns true when the current user manually marked their own message as unread', () => {
+            // Given a thread where only the current user has written, so markCommentAsUnread keeps them as the last actor,
+            // and the user marked their message as unread, which rolls lastReadTime back and sets the manual marker
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.999',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+                manuallyMarkedUnreadReportActionID: '100',
+            };
+
+            // When checking whether the report is unread
+            // Then it is unread, so the LHN row shows in bold
+            expect(isUnread(report, undefined, false, false)).toBe(true);
+        });
+
+        it('returns false after a manually marked report is read again, even if the marker is still set', () => {
+            // Given a report the user marked as unread and then read, which moves lastReadTime past the newest message
+            // while the manual marker stays until the user navigates back to the report
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:02.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+                manuallyMarkedUnreadReportActionID: '100',
+            };
+
+            // When checking whether the report is unread
+            // Then it is read, because the marker only matters while lastReadTime is behind the newest message
+            expect(isUnread(report, undefined, false, false)).toBe(false);
+        });
+
+        it('returns true when a message from another user is marked as unread', () => {
+            // Given a report where another user wrote the newest message and the user marked it as unread
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.999',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID + 1,
+                manuallyMarkedUnreadReportActionID: '100',
+            };
+
+            // When checking whether the report is unread
+            // Then it is unread, as it was before this change
+            expect(isUnread(report, undefined, false, false)).toBe(true);
+        });
     });
 
     describe('isEmptyReport', () => {
@@ -11753,10 +11832,12 @@ describe('ReportUtils', () => {
                 parentReportActionID: '1',
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`]: taskReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat,
+            };
 
-            expect(getPolicyExpenseChat(1, '1')?.reportID).toBe(policyExpenseChat.reportID);
+            expect(getPolicyExpenseChat(1, '1', reports)?.reportID).toBe(policyExpenseChat.reportID);
         });
     });
 
@@ -11854,6 +11935,9 @@ describe('ReportUtils', () => {
             const reportNameValuePairs = {
                 private_isArchived: DateUtils.getDBTime(),
             };
+
+            // Sign in as a participant of the fake reports so they aren't hidden for the current user
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: 1});
 
             // Add reports to Onyx
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`, archivedReport);
@@ -18112,6 +18196,82 @@ describe('ReportUtils', () => {
                 reportAction: reportActionWithError,
             });
         });
+        describe('a pay failure mirrored onto the chat report preview', () => {
+            const PAY_FAILURE_KEY = CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY;
+            const PAY_FAILURE_MESSAGE = 'The payment failed because the expense report was deleted.';
+            // A real error is keyed on microseconds. Named so the key stays a computed one, which the naming-convention rule requires.
+            const OTHER_ERROR_KEY = 1700000000000000;
+
+            function buildReportPreview(isDeleted: boolean, errors?: ReportAction['errors']): ReportAction {
+                return {
+                    ...createRandomReportAction(80001),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    // An empty message array is how a deleted preview reaches the client, see hasDeletedMessage.
+                    message: isDeleted ? [] : [{type: 'COMMENT', html: 'Expense', text: 'Expense'}],
+                    originalMessage: {linkedReportID: '80002'},
+                    shouldShow: true,
+                    errors,
+                } as ReportAction;
+            }
+
+            it('surfaces the mirror once the preview is deleted, so the chat row gets a red dot', () => {
+                // Given the payer's expense report was deleted, leaving the mirrored failure on the chat's deleted preview
+                const deletedPreview = buildReportPreview(true, {[PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE});
+
+                // When the LHN aggregates the chat's errors
+                const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                    report,
+                    {...reportActions, [deletedPreview.reportActionID]: deletedPreview},
+                    allTransactions,
+                    currentUserAccountID,
+                );
+
+                // Then the deleted preview is counted, or nothing would point the payer at the only message explaining the failure
+                expect(errors).toEqual({[PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE});
+                expect(reportAction).toEqual(deletedPreview);
+            });
+
+            it('stays quiet while the preview is still live', () => {
+                // Given the expense report still exists, so its pay action already shows the failure inline
+                const livePreview = buildReportPreview(false, {[PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE});
+
+                // When the LHN aggregates the chat's errors
+                const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                    report,
+                    {...reportActions, [livePreview.reportActionID]: livePreview},
+                    allTransactions,
+                    currentUserAccountID,
+                );
+
+                // Then the chat row shows nothing, because the red dot belongs on the expense report the payer can still open
+                expect(errors).toEqual({});
+                expect(reportAction).toBeUndefined();
+            });
+
+            it('keeps ignoring other deleted actions that carry errors', () => {
+                // Given a deleted comment that still holds an error, which the aggregator has always skipped
+                const deletedComment: ReportAction = {
+                    ...createRandomReportAction(80003),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    message: [],
+                    errors: {[OTHER_ERROR_KEY]: 'Unexpected error. Please try again later.'},
+                };
+
+                // When the LHN aggregates the chat's errors
+                const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                    report,
+                    {...reportActions, [deletedComment.reportActionID]: deletedComment},
+                    allTransactions,
+                    currentUserAccountID,
+                );
+
+                // Then it is still skipped, so letting the deleted preview through did not widen the filter
+                expect(errors).toEqual({});
+                expect(reportAction).toBeUndefined();
+            });
+        });
         it('should return smart scan error for the top-most parent report with smart scan error', async () => {
             const transactionID = '12345';
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction1.reportID}`, {
@@ -19495,56 +19655,56 @@ describe('ReportUtils', () => {
 
         test('returns search report when found in searchReports array', () => {
             const searchReports = [mockSearchReport];
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports});
             expect(result).toEqual(mockSearchReport);
         });
 
         test('returns onyx report when search report is not found but onyx report exists', async () => {
             const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports});
             expect(result).toEqual(mockOnyxReport);
         });
 
         test('returns draft report when neither search nor onyx report exists but draft exists', () => {
             const searchReports: Report[] = [];
-            const result = getReportOrDraftReport(mockReportID, searchReports, undefined, mockDraftReport);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports, reportDraft: mockDraftReport});
             expect(result).toEqual(mockDraftReport);
         });
 
         test('returns fallback report when no other reports exist', () => {
             const searchReports: Report[] = [];
-            const result = getReportOrDraftReport('unknownReportID', searchReports, mockFallbackReport);
+            const result = getReportOrDraftReport({reportID: 'unknownReportID', searchReports, fallbackReport: mockFallbackReport});
             expect(result).toEqual(mockFallbackReport);
         });
 
         test('returns undefined when no reports exist and no fallback provided', () => {
             const searchReports: Report[] = [];
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports});
             expect(result).toBeUndefined();
         });
 
         test('returns undefined when reportID is undefined', () => {
             const searchReports = [mockSearchReport];
-            const result = getReportOrDraftReport(undefined, searchReports);
+            const result = getReportOrDraftReport({reportID: undefined, searchReports});
             expect(result).toBeUndefined();
         });
 
         test('returns undefined when only reportID is provided and it is not found', () => {
-            const result = getReportOrDraftReport('unknownReportID');
+            const result = getReportOrDraftReport({reportID: 'unknownReportID'});
             expect(result).toBeUndefined();
         });
 
         test('returns fallback report when reportID is undefined', () => {
             const searchReports = [mockSearchReport];
-            const result = getReportOrDraftReport(undefined, searchReports, mockFallbackReport);
+            const result = getReportOrDraftReport({reportID: undefined, searchReports, fallbackReport: mockFallbackReport});
             expect(result).toEqual(mockFallbackReport);
         });
 
         test('prioritizes search report over onyx report when both exist', async () => {
             const searchReports = [mockSearchReport];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports});
             expect(result).toEqual(mockSearchReport);
             expect(result).not.toEqual(mockOnyxReport);
         });
@@ -19552,21 +19712,21 @@ describe('ReportUtils', () => {
         test('prioritizes onyx report over draft report when both exist', async () => {
             const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, searchReports, undefined, mockDraftReport);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports, reportDraft: mockDraftReport});
             expect(result).toEqual(mockOnyxReport);
             expect(result).not.toEqual(mockDraftReport);
         });
 
         test('prioritizes draft report over fallback when both exist', () => {
             const searchReports: Report[] = [];
-            const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport, mockDraftReport);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports, fallbackReport: mockFallbackReport, reportDraft: mockDraftReport});
             expect(result).toEqual(mockDraftReport);
             expect(result).not.toEqual(mockFallbackReport);
         });
 
         test('handles empty searchReports array gracefully', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID);
+            const result = getReportOrDraftReport({reportID: mockReportID});
             expect(result).toEqual(mockOnyxReport);
         });
 
@@ -19577,19 +19737,19 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, explicitReport);
+            const result = getReportOrDraftReport({reportID: mockReportID, report: explicitReport});
             expect(result).toEqual(explicitReport);
             expect(result).not.toEqual(mockOnyxReport);
         });
 
         test('falls back to Onyx state when 5th param is undefined', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, undefined);
+            const result = getReportOrDraftReport({reportID: mockReportID});
             expect(result).toEqual(mockOnyxReport);
         });
 
         test('still finds draft report when 5th param is undefined', () => {
-            const result = getReportOrDraftReport(mockReportID, undefined, undefined, mockDraftReport, undefined);
+            const result = getReportOrDraftReport({reportID: mockReportID, reportDraft: mockDraftReport});
             expect(result).toEqual(mockDraftReport);
         });
     });
@@ -20877,7 +21037,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(regularChat, {});
+            const result = getViolatingReportIDForRBRInLHN(regularChat, {}, undefined);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -20896,7 +21056,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, {});
+            const result = getViolatingReportIDForRBRInLHN(chatReport, {}, undefined);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -20914,7 +21074,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, {});
+            const result = getViolatingReportIDForRBRInLHN(chatReport, {}, undefined);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -21001,7 +21161,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBe(expenseReportID);
 
             await Onyx.clear();
@@ -21090,14 +21250,14 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBeNull();
 
             // Positive control: the same violating transaction lights the RBR when it isn't pending deletion.
             // This proves the null above comes from the DELETE filter and not from some unrelated gate.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: null});
             await waitForBatchedUpdates();
-            expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+            expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
             await Onyx.clear();
         });
@@ -21206,7 +21366,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBe(expenseReportID);
 
             await Onyx.clear();
@@ -21294,7 +21454,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -21380,7 +21540,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -21467,7 +21627,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBe(expenseReportID);
 
             await Onyx.clear();
@@ -21572,7 +21732,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -21667,7 +21827,7 @@ describe('ReportUtils', () => {
                     await Onyx.clear();
 
                     // Given a submitted instant-submit report with only companyCardRequired
-                    const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                    const {chatReport, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                         `only-${violationType}`,
                         [{name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: violationType, showInReview: true}],
                         false,
@@ -21677,7 +21837,7 @@ describe('ReportUtils', () => {
 
                     // When the Inbox checks for the red dot
                     // Then the dot stays off, because the submitter cannot fix this after submit
-                    expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
+                    expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBeNull();
 
                     await Onyx.clear();
                 },
@@ -21686,13 +21846,13 @@ describe('ReportUtils', () => {
             it('should still surface RBR on an open expense report whose only violation is companyCardRequired', async () => {
                 await Onyx.clear();
 
-                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, expenseReportID, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'open',
                     [{name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                     true,
                 );
 
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21701,7 +21861,7 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
 
                 // Given a submitted instant-submit report with companyCardRequired and a violation the submitter can fix
-                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, expenseReportID, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'alongside-resolvable',
                     [
                         {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
@@ -21714,7 +21874,7 @@ describe('ReportUtils', () => {
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays on, because the fixable violation is still there
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21725,7 +21885,7 @@ describe('ReportUtils', () => {
                 // Given a submitted instant-submit report where the category violation is still hidden while it is being analyzed
                 const pendingAutoCategorizationTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
 
-                const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'alongside-hidden',
                     [
                         {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
@@ -21738,7 +21898,7 @@ describe('ReportUtils', () => {
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays off, because nothing left is something the submitter can fix
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBeNull();
 
                 await Onyx.clear();
             });
@@ -21747,7 +21907,7 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
 
                 // Given a submitted instant-submit report with only a modifiedAmount violation
-                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, expenseReportID, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'modified-amount-violation',
                     [{name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                     false,
@@ -21757,7 +21917,7 @@ describe('ReportUtils', () => {
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays on, because this modifiedAmount can still be fixed
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21766,13 +21926,13 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
 
                 // Given a submitted report that is not instant submit, with a violation the submitter can fix
-                const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario('submitted-non-instant', [
+                const {chatReport, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario('submitted-non-instant', [
                     {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
                 ]);
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays off, because only instant submit keeps Fix after submit
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBeNull();
 
                 await Onyx.clear();
             });
@@ -21781,7 +21941,7 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
 
                 // Given a draft report with a violation the submitter can fix
-                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, expenseReportID, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'draft-non-instant',
                     [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                     true,
@@ -21789,7 +21949,7 @@ describe('ReportUtils', () => {
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays on, because a draft can still be fixed
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21806,6 +21966,126 @@ describe('ReportUtils', () => {
                 expect(ViolationsUtils.hasVisibleViolationsForUser(expenseReport, transactionViolationsCollection, currentUserEmail, currentUserAccountID, policyData, [transaction])).toBe(
                     true,
                 );
+
+                await Onyx.clear();
+            });
+        });
+
+        /**
+         * The policy must come from the caller rather than the module-level `allPolicies` Onyx cache that
+         * ReportUtils used to read. Auto-categorization is the discriminator: with `autoCategorizeNewExpenses`
+         * off, `isCategoryBeingAnalyzed` bails out early and the `missingCategory` violation drives the RBR;
+         * with it on, the expense is still inside the grace period so the violation stays hidden. A stale
+         * cached policy would therefore flip the RBR either way. See https://github.com/Expensify/App/issues/66415.
+         */
+        describe('reads the policy from the caller, not the Onyx cache', () => {
+            function buildAutoCategorizePolicy(autoCategorizeNewExpenses: boolean): Policy {
+                return {
+                    id: 'placeholder',
+                    name: 'Auto Categorize Workspace',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: CONST.CURRENCY.USD,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    employeeList: {[currentUserEmail]: {role: CONST.POLICY.ROLE.ADMIN}},
+                    owner: currentUserEmail,
+                    autoCategorizeNewExpenses,
+                };
+            }
+
+            /**
+             * Builds an open expense report owned by the current user whose single uncategorized transaction sits
+             * inside the auto-categorization grace period and carries a `missingCategory` violation, and seeds
+             * `cachedPolicy` into Onyx as that workspace's policy.
+             */
+            async function setUpAutoCategorizeScenario(scenarioKey: string, cachedPolicy: Policy) {
+                const policyID = `policy-rbr-auto-categorize-${scenarioKey}`;
+                const chatReportID = `chat-rbr-auto-categorize-${scenarioKey}`;
+                const expenseReportID = `expense-rbr-auto-categorize-${scenarioKey}`;
+                const transactionID = `transaction-rbr-auto-categorize-${scenarioKey}`;
+
+                const chatReport: Report = {
+                    ...createPolicyExpenseChat(820),
+                    reportID: chatReportID,
+                    ownerAccountID: currentUserAccountID,
+                    policyID,
+                    iouReportID: expenseReportID,
+                    hasOutstandingChildRequest: true,
+                };
+
+                const expenseReport: Report = {
+                    ...createExpenseReport(821),
+                    reportID: expenseReportID,
+                    chatReportID,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: 42,
+                    policyID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    total: 5000,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                // Inside the 60-second auto-categorization grace period, so the category counts as still being analyzed.
+                const pendingAutoCategorizationTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
+                const transaction: Transaction = {
+                    ...createRandomTransaction(820),
+                    transactionID,
+                    reportID: expenseReportID,
+                    amount: 5000,
+                    currency: CONST.CURRENCY.USD,
+                    status: CONST.TRANSACTION.STATUS.POSTED,
+                    reimbursable: true,
+                    category: '',
+                    comment: {pendingAutoCategorizationTime},
+                };
+
+                const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as OnyxKey;
+                const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
+                    [transactionViolationsKey]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                };
+
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+                await waitForBatchedUpdates();
+
+                await Promise.all([
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...cachedPolicy, id: policyID}),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction),
+                    Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
+                ]);
+                await waitForBatchedUpdates();
+
+                return {chatReport, expenseReportID, transactionViolationsCollection};
+            }
+
+            it('hides the RBR when the passed policy auto-categorizes even though the cached policy does not', async () => {
+                // Given a workspace whose cached policy has auto-categorization off, which would surface the violation
+                await Onyx.clear();
+                const {chatReport, transactionViolationsCollection} = await setUpAutoCategorizeScenario('cached-off', buildAutoCategorizePolicy(false));
+
+                // When the caller passes the policy it actually holds, on which auto-categorization is on
+                const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, buildAutoCategorizePolicy(true));
+
+                // Then no RBR is reported, because the caller's policy decides and the stale cache is never consulted
+                expect(result).toBeNull();
+
+                await Onyx.clear();
+            });
+
+            it('shows the RBR when the passed policy does not auto-categorize even though the cached policy does', async () => {
+                // Given a workspace whose cached policy has auto-categorization on, which would hide the violation
+                await Onyx.clear();
+                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpAutoCategorizeScenario('cached-on', buildAutoCategorizePolicy(true));
+
+                // When the caller passes the policy it actually holds, on which auto-categorization is off
+                const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, buildAutoCategorizePolicy(false));
+
+                // Then the violating report surfaces, so a stale cache can never suppress a real RBR
+                expect(result).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21939,7 +22219,7 @@ describe('ReportUtils', () => {
         ]);
         await waitForBatchedUpdates();
 
-        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policy1);
         expect(shouldShowRBR).toBe(false);
 
         const reason = reasonForReportToBeInOptionList({
@@ -22058,7 +22338,7 @@ describe('ReportUtils', () => {
         ]);
         await waitForBatchedUpdates();
 
-        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policy1);
         expect(shouldShowRBR).toBe(false);
         await Onyx.clear();
     });
@@ -29190,6 +29470,40 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('isReportExportedOrPending', () => {
+        it('returns true for a historical export action when the report flag is unavailable', () => {
+            // Given a report from the legacy data shape where export status only exists in report actions.
+            const report = createMock<Report>({reportID: 'exported-report'});
+            const exportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'export-action',
+                created: '2026-01-01 00:00:00.000',
+                originalMessage: {markedManually: true},
+            });
+
+            // When merge-warning export state is resolved.
+            const result = isReportExportedOrPending({[exportAction.reportActionID]: exportAction}, report);
+
+            // Then the historical export action is treated as exported.
+            expect(result).toBe(true);
+        });
+
+        it('returns true while an export is pending even when the persisted exported flag is false', () => {
+            // Given an optimistic export that has not yet flipped isExportedToIntegration.
+            const report = createMock<Report>({
+                reportID: 'pending-export-report',
+                isExportedToIntegration: false,
+                pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            });
+
+            // When merge-warning export state is resolved.
+            const result = isReportExportedOrPending([], report);
+
+            // Then the pending export still triggers the warning.
+            expect(result).toBe(true);
+        });
+    });
+
     describe('canMergeReports', () => {
         const OWNER_ID = 10;
         const ownerEmail = 'owner@example.com';
@@ -29229,11 +29543,45 @@ describe('ReportUtils', () => {
             });
         }
 
+        /** Minimal valid expense report in the Approved state. */
+        function makeApprovedReport(overrides?: Partial<Report>) {
+            return createMock<Report>({
+                reportID: String(reportCounter++),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: OWNER_ID,
+                policyID: POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: MANAGER_ID,
+                isWaitingOnBankAccount: false,
+                ...overrides,
+            });
+        }
+
+        function makeReportField(fieldID: string, value: string, type: PolicyReportField['type'] = CONST.REPORT_FIELD_TYPES.TEXT) {
+            return createMock<PolicyReportField>({
+                fieldID,
+                name: fieldID,
+                type,
+                value,
+                defaultValue: '',
+                deletable: true,
+                target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
+                values: type === CONST.REPORT_FIELD_TYPES.LIST ? ['Acme', 'Globex'] : [],
+                keys: [],
+                externalIDs: [],
+                disabledOptions: [],
+                orderWeight: 1,
+                isTax: false,
+            });
+        }
+
         /** The workspace policy is passed in explicitly, so these fixtures never touch Onyx. */
         const adminPolicy = createMock<Policy>({
             ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
             id: POLICY_ID,
             role: CONST.POLICY.ROLE.ADMIN,
+            areReportFieldsEnabled: true,
         });
 
         const memberPolicy = createMock<Policy>({
@@ -29346,6 +29694,272 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             } as Report;
             expect(canMergeReports([makeOpenReport(), approved], USER_ID, undefined, undefined, undefined, adminPolicy)).toBe(false);
+        });
+
+        it('returns true when all reports are approved and the current user is an admin', () => {
+            const approved = makeApprovedReport();
+            const approved2 = makeApprovedReport();
+            expect(canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, adminPolicy)).toBe(true);
+        });
+
+        it('returns true when editable report field values match', () => {
+            // Given two otherwise mergeable reports with the same editable report field value.
+            const firstField = makeReportField('client', 'Acme');
+            const secondField = makeReportField('client', 'Acme');
+            const approved = makeApprovedReport({fieldList: {expensify_client: firstField}});
+            const approved2 = makeApprovedReport({fieldList: {expensify_client: secondField}});
+
+            // When merge eligibility is checked.
+            const result = doReportsHaveMatchingReportFieldValues([approved, approved2], adminPolicy);
+
+            // Then matching field values keep the reports mergeable.
+            expect(result).toBe(true);
+        });
+
+        it.each([
+            ['Open', makeOpenReport],
+            ['Processing', makeProcessingReport],
+            ['Approved', makeApprovedReport],
+        ] as const)('ignores leading and trailing spaces in text fields on %s reports', (_state, makeReport) => {
+            // Given two reports with text values that only differ by whitespace, which the editor does not let users change on its own.
+            const first = makeReport({fieldList: {expensify_client: makeReportField('client', ' Project X ')}});
+            const second = makeReport({fieldList: {expensify_client: makeReportField('client', 'Project X')}});
+
+            // When their editable fields are compared for merging.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then insignificant whitespace cannot block a merge that the user has no way to fix directly.
+            expect(result).toBe(true);
+        });
+
+        it('returns false when an editable report field value differs', () => {
+            // Given two otherwise mergeable reports with different values for the same editable report field.
+            const firstField = makeReportField('client', 'Acme');
+            const secondField = makeReportField('client', 'Globex');
+            const approved = makeApprovedReport({fieldList: {expensify_client: firstField}});
+            const approved2 = makeApprovedReport({fieldList: {expensify_client: secondField}});
+
+            // When merge eligibility is checked.
+            const result = doReportsHaveMatchingReportFieldValues([approved, approved2], adminPolicy);
+
+            // Then the merge is blocked so the source report field value cannot be lost.
+            expect(result).toBe(false);
+            // Eligibility stays independent so the bulk menu can open the RHP and show the mismatch.
+            expect(canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, adminPolicy)).toBe(true);
+        });
+
+        it.each([
+            ['Open', makeOpenReport],
+            ['Processing', makeProcessingReport],
+            ['Approved', makeApprovedReport],
+        ] as const)('ignores differing report fields on %s reports when report fields are disabled', (_state, makeReport) => {
+            // Given otherwise mergeable reports with different saved values for a disabled workspace feature.
+            const first = makeReport({fieldList: {expensify_client: makeReportField('client', 'Acme')}});
+            const second = makeReport({fieldList: {expensify_client: makeReportField('client', 'Globex')}});
+            const policyWithFieldsDisabled = {...adminPolicy, areReportFieldsEnabled: false};
+
+            // When checking merge eligibility before and after turning off report fields.
+            const withFieldsEnabled = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+            const withFieldsDisabled = doReportsHaveMatchingReportFieldValues([first, second], policyWithFieldsDisabled);
+
+            // Then the mismatch blocks merging only while the workspace's report fields are editable.
+            expect(withFieldsEnabled).toBe(false);
+            expect(withFieldsDisabled).toBe(true);
+        });
+
+        it('ignores list report fields without enabled options', () => {
+            // Given reports with different saved selections whose list field has no selectable options anymore.
+            const field = {...makeReportField('client', 'A', CONST.REPORT_FIELD_TYPES.LIST), values: ['A', 'B'], disabledOptions: [false, false]};
+            const first = makeApprovedReport({fieldList: {expensify_client: field}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, value: 'B'}}});
+            const policyWithHiddenList = {
+                ...adminPolicy,
+                fieldList: {expensify_client: {...field, disabledOptions: [true, true]}},
+            };
+
+            // When checking merge eligibility using the current policy options rather than stale report options.
+            const withEnabledOptions = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+            const withoutEnabledOptions = doReportsHaveMatchingReportFieldValues([first, second], policyWithHiddenList);
+
+            // Then hidden values do not block the merge, but visible mismatched selections still do.
+            expect(withEnabledOptions).toBe(false);
+            expect(withoutEnabledOptions).toBe(true);
+        });
+
+        it('still compares visible fields when another field is hidden', () => {
+            // Given a hidden list field and a visible text field with mismatching values on the same reports.
+            const hiddenField = {...makeReportField('hidden', 'A', CONST.REPORT_FIELD_TYPES.LIST), values: ['A', 'B'], disabledOptions: [true, true]};
+            const first = makeApprovedReport({fieldList: {expensify_hidden: hiddenField, expensify_client: makeReportField('client', 'Acme')}});
+            const second = makeApprovedReport({fieldList: {expensify_hidden: {...hiddenField, value: 'B'}, expensify_client: makeReportField('client', 'Globex')}});
+
+            // When the hidden field is excluded from validation.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then the visible client field mismatch still prevents merging.
+            expect(result).toBe(false);
+        });
+
+        it.each(['externalID', 'defaultExternalID'] as const)('returns false when dropdown %s values differ despite matching labels', (idKey) => {
+            // Given duplicate dropdown labels identifying different accounting options.
+            const field = {
+                ...makeReportField('client', 'Acme', CONST.REPORT_FIELD_TYPES.LIST),
+                ...(idKey === 'defaultExternalID' ? {value: undefined, defaultValue: 'Acme'} : {}),
+            };
+            const first = makeApprovedReport({fieldList: {expensify_client: {...field, [idKey]: 'client-1'}}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, [idKey]: 'client-2'}}});
+
+            // When merge eligibility is checked.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then differing option identities block merging even though their labels match.
+            expect(result).toBe(false);
+        });
+
+        it('ignores historical default IDs for an explicit dropdown value', () => {
+            // Given matching explicit selections whose reports retain different historical defaults.
+            const field = makeReportField('client', 'Globex', CONST.REPORT_FIELD_TYPES.LIST);
+            const first = makeApprovedReport({fieldList: {expensify_client: {...field, defaultValue: 'Acme', defaultExternalID: 'acme-id'}}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, defaultValue: 'Other', defaultExternalID: 'other-id'}}});
+
+            // When merge eligibility is checked without an explicit option ID.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then inactive default IDs do not block matching explicit values.
+            expect(result).toBe(true);
+        });
+
+        it.each([{externalID: ''}, {value: undefined, defaultValue: 'Acme', defaultExternalID: ''}, {values: ['Acme'], externalIDs: ['']}])(
+            'treats empty dropdown IDs as missing: %j',
+            (overrides) => {
+                // Given matching dropdown values with an empty selected, default, or option ID on one report.
+                const field = makeReportField('client', 'Acme', CONST.REPORT_FIELD_TYPES.LIST);
+                const first = makeApprovedReport({fieldList: {expensify_client: {...field, ...overrides}}});
+                const second = makeApprovedReport({fieldList: {expensify_client: field}});
+
+                // When merge eligibility compares empty IDs with absent IDs.
+                const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+                // Then equivalent missing identities do not block merging.
+                expect(result).toBe(true);
+            },
+        );
+
+        it('returns true when a dropdown selection matches another report’s default option', () => {
+            // Given an explicit selection and a default selection identifying the same accounting option.
+            const field = makeReportField('client', 'Acme', CONST.REPORT_FIELD_TYPES.LIST);
+            const first = makeApprovedReport({fieldList: {expensify_client: {...field, externalID: 'client-1', defaultExternalID: 'client-2'}}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, value: undefined, defaultValue: 'Acme', defaultExternalID: 'client-1'}}});
+
+            // When merge eligibility is checked.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then the explicit option takes precedence and matches the default option.
+            expect(result).toBe(true);
+        });
+
+        it.each([false, true])('resolves a unique dropdown option ID with policy options available: %s', (hasPolicyOptions) => {
+            // Given an offline selection without an ID and another report using the same default option.
+            const field = {
+                ...makeReportField('client', 'Acme', CONST.REPORT_FIELD_TYPES.LIST),
+                values: ['Acme', 'Globex'],
+                externalIDs: ['acme-id', 'globex-id'],
+            };
+            const first = makeApprovedReport({fieldList: {expensify_client: {...field, defaultValue: 'Globex', defaultExternalID: 'globex-id'}}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, value: undefined, defaultValue: 'Acme', defaultExternalID: 'acme-id'}}});
+            const comparisonPolicy = hasPolicyOptions
+                ? {...adminPolicy, fieldList: {expensify_client: {...field, values: ['Globex', 'Acme'], externalIDs: ['globex-id', 'acme-id']}}}
+                : adminPolicy;
+
+            // When field validation resolves the explicit selection from the matching option list.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], comparisonPolicy);
+
+            // Then matching option identities allow merging despite the absent explicit ID.
+            expect(result).toBe(true);
+        });
+
+        it('does not infer a dropdown option ID from duplicate labels', () => {
+            // Given duplicate labels whose distinct accounting IDs cannot be resolved from the label alone.
+            const field = {
+                ...makeReportField('client', 'Acme', CONST.REPORT_FIELD_TYPES.LIST),
+                values: ['Acme', 'Acme'],
+                externalIDs: ['client-1', 'client-2'],
+            };
+            const first = makeApprovedReport({fieldList: {expensify_client: field}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, externalID: 'client-1'}}});
+
+            // When merging would require guessing which duplicate option was selected.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then the unknown identity remains distinct from the explicit option ID.
+            expect(result).toBe(false);
+        });
+
+        it('returns true when only formula report field values differ', () => {
+            // Given two otherwise mergeable reports whose only differing field is a non-editable formula field.
+            const firstField = makeReportField('calculatedTotal', '100', CONST.REPORT_FIELD_TYPES.FORMULA);
+            const secondField = makeReportField('calculatedTotal', '200', CONST.REPORT_FIELD_TYPES.FORMULA);
+            const approved = makeApprovedReport({fieldList: {expensify_calculatedTotal: firstField}});
+            const approved2 = makeApprovedReport({fieldList: {expensify_calculatedTotal: secondField}});
+
+            // When merge eligibility is checked.
+            const result = doReportsHaveMatchingReportFieldValues([approved, approved2], adminPolicy);
+
+            // Then the formula mismatch is ignored because users cannot edit it.
+            expect(result).toBe(true);
+        });
+
+        it('returns false when approved reports have different managerIDs', () => {
+            // Given two approved reports in the same workspace and state but with different approval chains.
+            const approved = makeApprovedReport({managerID: MANAGER_ID});
+            const approved2 = makeApprovedReport({managerID: MANAGER_ID + 1});
+
+            // When an admin checks whether they can merge the reports.
+            const result = canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, adminPolicy);
+
+            // Then the reports are rejected because the v1 same-manager rule must still apply.
+            expect(result).toBe(false);
+        });
+
+        it.each(['isWaitingOnBankAccount', 'isWaitingForCancelledReimbursement'] as const)('rejects approved reports with %s', (flag) => {
+            // Given approved reports with a reimbursement still processing on one report.
+            const approved = makeApprovedReport();
+            const waitingReport = makeApprovedReport({[flag]: true});
+
+            // When an admin checks both a mixed selection and two reports waiting for payment.
+            const mixedResult = canMergeReports([approved, waitingReport], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const allWaitingResult = canMergeReports([waitingReport, makeApprovedReport({[flag]: true})], USER_ID, undefined, undefined, undefined, adminPolicy);
+
+            // Then neither selection can delete reports tied to an active reimbursement.
+            expect(mixedResult).toBe(false);
+            expect(allWaitingResult).toBe(false);
+        });
+
+        it('rejects two reimbursed reports for an admin', () => {
+            // Given reports that match each other but have already been paid.
+            const paid = {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            };
+            const reports = [makeApprovedReport(paid), makeApprovedReport(paid)];
+
+            // When eligibility reaches the paid-state check rather than failing the same-state rule.
+            const result = canMergeReports(reports, USER_ID, undefined, undefined, undefined, adminPolicy);
+
+            // Then paid reports stay outside the merge scope.
+            expect(result).toBe(false);
+        });
+
+        it('returns false when all reports are approved and the current user is not an admin', async () => {
+            await waitForBatchedUpdates();
+            const approved = makeApprovedReport();
+            const approved2 = makeApprovedReport();
+            expect(canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, memberPolicy)).toBe(false);
+        });
+
+        it('returns false when approved and processing reports are mixed', () => {
+            const approved = makeApprovedReport();
+            const processing = makeProcessingReport();
+            expect(canMergeReports([approved, processing], USER_ID, undefined, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when a report is closed', () => {

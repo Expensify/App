@@ -4,7 +4,7 @@ import {bulkDuplicateExpenses} from '@libs/actions/IOU/Duplicate';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {canDuplicateExpenseIntoSourceReport, getPolicyExpenseChat} from '@libs/ReportUtils';
+import {canDuplicateExpenseIntoSourceReport} from '@libs/ReportUtils';
 
 import {getMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
 
@@ -16,6 +16,7 @@ import type {Policy, Report, Transaction} from '@src/types/onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 
 import {useCurrencyListActions} from './useCurrencyList';
@@ -99,7 +100,7 @@ function useBulkDuplicateAction({
             isASAPSubmitBetaEnabled,
             rules,
         });
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
     const duplicateTargetPolicy = canDuplicateIntoSourceReport ? sourcePolicy : defaultExpensePolicy;
     const duplicateTargetReport = canDuplicateIntoSourceReport ? sourceReport : activePolicyExpenseChat;
 
