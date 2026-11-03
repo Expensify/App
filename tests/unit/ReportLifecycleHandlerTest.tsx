@@ -34,7 +34,7 @@ function Handler({isInPreloadedTab, isHiddenPreMount}: HandlerProps) {
 describe('ReportLifecycleHandler', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        jest.mocked(useCurrentReportIDState).mockReturnValue({currentReportID: '1', currentRHPReportID: undefined});
+        jest.mocked(useCurrentReportIDState).mockReturnValue({currentReportID: '1'});
     });
 
     it('clears the notifications of the topmost report the user is looking at', () => {
