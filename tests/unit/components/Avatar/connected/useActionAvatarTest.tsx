@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated -- report action fixtures write originalMessage, which the backend still sends */
 import {renderHook} from '@testing-library/react-native';
 
 import useActionAvatar from '@components/Avatar/connected/useActionAvatar';
@@ -17,6 +18,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../../../utils/createMock';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 const USER_ACCOUNT_ID = 1;
@@ -152,10 +154,10 @@ const tripRoom: Report = {reportID: TRIP_ROOM_ID, type: CONST.REPORT.TYPE.CHAT, 
 const baseAction = {reportActionID: PREVIEW_ID, created: '2024-01-01 00:00:00', actorAccountID: USER_ACCOUNT_ID};
 
 const comment = (overrides: Partial<ReportAction> = {}): ReportAction =>
-    ({...baseAction, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, message: [{type: 'COMMENT', html: 'Hi', text: 'Hi'}], ...overrides}) as ReportAction;
+    createMock<ReportAction>({...baseAction, actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, message: [{type: 'COMMENT', html: 'Hi', text: 'Hi'}], ...overrides});
 
 const reportPreview = (childReport: Report, overrides: Partial<ReportAction> = {}): ReportAction =>
-    ({
+    createMock<ReportAction>({
         ...baseAction,
         actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
         childReportID: childReport.reportID,
@@ -163,26 +165,26 @@ const reportPreview = (childReport: Report, overrides: Partial<ReportAction> = {
         childManagerAccountID: childReport.managerID,
         originalMessage: {linkedReportID: childReport.reportID},
         ...overrides,
-    }) as ReportAction;
+    });
 
-const harvestedSubmit = {
+const harvestedSubmit = createMock<ReportAction>({
     ...baseAction,
     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
     originalMessage: {amount: 100, currency: CONST.CURRENCY.USD, harvesting: true},
-} as ReportAction;
+});
 
-const createdExpense = {
+const createdExpense = createMock<ReportAction>({
     ...baseAction,
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: 't1', IOUReportID: EXPENSE_REPORT_ID, amount: 100, currency: CONST.CURRENCY.USD},
-} as ReportAction;
+});
 
-const tripPreview = {
+const tripPreview = createMock<ReportAction>({
     ...baseAction,
     actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
     childReportID: TRIP_ROOM_ID,
     originalMessage: {linkedReportID: TRIP_ROOM_ID},
-} as ReportAction;
+});
 
 // Records what the sender lookup is asked for while still answering it, so the parity checks keep running on real lookups.
 const mockSenderLookupCalls: unknown[] = [];
@@ -214,7 +216,7 @@ const SCENARIOS: Scenario[] = [
     [
         'a Concierge reply revealing a human agent',
         dm,
-        comment({actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, originalMessage: {html: 'Hi', whisperedTo: [], humanAgentAccountID: AGENT_ACCOUNT_ID}} as Partial<ReportAction>),
+        comment(createMock<ReportAction>({actorAccountID: CONST.ACCOUNT_ID.CONCIERGE, originalMessage: {html: 'Hi', whisperedTo: [], humanAgentAccountID: AGENT_ACCOUNT_ID}})),
         false,
         dm,
     ],

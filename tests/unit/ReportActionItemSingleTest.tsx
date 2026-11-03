@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated -- report action fixtures write originalMessage, which the backend still sends */
 import {act, screen, waitFor} from '@testing-library/react-native';
 
 import Text from '@components/Text';
@@ -15,6 +16,7 @@ import React from 'react';
 import {StyleSheet} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -114,14 +116,14 @@ describe('ReportActionItemSingle', () => {
             ownerAccountID: OWNER_ACCOUNT_ID,
             managerID: MANAGER_ACCOUNT_ID,
         };
-        const reportPreview = {
+        const reportPreview = createMock<ReportAction>({
             reportActionID: '702',
             actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
             actorAccountID: OWNER_ACCOUNT_ID,
             created: '2024-01-01 00:00:00',
             childReportID: '701',
             originalMessage: {linkedReportID: '701'},
-        } as ReportAction;
+        });
 
         it('names both the manager and the owner when the report has no single sender', async () => {
             // Given an IOU report both people added expenses to, previewed in their DM
@@ -165,7 +167,7 @@ describe('ReportActionItemSingle', () => {
                         moderationDecision: {decision: CONST.MODERATION.MODERATOR_DECISION_HIDDEN},
                     },
                 ],
-            } as ReportAction;
+            };
         }
 
         async function setupReportActionItemSingle(action: ReportAction, report: Report) {
