@@ -14,7 +14,7 @@ import {buildOptimisticIOUReportAction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, Session, Transaction} from '@src/types/onyx';
+import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 
 import type {UseOnyxResult} from 'react-native-onyx';
 
@@ -257,7 +257,7 @@ describe('RemoveHoldPrimaryAction', () => {
             created: '2024-01-01 00:00:00.000',
         });
         await Onyx.multiSet({
-            [ONYXKEYS.SESSION]: {accountID: TEST_ACCOUNT_ID, email: TEST_EMAIL} as Session,
+            [ONYXKEYS.SESSION]: {accountID: TEST_ACCOUNT_ID, email: TEST_EMAIL},
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${THREAD_REPORT_ID}` as const]: {[HOLD_ACTION_ID]: buildHoldAction(HOLD_ACTION_ID)},
             [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${secondThreadReportID}` as const]: {[secondHoldActionID]: buildHoldAction(secondHoldActionID)},
         });
