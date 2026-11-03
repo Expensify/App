@@ -45,7 +45,14 @@ import {
     resolveLastActionContext,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
-import {formatReportLastMessageText, getMovedActionMessage, getMovedTransactionMessage, getReportPreviewMessage, parseMovedTransactionReportIDs} from '@libs/ReportUtils';
+import {
+    buildOptimisticIOUReportAction,
+    formatReportLastMessageText,
+    getMovedActionMessage,
+    getMovedTransactionMessage,
+    getReportPreviewMessage,
+    parseMovedTransactionReportIDs,
+} from '@libs/ReportUtils';
 import {isScanning} from '@libs/TransactionUtils';
 
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
@@ -63,7 +70,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
-import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, convertToDisplayStringWithoutCurrency, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -313,8 +320,7 @@ describe('ReportAlternateTextUtils', () => {
                 actorAccountID: 2,
                 person: [{type: 'TEXT', style: 'strong', text: 'Bob Boron'}],
                 message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
-                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
-            } as Partial<ReportAction>);
+            });
 
             // Given a report whose newest action is a whisper from Bob aimed at one account, and whose older comment is from Alice
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
@@ -531,8 +537,7 @@ describe('ReportAlternateTextUtils', () => {
                 reportID: REPORT_ID,
                 created: '2024-01-01 12:00:00.000',
                 message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
-                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
-            } as Partial<ReportAction>);
+            });
 
             // Given a report whose newest action is a whisper aimed at one account, after an older visible comment
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
@@ -602,16 +607,20 @@ describe('ReportAlternateTextUtils', () => {
                 reportID: REPORT_ID,
                 created: '2024-01-01 12:00:00.000',
                 message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
-                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
-            } as Partial<ReportAction>);
+            });
             /** The thread's newest action is the expense's own IOU CREATE, which the preview skips in favor of the parent's last action. */
-            const threadExpense = makeAction(CONST.REPORT.ACTIONS.TYPE.IOU, {
-                reportActionID: '81005',
-                reportID: THREAD_REPORT_ID,
+            const threadExpense = buildOptimisticIOUReportAction({
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                comment: '',
+                participants: [],
+                transactionID: '81006',
+                iouReportID: THREAD_REPORT_ID,
                 created: '2024-01-01 13:00:00.000',
-                message: [{type: 'COMMENT', html: '$1.00 expense', text: '$1.00 expense'}],
-                originalMessage: {type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, IOUTransactionID: '81006', amount: 100, currency: CONST.CURRENCY.USD},
-            } as Partial<ReportAction>);
+                reportActionID: '81005',
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
 
             // Given a one-transaction report whose thread ends with the expense, and whose parent ends with a whisper aimed at one account
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
@@ -655,8 +664,7 @@ describe('ReportAlternateTextUtils', () => {
                 reportID: REPORT_ID,
                 created: '2024-01-01 12:00:00.000',
                 message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
-                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
-            } as Partial<ReportAction>);
+            });
 
             // Given a one-transaction report with an empty thread, whose only action is a whisper aimed at one account
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
@@ -701,8 +709,7 @@ describe('ReportAlternateTextUtils', () => {
                 reportID: THREAD_REPORT_ID,
                 created: '2024-01-01 12:00:00.000',
                 message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
-                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
-            } as Partial<ReportAction>);
+            });
 
             // Given a one-transaction report whose thread's newest action is a whisper aimed at one account, newer than the parent's comment
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
@@ -751,8 +758,7 @@ describe('ReportAlternateTextUtils', () => {
                 reportID: REPORT_ID,
                 created: '2024-01-01 12:00:00.000',
                 message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
-                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
-            } as Partial<ReportAction>);
+            });
 
             // Given a report whose newest action is a whisper aimed at one account, after an older visible comment
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
