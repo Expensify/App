@@ -13,6 +13,7 @@ import {updateSelectedExpensifyCardFeed} from '@libs/actions/Card';
 import {filterInactiveCardsForWorkspace, getCardSettings} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {isArchivedPolicy} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -77,7 +78,8 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
         if (paymentBankAccountID) {
             return (
                 <WorkspaceExpensifyCardListPage
-                    cardsList={cardsList}
+                    // Archived workspaces don't show cards. Checking archivedDate also hides them while an offline archive is pending.
+                    cardsList={isArchivedPolicy(policy) ? undefined : cardsList}
                     fundID={defaultFundID}
                     route={route}
                 />

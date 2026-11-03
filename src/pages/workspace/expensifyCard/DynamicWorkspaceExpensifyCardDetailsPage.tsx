@@ -40,7 +40,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {arePolicyRulesEnabled, canMemberWrite, getConnectedIntegration} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, canMemberWrite, getConnectedIntegration, isArchivedPolicy} from '@libs/PolicyUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getSpendRuleByCardID, getSpendRuleSummaryText} from '@libs/SpendRulesUtils';
 
@@ -301,7 +301,8 @@ function DynamicWorkspaceExpensifyCardDetailsPage({route}: DynamicWorkspaceExpen
             />
         </>
     );
-    if (!card && !isLoadingOnyxValue(allFeedsCardsResult)) {
+    // Archived workspaces don't show cards, so a direct link to one shouldn't open it either.
+    if (isArchivedPolicy(policy) || (!card && !isLoadingOnyxValue(allFeedsCardsResult))) {
         return <NotFoundPage />;
     }
 
