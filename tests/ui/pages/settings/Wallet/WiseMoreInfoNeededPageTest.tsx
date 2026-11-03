@@ -169,6 +169,30 @@ describe('WiseMoreInfoNeededPage', () => {
         }
     });
 
+    it("keeps the link of an open form when the connection comes back, so the form doesn't lose it", async () => {
+        // Given the link arrived and Wise's form is open on top of the page
+        mockKYCReviewLinkResponse();
+        await renderPage();
+        await pressContinue();
+        act(() => {
+            setHasRadio(false);
+        });
+
+        try {
+            // When the connection comes back
+            act(() => {
+                setHasRadio(true);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the link stays, since the open form reads it
+            expect(await getOnyxValue(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK)).toEqual(expect.objectContaining({url: KYC_REVIEW_URL}));
+        } finally {
+            // Network state is module-level, so restore it even if an assertion fails
+            setHasRadio(true);
+        }
+    });
+
     it('goes back to the screen the flow started from', async () => {
         // Given the page replaced the terms over the intro opened from the wallet
         const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
