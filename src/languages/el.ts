@@ -51,6 +51,8 @@ const translations: TranslationDeepObject<typeof en> = {
         webGLNotSupported: 'Το πρόγραμμα περιήγησής σας δεν υποστηρίζει WebGL. Παρακαλούμε ενεργοποιήστε το ή αλλάξτε πρόγραμμα περιήγησης.',
         chartFailedToLoad: 'Δεν ήταν δυνατή η φόρτωση του γραφήματος. Ανανεώστε τη σελίδα και δοκιμάστε ξανά.',
         dismiss: 'Κλείσιμο',
+        resizeColumn: ({columnName}: {columnName: string}) => `Αλλαγή μεγέθους της στήλης ${columnName}`,
+        columnWidth: ({width}: {width: number}) => `${width} pixel`,
         proceed: 'Συνέχεια',
         unshare: 'Αναίρεση κοινής χρήσης',
         yes: 'Ναι',
@@ -335,6 +337,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pm: 'μ.μ.',
         tbd: 'Θα καθοριστεί',
         selectCurrency: 'Επιλέξτε νόμισμα',
+        any: 'Οποιοδήποτε',
+        anyCurrency: 'Οποιοδήποτε νόμισμα',
         selectSymbolOrCurrency: 'Επιλέξτε ένα σύμβολο ή νόμισμα',
         card: 'Κάρτα',
         mcc: 'MCC',
@@ -1305,6 +1309,14 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ωχ! Έχετε αντιστοιχίσει ένα μόνο πεδίο («${fieldName}») σε πολλές στήλες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         emptyMappedField: (fieldName: string) => `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες κενές τιμές. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         invalidApprovalLimit: 'Τα όρια έγκρισης πρέπει να είναι έγκυρα ποσά στο νόμισμα του χώρου εργασίας.',
+        approverColumn: (position: number) => `Εγκριτής ${position}`,
+        approverLimitColumn: (position: number) => `Όριο εγκρίνοντα ${position}`,
+        approverOverLimitApproverColumn: (position: number) => `Εγκρίνων ${position} ανώτατος εγκρίνων ορίου`,
+        approversOutOfOrder: (rowNumber: number) =>
+            `Ωχ! Η γραμμή ${rowNumber} δεν έχει εγκρίνων. Παρακαλούμε καταχωρίστε τους εγκρίνοντες με τη σειρά, ξεκινώντας με Εγκρίνων 1, και δοκιμάστε ξανά.`,
+        approverRepeated: (rowNumber: number) => `Ουπς! Η γραμμή ${rowNumber} έχει τον ίδιο εγκρίνων πάνω από μία φορά. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `Ουπς! Η γραμμή ${rowNumber} έχει όριο έγκρισης χωρίς υπεύθυνο έγκρισης για υπέρβαση ορίου ή υπεύθυνο έγκρισης για υπέρβαση ορίου χωρίς όριο έγκρισης. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες τιμές μεγαλύτερες από ${limit} χαρακτήρες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         importSuccessfulTitle: 'Η εισαγωγή ήταν επιτυχής',
@@ -4020,7 +4032,7 @@ ${amount} για ${merchant} - ${date}`,
 
                         1. Κάντε κλικ στο *χώρο εργασίας*.
                         2. Επιλέξτε τον χώρο εργασίας σας.
-                        3. Κάντε κλικ στο *λογιστική*.
+                        3. Κάντε κλικ στις *Συνδέσεις*.
                         4. Βρείτε το ${integrationName}.
                         5. Κάντε κλικ στο *σύνδεση*.
 
@@ -4485,6 +4497,7 @@ ${amount} για ${merchant} - ${date}`,
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} με κατάληξη ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Οι ερωτήσεις σε αυτή τη σελίδα άλλαξαν',
+        onFile: 'Καταχωρισμένο',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
@@ -5111,6 +5124,7 @@ ${amount} για ${merchant} - ${date}`,
             roomType: 'Τύπος δωματίου',
             cancellation: 'Πολιτική ακύρωσης',
             cancellationUntil: 'Δωρεάν ακύρωση έως',
+            hotelLocalTime: 'τοπική ώρα του ξενοδοχείου',
             confirmation: 'Αριθμός επιβεβαίωσης',
             cancellationPolicies: {
                 unknown: 'Άγνωστο',
@@ -5464,22 +5478,14 @@ ${amount} για ${merchant} - ${date}`,
             description: 'Καλά νέα 🎉. Επικοινωνήστε μαζί μας αν χρειαστούν βοήθεια με τη ρύθμιση.',
         },
         mcp: {
-            connectors: 'Συνδέσεις',
-            connectorsSubtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
-            connect: 'Σύνδεση',
-            helpPrompt: 'Χρειάζεστε βοήθεια με τη σύνδεση;',
-            helpLink: 'Διαβάστε τον οδηγό μας.',
             claude: {
                 title: 'Claude',
-                subtitle: 'από την Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'από την Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'από την OpenAI',
             },
         },
         connections: {
@@ -5963,9 +5969,6 @@ ${amount} για ${merchant} - ${date}`,
                     ? `Ορίστε έναν προεπιλεγμένο προμηθευτή που θα εφαρμόζεται σε αποζημιώσιμες δαπάνες που δεν έχουν αντίστοιχο προμηθευτή στο Sage Intacct.`
                     : `Οι δαπάνες που δεν μπορούν να αντιστοιχιστούν στους προμηθευτές σας στο Sage Intacct θα αντιστοιχίζονται από προεπιλογή σε αυτόν τον προμηθευτή.`,
             exportDescription: 'Διαμορφώστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο Sage Intacct.',
-            exportPreferredExporterNote:
-                'Ο προτιμώμενος εξαγωγέας μπορεί να είναι οποιοσδήποτε διαχειριστής χώρου εργασίας, αλλά πρέπει επίσης να είναι διαχειριστής τομέα αν ορίσετε διαφορετικούς λογαριασμούς εξαγωγής για μεμονωμένες εταιρικές κάρτες στις ρυθμίσεις τομέα.',
-            exportPreferredExporterSubNote: 'Αφού οριστεί, ο προτιμώμενος εξαγωγέας θα βλέπει τις αναφορές προς εξαγωγή στον λογαριασμό του.',
             noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
             noAccountsFoundDescription: `Παρακαλούμε προσθέστε τον λογαριασμό στο Sage Intacct και συγχρονίστε ξανά τη σύνδεση`,
             autoSync: 'Αυτόματος συγχρονισμός',
@@ -6160,8 +6163,22 @@ ${amount} για ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Λογαριασμός πιστωτικής κάρτας',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Θα χρησιμοποιήσουμε αυτόν τον λογαριασμό για κάρτες που δεν έχουν δικό τους λογαριασμό εξαγωγής.'
+                    : 'Επιλέξτε έναν προεπιλεγμένο λογαριασμό. Θα τον χρησιμοποιήσουμε για κάρτες που δεν έχουν δικό τους λογαριασμό εξαγωγής.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Θα χρησιμοποιήσουμε αυτόν τον προμηθευτή για έξοδα χωρίς προμηθευτή.'
+                    : 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή. Θα τον χρησιμοποιήσουμε για έξοδα χωρίς προμηθευτή.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Χρεώσεις πιστωτικής κάρτας',
+                        nonReimbursableDescription: 'Τα έξοδα εταιρικής κάρτας θα εξαχθούν στο NetSuite ως μεμονωμένες χρεώσεις πιστωτικής κάρτας, με την ημερομηνία κάθε αγοράς.',
+                        legacyTaxHelper: 'Οι χρεώσεις πιστωτικής κάρτας δεν υποστηρίζουν το NetSuite legacy tax. Αν χρησιμοποιείτε legacy tax, επιλέξτε άλλον τύπο εξαγωγής.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Αναφορές εξόδων',
                         reimbursableDescription: 'Τα έξοδα από ίδιους πόρους θα εξαχθούν ως αναφορές εξόδων στο NetSuite.',
@@ -6550,13 +6567,14 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             exportReimbursable: {
                 label: 'Εξαγωγή αποζημιώσιμων εξόδων ως',
                 values: {
-                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
-                        label: 'Τιμολόγια προμηθευτών',
-                    },
+                    REIMBURSEMENT: {label: 'Αναλυτικές αποζημιώσεις'},
+                    VENDOR_BILL: {label: 'Αναλυτικοί λογαριασμοί προμηθευτών'},
                 },
+                description:
+                    'Θα δημιουργούμε ένα αναλυτικό τιμολόγιο προμηθευτή ή μια αποζημίωση για κάθε αναφορά Expensify. Αν η περίοδος είναι κλειστή, θα καταχωρούμε στην επόμενη ανοιχτή περίοδο.',
             },
             exportDate: {
-                label: 'Ημερομηνία τιμολογίου προμηθευτή',
+                label: 'Ημερομηνία επίδρασης στο Γ/Λ',
                 description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6603,11 +6621,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
             syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
-            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργείται μια πληρωμή τιμολογίου σε αυτόν τον λογαριασμό.',
-            billPaymentAccount: {
-                label: 'Λογαριασμός πληρωμής λογαριασμών',
-                description: 'Επιλέξτε από πού θα πληρώνονται οι λογαριασμοί και θα δημιουργήσουμε την πληρωμή στο Rillet.',
-            },
+            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρωθεί μέσω ACH, θα δημιουργηθεί μια πληρωμή σε αυτόν τον λογαριασμό.',
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών Κάρτας Expensify',
             settlementAccount: {
                 label: 'Λογαριασμός διακανονισμού κάρτας Expensify',
@@ -6652,6 +6666,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 description:
                     'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο Rillet ως λογιστική εγγραφή.',
             },
+            reimbursementAccount: {
+                label: 'Λογαριασμός αποζημίωσης',
+                description: 'Επιλέξτε πού θα εξαχθούν οι επιστρεπτέες δαπάνες.',
+                accountRequiredError: 'Παρακαλούμε επιλέξτε έναν λογαριασμό αποζημίωσης Rillet.',
+            },
+            achPaymentAccount: {label: 'λογαριασμός πληρωμών ACH', description: 'Επιλέξτε από πού θα πληρώνονται οι αναφορές και θα δημιουργήσουμε την πληρωμή στο Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Ρύθμιση DualEntry',
@@ -6917,6 +6937,18 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Τελευταία εργάσιμη ημέρα του μήνα',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Προσαρμοσμένη ημέρα μήνα',
             },
+            reimbursable: {
+                title: 'Επιστρεπτέο',
+                description: 'Επιλέξτε πώς θα δημιουργούνται οι συναλλαγές κάρτας. Οι νέες συναλλαγές θα ακολουθούν αυτούς τους κανόνες.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Πάντα επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Επιστρέφεται πάντα στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Πάντα μη επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Δεν επιστρέφεται ποτέ στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Επιστρέφεται συνήθως στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Μη επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Επιστρέφεται περιστασιακά στους υπαλλήλους',
+            },
             assign: 'Ανάθεση',
             assignCard: 'Ανάθεση κάρτας',
             findCompanyCard: 'Εντοπίστε εταιρική κάρτα',
@@ -7146,10 +7178,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             organizeSection: {
                 title: 'Οργανώστε',
                 subtitle: 'Ομαδοποιήστε και αναλύστε τις δαπάνες, καταγράψτε κάθε φόρο που πληρώθηκε.',
-            },
-            integrateSection: {
-                title: 'Ενσωμάτωση',
-                subtitle: 'Συνδέστε το Expensify με δημοφιλή χρηματοοικονομικά προϊόντα.',
             },
             distanceRates: {
                 title: 'Τιμές χιλιομετρικής αποζημίωσης',
@@ -7393,26 +7421,18 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Συνδέστε έναν βοηθό AI με τον λογαριασμό σας στο Expensify.',
             },
             receiptPartners: {
                 title: 'Συνεργάτες αποδείξεων',
-                subtitle: 'Αυτόματη εισαγωγή αποδείξεων.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Όχι και τόσο γρήγορα...',
                 featureEnabledText: 'Για να ενεργοποιήσετε ή να απενεργοποιήσετε αυτή τη λειτουργία, θα χρειαστεί να αλλάξετε τις ρυθμίσεις εισαγωγής λογιστικής.',
-                disconnectText: 'Για να απενεργοποιήσετε τη λογιστική, θα χρειαστεί να αποσυνδέσετε τη λογιστική σύνδεση από τον χώρο εργασίας σας.',
                 manageSettings: 'Διαχείριση ρυθμίσεων',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Αποσύνδεση του Uber',
-                disconnectText: 'Για να απενεργοποιήσετε αυτή τη λειτουργία, αποσυνδέστε πρώτα την ενσωμάτωση Uber for Business.',
                 description: 'Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε αυτήν την ενοποίηση;',
-                confirmText: 'Εντάξει',
-            },
-            hrWarningModal: {
-                disconnectText: ({integration}: {integration: string}) => `Για να απενεργοποιήσετε το HR, αποσυνδέστε πρώτα το ${integration} από αυτόν τον χώρο εργασίας.`,
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Όχι και τόσο γρήγορα...',
@@ -7434,10 +7454,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 subtitle: 'Ταιριάξτε τα έξοδα κάρτας με προμηθευτές που έχουν εισαχθεί από το λογιστικό σας λογισμικό.',
                 disabledTitle: 'Όχι τόσο γρήγορα...',
                 disabledMessage: 'Για να ενεργοποιήσετε ή να απενεργοποιήσετε αυτήν τη λειτουργία, θα πρέπει να αλλάξετε τις ρυθμίσεις εισαγωγής λογιστικής.',
-            },
-            recruitingWarningModal: {
-                disconnectText: ({integration}: {integration: string}) =>
-                    `Για να απενεργοποιήσετε την προσέλκυση προσωπικού, αποσυνδέστε πρώτα το ${integration} από αυτόν τον χώρο εργασίας.`,
             },
         },
         reports: {
@@ -7943,7 +7959,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
         accounting: {
             settings: 'ρυθμίσεις',
             title: 'Συνδέσεις',
-            subtitle: 'Συνδέστε το λογιστικό σας λογισμικό για αυτόματο συγχρονισμό.',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7955,10 +7970,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Συνομιλήστε με τον υπεύθυνο λογαριασμού σας.',
-            talkYourAccountManager: 'Συνομιλήστε με τον υπεύθυνο λογαριασμού σας.',
-            talkToConcierge: 'Συνομιλήστε με το Concierge.',
-            needAnotherAccounting: 'Χρειάζεστε άλλο λογιστικό λογισμικό;',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -8007,7 +8018,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             disconnect: 'Αποσύνδεση',
             reinstall: 'Επανεγκατάσταση συνδέτη',
             disconnectTitle: (connectionName = 'ενσωμάτωση') => `Αποσύνδεση ${connectionName}`,
-            connectTitle: (connectionName) => `Συνδέστε ${connectionName}`,
             syncError: (connectionName) => `Δεν είναι δυνατή η σύνδεση με το ${connectionName}`,
             accounts: 'Λογιστικό σχέδιο',
             taxes: 'Φόροι',
@@ -8024,12 +8034,10 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Προεπιλογή εργαζομένου NetSuite',
             },
             disconnectPrompt: (connectionName = 'αυτή η ενοποίηση') => `Είστε βέβαιοι ότι θέλετε να αποσυνδέσετε το ${connectionName};`,
-            connectPrompt: (connectionName) => `Είστε βέβαιοι ότι θέλετε να συνδέσετε το ${connectionName}; Αυτό θα αφαιρέσει τυχόν υπάρχουσες λογιστικές συνδέσεις.`,
             reconnect: 'Επανασύνδεση',
             enterCredentials: 'Εισαγάγετε τα διαπιστευτήριά σας',
             updateCredentials: 'Ενημέρωση διαπιστευτηρίων',
             claimOffer: {
-                badgeText: 'Προσφορά διαθέσιμη!',
                 xero: {
                     headline: 'Αποκτήστε το Xero δωρεάν για 6 μήνες!',
                     description:
@@ -8250,8 +8258,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
             preferredExporter: 'Προτιμώμενος εξαγωγέας',
-            exportPreferredExporterNote:
-                'Ο προτιμώμενος εξαγωγέας μπορεί να είναι οποιοσδήποτε διαχειριστής χώρου εργασίας, αλλά πρέπει επίσης να είναι διαχειριστής τομέα αν ορίσετε διαφορετικούς λογαριασμούς εξαγωγής για μεμονωμένες εταιρικές κάρτες στις ρυθμίσεις τομέα.',
+            exportPreferredExporterNote: 'Ο προτιμώμενος εξαγωγέας μπορεί να είναι οποιοσδήποτε διαχειριστής χώρου εργασίας.',
             exportPreferredExporterSubNote: 'Αφού οριστεί, ο προτιμώμενος εξαγωγέας θα βλέπει τις αναφορές προς εξαγωγή στον λογαριασμό του.',
             exportAs: 'Εξαγωγή ως',
             exportOutOfPocket: 'Εξαγωγή προσωπικών δαπανών ως',
@@ -8298,10 +8305,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             netSuiteOAuthUpgradeNow: 'Αναβαθμίστε τώρα',
         },
         hr: {
-            title: 'HR',
             connectionsSubtitle:
                 'Συνδεθείτε με το σύστημα HR σας για να συγχρονίζετε τα στοιχεία των εργαζομένων, να αντιστοιχίζετε αυτόματα τις αποζημιώσεις στα σωστά άτομα και να διατηρείτε τα έξοδα της ομάδας σας ακριβή χωρίς χειροκίνητη εργασία.',
-            subtitle: 'Συνδέστε εργαλεία HR και διατηρήστε τις εγκρίσεις εργαζομένων συγχρονισμένες.',
             alreadyConnectedTitle: 'Δεν είναι δυνατή η σύνδεση σε πολλές πλατφόρμες HR',
             alreadyConnectedPrompt: 'Πρέπει να αποσυνδέσετε την τρέχουσα πλατφόρμα HR προτού συνδέσετε μια άλλη.',
             connectionDescription: (providerName: string) => `Συνδέστε το ${providerName} για να διατηρείτε τις εγκρίσεις εργαζομένων συγχρονισμένες με τον χώρο εργασίας σας.`,
@@ -8364,7 +8369,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
         },
         recruiting: {
-            title: 'Προσλήψεις',
             connectionsSubtitle:
                 'Συνδεθείτε με το σύστημα προσλήψεών σας για να συγχρονίζετε τα δεδομένα υποψηφίων, να αντιστοιχίζετε αυτόματα τις αποζημιώσεις στα σωστά άτομα και να διατηρείτε τις δαπάνες της ομάδας σας ακριβείς χωρίς χειροκίνητη εργασία.',
             alreadyConnectedTitle: 'Αδυναμία σύνδεσης σε πολλές πλατφόρμες ATS',
@@ -8372,7 +8376,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             syncing: 'Γίνεται συγχρονισμός υποψηφίων',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Συνδέθηκε. ${setupLink ? `<a href="${setupLink}">Ολοκληρώστε τη ρύθμιση</a>` : 'Ολοκληρώστε τη ρύθμιση'} για εισαγωγή υποψηφίων.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>Δεν βλέπετε εδώ το ATS σας; <a href="#">Ρωτήστε το Concierge</a> και μπορούμε να το προσθέσουμε.</muted-text-label>`,
             importSettings: 'Ρυθμίσεις εισαγωγής',
             defaultApprover: 'Προεπιλεγμένος εγκρίνων',
             approverFields: {recruiter: 'Στρατολογητής', recruitingCoordinator: 'Συντονιστής προσλήψεων', hiringManager: 'Υπεύθυνος προσλήψεων'},
@@ -8398,7 +8401,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
                 enableJobStagesOrTags: 'Επιλέξτε τουλάχιστον ένα στάδιο εργασίας ή ετικέτα για να συνεχίσετε',
             },
-            subtitle: 'Συνδέστε τα εργαλεία προσλήψεων και διατηρήστε τις εγκρίσεις υποψηφίων συγχρονισμένες.',
             syncResults: {
                 importedCount: () => ({
                     one: '1 υποψήφιος',
@@ -8422,9 +8424,6 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             },
         },
         merge: {
-            connections: 'Συνδέσεις',
-            connect: 'Σύνδεση',
-            findIntegration: 'Βρείτε ενοποίηση',
             syncNow: 'Συγχρονισμός τώρα',
             disconnect: 'Αποσύνδεση',
             disconnectTitle: (providerName: string) => `Αποσύνδεση ${providerName}`,
@@ -9843,6 +9842,27 @@ ${reportName}`,
             enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
             enableNewAccountsDescription: 'Οι νέοι λογαριασμοί Zoho Books θα είναι διαθέσιμοι ως κατηγορίες.',
             reportingTagsImport: 'Όλες οι ετικέτες αναφορών Zoho Books εισάγονται ως ετικέτες',
+            exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο Zoho Books.',
+            exportReimbursable: {label: 'Εξαγωγή αποζημιώσιμων εξόδων ως', values: {VENDOR_BILL: {label: 'Τιμολόγια προμηθευτών'}}},
+            exportDate: {
+                label: 'Ημερομηνία τιμολογίου προμηθευτή',
+                description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο Zoho Books.',
+                values: {
+                    LAST_EXPENSE: {label: 'Ημερομηνία τελευταίας δαπάνης', description: 'Ημερομηνία της πιο πρόσφατης δαπάνης στην αναφορά.'},
+                    REPORT_EXPORTED: {label: 'Ημερομηνία εξαγωγής', description: 'Ημερομηνία εξαγωγής της αναφοράς στο Zoho Books.'},
+                    REPORT_SUBMITTED: {label: 'Ημερομηνία υποβολής', description: 'Ημερομηνία που η αναφορά υποβλήθηκε για έγκριση.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Εξαγωγή εταιρικών εξόδων κάρτας ως', values: {EXPENSE: {label: 'Έξοδα'}}},
+            defaultCompanyCardVendor: {
+                label: 'Προεπιλεγμένος προμηθευτής για όλες τις εταιρικές κάρτες',
+                description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή Zoho Books για δαπάνες που δεν αντιστοιχίζονται αυτόματα.',
+            },
+            companyCardAccount: {label: 'Λογαριασμός εταιρικής κάρτας', description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.'},
+            noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
+            noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
+            noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
+            noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς στο Zoho Books και συγχρονίστε ξανά τη σύνδεση',
         },
         businessCentral: {
             businessCentralSetup: 'Ρύθμιση Dynamics 365 Business Central',
@@ -10225,6 +10245,8 @@ ${reportName}`,
             `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} κατόχοι κάρτας να διαγράψουν συναλλαγές κάρτας για την τροφοδοσία κάρτας «${feedName}»`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `άλλαξε την ημέρα λήξης της περιόδου εκκαθάρισης της ροής κάρτας «${feedName}»${newValue ? `σε "${newValue}"` : ''}${previousValue ? `(προηγουμένως "${previousValue}")` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `άλλαξε τη ρύθμιση επιστρεπτέου του καναλιού κάρτας "${feedName}"${newValue ? ` σε "${newValue}"` : ''}${previousValue ? ` (προηγουμένως "${previousValue}")` : ''}`,
         agentRule: {
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `προσέθεσε τον κανόνα πράκτορα «${title}»: ${prompt}` : `προσέθεσε έναν κανόνα πράκτορα: ${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) =>
@@ -10952,7 +10974,7 @@ ${reportName}`,
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Ποτέ',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Τον προηγούμενο μήνα',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Αυτόν τον μήνα',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Έως σήμερα μέσα στο έτος',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Φέτος',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Τελευταίοι 12 μήνες',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Αυτή την εβδομάδα',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Την προηγούμενη εβδομάδα',
@@ -11156,6 +11178,10 @@ ${reportName}`,
         mergeReports: {
             title: 'Συγχώνευση αναφορών',
             description: 'Επιλέξτε την αναφορά που θέλετε να κρατήσετε. Όλες οι δαπάνες θα μετακινηθούν σε αυτήν και οι άλλες αναφορές θα διαγραφούν.',
+            exportedWarning:
+                'Μία ή περισσότερες από τις επιλεγμένες αναφορές έχουν ήδη εξαχθεί σε μια λογιστική διασύνδεση. Η συγχώνευσή τους μπορεί να προκαλέσει διπλά δεδομένα αν εξαχθούν ξανά.',
+            reportFieldsMismatch:
+                '<strong>Αυτές οι αναφορές έχουν διαφορετικές τιμές στα πεδία αναφοράς.</strong> Για να τις συγχωνεύσετε, κάντε πρώτα τα πεδία αναφοράς να ταιριάζουν σε κάθε αναφορά.',
             listPage: {noEligibleReportsFound: 'Δεν βρέθηκαν κατάλληλες αναφορές', noEligibleReportsFoundSubtitle: 'Δεν έχετε καμία αναφορά που να μπορεί να συγχωνευθεί.'},
         },
         goTo: ({destination}: {destination: string}) => `Μετάβαση στο ${destination}`,
@@ -11913,6 +11939,7 @@ ${reportName}`,
         keepThisOne: 'Κρατήστε αυτόν',
         confirmDetails: `Επιβεβαιώστε τα στοιχεία που κρατάτε`,
         confirmDuplicatesInfo: `Τα διπλότυπα που δεν θα κρατήσετε θα παραμείνουν διαθέσιμα ώστε το άτομο που τα υπέβαλε να τα διαγράψει.`,
+        confirmDuplicatesRemovedInfo: `Τα διπλότυπα που δεν θα κρατήσετε θα αφαιρεθούν.`,
         hold: 'Αυτή η δαπάνη τέθηκε σε αναμονή',
         resolvedDuplicates: 'έλυσε το διπλότυπο',
         companyCardRequired: 'Απαιτούνται αγορές με εταιρική κάρτα',
@@ -12004,6 +12031,7 @@ ${reportName}`,
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Απαιτείται το πεδίο ${fieldName}`,
         reportContainsExpensesWithViolations: 'Η αναφορά περιέχει δαπάνες με παραβιάσεις.',
+        reportHasErrors: 'Η αναφορά έχει σφάλματα.',
     },
     violationDismissal: {
         rter: {
@@ -12503,7 +12531,7 @@ ${reportName}`,
             theresAReportWithErrors: 'Υπάρχει μια αναφορά με σφάλματα',
             theresAWorkspaceWithCustomUnitsErrors: 'Υπάρχει ένας χώρος εργασίας με σφάλματα προσαρμοσμένων μονάδων',
             theresAProblemWithAWorkspaceMember: 'Υπάρχει πρόβλημα με ένα μέλος του χώρου εργασίας',
-            theresAProblemWithAWorkspaceQBOExport: 'Παρουσιάστηκε πρόβλημα με μια ρύθμιση εξαγωγής σύνδεσης χώρου εργασίας.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Παρουσιάστηκε πρόβλημα με μια ρύθμιση εξαγωγής σύνδεσης χώρου εργασίας.',
             theresAProblemWithAContactMethod: 'Υπάρχει πρόβλημα με μια μέθοδο επικοινωνίας',
             aContactMethodRequiresVerification: 'Απαιτείται επαλήθευση μιας μεθόδου επικοινωνίας',
             theresAProblemWithAPaymentMethod: 'Υπάρχει πρόβλημα με μία μέθοδο πληρωμής',
@@ -12870,8 +12898,14 @@ ${reportName}`,
         },
     },
     productMarketingWindow: {
-        heading: 'Συνδέστε το Expensify με το Claude',
-        body: 'Αναζητήστε, αναλύστε και συνοψίστε δεδομένα δαπανών απευθείας στο Claude.',
+        member: {
+            heading: 'Χιλιόμετρα στον αυτόματο πιλότο',
+            body: 'Μεταβείτε απευθείας στις συχνές διαδρομές σας και διορθώστε την τοποθεσία μιας στάσης χωρίς να ξεκινήσετε από την αρχή.',
+        },
+        admin: {
+            heading: 'Χιλιόμετρα που διαχειρίζονται αυτόματα',
+            body: 'Τιμές χιλιομέτρων που ενημερώνονται από μόνες τους, καθώς και πλήρης έλεγχος στον τρόπο καταγραφής των διαδρομών.',
+        },
     },
     trialPaymentReminder: {
         title: 'Μείνετε μπροστά από την προθεσμία',
