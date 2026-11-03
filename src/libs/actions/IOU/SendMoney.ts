@@ -274,7 +274,6 @@ function getSendMoneyParams({
               [recipientAccountID]: {
                   accountID: recipientAccountID,
                   // Disabling this line since participant.displayName can be an empty string
-                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                   displayName: recipient.displayName || recipient.login,
                   login: recipient.login,
               },

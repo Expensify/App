@@ -24,9 +24,18 @@ const getCustomAgentParticipantAccountID =
         return participantAccountIDs.find((accountID) => !!personalDetails[accountID]?.isCustomAgent);
     };
 
+/**
+ * Returns the accountIDs flagged as custom agents. The IDs are sorted, so the result compares equal when only the order of the input changes.
+ */
+const getCustomAgentAccountIDs = (personalDetails: PersonalDetailsList): number[] =>
+    Object.keys(personalDetails)
+        .filter((accountID) => !!personalDetails[accountID]?.isCustomAgent)
+        .map(Number)
+        .sort((first, second) => first - second);
+
 const hasPendingFollowupListSkeletonSelector =
     (reportActionID: string) =>
     (pending: OnyxEntry<ConciergePendingFollowupList>): boolean =>
         !pending?.hidden && pending?.reportActionID === reportActionID;
 
-export {getReportParticipantAccountIDs, getCustomAgentParticipantAccountID, hasPendingFollowupListSkeletonSelector};
+export {getReportParticipantAccountIDs, getCustomAgentParticipantAccountID, getCustomAgentAccountIDs, hasPendingFollowupListSkeletonSelector};

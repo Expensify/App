@@ -10,7 +10,7 @@ import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {
     clearRilletErrorField,
@@ -32,13 +32,16 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
 
 function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -56,8 +59,8 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const travelBillingSettlementsBankAccount = rilletData?.bankAccounts?.find((bankAccount) => bankAccount.id === rilletConfig?.sync?.travelInvoicingSettlementsBankAccountID);
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isExpensifyCardsEnabled = Object.values(allCardSettings ?? {})?.some((cardSetting) => isExpensifyCardFullySetUp(policy, cardSetting));
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
+    const travelBillingFundID = useTravelBillingFundID(policyID);
+    const [cardSettings] = useOnyx(getTravelBillingCardSettingsKey(travelBillingFundID));
     const travelSettings = getCardSettings(cardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US);
     const isTravelBillingEnabled = getIsTravelBillingEnabled(travelSettings);
 
@@ -71,6 +74,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     return (
         <ConnectionLayout
+            onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_CONNECTIONS_ACCOUNTING.getRoute(policyID))}
             displayName="RilletAdvancedPage"
             headerTitle="workspace.accounting.advanced"
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
@@ -99,7 +103,11 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
             >
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.ACCOUNTING_METHOD], rilletConfig?.pendingFields)}>
                     <MenuItem.Root
-                        onPress={callFunctionIfActionIsAllowed(() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT_METHOD.getRoute(policyID)) : undefined))}
+                        onPress={callFunctionIfActionIsAllowed(
+                            () => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT_METHOD.getRoute(policyID)) : undefined),
+                            false,
+                            session,
+                        )}
                     >
                         <MenuItemField.Row
                             name={translate('workspace.rillet.accountingMethods.label')}
@@ -192,8 +200,8 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                 <>
                     <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
                     <ToggleSettingOptionRow
-                        title={translate('workspace.rillet.syncTravelInvoicingSettlements')}
-                        switchAccessibilityLabel={translate('workspace.rillet.syncTravelInvoicingSettlements')}
+                        title={translate('workspace.rillet.syncTravelBillingSettlements')}
+                        switchAccessibilityLabel={translate('workspace.rillet.syncTravelBillingSettlements')}
                         shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.mv3, styles.mh5]}
                         isActive={syncTravelInvoicingSettlements}
@@ -208,7 +216,7 @@ function RilletAdvancedPage({policy}: WithPolicyConnectionsProps) {
                     >
                         <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID], rilletConfig?.pendingFields)}>
                             <MenuItemField
-                                name={translate('workspace.rillet.travelInvoicingSettlementAccount.label')}
+                                name={translate('workspace.rillet.travelBillingSettlementAccount.label')}
                                 onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_TRAVEL_BILLING_SETTLEMENT_ACCOUNT.getRoute(policyID)) : undefined)}
                                 value={travelBillingSettlementsBankAccount ? `${travelBillingSettlementsBankAccount?.accountCode} ${travelBillingSettlementsBankAccount?.name}` : undefined}
                             >

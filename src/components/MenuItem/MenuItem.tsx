@@ -27,6 +27,7 @@ import getContextMenuAccessibilityProps from '@components/utils/getContextMenuAc
 import useCopyableTextRowPress from '@hooks/useCopyableTextRowPress';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -54,6 +55,7 @@ import variables from '@styles/variables';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {TooltipAnchorAlignment} from '@src/types/utils/AnchorAlignment';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -61,11 +63,12 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ImageContentFit} from 'expo-image';
 import type {ComponentRef, ReactElement, ReactNode, Ref} from 'react';
-import type {GestureResponderEvent, ImageStyle, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
+import type {AccessibilityState, GestureResponderEvent, ImageStyle, Role, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 
-import React, {useMemo, useRef} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React, {useRef} from 'react';
 import {View} from 'react-native';
 
 import useRemoveNonInteractiveClickHandler from './hooks/useRemoveNonInteractiveClickHandler';
@@ -192,6 +195,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Error to display at the bottom of the component */
         errorText?: string | ReactNode;
 
+        /** Whether screen readers hear the error with the row's name, since the row hides the error line from them on native */
+        shouldReadErrorWithLabel?: boolean;
+
         errorTextStyle?: StyleProp<ViewStyle>;
 
         /** Hint to display at the bottom of the component */
@@ -231,7 +237,6 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         titleAccessibilityRole?: typeof CONST.ROLE.HEADER;
 
         titleComponent?: ReactElement;
-        titleContainerStyle?: StyleProp<ViewStyle>;
 
         /** A right-aligned subtitle for this menu option */
         subtitle?: string | number;
@@ -414,6 +419,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** The accessibility role to use for this menu item */
         role?: Role;
 
+        /** Overrides the computed accessibilityState (e.g. `{checked}` for a row that acts as a switch) */
+        accessibilityState?: AccessibilityState;
+
         shouldShowBadgeInSeparateRow?: boolean;
 
         /** Whether to show the badge below the title */
@@ -490,6 +498,7 @@ function MenuItem({
     helperText,
     helperTextStyle,
     errorText,
+    shouldReadErrorWithLabel = false,
     errorTextStyle,
     shouldShowRedDotIndicator,
     hintText,
@@ -501,7 +510,6 @@ function MenuItem({
     title,
     accessibilityLabel,
     titleComponent,
-    titleContainerStyle,
     subtitle,
     subtitleStyle,
     shouldShowBasicTitle,
@@ -575,11 +583,13 @@ function MenuItem({
     shouldUseNativeHoverEvents = false,
     sentryLabel,
     role = CONST.ROLE.BUTTON,
+    accessibilityState,
     shouldBeAccessible = true,
     tabIndex = 0,
     titleAccessibilityRole,
     shouldIgnoreCompactStyle = false,
 }: MenuItemProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'FallbackAvatar', 'DotIndicator', 'Checkmark', 'NewWindow']);
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -621,7 +631,13 @@ function MenuItem({
         enhancedAccessibilityLabel = `${enhancedAccessibilityLabel}. ${translate('common.opensInNewTab')}`;
     }
 
-    const combinedAccessibilityLabel = [enhancedAccessibilityLabel, brickRoadIndicator ? translate('common.yourReviewIsRequired') : ''].filter(Boolean).join('. ');
+    const combinedAccessibilityLabel = [
+        enhancedAccessibilityLabel,
+        brickRoadIndicator ? translate('common.yourReviewIsRequired') : '',
+        shouldReadErrorWithLabel && typeof errorText === 'string' ? errorText : '',
+    ]
+        .filter(Boolean)
+        .join('. ');
     const contextMenuHint = shouldShowContextMenuHint ? getContextMenuAccessibilityHint({translate}) : undefined;
     const {accessibilityLabel: accessibilityLabelWithContextMenuHint, accessibilityHint} = getContextMenuAccessibilityProps({
         accessibilityLabel: combinedAccessibilityLabel,
@@ -630,8 +646,12 @@ function MenuItem({
     const shouldDimIconRight = iconRight === icons.ArrowRight || !iconRight;
 
     const hasIcon = (!!icon || iconType === CONST.ICON_TYPE_WORKSPACE) && !Array.isArray(icon);
-    // eslint-disable-next-line no-nested-ternary -- Selects ml2/ml3/empty based on icon presence and avatar size
-    const iconLeftPadding = shouldPutLeftPaddingWhenNoIcon || hasIcon ? (avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3) : {};
+    let iconLeftPadding;
+    if (shouldPutLeftPaddingWhenNoIcon || hasIcon) {
+        iconLeftPadding = avatarSize === CONST.AVATAR_SIZE.SMALL ? styles.ml2 : styles.ml3;
+    } else {
+        iconLeftPadding = {};
+    }
 
     const combinedTitleTextStyle = StyleUtils.combineStyles<TextStyle>(
         [
@@ -687,50 +707,46 @@ function MenuItem({
         );
     };
 
-    const html = useMemo(() => {
-        if (!title || !shouldParseTitle) {
-            return '';
-        }
-        return Parser.replace(title, {shouldEscapeText, disabledRules: excludedMarkdownRules});
-    }, [title, shouldParseTitle, shouldEscapeText, excludedMarkdownRules]);
+    const html =
+        !title || !shouldParseTitle
+            ? ''
+            : Parser.replace(title, {
+                  shouldEscapeText,
+                  disabledRules: excludedMarkdownRules,
+              });
 
-    const helperHtml = useMemo(() => {
-        if (!helperText || !shouldParseHelperText) {
-            return '';
-        }
-        return Parser.replace(helperText, {shouldEscapeText});
-    }, [helperText, shouldParseHelperText, shouldEscapeText]);
+    const helperHtml =
+        !helperText || !shouldParseHelperText
+            ? ''
+            : Parser.replace(helperText, {
+                  shouldEscapeText,
+              });
 
     const shouldRenderTitleAsHTML = shouldRenderAsHTML && !!title && Parser.isHTML(title);
     const shouldEnableTextSelection = isTitleSelectable && getPlatform() === CONST.PLATFORM.WEB;
 
-    const processedTitle = useMemo(() => {
-        let titleToWrap = '';
-        if (shouldRenderAsHTML) {
-            titleToWrap = title ?? '';
-        }
+    let processedTitle;
+    let titleToWrap = '';
+    if (shouldRenderAsHTML) {
+        titleToWrap = title ?? '';
+    }
+    if (shouldParseTitle) {
+        titleToWrap = html;
+    }
+    if (shouldTruncateTitle) {
+        titleToWrap = Parser.truncateHTML(`<comment>${titleToWrap}</comment>`, characterLimit, {
+            ellipsis: '...',
+        });
+        processedTitle = titleToWrap;
+    } else {
+        processedTitle = titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
+    }
 
-        if (shouldParseTitle) {
-            titleToWrap = html;
-        }
-
-        if (shouldTruncateTitle) {
-            titleToWrap = Parser.truncateHTML(`<comment>${titleToWrap}</comment>`, characterLimit, {ellipsis: '...'});
-            return titleToWrap;
-        }
-
-        return titleToWrap ? `<comment>${titleToWrap}</comment>` : '';
-    }, [title, shouldRenderAsHTML, shouldParseTitle, characterLimit, shouldTruncateTitle, html]);
-
-    const processedHelperText = useMemo(() => {
-        let textToWrap = '';
-
-        if (shouldParseHelperText) {
-            textToWrap = helperHtml;
-        }
-
-        return textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
-    }, [shouldParseHelperText, helperHtml]);
+    let textToWrap = '';
+    if (shouldParseHelperText) {
+        textToWrap = helperHtml;
+    }
+    const processedHelperText = textToWrap ? `<comment><muted-text-label>${textToWrap}</muted-text-label></comment>` : '';
 
     const hasPressableRightComponent = (iconRight ?? icons.ArrowRight) || (shouldShowRightComponent && rightComponent);
 
@@ -842,7 +858,7 @@ function MenuItem({
                     >
                         {(isHovered) => (
                             <PressableWithSecondaryInteraction
-                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction) : onPressAction}
+                                onPress={shouldCheckActionAllowedOnPress ? callFunctionIfActionIsAllowed(onPressAction, isAnonymousAction, session) : onPressAction}
                                 onMouseDown={(event) => {
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
@@ -888,7 +904,7 @@ function MenuItem({
                                 accessibilityLabel={accessibilityLabelWithContextMenuHint}
                                 accessibilityHint={accessibilityHint}
                                 accessible={shouldBeAccessible}
-                                accessibilityState={role === CONST.ROLE.TAB ? {selected: focused} : undefined}
+                                accessibilityState={accessibilityState ?? (role === CONST.ROLE.TAB ? {selected: focused} : undefined)}
                                 tabIndex={interactive ? tabIndex : -1}
                                 onFocus={onFocus}
                                 sentryLabel={sentryLabel}
@@ -1026,12 +1042,7 @@ function MenuItem({
                                                         </View>
                                                     )}
                                                     <View
-                                                        style={[
-                                                            styles.justifyContentCenter,
-                                                            styles.flex1,
-                                                            StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact),
-                                                            titleContainerStyle,
-                                                        ]}
+                                                        style={[styles.justifyContentCenter, styles.flex1, StyleUtils.getMenuItemTextContainerStyle(isSmallAvatarSubscriptMenu || isCompact)]}
                                                     >
                                                         {shouldShowDescriptionOnTop && renderDescriptionView()}
                                                         {(!!title || !!shouldShowTitleIcon) && (

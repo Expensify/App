@@ -19,7 +19,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {TextStyle} from 'react-native';
 import type {CustomRendererProps, TPhrasing, TText} from 'react-native-render-html';
 
-import React, {useContext, useMemo} from 'react';
+import React, {useContext} from 'react';
 import {StyleSheet} from 'react-native';
 
 import MentionReportContext from './MentionReportContext';
@@ -34,15 +34,11 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const {currentReportID} = useCurrentReportIDState();
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const currentReportIDValue = currentReportIDContext || currentReportID;
     const [currentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${currentReportIDValue}`);
 
     // When we invite someone to a room they don't have the policy object, but we still want them to be able to see and click on report mentions, so we only check if the policyID in the report is from a workspace
-    const isGroupPolicyReport = useMemo(
-        () => (!!currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE) || !!policyID,
-        [currentReport, policyID],
-    );
+    const isGroupPolicyReport = (!!currentReport && !isEmptyObject(currentReport) && !!currentReport.policyID && currentReport.policyID !== CONST.POLICY.ID_FAKE) || !!policyID;
 
     const mentionDetails = getReportMentionDetails(htmlAttributeReportID, currentReport, reports, tnode, policyID);
     if (!mentionDetails) {

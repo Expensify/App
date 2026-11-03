@@ -31,7 +31,7 @@ import type {ComponentRef} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {View} from 'react-native';
 
 import ToggleTwoFactorAuthForm from './ToggleTwoFactorAuthForm';
@@ -83,11 +83,11 @@ function DynamicVerifyPage() {
     }
 
     const scrollViewRef = useRef<ComponentRef<typeof RNScrollView>>(null);
-    const handleInputFocus = useCallback(() => {
+    const handleInputFocus = () => {
         requestAnimationFrame(() => {
             scrollViewRef.current?.scrollToEnd({animated: true});
         });
-    }, []);
+    };
 
     return (
         <TwoFactorAuthWrapper

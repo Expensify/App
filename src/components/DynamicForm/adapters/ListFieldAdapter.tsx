@@ -2,8 +2,9 @@ import DynamicFormListItemModal from '@components/DynamicForm/components/Dynamic
 import type {DynamicFormValues} from '@components/DynamicForm/types';
 import getAnswerKeys from '@components/DynamicForm/utils/getAnswerKeys';
 import hasSensitiveAnswer from '@components/DynamicForm/utils/hasSensitiveAnswer';
-import summarizeListItem from '@components/DynamicForm/utils/summarizeListItem';
+import summarizeListItem, {getNumberedItemTitle} from '@components/DynamicForm/utils/summarizeListItem';
 import ListField from '@components/ListField';
+import type {ListFieldHandle} from '@components/ListField';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
 
@@ -17,10 +18,10 @@ import {clearListItemEdit, startListItemEdit} from '@userActions/DynamicForm';
 import CONST from '@src/CONST';
 import type {DynamicFormField, DynamicFormListItem} from '@src/types/onyx';
 
-import type {ComponentProps, ReactNode} from 'react';
+import type {ComponentProps, ComponentRef, ReactNode, Ref} from 'react';
 
 import {Str} from 'expensify-common';
-import React, {useState} from 'react';
+import React, {useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type ListFieldAdapterProps = Pick<ComponentProps<typeof ListField>, 'addTitle' | 'addDescription'> &
@@ -60,7 +61,12 @@ type ListFieldAdapterProps = Pick<ComponentProps<typeof ListField>, 'addTitle' |
 
         /** Draws the entry's fields inside the modal editor */
         renderFields: (fields: DynamicFormField[], values: DynamicFormValues, isSensitive: boolean) => ReactNode;
+
+        /** Lets FormProvider scroll to the list and focus it when the user asks to fix the errors */
+        ref?: Ref<ListFieldAdapterHandle>;
     };
+
+type ListFieldAdapterHandle = Pick<ComponentRef<typeof View>, 'measureLayout'> & Pick<ListFieldHandle, 'focus'>;
 
 /** The entries of a list field as rows. Removing one updates FormProvider's value. Adding and editing open the flow's editor page, or a modal outside the flow. */
 function ListFieldAdapter({
@@ -79,13 +85,18 @@ function ListFieldAdapter({
     onEdit,
     renderFields,
     forwardedFSClass,
+    ref,
 }: ListFieldAdapterProps) {
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [editingID, setEditingID] = useState<string>();
+    const containerRef = useRef<ComponentRef<typeof View>>(null);
+    const listFieldRef = useRef<ListFieldHandle>(null);
+    // Outlives `editingID`, which is cleared as the modal starts to close
+    const editedItemIDRef = useRef<string>(undefined);
     const items = Array.isArray(value) ? value : [];
     const editingItem = items.find((item) => item.id === editingID);
-    const summarize = (item: DynamicFormListItem) => summarizeListItem(item, itemFields, translate, itemLabel ?? label);
+    const summarize = (item: DynamicFormListItem) => summarizeListItem(item, itemFields, translate, getNumberedItemTitle(itemLabel ?? label, items.indexOf(item), translate));
     const modalTitle = editingItem ? summarize(editingItem).title : addTitle;
     const sensitiveKeys = new Set(itemFields.filter(hasSensitiveAnswer).flatMap(getAnswerKeys));
     const isKeptOutOfDraft = (key: string) => key !== 'id' && (isSensitive || sensitiveKeys.has(key));
@@ -93,6 +104,7 @@ function ListFieldAdapter({
     // Sensitive answers are not drafted, so the modal's inputs start from the stored entry instead. Every answer of a sensitive list is.
     const openModal = (item?: DynamicFormListItem) => {
         const answers = Object.fromEntries(Object.entries(item ?? {}).filter(([key]) => key !== 'id' && !isKeptOutOfDraft(key)));
+        editedItemIDRef.current = item?.id;
         startListItemEdit(answers).then(() => setEditingID(item?.id ?? Str.guid()));
     };
 
@@ -101,6 +113,11 @@ function ListFieldAdapter({
         clearListItemEdit();
     };
 
+    useImperativeHandle(ref, () => ({
+        measureLayout: (...args) => containerRef.current?.measureLayout(...args),
+        focus: () => listFieldRef.current?.focus(),
+    }));
+
     const saveItem = (answers: DynamicFormValues) => {
         if (!editingID) {
             return;
@@ -108,6 +125,15 @@ function ListFieldAdapter({
         const item: DynamicFormListItem = {...answers, id: editingID};
         onInputChange(editingItem ? items.map((existing) => (existing.id === editingID ? item : existing)) : [...items, item]);
         closeModal();
+    };
+
+    // The add row drops focus when pressed and a full list hides it, so the modal can't give focus back by itself
+    const handleModalHide = () => {
+        if (editedItemIDRef.current) {
+            listFieldRef.current?.focusRow(editedItemIDRef.current);
+        } else {
+            listFieldRef.current?.focusAddRow();
+        }
     };
 
     // The modal title takes no FullStory class, so only the masked prompt names the entry
@@ -130,17 +156,25 @@ function ListFieldAdapter({
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
+            const removedIndex = items.indexOf(item);
             const remainingItems = items.filter((candidate) => candidate.id !== id);
+            const nextFocusedItem = remainingItems.at(removedIndex) ?? (removedIndex > 0 ? remainingItems.at(removedIndex - 1) : undefined);
             onInputChange(remainingItems);
             onItemsChange?.(remainingItems);
+            // The removed row's button had focus, so focus moves to the next row, else the previous one, once the list re-renders without it
+            requestAnimationFrame(() => (nextFocusedItem ? listFieldRef.current?.focusRow(nextFocusedItem.id) : listFieldRef.current?.focusAddRow()));
         });
     };
 
     // ListField takes no FullStory class, so the mask goes on a View around it
     return (
         <>
-            <View fsClass={forwardedFSClass}>
+            <View
+                ref={containerRef}
+                fsClass={forwardedFSClass}
+            >
                 <ListField
+                    ref={listFieldRef}
                     addTitle={addTitle}
                     addDescription={addDescription}
                     rows={items.map((item) => ({id: item.id, ...summarize(item)}))}
@@ -162,6 +196,7 @@ function ListFieldAdapter({
                     renderFields={renderFields}
                     onSave={saveItem}
                     onClose={closeModal}
+                    onModalHide={handleModalHide}
                 />
             )}
         </>

@@ -134,7 +134,7 @@ const fileDownload: FileDownload = (translate, fileUrl, fileName, successMessage
     new Promise((resolve) => {
         let fileDownloadPromise;
         const fileType = getFileType(fileUrl);
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null, and since fileName can be an empty string we want to default to `FileUtils.getFileName(url)`
+        // `fileName` can be an empty string, so fall back to `FileUtils.getFileName(url)`
         const resolvedFileName = fileName || getFileName(fileUrl);
         const attachmentName = appendTimestamp ? appendTimeToFileName(resolvedFileName) : resolvedFileName;
 

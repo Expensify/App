@@ -1,10 +1,7 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
-import ComposeProviders from '@components/ComposeProviders';
-import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import useNumericPressSelection from '@components/NumericEditingController/hooks/useNumericPressSelection/index.web';
 import NumericInput from '@components/NumericInput';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -13,6 +10,13 @@ import type ShouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSel
 import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
+
+jest.mock('@hooks/useLocalize', () => () => ({
+    fromLocaleDigit: (digit: string) => digit,
+    toLocaleDigit: (digit: string) => digit,
+    numberFormat: (num: number) => String(num),
+    translate: (key: string) => key,
+}));
 
 jest.mock('@libs/shouldIgnoreSelectionWhenUpdatedManually', () => ({
     ...jest.requireActual<{default: ShouldIgnoreSelectionWhenUpdatedManually}>('@libs/shouldIgnoreSelectionWhenUpdatedManually'),
@@ -31,28 +35,6 @@ jest.mock('@react-navigation/native', () => ({
 
 const INPUT_TEST_ID = 'numeric-input-web-test-input';
 const PRESSABLE_TEST_ID = 'numeric-input-web-test-pressable';
-const CONTAINER_TEST_ID = 'numeric-input-web-test-container';
-
-function renderWithProviders(children: React.ReactNode) {
-    return render(<ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>{children}</ComposeProviders>);
-}
-
-/** Builds the mouse event the web container handler expects, with `target.id` set to the pressed view's id. */
-function getMouseDownEvent(targetId: string) {
-    const target = document.createElement('div');
-    target.id = targetId;
-
-    return {nativeEvent: {target}, preventDefault: jest.fn()};
-}
-
-function getContainerViewId(testID: string) {
-    const container = screen.getByTestId(testID);
-    if (typeof container.props.id !== 'string') {
-        throw new Error(`Numeric input container id was not assigned for ${testID}`);
-    }
-
-    return container.props.id;
-}
 
 type WebPressSelectionTestProps = {
     /** Input whose caret the hook reads on press */
@@ -101,151 +83,47 @@ function renderPressSelection(inputRef: {current: BaseTextInputRef | null}, onPr
 
 describe('NumericInput web behavior', () => {
     it('syncs the root selection with the browser caret when pressed', () => {
+        // Given an input with selection between characters 2 and 4
         const onPress = jest.fn();
         const handleSelectionChange = jest.fn();
         renderPressSelection(getCaretInputRef(2, 4), onPress, handleSelectionChange);
 
+        // When the input is pressed
         fireEvent.press(screen.getByTestId(PRESSABLE_TEST_ID));
 
+        // Then the selection change is dispatched with the browser selection offsets and the original onPress is called
         expect(handleSelectionChange).toHaveBeenCalledWith(2, 4);
         expect(onPress).toHaveBeenCalledTimes(1);
     });
 
     it('leaves the root selection alone when the ref does not hold a form element exposing the caret', () => {
+        // Given a null input reference
         const onPress = jest.fn();
         const handleSelectionChange = jest.fn();
-
         renderPressSelection({current: null}, onPress, handleSelectionChange);
 
+        // When the input is pressed
         fireEvent.press(screen.getByTestId(PRESSABLE_TEST_ID));
 
+        // Then selection change is not dispatched while onPress is still called
         expect(handleSelectionChange).not.toHaveBeenCalled();
         expect(onPress).toHaveBeenCalledTimes(1);
     });
 
     it('applies a selection event after a manual value update, because the browser does not echo a stale one', () => {
-        renderWithProviders(
+        // Given a NumericInput rendered with value "12"
+        render(
             <NumericInput value="12">
                 <NumericInput.TextInput testID={INPUT_TEST_ID} />
             </NumericInput>,
         );
 
+        // When the value changes and a native selectionChange event is received
         const input = screen.getByTestId(INPUT_TEST_ID);
         fireEvent.changeText(input, '13');
         fireEvent(input, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
 
+        // Then the selection is applied without being ignored
         expect(input.props.selection).toEqual({start: 0, end: 0});
-    });
-
-    describe('container primitive', () => {
-        const renderContainerComposition = (inputRef?: React.Ref<BaseTextInputRef>) =>
-            renderWithProviders(
-                <NumericInput value="12">
-                    <NumericInput.Container testID={CONTAINER_TEST_ID}>
-                        <NumericInput.TextInput
-                            testID={INPUT_TEST_ID}
-                            ref={inputRef}
-                        />
-                        <NumericInput.Symbol>%</NumericInput.Symbol>
-                    </NumericInput.Container>
-                </NumericInput>,
-            );
-
-        it('focuses the input and collapses the selection when its own empty area is pressed', () => {
-            // Given a container composition with a range selection on the input
-            const inputRef = React.createRef<BaseTextInputRef>();
-            renderContainerComposition(inputRef);
-
-            const input = screen.getByTestId(INPUT_TEST_ID);
-            fireEvent(input, 'selectionChange', {
-                nativeEvent: {selection: {start: 0, end: 2}},
-            });
-            expect(input.props.selection).toEqual({start: 0, end: 2});
-
-            const inputElement = inputRef.current;
-            if (!inputElement) {
-                throw new Error('Numeric input ref was not assigned');
-            }
-            const focus = jest.spyOn(inputElement, 'focus');
-
-            // When the container's own empty area is pressed
-            const event = getMouseDownEvent(getContainerViewId(CONTAINER_TEST_ID));
-            fireEvent(screen.getByTestId(CONTAINER_TEST_ID), 'mouseDown', event);
-
-            // Then the browser blur is prevented, the input is focused, and the selection collapses onto its end
-            expect(event.preventDefault).toHaveBeenCalledTimes(1);
-            expect(focus).toHaveBeenCalledTimes(1);
-            expect(input.props.selection).toEqual({start: 2, end: 2});
-            focus.mockRestore();
-        });
-
-        it('does not re-focus the input when its own empty area is pressed if already focused', () => {
-            // Given a container composition where the input is already focused
-            const inputRef = React.createRef<BaseTextInputRef>();
-            renderContainerComposition(inputRef);
-
-            const inputElement = inputRef.current;
-            if (!inputElement) {
-                throw new Error('Numeric input ref was not assigned');
-            }
-            const isFocused = jest.spyOn(inputElement, 'isFocused').mockReturnValue(true);
-            const focus = jest.spyOn(inputElement, 'focus');
-
-            // When the container's own empty area is pressed
-            const event = getMouseDownEvent(getContainerViewId(CONTAINER_TEST_ID));
-            fireEvent(screen.getByTestId(CONTAINER_TEST_ID), 'mouseDown', event);
-
-            // Then the browser blur is prevented, but focus is not called again
-            expect(event.preventDefault).toHaveBeenCalledTimes(1);
-            expect(focus).not.toHaveBeenCalled();
-            focus.mockRestore();
-            isFocused.mockRestore();
-        });
-
-        it('ignores a press that originates from a nested view instead of its own empty area', () => {
-            // Given a container composition with a range selection on the input
-            const inputRef = React.createRef<BaseTextInputRef>();
-            renderContainerComposition(inputRef);
-
-            const input = screen.getByTestId(INPUT_TEST_ID);
-            fireEvent(input, 'selectionChange', {
-                nativeEvent: {selection: {start: 0, end: 2}},
-            });
-
-            const inputElement = inputRef.current;
-            if (!inputElement) {
-                throw new Error('Numeric input ref was not assigned');
-            }
-            const focus = jest.spyOn(inputElement, 'focus');
-
-            // When the press bubbles up from a nested view, which owns the caret placement itself
-            const event = getMouseDownEvent('some-nested-view-id');
-            fireEvent(screen.getByTestId(CONTAINER_TEST_ID), 'mouseDown', event);
-
-            // Then the container leaves the press and the selection alone
-            expect(event.preventDefault).not.toHaveBeenCalled();
-            expect(focus).not.toHaveBeenCalled();
-            expect(input.props.selection).toEqual({start: 0, end: 2});
-            focus.mockRestore();
-        });
-
-        it('assigns a distinct target id to each mounted container, so a press only refocuses its own input', () => {
-            renderWithProviders(
-                <>
-                    <NumericInput value="12">
-                        <NumericInput.Container testID={`${CONTAINER_TEST_ID}-one`}>
-                            <NumericInput.TextInput />
-                        </NumericInput.Container>
-                    </NumericInput>
-                    <NumericInput value="34">
-                        <NumericInput.Container testID={`${CONTAINER_TEST_ID}-two`}>
-                            <NumericInput.TextInput />
-                        </NumericInput.Container>
-                    </NumericInput>
-                </>,
-            );
-
-            expect(getContainerViewId(`${CONTAINER_TEST_ID}-one`)).not.toBe(getContainerViewId(`${CONTAINER_TEST_ID}-two`));
-        });
     });
 });

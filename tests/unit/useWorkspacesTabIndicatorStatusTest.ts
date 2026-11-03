@@ -518,4 +518,58 @@ describe('useWorkspacesTabIndicatorStatus', () => {
             expect(indicatorColor).toBe(defaultTheme.danger);
         });
     });
+
+    describe('archived policy with errors', () => {
+        beforeAll(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+
+            // Given an archived workspace that still has a policy error and an accounting sync error
+            await act(async () => {
+                await Onyx.multiSet(
+                    createMock<OnyxMultiSetInput>({
+                        [ONYXKEYS.SESSION]: {
+                            email: userID,
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY}${WORKSPACE.policyID}` as const]: {
+                            id: WORKSPACE.policyID,
+                            name: WORKSPACE.policyName,
+                            owner: userID,
+                            role: 'admin',
+                            policyAccountID: WORKSPACE.policyAccountID,
+                            archivedDate: '2026-10-08 12:00:00.000',
+                            errors: {policyError: 'Policy error'},
+                            connections: {
+                                intacct: createMock<NonNullable<Connections[typeof CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]>>({
+                                    lastSync: {
+                                        errorMessage: 'Invalid credentials',
+                                        isSuccessful: false,
+                                        errorDate: new Date().toISOString(),
+                                    },
+                                }),
+                            },
+                        },
+                        [`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${WORKSPACE.policyID}` as const]: {
+                            stageInProgress: null,
+                            connectionName: 'intacct',
+                        },
+                        [ONYXKEYS.CARD_LIST]: {},
+                    }),
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+        });
+
+        it('does not show an indicator because errors on an archived workspace cannot be resolved', async () => {
+            // When the Workspaces tab indicator status is computed
+            const {result} = renderHook(() => useWorkspacesTabIndicatorStatus());
+            await waitForBatchedUpdatesWithAct();
+            const {status, indicatorColor, indicatorPolicyID} = result.current;
+
+            // Then the archived workspace is ignored, so no RBR is shown on the tab
+            expect(status).toBeUndefined();
+            expect(indicatorColor).toBe(defaultTheme.success);
+            expect(indicatorPolicyID).toBeUndefined();
+        });
+    });
 });

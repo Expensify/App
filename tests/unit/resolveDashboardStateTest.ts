@@ -37,6 +37,7 @@ function makeSnapshot(data: SearchResults['data']): SearchResults {
 const GROUP_KEY = `${CONST.SEARCH.GROUP_PREFIX}1` as const;
 const SNAPSHOT_WITH_ROWS = makeSnapshot({[GROUP_KEY]: {count: 1, total: 1000, currency: 'USD', year: 2026, month: 1}});
 const SNAPSHOT_WITHOUT_ROWS = makeSnapshot({});
+const SNAPSHOT_WITH_EMPTY_BUCKETS = makeSnapshot({[GROUP_KEY]: {count: 0, total: 0, currency: 'USD', year: 2026, month: 1}});
 const FAILED_SNAPSHOT: SearchResults = {...makeSnapshot({}), errors: ERRORS};
 
 function makeCharts(headline: SearchResults | undefined, supporting: SearchResults | undefined): InsightsDashboardChart[] {
@@ -137,6 +138,51 @@ describe('getDashboardState', () => {
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.LOADING);
     });
 
+    it('keeps loading on the first load until GetInsights responds when every chart loaded empty', () => {
+        // Given no GetInsights response for any dashboard or filters yet, and every chart already loaded empty by a Search request
+        // When the page's state is resolved
+        const state = getDashboardState(undefined, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS));
+
+        // Then the page keeps loading instead of showing the empty state, since the response may say the account has no expenses
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.LOADING);
+    });
+
+    it('keeps loading on the first load until GetInsights responds when one chart loaded empty and the other has not loaded', () => {
+        // Given no GetInsights response for any dashboard or filters yet, an empty headline chart, and a supporting chart with no data
+        // When the page's state is resolved
+        const state = getDashboardState(undefined, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, undefined));
+
+        // Then the page keeps loading instead of drawing an empty chart next to a loading one
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.LOADING);
+    });
+
+    it('shows the empty state offline when every chart is empty', () => {
+        // Given no GetInsights response, no connection, and every chart already loaded empty by a Search request
+        // When the page's state is resolved
+        const state = getDashboardState(undefined, true, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS));
+
+        // Then the page shows the empty state instead of waiting for a response that can't arrive offline
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.EMPTY);
+    });
+
+    it('draws the charts while loading new filters once Insights has loaded before', () => {
+        // Given a stored response for other filters, and new filters with no response or data yet
+        // When the page's state is resolved
+        const state = getDashboardState(undefined, false, makeCharts(undefined, undefined), true);
+
+        // Then the charts show their own loading instead of the page spinner
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.READY);
+    });
+
+    it('says the filters matched nothing without waiting on the response once Insights has loaded before', () => {
+        // Given a stored response for other filters, and new filters whose charts all loaded empty before their response
+        // When the page's state is resolved
+        const state = getDashboardState(undefined, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS), true);
+
+        // Then the page shows the empty state straight away
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.EMPTY);
+    });
+
     it('says the account has no expenses without waiting on a snapshot', () => {
         // Given a response saying the account has no expenses at all, and no chart snapshots
         // When the page's state is resolved
@@ -179,6 +225,24 @@ describe('getDashboardState', () => {
         const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITHOUT_ROWS, SNAPSHOT_WITHOUT_ROWS));
 
         // Then the page points at the filters rather than the account
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.EMPTY);
+    });
+
+    it('says the account has no expenses when every bucket came back empty', () => {
+        // Given an account with no expenses whose snapshots hold only the empty buckets GetInsights sends for the range
+        // When the page's state is resolved
+        const state = getDashboardState({...LOADED_DASHBOARD, hasResults: false}, false, makeCharts(SNAPSHOT_WITH_EMPTY_BUCKETS, SNAPSHOT_WITH_EMPTY_BUCKETS));
+
+        // Then the page says the user has no expenses
+        expect(state).toBe(INSIGHTS_DASHBOARD_STATE.NO_EXPENSES);
+    });
+
+    it('says the filters matched nothing when every bucket came back empty', () => {
+        // Given an account with expenses whose snapshots hold only empty buckets
+        // When the page's state is resolved
+        const state = getDashboardState(LOADED_DASHBOARD, false, makeCharts(SNAPSHOT_WITH_EMPTY_BUCKETS, SNAPSHOT_WITH_EMPTY_BUCKETS));
+
+        // Then the page shows an empty state
         expect(state).toBe(INSIGHTS_DASHBOARD_STATE.EMPTY);
     });
 

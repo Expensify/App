@@ -4,9 +4,10 @@ import CurrencyPicker from '@components/CurrencyPicker';
 import CurrencyInlineListAdapter from '@components/DynamicForm/adapters/CurrencyInlineListAdapter';
 import InlineSelectionListAdapter from '@components/DynamicForm/adapters/InlineSelectionListAdapter';
 import TabsAdapter from '@components/DynamicForm/adapters/TabsAdapter';
+import ToggleLinkAdapter from '@components/DynamicForm/adapters/ToggleLinkAdapter';
 import YesNoAdapter from '@components/DynamicForm/adapters/YesNoAdapter';
 import {getFieldChoices} from '@components/DynamicForm/utils/getFieldOptions';
-import {getFieldLabel} from '@components/DynamicForm/utils/getLocalizedText';
+import getLocalizedText, {getFieldLabel, getInputLabel} from '@components/DynamicForm/utils/getLocalizedText';
 import InputWrapper from '@components/Form/InputWrapper';
 import PushRowWithModal from '@components/PushRowWithModal';
 import type {Choice} from '@components/RadioButtons';
@@ -67,10 +68,10 @@ function renderTabs(label: string, choices: Choice[], inputProps: DynamicFieldIn
 }
 
 const renderMultiChoice: DynamicFieldRenderer<'multiselect' | 'countryMultiselect'> = (field, {values, translate, isLoneField}, inputProps) => {
-    const label = getFieldLabel(field, translate);
+    const title = getFieldLabel(field, translate);
     const choices = getFieldChoices(field, values, translate);
     if (isLoneField) {
-        return renderInlineChoice(label, choices, inputProps, {canSelectMultiple: true, isSearchable: choices.length > CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS});
+        return renderInlineChoice(title, choices, inputProps, {canSelectMultiple: true, isSearchable: choices.length > CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS});
     }
     return {
         isMenuRow: true,
@@ -81,9 +82,9 @@ const renderMultiChoice: DynamicFieldRenderer<'multiselect' | 'countryMultiselec
                 valueType="stringList"
                 canSelectMultiple
                 optionsList={getChoiceOptionsList(choices)}
-                description={label}
-                modalHeaderTitle={label}
-                searchInputTitle={label}
+                description={getInputLabel(field, translate)}
+                modalHeaderTitle={title}
+                searchInputTitle={title}
             />
         ),
     };
@@ -92,14 +93,15 @@ const renderMultiChoice: DynamicFieldRenderer<'multiselect' | 'countryMultiselec
 /** Fields answered by picking from options */
 const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'multiselect' | 'country' | 'countryMultiselect' | 'currency' | 'boolean'> = {
     select: (field, {values, translate, isLoneField}, inputProps) => {
-        const label = getFieldLabel(field, translate);
+        const title = getFieldLabel(field, translate);
+        const label = getInputLabel(field, translate);
         const choices = getFieldChoices(field, values, translate);
         const isLong = choices.length > CONST.DYNAMIC_FORM.LARGE_SELECT_MIN_OPTIONS;
         if (field.presentation === 'tabs') {
             return renderTabs(label, choices, inputProps, isLoneField);
         }
         if (isLoneField) {
-            return renderInlineChoice(label, choices, inputProps, {canSelectMultiple: false, isSearchable: isLong});
+            return renderInlineChoice(title, choices, inputProps, {canSelectMultiple: false, isSearchable: isLong});
         }
         if (isLong) {
             return {
@@ -110,8 +112,8 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
                         {...inputProps}
                         optionsList={getChoiceOptionsList(choices)}
                         description={label}
-                        modalHeaderTitle={label}
-                        searchInputTitle={label}
+                        modalHeaderTitle={title}
+                        searchInputTitle={title}
                     />
                 ),
             };
@@ -123,13 +125,15 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
                     InputComponent={ValuePicker}
                     {...inputProps}
                     label={label}
+                    modalHeaderTitle={title}
                     items={choices}
+                    shouldReadErrorWithLabel
                 />
             ),
         };
     },
-    radio: (field, {values, translate, isLoneField}, inputProps) => {
-        const label = getFieldLabel(field, translate);
+    radio: (field, {values, translate, styles, isLoneField}, inputProps) => {
+        const label = getInputLabel(field, translate);
         const choices = getFieldChoices(field, values, translate);
         if (field.presentation === 'tabs') {
             return renderTabs(label, choices, inputProps, isLoneField);
@@ -143,13 +147,14 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
                     {...inputProps}
                     items={choices}
                     accessibilityLabel={label}
+                    containerStyle={styles.mt0}
                 />
             ),
         };
     },
     multiselect: renderMultiChoice,
     country: (field, {values, translate, isLoneField}, inputProps) => {
-        const label = getFieldLabel(field, translate);
+        const label = getInputLabel(field, translate);
         if (isLoneField) {
             return renderInlineChoice(translate('common.country'), getFieldChoices(field, values, translate), inputProps, {canSelectMultiple: false, isSearchable: true});
         }
@@ -184,12 +189,28 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
                 <InputWrapper
                     InputComponent={CurrencyPicker}
                     {...inputProps}
-                    label={getFieldLabel(field, translate)}
+                    label={getInputLabel(field, translate)}
+                    modalHeaderTitle={getFieldLabel(field, translate)}
+                    shouldReadErrorWithLabel
                 />
             ),
         };
     },
     boolean: (field, {translate, isLoneField}, inputProps) => {
+        if (field.presentation === 'link') {
+            return {
+                isMenuRow: false,
+                input: (
+                    <InputWrapper
+                        InputComponent={ToggleLinkAdapter}
+                        {...inputProps}
+                        valueType="boolean"
+                        label={getFieldLabel(field, translate)}
+                        toggledLabel={getLocalizedText(translate, field.toggledLabelKey, field.toggledLabel)}
+                    />
+                ),
+            };
+        }
         if (field.presentation !== 'checkbox') {
             return {
                 isMenuRow: true,
@@ -198,7 +219,7 @@ const CHOICE_RENDERERS: Pick<DynamicFieldRendererMap, 'select' | 'radio' | 'mult
                     <InputWrapper
                         InputComponent={YesNoAdapter}
                         {...inputProps}
-                        accessibilityLabel={getFieldLabel(field, translate)}
+                        accessibilityLabel={getInputLabel(field, translate)}
                     />
                 ),
             };

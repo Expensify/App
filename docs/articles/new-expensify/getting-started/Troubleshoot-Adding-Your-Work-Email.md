@@ -83,7 +83,7 @@ No. Adding a work email is optional. On the **What’s your work email?** form, 
 
 ## Can I try a different work email on the same account?
 
-Yes, while the work email step is still open. If the message appears under the field, correct the address and click **Add work email** again. Once you click **Skip** or **Got it**, the step doesn’t appear again — add the address you want as a contact method after setup instead.
+Yes, while the work email step is still open. If the message appears under the field, correct the address and click **Add work email** again. Once you click **Skip** or **Got it**, the step only appears again if you choose **Join my company workspace** during setup or open the **Add your work email** task from Concierge. Otherwise, add the address you want as a contact method after setup instead.
 
 ## Can I merge the existing account into my new account instead?
 

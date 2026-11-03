@@ -2,6 +2,7 @@ import type {EducationalTooltipProps} from '@components/Tooltip/types';
 
 import type {ThemeColors} from '@styles/theme/types';
 
+import type CONST from '@src/CONST';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
@@ -10,6 +11,8 @@ import type {MaterialTopTabBarProps} from '@react-navigation/material-top-tabs';
 import type {ComponentRef, Ref} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Animated, StyleProp, View, ViewStyle} from 'react-native';
+
+type TabSelectorItemRole = typeof CONST.ROLE.TAB | typeof CONST.ROLE.RADIO;
 
 type TabSelectorProps = MaterialTopTabBarProps & {
     onTabPress?: (name: string) => void;
@@ -97,6 +100,12 @@ type TabSelectorBaseProps<K extends string = string> = {
 
     /** Whether to fade the edges that have more tabs to scroll to. The fades are positioned against the parent view. */
     shouldShowScrollFade?: boolean;
+
+    /** Role of each tab. `radio` suits tabs that answer a form question instead of switching views. Defaults to `tab`. */
+    itemRole?: TabSelectorItemRole;
+
+    /** The question the tabs answer, added to each tab's label on native, which does not read the name of the group around the tabs */
+    itemGroupAccessibilityLabel?: string;
 };
 
 type TabSelectorItemProps = WithSentryLabel & {
@@ -132,6 +141,12 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Additional styles for the tab button. */
     tabButtonStyles?: StyleProp<ViewStyle>;
+
+    /** Role of the tab, `tab` unless it answers a form question */
+    role?: TabSelectorItemRole;
+
+    /** The question the tab answers, read after its title on native */
+    groupAccessibilityLabel?: string;
 
     /** Text to display on the badge on the tab. */
     badgeText?: string;
