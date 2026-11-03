@@ -4,6 +4,7 @@
  */
 import ConnectToMergeFlow from '@components/ConnectToMergeFlow';
 import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
+import ErrorMessageRow from '@components/ErrorMessageRow';
 import Header from '@components/Header';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -18,7 +19,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useDebouncedAccessibilityAnnouncement from '@hooks/useDebouncedAccessibilityAnnouncement';
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -32,6 +32,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceDocumentTitle from '@hooks/useWorkspaceDocumentTitle';
 
 import {openPolicyAccountingPage, openPolicyHRPage, openPolicyRecruitingPage} from '@libs/actions/PolicyConnections';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isControlPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -46,7 +47,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 
 import variables from '@styles/variables';
 
-import {openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
+import {clearPolicyErrorField, openPolicyReceiptPartnersPage} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -69,6 +70,7 @@ type RouteParams = {
     integrationToDisconnect?: ConnectionName;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     isIntuitEnterpriseSuite?: string;
+    tab?: ConnectionsTab;
 };
 
 type MergeSetupFlow = {
@@ -110,7 +112,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
     const {startIntegrationFlow} = useAccountingActions();
     const {canWrite: canWriteAccounting} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.ACCOUNTING);
-    const [lastSelectedTab, setLastSelectedTab] = useState<ConnectionsTab>(CONST.TAB.CONNECTIONS.ALL);
+    const [lastSelectedTab, setLastSelectedTab] = useState<ConnectionsTab | undefined>();
     const [mergeSetupFlow, setMergeSetupFlow] = useState<MergeSetupFlow | undefined>();
     const route = useRoute();
     const params = route.params as RouteParams | undefined;
@@ -139,7 +141,9 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     // Recruiting providers are behind a beta, so the tab only shows once there is something to list in it
     const hasRecruitingListings = listings.some((listing) => listing.category === CONST.TAB.CONNECTIONS.RECRUITING);
     const visibleTabs = Object.values(CONST.TAB.CONNECTIONS).filter((tab) => tab !== CONST.TAB.CONNECTIONS.RECRUITING || hasRecruitingListings);
-    const activeTab = visibleTabs.includes(lastSelectedTab) ? lastSelectedTab : CONST.TAB.CONNECTIONS.ALL;
+    // A link can open a tab, which applies until the user picks one
+    const requestedTab = lastSelectedTab ?? params?.tab ?? CONST.TAB.CONNECTIONS.ALL;
+    const activeTab = visibleTabs.includes(requestedTab) ? requestedTab : CONST.TAB.CONNECTIONS.ALL;
 
     const [searchValue, setSearchValue, searchResults, appliedSearchValue] = useSearchResults(
         availableListings,
@@ -157,6 +161,16 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const shouldShowEmptyState = !visibleListings.length;
 
     const openSuggestIntegration = () => openConciergeAnywhere({forceConcierge: true});
+
+    // The panels go back to Connections without a tab, so a tab left in the params would stop Back from finding this page
+    const linkedTab = params?.tab;
+    useFocusEffect(() => {
+        if (!linkedTab) {
+            return;
+        }
+        setLastSelectedTab(linkedTab);
+        Navigation.setParams({tab: undefined});
+    });
 
     // Upgrade and setup flows that leave the app come back here with the integration to connect in the route params.
     // `startIntegrationFlow` changes identity whenever `policy` does, and the params are only cleared in a later render,
@@ -282,6 +296,17 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
                 addBottomSafeAreaPadding
                 keyboardShouldPersistTaps="handled"
             >
+                {/* Connecting turns these features on without a toggle, so errors from turning them on show here */}
+                <ErrorMessageRow
+                    errors={getLatestErrorField(policy, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)}
+                    errorRowStyles={styles.mb4}
+                    onDismiss={() => clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED)}
+                />
+                <ErrorMessageRow
+                    errors={getLatestErrorField(policy, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED)}
+                    errorRowStyles={styles.mb4}
+                    onDismiss={() => clearPolicyErrorField(policyID, CONST.POLICY.MORE_FEATURES.ARE_RECEIPT_PARTNERS_ENABLED)}
+                />
                 {connectedListings.length > 0 && (
                     <View style={styles.mb4}>
                         <ConnectionsGrid
@@ -357,14 +382,11 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
 }
 
 function WorkspaceConnectionsPageWrapper(props: WithPolicyConnectionsProps) {
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
-
     return (
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={props.policy?.id}
             policyFeature={CONST.POLICY.POLICY_FEATURE.MORE_FEATURES}
-            shouldBeBlocked={!isUnifiedConnectionsBetaEnabled}
         >
             <AccountingContextProvider policy={props.policy}>
                 <WorkspaceConnectionsPage {...props} />
