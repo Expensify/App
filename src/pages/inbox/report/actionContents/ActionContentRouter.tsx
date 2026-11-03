@@ -72,6 +72,7 @@ import {Str} from 'expensify-common';
 import React from 'react';
 
 import ApprovalFlowContent from './ApprovalFlowContent';
+import AutoPayFeeDisclosureContent from './AutoPayFeeDisclosureContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
@@ -591,6 +592,9 @@ function ActionContentRouter({
                 <RenderHTML html={`<comment><muted-text>${getSettlementAccountLockedMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE)) {
+        return <AutoPayFeeDisclosureContent action={action} />;
     }
 
     return (
