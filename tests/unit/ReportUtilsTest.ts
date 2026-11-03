@@ -14437,7 +14437,7 @@ describe('ReportUtils', () => {
                 originalMessage: {linkedReportID: emptyReportID},
             };
 
-            const buildEmptyReportPolicy = (role: Policy['role']): Policy => ({
+            const buildEmptyReportPolicy = (role: Policy['role'], policyOverrides?: Partial<Policy>): Policy => ({
                 ...createRandomPolicy(1),
                 id: policyID,
                 type: CONST.POLICY.TYPE.TEAM,
@@ -14446,15 +14446,17 @@ describe('ReportUtils', () => {
                 approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
                 autoReporting: false,
                 harvesting: {enabled: false},
+                ...policyOverrides,
             });
 
             const setUpEmptyReport = async (
                 role: Policy['role'],
                 {
                     shouldCachePolicy = true,
+                    policyOverrides,
                     workspaceChatOverrides,
                     extraChatReportActions,
-                }: {shouldCachePolicy?: boolean; workspaceChatOverrides?: Partial<Report>; extraChatReportActions?: ReportActions} = {},
+                }: {shouldCachePolicy?: boolean; policyOverrides?: Partial<Policy>; workspaceChatOverrides?: Partial<Report>; extraChatReportActions?: ReportActions} = {},
             ) => {
                 const emptyReport: Report = {
                     ...createExpenseReport(42101),
@@ -14475,7 +14477,7 @@ describe('ReportUtils', () => {
 
                 await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
                 if (shouldCachePolicy) {
-                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, buildEmptyReportPolicy(role));
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, buildEmptyReportPolicy(role, policyOverrides));
                 }
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${emptyReportID}`, emptyReport);
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${workspaceChat.reportID}`, workspaceChat);
@@ -14542,6 +14544,29 @@ describe('ReportUtils', () => {
 
                 // Then the Add badge is gone, because the report is no longer empty
                 expect(result?.actionBadge).not.toBe(CONST.REPORT.ACTION_BADGE.ADD);
+            });
+
+            it('should not return the ADD badge when the workspace has harvesting enabled', async () => {
+                // Given a workspace chat flagged as needing attention because of another report, plus an empty report the current user could
+                // add expenses to, in a workspace with harvesting on, where an empty report never sets that flag itself
+                const workspaceChat = await setUpEmptyReport(CONST.POLICY.ROLE.USER, {
+                    policyOverrides: {harvesting: {enabled: true}},
+                    workspaceChatOverrides: {iouReportID: 'report-that-set-the-flag'},
+                });
+
+                // When the reason is retrieved for the workspace chat
+                const result = getReasonAndReportActionThatRequiresAttention({
+                    optionOrReport: workspaceChat,
+                    currentUserLogin: currentUserEmail,
+                    currentUserAccountID,
+                    transactionViolations: undefined,
+                    reportMetadata: undefined,
+                    isReportArchived: false,
+                });
+
+                // Then the chat keeps its bare green dot, because Add would label a dot that the empty report didn't cause
+                expect(result?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
+                expect(result?.actionBadge).toBeUndefined();
             });
 
             it('should use the policies param when the module-level policy cache does not have the policy yet', async () => {

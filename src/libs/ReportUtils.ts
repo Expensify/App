@@ -3676,9 +3676,11 @@ function getBadgeFromIOUReport({
     }
     // An empty open report can't be submitted yet, so point the user at adding an expense. This matches the report's "Add expense" button.
     // Only label a chat that is already flagged as needing attention, so this never adds a green dot on its own.
+    // With harvesting on, an empty report never sets that flag (see getOutstandingChildRequest), so any dot was caused by another report.
     // Rules only matter for processing reports, and this only runs for open ones, so none are passed.
     if (
         chatReport?.hasOutstandingChildRequest === true &&
+        !policy?.harvesting?.enabled &&
         isOpenExpenseReport(iouReport) &&
         shouldShowAddExpenseAction({report: iouReport, reportTransactions, isChatReportArchived, rules: undefined, policy, currentUserAccountID})
     ) {
