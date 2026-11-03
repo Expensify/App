@@ -218,15 +218,19 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                     isSearchable: shouldShowSearchInput,
                     // Selecting an option submits straight away, so there is no apply button to leave room for.
                     hasButton: false,
-                    extraHeight: isSmallScreenWidth ? SELECTION_LIST_POPOVER_HEADER_HEIGHT : 0,
+                    extraHeight: isSmallScreenWidth ? SELECTION_LIST_POPOVER_HEADER_HEIGHT + styles.pt4.paddingTop : 0,
                 })}
             >
                 {isSmallScreenWidth && (
-                    <SelectionListPopoverHeader
-                        title={label}
-                        onBackButtonPress={closeOverlay}
-                        backButtonSentryLabel={CONST.SENTRY_LABEL.REPORT_FIELD_OPTIONS_POPOVER.BACK_BUTTON}
-                    />
+                    // This sheet has no padding of its own, so the header takes the 16px every other selection sheet
+                    // pads its top with, which puts its title 20px from the top edge
+                    <View style={styles.pt4}>
+                        <SelectionListPopoverHeader
+                            title={label}
+                            onBackButtonPress={closeOverlay}
+                            backButtonSentryLabel={CONST.SENTRY_LABEL.REPORT_FIELD_OPTIONS_POPOVER.BACK_BUTTON}
+                        />
+                    </View>
                 )}
                 <EditReportFieldDropdown
                     fieldKey={fieldKey}
