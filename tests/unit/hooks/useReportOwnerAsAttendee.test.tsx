@@ -48,7 +48,7 @@ describe('useReportOwnerAsAttendee', () => {
             accountID: ownerAccountID,
             avatar: 'avatar',
         };
-        const transaction = {...createRandomTransaction(reportID), reportID: String(reportID)};
+        const transaction = createRandomTransaction(reportID);
         await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
             [ownerAccountID]: ownerDetails,
         });
@@ -64,6 +64,31 @@ describe('useReportOwnerAsAttendee', () => {
         });
 
         // Then the owner shows up as the default attendee without the expense itself changing
+        expect(result.current).toEqual(getReportOwnerAsAttendee(ownerDetails));
+    });
+
+    it('should fall back to the owner of the report draft when the report itself is not in Onyx', async () => {
+        // Given an expense on a report that only exists as a draft so far
+        const reportID = 5;
+        const ownerAccountID = 6;
+        const ownerDetails = {
+            login: 'draft-owner@gmail.com',
+            accountID: ownerAccountID,
+            avatar: 'avatar',
+        };
+        const transaction = createRandomTransaction(reportID);
+        await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+            [ownerAccountID]: ownerDetails,
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`, {
+            ...createRandomReport(reportID, undefined),
+            ownerAccountID,
+        });
+
+        // When the hook resolves the default attendee
+        const {result} = renderHook(() => useReportOwnerAsAttendee(transaction));
+
+        // Then the draft's owner is used, as the report lookup always fell back to the draft
         expect(result.current).toEqual(getReportOwnerAsAttendee(ownerDetails));
     });
 });
