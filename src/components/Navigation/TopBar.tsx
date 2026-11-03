@@ -91,7 +91,7 @@ function TopBar({breadcrumbLabel, shouldDisplaySearch = true, shouldDisplayHelpB
                 {shouldDisplayHelpButton && <SidePanelButton />}
                 <AccountAvatarButton />
             </View>
-            <LoadingBar shouldShow={!isWideRHPVisible && !!shouldShowLoadingBar} />
+            {!isWideRHPVisible && !!shouldShowLoadingBar && <LoadingBar />}
         </View>
     );
 }

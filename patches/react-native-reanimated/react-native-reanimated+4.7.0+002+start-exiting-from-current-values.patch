@@ -1,0 +1,376 @@
+diff --git a/node_modules/react-native-reanimated/lib/module/layoutReanimation/animationsManager.native.js b/node_modules/react-native-reanimated/lib/module/layoutReanimation/animationsManager.native.js
+index 2940afc..ad1fdf2 100644
+--- a/node_modules/react-native-reanimated/lib/module/layoutReanimation/animationsManager.native.js
++++ b/node_modules/react-native-reanimated/lib/module/layoutReanimation/animationsManager.native.js
+@@ -34,6 +34,23 @@ function stopObservingProgress(tag, sharedValue, scheduleFlush, removeView = fal
+   global._notifyAboutEnd(tag, removeView);
+   scheduleFlush();
+ }
++
++// Leaves out the initial values of the properties that the running animations drive.
++// Transform entries are animated separately, so they're checked one by one.
++function omitAnimatedValues(initialValues, runningAnimations) {
++  'worklet';
++
++  const result = {};
++  for (const key of Object.keys(initialValues)) {
++    const runningAnimation = runningAnimations[key];
++    if (runningAnimation === undefined) {
++      result[key] = initialValues[key];
++    } else if (key === 'transform' && Array.isArray(initialValues.transform) && Array.isArray(runningAnimation)) {
++      result.transform = initialValues.transform.map((entry, index) => Object.fromEntries(Object.entries(entry).filter(([property]) => runningAnimation[index]?.[property] === undefined)));
++    }
++  }
++  return result;
++}
+ function createLayoutAnimationManager() {
+   'worklet';
+ 
+@@ -102,7 +119,11 @@ function createLayoutAnimationManager() {
+         mutableValuesForTag.set(tag, value);
+       } else {
+         removeProgressListener(tag, value);
+-        value._value = style.initialValues;
++        // An exiting animation that interrupts a running animation, such as an entering one,
++        // starts the properties that the running animation drives from their current values,
++        // so the view doesn't jump. `withStyleAnimation` starts a property without an initial
++        // value from the previous animation's current value.
++        value._value = type === LayoutAnimationType.EXITING ? omitAnimatedValues(style.initialValues, previousAnimation) : style.initialValues;
+       }
+       const animation = withStyleAnimation(currentAnimation, finished => {
+         if (finished) {
+diff --git a/node_modules/react-native-reanimated/lib/module/layoutReanimation/web/animationsManager.js b/node_modules/react-native-reanimated/lib/module/layoutReanimation/web/animationsManager.js
+index e7e2f0f..83bd775 100644
+--- a/node_modules/react-native-reanimated/lib/module/layoutReanimation/web/animationsManager.js
++++ b/node_modules/react-native-reanimated/lib/module/layoutReanimation/web/animationsManager.js
+@@ -48,14 +48,31 @@ function chooseAction(animationType, animationConfig, element, transitionData) {
+       break;
+   }
+ }
+-function tryGetAnimationConfig(props, animationType) {
++
++// An exiting animation that interrupts a running layout animation of the element, such as an
++// entering one, starts `opacity` from its current value, so the view doesn't jump. Transforms
++// still start from the exiting animation's first keyframe, because browsers report the current
++// transform as a matrix.
++function getInterruptedAnimationValues(element) {
++  if (typeof CSSAnimation === 'undefined') {
++    return undefined;
++  }
++  const runningAnimation = element.getAnimations().find(animation => animation instanceof CSSAnimation && animation.animationName === element.style.animationName && animation.playState === 'running');
++  const animatesOpacity = runningAnimation?.effect?.getKeyframes().some(keyframe => 'opacity' in keyframe);
++  if (!animatesOpacity) {
++    return undefined;
++  }
++  return {
++    opacity: Number(getComputedStyle(element).opacity)
++  };
++}
++function tryGetAnimationConfig(props, animationType, interruptedAnimationValues) {
+   const config = chooseConfig(animationType, props);
+   if (!config) {
+     return null;
+   }
+   const isLayoutTransition = animationType === LayoutAnimationType.LAYOUT;
+   const isCustomKeyframe = config instanceof Keyframe;
+-  const hasInitialValues = config.initialValues !== undefined;
+   let animationName;
+   if (isCustomKeyframe) {
+     animationName = createCustomKeyFrameAnimation(config.definitions, animationType);
+@@ -64,8 +81,17 @@ function tryGetAnimationConfig(props, animationType) {
+   } else {
+     animationName = config.constructor.presetName;
+   }
++
++  // Only predefined animations have keyframes that the current values can be put in
++  const startsFromCurrentValues = interruptedAnimationValues !== undefined && Object.prototype.hasOwnProperty.call(Animations, animationName);
++  const initialValues = startsFromCurrentValues ? {
++    ...config.initialValues,
++    ...interruptedAnimationValues
++  } : config.initialValues;
++  const hasInitialValues = initialValues !== undefined;
++  const presetName = animationName;
+   if (hasInitialValues) {
+-    animationName = createAnimationWithInitialValues(animationName, config.initialValues, animationType);
++    animationName = createAnimationWithInitialValues(animationName, initialValues, animationType);
+   }
+   const shouldFail = checkUndefinedAnimationFail(animationName, isLayoutTransition || isCustomKeyframe || hasInitialValues);
+   if (shouldFail) {
+@@ -77,11 +103,14 @@ function tryGetAnimationConfig(props, animationType) {
+       logger.warn(`Neither '100' nor 'to' was specified in Keyframe definition. This may result in wrong final position of your component. One possible solution is to duplicate last timestamp in definition as '100' (or 'to')`);
+     }
+   }
+-  const animationConfig = getProcessedConfig(animationName, animationType, config);
++  const animationConfig = getProcessedConfig(animationName, animationType, config, presetName);
++  if (startsFromCurrentValues) {
++    animationConfig.startsFromCurrentValues = true;
++  }
+   return animationConfig;
+ }
+ export function startWebLayoutAnimation(props, element, animationType, transitionData) {
+-  const animationConfig = tryGetAnimationConfig(props, animationType);
++  const animationConfig = tryGetAnimationConfig(props, animationType, animationType === LayoutAnimationType.EXITING ? getInterruptedAnimationValues(element) : undefined);
+   maybeModifyStyleForKeyframe(element, props.entering);
+   if (animationConfig?.animationName in Animations) {
+     maybeReportOverwrittenProperties(Animations[animationConfig?.animationName].style, element.style);
+diff --git a/node_modules/react-native-reanimated/lib/module/layoutReanimation/web/componentUtils.js b/node_modules/react-native-reanimated/lib/module/layoutReanimation/web/componentUtils.js
+index 1ec5f99..fa57c50 100644
+--- a/node_modules/react-native-reanimated/lib/module/layoutReanimation/web/componentUtils.js
++++ b/node_modules/react-native-reanimated/lib/module/layoutReanimation/web/componentUtils.js
+@@ -81,11 +81,14 @@ function getCallbackFromConfig(config) {
+ function getReversedFromConfig(config) {
+   return !!config.reversed;
+ }
+-export function getProcessedConfig(animationName, animationType, config) {
++export function getProcessedConfig(animationName, animationType, config,
++// A predefined animation with custom initial values runs under a generated name,
++// but keeps the predefined animation's default duration
++presetName = animationName) {
+   return {
+     animationName,
+     animationType,
+-    duration: getDurationFromConfig(config, animationName),
++    duration: getDurationFromConfig(config, presetName),
+     delay: getDelayFromConfig(config),
+     easing: getEasingFromConfig(config),
+     callback: getCallbackFromConfig(config),
+@@ -130,7 +133,10 @@ export function setElementAnimation(element, animationConfig, shouldSavePosition
+     element.style.animationDuration = `${duration}s`;
+     element.style.animationDelay = `${delay}s`;
+     element.style.animationTimingFunction = easing;
+-    if (animationConfig.animationType === LayoutAnimationType.ENTERING && delay > 0) {
++
++    // During the delay, the element shows the animation's first keyframe. For an exiting
++    // animation that starts from the current values, that keeps the view where it was.
++    if ((animationConfig.animationType === LayoutAnimationType.ENTERING || animationConfig.startsFromCurrentValues) && delay > 0) {
+       element.style.animationFillMode = 'backwards';
+     }
+   };
+diff --git a/node_modules/react-native-reanimated/src/layoutReanimation/animationsManager.native.ts b/node_modules/react-native-reanimated/src/layoutReanimation/animationsManager.native.ts
+index 93ea65c..32116eb 100644
+--- a/node_modules/react-native-reanimated/src/layoutReanimation/animationsManager.native.ts
++++ b/node_modules/react-native-reanimated/src/layoutReanimation/animationsManager.native.ts
+@@ -10,6 +10,7 @@ import type {
+   LayoutAnimationValues,
+   Mutable,
+   SharedValue,
++  StyleProps,
+ } from '../commonTypes';
+ import { LayoutAnimationType } from '../commonTypes';
+ import { getStaticFeatureFlag } from '../featureFlags';
+@@ -58,6 +59,39 @@ function stopObservingProgress(
+   scheduleFlush();
+ }
+ 
++// Leaves out the initial values of the properties that the running animations drive.
++// Transform entries are animated separately, so they're checked one by one.
++function omitAnimatedValues(
++  initialValues: StyleProps,
++  runningAnimations: StyleProps
++): StyleProps {
++  'worklet';
++  const result: Record<string, unknown> = {};
++
++  for (const key of Object.keys(initialValues)) {
++    const runningAnimation = runningAnimations[key];
++
++    if (runningAnimation === undefined) {
++      result[key] = initialValues[key];
++    } else if (
++      key === 'transform' &&
++      Array.isArray(initialValues.transform) &&
++      Array.isArray(runningAnimation)
++    ) {
++      result.transform = initialValues.transform.map(
++        (entry: Record<string, unknown>, index: number) =>
++          Object.fromEntries(
++            Object.entries(entry).filter(
++              ([property]) => runningAnimation[index]?.[property] === undefined
++            )
++          )
++      );
++    }
++  }
++
++  return result as StyleProps;
++}
++
+ function createLayoutAnimationManager(): LayoutAnimationsManager {
+   'worklet';
+   const currentAnimationForTag = new Map();
+@@ -128,7 +162,14 @@ function createLayoutAnimationManager(): LayoutAnimationsManager {
+         mutableValuesForTag.set(tag, value);
+       } else {
+         removeProgressListener(tag, value);
+-        value._value = style.initialValues;
++        // An exiting animation that interrupts a running animation, such as an entering one,
++        // starts the properties that the running animation drives from their current values,
++        // so the view doesn't jump. `withStyleAnimation` starts a property without an initial
++        // value from the previous animation's current value.
++        value._value =
++          type === LayoutAnimationType.EXITING
++            ? omitAnimatedValues(style.initialValues, previousAnimation)
++            : style.initialValues;
+       }
+ 
+       const animation = withStyleAnimation(currentAnimation, (finished) => {
+diff --git a/node_modules/react-native-reanimated/src/layoutReanimation/web/animationsManager.ts b/node_modules/react-native-reanimated/src/layoutReanimation/web/animationsManager.ts
+index c202a25..b3401b2 100644
+--- a/node_modules/react-native-reanimated/src/layoutReanimation/web/animationsManager.ts
++++ b/node_modules/react-native-reanimated/src/layoutReanimation/web/animationsManager.ts
+@@ -112,9 +112,42 @@ function chooseAction(
+   }
+ }
+ 
++// An exiting animation that interrupts a running layout animation of the element, such as an
++// entering one, starts `opacity` from its current value, so the view doesn't jump. Transforms
++// still start from the exiting animation's first keyframe, because browsers report the current
++// transform as a matrix.
++function getInterruptedAnimationValues(
++  element: ReanimatedHTMLElement
++): InitialValuesStyleProps | undefined {
++  if (typeof CSSAnimation === 'undefined') {
++    return undefined;
++  }
++
++  const runningAnimation = element
++    .getAnimations()
++    .find(
++      (animation) =>
++        animation instanceof CSSAnimation &&
++        animation.animationName === element.style.animationName &&
++        animation.playState === 'running'
++    );
++  const animatesOpacity = (
++    runningAnimation?.effect as KeyframeEffect | null | undefined
++  )
++    ?.getKeyframes()
++    .some((keyframe) => 'opacity' in keyframe);
++
++  if (!animatesOpacity) {
++    return undefined;
++  }
++
++  return { opacity: Number(getComputedStyle(element).opacity) };
++}
++
+ function tryGetAnimationConfig<ComponentProps extends Record<string, unknown>>(
+   props: Readonly<AnimatedComponentProps<ComponentProps>>,
+-  animationType: LayoutAnimationType
++  animationType: LayoutAnimationType,
++  interruptedAnimationValues?: InitialValuesStyleProps
+ ) {
+   const config = chooseConfig(animationType, props);
+   if (!config) {
+@@ -126,7 +159,6 @@ function tryGetAnimationConfig<ComponentProps extends Record<string, unknown>>(
+ 
+   const isLayoutTransition = animationType === LayoutAnimationType.LAYOUT;
+   const isCustomKeyframe = config instanceof Keyframe;
+-  const hasInitialValues = (config as CustomConfig).initialValues !== undefined;
+ 
+   let animationName;
+ 
+@@ -142,10 +174,23 @@ function tryGetAnimationConfig<ComponentProps extends Record<string, unknown>>(
+       .presetName;
+   }
+ 
++  // Only predefined animations have keyframes that the current values can be put in
++  const startsFromCurrentValues =
++    interruptedAnimationValues !== undefined &&
++    Object.prototype.hasOwnProperty.call(Animations, animationName);
++  const initialValues = startsFromCurrentValues
++    ? {
++        ...(config as CustomConfig).initialValues,
++        ...interruptedAnimationValues,
++      }
++    : (config as CustomConfig).initialValues;
++  const hasInitialValues = initialValues !== undefined;
++  const presetName = animationName;
++
+   if (hasInitialValues) {
+     animationName = createAnimationWithInitialValues(
+       animationName,
+-      (config as CustomConfig).initialValues as InitialValuesStyleProps,
++      initialValues as InitialValuesStyleProps,
+       animationType
+     );
+   }
+@@ -176,9 +221,14 @@ function tryGetAnimationConfig<ComponentProps extends Record<string, unknown>>(
+   const animationConfig = getProcessedConfig(
+     animationName,
+     animationType,
+-    config as CustomConfig
++    config as CustomConfig,
++    presetName
+   );
+ 
++  if (startsFromCurrentValues) {
++    animationConfig.startsFromCurrentValues = true;
++  }
++
+   return animationConfig;
+ }
+ 
+@@ -190,7 +240,13 @@ export function startWebLayoutAnimation<
+   animationType: LayoutAnimationType,
+   transitionData?: TransitionData
+ ) {
+-  const animationConfig = tryGetAnimationConfig(props, animationType);
++  const animationConfig = tryGetAnimationConfig(
++    props,
++    animationType,
++    animationType === LayoutAnimationType.EXITING
++      ? getInterruptedAnimationValues(element)
++      : undefined
++  );
+ 
+   maybeModifyStyleForKeyframe(element, props.entering as CustomConfig);
+ 
+diff --git a/node_modules/react-native-reanimated/src/layoutReanimation/web/componentUtils.ts b/node_modules/react-native-reanimated/src/layoutReanimation/web/componentUtils.ts
+index 0da2757..67016b6 100644
+--- a/node_modules/react-native-reanimated/src/layoutReanimation/web/componentUtils.ts
++++ b/node_modules/react-native-reanimated/src/layoutReanimation/web/componentUtils.ts
+@@ -136,12 +136,15 @@ function getReversedFromConfig(config: CustomConfig) {
+ export function getProcessedConfig(
+   animationName: string,
+   animationType: LayoutAnimationType,
+-  config: CustomConfig
++  config: CustomConfig,
++  // A predefined animation with custom initial values runs under a generated name,
++  // but keeps the predefined animation's default duration
++  presetName = animationName
+ ): AnimationConfig {
+   return {
+     animationName,
+     animationType,
+-    duration: getDurationFromConfig(config, animationName),
++    duration: getDurationFromConfig(config, presetName),
+     delay: getDelayFromConfig(config),
+     easing: getEasingFromConfig(config),
+     callback: getCallbackFromConfig(config),
+@@ -199,8 +202,11 @@ export function setElementAnimation(
+     element.style.animationDelay = `${delay}s`;
+     element.style.animationTimingFunction = easing;
+ 
++    // During the delay, the element shows the animation's first keyframe. For an exiting
++    // animation that starts from the current values, that keeps the view where it was.
+     if (
+-      animationConfig.animationType === LayoutAnimationType.ENTERING &&
++      (animationConfig.animationType === LayoutAnimationType.ENTERING ||
++        animationConfig.startsFromCurrentValues) &&
+       delay > 0
+     ) {
+       element.style.animationFillMode = 'backwards';
+diff --git a/node_modules/react-native-reanimated/src/layoutReanimation/web/config.ts b/node_modules/react-native-reanimated/src/layoutReanimation/web/config.ts
+index 0c93a55..7d35f95 100644
+--- a/node_modules/react-native-reanimated/src/layoutReanimation/web/config.ts
++++ b/node_modules/react-native-reanimated/src/layoutReanimation/web/config.ts
+@@ -61,6 +61,8 @@ export interface AnimationConfig {
+   easing: string;
+   callback: AnimationCallback;
+   reversed: boolean;
++  // An exiting animation that interrupts a running animation starts from its current values
++  startsFromCurrentValues?: boolean;
+ }
+ 
+ export interface EasingType {
