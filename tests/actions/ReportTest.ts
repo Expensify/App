@@ -262,6 +262,47 @@ const parseGuidedSetupData = (value: string): GuidedSetupData => {
 
 type APIWriteSpy = jest.SpiedFunction<typeof API.write>;
 
+/**
+ * Seeds a report with an older comment, a newer whisper aimed at `whisperTargetAccountID`, and the actionable whisper
+ * built by `buildActionableWhisper`, so the resolve tests can check which of the first two the resolving user sees last.
+ */
+async function seedReportWithWhisperBeforeActionableWhisper(
+    idBase: number,
+    whisperTargetAccountID: number,
+    buildActionableWhisper: (reportActionID: string, reportID: string) => OnyxTypes.ReportAction,
+) {
+    const reportID = `${idBase}`;
+    const olderComment: OnyxTypes.ReportAction = {
+        reportActionID: `${idBase + 1}`,
+        reportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+        created: '2026-10-01 10:00:00.000',
+        message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
+        originalMessage: {html: 'Older comment'},
+    };
+    /** Newer than `olderComment`, and only the whispered-to account can see it. */
+    const otherWhisper: OnyxTypes.ReportAction = {
+        reportActionID: `${idBase + 2}`,
+        reportID,
+        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+        created: '2026-10-01 12:00:00.000',
+        message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [whisperTargetAccountID]}],
+        originalMessage: {whisperedTo: [whisperTargetAccountID]},
+    };
+    const actionableWhisper = buildActionableWhisper(`${idBase + 3}`, reportID);
+    const report: OnyxTypes.Report = {...createRandomReport(idBase, undefined), reportID};
+
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
+    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
+        [olderComment.reportActionID]: olderComment,
+        [otherWhisper.reportActionID]: otherWhisper,
+        [actionableWhisper.reportActionID]: actionableWhisper,
+    });
+    await waitForBatchedUpdates();
+
+    return {report, olderComment, otherWhisper, actionableWhisper};
+}
+
 describe('actions/Report', () => {
     let apiWriteSpy: APIWriteSpy;
 
@@ -6434,23 +6475,23 @@ describe('actions/Report', () => {
             const PREVIEW_ACTION_ID = '79002';
             const WHISPER_TARGET_ACCOUNT_ID = 979;
 
-            const olderComment = {
+            const olderComment: OnyxTypes.ReportAction = {
                 reportActionID: '79003',
                 reportID: OLD_CHAT_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
                 created: '2026-10-01 10:00:00.000',
                 message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
                 originalMessage: {html: 'Older comment'},
-            } as OnyxTypes.ReportAction;
+            };
             /** Newer than `olderComment`, and only the whispered-to account can see it. */
-            const whisper = {
+            const whisper: OnyxTypes.ReportAction = {
                 reportActionID: '79004',
                 reportID: OLD_CHAT_REPORT_ID,
                 actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
                 created: '2026-10-01 12:00:00.000',
                 message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
                 originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
-            } as OnyxTypes.ReportAction;
+            };
             const report: OnyxTypes.Report = {
                 ...createRandomReport(79005, undefined),
                 reportID: '79005',
@@ -11751,47 +11792,25 @@ describe('actions/Report', () => {
             const WHISPER_TARGET_ACCOUNT_ID = 999;
 
             const resolveAs = async (currentUserAccountID: number, idBase: number) => {
-                const reportID = `${idBase}`;
-                const olderComment = {
-                    reportActionID: `${idBase + 1}`,
-                    reportID,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    created: '2026-10-01 10:00:00.000',
-                    message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
-                    originalMessage: {html: 'Older comment'},
-                } as OnyxTypes.ReportAction;
-                /** Newer than `olderComment`, and only the whispered-to account can see it. */
-                const otherWhisper = {
-                    reportActionID: `${idBase + 2}`,
-                    reportID,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    created: '2026-10-01 12:00:00.000',
-                    message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
-                    originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
-                } as OnyxTypes.ReportAction;
-                const reportMentionWhisper = {
-                    reportActionID: `${idBase + 3}`,
-                    reportID,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
-                    created: '2026-10-01 13:00:00.000',
-                    message: [{html: 'Mentioned #room', text: 'Mentioned #room', type: 'COMMENT'}],
-                    originalMessage: {whisperedTo: [currentUserAccountID]},
-                } as OnyxTypes.ReportAction;
-                const report: OnyxTypes.Report = {...createRandomReport(idBase, undefined), reportID};
-
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [olderComment.reportActionID]: olderComment,
-                    [otherWhisper.reportActionID]: otherWhisper,
-                    [reportMentionWhisper.reportActionID]: reportMentionWhisper,
-                });
-                await waitForBatchedUpdates();
+                const {report, olderComment, otherWhisper, actionableWhisper} = await seedReportWithWhisperBeforeActionableWhisper(
+                    idBase,
+                    WHISPER_TARGET_ACCOUNT_ID,
+                    (reportActionID, reportID) =>
+                        createMock<OnyxTypes.ReportAction>({
+                            reportActionID,
+                            reportID,
+                            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
+                            created: '2026-10-01 13:00:00.000',
+                            message: [{html: 'Mentioned #room', text: 'Mentioned #room', type: 'COMMENT'}],
+                            originalMessage: {whisperedTo: [currentUserAccountID]},
+                        }),
+                );
 
                 // When the report mention whisper is dismissed by the given user
-                Report.resolveActionableReportMentionWhisper(report, reportMentionWhisper, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, false, currentUserAccountID);
+                Report.resolveActionableReportMentionWhisper(report, actionableWhisper, CONST.REPORT.ACTIONABLE_REPORT_MENTION_WHISPER_RESOLUTION.NOTHING, false, currentUserAccountID);
                 await waitForBatchedUpdates();
 
-                return {lastVisibleActionCreated: (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const))?.lastVisibleActionCreated, olderComment, otherWhisper};
+                return {lastVisibleActionCreated: (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}` as const))?.lastVisibleActionCreated, olderComment, otherWhisper};
             };
 
             // Given a report whose newest action after the report mention whisper is another whisper aimed at one account
@@ -12272,47 +12291,25 @@ describe('actions/Report', () => {
             const WHISPER_TARGET_ACCOUNT_ID = 989;
 
             const resolveAs = async (currentUserAccountID: number, idBase: number) => {
-                const reportID = `${idBase}`;
-                const olderComment = {
-                    reportActionID: `${idBase + 1}`,
-                    reportID,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-                    created: '2026-10-01 10:00:00.000',
-                    message: [{type: 'COMMENT', html: 'Older comment', text: 'Older comment'}],
-                    originalMessage: {html: 'Older comment'},
-                } as OnyxTypes.ReportAction;
-                /** Newer than `olderComment`, and only the whispered-to account can see it. */
-                const otherWhisper = {
-                    reportActionID: `${idBase + 2}`,
-                    reportID,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-                    created: '2026-10-01 12:00:00.000',
-                    message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
-                    originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
-                } as OnyxTypes.ReportAction;
-                const mentionWhisper = createMock<OnyxTypes.ReportAction>({
-                    reportActionID: `${idBase + 3}`,
-                    reportID,
-                    actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
-                    created: '2026-10-01 13:00:00.000',
-                    message: [{html: 'Mentioned @user1', text: 'Mentioned @user1', type: 'COMMENT'}],
-                    originalMessage: {inviteeAccountIDs: [200], inviteeEmails: ['user1@example.com'], whisperedTo: [currentUserAccountID]},
-                });
-                const report: OnyxTypes.Report = {...createRandomReport(idBase, undefined), reportID};
-
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, report);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
-                    [olderComment.reportActionID]: olderComment,
-                    [otherWhisper.reportActionID]: otherWhisper,
-                    [mentionWhisper.reportActionID]: mentionWhisper,
-                });
-                await waitForBatchedUpdates();
+                const {report, olderComment, otherWhisper, actionableWhisper} = await seedReportWithWhisperBeforeActionableWhisper(
+                    idBase,
+                    WHISPER_TARGET_ACCOUNT_ID,
+                    (reportActionID, reportID) =>
+                        createMock<OnyxTypes.ReportAction>({
+                            reportActionID,
+                            reportID,
+                            actionName: CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
+                            created: '2026-10-01 13:00:00.000',
+                            message: [{html: 'Mentioned @user1', text: 'Mentioned @user1', type: 'COMMENT'}],
+                            originalMessage: {inviteeAccountIDs: [200], inviteeEmails: ['user1@example.com'], whisperedTo: [currentUserAccountID]},
+                        }),
+                );
 
                 // When the mention whisper is dismissed by the given user
-                Report.resolveActionableMentionWhisper(report, mentionWhisper, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, false, currentUserAccountID);
+                Report.resolveActionableMentionWhisper(report, actionableWhisper, CONST.REPORT.ACTIONABLE_MENTION_WHISPER_RESOLUTION.NOTHING, false, currentUserAccountID);
                 await waitForBatchedUpdates();
 
-                return {lastVisibleActionCreated: (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const))?.lastVisibleActionCreated, olderComment, otherWhisper};
+                return {lastVisibleActionCreated: (await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}` as const))?.lastVisibleActionCreated, olderComment, otherWhisper};
             };
 
             // Given a report whose newest action after the mention whisper is another whisper aimed at one account

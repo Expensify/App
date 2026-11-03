@@ -5092,8 +5092,9 @@ function buildOptimisticCancelPaymentReportAction(expenseReportID: string, amoun
  * Returns the last visible message for a given report after considering the given optimistic actions
  *
  * @param reportID - the report for which last visible message has to be fetched
+ * @param isReportArchived - whether the report is archived, which decides if the user can still write in it
  * @param [actionsToMerge] - the optimistic merge actions that needs to be considered while fetching last visible message
-
+ * @param [currentUserAccountID] - the account whose whisper visibility decides which action is the last visible one
  */
 function getLastVisibleMessage(
     reportID: string | undefined,
@@ -14348,9 +14349,10 @@ function findPolicyExpenseChatByPolicyID(policyID: string): OnyxEntry<Report> {
 
 /**
  * A function to get the report last message. This is usually used to restore the report message preview in LHN after report actions change.
- * @param reportID
- * @param actionsToMerge
- * @param canUserPerformWriteActionInReport
+ * @param reportID - the report whose last message is calculated
+ * @param isReportArchived - whether the report is archived, which decides if the user can still write in it
+ * @param actionsToMerge - the optimistic actions to consider on top of the stored ones
+ * @param currentUserAccountID - the account whose whisper visibility decides which action is the last visible one
  * @returns containing the calculated message preview data of the report
  */
 function getReportLastMessage(reportID: string, isReportArchived: boolean | undefined, actionsToMerge: ReportActions | undefined, currentUserAccountID: number) {
