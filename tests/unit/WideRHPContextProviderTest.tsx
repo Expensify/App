@@ -46,7 +46,7 @@ const searchFullscreen: TestRoute = {key: 'search-1', name: NAVIGATORS.SEARCH_FU
 
 /** A fresh state object for the same tree, as any navigation event hands the provider. */
 function buildStateShowing(childKeys: string[]): NavigationState {
-    return buildRootState([reportsSplit, {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR, state: {routes: childKeys.map((key) => ({key, name: 'Screen'}))}} as TestRoute]);
+    return buildRootState([reportsSplit, {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR, state: {routes: childKeys.map((key) => ({key, name: 'Screen'}))}}]);
 }
 
 function renderProvider() {
@@ -103,11 +103,7 @@ describe('WideRHPContextProvider', () => {
         expect(before?.wideRHPRouteKeys).toEqual(['wideKey']);
 
         // When a fullscreen navigator covers the RHP
-        mockRootState = buildRootState([
-            reportsSplit,
-            {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR, state: {routes: [{key: 'wideKey', name: 'Screen'}]}} as TestRoute,
-            searchFullscreen,
-        ]);
+        mockRootState = buildRootState([reportsSplit, {key: 'rhp-1', name: NAVIGATORS.RIGHT_MODAL_NAVIGATOR, state: {routes: [{key: 'wideKey', name: 'Screen'}]}}, searchFullscreen]);
         navigate();
 
         // Then the change is published

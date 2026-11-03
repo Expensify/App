@@ -6103,9 +6103,6 @@ const translations = {
                     ? `Set a default vendor that will apply to reimbursable expenses that don't have a matching vendor in Sage Intacct.`
                     : `Expenses that can't be matched to your Sage Intacct vendors will default to this vendor.`,
             exportDescription: 'Configure how Expensify data exports to Sage Intacct.',
-            exportPreferredExporterNote:
-                'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
-            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: `Please add the account in Sage Intacct and sync the connection again`,
             autoSync: 'Auto-sync',
@@ -6653,14 +6650,23 @@ const translations = {
             exportDescription: 'Configure how Expensify data exports to Rillet.',
             exportReimbursable: {
                 label: 'Export reimbursable expenses as',
+                description: "We'll create an itemized vendor bill or reimbursement for each Expensify report. If the period is closed, we'll post to the next open period.",
                 values: {
-                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
-                        label: 'Vendor bills',
+                    VENDOR_BILL: {
+                        label: 'Itemized vendor bills',
+                    },
+                    REIMBURSEMENT: {
+                        label: 'Itemized reimbursements',
                     },
                 },
             },
+            reimbursementAccount: {
+                label: 'Reimbursement account',
+                description: 'Choose where to export reimbursable expenses.',
+                accountRequiredError: 'Please select a Rillet reimbursement account.',
+            },
             exportDate: {
-                label: 'Vendor bill date',
+                label: 'GL impact date',
                 description: 'Use this date when exporting reports to Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6736,10 +6742,10 @@ const translations = {
                 },
             },
             syncReimbursedReports: 'Sync reimbursed reports',
-            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
-            billPaymentAccount: {
-                label: 'Bill payment account',
-                description: "Choose where to pay bills from and we'll create the payment in Rillet.",
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a payment will be generated in this account.',
+            achPaymentAccount: {
+                label: 'ACH payment account',
+                description: "Choose where to pay reports from and we'll create the payment in Rillet.",
             },
             fxExpenseAccount: {
                 label: 'Rillet currency conversion fee account',
@@ -8646,8 +8652,7 @@ const translations = {
                 },
             },
             preferredExporter: 'Preferred exporter',
-            exportPreferredExporterNote:
-                'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
+            exportPreferredExporterNote: 'The preferred exporter can be any workspace admin.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportAs: 'Export as',
             exportOutOfPocket: 'Export out-of-pocket expenses as',
@@ -12625,7 +12630,7 @@ const translations = {
             theresAReportWithErrors: "There's a report with errors",
             theresAWorkspaceWithCustomUnitsErrors: "There's a workspace with custom units errors",
             theresAProblemWithAWorkspaceMember: "There's a problem with a workspace member",
-            theresAProblemWithAWorkspaceQBOExport: 'There was a problem with a workspace connection export setting.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'There was a problem with a workspace connection export setting.',
             theresAProblemWithAContactMethod: "There's a problem with a contact method",
             aContactMethodRequiresVerification: 'A contact method requires verification',
             theresAProblemWithAPaymentMethod: "There's a problem with a payment method",
