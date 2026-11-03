@@ -83,8 +83,8 @@ function AnchoredSelectionListPopover({
     const anchorRef = useRef<ComponentRef<typeof View>>(null);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth -- must match PopoverWithMeasuredContent's dock decision, which is on isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
-    // The title and back button belong to the bottom sheet. Anchored to its field the list needs neither, so a wide
-    // layout only keeps the header for actions it holds.
+    // The bottom sheet always has a header. Anchored to its field the list needs no title of its own, so a wide layout
+    // only shows the header, title included, for the actions it holds.
     const shouldRenderHeader = shouldShowHeader && (isSmallScreenWidth || !!headerActions);
 
     const {popoverDimensions, innerContainerStyle, outerStyle, avoidKeyboard, contentStyle} = useSelectionListPopoverLayout({

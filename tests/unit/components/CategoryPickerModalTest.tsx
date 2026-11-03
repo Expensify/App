@@ -123,16 +123,16 @@ describe('CategoryPickerModal', () => {
         expect(onAddCategory).not.toHaveBeenCalled();
     });
 
-    it('leaves the back button and title out of the wide pop-over', () => {
+    it('leaves the back button out of the wide pop-over', () => {
         // Given a wide layout, where the list opens as a pop-over that a click outside it already closes
         mockIsSmallScreenWidth = false;
 
         // When the pop-over opens with its header, for a user who can add categories
         renderSheet({onAddCategory: jest.fn()});
 
-        // Then the header keeps only its add button, since the pop-over anchored to its field needs no back button or title
+        // Then the header names the list next to its add button, but needs no back button since a click outside closes it
         expect(screen.queryByLabelText('common.back')).toBeNull();
-        expect(screen.queryByText('common.category')).toBeNull();
+        expect(screen.getByText('common.category')).toBeOnTheScreen();
         expect(screen.getByLabelText('workspace.categories.addCategory')).toBeOnTheScreen();
     });
 
