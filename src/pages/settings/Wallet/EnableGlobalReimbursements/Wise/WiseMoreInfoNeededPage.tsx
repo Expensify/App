@@ -83,10 +83,7 @@ function WiseMoreInfoNeededPage({route}: WiseMoreInfoNeededPageProps) {
     }
 
     return (
-        <ScreenWrapper
-            testID="WiseMoreInfoNeededPage"
-            shouldShowOfflineIndicatorInWideScreen
-        >
+        <ScreenWrapper testID="WiseMoreInfoNeededPage">
             <Header>
                 <Header.BackButton onPress={goBackToEntryPoint} />
                 <Header.Title title={translate('walletPage.wiseOnboarding.moreInfoNeeded.headerTitle')} />
