@@ -56,6 +56,7 @@ import InsightsNoExpensesState from './states/InsightsNoExpensesState';
 import useInsightsFilters from './useInsightsFilters';
 
 type InsightsDashboardContentProps = {
+    dashboardID: InsightsDashboardID;
     state: InsightsDashboardState;
     aiInsights: AIInsight[] | undefined;
     isLoadingAIInsights: boolean;
@@ -77,7 +78,18 @@ type InsightsDashboardContentProps = {
     children?: React.ReactNode;
 };
 
-function InsightsDashboardContent({state, aiInsights, isLoadingAIInsights, headlineChart, supportingCharts, filters, onRetry, onGroupByChange, children}: InsightsDashboardContentProps) {
+function InsightsDashboardContent({
+    dashboardID,
+    state,
+    aiInsights,
+    isLoadingAIInsights,
+    headlineChart,
+    supportingCharts,
+    filters,
+    onRetry,
+    onGroupByChange,
+    children,
+}: InsightsDashboardContentProps) {
     const styles = useThemeStyles();
     const {pageGutter} = useLayoutSpacing();
     const shouldScrollMainHeader = useIsMobileWebLandscape();
@@ -186,6 +198,7 @@ function InsightsDashboardContent({state, aiInsights, isLoadingAIInsights, headl
                         />
                     )}
                     <InsightsChartWidget
+                        dashboardID={dashboardID}
                         chart={headlineChart.chart}
                         queryJSON={headlineChart.queryJSON}
                         snapshot={headlineChart.snapshot}
@@ -207,6 +220,7 @@ function InsightsDashboardContent({state, aiInsights, isLoadingAIInsights, headl
                                 {columnCharts.map(({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}) => (
                                     <InsightsChartWidget
                                         key={chart.graphKey}
+                                        dashboardID={dashboardID}
                                         chart={chart}
                                         queryJSON={queryJSON}
                                         snapshot={snapshot}
@@ -349,6 +363,7 @@ function InsightsDashboard({dashboardID, accessibleDashboards}: {dashboardID: In
                     style={StyleSheet.absoluteFill}
                 >
                     <InsightsDashboardContent
+                        dashboardID={dashboardID}
                         state={state}
                         aiInsights={dashboard?.aiInsights}
                         // Offline no response is coming, so the row hides instead of loading forever

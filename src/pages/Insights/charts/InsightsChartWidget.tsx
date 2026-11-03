@@ -3,7 +3,8 @@ import ChartEmptyState from '@components/Search/ChartEmptyState';
 import ChartErrorState from '@components/Search/ChartErrorState';
 import ChartOfflineState from '@components/Search/ChartOfflineState';
 import SearchChartView from '@components/Search/SearchChartView';
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {GroupedItem, SearchQueryJSON} from '@components/Search/types';
+import Text from '@components/Text';
 import WidgetContainer from '@components/WidgetContainer';
 import WidgetHeaderMenu from '@components/WidgetHeaderMenu';
 
@@ -11,6 +12,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import localFileDownload from '@libs/localFileDownload';
@@ -21,6 +23,7 @@ import {getDateFilterRange} from '@libs/SearchQueryUtils';
 import buildInsightsChartCSV from '@pages/Insights/buildInsightsChartCSV';
 import InsightsGroupByDropdown from '@pages/Insights/controls/InsightsGroupByDropdown';
 import type {InsightsChartSpec} from '@pages/Insights/dashboardSpecs';
+import {getInsightsDetailsItemParams} from '@pages/Insights/details/insightsDetailsItem';
 import type {InsightsFilters} from '@pages/Insights/insightsFilters';
 import {INSIGHTS_RUNNING_TOTAL_GROUP_BY} from '@pages/Insights/insightsFilters';
 import {getInsightsGroupByOptions, getQueryGroupBy, isRunningTotalAvailable} from '@pages/Insights/insightsGroupByUtils';
@@ -28,7 +31,7 @@ import useInsightsChartData from '@pages/Insights/useInsightsChartData';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {SearchResults} from '@src/types/onyx';
+import type {InsightsDashboardID, SearchResults} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -40,6 +43,8 @@ import Animated, {FadeIn} from 'react-native-reanimated';
 import InsightsDataTable from './InsightsDataTable';
 
 type InsightsChartWidgetProps = {
+    dashboardID: InsightsDashboardID;
+
     chart: InsightsChartSpec;
 
     /** The chart's own query, with the page's filters applied */
@@ -71,6 +76,7 @@ type InsightsChartWidgetProps = {
 };
 
 function InsightsChartWidget({
+    dashboardID,
     chart,
     queryJSON,
     snapshot,
@@ -87,6 +93,7 @@ function InsightsChartWidget({
     const {cardPaddingHorizontal, cardPaddingBottom} = useLayoutSpacing();
     const icons = useMemoizedLazyExpensifyIcons(['Expand', 'Table']);
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const {isBetaEnabled} = usePermissions();
 
     const {data, state, comparison} = useInsightsChartData({chart, queryJSON, snapshot, previousPeriodQueryJSON, previousPeriodSnapshot, averageTotal, isDashboardLoaded}, filters);
     const groupBy = chart.groupBy ?? getQueryGroupBy(filters);
@@ -115,6 +122,18 @@ function InsightsChartWidget({
         });
         localFileDownload(`Expensify-${chart.graphKey}.csv`, content, translate);
     };
+
+    // The Details panel covers the Spend dashboard only. Other dashboards open Search filtered to the pressed group.
+    const openDetails =
+        dashboardID === CONST.INSIGHTS.DASHBOARD.SPEND && isBetaEnabled(CONST.BETAS.INSIGHTS_AI) && queryJSON
+            ? (item: GroupedItem) => {
+                  const itemParams = getInsightsDetailsItemParams(item, queryJSON);
+                  if (!itemParams) {
+                      return;
+                  }
+                  Navigation.navigate(ROUTES.INSIGHTS_DETAILS.getRoute({dashboardID, graphKey: chart.graphKey, ...itemParams}));
+              }
+            : undefined;
 
     const groupByControl =
         onGroupByChange && (groupByOptions.length > 1 || canRunningTotal) ? (
@@ -185,6 +204,8 @@ function InsightsChartWidget({
                             chartContainerStyle={cardPaddingHorizontal}
                             shouldShowSinglePointAsBar
                             shouldShowGroupLabels={false}
+                            onGroupPress={openDetails}
+                            tooltipFooter={openDetails ? <Text style={[styles.chartTooltipText, styles.link, styles.mt2]}>{translate('insightsPage.viewDetails')}</Text> : undefined}
                             renderDetails={
                                 shouldShowTable
                                     ? ({rows}) => (

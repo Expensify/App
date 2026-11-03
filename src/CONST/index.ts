@@ -10342,6 +10342,9 @@ const CONST = {
             MUTE_BUTTON: 'VideoPlayer-MuteButton',
             VIDEO: 'VideoPlayer-Video',
         },
+        CHART_TOOLTIP: {
+            PRESS: 'ChartTooltip-Press',
+        },
         HTML_RENDERER: {
             IMAGE: 'HTMLRenderer-Image',
             PRE: 'HTMLRenderer-Pre',

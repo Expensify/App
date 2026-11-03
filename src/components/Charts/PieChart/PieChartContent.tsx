@@ -46,7 +46,18 @@ type PieChartCanvasProps = Omit<PieChartProps, 'isLoading'> & {
     chartWidth: number;
 };
 
-function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePress, shouldShowLegend = true, shouldUseResponsiveLegend = false, chartWidth}: PieChartCanvasProps) {
+function PieChartCanvas({
+    data,
+    series,
+    valueUnit,
+    valueUnitPosition,
+    onSlicePress,
+    onTooltipPress,
+    tooltipFooter,
+    shouldShowLegend = true,
+    shouldUseResponsiveLegend = false,
+    chartWidth,
+}: PieChartCanvasProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
@@ -131,7 +142,7 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
 
     const onChartMoved = (deltaX: number, deltaY: number) => scheduleOnUI(handleChartMoved, deltaX, deltaY);
 
-    const {setIsTouchPinned, dismissTooltip, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
+    const {isTouchPinned, setIsTouchPinned, dismissTooltip, onTapFinalize, onChartTouchStart} = useTouchPinnedTooltip(() => {
         matchedIndex.set(-1);
         setIsHoveringOverPie(false);
     });
@@ -281,6 +292,8 @@ function PieChartCanvas({data, series, valueUnit, valueUnitPosition, onSlicePres
                     initialTooltipPosition={tooltipPosition}
                     onChartMoved={onChartMoved}
                     onDismiss={dismissTooltip}
+                    onPress={isTouchPinned ? onTooltipPress : undefined}
+                    footer={isTouchPinned ? tooltipFooter : undefined}
                 />
             </Animated.View>
         </GestureDetector>

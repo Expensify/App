@@ -56,7 +56,19 @@ type LineChartContentProps = LineChartProps & {
 
 type LineChartCanvasProps = Omit<LineChartProps, 'isLoading'> & CartesianCanvasInputs;
 
-function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', onPointPress, labelSteps, shouldShowTooltipChange, chartWidth, fontManager}: LineChartCanvasProps) {
+function LineChartCanvas({
+    data,
+    series,
+    yAxisUnit,
+    yAxisUnitPosition = 'left',
+    onPointPress,
+    onTooltipPress,
+    tooltipFooter,
+    labelSteps,
+    shouldShowTooltipChange,
+    chartWidth,
+    fontManager,
+}: LineChartCanvasProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -213,6 +225,7 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
         activePointPosition,
         onChartMoved,
         dismissTooltip,
+        isTouchPinned,
         onChartTouchStart,
     } = useChartInteractions({
         handlePress: onPointPress ? handlePointPress : undefined,
@@ -397,6 +410,8 @@ function LineChartCanvas({data, series, yAxisUnit, yAxisUnitPosition = 'left', o
                     onChartMoved={onChartMoved}
                     onDismiss={dismissTooltip}
                     shouldShowTooltipChange={shouldShowTooltipChange}
+                    onPress={isTouchPinned ? onTooltipPress : undefined}
+                    footer={isTouchPinned ? tooltipFooter : undefined}
                 />
             </Animated.View>
         </GestureDetector>

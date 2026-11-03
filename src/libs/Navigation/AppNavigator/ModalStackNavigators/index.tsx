@@ -39,6 +39,7 @@ import type {
     RoomMembersNavigatorParamList,
     ScheduleCallParamList,
     SearchColumnsParamList,
+    InsightsDetailsParamList,
     SearchReportActionsParamList,
     SearchSavedSearchParamList,
     SettingsNavigatorParamList,
@@ -1514,6 +1515,10 @@ const SearchColumnsModalStackNavigator = createModalStackNavigator<SearchColumns
     [SCREENS.SEARCH.COLUMNS_RHP]: () => require<ReactComponentModule>('../../../../pages/Search/SearchColumnsPage').default,
 });
 
+const InsightsDetailsModalStackNavigator = createModalStackNavigator<InsightsDetailsParamList>({
+    [SCREENS.INSIGHTS_DETAILS]: () => require<ReactComponentModule>('../../../../pages/Insights/details/InsightsDetailsPage').default,
+});
+
 const ShareModalStackNavigator = createModalStackNavigator<ShareNavigatorParamList>({
     [SCREENS.SHARE.ROOT]: () => require<ReactComponentModule>('@pages/Share/ShareRootPage').default,
     [SCREENS.SHARE.SHARE_DETAILS]: () => require<ReactComponentModule>('@pages/Share/ShareDetailsPage').default,
@@ -1576,6 +1581,7 @@ export {
     EnablePaymentsStackNavigator,
     ExpensifyCardModalStackNavigator,
     FlagCommentStackNavigator,
+    InsightsDetailsModalStackNavigator,
     MergeATSFiltersModalStackNavigator,
     MergeATSApprovalModalStackNavigator,
     MergeTransactionStackNavigator,
