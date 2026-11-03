@@ -1,7 +1,7 @@
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import discardStaleSearchSnapshot, {guardSearchAgainstStaleSnapshot, releaseStaleSnapshotGuard} from '@libs/Middleware/DiscardStaleSearchSnapshot';
 
-import {getLength as getPersistedRequestsLength} from '@userActions/PersistedRequests';
+import {getLength as getPersistedRequestsLength, getQueuedRequestsCount} from '@userActions/PersistedRequests';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Request from '@src/types/onyx/Request';
@@ -13,6 +13,7 @@ import Onyx from 'react-native-onyx';
 
 jest.mock('@userActions/PersistedRequests', () => ({
     getLength: jest.fn(() => 0),
+    getQueuedRequestsCount: jest.fn(() => 0),
 }));
 
 const HASH = 12345;
@@ -40,6 +41,34 @@ describe('DiscardStaleSearchSnapshot middleware', () => {
         releaseStaleSnapshotGuard(JSON_QUERY);
         releaseStaleSnapshotGuard(NEXT_PAGE_JSON_QUERY);
         jest.mocked(getPersistedRequestsLength).mockReturnValue(0);
+        jest.mocked(getQueuedRequestsCount).mockReturnValue(0);
+    });
+
+    it('drops the snapshot of a guarded search when a write queued while it was in flight already finished', async () => {
+        // Given a guarded search, and a write queued while it was in flight that finished and left the queue before its response
+        guardSearchAgainstStaleSnapshot(JSON_QUERY);
+        jest.mocked(getQueuedRequestsCount).mockReturnValue(1);
+
+        // When its response comes back with the write queue empty
+        const response = await discardStaleSearchSnapshot(Promise.resolve(buildResponse()), buildRequest(), false);
+
+        // Then the snapshot is still dropped, because the server may have read its data before that write, and the search is
+        // told to run again so it picks up the write
+        expect(response?.onyxData?.map((update) => update.key)).toEqual([OTHER_KEY]);
+        expect(releaseStaleSnapshotGuard(JSON_QUERY)).toBe(true);
+    });
+
+    it('keeps the snapshot of a guarded search when the only writes were queued before it was guarded', async () => {
+        // Given writes that were queued and finished before the search waited for the queue and guarded itself
+        jest.mocked(getQueuedRequestsCount).mockReturnValue(3);
+        guardSearchAgainstStaleSnapshot(JSON_QUERY);
+
+        // When its response comes back with no write queued since
+        const response = await discardStaleSearchSnapshot(Promise.resolve(buildResponse()), buildRequest(), false);
+
+        // Then the response already includes those writes, so it is applied untouched
+        expect(response?.onyxData?.map((update) => update.key)).toEqual([OTHER_KEY, SNAPSHOT_KEY]);
+        expect(releaseStaleSnapshotGuard(JSON_QUERY)).toBe(false);
     });
 
     it('drops the snapshot of a guarded search when a write was queued while it was in flight', async () => {

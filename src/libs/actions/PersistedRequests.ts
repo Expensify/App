@@ -28,6 +28,9 @@ let crossTabRequestsCallback: (() => void) | undefined;
 // When the counter is 0, any callback must be from a cross-tab storage event,
 // so it is safe to reconcile deletions from the leader tab.
 let pendingOnyxWrites = 0;
+// Counts every request ever added to the queue, including the ones merged from other tabs. Unlike getLength(), it never
+// goes down, so a caller can tell that a request was queued since it last looked even if that request already finished.
+let queuedRequestsCount = 0;
 
 function trackOnyxWrite<T>(promise: Promise<T>): Promise<T> {
     pendingOnyxWrites++;
@@ -89,6 +92,7 @@ Onyx.connectWithoutView({
                     }
                 }
                 persistedRequests = [...persistedRequests, ...newFromOtherTabs];
+                queuedRequestsCount += newFromOtherTabs.length;
                 trackOnyxWrite(Onyx.set(ONYXKEYS.PERSISTED_REQUESTS, persistedRequests));
                 crossTabRequestsCallback?.();
                 return;
@@ -229,6 +233,10 @@ function getLength(): number {
     return persistedRequests.length + (ongoingRequest ? 1 : 0);
 }
 
+function getQueuedRequestsCount(): number {
+    return queuedRequestsCount;
+}
+
 function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<void> {
     Log.info('[PersistedRequests] Saving request to queue started', false, {
         command: requestToPersist.command,
@@ -236,6 +244,7 @@ function save<TKey extends OnyxKey>(requestToPersist: Request<TKey>): Promise<vo
         ongoingRequest: ongoingRequest?.command ?? 'null',
         isInitialized,
     });
+    queuedRequestsCount++;
     // If not initialized yet, queue the request for later processing
     if (!isInitialized) {
         Log.info('[PersistedRequests] Queueing request until initialization completes', false, {
@@ -551,6 +560,7 @@ export {
     endRequestAndRemoveFromQueue,
     update,
     getLength,
+    getQueuedRequestsCount,
     getOngoingRequest,
     processNextRequest,
     updateOngoingRequest,

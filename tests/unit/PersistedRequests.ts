@@ -57,6 +57,21 @@ describe('PersistedRequests', () => {
         expect(PersistedRequests.getAll().length).toBe(2);
     });
 
+    it('keeps counting queued requests after they leave the queue', () => {
+        // Given the number of requests queued so far
+        const queuedRequestsCount = PersistedRequests.getQueuedRequestsCount();
+
+        // When a request is queued and then processed and removed
+        PersistedRequests.save(request);
+        const ongoingRequest = PersistedRequests.processNextRequest();
+        if (ongoingRequest) {
+            PersistedRequests.endRequestAndRemoveFromQueue(ongoingRequest);
+        }
+
+        // Then the count still includes it, so a search in flight meanwhile can tell a write was queued behind it
+        expect(PersistedRequests.getQueuedRequestsCount()).toBe(queuedRequestsCount + 1);
+    });
+
     it('remove a request from the PersistedRequests array', () => {
         PersistedRequests.endRequestAndRemoveFromQueue(request);
         expect(PersistedRequests.getAll().length).toBe(0);
