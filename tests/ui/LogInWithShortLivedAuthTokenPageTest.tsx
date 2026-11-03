@@ -28,7 +28,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@userActions/Session', () => ({
-    signInWithShortLivedAuthToken: jest.fn(),
+    signInWithShortLivedAuthToken: jest.fn(() => Promise.resolve()),
     signInWithSupportAuthToken: jest.fn(),
     setAccountError: jest.fn(),
 }));
@@ -74,7 +74,7 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', undefined);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', undefined);
     });
 
     it('passes the stored login to the sign-in so it can compare against the signed-in session', async () => {
@@ -86,14 +86,14 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', 'user@saml.example.com');
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', 'user@saml.example.com');
     });
 
     it('signs in with SAML without a landing page when nothing was kept', async () => {
         renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, undefined, undefined);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, undefined, undefined);
     });
 
     it('signs in with a SAML token while the account is still marked loading by a forced re-auth', async () => {
@@ -105,7 +105,7 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         renderPage({shortLivedAuthToken: 'token', isSAML: true, shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', true, '/search?q=status:outstanding', undefined);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, true, '/search?q=status:outstanding', undefined);
     });
 
     it('waits for the account while it is loading for a non-SAML sign-in', async () => {
@@ -127,7 +127,7 @@ describe('LogInWithShortLivedAuthTokenPage', () => {
         renderPage({shortLivedAuthToken: 'token', shouldForceLogin: ''});
         await waitForBatchedUpdatesWithAct();
 
-        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', false, undefined, undefined);
+        expect(signInWithShortLivedAuthToken).toHaveBeenCalledWith('token', undefined, false, undefined, undefined);
     });
 
     it('leaves the transition URL in place after a support sign-in', async () => {

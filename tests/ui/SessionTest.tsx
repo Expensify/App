@@ -1,9 +1,10 @@
-import {act, cleanup, render, waitFor} from '@testing-library/react-native';
+import {act, cleanup, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import * as AppActions from '@libs/actions/App';
 import * as Device from '@libs/actions/Device';
 import {hasAuthToken} from '@libs/actions/Session';
 import * as Session from '@libs/actions/Session';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import Navigation from '@libs/Navigation/Navigation';
 import {getCurrentUserEmail, setLastShortAuthToken} from '@libs/Network/NetworkStore';
 
@@ -18,6 +19,8 @@ import {Str} from 'expensify-common';
 import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 
+import type * as MockReanimatedModalModule from '../utils/mockReanimatedModal';
+
 import {createRandomReport} from '../utils/collections/reports';
 import createMock from '../utils/createMock';
 import PusherHelper from '../utils/PusherHelper';
@@ -30,6 +33,11 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 jest.mock('@libs/BootSplash', () => ({
     hide: jest.fn().mockResolvedValue(undefined),
 }));
+
+jest.mock('@components/Modal/ReanimatedModal', () => {
+    const {default: MockReanimatedModal} = jest.requireActual<typeof MockReanimatedModalModule>('../utils/mockReanimatedModal');
+    return MockReanimatedModal;
+});
 
 const TEST_USER_ACCOUNT_ID_1 = 123;
 const TEST_USER_LOGIN_1 = 'test@test.com';
@@ -48,7 +56,7 @@ jest.setTimeout(120000);
 // With coverage enabled and other tests in the same CI shard competing for CPU, they can exceed 4 minutes.
 const FULL_APP_UI_TEST_TIMEOUT_MS = 6 * 60 * 1000;
 TestHelper.setupApp();
-TestHelper.setupGlobalFetchMock();
+const mockFetch = TestHelper.setupGlobalFetchMock();
 
 const report = createRandomReport(7, undefined);
 
@@ -119,7 +127,7 @@ describe('Deep linking', () => {
                 },
                 [ONYXKEYS.NVP_PRIVATE_PUSH_NOTIFICATION_ID]: 'randomID',
             });
-            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1, false, undefined, undefined);
+            return originalSignInWithShortLivedAuthToken(TEST_AUTH_TOKEN_1, undefined, false, undefined, undefined);
         });
 
         // Set the keys the app needs to finish loading rather than going through
@@ -227,6 +235,10 @@ describe('Deep linking', () => {
 
             await waitForBatchedUpdatesWithAct();
 
+            fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: 'Switch accounts'}));
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
             expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_1);
 
             await TestHelper.signOutTestUser();
@@ -246,6 +258,104 @@ describe('Deep linking', () => {
             expect(hasAuthToken()).toBe(false);
 
             unmount3();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        FULL_APP_UI_TEST_TIMEOUT_MS,
+    );
+
+    // Renders the full App twice to reach the switch-account prompt, so it runs longer than the suite default (see FULL_APP_UI_TEST_TIMEOUT_MS).
+    it(
+        'should show the current and new account emails in the switch account prompt',
+        async () => {
+            // Given a user signed in as account 2
+            const {unmount: unmount1} = render(<App />);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
+
+            await waitForBatchedUpdatesWithAct();
+
+            unmount1();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
+            // When the app remounts because of a deep link that would sign them in as account 1 instead
+            const url = getInitialURL();
+            Linking.setInitialURL(url);
+            const {unmount: unmount2} = render(<App />);
+
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the prompt shows both the current and the new account emails, not a blank one
+            const prompt = await screen.findByText(`You're signed in as ${TEST_USER_LOGIN_2}. This action will sign you in as ${TEST_USER_LOGIN_1} instead.`);
+            expect(prompt).toBeOnTheScreen();
+
+            unmount2();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        FULL_APP_UI_TEST_TIMEOUT_MS,
+    );
+
+    // Renders the full App twice to reach the switch-account prompt, so it runs longer than the suite default (see FULL_APP_UI_TEST_TIMEOUT_MS).
+    it(
+        'should stay on the current account when the switch is canceled',
+        async () => {
+            // Given a user signed in as account 2
+            const {unmount: unmount1} = render(<App />);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
+
+            await waitForBatchedUpdatesWithAct();
+
+            unmount1();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
+            // When the app remounts because of a deep link that would sign them in as account 1, and they cancel the switch
+            const url = getInitialURL();
+            Linking.setInitialURL(url);
+            const {unmount: unmount2} = render(<App />);
+
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.staySignedIn')}));
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
+            // Then they stay signed in as account 2 and nothing was signed out
+            expect(hasAuthToken()).toBe(true);
+            expect(getCurrentUserEmail()).toBe(TEST_USER_LOGIN_2);
+
+            unmount2();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        FULL_APP_UI_TEST_TIMEOUT_MS,
+    );
+
+    // Renders the full App to reach the session mismatch modal, so it runs longer than the suite default (see FULL_APP_UI_TEST_TIMEOUT_MS).
+    it(
+        'should show a session mismatch modal when the shortLivedAuthToken does not match the current session',
+        async () => {
+            // Given a user already signed in as account 1
+            jest.spyOn(Session, 'signInWithShortLivedAuthToken').mockImplementation(() =>
+                Promise.resolve({type: CONST.ERROR_TYPE.SESSION_MISMATCH} as Awaited<ReturnType<typeof originalSignInWithShortLivedAuthToken>>),
+            );
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_1, TEST_USER_LOGIN_1, undefined, TEST_AUTH_TOKEN_1);
+            await waitForBatchedUpdatesWithAct();
+
+            // When they open the same transition link again
+            const url = getInitialURL();
+            Linking.setInitialURL(url);
+            const {unmount} = render(<App />);
+
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
+            // Then a modal tells them the link is not valid for their current session
+            const prompt = await screen.findByText("The link you clicked isn't valid for your current session.");
+            expect(prompt).toBeOnTheScreen();
+
+            unmount();
             await waitForBatchedUpdatesWithAct();
             await waitForNetworkPromises();
         },
@@ -313,6 +423,79 @@ describe('Support auth token login', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(Session.signInWithSupportAuthToken).not.toHaveBeenCalled();
+
+            unmount2();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+        },
+        FULL_APP_UI_TEST_TIMEOUT_MS,
+    );
+});
+
+// Runs the real short-lived-token sign-in against the fetch mock, which the Deep linking block replaces with a spy.
+describe('Switching accounts with a rejected shortLivedAuthToken', () => {
+    beforeEach(() => {
+        jest.restoreAllMocks();
+        wrapOnyxWithWaitForBatchedUpdates(Onyx);
+
+        // Set the keys the app needs to finish loading.
+        jest.spyOn(AppActions, 'openApp').mockImplementation(() =>
+            Onyx.multiSet({
+                [ONYXKEYS.IS_LOADING_APP]: false,
+                [ONYXKEYS.IS_LOADING_REPORT_DATA]: false,
+                [ONYXKEYS.HAS_LOADED_APP]: true,
+                [ONYXKEYS.NVP_ONBOARDING]: {hasCompletedGuidedSetupFlow: true},
+            }),
+        );
+    });
+
+    afterEach(async () => {
+        cleanup();
+        await act(async () => {
+            await Onyx.clear();
+        });
+        await waitForBatchedUpdatesWithAct();
+        await waitForNetworkPromises();
+        PusherHelper.teardown();
+        jest.clearAllMocks();
+        Linking.setInitialURL('');
+        setLastShortAuthToken(null);
+
+        // Put back the default response so the rejection does not reach later blocks. mockFetch.mockReset() would also drop the fetch implementation.
+        mockFetch.mockAPICommand(SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, () => ({}));
+    });
+
+    // Renders the full App twice to reach the switch-account prompt, so it runs longer than the suite default (see FULL_APP_UI_TEST_TIMEOUT_MS).
+    it(
+        'signs the current account out once when the shortLivedAuthToken has expired by the time the switch is confirmed',
+        async () => {
+            // Given an account already signed in to NewDot
+            const {unmount: unmount1} = render(<App />);
+            await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID_2, TEST_USER_LOGIN_2, undefined, TEST_AUTH_TOKEN_2);
+            await waitForBatchedUpdatesWithAct();
+            unmount1();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
+            // Given the token expired while the prompt was open, which backend answers with a 407 error
+            mockFetch.mockAPICommand(SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, () => ({jsonCode: CONST.JSON_CODE.NOT_AUTHENTICATED, message: ''}));
+
+            // When the app is opened on a transition link for a different account, and the switch is confirmed
+            Linking.setInitialURL(getInitialURL());
+            const {unmount: unmount2} = render(<App />);
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(await screen.findByRole(CONST.ROLE.BUTTON, {name: TestHelper.translateLocal('deeplinkWrapper.switchAccount.confirm')}));
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+            await waitForBatchedUpdatesWithAct();
+            await waitForNetworkPromises();
+
+            // Then the token is redeemed once and the current account is signed out once, so a rejected token leaves the device  on the sign-in page and signs out nobody else
+            TestHelper.expectAPICommandToHaveBeenCalled(SIDE_EFFECT_REQUEST_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN, 1);
+            TestHelper.expectAPICommandToHaveBeenCalled(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT, 1);
+            const logOutBody = TestHelper.getFetchMockCalls(SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT).at(0)?.[1]?.body;
+            expect(logOutBody instanceof FormData ? logOutBody.get('authToken') : undefined).toBe(TEST_AUTH_TOKEN_2);
+            expect(hasAuthToken()).toBe(false);
 
             unmount2();
             await waitForBatchedUpdatesWithAct();
@@ -414,7 +597,7 @@ describe('signInWithShortLivedAuthToken', () => {
             }),
         );
 
-        Session.signInWithShortLivedAuthToken('token', true, undefined, undefined);
+        Session.signInWithShortLivedAuthToken('token', undefined, true, undefined, undefined);
         await waitForBatchedUpdates();
 
         let isAuthenticating: boolean | undefined;

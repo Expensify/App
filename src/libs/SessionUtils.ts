@@ -3,6 +3,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
+import StringUtils from './StringUtils';
+
 const NEW_PARTNER_USER_ID_PREFIX = 'expensify.cash-';
 
 /**
@@ -11,7 +13,7 @@ const NEW_PARTNER_USER_ID_PREFIX = 'expensify.cash-';
 function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): boolean {
     // The OldDot mobile app does not URL encode the parameters, but OldDot web
     // does. We don't want to deploy OldDot mobile again, so as a work around we
-    // compare the session email to both the decoded and raw email from the transition link.
+    // fall back from URLSearchParams to a regex-based lookup if the email doesn't match.
     const params = new URLSearchParams(transitionURL);
     const paramsEmail = params.get('email');
     const delegatorEmail = params.get('delegatorEmail');
@@ -23,18 +25,14 @@ function isLoggingInAsNewUser(transitionURL?: string, sessionEmail?: string): bo
         return false;
     }
 
-    // If they do not match it might be due to encoding, so check the raw value
-    // Capture the un-encoded text in the email param
-    const emailParamRegex = /[?&]email=([^&]*)/g;
-    const matches = emailParamRegex.exec(transitionURL ?? '');
-    const linkedEmail = matches?.[1] ?? null;
+    // If URLSearchParams didn't find it (e.g. transitionURL is a full URL which
+    // mangles the first query-param key), fall back to regex
+    const linkedEmail = getEmailFromTransitionURL(transitionURL) ?? null;
 
     if (linkedEmail === sessionEmail) {
         return false;
     }
 
-    // If URLSearchParams didn't find it (e.g. transitionURL is a full URL which
-    // mangles the first query-param key), fall back to regex
     const linkedDelegatorEmail = getDelegatorEmailFromURL(transitionURL) ?? null;
 
     return linkedEmail !== sessionEmail && linkedDelegatorEmail !== sessionEmail;
@@ -64,6 +62,38 @@ function getDelegatorEmailFromURL(url?: string): string | undefined {
     const delegatorEmailParamRegex = /[?&]delegatorEmail=([^&]*)/g;
     const delegatorMatches = delegatorEmailParamRegex.exec(url ?? '');
     return delegatorMatches?.[1];
+}
+
+/**
+ * Looks for *email* param in given URL using regex
+ */
+function getEmailFromTransitionURL(url?: string): string | undefined {
+    if (!url) {
+        return undefined;
+    }
+
+    const [urlWithoutHash] = url.split('#', 2);
+    const queryIndex = urlWithoutHash.indexOf('?');
+    if (queryIndex === -1) {
+        return undefined;
+    }
+
+    const queryString = urlWithoutHash.slice(queryIndex + 1);
+    const match = queryString.match(/(?:^|&)email=([^&]*)/);
+    const email = match?.[1];
+
+    if (!email) {
+        return undefined;
+    }
+
+    let decodedEmail: string;
+    try {
+        decodedEmail = decodeURIComponent(email);
+    } catch {
+        decodedEmail = email;
+    }
+
+    return StringUtils.normalize(decodedEmail);
 }
 
 let loggedInDuringSession: boolean | undefined;
@@ -126,4 +156,13 @@ function isAgentEmail(email?: string): boolean {
     return AGENT_EMAIL_REGEX.test(email);
 }
 
-export {isLoggingInAsNewUser, didUserLogInDuringSession, resetDidUserLogInDuringSession, checkIfShouldUseNewPartnerName, getPartnerCredentials, isLoggingInAsDelegate, isAgentEmail};
+export {
+    isLoggingInAsNewUser,
+    didUserLogInDuringSession,
+    resetDidUserLogInDuringSession,
+    checkIfShouldUseNewPartnerName,
+    getPartnerCredentials,
+    isLoggingInAsDelegate,
+    isAgentEmail,
+    getEmailFromTransitionURL,
+};

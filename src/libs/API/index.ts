@@ -186,8 +186,8 @@ function read<TCommand extends ReadCommand, TKey extends OnyxKey>(command: TComm
 
     // Apply optimistic updates of read requests immediately
     const request = prepareRequest(command, CONST.API_REQUEST_TYPE.READ, apiCommandParameters, onyxData);
-    // Sign in with shortLivedAuthToken command shouldn't be blocked by write commands
-    if (command === READ_COMMANDS.SIGN_IN_WITH_SHORT_LIVED_AUTH_TOKEN || command === READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN) {
+    // Sign in with supportAuthToken command shouldn't be blocked by write commands
+    if (command === READ_COMMANDS.SIGN_IN_WITH_SUPPORT_AUTH_TOKEN) {
         processRequest(request, CONST.API_REQUEST_TYPE.READ);
         return;
     }
