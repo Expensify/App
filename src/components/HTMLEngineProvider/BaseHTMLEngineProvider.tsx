@@ -15,6 +15,7 @@ import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEng
 import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 import VICTORY_HTML_ELEMENT_MODELS from './HTMLRenderers/VictoryChartRenderer/victoryHtmlElementModels';
+import HTMLRenderersContext from './HTMLRenderersContext';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
     textSelectable?: boolean;
@@ -309,7 +310,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
                 enableExperimentalBRCollapsing={enableExperimentalBRCollapsing}
             >
-                {children}
+                <HTMLRenderersContext.Provider value={htmlRenderers}>{children}</HTMLRenderersContext.Provider>
             </RenderHTMLConfigProvider>
         </TRenderEngineProvider>
     );

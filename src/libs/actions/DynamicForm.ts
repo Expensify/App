@@ -10,6 +10,11 @@ function saveDraftAnswers(formID: OnyxFormKey, answers: DynamicFormValues) {
     Onyx.merge(`${formID}Draft`, answers);
 }
 
+/** Drops some keys from the draft, such as the marker of a sensitive answer the user no longer gives */
+function forgetDraftAnswers(formID: OnyxFormKey, keys: string[]) {
+    Onyx.merge(`${formID}Draft`, Object.fromEntries(keys.map((key) => [key, null])));
+}
+
 /** Sensitive answers live in memory only, so they reach the next page of the flow but are never written to the draft */
 function saveSensitiveAnswers(formID: OnyxFormKey, answers: DynamicFormValues) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[formID]: answers});
@@ -35,4 +40,4 @@ function clearSensitiveAnswers(formID: OnyxFormKey) {
     Onyx.merge(ONYXKEYS.RAM_ONLY_DYNAMIC_FORM_SENSITIVE_ANSWERS, {[formID]: null});
 }
 
-export {clearListItemEdit, clearSensitiveAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers, startListItemEdit};
+export {clearListItemEdit, clearSensitiveAnswers, forgetDraftAnswers, forgetSensitiveAnswers, saveDraftAnswers, saveSensitiveAnswers, startListItemEdit};
