@@ -91,7 +91,8 @@ function DynamicEditAgentPage({route, navigation}: DynamicEditAgentPageProps) {
         chatWithAgent(accountID);
     };
     const handleCopilotPress = () => {
-        switchToDelegator(agentLogin);
+        // The agent can't use its own Agents pages, so copiloting from here starts over from Home
+        switchToDelegator(agentLogin, ROUTES.HOME);
     };
     const handleViewHistoryPress = () => {
         const query = buildQueryStringFromFilterFormValues({

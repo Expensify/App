@@ -95,7 +95,7 @@ index af0cd61..2805780 100644
  import { ServerContext } from "./ServerContext.js";
  
  /**
-@@ -114,6 +115,43 @@ export const series = cb => {
+@@ -114,6 +115,51 @@ export const series = cb => {
    return callback;
  };
  const linkingHandlers = [];
@@ -136,11 +136,24 @@ index af0cd61..2805780 100644
 +  }
 +  return -(previousFocusedStateKeys.length - matchingKeys);
 +}
++
++// Mirrors the router's RESET check: a non-stale state whose routeNames differ from the root navigator's is rejected
++function canResetRootToState(rootState, state) {
++  if (state.stale !== false || !rootState?.routeNames || !state.routeNames) {
++    return true;
++  }
++  return rootState.routeNames.length === state.routeNames.length && state.routeNames.every(name => rootState.routeNames.includes(name));
++}
  export function useLinking(ref, {
    enabled = true,
    config,
-@@ -266,7 +304,10 @@ export function useLinking(ref, {
-       if (record?.path === path && record?.state) {
+@@ -265,8 +311,14 @@ export function useLinking(ref, {
+       const record = history.get(index);
+-      if (record?.path === path && record?.state) {
++      // A record saved before the root navigator's screens changed (e.g. a copilot account switch) can't be restored,
++      // because the router would silently reject the reset and the screen wouldn't follow the URL.
++      // Handle it like a deep link instead, so the state is built from the URL.
++      if (record?.path === path && record?.state && canResetRootToState(navigation.getRootState(), record.state)) {
          const currentState = navigation.getRootState();
          const [currentFocused, recordFocused] = findMatchingState(currentState, record.state);
 -        if (previousIndex - index === 1 && currentFocused && recordFocused && isPoppingLastEntry(currentFocused, recordFocused)) {
@@ -151,7 +164,7 @@ index af0cd61..2805780 100644
            const pending = pendingPopStateDeltaRef.current;
  
            // If we detect that the state change is popping the last entry
-@@ -411,6 +452,9 @@ export function useLinking(ref, {
+@@ -411,6 +463,9 @@ export function useLinking(ref, {
          const historyDelta = getHistoryLength(focusedState) - getHistoryLength(previousFocusedState) - (
          // Subtract the delta already applied by the browser to sync only the remaining changes
          pendingPopStateDelta ?? 0);
@@ -161,7 +174,7 @@ index af0cd61..2805780 100644
          if (historyDelta > 0) {
            // If history length is increased, we should pushState
            // Note that path might not actually change here, for example, drawer open should pushState
-@@ -422,7 +466,8 @@ export function useLinking(ref, {
+@@ -422,7 +477,8 @@ export function useLinking(ref, {
            // If history length is decreased, i.e. entries were removed, we want to go back
  
            const nextIndex = history.backIndex({
@@ -171,7 +184,7 @@ index af0cd61..2805780 100644
            });
            const currentIndex = history.index;
            try {
-@@ -435,7 +480,18 @@ export function useLinking(ref, {
+@@ -435,7 +491,18 @@ export function useLinking(ref, {
                // We couldn't find an existing entry to go back to, so we'll go back by the delta
                // This won't be correct if multiple routes were pushed in one go before
                // Usually this shouldn't happen and this is a fallback for that
@@ -191,7 +204,7 @@ index af0cd61..2805780 100644
              }
  
              // Store the updated state as well as fix the path if incorrect
-@@ -448,10 +504,26 @@ export function useLinking(ref, {
+@@ -448,10 +515,26 @@ export function useLinking(ref, {
            }
          } else {
            // If history length is unchanged, we want to replaceState
