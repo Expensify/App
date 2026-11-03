@@ -56,7 +56,7 @@ import Onyx from 'react-native-onyx';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 
-import {getBankName, isCardPendingActivate} from './CardUtils';
+import {getBankName, getEffectiveFeedReimbursable, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -1687,6 +1687,27 @@ function isResolvedConciergeDescriptionOptions(reportAction: OnyxEntry<ReportAct
 }
 
 /**
+ * A deleted report preview stays visible while it carries a payment failure. That error is the payer's only feedback
+ * when a delete races their queued payment.
+ */
+function isDeletedReportPreviewWithError(reportAction: OnyxEntry<ReportAction>): boolean {
+    return isReportPreviewAction(reportAction) && isDeletedAction(reportAction) && !!reportAction?.errors?.[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY];
+}
+
+/**
+ * The errors a consumer should act on. While the expense report still exists a payment failure belongs on the pay
+ * action inside it, so drop the copy mirrored onto the chat's preview.
+ */
+function getVisibleReportActionErrors(reportAction: OnyxEntry<ReportAction>): ReportAction['errors'] {
+    const errors = reportAction?.errors ?? {};
+    if (!isReportPreviewAction(reportAction) || isDeletedAction(reportAction) || !(CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY in errors)) {
+        return errors;
+    }
+    const {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: payFailure, ...rest} = errors;
+    return rest;
+}
+
+/**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
@@ -1794,6 +1815,10 @@ function shouldReportActionBeVisible(
         return false;
     }
 
+    if (isDeletedReportPreviewWithError(reportAction)) {
+        return true;
+    }
+
     // All other actions are displayed except thread parents, deleted, or non-pending actions
     return !!reportAction.pendingAction || !isDeletedAction(reportAction) || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
@@ -1871,7 +1896,7 @@ function isReportActionVisibleAsLastAction(
         return false;
     }
 
-    if (Object.keys(reportAction.errors ?? {}).length > 0) {
+    if (Object.keys(getVisibleReportActionErrors(reportAction) ?? {}).length > 0) {
         return false;
     }
 
@@ -5071,6 +5096,32 @@ function getUpdatedCardFeedStatementPeriodMessage(translate: LocalizedTranslate,
     return getReportActionText(reportAction);
 }
 
+function formatFeedReimbursable(translate: LocalizedTranslate, value?: string): string | undefined {
+    if (!value) {
+        return undefined;
+    }
+    const effectiveValue = getEffectiveFeedReimbursable(value);
+    return effectiveValue ? translate(`workspace.companyCards.reimbursable.${effectiveValue}`) : undefined;
+}
+
+function getUpdatedCardFeedReimbursableMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const feedName = originalMessage?.feedName;
+    const newValue = formatFeedReimbursable(translate, originalMessage?.forceReimbursable);
+    const rawPreviousValue = originalMessage?.previousForceReimbursable;
+    const previousValue = formatFeedReimbursable(translate, rawPreviousValue);
+
+    // Keep server text when the available data cannot produce accurate localized labels.
+    // A missing previous setting does not prevent localizing the new setting.
+    if (feedName && newValue && (!rawPreviousValue || previousValue)) {
+        return translate('workspaceActions.updatedCardFeedReimbursable', feedName, newValue, previousValue);
+    }
+    return getReportActionText(reportAction);
+}
+
 function getRenamedAction(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReport: boolean, actorName?: string) {
     const originalMessage = getOriginalMessage(reportAction);
     return translate('newRoomPage.renamedRoomAction', originalMessage?.oldName ?? '', originalMessage?.newName ?? '', isExpenseReport, actorName);
@@ -6152,6 +6203,8 @@ export {
     isCreatedSupportTicketReportAction,
     isCurrentActionUnread,
     isDeletedAction,
+    isDeletedReportPreviewWithError,
+    getVisibleReportActionErrors,
     isDeletedParentAction,
     isMemberChangeAction,
     isLeavePolicyAction,
@@ -6310,6 +6363,7 @@ export {
     getUnassignedCompanyCardMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getUpdatedCardFeedReimbursableMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
     getTagListNameUpdatedMessage,
     getTagListUpdatedMessage,

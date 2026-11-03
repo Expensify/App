@@ -37,6 +37,7 @@ function DynamicFormFieldsPage({
     onListItemsChange,
     isSubmitting,
     submitError,
+    shouldDisableNextWhenOffline,
 }: DynamicFormSubPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -66,8 +67,8 @@ function DynamicFormFieldsPage({
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={styles.mb0}
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
-            // An offline request is saved to disk, so the last page submits only online, as the confirmation page does
-            enabledWhenOffline={!isLastPage}
+            // An offline request is saved to disk, so the last page submits only online, as the confirmation page does. A flow that saves each page asks for it on every page.
+            enabledWhenOffline={!isLastPage && !shouldDisableNextWhenOffline}
             // Without a confirmation page the last page sends the form, so it shows the request's progress and error as the confirmation page does
             isLoading={isLastPage && !!isSubmitting}
             footerContent={
