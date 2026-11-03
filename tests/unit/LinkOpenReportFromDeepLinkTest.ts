@@ -96,6 +96,11 @@ describe('openReportFromDeepLink before onboarding', () => {
         await Onyx.set(ONYXKEYS.IS_LOADING_REPORT_DATA, true);
     });
 
+    afterEach(async () => {
+        runSessionCleanupCallbacks();
+        await waitForBatchedUpdates();
+    });
+
     it.each([
         ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: '123'}),
         ROUTES.SEARCH_REPORT.getRoute({reportID: '123'}),
@@ -181,7 +186,7 @@ describe('openReportFromDeepLink before onboarding', () => {
         expect(mockedSetDeepLinkToOpenAfterOnboarding).not.toHaveBeenCalled();
     });
 
-    it.each([{reportID: '123'}, {reportID: '123', errorFields: {notFound: {'1': 'Report not found'}}}])(
+    it.each([{reportID: '123'}, {reportID: '123', errorFields: {notFound: {error: 'Report not found'}}}])(
         'cancels a report waiter when the session ends before the report resolves as %j',
         async (report) => {
             // Given a workspace member has signed in but the linked report has not arrived.
