@@ -77,10 +77,7 @@ type UseAutocompleteSuggestionsParams = {
 
 // Static autocomplete lists derived from CONST values, computed once at module load
 const DATA_TYPE_VALUES = Object.values(CONST.SEARCH.DATA_TYPES);
-// Approver is only used by Insights queries, so Search doesn't suggest it
-const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY)
-    .filter((value) => value !== CONST.SEARCH.GROUP_BY.APPROVER)
-    .map((value) => getUserFriendlyValue(value));
+const GROUP_BY_FRIENDLY_VALUES = Object.values(CONST.SEARCH.GROUP_BY).map((value) => getUserFriendlyValue(value));
 const VIEW_FRIENDLY_VALUES = Object.values(CONST.SEARCH.VIEW).map((value) => getUserFriendlyValue(value));
 const EXPENSE_TYPE_FRIENDLY_VALUES = Object.values(CONST.SEARCH.TRANSACTION_TYPE).map((value) => getUserFriendlyValue(value));
 const RECEIPT_TYPE_FRIENDLY_VALUES = CONST.SEARCH.SELECTABLE_RECEIPT_TYPES.map((value) => getUserFriendlyValue(value));

@@ -1549,10 +1549,10 @@ const translations: TranslationDeepObject<typeof en> = {
         yourCompanyWebsiteNote: 'Si vous n’avez pas de site web, vous pouvez indiquer à la place le profil LinkedIn ou le profil sur les réseaux sociaux de votre entreprise.',
         invalidDomainError: 'Vous avez saisi un domaine invalide. Pour continuer, veuillez saisir un domaine valide.',
         publicDomainError: 'Vous avez saisi un domaine public. Pour continuer, veuillez saisir un domaine privé.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 dépense',
-                other: (count: number) => `${count} dépenses`,
+                one: (count: number) => `${formattedCount ?? count} dépense`,
+                other: (count: number) => `${formattedCount ?? count} dépenses`,
             };
         },
         deleteExpense: () => ({
@@ -5909,9 +5909,6 @@ ${amount} pour ${merchant} - ${date}`,
                     ? `Définissez un fournisseur par défaut qui s’appliquera aux dépenses remboursables n’ayant pas de fournisseur correspondant dans Sage Intacct.`
                     : `Les dépenses qui ne peuvent pas être associées à vos fournisseurs Sage Intacct seront, par défaut, affectées à ce fournisseur.`,
             exportDescription: 'Configurez comment les données Expensify sont exportées vers Sage Intacct.',
-            exportPreferredExporterNote:
-                'L’exportateur préféré peut être n’importe quel administrateur d’espace de travail, mais doit également être un administrateur de domaine si vous définissez des comptes d’exportation différents pour chaque carte d’entreprise individuelle dans les paramètres de domaine.',
-            exportPreferredExporterSubNote: 'Une fois défini, l’exportateur préféré verra les notes de frais à exporter dans son compte.',
             noAccountsFound: 'Aucun compte trouvé',
             noAccountsFoundDescription: `Veuillez ajouter le compte dans Sage Intacct et synchroniser à nouveau la connexion`,
             autoSync: 'Synchronisation automatique',
@@ -7062,6 +7059,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             updateFailureMessage: 'Une erreur s’est produite lors de la mise à jour de la catégorie, veuillez réessayer.',
             createFailureMessage: 'Une erreur s’est produite lors de la création de la catégorie, veuillez réessayer.',
             addCategory: 'Ajouter une catégorie',
+            createCategoryFromSearch: (categoryName: string) => `Créer la catégorie « ${categoryName} »`,
             editCategory: 'Modifier la catégorie',
             editCategories: 'Modifier les catégories',
             findCategory: 'Rechercher une catégorie',
@@ -7614,10 +7612,10 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             reimbursementAccount: 'compte de remboursement',
             welcomeNote: 'Veuillez commencer à utiliser mon nouvel espace de travail',
             delayedSubmission: 'soumission retardée',
-            merchantRules: 'Règles de commerçant',
+            merchantRules: 'Valeurs par défaut des dépenses',
             merchantRulesCount: () => ({
-                one: '1 règle de commerçant',
-                other: (count: number) => `${count} règles de commerçant`,
+                one: '1 dépense par défaut',
+                other: (count: number) => `${count} paramètres par défaut de dépenses`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `Vous êtes sur le point de créer et de partager ${newWorkspaceName ?? ''} avec ${totalMembers ?? 0} membres de l’espace de travail d’origine.`,
@@ -8175,8 +8173,7 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 },
             },
             preferredExporter: 'Exportateur préféré',
-            exportPreferredExporterNote:
-                'L’exportateur préféré peut être n’importe quel administrateur d’espace de travail, mais doit également être un administrateur de domaine si vous définissez des comptes d’exportation différents pour chaque carte d’entreprise individuelle dans les paramètres de domaine.',
+            exportPreferredExporterNote: 'L’exportateur préféré peut être n’importe quel administrateur de l’espace de travail.',
             exportPreferredExporterSubNote: 'Une fois défini, l’exportateur préféré verra les notes de frais à exporter dans son compte.',
             exportAs: 'Exporter en',
             exportOutOfPocket: 'Exporter les dépenses remboursables sous forme de',
@@ -9003,8 +9000,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 matchType: 'Type de correspondance',
                 matchTypeContains: 'Contient',
                 matchTypeExact: 'Correspond exactement',
-                duplicateRuleTitle: 'Une règle de commerçant similaire existe déjà',
-                duplicateRulePrompt: (merchantName: string) => `Votre règle existante pour « ${merchantName} » aura la priorité sur celle-ci. Enregistrer quand même ?`,
+                duplicateRuleTitle: 'Une règle similaire existe déjà',
+                duplicateRulePrompt: (conditionName: string) => `Votre règle existante pour « ${conditionName} » aura la priorité sur celle-ci. Enregistrer quand même ?`,
                 saveAnyway: 'Enregistrer quand même',
                 applyToExistingUnsubmittedExpenses: 'Appliquer aux dépenses non soumises existantes',
                 findRule: 'Règle de recherche de commerçant',
@@ -9014,19 +9011,8 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 thenApplyFollowingDefaults: 'Appliquez ensuite les valeurs par défaut suivantes :',
                 vendorUnavailable: 'Fournisseur indisponible',
                 confirmErrorCategory: 'Veuillez sélectionner une catégorie',
-                confirmErrorCategoryTax: 'Veuillez sélectionner un taux de taxe',
-                confirmErrorCondition: 'Veuillez saisir un commerçant',
-                confirmErrorConditionAndDefault: 'Saisissez un commerçant et appliquez au moins un paramètre par défaut',
-                turnOnTaxesFirstTitle: 'Activer d’abord les taxes',
-                turnOnTaxesFirstPrompt: 'Les règles de catégorie définissent un taux de taxe par défaut. Activez les taxes dans les paramètres de votre espace de travail pour les utiliser.',
-                categoryRulesApplyGoingForwardTitle: 'Les règles de catégorie s’appliquent à partir de maintenant',
-                categoryRulesApplyGoingForwardPrompt:
-                    'Un taux de taxe par défaut s’applique aux nouvelles dépenses de cette catégorie. Les dépenses déjà existantes ne seront pas modifiées.',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
-                    'Le taux de taxe sélectionné est désormais le taux par défaut de votre espace de travail, cette règle n’est donc plus valide. Choisissez un autre taux de taxe.',
-                addTaxRateFirstTitle: 'Ajoutez d’abord un taux de taxe',
-                addTaxRateFirstPrompt:
-                    'Les règles de catégorie définissent un taux de taxe par défaut. Ajoutez un taux de taxe autre que le taux par défaut de votre espace de travail pour les utiliser.',
+                confirmErrorCondition: 'Veuillez ajouter au moins une condition',
+                confirmErrorConditionAndDefault: 'Ajoutez au moins une condition et appliquez au moins une valeur par défaut',
                 createRuleFromExpenseAction: 'Créer une règle',
                 createRuleFromExpensePrompt: 'pour appliquer vos modifications à toutes les dépenses qui correspondent à vos critères.',
             },
@@ -9212,6 +9198,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Autorisé ${shownCount > 1 ? 'devises' : 'devise'} : ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
                 defaultRulesCannotBeDeleted: 'Les règles par défaut ne peuvent pas être supprimées',
+                tags: 'Tags',
+                multipleConditions: 'Conditions multiples',
             },
             agentRules: {
                 title: 'Règles d’agent',
@@ -9357,9 +9345,11 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 findRule: 'Trouver une règle',
                 rename: 'Renommer',
                 update: 'Mettre à jour',
-                merchantIs: (merchant: string) => `Le commerçant est « ${merchant} »`,
                 merchantTypeIs: (merchantType: string) => `Le type de commerçant est « ${merchantType} »`,
                 categoryIs: (category: string) => `La catégorie est « ${category} »`,
+                tagIs: (tag: string) => `Le tag est « ${tag} »`,
+                merchantContains: (merchant: string) => `Le commerçant contient « ${merchant} »`,
+                merchantExactlyMatches: (merchant: string) => `Le commerçant correspond exactement à « ${merchant} »`,
             },
             merchantTypeRule: {merchantType: 'Type de marchand', saveRule: 'Enregistrer la règle', confirmErrorCategory: 'Veuillez sélectionner une catégorie.'},
             requireFieldsTable: {
@@ -9429,14 +9419,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 cta: 'Ajouter une règle IA',
             },
             categoriesDisabledEmptyState: {title: 'Les catégories ne sont pas activées', subtitle: 'Activez les catégories pour mieux contrôler vos dépenses.'},
-            expenseDefaultType: {
-                title: 'Appliquer les valeurs de dépense par défaut',
-                subtitle: 'Sur quoi cette règle doit-elle faire correspondre ?',
-                merchant: 'Commerçant',
-                merchantDescription: 'Mettre à jour les champs des dépenses d’un commerçant spécifique',
-                category: 'Catégorie',
-                categoryDescription: 'Définir un taux de taxe par défaut pour une catégorie spécifique',
-            },
             taxesDisabledEmptyState: {title: 'Les taxes ne sont pas activées', subtitle: 'Activez les taxes pour documenter et récupérer les taxes admissibles.', cta: 'Activer les taxes'},
         },
         planTypePage: {
