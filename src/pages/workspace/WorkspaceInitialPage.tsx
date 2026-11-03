@@ -1,7 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import HighlightableMenuItem from '@components/HighlightableMenuItem';
-import useFlatNavSidebarMenuItemProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarMenuItemProps';
+import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useTabRootScreenWrapperProps from '@components/Navigation/TabBarBottomContent/useTabRootScreenWrapperProps';
 import useTabRootScrollProps from '@components/Navigation/TabBarBottomContent/useTabRootScrollProps';
@@ -79,7 +79,7 @@ function dismissError(policyID: string | undefined, pendingAction: PendingAction
 
 function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: WorkspaceInitialPageProps) {
     const styles = useThemeStyles();
-    const getFlatNavMenuItemProps = useFlatNavSidebarMenuItemProps();
+    const getFlatNavRowProps = useFlatNavSidebarRowProps();
     const tabRootScreenWrapperProps = useTabRootScreenWrapperProps(NAVIGATION_TABS.WORKSPACES);
     const tabRootScrollProps = useTabRootScrollProps(styles.flexColumn);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -314,7 +314,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                             {workspaceMenuItems.map((item) => {
                                 const isConnectionsItem = item.screenName === SCREENS.WORKSPACE.CONNECTIONS;
                                 const isItemFocused = getItemScreenNames(item).some((screenName) => activeRoute?.startsWith(screenName));
-                                const {shouldShowBasicTitle, wrapperStyle: flatNavWrapperStyle} = getFlatNavMenuItemProps(isItemFocused);
+                                const {shouldShowBasicTitle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isItemFocused);
                                 const onPress = () => {
                                     if (isConnectionsItem) {
                                         hideConnectionsTooltip();
@@ -330,7 +330,8 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                         icon={item.icon}
                                         onPress={onPress}
                                         brickRoadIndicator={item.brickRoadIndicator}
-                                        wrapperStyle={[styles.sectionMenuItem(shouldUseNarrowLayout), flatNavWrapperStyle]}
+                                        wrapperStyle={[styles.sectionMenuItem(shouldUseNarrowLayout), selectedStyle]}
+                                        hoveredStyle={hoveredStyle}
                                         shouldShowBasicTitle={shouldShowBasicTitle}
                                         highlighted={!!item?.highlighted}
                                         focused={isItemFocused}

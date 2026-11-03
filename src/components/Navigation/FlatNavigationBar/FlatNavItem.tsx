@@ -12,10 +12,12 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {ColorValue} from 'react-native';
 
 import React from 'react';
 import {View} from 'react-native';
+
+import FlatNavItemBackgroundContext from './FlatNavItemBackgroundContext';
 
 type FlatNavItemProps = {
     /** Translated row label */
@@ -23,7 +25,7 @@ type FlatNavItemProps = {
 
     icon?: IconAsset;
 
-    /** Rendered in place of the icon, e.g. the account avatar */
+    /** Rendered in place of the icon, e.g. the account avatar. It can read the row's background from FlatNavItemBackgroundContext. */
     leftElement?: React.ReactNode;
 
     isSelected: boolean;
@@ -47,11 +49,11 @@ function FlatNavItem({label, icon, leftElement, isSelected, isTall = false, stat
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
 
-    const getStatusIndicatorBorderStyle = (isHovered: boolean): StyleProp<ViewStyle> => {
+    const getRowBackgroundColor = (isHovered: boolean): ColorValue | undefined => {
         if (isSelected) {
-            return StyleUtils.getBorderColorStyle(theme.hoverComponentBG);
+            return styles.flatNavigationBarItemSelected.backgroundColor;
         }
-        return isHovered ? StyleUtils.getBorderColorStyle(theme.highlightBG) : undefined;
+        return isHovered ? styles.flatNavigationBarItemHovered.backgroundColor : undefined;
     };
 
     return (
@@ -68,40 +70,43 @@ function FlatNavItem({label, icon, leftElement, isSelected, isTall = false, stat
                 hovered && !isSelected && styles.flatNavigationBarItemHovered,
             ]}
         >
-            {({hovered}) => (
-                <>
-                    {!!icon && (
-                        <View>
-                            <Icon
-                                src={icon}
-                                fill={getTabIconFill(isSelected, hovered, theme)}
-                                width={variables.iconSizeNormal}
-                                height={variables.iconSizeNormal}
-                            />
-                            {!!statusIndicatorColor && (
-                                <View
-                                    testID="FlatNavItemStatusIndicator"
-                                    style={[
-                                        styles.navigationTabBarStatusIndicator,
-                                        styles.statusIndicatorColor(statusIndicatorColor),
-                                        // The dot's stroke reads as a gap cut out of the row, so it takes the row's background.
-                                        getStatusIndicatorBorderStyle(hovered),
-                                    ]}
+            {({hovered}) => {
+                const rowBackgroundColor = getRowBackgroundColor(hovered);
+                return (
+                    <FlatNavItemBackgroundContext.Provider value={rowBackgroundColor}>
+                        {!!icon && (
+                            <View>
+                                <Icon
+                                    src={icon}
+                                    fill={getTabIconFill(isSelected, hovered, theme)}
+                                    width={variables.iconSizeNormal}
+                                    height={variables.iconSizeNormal}
                                 />
-                            )}
-                        </View>
-                    )}
-                    {leftElement}
-                    <Text
-                        variant={isSelected ? 'textStrong' : 'text'}
-                        color={isSelected || hovered ? theme.text : theme.textSupporting}
-                        numberOfLines={1}
-                        style={styles.flex1}
-                    >
-                        {label}
-                    </Text>
-                </>
-            )}
+                                {!!statusIndicatorColor && (
+                                    <View
+                                        testID="FlatNavItemStatusIndicator"
+                                        style={[
+                                            styles.navigationTabBarStatusIndicator,
+                                            styles.statusIndicatorColor(statusIndicatorColor),
+                                            // The dot's stroke reads as a gap cut out of the row, so it takes the row's background.
+                                            !!rowBackgroundColor && StyleUtils.getBorderColorStyle(rowBackgroundColor),
+                                        ]}
+                                    />
+                                )}
+                            </View>
+                        )}
+                        {leftElement}
+                        <Text
+                            variant={isSelected ? 'textStrong' : 'text'}
+                            color={isSelected || hovered ? theme.text : theme.textSupporting}
+                            numberOfLines={1}
+                            style={styles.flex1}
+                        >
+                            {label}
+                        </Text>
+                    </FlatNavItemBackgroundContext.Provider>
+                );
+            }}
         </PressableWithFeedback>
     );
 }

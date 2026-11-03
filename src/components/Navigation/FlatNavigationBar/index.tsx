@@ -1,4 +1,3 @@
-import AccountNavigationAvatar from '@components/Avatar/AccountNavigationAvatar';
 import Hoverable from '@components/Hoverable';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -32,6 +31,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
+import FlatNavAccountAvatar from './FlatNavAccountAvatar';
 import FlatNavCreateMenuButtons from './FlatNavCreateMenuButtons';
 import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
@@ -135,7 +135,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
                             <FlatNavDivider />
                             <FlatNavItem
                                 label={accountLabel}
-                                leftElement={<AccountNavigationAvatar isSelected={isAccountSelected} />}
+                                leftElement={<FlatNavAccountAvatar isSelected={isAccountSelected} />}
                                 isSelected={isAccountSelected}
                                 isTall
                                 accessibilityLabel={getAccessibilityLabel(`${accountLabel}, ${translate('sidebarScreen.buttonMySettings')}`, !!accountStatus)}

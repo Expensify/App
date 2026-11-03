@@ -1,5 +1,6 @@
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
+import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 import {SEARCH_SIDEBAR_COLLAPSE_ANIMATION_DURATION_MS, useSearchSidebarCollapse, useSearchSidebarCollapseFadeStyle} from '@components/Navigation/SearchSidebarCollapseStore';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
@@ -48,6 +49,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {shouldShowBasicTitle, selectedStyle, hoveredStyle} = useFlatNavSidebarRowProps()(focused);
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
     const labelAnimatedStyle = useSearchSidebarCollapseFadeStyle();
     const inlineBadgeAnimatedStyle = useSearchSidebarCollapseFadeStyle();
@@ -83,7 +85,8 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                 styles.sectionMenuItem(shouldUseNarrowLayout),
                 styles.searchTypeMenuItemPadding,
                 StyleUtils.getButtonBackgroundColorStyle(getButtonState({isActive: focused || hovered, isPressed: pressed}), true),
-                hovered && !focused && !pressed && styles.hoveredComponentBG,
+                selectedStyle,
+                hovered && !focused && !pressed && (hoveredStyle ?? styles.hoveredComponentBG),
             ]}
         >
             {({hovered, pressed}) => (
@@ -113,7 +116,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                     )}
                     <Animated.View style={[styles.justifyContentCenter, styles.flex1, styles.ml3, labelAnimatedStyle]}>
                         <Text
-                            style={[styles.popoverMenuText, styles.textStrong]}
+                            style={[styles.popoverMenuText, !shouldShowBasicTitle && styles.textStrong]}
                             numberOfLines={1}
                         >
                             {title}
