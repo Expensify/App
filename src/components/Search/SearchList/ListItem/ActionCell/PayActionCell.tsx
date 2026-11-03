@@ -223,7 +223,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 stayNormalOnDisable={shouldDisablePointerEvents}
                 isLoading={isLoading}
                 onlyShowPayElsewhere={shouldOnlyShowElsewhere}
-                sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_PAY}
+                sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_ACTION.PAY}
             />
         </SearchScopeProvider>
     );

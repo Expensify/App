@@ -10428,8 +10428,26 @@ const CONST = {
             RESET_FILTERS_BUTTON: 'Search-ResetFiltersButton',
             SAVE_FILTERS_BUTTON: 'Search-SaveFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
-            ACTION_CELL_PAY: 'Search-ActionCellPay',
-            ACTION_CELL_ACTION: 'Search-ActionCellAction',
+            ACTION_CELL_ACTION: {
+                SUBMIT: 'Search-ActionCellAction-Submit',
+                APPROVE: 'Search-ActionCellAction-Approve',
+                PAY: 'Search-ActionCellAction-Pay',
+                CHANGE_APPROVER: 'Search-ActionCellAction-ChangeApprover',
+                EXPORT_TO_ACCOUNTING: 'Search-ActionCellAction-ExportToAccounting',
+                UNDELETE: 'Search-ActionCellAction-Undelete',
+            },
+            CREATE_BUTTON: 'Search-CreateButton',
+            CREATE_MENU: {
+                CREATE_EXPENSE: 'Search-CreateMenu-CreateExpense',
+                TRACK_DISTANCE: 'Search-CreateMenu-TrackDistance',
+                CREATE_REPORT: 'Search-CreateMenu-CreateReport',
+            },
+            EMPTY_STATE: {
+                TAKE_TEST_DRIVE: 'Search-EmptyState-TakeTestDrive',
+                CREATE_EXPENSE: 'Search-EmptyState-CreateExpense',
+                CREATE_REPORT: 'Search-EmptyState-CreateReport',
+                SEND_INVOICE: 'Search-EmptyState-SendInvoice',
+            },
             EXPENSE_REPORT_CHECKBOX: 'Search-ExpenseReportCheckbox',
             GROUP_EXPAND_TOGGLE: 'Search-GroupExpandToggle',
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
@@ -10486,6 +10504,18 @@ const CONST = {
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
+            EMPTY_STATE: {
+                ADD_EXPENSE: 'Report-EmptyStateAddExpense',
+                CREATE_EXPENSE: 'Report-EmptyStateAddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'Report-EmptyStateAddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'Report-EmptyStateAddExpenseMenu-AddExistingExpense',
+            },
+            LIST_FOOTER: {
+                ADD_EXPENSE: 'Report-ListFooterAddExpense',
+                CREATE_EXPENSE: 'Report-ListFooterAddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'Report-ListFooterAddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'Report-ListFooterAddExpenseMenu-AddExistingExpense',
+            },
         },
         SIDEBAR: {
             SIGN_IN_BUTTON: 'Sidebar-SignInButton',
@@ -10576,6 +10606,11 @@ const CONST = {
             EXPORT_BUTTON: 'ReportPreview-ExportButton',
             VIEW_BUTTON: 'ReportPreview-ViewButton',
             ADD_EXPENSE_BUTTON: 'ReportPreview-AddExpenseButton',
+            ADD_EXPENSE_MENU: {
+                CREATE_EXPENSE: 'ReportPreview-AddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'ReportPreview-AddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'ReportPreview-AddExpenseMenu-AddExistingExpense',
+            },
         },
         REQUEST_CONFIRMATION_LIST: {
             RESET_SPLIT_SHARES: 'RequestConfirmationList-ResetSplitShares',
@@ -10668,6 +10703,17 @@ const CONST = {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
             GETTING_STARTED_FOOTER_HELP: 'HomePage-GettingStartedFooterHelp',
+            QUICK_CREATE: {
+                EXPENSE: 'HomePage-QuickCreate-Expense',
+                REPORT: 'HomePage-QuickCreate-Report',
+                DISTANCE: 'HomePage-QuickCreate-Distance',
+                BOOK_TRAVEL: 'HomePage-QuickCreate-BookTravel',
+            },
+        },
+        CONCIERGE_PROMPT_BOX: {
+            ADD_ATTACHMENT: 'ConciergePromptBox-AddAttachment',
+            INPUT: 'ConciergePromptBox-Input',
+            SEND: 'ConciergePromptBox-Send',
         },
         CATEGORY_PICKER_MODAL: {
             BACK_BUTTON: 'CategoryPickerModal-BackButton',
