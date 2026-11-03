@@ -1175,7 +1175,7 @@ function invalidateCredentials() {
 }
 
 function invalidateAuthToken() {
-    NetworkStore.setAuthToken(INVALID_TOKEN);
+    NetworkStore.setAuthToken(INVALID_TOKEN, INVALID_TOKEN);
     Onyx.merge(ONYXKEYS.SESSION, {authToken: INVALID_TOKEN, encryptedAuthToken: INVALID_TOKEN});
 }
 
@@ -1185,7 +1185,7 @@ function invalidateAuthToken() {
 function expireSessionWithDelay() {
     // expires the session after 15s
     setTimeout(() => {
-        NetworkStore.setAuthToken(INVALID_TOKEN);
+        NetworkStore.setAuthToken(INVALID_TOKEN, INVALID_TOKEN);
         Onyx.merge(ONYXKEYS.SESSION, {authToken: INVALID_TOKEN, encryptedAuthToken: INVALID_TOKEN, creationDate: new Date().getTime() - CONST.SESSION_EXPIRATION_TIME_MS});
     }, 15000);
 }
@@ -1493,7 +1493,7 @@ function updateAuthToken(authToken?: string, encryptedAuthToken?: string) {
     // Note: It is important to manually set the authToken that is in the store here since
     // reconnectApp will immediate post and use the local authToken. Onyx updates subscribers lately so it is not
     // enough to do the updateSessionAuthTokens() call above.
-    NetworkStore.setAuthToken(authToken ?? null, encryptedAuthToken);
+    NetworkStore.setAuthToken(authToken ?? null, encryptedAuthToken ?? null);
 }
 
 function updateAuthTokenAndOpenApp(authToken?: string, encryptedAuthToken?: string) {
