@@ -505,7 +505,7 @@ function ParticipantSearchResults({
         );
 
     const onSelectRow = (option: Participant) => {
-        const optionPolicyID = option.policyID ?? (option.reportID ? getReportOrDraftReport(option.reportID)?.policyID : undefined);
+        const optionPolicyID = option.policyID ?? (option.reportID ? getReportOrDraftReport({reportID: option.reportID})?.policyID : undefined);
         if (shouldBlockParticipantSelection?.(optionPolicyID)) {
             return;
         }
