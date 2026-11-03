@@ -5,7 +5,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
 import {changeMoneyRequestHoldStatus} from '@libs/actions/IOU/Hold';
@@ -16,7 +16,7 @@ import {getLinkedIOUTransaction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
@@ -37,7 +37,7 @@ function RemoveHoldPrimaryAction({reportID, chatReportID, isDisabled}: SimpleAct
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [reportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID));
+    const [reportOwnerLogin] = usePersonalDetail(moneyRequestReport?.ownerAccountID, loginSelector);
 
     const {transactions: reportTransactionsMap} = useTransactionsAndViolationsForReport(moneyRequestReport?.reportID);
     const transactions = Object.values(reportTransactionsMap);

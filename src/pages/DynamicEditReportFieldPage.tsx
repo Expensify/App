@@ -11,7 +11,7 @@ import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {useAllPersonalDetails} from '@hooks/usePersonalDetails';
+import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useSaveReportField from '@hooks/useSaveReportField';
 
@@ -36,7 +36,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {loginSelector} from '@src/selectors/PersonalDetails';
 
 import {Str} from 'expensify-common';
 import React from 'react';
@@ -72,7 +72,7 @@ function DynamicEditReportFieldPage({route}: DynamicEditReportFieldPageProps) {
 
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
-    const [reportOwnerLogin] = useAllPersonalDetails(personalDetailsLoginSelector(report?.ownerAccountID));
+    const [reportOwnerLogin] = usePersonalDetail(report?.ownerAccountID, loginSelector);
     const isDisabled = isReportFieldDisabledForUser(report, reportField, policy, currentUserAccountID, rules, reportOwnerLogin) && reportField?.type !== CONST.REPORT_FIELD_TYPES.FORMULA;
     const {translate} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
