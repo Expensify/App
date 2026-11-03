@@ -63,11 +63,11 @@ const mockFlatList = jest.fn(({data, renderItem}: FlatListProps<Attachment>) => 
         </>
     );
 });
+jest.mock('react-native/Libraries/Lists/FlatList', () => ({__esModule: true, default: (props: FlatListProps<Attachment>) => mockFlatList(props)}));
 jest.mock('react-native-reanimated', () => {
     const animated = jest.requireActual<typeof Reanimated>('react-native-reanimated/mock');
     return {
         ...animated,
-        default: {...animated.default, FlatList: (props: FlatListProps<Attachment>) => mockFlatList(props)},
         useAnimatedRef: () => mockScrollRef,
         scrollTo: jest.fn(),
     };

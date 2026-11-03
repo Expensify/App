@@ -17,19 +17,38 @@ import {canUseTouchScreen as canUseTouchScreenUtil} from '@libs/DeviceCapabiliti
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import type {CellRendererProps} from '@src/types/utils/ReactNativeCompat';
 
 import type {ListRenderItemInfo} from 'react-native';
 import type {PanGesture} from 'react-native-gesture-handler';
 
 import React, {useLayoutEffect, useRef, useState} from 'react';
-import {Keyboard, PixelRatio, View} from 'react-native';
+import {FlatList, Keyboard, PixelRatio, View} from 'react-native';
 import {GestureDetector, usePanGesture} from 'react-native-gesture-handler';
-import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
+import {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
 
 import type AttachmentCarouselViewProps from './types';
 
 const MIN_FLING_VELOCITY = 500;
+
+// Forward bubbling focus so the web list keeps the password input mounted while its render window moves during rotation.
+function CarouselCell({children, style, onLayout, onFocusCapture}: CellRendererProps<Attachment>) {
+    return (
+        <View
+            style={style}
+            onLayout={onLayout}
+            onFocus={({nativeEvent}) => {
+                if (!(nativeEvent instanceof FocusEvent)) {
+                    return;
+                }
+                onFocusCapture?.(nativeEvent);
+            }}
+        >
+            {children}
+        </View>
+    );
+}
 
 type DeviceAwareGestureDetectorProps = {
     canUseTouchScreen: boolean;
@@ -66,7 +85,7 @@ function AttachmentCarouselView({
     const isPagerScrolling = useSharedValue(false);
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
-    const scrollRef = useAnimatedRef<Animated.FlatList<Attachment>>();
+    const scrollRef = useAnimatedRef<FlatList<Attachment>>();
 
     // The modal's safe-area padding can make the carousel narrower than the window.
     // Wait for its actual width before mounting the list so visibility and paging use the same geometry.
@@ -200,7 +219,7 @@ function AttachmentCarouselView({
                 if (width <= 0) {
                     return;
                 }
-                setCellWidth((previousWidth) => (previousWidth === width ? previousWidth : width));
+                setCellWidth(width);
             }}
             onMouseEnter={() => !canUseTouchScreen && setShouldShowArrows(true)}
             onMouseLeave={() => !canUseTouchScreen && setShouldShowArrows(false)}
@@ -230,11 +249,11 @@ function AttachmentCarouselView({
                                     canUseTouchScreen={canUseTouchScreen}
                                     gesture={pan}
                                 >
-                                    <Animated.FlatList
+                                    <FlatList
+                                        CellRendererComponent={CarouselCell}
                                         keyboardShouldPersistTaps="handled"
                                         horizontal
                                         showsHorizontalScrollIndicator={false}
-                                        scrollEventThrottle={1}
                                         // scrolling is controlled by the pan gesture
                                         scrollEnabled={false}
                                         ref={scrollRef}

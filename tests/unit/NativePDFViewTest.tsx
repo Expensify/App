@@ -1,5 +1,6 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
+import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import PDFView from '@components/PDFView/index.native';
 
 import {openTravelDotLink} from '@libs/openTravelDotLink';
@@ -11,12 +12,13 @@ import {Linking} from 'react-native';
 
 jest.mock('react-native-pdf', () => {
     const ReactModule = jest.requireActual<typeof React>('react');
-    return function MockPDF({onPressLink, enableDoubleTapZoom}: PdfProps) {
-        return ReactModule.createElement('PDF', {testID: 'pdf', onPressLink, enableDoubleTapZoom});
+    return function MockPDF({onPressLink, onError, enableDoubleTapZoom}: PdfProps) {
+        return ReactModule.createElement('PDF', {testID: 'pdf', onPressLink, onError, enableDoubleTapZoom});
     };
 });
 
-jest.mock('@components/KeyboardAvoidingView', () => () => null);
+jest.mock('@components/KeyboardAvoidingView', () => jest.fn(() => null));
+jest.mock('@libs/shouldEnableAttachmentModalKeyboardAvoidance', () => jest.requireActual<{default: boolean}>('@libs/shouldEnableAttachmentModalKeyboardAvoidance/index.ios'));
 jest.mock('@components/LoadingIndicator', () => () => null);
 jest.mock('@components/Pressable/PressableWithoutFeedback', () => () => null);
 jest.mock('@components/PDFView/PDFPasswordForm', () => () => null);
@@ -114,5 +116,27 @@ describe('native PDF zoom', () => {
 
         // Then double-tap zoom is explicitly enabled, because on the New Architecture an omitted prop is read as false
         expect(pdf.props.enableDoubleTapZoom).toBe(true);
+    });
+});
+
+describe('iOS PDF password form', () => {
+    it.each([true, false])('applies keyboard padding only inside the attachment modal (modal: %s)', (isUsedInAttachmentModal) => {
+        // Given a PDF opened in the modal or a viewer with its own keyboard layout
+        render(
+            <PDFView
+                sourceURL="https://example.com/protected.pdf"
+                onLoadComplete={jest.fn()}
+                isUsedInAttachmentModal={isUsedInAttachmentModal}
+            />,
+        );
+
+        // When the native PDF reader requests a password
+        fireEvent(screen.getByTestId('pdf'), 'error', new Error('Password required or incorrect password.'));
+
+        // Then only the modal form offsets its padding from its position on screen
+        expect(jest.mocked(KeyboardAvoidingView).mock.lastCall?.[0]).toMatchObject({
+            behavior: isUsedInAttachmentModal ? 'padding' : undefined,
+            automaticOffset: isUsedInAttachmentModal,
+        });
     });
 });
