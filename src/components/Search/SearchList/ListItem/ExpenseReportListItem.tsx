@@ -21,16 +21,17 @@ import useLayoutSpacing from '@hooks/useLayoutSpacing';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {EMPTY_SEARCH_ACTION_INPUTS, useReportPaymentContext} from '@hooks/usePaymentContext';
+import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchActionPressInputs from '@hooks/useSearchActionPressInputs';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
-import {doesSearchActionUsePressTimeInputs, handleActionButtonPress} from '@libs/actions/Search';
+import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
@@ -213,7 +214,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {shouldDisableSearchSubmitPress, shouldIgnoreSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const readSearchActionPressInputs = useSearchActionPressInputs();
     const {transactions: reportTransactions, violations: reportViolations} = useTransactionsAndViolationsForReport(reportItem.reportID);
     const liveReportTransactions = Object.values(reportTransactions);
     const confirmSubmitReportViolations = useConfirmSubmitReportViolations({
@@ -245,25 +247,16 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [liveViolationsForSnapshotTransactions] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
         selector: transactionViolationsByIDsSelector(snapshotTransactionIDs),
     });
-    const {
-        currentUserAccountID,
-        currentUserLogin,
-        isASAPSubmitBetaEnabled,
-        isWiseReimbursementsBetaEnabled,
-        activePolicy,
-        chatReportPolicy,
-        delegateEmail,
-        delegateAccountID,
-        readSearchActionInputs,
-    } = useReportPaymentContext({
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID} =
+        useReportPaymentContext({
+            chatReportPolicyID: chatReport?.policyID,
+        });
 
     const handleOnButtonPress = async () => {
-        if (shouldIgnoreSearchSubmitPress(liveReportItem.action)) {
+        const pressTimeInputs = await readSearchActionPressInputs(liveReportItem.action);
+        if (!pressTimeInputs) {
             return;
         }
-        const pressTimeInputs = doesSearchActionUsePressTimeInputs(liveReportItem.action) ? await readSearchActionInputs() : EMPTY_SEARCH_ACTION_INPUTS;
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,

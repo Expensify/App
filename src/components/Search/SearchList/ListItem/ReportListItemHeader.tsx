@@ -19,10 +19,11 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {EMPTY_SEARCH_ACTION_INPUTS, useReportPaymentContext} from '@hooks/usePaymentContext';
+import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {useAllPersonalDetailsWithoutSnapshots} from '@hooks/usePersonalDetails';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchActionPressInputs from '@hooks/useSearchActionPressInputs';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,7 +33,7 @@ import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRout
 import {shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
-import {doesSearchActionUsePressTimeInputs, handleActionButtonPress} from '@userActions/Search';
+import {handleActionButtonPress} from '@userActions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -298,19 +299,10 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
     const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [allViolations] = useOnyxWithoutSnapshots(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
 
-    const {
-        currentUserAccountID,
-        currentUserLogin,
-        isASAPSubmitBetaEnabled,
-        isWiseReimbursementsBetaEnabled,
-        activePolicy,
-        chatReportPolicy,
-        delegateEmail,
-        delegateAccountID,
-        readSearchActionInputs,
-    } = useReportPaymentContext({
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID} =
+        useReportPaymentContext({
+            chatReportPolicyID: chatReport?.policyID,
+        });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
@@ -321,13 +313,14 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         StyleUtils.getItemBackgroundColorStyle(isSelected, !!isFocused || !!isHovered, !!isDisabled, theme.activeComponentBG, theme.hoverComponentBG)?.backgroundColor ?? theme.highlightBG;
 
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {shouldDisableSearchSubmitPress, shouldIgnoreSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const readSearchActionPressInputs = useSearchActionPressInputs();
 
     const handleOnButtonPress = async (event?: ModifiedMouseEvent) => {
-        if (shouldIgnoreSearchSubmitPress(reportItem.action)) {
+        const pressTimeInputs = await readSearchActionPressInputs(reportItem.action);
+        if (!pressTimeInputs) {
             return;
         }
-        const pressTimeInputs = doesSearchActionUsePressTimeInputs(reportItem.action) ? await readSearchActionInputs() : EMPTY_SEARCH_ACTION_INPUTS;
         handleActionButtonPress({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,

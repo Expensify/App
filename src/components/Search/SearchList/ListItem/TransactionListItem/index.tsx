@@ -17,14 +17,15 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import {EMPTY_SEARCH_ACTION_INPUTS, useReportPaymentContext} from '@hooks/usePaymentContext';
+import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import {useGetPersonalDetailsByLogin} from '@hooks/usePersonalDetailByLogin';
 import {usePersonalDetail} from '@hooks/usePersonalDetails';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchActionPressInputs from '@hooks/useSearchActionPressInputs';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
-import {doesSearchActionUsePressTimeInputs, handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
+import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
@@ -154,19 +155,10 @@ function TransactionListItemInner<TItem extends ListItem>({
     const snapshotChatReport = chatReportID ? snapshotData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
     const chatReport = parentChatReport ?? snapshotChatReport;
     const [chatReportActions] = useOnyxWithoutSnapshots(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? chatReportID)}`);
-    const {
-        currentUserAccountID,
-        currentUserLogin,
-        isASAPSubmitBetaEnabled,
-        isWiseReimbursementsBetaEnabled,
-        activePolicy,
-        chatReportPolicy,
-        delegateEmail,
-        delegateAccountID,
-        readSearchActionInputs,
-    } = useReportPaymentContext({
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {currentUserAccountID, currentUserLogin, isASAPSubmitBetaEnabled, isWiseReimbursementsBetaEnabled, activePolicy, chatReportPolicy, delegateEmail, delegateAccountID} =
+        useReportPaymentContext({
+            chatReportPolicyID: chatReport?.policyID,
+        });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const getPersonalDetailsByLogin = useGetPersonalDetailsByLogin();
@@ -238,13 +230,14 @@ function TransactionListItemInner<TItem extends ListItem>({
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
     const openReportSubmitToPopover = useOpenReportSubmitToPopover();
-    const {shouldDisableSearchSubmitPress, shouldIgnoreSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const {shouldDisableSearchSubmitPress} = useSearchSubmitPopoverGuard();
+    const readSearchActionPressInputs = useSearchActionPressInputs();
 
     const handleActionButtonPress = async (event?: Parameters<typeof onSelectRow>[2]) => {
-        if (shouldIgnoreSearchSubmitPress(liveTransactionItem.action)) {
+        const pressTimeInputs = await readSearchActionPressInputs(liveTransactionItem.action);
+        if (!pressTimeInputs) {
             return;
         }
-        const pressTimeInputs = doesSearchActionUsePressTimeInputs(liveTransactionItem.action) ? await readSearchActionInputs() : EMPTY_SEARCH_ACTION_INPUTS;
         handleActionButtonPressUtil({
             isASAPSubmitBetaEnabled,
             isWiseReimbursementsBetaEnabled,

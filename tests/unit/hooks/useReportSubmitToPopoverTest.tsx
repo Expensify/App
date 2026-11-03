@@ -38,13 +38,13 @@ describe('useReportSubmitToPopover', () => {
         // Given a submit-to popover that a Search row press just dismissed, before React has re-rendered the guard state
         const {result} = renderHook(() => useReportSubmitToPopover({reportID: REPORT_ID}), {wrapper});
         await waitForBatchedUpdatesWithAct();
-        const {closeReportSubmitToPopover, shouldIgnoreSearchSubmitPress} = result.current;
+        const {closeReportSubmitToPopover, interceptSearchSubmitPress} = result.current;
         closeReportSubmitToPopover();
 
         // When the row checks the press that closed the popover, then checks a later press, then an action that is not Submit
-        const isFirstSubmitIgnored = shouldIgnoreSearchSubmitPress(CONST.SEARCH.ACTION_TYPES.SUBMIT);
-        const isSecondSubmitIgnored = shouldIgnoreSearchSubmitPress(CONST.SEARCH.ACTION_TYPES.SUBMIT);
-        const isViewIgnored = shouldIgnoreSearchSubmitPress(CONST.SEARCH.ACTION_TYPES.VIEW);
+        const isFirstSubmitIgnored = interceptSearchSubmitPress(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        const isSecondSubmitIgnored = interceptSearchSubmitPress(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        const isViewIgnored = interceptSearchSubmitPress(CONST.SEARCH.ACTION_TYPES.VIEW);
 
         // Then only the first Submit press is dropped, because the dismiss click must not reopen the popover, while View never waits on the guard
         expect(isFirstSubmitIgnored).toBe(true);
@@ -56,12 +56,12 @@ describe('useReportSubmitToPopover', () => {
         // Given a submit-to popover that was just dismissed
         const {result} = renderHook(() => useReportSubmitToPopover({reportID: REPORT_ID}), {wrapper});
         await waitForBatchedUpdatesWithAct();
-        const {closeReportSubmitToPopover, shouldIgnoreSearchSubmitPress} = result.current;
+        const {closeReportSubmitToPopover, interceptSearchSubmitPress} = result.current;
         closeReportSubmitToPopover();
 
         // When a row checks the guard only after awaiting something
         await Promise.resolve();
-        const isSubmitIgnoredAfterAwait = shouldIgnoreSearchSubmitPress(CONST.SEARCH.ACTION_TYPES.SUBMIT);
+        const isSubmitIgnoredAfterAwait = interceptSearchSubmitPress(CONST.SEARCH.ACTION_TYPES.SUBMIT);
 
         // Then the one-shot guard is already gone, which is why the row handlers call it before any Onyx read
         expect(isSubmitIgnoredAfterAwait).toBe(false);

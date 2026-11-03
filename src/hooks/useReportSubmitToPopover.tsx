@@ -134,8 +134,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         return true;
     };
 
-    // Search rows must call this before any await in their press handler because the ref above resets in a microtask.
-    const shouldIgnoreSearchSubmitPress = (action: SearchTransactionAction | undefined) =>
+    const interceptSearchSubmitPress = (action: SearchTransactionAction | undefined) =>
         action === CONST.SEARCH.ACTION_TYPES.SUBMIT && (isVisible || isDismissGuardActive || consumeIgnoreNextSearchSubmitPress());
 
     const closeReportSubmitToPopover = () => {
@@ -298,7 +297,7 @@ function useReportSubmitToPopover({reportID, onSubmitSuccess, anchorAlignment = 
         closeReportSubmitToPopover,
         isReportSubmitToPopoverVisible: isVisible,
         isReportSubmitToDismissGuardActive: isDismissGuardActive,
-        shouldIgnoreSearchSubmitPress,
+        interceptSearchSubmitPress,
         reportSubmitToPopover,
     };
 }

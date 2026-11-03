@@ -27,14 +27,6 @@ type SearchActionInputs = {
     bankAccountList: OnyxEntry<BankAccountList>;
 };
 
-const EMPTY_SEARCH_ACTION_INPUTS: SearchActionInputs = {
-    conciergeChat: undefined,
-    introSelected: undefined,
-    isSelfTourViewed: undefined,
-    amountOwed: undefined,
-    bankAccountList: undefined,
-};
-
 type PaymentContextValue = {
     currentUserAccountID: number;
     currentUserLogin: string | undefined;
@@ -129,5 +121,5 @@ function useReportPaymentContext({chatReportPolicyID}: UseReportPaymentContextPa
 }
 
 export default usePaymentContext;
-export {EMPTY_SEARCH_ACTION_INPUTS, PaymentContextProvider, useReportPaymentContext};
-export type {PaymentContextValue};
+export {PaymentContextProvider, useReportPaymentContext};
+export type {PaymentContextValue, SearchActionInputs};
