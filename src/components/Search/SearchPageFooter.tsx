@@ -6,7 +6,6 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -18,14 +17,13 @@ import CONST from '@src/CONST';
 
 import type {LayoutChangeEvent} from 'react-native';
 
-import React, {useMemo, useState} from 'react';
-import {StyleSheet, View} from 'react-native';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 
 import type {SingleSelectItem} from './FilterComponents/SingleSelect';
 import type {ButtonComponentProps, FilterPopupButtonProps} from './FilterDropdowns/FilterPopupButton';
 import type {SearchFooterCount, SearchFooterTotal} from './types';
 
-import CurrencyPopup from './FilterDropdowns/CurrencyPopup';
 import FilterPopupButton from './FilterDropdowns/FilterPopupButton';
 import SearchFooterPopup from './FilterDropdowns/SearchFooterPopup';
 import SearchPageFooterSkeleton from './SearchPageFooterSkeleton';
@@ -94,8 +92,6 @@ function SearchPageFooter({
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow']);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {isBetaEnabled} = usePermissions();
-    const isFooterSelectorsEnabled = isBetaEnabled(CONST.BETAS.SPEND_FOOTER_SELECTORS);
 
     const [isFooterButtonFocused, setIsFooterButtonFocused] = useState(false);
     // The height the real total last occupied, which is what the skeleton stands in at.
@@ -109,7 +105,7 @@ function SearchPageFooter({
         setLoadedTotalHeight(height);
     };
 
-    const valueTextStyle = useMemo(() => (isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong]), [isOffline, styles]);
+    const valueTextStyle = isOffline ? [styles.textLabelSupporting, styles.labelStrong] : [styles.labelStrong];
 
     // The SearchList registers a global Enter shortcut that opens the focused expense. While the footer button is focused,
     // claim Enter at top priority without bubbling so Enter only opens the footer's display menu instead of also opening the expense.
@@ -127,88 +123,6 @@ function SearchPageFooter({
         }
         onCurrencyChange(nextCurrency);
     };
-
-    const renderCurrencyPopup: FilterPopupButtonProps['PopoverComponent'] = ({closeOverlay, isExpanded}) => (
-        <CurrencyPopup
-            key={currency ?? defaultCurrency}
-            value={currency}
-            closeOverlay={closeOverlay}
-            onChange={handleCurrencyChange}
-            searchPlaceholder={translate('common.search')}
-            defaultValue={defaultCurrency}
-            shouldShowList={isExpanded}
-            shouldUseFixedPopoverHeight
-        />
-    );
-
-    const totalButton = (props: ButtonComponentProps) => (
-        <Button
-            ref={props.ref}
-            accessibilityLabel={translate('common.totalSpend')}
-            innerStyles={[styles.bgTransparent, styles.gap1, styles.mnh0, styles.ph0, styles.pv0]}
-            contentContainerStyle={styles.gap1}
-            isDisabled={isOffline || isTotalLoading}
-            size={CONST.BUTTON_SIZE.SMALL}
-            hoverStyles={styles.bgTransparent}
-            onPress={props.onPress}
-            onFocus={() => setIsFooterButtonFocused(true)}
-            onBlur={() => setIsFooterButtonFocused(false)}
-        >
-            <Button.Text
-                style={valueTextStyle}
-                hoverStyle={styles.textSupporting}
-            >
-                {convertToDisplayString(total, currency)}
-            </Button.Text>
-            <Button.Icon
-                src={icons.DownArrow}
-                fill={theme.icon}
-                hoverFill={theme.iconHovered}
-            />
-        </Button>
-    );
-
-    if (!isFooterSelectorsEnabled) {
-        return (
-            <View style={[styles.borderTop, styles.ph5, styles.pv3, StyleUtils.getBackgroundColorStyle(theme.appBG)]}>
-                <View
-                    style={[
-                        shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd,
-                        styles.flexRow,
-                        styles.alignItemsCenter,
-                        styles.gap3,
-                        isTotalLoading && styles.opacity0,
-                    ]}
-                    pointerEvents={isTotalLoading ? 'none' : undefined}
-                >
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                        <Text style={styles.textLabelSupporting}>{`${translate('common.expenses')}:`}</Text>
-                        <Text style={valueTextStyle}>{count}</Text>
-                    </View>
-                    {typeof total === 'number' && (
-                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
-                            <Text style={styles.textLabelSupporting}>{`${translate('common.totalSpend')}:`}</Text>
-                            <FilterPopupButton
-                                PopoverComponent={renderCurrencyPopup}
-                                renderButton={totalButton}
-                                popoverAnchorAlignment={{
-                                    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                }}
-                            />
-                        </View>
-                    )}
-                </View>
-                {isTotalLoading && (
-                    <View
-                        style={[StyleSheet.absoluteFill, styles.flexRow, styles.alignItemsCenter, styles.ph5, shouldUseNarrowLayout ? styles.justifyContentStart : styles.justifyContentEnd]}
-                    >
-                        <SearchPageFooterSkeleton shouldStandInForWholeRow />
-                    </View>
-                )}
-            </View>
-        );
-    }
 
     const renderFooterPopup: FilterPopupButtonProps['PopoverComponent'] = ({closeOverlay, isExpanded}) => (
         <SearchFooterPopup

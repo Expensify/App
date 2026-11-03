@@ -27,7 +27,7 @@ import INPUT_IDS from '@src/types/form/RoomNameForm';
 import type {Report} from '@src/types/onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type RoomNamePageProps = {
@@ -44,47 +44,41 @@ function RoomNamePage({report, navigateBackTo}: RoomNamePageProps) {
     const isReportArchived = useReportIsArchived(report?.reportID);
     const policy = usePolicy(report?.policyID);
 
-    const goBack = useCallback(() => {
+    const goBack = () => {
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(navigateBackTo));
-    }, [navigateBackTo]);
+    };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
-            const errors = {};
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
+        const errors = {};
 
-            // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
-            if (values.roomName === report?.reportName) {
-                return errors;
-            }
-
-            if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
-                // We error if the user doesn't enter a room name or left blank
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
-            } else if (!isValidRoomNameWithoutLimits(values.roomName)) {
-                // We error if the room name has invalid characters
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
-            } else if (isReservedRoomName(values.roomName)) {
-                // Certain names are reserved for default rooms and should not be used for policy rooms.
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', values.roomName));
-            } else if (isExistingRoomName(values.roomName, reports, report?.policyID)) {
-                // The room name can't be set to one that already exists on the policy
-                addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
-            } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
-                addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', values.roomName.length, CONST.TITLE_CHARACTER_LIMIT));
-            }
-
+        // We should skip validation hence we return an empty errors and we skip Form submission on the onSubmit method
+        if (values.roomName === report?.reportName) {
             return errors;
-        },
-        [report?.reportName, report?.policyID, reports, translate],
-    );
+        }
 
-    const updatePolicyRoomName = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
-            updatePolicyRoomNameReportAction(report, values.roomName);
-            goBack();
-        },
-        [report, goBack],
-    );
+        if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
+            // We error if the user doesn't enter a room name or left blank
+            addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
+        } else if (!isValidRoomNameWithoutLimits(values.roomName)) {
+            // We error if the room name has invalid characters
+            addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
+        } else if (isReservedRoomName(values.roomName)) {
+            // Certain names are reserved for default rooms and should not be used for policy rooms.
+            addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameReservedError', values.roomName));
+        } else if (isExistingRoomName(values.roomName, reports, report?.policyID)) {
+            // The room name can't be set to one that already exists on the policy
+            addErrorMessage(errors, 'roomName', translate('newRoomPage.roomAlreadyExistsError'));
+        } else if (values.roomName.length > CONST.TITLE_CHARACTER_LIMIT) {
+            addErrorMessage(errors, 'roomName', translate('common.error.characterLimitExceedCounter', values.roomName.length, CONST.TITLE_CHARACTER_LIMIT));
+        }
+
+        return errors;
+    };
+
+    const updatePolicyRoomName = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ROOM_NAME_FORM>) => {
+        updatePolicyRoomNameReportAction(report, values.roomName);
+        goBack();
+    };
 
     return (
         <ScreenWrapper

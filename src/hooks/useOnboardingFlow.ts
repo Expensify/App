@@ -18,7 +18,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
 import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
 import {emailSelector} from '@selectors/Session';
-import {useCallback, useEffect} from 'react';
+import {useEffect} from 'react';
 
 import useOnyx from './useOnyx';
 import useRootNavigationState from './useRootNavigationState';
@@ -43,7 +43,7 @@ function useOnboardingFlowRouter() {
     // (set on cold launch and on warm url events for secure links) alongside the web URL and the active route. getCurrentUrl()
     // is empty on native, and getActiveRoute() serializes the secureKey query param on every platform via getPathFromState.
     const {initialURL} = useInitialURLState();
-    const getIsVisitingSecureLink = useCallback(() => hasSecureLinkKey(getCurrentUrl()) || hasSecureLinkKey(Navigation.getActiveRoute()) || hasSecureLinkKey(initialURL), [initialURL]);
+    const getIsVisitingSecureLink = () => hasSecureLinkKey(getCurrentUrl()) || hasSecureLinkKey(Navigation.getActiveRoute()) || hasSecureLinkKey(initialURL);
     const isVisitingSecureLink = getIsVisitingSecureLink();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
