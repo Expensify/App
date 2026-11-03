@@ -5330,6 +5330,7 @@ function navigateToConciergeChatAndDeleteReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
     currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
     conciergePersonalDetail: OnyxEntry<PersonalDetails>,
@@ -5351,8 +5352,7 @@ function navigateToConciergeChatAndDeleteReport(
         currentUserAccountID,
         isSelfTourViewed,
         delegateAccountID,
-        // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
-        hasCompletedGuidedSetupFlow: undefined,
+        hasCompletedGuidedSetupFlow,
         shouldDismissModal: false,
         linkToOptions: {afterTransition: () => deleteReport(reportID, shouldDeleteChildReports)},
         conciergePersonalDetails: personalDetails,
@@ -5376,19 +5376,55 @@ function cleanUpOptimisticPersonalDetailsForFailedChat(report: OnyxEntry<Report>
     Onyx.update([PersonalDetailsUtils.buildPersonalDetailsUpdate(personalDetailsToRemove)]);
 }
 
-function clearCreateChatError(
-    report: OnyxEntry<Report>,
-    conciergeReportID: string | undefined,
-    introSelected: OnyxEntry<IntroSelected>,
-    currentUserAccountID: number,
-    isSelfTourViewed: boolean | undefined,
-    reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>,
-    currentUserPersonalDetail: OnyxEntry<PersonalDetails>,
-    conciergePersonalDetail: OnyxEntry<PersonalDetails>,
-    optimisticPersonalDetails: OnyxEntry<PersonalDetailsList>,
+type ClearCreateChatErrorParams = {
+    /** The report whose failed chat creation is being dismissed */
+    report: OnyxEntry<Report>;
+
+    /** The stored Concierge report ID, when the client already knows it */
+    conciergeReportID: string | undefined;
+
+    /** The user's onboarding choice, used when opening or creating the Concierge chat */
+    introSelected: OnyxEntry<IntroSelected>;
+
+    /** The account ID of the current user */
+    currentUserAccountID: number;
+
+    /** Whether the user has already viewed the self tour */
+    isSelfTourViewed: boolean | undefined;
+
+    /** Whether the user has completed the guided setup (onboarding) flow */
+    hasCompletedGuidedSetupFlow: boolean | undefined;
+
+    /** The report owner's personal details, included in the lookup list passed to navigateToConciergeChat */
+    reportOwnerPersonalDetail: OnyxEntry<PersonalDetails>;
+
+    /** The current user's personal details, included in the lookup list passed to navigateToConciergeChat */
+    currentUserPersonalDetail: OnyxEntry<PersonalDetails>;
+
+    /** Concierge's personal details, included in the lookup list passed to navigateToConciergeChat */
+    conciergePersonalDetail: OnyxEntry<PersonalDetails>;
+
+    /** Personal details used to identify optimistic records to remove after chat creation fails */
+    optimisticPersonalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** The accountID of the copilot acting on behalf of the current user, if any */
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
-    delegateAccountID?: number,
-) {
+    delegateAccountID?: number;
+};
+
+function clearCreateChatError({
+    report,
+    conciergeReportID,
+    introSelected,
+    currentUserAccountID,
+    isSelfTourViewed,
+    hasCompletedGuidedSetupFlow,
+    reportOwnerPersonalDetail,
+    currentUserPersonalDetail,
+    conciergePersonalDetail,
+    optimisticPersonalDetails,
+    delegateAccountID,
+}: ClearCreateChatErrorParams) {
     const metaData = getReportMetadata(report?.reportID);
     const isOptimisticReport = metaData?.isOptimisticReport;
     if (report?.errorFields?.createChat && !isOptimisticReport) {
@@ -5406,6 +5442,7 @@ function clearCreateChatError(
         currentUserAccountID,
         introSelected,
         isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
         reportOwnerPersonalDetail,
         currentUserPersonalDetail,
         conciergePersonalDetail,
@@ -5639,6 +5676,13 @@ function clearIOUError(reportID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errorFields: {iou: null}});
 }
 
+function clearReportErrors(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {errors: null});
+}
+
 function doneCheckingPublicRoom() {
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM, false);
 }
@@ -5649,6 +5693,7 @@ function navigateToMostRecentReport(
     currentUserAccountID: number,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     lastAccessedReportID?: string,
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
@@ -5672,14 +5717,13 @@ function navigateToMostRecentReport(
             Navigation.goBack();
         }
 
-        // TODO: Thread hasCompletedGuidedSetupFlow through this wrapper in the next PR. Refactor issue: https://github.com/Expensify/App/issues/66424
         navigateToConciergeChat({
             conciergeReportID,
             introSelected,
             currentUserAccountID,
             isSelfTourViewed,
             delegateAccountID,
-            hasCompletedGuidedSetupFlow: undefined,
+            hasCompletedGuidedSetupFlow,
             conciergePersonalDetails: personalDetails,
             shouldDismissModal: false,
             linkToOptions: {forceReplace: true},
@@ -5727,6 +5771,7 @@ function leaveGroupChat(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     lastAccessedReportID?: string,
     // TODO: This will be made required once all callers thread the value. Refactor issue: https://github.com/Expensify/App/issues/66425
@@ -5781,7 +5826,17 @@ function leaveGroupChat(
     if (isSearchTopmostFullScreenRoute()) {
         Navigation.revealRouteBeforeDismissingModal(getReportRouteForCurrentContext({reportID}));
     } else {
-        navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, personalDetails, lastAccessedReportID, delegateAccountID);
+        navigateToMostRecentReport(
+            report,
+            conciergeReportID,
+            currentUserAccountID,
+            introSelected,
+            isSelfTourViewed,
+            hasCompletedGuidedSetupFlow,
+            personalDetails,
+            lastAccessedReportID,
+            delegateAccountID,
+        );
     }
     API.write(WRITE_COMMANDS.LEAVE_GROUP_CHAT, {reportID}, {optimisticData, successData, failureData});
 }
@@ -5793,6 +5848,7 @@ function leaveRoom(
     conciergeReportID: string | undefined,
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
+    hasCompletedGuidedSetupFlow: boolean | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
     isWorkspaceMemberLeavingWorkspaceRoom = false,
     lastAccessedReportID?: string,
@@ -5909,7 +5965,17 @@ function leaveRoom(
         return;
     }
     // In other cases, the report is deleted and we should move the user to another report.
-    navigateToMostRecentReport(report, conciergeReportID, currentUserAccountID, introSelected, isSelfTourViewed, personalDetails, lastAccessedReportID, delegateAccountID);
+    navigateToMostRecentReport(
+        report,
+        conciergeReportID,
+        currentUserAccountID,
+        introSelected,
+        isSelfTourViewed,
+        hasCompletedGuidedSetupFlow,
+        personalDetails,
+        lastAccessedReportID,
+        delegateAccountID,
+    );
 }
 
 function buildInviteToRoomOnyxData(
@@ -7406,7 +7472,7 @@ function clearChatIOUReportID(
     // Multiple reports are currently only used by `mergeReports`.
     // `mergeReports` currently only supports merging reports with the same policy and the same `ownerAccountID`,
     // so they will always belong to the same parentReportID.
-    const chatReport = getReportOrDraftReport(reports.find((report) => !!report?.parentReportID)?.parentReportID);
+    const chatReport = getReportOrDraftReport({reportID: reports.find((report) => !!report?.parentReportID)?.parentReportID});
     // Only clear the pointer when the chat still references the report being deleted, so we don't nullify a different active expense report.
     const shouldClearChatIOUReportID = reports.some((report) => chatReport?.iouReportID === report?.reportID);
     if (chatReport) {
@@ -9403,6 +9469,7 @@ export {
     clearAvatarErrors,
     clearDeleteTransactionNavigateBackUrl,
     clearIOUError,
+    clearReportErrors,
     clearNewRoomFormError,
     setNewRoomFormLoading,
     clearPolicyRoomNameErrors,

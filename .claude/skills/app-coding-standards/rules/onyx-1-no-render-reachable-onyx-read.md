@@ -20,7 +20,7 @@ Do not re-check these:
 | A reference to `Onyx.get` or `Onyx.multiGet` that is not a direct call (`.call`, `.bind`, `keys.map(Onyx.get)`, `const read = Onyx.get`, `const {get} = Onyx`) | `no-unsafe-onyx-read` |
 | The `Onyx` object used as a value instead of through a member, such as `{...Onyx}` or `const api = Onyx` | `no-unsafe-onyx-read` |
 | A Search snapshot key, or a key lint can't resolve, including any `multiGet` element | `no-onyx-get-snapshot-key` |
-| A runtime import of `react-native-onyx/dist/OnyxUtils` | `@typescript-eslint/no-restricted-imports` |
+| A runtime import of `react-native-onyx/dist/OnyxUtils` | `no-restricted-imports` |
 | An inline `eslint-disable` that covers `no-unsafe-onyx-read`, named or blanket, or one over a runtime OnyxUtils import, in any linted file outside `tests/` | `scripts/checkOnyxLintBypass.ts` |
 | An `eslint-disable` of `no-onyx-get-snapshot-key` with a reason under 12 letters or digits after `--` or in block form, in any linted file outside `tests/` | `scripts/checkOnyxLintDisableReason.ts` |
 | A missing `await` whose value is then used | `tsc` |

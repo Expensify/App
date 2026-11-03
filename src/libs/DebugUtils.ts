@@ -2,7 +2,7 @@
 /* eslint-disable max-classes-per-file */
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
-import type {Report, ReportAction, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportActions, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Comment} from '@src/types/onyx/Transaction';
 
@@ -1640,21 +1640,37 @@ type RBRReasonAndReportAction = {
 /**
  * Gets the report action that is causing the RBR to show up in LHN
  */
-function getReasonAndReportActionForRBRInLHNRow(
-    report: Report,
-    chatReport: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions>,
-    transactions: OnyxCollection<Transaction>,
-    transactionViolations: OnyxCollection<TransactionViolation[]>,
-    hasViolations: boolean,
-    reportErrors: Errors,
-    isOffline: boolean,
-    currentUserAccountID: number,
+type GetReasonAndReportActionForRBRInLHNRowParams = {
+    report: Report;
+    policy: OnyxEntry<Policy>;
+    chatReport: OnyxEntry<Report>;
+    reportActions: OnyxEntry<ReportActions>;
+    transactions: OnyxCollection<Transaction>;
+    transactionViolations: OnyxCollection<TransactionViolation[]>;
+    hasViolations: boolean;
+    reportErrors: Errors;
+    isOffline: boolean;
+    currentUserAccountID: number;
+    isArchivedReport?: boolean;
+};
+
+function getReasonAndReportActionForRBRInLHNRow({
+    report,
+    policy,
+    chatReport,
+    reportActions,
+    transactions,
+    transactionViolations,
+    hasViolations,
+    reportErrors,
+    isOffline,
+    currentUserAccountID,
     isArchivedReport = false,
-): RBRReasonAndReportAction | null {
+}: GetReasonAndReportActionForRBRInLHNRowParams): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
         SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
             report,
+            policy,
             chatReport,
             reportActions,
             hasViolations,
