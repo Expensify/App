@@ -21,11 +21,11 @@ import {createActor, fromPromise} from 'xstate';
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const REASON = CONST.MULTIFACTOR_AUTHENTICATION.REASON;
 
-const AWAITING_SOFT_PROMPT = {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}};
-const CREATING_KEY = {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: {[MFA_STATE.CREATING_CREDENTIAL]: MFA_STATE.CREATING_KEY}}};
-const REGISTERING_KEY = {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: {[MFA_STATE.CREATING_CREDENTIAL]: MFA_STATE.REGISTERING_KEY}}};
-const AUTHORIZING = {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}};
-const OUTCOME_FAILURE = {[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}};
+const AWAITING_SOFT_PROMPT = {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}};
+const CREATING_KEY = {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: {[MFA_STATE.CREATING_CREDENTIAL]: MFA_STATE.CREATING_KEY}}}};
+const REGISTERING_KEY = {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: {[MFA_STATE.CREATING_CREDENTIAL]: MFA_STATE.REGISTERING_KEY}}}};
+const AUTHORIZING = {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}}};
+const OUTCOME_FAILURE = {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}}};
 
 /**
  * Starts a live actor on the soft prompt with the given actors and approves it. `resolveState` can't
@@ -51,7 +51,10 @@ function approveSoftPromptWith(actors: Parameters<typeof mfaMachine.provide>[0][
 describe('MFA credential creation', () => {
     describe('soft-prompt approval', () => {
         it('moves to credential creation when a registration challenge is pending', () => {
-            const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}, {registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE});
+            const actor = createActorAtState(
+                {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}},
+                {registrationChallenge: MFA_TEST_REGISTRATION_CHALLENGE},
+            );
 
             actor.start();
             actor.send({type: 'SOFT_PROMPT_APPROVED'});
@@ -65,20 +68,20 @@ describe('MFA credential creation', () => {
         });
 
         it('moves to authorizing without a pending challenge (returning user)', () => {
-            const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}});
+            const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}});
 
             actor.start();
             actor.send({type: 'SOFT_PROMPT_APPROVED'});
 
             const result = actor.getSnapshot();
-            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}})).toBe(true);
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}}})).toBe(true);
             expect(snapshotToState(result).isProcessingPrompt).toBe(true);
 
             actor.stop();
         });
 
         it('does not mark the prompt as processing when the flow is cancelled', () => {
-            const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}});
+            const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}});
 
             actor.start();
             actor.send({type: 'CLOSE_MODAL'});

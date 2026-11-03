@@ -114,10 +114,9 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
     const resendValidateCode = () => send({type: 'RESEND_VALIDATE_CODE'});
     const notifyValidateCodeChanged = () => send({type: 'VALIDATE_CODE_CHANGED'});
 
-    // There is no cancel-confirmation dialog yet, so every cancel path closes the modal directly.
-    const requestCancel = () => send({type: 'CLOSE_MODAL'});
-    const hideCancelConfirm = () => send({type: 'CLOSE_MODAL'});
-    const confirmCancel = () => send({type: 'CLOSE_MODAL'});
+    const requestCancel = () => send({type: 'REQUEST_CANCEL'});
+    const dismissCancel = () => send({type: 'DISMISS_CANCEL'});
+    const confirmCancel = () => send({type: 'CONFIRM_CANCEL'});
 
     useSyncMfaModalNavigatorWithHistory(state.modalState, requestCancel);
 
@@ -132,7 +131,7 @@ function MultifactorAuthenticationContextProvider({children}: MultifactorAuthent
         resendValidateCode,
         notifyValidateCodeChanged,
         requestCancel,
-        hideCancelConfirm,
+        dismissCancel,
         confirmCancel,
     };
 

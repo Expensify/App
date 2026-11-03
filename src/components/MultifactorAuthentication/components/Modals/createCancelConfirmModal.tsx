@@ -11,11 +11,23 @@ type CancelConfirmModalProps = {
     isVisible: boolean;
     onConfirm: () => void;
     onCancel: () => void;
+    confirmButtonTestID?: string;
+    cancelButtonTestID?: string;
 };
 
 type CancelConfirmModalBaseProps = CancelConfirmModalProps & BaseProps;
 
-function CancelConfirmModalBase({isVisible, onConfirm, onCancel, title, description, confirmButtonText, cancelButtonText}: CancelConfirmModalBaseProps) {
+function CancelConfirmModalBase({
+    isVisible,
+    onConfirm,
+    onCancel,
+    title,
+    description,
+    confirmButtonText,
+    cancelButtonText,
+    confirmButtonTestID,
+    cancelButtonTestID,
+}: CancelConfirmModalBaseProps) {
     const {translate} = useLocalize();
 
     return (
@@ -28,6 +40,8 @@ function CancelConfirmModalBase({isVisible, onConfirm, onCancel, title, descript
             prompt={translate(description)}
             confirmText={translate(confirmButtonText)}
             cancelText={translate(cancelButtonText)}
+            confirmButtonTestID={confirmButtonTestID}
+            cancelButtonTestID={cancelButtonTestID}
             shouldShowCancelButton
         />
     );

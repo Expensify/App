@@ -90,7 +90,7 @@ jest.mock('@components/MultifactorAuthentication/Context', () => ({
         executeScenario: mockExecuteScenario,
         cancel: jest.fn(),
         requestCancel: jest.fn(),
-        hideCancelConfirm: jest.fn(),
+        dismissCancel: jest.fn(),
         confirmCancel: jest.fn(),
     }),
 }));

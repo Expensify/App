@@ -19,6 +19,9 @@ type MfaState = MfaContext & {
     /** Whether the submitted validate code is currently being validated. */
     isValidateCodeFormSubmitting: boolean;
 
+    /** Whether the cancel-confirmation dialog is currently visible. */
+    isCancelConfirmVisible: boolean;
+
     /** Whether the validate-code screen currently shows the inline invalid-code error. */
     showsInvalidCodeError: boolean;
 
@@ -57,10 +60,13 @@ function snapshotToState(snapshot: MfaSnapshot): MfaState {
         isValidateCodeFormSubmitting: snapshot.context.validateCodePresentationPhase === MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE,
         isProcessingPrompt: snapshot.context.promptPresentationPhase === MFA_STATE.CREATING_CREDENTIAL || snapshot.context.promptPresentationPhase === MFA_STATE.AUTHORIZING,
         isAuthorizing: snapshot.context.promptPresentationPhase === MFA_STATE.AUTHORIZING,
+        isCancelConfirmVisible: snapshot.matches({[MFA_STATE.OPEN]: {[MFA_STATE.CANCEL_CONFIRM]: MFA_STATE.CANCEL_CONFIRM_VISIBLE}}),
         showsInvalidCodeError: snapshot.matches({
             [MFA_STATE.OPEN]: {
-                [MFA_STATE.VALIDATE_CODE]: {
-                    [MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE,
+                [MFA_STATE.FLOW]: {
+                    [MFA_STATE.VALIDATE_CODE]: {
+                        [MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE,
+                    },
                 },
             },
         }),

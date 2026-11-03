@@ -80,12 +80,12 @@ describe('MFA validate code and registration decision', () => {
     });
 
     it('requests a validate code exactly once when a fresh registration reaches the validate-code screen', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}}});
 
         actor.start();
         sendLoadRegistrationStateDone(actor, {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: false});
 
-        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}})).toBe(true);
+        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}})).toBe(true);
         expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
         expect(requestValidateCodeActionMock).toHaveBeenCalledWith({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REGISTER_AUTHENTICATION_KEY});
 
@@ -93,37 +93,37 @@ describe('MFA validate code and registration decision', () => {
     });
 
     it('skips the validate code for a returning user whose credentials the server knows', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}}});
 
         actor.start();
         sendLoadRegistrationStateDone(actor, {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: false});
 
-        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}})).toBe(true);
+        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}})).toBe(true);
         expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
 
         actor.stop();
     });
 
     it('sends a fresh validate-code email and stays on the screen when the user requests a resend', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}});
 
         actor.start();
         actor.send({type: 'RESEND_VALIDATE_CODE'});
 
-        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}})).toBe(true);
+        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}})).toBe(true);
         expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
 
         actor.stop();
     });
 
     it('clears the inline error when the user requests a resend after a rejected code', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE}}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE}}}});
 
         actor.start();
         actor.send({type: 'RESEND_VALIDATE_CODE'});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.AWAITING_INPUT}}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.AWAITING_INPUT}}}})).toBe(true);
         expect(snapshotToState(result).showsInvalidCodeError).toBe(false);
         expect(requestValidateCodeActionMock).toHaveBeenCalledTimes(1);
 
@@ -131,26 +131,26 @@ describe('MFA validate code and registration decision', () => {
     });
 
     it('drops a resend request while the registration challenge request is in flight', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}});
 
         actor.start();
         actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
         actor.send({type: 'RESEND_VALIDATE_CODE'});
 
-        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}})).toBe(true);
+        expect(actor.getSnapshot().matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}}})).toBe(true);
         expect(requestValidateCodeActionMock).not.toHaveBeenCalled();
 
         actor.stop();
     });
 
     it('stores the submitted code and waits for a registration challenge before continuing', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}});
 
         actor.start();
         actor.send({type: 'VALIDATE_CODE_ENTERED', validateCode: MFA_TEST_VALIDATE_CODE});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}}})).toBe(true);
         expect(snapshotToState(result).isValidateCodeFormSubmitting).toBe(true);
         expect(result.context.validateCode).toBe(MFA_TEST_VALIDATE_CODE);
         expect(result.context.registrationChallenge).toBeUndefined();
@@ -160,7 +160,7 @@ describe('MFA validate code and registration decision', () => {
     });
 
     it('stores a valid registration challenge before continuing the flow', async () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}});
         requestRegistrationChallengeMock.mockResolvedValue(VALID_REGISTRATION_CHALLENGE_RESPONSE);
 
         actor.start();
@@ -168,7 +168,7 @@ describe('MFA validate code and registration decision', () => {
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}})).toBe(false);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}}})).toBe(false);
         // Still true on purpose - the screen stays mounted while it animates out to the prompt screen.
         expect(snapshotToState(result).isValidateCodeFormSubmitting).toBe(true);
         expect(result.context.validateCode).toBeUndefined();
@@ -179,7 +179,7 @@ describe('MFA validate code and registration decision', () => {
     });
 
     it('stays on the validate-code screen with an inline error and no new email when the code is invalid', async () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}});
         requestRegistrationChallengeMock.mockResolvedValue(INVALID_CODE_RESPONSE);
 
         actor.start();
@@ -187,7 +187,7 @@ describe('MFA validate code and registration decision', () => {
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE}}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE}}}})).toBe(true);
         expect(snapshotToState(result).showsInvalidCodeError).toBe(true);
         expect(result.context.validateCode).toBeUndefined();
         expect(result.context.registrationChallenge).toBeUndefined();
@@ -198,7 +198,7 @@ describe('MFA validate code and registration decision', () => {
     });
 
     it('clears the inline error when the rejected code is submitted again without editing', async () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}});
         requestRegistrationChallengeMock.mockResolvedValueOnce(INVALID_CODE_RESPONSE).mockResolvedValueOnce(VALID_REGISTRATION_CHALLENGE_RESPONSE);
 
         actor.start();
@@ -217,7 +217,7 @@ describe('MFA validate code and registration decision', () => {
     });
 
     it('ends the flow with the failure outcome when the challenge request fails fatally', async () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}});
         requestRegistrationChallengeMock.mockResolvedValue(FATAL_REGISTRATION_CHALLENGE_RESPONSE);
 
         actor.start();
@@ -225,7 +225,7 @@ describe('MFA validate code and registration decision', () => {
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}}})).toBe(true);
         expect(result.context.validateCode).toBeUndefined();
         expect(result.context.error?.reason).toBe(REASON.SERVER_ERRORS.UNRECOGNIZED);
         expect(result.context.registrationChallenge).toBeUndefined();
@@ -234,7 +234,7 @@ describe('MFA validate code and registration decision', () => {
     });
 
     it('does not continue when a successful response has no valid registration challenge', async () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}});
         requestRegistrationChallengeMock.mockResolvedValue(MISSING_REGISTRATION_CHALLENGE_RESPONSE);
 
         actor.start();
@@ -242,7 +242,7 @@ describe('MFA validate code and registration decision', () => {
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}}})).toBe(true);
         expect(result.context.validateCode).toBeUndefined();
         expect(result.context.error?.reason).toBe(REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE);
         expect(result.context.registrationChallenge).toBeUndefined();
@@ -251,13 +251,13 @@ describe('MFA validate code and registration decision', () => {
     });
 
     it('clears the inline error when the user starts typing again', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE}}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.INVALID_CODE}}}});
 
         actor.start();
         actor.send({type: 'VALIDATE_CODE_CHANGED'});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.AWAITING_INPUT}}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: {[MFA_STATE.AWAITING_VALIDATE_CODE]: MFA_STATE.AWAITING_INPUT}}}})).toBe(true);
         expect(snapshotToState(result).showsInvalidCodeError).toBe(false);
 
         actor.stop();
@@ -277,7 +277,7 @@ describe('MFA validate code and registration decision', () => {
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}}})).toBe(true);
         expect(result.context.error?.reason).toBe(REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION);
         expect(result.context.error?.message).toContain('Registration state check threw: Keystore read failed');
 

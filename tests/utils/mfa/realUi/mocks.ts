@@ -1,3 +1,4 @@
+import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 import type {MFARegistrationStateSnapshot} from '@components/MultifactorAuthentication/biometrics/captureRegistrationState';
 import type createActors from '@components/MultifactorAuthentication/machine/mfaActors';
 import type {
@@ -208,6 +209,18 @@ function validateCodeCountdownMock() {
     };
 }
 
+/**
+ * Replaces the modal shell under the cancel-confirmation dialog. Its open and close transitions finish
+ * through Reanimated keyframe callbacks, which never fire under jest, so a dismissed dialog would stay
+ * mounted. Rendering the content exactly while `isVisible` keeps the real `ConfirmModal` wiring above it.
+ */
+function reanimatedModalMock() {
+    return {
+        __esModule: true,
+        default: ({isVisible, children}: ReanimatedModalProps) => (isVisible ? children : null),
+    };
+}
+
 function syncHistoryMock() {
     return {
         __esModule: true,
@@ -260,6 +273,7 @@ export {
     userActionsMock,
     renderHtmlMock,
     validateCodeCountdownMock,
+    reanimatedModalMock,
     syncHistoryMock,
     navigationMock,
 };

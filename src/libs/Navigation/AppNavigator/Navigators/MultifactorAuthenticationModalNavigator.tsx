@@ -85,7 +85,7 @@ function useAwaitSidePanelClose(shouldMount: boolean): boolean {
 }
 
 function MultifactorAuthenticationModalNavigator() {
-    const {state, requestCancel, hideCancelConfirm, confirmCancel, notifyModalClosed} = useMultifactorAuthenticationInternal();
+    const {state, requestCancel, dismissCancel, confirmCancel, notifyModalClosed} = useMultifactorAuthenticationInternal();
     const {isCancelConfirmVisible, modalState, scenario} = state;
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const theme = useTheme();
@@ -225,7 +225,9 @@ function MultifactorAuthenticationModalNavigator() {
             <CancelConfirmModal
                 isVisible={isCancelConfirmVisible}
                 onConfirm={confirmCancel}
-                onCancel={hideCancelConfirm}
+                onCancel={dismissCancel}
+                confirmButtonTestID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.CANCEL_DIALOG_CONFIRM_BUTTON}
+                cancelButtonTestID={CONST.MULTIFACTOR_AUTHENTICATION.TEST_ID.CANCEL_DIALOG_DISMISS_BUTTON}
             />
         </View>
     );

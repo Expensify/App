@@ -58,6 +58,8 @@ jest.mock('@components/MultifactorAuthentication/biometrics/captureRegistrationS
 jest.mock('@components/RenderHTML', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').renderHtmlMock());
 // The resend countdown is a real-time presentational timer; finishing it immediately keeps the resend button pressable for the walk.
 jest.mock('@components/ValidateCodeCountdown', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').validateCodeCountdownMock());
+// The cancel-confirmation dialog's modal shell finishes its transitions through Reanimated callbacks that never fire under jest.
+jest.mock('@components/Modal/ReanimatedModal', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').reanimatedModalMock());
 // Browser and Android history synchronization is outside the contract between the machine and UI.
 jest.mock('@components/MultifactorAuthentication/useSyncMfaModalNavigatorWithHistory', () => jest.requireActual<typeof MfaRealUiMocks>('tests/utils/mfa/realUi/mocks').syncHistoryMock());
 // The test renderer runs no real navigation transitions, so the mock controls when the transition callbacks fire.
@@ -136,12 +138,23 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
             });
             await waitForBatchedUpdatesWithAct();
         },
+        // The outcome screen closes through its confirm button. Every other screen only requests a cancel,
+        // so the close there comes from the account-change path; the account is restored once `closing`
+        // has been entered, where the provider no longer watches it.
         CLOSE_MODAL: async () => {
-            if (screen.queryByTestId(TEST_ID.OUTCOME_SCREEN)) {
+            const currentRoute = mfaNavigationRef.getCurrentRoute()?.name;
+            if (currentRoute === SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_SUCCESS || currentRoute === SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE) {
                 fireEvent.press(screen.getByTestId(TEST_ID.OUTCOME_CONFIRM_BUTTON));
-            } else {
-                fireEvent.press(screen.getByTestId(TEST_ID.MODAL_BACKDROP));
+                await waitForBatchedUpdatesWithAct();
+                return;
             }
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: MFA_TEST_ACCOUNT_ID + 1});
+            });
+            await waitForBatchedUpdatesWithAct();
+            await act(async () => {
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: MFA_TEST_ACCOUNT_ID});
+            });
             await waitForBatchedUpdatesWithAct();
         },
         MODAL_CLOSED: async () => {
@@ -164,6 +177,18 @@ function createMfaEventExecutors(executeScenario: ExecuteScenario) {
         },
         VALIDATE_CODE_CHANGED: async () => {
             fireEvent.changeText(screen.getByTestId(TEST_ID.VALIDATE_CODE_INPUT), '1');
+            await waitForBatchedUpdatesWithAct();
+        },
+        REQUEST_CANCEL: async () => {
+            fireEvent.press(screen.getByTestId(TEST_ID.MODAL_BACKDROP));
+            await waitForBatchedUpdatesWithAct();
+        },
+        DISMISS_CANCEL: async () => {
+            fireEvent.press(screen.getByTestId(TEST_ID.CANCEL_DIALOG_DISMISS_BUTTON));
+            await waitForBatchedUpdatesWithAct();
+        },
+        CONFIRM_CANCEL: async () => {
+            fireEvent.press(screen.getByTestId(TEST_ID.CANCEL_DIALOG_CONFIRM_BUTTON));
             await waitForBatchedUpdatesWithAct();
         },
         [actorDoneEventType('validateDevice')]: (step) => settleActor(() => validateDeviceControl.resolve(getActorDoneOutput(step))),
@@ -193,18 +218,18 @@ const testConfig = {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(0);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.VALIDATING_DEVICE}`]: () => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.PREPARING}.${MFA_STATE.VALIDATING_DEVICE}`]: () => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.PREPARING}.${MFA_STATE.DECIDING_REGISTRATION}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.PREPARING}.${MFA_STATE.DECIDING_REGISTRATION}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.INITIAL_SCREEN)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(state.context.error).toBeUndefined();
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE);
@@ -215,13 +240,13 @@ const testConfig = {
             expect(screen.getByText(translateLocal('multifactorAuthentication.letsVerifyItsYou'))).toBeOnTheScreen();
             expect(state.context.error).toBeUndefined();
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.AWAITING_INPUT}`]: () => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.AWAITING_INPUT}`]: () => {
             expect(screen.queryByText(translateLocal('validateCodeForm.error.incorrectSecurityCode'))).not.toBeOnTheScreen();
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.INVALID_CODE}`]: () => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.AWAITING_VALIDATE_CODE}.${MFA_STATE.INVALID_CODE}`]: () => {
             expect(screen.getByText(translateLocal('validateCodeForm.error.incorrectSecurityCode'))).toBeOnTheScreen();
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.VALIDATE_CODE}.${MFA_STATE.REQUESTING_REGISTRATION_CHALLENGE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.VALIDATE_CODE);
@@ -234,7 +259,7 @@ const testConfig = {
         },
         // The biometrics copy is expected because the jest-expo haste config resolves the operations
         // module to its native variant, which verifies with HSM-backed biometrics.
-        [`${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.PROMPT}.${MFA_STATE.AWAITING_SOFT_PROMPT}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.PROMPT);
@@ -245,7 +270,7 @@ const testConfig = {
             expect(state.context.error).toBeUndefined();
             expect(state.context.softPromptApproved).toBe(false);
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.CREATING_CREDENTIAL}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.PROMPT}.${MFA_STATE.CREATING_CREDENTIAL}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(state.context.registrationChallenge).toBeDefined();
@@ -255,7 +280,7 @@ const testConfig = {
             // The prompt stays mounted during credential creation, but the already-approved action is removed.
             expect(screen.queryByTestId(TEST_ID.PROMPT_CONFIRM_BUTTON)).not.toBeOnTheScreen();
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.PROMPT}.${MFA_STATE.AUTHORIZING}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.PROMPT}.${MFA_STATE.AUTHORIZING}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
             expect(state.context.error).toBeUndefined();
@@ -272,13 +297,13 @@ const testConfig = {
                 expect(screen.getByText(translateLocal('multifactorAuthentication.verifyYourself.biometrics'))).toBeOnTheScreen();
             }
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.FINALIZING_OUTCOME}`]: () => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.FINALIZING_OUTCOME}`]: () => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             // The scenario callback and its SKIP-vs-SHOW routing decide the outcome screen, so neither
             // has appeared yet while this state is still resolving.
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(0);
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(1);
             expect(screen.getByText(translateLocal('multifactorAuthentication.biometricsTest.authenticationSuccessful'))).toBeOnTheScreen();
@@ -293,7 +318,7 @@ const testConfig = {
                 ),
             ).toBeOnTheScreen();
         },
-        [`${MFA_STATE.OPEN}.${MFA_STATE.OUTCOME}.${MFA_STATE.FAILURE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
+        [`${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.FAILURE}`]: (state: SnapshotFrom<typeof mfaMachine>) => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);
             expect(screen.queryAllByTestId(TEST_ID.OUTCOME_SCREEN)).toHaveLength(1);
             expect(mfaNavigationRef.getCurrentRoute()?.name).toBe(SCREENS.MULTIFACTOR_AUTHENTICATION.OUTCOME_FAILURE);
@@ -308,6 +333,13 @@ const testConfig = {
             } else {
                 expect(screen.getAllByText(translateLocal('multifactorAuthentication.verificationFailed'))).toHaveLength(2);
             }
+        },
+        // The dialog region runs beside the flow, so its leaf is asserted on its own at every flow step.
+        [`${MFA_STATE.OPEN}.${MFA_STATE.CANCEL_CONFIRM}.${MFA_STATE.CANCEL_CONFIRM_HIDDEN}`]: () => {
+            expect(screen.queryByText(translateLocal('multifactorAuthentication.biometricsTest.areYouSureToReject'))).not.toBeOnTheScreen();
+        },
+        [`${MFA_STATE.OPEN}.${MFA_STATE.CANCEL_CONFIRM}.${MFA_STATE.CANCEL_CONFIRM_VISIBLE}`]: () => {
+            expect(screen.getByText(translateLocal('multifactorAuthentication.biometricsTest.areYouSureToReject'))).toBeOnTheScreen();
         },
         [MFA_STATE.CLOSING]: () => {
             expect(screen.queryAllByTestId(TEST_ID.MODAL_BACKDROP)).toHaveLength(1);

@@ -37,7 +37,7 @@ type MultifactorAuthenticationInternalApi = {
     requestCancel: () => void;
 
     /** Dismiss the cancel-confirmation modal without cancelling the flow. */
-    hideCancelConfirm: () => void;
+    dismissCancel: () => void;
 
     /** Confirm cancellation. */
     confirmCancel: () => void;

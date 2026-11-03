@@ -53,9 +53,6 @@ type MfaContext = {
     /** Whether the user approved the soft prompt during this flow. The durable acceptance lives in Onyx under the device-biometrics key. */
     softPromptApproved: boolean;
 
-    /** Whether the cancel-confirmation modal triggered by a back press is currently visible */
-    isCancelConfirmVisible: boolean;
-
     /** Authentication method the authorization actor signed the challenge with */
     authenticationMethod: AuthTypeInfo | undefined;
 
@@ -121,7 +118,10 @@ type MfaEvent =
     | {type: 'SOFT_PROMPT_APPROVED'}
     | {type: 'VALIDATE_CODE_ENTERED'; validateCode: string}
     | {type: 'RESEND_VALIDATE_CODE'}
-    | {type: 'VALIDATE_CODE_CHANGED'};
+    | {type: 'VALIDATE_CODE_CHANGED'}
+    | {type: 'REQUEST_CANCEL'}
+    | {type: 'DISMISS_CANCEL'}
+    | {type: 'CONFIRM_CANCEL'};
 
 /** Describes the input the machine passes to the device-check actor. */
 type ValidateDeviceInput = {allowedAuthenticationMethods: AllowedAuthenticationMethods};

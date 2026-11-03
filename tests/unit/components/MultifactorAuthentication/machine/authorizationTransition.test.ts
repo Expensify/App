@@ -35,8 +35,8 @@ import {createActor, fromPromise, waitFor} from 'xstate';
 const MFA_STATE = CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE;
 const REASON = CONST.MULTIFACTOR_AUTHENTICATION.REASON;
 
-const SIGNING_CHALLENGE = {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.SIGNING_CHALLENGE}}};
-const EXECUTING_SCENARIO_ACTION = {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.EXECUTING_SCENARIO_ACTION}}};
+const SIGNING_CHALLENGE = {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.SIGNING_CHALLENGE}}}};
+const EXECUTING_SCENARIO_ACTION = {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: MFA_STATE.EXECUTING_SCENARIO_ACTION}}}};
 
 // The graph-traversal suites generate their expectations from the machine, so a transition pointed at
 // a wrong target adjusts those expectations and still passes. This suite pins the authorization
@@ -119,7 +119,7 @@ describe('MFA authorization', () => {
             sendFinalizeOutcomeDone(actor, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN);
 
             const result = actor.getSnapshot();
-            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}}})).toBe(true);
             expect(result.context.error).toBe(failureError);
 
             actor.stop();
@@ -137,7 +137,7 @@ describe('MFA authorization', () => {
             sendFinalizeOutcomeDone(actor, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN);
 
             const result = actor.getSnapshot();
-            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}}})).toBe(true);
             expect(result.context.error?.reason).toBe(REASON.LOCAL_ERRORS.HSM.NO_MATCHING_LOCAL_CREDENTIAL);
 
             actor.stop();
@@ -152,7 +152,7 @@ describe('MFA authorization', () => {
             sendFinalizeOutcomeDone(actor, MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN);
 
             const result = actor.getSnapshot();
-            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}}})).toBe(true);
             expect(result.context.error?.reason).toBe(REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED);
             expect(CONST.MULTIFACTOR_AUTHENTICATION.RECOVERABLE_CREDENTIAL_FAILURES.has(REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED)).toBe(true);
             expect(CONST.MULTIFACTOR_AUTHENTICATION.CREDENTIAL_FAILURES_REQUIRING_LOCAL_DELETION.has(REASON.CLIENT_ERRORS.REGISTRATION_REQUIRED)).toBe(false);
@@ -172,7 +172,7 @@ describe('MFA authorization', () => {
                 },
             });
             const snapshot = machine.resolveState({
-                value: {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}},
+                value: {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}},
                 context: createFlowContext(),
             });
             const actor = createActor(machine, {snapshot});
@@ -182,7 +182,7 @@ describe('MFA authorization', () => {
             await waitForBatchedUpdates();
 
             const result = actor.getSnapshot();
-            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}}})).toBe(true);
             expect(result.context.error?.reason).toBe(REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION);
             expect(result.context.error?.message).toContain('Authorization threw:');
 
@@ -220,7 +220,7 @@ describe('MFA authorization', () => {
                 },
             });
             const snapshot = machine.resolveState({
-                value: {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}},
+                value: {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}},
                 context: createFlowContext(),
             });
             const actor = createActor(machine, {snapshot});
@@ -268,7 +268,7 @@ describe('MFA authorization', () => {
                 },
             });
             const snapshot = machine.resolveState({
-                value: {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}},
+                value: {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}},
                 context,
             });
             const actor = createActor(machine, {snapshot});
@@ -296,7 +296,7 @@ describe('MFA authorization', () => {
 
             // Then the flow succeeds with the response for the outcome screen, and the used signature is cleared since it is single-use
             const result = actor.getSnapshot();
-            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.SUCCESS}})).toBe(true);
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.SUCCESS}}})).toBe(true);
             expect(result.context.authenticationMethod).toBe(MFA_TEST_AUTH_METHOD);
             expect(result.context.scenarioResponse).toBe(MFA_TEST_SCENARIO_RESPONSE);
             expect(result.context.signedChallenge).toBeUndefined();
@@ -316,7 +316,7 @@ describe('MFA authorization', () => {
 
             // Then the flow fails with the backend's exact error, so the outcome screen shows the real reason
             const result = actor.getSnapshot();
-            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}}})).toBe(true);
             expect(result.context.error).toBe(MFA_TEST_SCENARIO_ACTION_ERROR);
             expect(result.context.scenarioResponse).toBeUndefined();
 
@@ -335,7 +335,7 @@ describe('MFA authorization', () => {
                 },
             });
             const snapshot = machine.resolveState({
-                value: {[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}},
+                value: {[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}},
                 context: createFlowContext(),
             });
             const actor = createActor(machine, {snapshot});
@@ -347,7 +347,7 @@ describe('MFA authorization', () => {
 
             // Then the flow fails with an unhandled-exception error, so a crashing action still ends on a failure screen instead of hanging
             const result = actor.getSnapshot();
-            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}})).toBe(true);
+            expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.OUTCOME]: MFA_STATE.FAILURE}}})).toBe(true);
             expect(result.context.error?.reason).toBe(REASON.LOCAL_ERRORS.UNHANDLED_EXCEPTION);
             expect(result.context.error?.message).toContain('Scenario action threw:');
 

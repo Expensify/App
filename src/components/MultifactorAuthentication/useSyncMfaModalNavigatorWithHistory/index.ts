@@ -29,9 +29,10 @@ function getHistory(): readonly unknown[] {
  * pattern as `useSyncSidePanelWithHistory`).
  *
  * Back press does NOT close the modal directly — it re-pins the marker (URL
- * stays put) and delegates to `requestCancel`, which decides whether to show
- * the cancel-confirmation modal or close the flow outright based on the
- * current MFA state.
+ * stays put) and delegates to `requestCancel`: the machine shows the
+ * cancel-confirmation modal while a flow step can still be cancelled, closes
+ * the modal once the flow has its outcome, and ignores the request while the
+ * dialog is already up.
  *
  * Marker lifecycle and back-press subscriptions are split across two effects
  * so re-subscribing on `requestCancel` change does not toggle the history

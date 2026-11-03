@@ -22,6 +22,9 @@ function createXStateInspector(): XStateInspector {
             // Events sent before then are buffered, so none are lost.
             const inspector = createBrowserInspector({
                 autoStart: false,
+                // The machine definition is stringified with this limit, and the default of 10 cuts the
+                // deeply nested MFA states to "[Object]", which crashes the inspector UI when it rebuilds the machine.
+                serializationDepthLimit: 20,
                 serialize: maskInspectionEvent,
             });
             return {

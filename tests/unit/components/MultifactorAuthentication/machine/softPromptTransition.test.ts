@@ -22,59 +22,59 @@ describe('MFA soft prompt', () => {
     });
 
     it('moves a registered account to the soft prompt when the current account has not accepted it', async () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}}});
 
         actor.start();
         sendLoadRegistrationStateDone(actor, {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: false});
         await waitForBatchedUpdates();
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}})).toBe(true);
         expect(result.context.softPromptApproved).toBe(false);
 
         actor.stop();
     });
 
     it('skips the soft prompt and moves directly to authorizing for a returning user who already accepted it on this device', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}}});
 
         actor.start();
         sendLoadRegistrationStateDone(actor, {hasServerCredentials: false, hasLocalCredentials: true, hasEverAcceptedSoftPrompt: true});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}}})).toBe(true);
         expect(result.context.softPromptApproved).toBe(false);
 
         actor.stop();
     });
 
     it('still shows the soft prompt for a fresh registration even though the account already accepted it on this device before (production parity: a new registration always needs approval in this flow)', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PREPARING]: MFA_STATE.DECIDING_REGISTRATION}}});
 
         actor.start();
         sendLoadRegistrationStateDone(actor, {hasServerCredentials: false, hasLocalCredentials: false, hasEverAcceptedSoftPrompt: true});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.VALIDATE_CODE]: MFA_STATE.AWAITING_VALIDATE_CODE}}})).toBe(true);
 
         actor.stop();
     });
 
     it('moves to authorizing when the user approves the soft prompt', () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}});
 
         actor.start();
         actor.send({type: 'SOFT_PROMPT_APPROVED'});
 
         const result = actor.getSnapshot();
-        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}})).toBe(true);
+        expect(result.matches({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AUTHORIZING}}})).toBe(true);
         expect(result.context.softPromptApproved).toBe(true);
 
         actor.stop();
     });
 
     it('persists the acceptance for the current user when the soft prompt is approved', async () => {
-        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}});
+        const actor = createActorAtState({[MFA_STATE.OPEN]: {[MFA_STATE.FLOW]: {[MFA_STATE.PROMPT]: MFA_STATE.AWAITING_SOFT_PROMPT}}});
 
         actor.start();
         actor.send({type: 'SOFT_PROMPT_APPROVED'});
