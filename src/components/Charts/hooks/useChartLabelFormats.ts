@@ -16,6 +16,12 @@ type UseChartLabelFormatsProps = {
     fontManager?: SkTypefaceFontProvider | null;
 };
 
+/** Totals with up to this many integer digits (under 1m) keep their decimals. */
+const MAX_DIGITS_FOR_TOTAL_WITH_DECIMALS = 6;
+
+/** Totals with up to this many integer digits (under 10m) show the whole amount, larger ones the compact form. */
+const MAX_DIGITS_FOR_WHOLE_TOTAL = 7;
+
 export default function useChartLabelFormats({data, unit, unitPosition = 'left', labelSkipInterval = 1, labelRotation = 0, truncatedLabels, fontManager}: UseChartLabelFormatsProps) {
     const {numberFormat} = useLocalize();
 
@@ -36,6 +42,18 @@ export default function useChartLabelFormats({data, unit, unitPosition = 'left',
     const formatValue = (value: number) => withUnit(numberFormat(value));
     const formatCompactValue = (value: number) => withUnit(numberFormat(value, {notation: 'compact'}).replace('K', 'k'));
 
+    /** Formats a total with decimals under 1m, without them under 10m, and in compact form from 10m up. */
+    const formatTotalValue = (value: number, decimals?: number) => {
+        const integerDigits = Math.trunc(Math.abs(value)).toString().length;
+        if (integerDigits <= MAX_DIGITS_FOR_TOTAL_WITH_DECIMALS) {
+            return withUnit(numberFormat(value, {minimumFractionDigits: decimals, maximumFractionDigits: decimals}));
+        }
+        if (integerDigits <= MAX_DIGITS_FOR_WHOLE_TOTAL) {
+            return withUnit(numberFormat(value, {maximumFractionDigits: 0}));
+        }
+        return formatCompactValue(value);
+    };
+
     const formatLabel = (value: number) => {
         const index = Math.round(value);
 
@@ -52,5 +70,6 @@ export default function useChartLabelFormats({data, unit, unitPosition = 'left',
         formatLabel,
         formatValue,
         formatCompactValue,
+        formatTotalValue,
     };
 }

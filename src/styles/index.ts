@@ -7137,8 +7137,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
         pieChartLegendDot: {
             borderRadius: '50%',
-            width: 12,
-            height: 12,
+            width: 8,
+            height: 8,
+        },
+        pieChartLegendLabel: {
+            fontSize: variables.iconSizeExtraSmall,
+            lineHeight: variables.lineHeightSmall,
         },
         // `getPieChartLoadingHeight` sizes the loading chart from the responsive legend styles below, so update it with them.
         pieChartResponsiveRow: {
@@ -7152,7 +7156,8 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
         pieChartLegendSide: {
-            width: VictoryTheme.pie.legendMinWidth,
+            minWidth: VictoryTheme.pie.legendMinWidth,
+            flexShrink: 1,
             justifyContent: 'center',
             rowGap: VictoryTheme.pie.legendRowGap,
         },
@@ -7167,7 +7172,7 @@ const staticStyles = (theme: ThemeColors) =>
             columnGap: 8,
         },
         pieChartLegendDotColumn: {
-            height: variables.lineHeightXLarge,
+            height: variables.lineHeightSmall,
             justifyContent: 'center',
         },
         chartInlineTable: {
