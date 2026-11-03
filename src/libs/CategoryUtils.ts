@@ -5,7 +5,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, PolicyCategories} from '@src/types/onyx';
-import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
+import type {ApprovalRule, MccGroup} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -46,27 +46,6 @@ function getCategoryApproverRule(approvalRules: ApprovalRule[], categoryName: st
         rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY && value === categoryName),
     );
     return approverRule;
-}
-
-function getCategoryExpenseRule(expenseRules: ExpenseRule[], categoryName: string) {
-    const expenseRule = expenseRules?.find((rule) =>
-        rule.applyWhen.find(({condition, field, value}) => condition === CONST.POLICY.RULE_CONDITIONS.MATCHES && field === CONST.POLICY.FIELDS.CATEGORY && value === categoryName),
-    );
-    return expenseRule;
-}
-
-function getCategoryDefaultTaxRate(expenseRules: ExpenseRule[], categoryName: string, defaultTaxRate?: string) {
-    // Matched the same way the rules are written: on a `category matches <name>` condition rather than on the value
-    // alone. Matching any condition carrying the name could read a rule that a save or delete never targets, so the
-    // rate an expense picks up would not be the one the admin set.
-    const categoryDefaultTaxRate = getCategoryExpenseRule(expenseRules, categoryName)?.tax?.field_id_TAX?.externalID;
-
-    // If the default taxRate is not found in expenseRules, use the default value for policy
-    if (!categoryDefaultTaxRate) {
-        return defaultTaxRate;
-    }
-
-    return categoryDefaultTaxRate;
 }
 
 function updateCategoryInMccGroup(mccGroups: Record<string, MccGroup>, oldCategoryName: string, newCategoryName: string, shouldClearPendingAction?: boolean) {
@@ -198,6 +177,28 @@ function getCategoryNameErrorMessage(translate: LocaleContextProps['translate'],
 }
 
 /**
+ * Finds the stored key of a disabled category whose decoded name is `name`. Pickers hide disabled categories, so a
+ * search can come up empty even though creating the name would fail as a duplicate. A category being deleted is also
+ * stored as disabled until the server confirms, so it is skipped rather than offered back.
+ */
+function getDisabledCategoryKey(policyCategories: PolicyCategories | undefined, name: string): string | undefined {
+    return Object.entries(policyCategories ?? {}).find(
+        ([categoryKey, category]) => !category?.enabled && category?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && getDecodedCategoryName(categoryKey) === name,
+    )?.[0];
+}
+
+/**
+ * Whether a category picker search for `name` can be turned into a category in one tap: either a valid new name, or
+ * the name of a disabled category that can be turned back on. Reserved names, HTML and over-long names never qualify.
+ */
+function canCreateCategoryFromSearch(policyCategories: PolicyCategories | undefined, name: string): boolean {
+    const disabledCategoryKey = getDisabledCategoryKey(policyCategories, name);
+
+    // Passing the name as `currentName` skips only the duplicate check, so a disabled match still has to pass every other rule.
+    return !getCategoryNameError(policyCategories, name, disabledCategoryKey ? name : undefined);
+}
+
+/**
  * Splits a category name on the colon separator, removes empty middle segments,
  * and merges a trailing empty segment into the previous part (preserving trailing colons).
  *
@@ -285,7 +286,6 @@ function hasAnyCategoryRules(categories: PolicyCategories | undefined): boolean 
 export {
     formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
-    getCategoryDefaultTaxRate,
     updateCategoryInMccGroup,
     getEnabledCategoriesCount,
     isCategoryMissing,
@@ -301,4 +301,6 @@ export {
     hasAnyCategoryRules,
     getCategoryNameError,
     getCategoryNameErrorMessage,
+    getDisabledCategoryKey,
+    canCreateCategoryFromSearch,
 };

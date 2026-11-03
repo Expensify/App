@@ -1,9 +1,9 @@
 /**
  * Tax helpers shared by the rules pages: which rates a rule may apply, how a rate reads, and when a rule row borrows
- * the pending delete of something it depends on.
+ * the pending delete of the rate it applies.
  */
 import CONST from '@src/CONST';
-import type {Policy, PolicyCategories, TaxRate} from '@src/types/onyx';
+import type {Policy, TaxRate} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 /** Whether a rule has a tax rate to apply. Tracking being on isn't enough on its own, it needs a rate to choose from. */
@@ -34,21 +34,15 @@ function getTaxRateDisplayName(policy: Policy | undefined, taxID: string | undef
 }
 
 /**
- * Marks a rule row as deleting while the category or tax rate it depends on is itself being deleted.
+ * Marks a rule row as deleting while the tax rate it applies is itself being deleted.
  *
- * The backend drops the rule along with them, so this only borrows their pending state instead of writing one of its
- * own. There is nothing to roll back, and the row clears when the delete lands. Only deletion is borrowed: a disabled
- * category or tax keeps its rule, which fires again once it is re-enabled.
+ * Deleting the category a rule matches on is not borrowed: the server keeps the rule, so promising a removal that
+ * never comes would leave the row struck through until the next fetch. Only deletion is borrowed at all, since a
+ * disabled tax keeps its rule, which fires again once it is re-enabled.
  */
-function getRuleDeletionPendingAction(
-    policy: Policy | undefined,
-    policyCategories: PolicyCategories | undefined,
-    categoryName: string | undefined,
-    taxID: string | undefined,
-): PendingAction | undefined {
-    const isCategoryDeleting = !!categoryName && policyCategories?.[categoryName]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+function getRuleDeletionPendingAction(policy: Policy | undefined, taxID: string | undefined): PendingAction | undefined {
     const isTaxDeleting = !!taxID && policy?.taxRates?.taxes?.[taxID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    return isCategoryDeleting || isTaxDeleting ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined;
+    return isTaxDeleting ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : undefined;
 }
 
 export {getRuleDeletionPendingAction, getTaxRateDisplayName, hasUsableTaxRates, isSelectableTaxRate};

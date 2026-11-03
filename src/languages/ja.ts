@@ -5810,9 +5810,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                     ? `Sage Intacct で一致する仕入先がない立替経費に適用するデフォルトの仕入先を設定します。`
                     : `Sage Intacct の仕入先に照合できない経費は、デフォルトでこの仕入先に紐づけられます。`,
             exportDescription: 'Expensify のデータを Sage Intacct へエクスポートする方法を設定します。',
-            exportPreferredExporterNote:
-                '優先されるエクスポーターは任意のワークスペース管理者にできますが、ドメイン設定で会社カードごとに別々のエクスポート先口座を設定している場合は、ドメイン管理者である必要もあります。',
-            exportPreferredExporterSubNote: '一度設定すると、優先エクスポーターは自分のアカウントでエクスポート対象のレポートを確認できるようになります。',
             noAccountsFound: 'アカウントが見つかりません',
             noAccountsFoundDescription: `Sage Intacct に口座を追加して、もう一度接続を同期してください`,
             autoSync: '自動同期',
@@ -6907,6 +6904,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             updateFailureMessage: 'カテゴリの更新中にエラーが発生しました。もう一度お試しください。',
             createFailureMessage: 'カテゴリの作成中にエラーが発生しました。もう一度お試しください。',
             addCategory: 'カテゴリを追加',
+            createCategoryFromSearch: (categoryName: string) => `カテゴリ「${categoryName}」を作成`,
             editCategory: 'カテゴリーを編集',
             editCategories: 'カテゴリを編集',
             findCategory: 'カテゴリを検索',
@@ -7438,10 +7436,10 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             reimbursementAccount: '精算口座',
             welcomeNote: '私の新しいワークスペースを使い始めてください',
             delayedSubmission: '遅延提出',
-            merchantRules: '販売者ルール',
+            merchantRules: '経費のデフォルト設定',
             merchantRulesCount: () => ({
-                one: '1 販売者ルール',
-                other: (count: number) => `${count} 販売者ルール`,
+                one: '1件の経費をデフォルトにする',
+                other: (count: number) => `${count}件の経費のデフォルト設定`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `元のワークスペースから ${totalMembers ?? 0} 人のメンバーと一緒に、${newWorkspaceName ?? ''} を作成して共有しようとしています。`,
@@ -7475,7 +7473,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 title: 'メンバーをコピー',
                 prompt: ({count, targetWorkspaceName}: {count: number; targetWorkspaceName: string}) => ({
                     one: `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`,
-                    // Japanese has no "one" plural category, so handle the single-workspace case here
                     other:
                         count === 1
                             ? `${targetWorkspaceName}のメンバーをこのワークスペースのメンバーで置き換えてもよろしいですか？`
@@ -7998,8 +7995,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 },
             },
             preferredExporter: '優先エクスポーター',
-            exportPreferredExporterNote:
-                '優先されるエクスポーターは任意のワークスペース管理者にできますが、ドメイン設定で会社カードごとに別々のエクスポート先口座を設定している場合は、ドメイン管理者である必要もあります。',
+            exportPreferredExporterNote: '優先するエクスポーターは、どのワークスペース管理者でも設定できます。',
             exportPreferredExporterSubNote: '一度設定すると、優先エクスポーターは自分のアカウントでエクスポート対象のレポートを確認できるようになります。',
             exportAs: 'エクスポート形式',
             exportOutOfPocket: '立替経費のエクスポート形式',
@@ -8803,7 +8799,7 @@ ${reportName}`,
                 matchTypeContains: '含む',
                 matchTypeExact: '完全一致',
                 duplicateRuleTitle: '同様のルールがすでに存在します',
-                duplicateRulePrompt: (conditionName: string) => `すでにある「${conditionName}」のルールがこのルールより優先されます。保存しますか？`,
+                duplicateRulePrompt: (conditionName: string) => `現在の「${conditionName}」のルールがこのルールより優先されます。保存しますか？`,
                 saveAnyway: 'とにかく保存',
                 applyToExistingUnsubmittedExpenses: '既存の未提出経費に適用',
                 findRule: '加盟店ルールを検索',
@@ -8999,6 +8995,7 @@ ${reportName}`,
                     `許可された ${shownCount > 1 ? '通貨' : '通貨'}：${currencies}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
                 defaultRulesCannotBeDeleted: '既定のルールは削除できません',
                 tags: 'タグ',
+                multipleConditions: '複数の条件',
             },
             agentRules: {
                 title: 'エージェントルール',
@@ -9148,7 +9145,7 @@ ${reportName}`,
                 categoryIs: (category: string) => `カテゴリは「${category}」です`,
                 tagIs: (tag: string) => `タグは「${tag}」です`,
                 merchantContains: (merchant: string) => `店舗名に「${merchant}」を含む`,
-                merchantExactlyMatches: (merchant: string) => `マーチャントが「${merchant}」と完全に一致します`,
+                merchantExactlyMatches: (merchant: string) => `店舗名が「${merchant}」と完全に一致します`,
             },
             merchantTypeRule: {merchantType: '加盟店種別', saveRule: 'ルールを保存', confirmErrorCategory: 'カテゴリを選択してください。'},
             requireFieldsTable: {

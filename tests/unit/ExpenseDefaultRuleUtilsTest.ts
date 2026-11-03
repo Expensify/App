@@ -2,6 +2,7 @@ import {
     buildExpenseDefaultRule,
     canEditExpenseDefaultRule,
     getCategoryExpenseDefaultRules,
+    getCategoryOnlyExpenseDefaultTaxID,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
@@ -895,6 +896,51 @@ describe('ExpenseDefaultRuleUtils', () => {
             const rule = buildRuleWithOverrides({actions: toIndexMap([{name: CONST.RULES.ACTIONS.FORWARD_TO, approver: 'a@b.com'}])});
 
             expect(getExpenseDefaultRuleSummaryFields(rule)).toEqual([]);
+        });
+    });
+    describe('getCategoryOnlyExpenseDefaultTaxID', () => {
+        const policyID = '1';
+        const buildRule = (filters: RuleFilterNode): Rule => ({
+            scope: CONST.RULES.SCOPE.POLICY,
+            scopeID: policyID,
+            triggers: toIndexMap([CONST.RULES.TRIGGERS.CREATE_TRANSACTION]),
+            filters,
+            actions: toIndexMap([
+                {
+                    name: CONST.RULES.ACTIONS.SET,
+                    field: CONST.RULES.EXPENSE_DEFAULT.FIELD.TAX,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    value: {field_id_TAX: {externalID: 'id_TAX_RATE_1'}},
+                },
+            ]),
+        });
+
+        it('resolves the rate when the rule matches the category exactly', () => {
+            // Given a rule matching on one category with the equals operator
+            const rules = {[`${ONYXKEYS.COLLECTION.RULE}1`]: buildRule({left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel']})};
+
+            // When the rate for that category is resolved
+            // Then the rule's rate is used
+            expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Travel')).toBe('id_TAX_RATE_1');
+        });
+
+        it('resolves the rate for every category the rule names', () => {
+            // Given one rule naming two categories, which is how the multi select saves them
+            const rules = {[`${ONYXKEYS.COLLECTION.RULE}1`]: buildRule({left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: ['Travel', 'Meals']})};
+
+            // When the rate for each of them is resolved
+            // Then both get the rule's rate, because the rules engine reads the values as alternatives
+            expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Travel')).toBe('id_TAX_RATE_1');
+            expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Meals')).toBe('id_TAX_RATE_1');
+        });
+
+        it('ignores a rule that matches every category except this one', () => {
+            // Given a rule that names the category but excludes it, which the editor refuses and so cannot create
+            const rules = {[`${ONYXKEYS.COLLECTION.RULE}1`]: buildRule({left: 'category', operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, right: ['Travel']})};
+
+            // When the rate for that category is resolved
+            // Then no rate is taken, because the rule is written to leave this category alone
+            expect(getCategoryOnlyExpenseDefaultTaxID(rules, policyID, 'Travel')).toBeUndefined();
         });
     });
 });

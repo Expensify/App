@@ -14,10 +14,12 @@ import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -32,6 +34,7 @@ import {openPolicyCategoriesPage} from '@libs/actions/Policy/Category';
 import {deleteRule, setRule} from '@libs/actions/Policy/Rules';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Tab from '@libs/actions/Tab';
+import {completeReviewWorkspaceSettingsTask} from '@libs/actions/Task';
 import {clearDraftMerchantRule, setDraftMerchantRule} from '@libs/actions/User';
 import {getCardDescription} from '@libs/CardUtils';
 import {getTaxRateDisplayName, hasUsableTaxRates} from '@libs/CategoryTaxRulesUtils';
@@ -180,6 +183,8 @@ function ExpenseDefaultRulePageBase({
     testID,
 }: ExpenseDefaultRulePageBaseProps) {
     const {translate} = useLocalize();
+    const {accountID} = useCurrentUserPersonalDetails();
+    const reviewWorkspaceSettingsTaskInformation = useOnboardingTaskInformation(CONST.ONBOARDING_TASK_TYPE.REVIEW_WORKSPACE_SETTINGS);
     const styles = useThemeStyles();
     const {convertToDisplayString} = useCurrencyListActions();
     const policy = usePolicy(policyID);
@@ -275,41 +280,42 @@ function ExpenseDefaultRulePageBase({
         }, [fetchPolicyData]),
     );
 
+    // A value the rule already carries keeps its row whatever the workspace offers, so turning the feature off or
+    // removing the last option leaves the admin able to see and clear it rather than leaving it saved and invisible.
     const hasCategories = () => {
-        if (!policy?.areCategoriesEnabled) {
-            return false;
+        if (form?.category) {
+            return true;
         }
-        return !!form?.category || hasEnabledOptions(policyCategories ?? {});
+        return !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
     };
 
     const hasTags = () => {
-        if (!policy?.areTagsEnabled) {
-            return false;
+        if (form?.tag) {
+            return true;
         }
-        return policyTags.length > 0;
+        return !!policy?.areTagsEnabled && policyTags.length > 0;
     };
 
     // `hasCategories` falls back to the category the rule sets, which says nothing about what it matches on, so the
-    // condition row asks separately. A category the rule already matches on keeps the row even once the workspace has
-    // none left to pick, otherwise the condition would be invisible and still saved.
+    // condition row asks separately.
     const hasCategoriesToMatch = () => {
-        if (!policy?.areCategoriesEnabled) {
-            return false;
+        if (form?.categoriesToMatch?.length) {
+            return true;
         }
-        return !!form?.categoriesToMatch?.length || hasEnabledOptions(policyCategories ?? {});
+        return !!policy?.areCategoriesEnabled && hasEnabledOptions(policyCategories ?? {});
     };
 
     // Turning tags on creates a tag list whether or not it holds anything, so the condition row needs a tag to
-    // actually match on. A tag the rule already matches on keeps the row, the same way.
+    // actually match on.
     const hasTagsToMatch = () => {
-        if (!policy?.areTagsEnabled) {
-            return false;
+        if (form?.tagsToMatch?.length) {
+            return true;
         }
-        return !!form?.tagsToMatch?.length || policyTags.some((tagList) => hasEnabledOptions(tagList.tags));
+        return !!policy?.areTagsEnabled && policyTags.some((tagList) => hasEnabledOptions(tagList.tags));
     };
     const formTags = getTagArrayFromName(form?.tag ?? '');
     const members = useWorkspaceMembers(policy);
-    const membersByAccountID = new Map(members.map(({accountID, details}) => [String(accountID), details.displayName ?? details.login ?? String(accountID)]));
+    const membersByAccountID = new Map(members.map(({accountID: memberAccountID, details}) => [String(memberAccountID), details.displayName ?? details.login ?? String(memberAccountID)]));
 
     const isBillableEnabled = policy?.disabledFields?.defaultBillable !== true;
 
@@ -339,7 +345,8 @@ function ExpenseDefaultRulePageBase({
     const currenciesToMatchDisplayName = currenciesToMatch.length > 0 ? currenciesToMatch.join(', ') : undefined;
     const submittersToMatch = form?.submittersToMatch ?? [];
     // A submitter who has left the workspace keeps their account ID, so the row still shows the rule matches on someone.
-    const submittersToMatchDisplayName = submittersToMatch.length > 0 ? submittersToMatch.map((accountID) => membersByAccountID.get(accountID) ?? accountID).join(', ') : undefined;
+    const submittersToMatchDisplayName =
+        submittersToMatch.length > 0 ? submittersToMatch.map((submitterAccountID) => membersByAccountID.get(submitterAccountID) ?? submitterAccountID).join(', ') : undefined;
     const merchantTypesToMatch = form?.merchantTypesToMatch ?? [];
     const merchantTypesToMatchDisplayName =
         merchantTypesToMatch.length > 0 ? merchantTypesToMatch.map((merchantType) => getMerchantTypeLabel(merchantType, translate)).join(', ') : undefined;
@@ -446,6 +453,7 @@ function ExpenseDefaultRulePageBase({
         }
 
         setRule(policyID, buildExpenseDefaultRule(form, policy, existingRule?.triggers), CONST.RULES.EXPENSE_DEFAULT.PRIORITY, ruleID, existingRule, shouldUpdateMatchingTransactions);
+        completeReviewWorkspaceSettingsTask(reviewWorkspaceSettingsTaskInformation, accountID);
         if (categorySettingsBackPath) {
             // Category settings enters through its own dynamic route, so the way back is the category the rule was
             // opened from rather than anything in the workspace Rules flow.
@@ -691,7 +699,9 @@ function ExpenseDefaultRulePageBase({
                               };
                           })
                     : []),
-                hasUsableTaxRates(policy)
+                // A default the rule already sets keeps its row for the same reason a condition does, so turning the
+                // feature off leaves a value that is still applied visible rather than saved out of sight.
+                hasUsableTaxRates(policy) || form?.tax
                     ? {
                           key: 'tax',
                           description: translate('common.tax'),
@@ -700,11 +710,15 @@ function ExpenseDefaultRulePageBase({
                           icon: icons.InvoiceGeneric,
                       }
                     : undefined,
-                isVendorFeatureEnabled
+                isVendorFeatureEnabled || form?.vendorID
                     ? {
                           key: 'vendorID',
                           description: translate('common.vendor'),
                           title: vendorDisplayName,
+                          // The vendor picker reads the connection's vendors, so it has nothing to show once the
+                          // integration stops supplying them and answers with Not Found. The row stays readable so the
+                          // vendor the rule still applies is not hidden, but it leads nowhere.
+                          isLocked: !isVendorFeatureEnabled,
                           onPress: () => Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_VENDOR_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_VENDOR.getRoute(policyID, ruleID))),
                           icon: icons.Basket,
                       }
@@ -726,7 +740,7 @@ function ExpenseDefaultRulePageBase({
                         Navigation.navigate(getRuleRoute(DYNAMIC_ROUTES.RULES_MERCHANT_REIMBURSABLE_FROM_EXPENSE.path, ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID, ruleID))),
                     icon: icons.Paycheck,
                 },
-                isBillableEnabled
+                isBillableEnabled || form?.billable !== undefined
                     ? {
                           key: 'billable',
                           description: translate('common.billable'),

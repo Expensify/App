@@ -825,7 +825,7 @@ function getExpenseDefaultConditionSummary(filters: RuleFilterNode | undefined):
  * Every expense default the policy has that matches on the given category, which is what category settings lists.
  *
  * A rule that also matches on a merchant or a tag is included, because it applies to the category just as much.
- * The Rules page still groups that rule with the merchants, so it is listed in one place there.
+ * The Rules page lists that rule under its own multiple conditions heading, so it is listed in one place there.
  *
  * Rules pending delete are kept, so category settings can strike one through while the delete is in flight.
  */
@@ -835,6 +835,56 @@ function getCategoryExpenseDefaultRules(rulesCollection: OnyxCollection<Rule> | 
     }
 
     return getPolicyExpenseDefaultRules(rulesCollection, policyID).filter(({rule}) => getExpenseDefaultConditionSummary(rule.filters).categories.includes(categoryName));
+}
+
+/**
+ * The categories a rule matches on when it matches on nothing else, or an empty list when its shape is wider.
+ *
+ * Reads the condition rather than the summary, which keeps a category's name whatever the operator is. A rule
+ * matching on anything else is narrower than the category, and a single leaf is the only shape that matches the
+ * category and nothing more. The rules engine reads the values of an equals condition as a list of alternatives,
+ * so every category the leaf names is one the rule covers.
+ */
+function getCategoryOnlyFilterValues(rule: Rule): Array<string | number> {
+    const leaves = getRuleFilterLeaves(rule.filters);
+    const categoryLeaf = leaves.at(0);
+    if (leaves.length !== 1 || categoryLeaf?.left !== CONDITION.CATEGORY || categoryLeaf.operator !== EQUAL_TO) {
+        return [];
+    }
+
+    return [categoryLeaf.right].flat();
+}
+
+/**
+ * The tax rate a category's own expense default applies, or undefined when the category has none.
+ *
+ * Only a rule matching on the category alone counts. A rule that also matches on a merchant or a tag is narrower
+ * than the category, so taking its tax here would put that rate on expenses the rule never meant to reach.
+ *
+ * A rule pending delete is skipped, so an expense does not pick up a rate that is on its way out.
+ */
+function getCategoryOnlyExpenseDefaultTaxID(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined, categoryName: string | undefined): string | undefined {
+    if (!categoryName) {
+        return undefined;
+    }
+
+    for (const {rule} of getPolicyExpenseDefaultRules(rulesCollection, policyID, true)) {
+        if (!getCategoryOnlyFilterValues(rule).includes(categoryName)) {
+            continue;
+        }
+
+        const taxID = getExpenseDefaultTaxID(rule);
+        if (taxID) {
+            return taxID;
+        }
+    }
+
+    return undefined;
+}
+
+/** Whether the policy has an expense default that puts a tax rate on a category. */
+function hasCategoryExpenseDefaultTaxRule(rulesCollection: OnyxCollection<Rule> | undefined, policyID: string | undefined): boolean {
+    return getPolicyExpenseDefaultRules(rulesCollection, policyID, true).some(({rule}) => getCategoryOnlyFilterValues(rule).length > 0 && !!getExpenseDefaultTaxID(rule));
 }
 
 /** The tax rate a rule applies, if it sets one. */
@@ -893,11 +943,7 @@ function buildCopiedExpenseDefaultRules(rules: OnyxCollection<Rule> | undefined,
     const copiedRules: Record<string, Rule> = {};
     const created = new Date().toISOString();
 
-    for (const {rule} of getPolicyExpenseDefaultRules(rules, sourcePolicyID)) {
-        if (rule.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-            continue;
-        }
-
+    for (const {rule} of getPolicyExpenseDefaultRules(rules, sourcePolicyID, true)) {
         copiedRules[rand64()] = {
             triggers: rule.triggers,
             filters: rule.filters,
@@ -915,7 +961,7 @@ function buildCopiedExpenseDefaultRules(rules: OnyxCollection<Rule> | undefined,
 
 /** How many expense default rules the policy has, ignoring ones being deleted. Used by the copy/duplicate feature lists. */
 function getExpenseDefaultRuleCount(rules: OnyxCollection<Rule> | undefined, policyID: string | undefined): number {
-    return getPolicyExpenseDefaultRules(rules, policyID).filter(({rule}) => rule.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).length;
+    return getPolicyExpenseDefaultRules(rules, policyID, true).length;
 }
 
 /** Whether any of the policy's expense default rules failed to save. */
@@ -952,12 +998,14 @@ export {
     canEditExpenseDefaultRule,
     getExpenseDefaultTaxID,
     getCategoryExpenseDefaultRules,
+    getCategoryOnlyExpenseDefaultTaxID,
     getExpenseDefaultConditionSummary,
     getExpenseDefaultRuleCount,
     getExpenseDefaultRuleSummaryFields,
     getExpenseDefaultFormValues,
     getPolicyExpenseDefaultRules,
     hasExpenseDefaultConditions,
+    hasCategoryExpenseDefaultTaxRule,
     hasExpenseDefaultRuleErrors,
     haveSameConditions,
     isEditableExpenseDefaultRule,

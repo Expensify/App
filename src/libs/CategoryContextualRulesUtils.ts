@@ -9,13 +9,13 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import CONST from '@src/CONST';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Policy, PolicyCategories, PolicyCategory, Rule} from '@src/types/onyx';
+import type {Policy, PolicyCategory, Rule} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {getRuleDeletionPendingAction} from './CategoryTaxRulesUtils';
-import {getCategoryExpenseDefaultRules, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID} from './ExpenseDefaultRuleUtils';
+import {getCategoryExpenseDefaultRules, getExpenseDefaultRuleSummaryFields, getExpenseDefaultTaxID, isEditableExpenseDefaultRule} from './ExpenseDefaultRuleUtils';
 import {hasExplicitFlagAmount} from './FlagForReviewRulesUtils';
 import {getExpenseDefaultConditionText, getExpenseDefaultRuleDescription} from './MerchantTypeRulesUtils';
 import {
@@ -63,7 +63,6 @@ function getFlagForReviewContextualSummary(
  */
 function getCategoryContextualRules({
     policy,
-    policyCategories,
     policyRules,
     category,
     categoryName,
@@ -73,7 +72,6 @@ function getCategoryContextualRules({
 }: {
     policy: Policy | undefined;
     /** Read for the pending delete of the category a tax default depends on. */
-    policyCategories: PolicyCategories | undefined;
     /** Holds the rule that acts as this category's tax default. */
     policyRules?: OnyxCollection<Rule>;
     category: PolicyCategory | undefined;
@@ -131,10 +129,13 @@ function getCategoryContextualRules({
             continue;
         }
 
-        // The rule is also reached through the category and the tax rate it depends on, so deleting either of
-        // those retires the rule with them.
-        const rulePendingAction = rule.pendingAction ?? getRuleDeletionPendingAction(policy, policyCategories, categoryName, getExpenseDefaultTaxID(rule));
+        // Deleting the category a rule matches on leaves the rule in place on the server, so only the rate it
+        // applies lends its pending delete here.
+        const rulePendingAction = rule.pendingAction ?? getRuleDeletionPendingAction(policy, getExpenseDefaultTaxID(rule));
         const isRulePendingDelete = rulePendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+        // The editor refuses a rule it cannot represent, such as one built from an `or` tree, so opening this row
+        // would land on Not Found. It stays listed, because the rule does apply to the category.
+        const isRuleOpenable = isEditableExpenseDefaultRule(rule);
         if (!isOffline && isRulePendingDelete) {
             continue;
         }
@@ -146,7 +147,7 @@ function getCategoryContextualRules({
             conditionSummary: getExpenseDefaultConditionText(rule.filters, translate, true),
             dynamicRoutePath: DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_TAX_EDIT.getRoute(ruleID),
             pendingAction: rulePendingAction,
-            isDisabled: isRulePendingDelete,
+            isDisabled: isRulePendingDelete || !isRuleOpenable,
         });
     }
 

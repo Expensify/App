@@ -31,7 +31,6 @@ describe('getCategoryContextualRules', () => {
         expect(
             getCategoryContextualRules({
                 policy,
-                policyCategories: undefined,
                 category,
                 categoryName: 'Travel',
                 translate: translateLocal,
@@ -52,7 +51,6 @@ describe('getCategoryContextualRules', () => {
 
         const rules = getCategoryContextualRules({
             policy,
-            policyCategories: undefined,
             category,
             categoryName: 'Travel',
             translate: translateLocal,
@@ -83,7 +81,6 @@ describe('getCategoryContextualRules', () => {
 
         const rules = getCategoryContextualRules({
             policy,
-            policyCategories: undefined,
             category,
             categoryName: 'Travel',
             translate: translateLocal,
@@ -116,7 +113,6 @@ describe('getCategoryContextualRules', () => {
         expect(
             getCategoryContextualRules({
                 policy,
-                policyCategories: undefined,
                 category,
                 categoryName: 'Travel',
                 translate: translateLocal,
@@ -158,7 +154,6 @@ describe('getCategoryContextualRules', () => {
             // When the category details RHP builds its rules
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
-                policyCategories: undefined,
                 policyRules: taxDefaultRules,
                 category,
                 categoryName: 'Travel',
@@ -178,7 +173,6 @@ describe('getCategoryContextualRules', () => {
             // When the rules are built for a different category
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
-                policyCategories: undefined,
                 policyRules: taxDefaultRules,
                 category: {name: 'Meals', enabled: true},
                 categoryName: 'Meals',
@@ -189,6 +183,24 @@ describe('getCategoryContextualRules', () => {
 
             // Then nothing is listed, since the workspace default rate is not a rule of its own
             expect(rules).toEqual([]);
+        });
+
+        it('leaves the tax default listed while the category it matches on is being deleted', () => {
+            // Given the category is pending delete, which the server does not take the rule down with
+            const rules = getCategoryContextualRules({
+                policy: policyWithTaxRule,
+                policyRules: taxDefaultRules,
+                category: {...category, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                categoryName: 'Travel',
+                translate: translateLocal,
+                convertToDisplayString,
+                isOffline: true,
+            });
+
+            // Then the rule reads as it always does, because striking it through would promise a removal that never comes
+            expect(rules).toHaveLength(1);
+            expect(rules.at(0)?.pendingAction).toBeUndefined();
+            expect(rules.at(0)?.isDisabled).toBe(false);
         });
 
         it('shows the tax default as deleting offline while its rate is being deleted', () => {
@@ -209,7 +221,6 @@ describe('getCategoryContextualRules', () => {
             };
             const params = {
                 policy: policyWithDeletingRate,
-                policyCategories: undefined,
                 policyRules: taxDefaultRules,
                 category,
                 categoryName: 'Travel',
@@ -242,7 +253,6 @@ describe('getCategoryContextualRules', () => {
             // When the category details RHP builds its rules
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
-                policyCategories: undefined,
                 policyRules: amountOnlyRules,
                 category,
                 categoryName: 'Travel',
@@ -275,7 +285,6 @@ describe('getCategoryContextualRules', () => {
             // When the category details RHP builds its rules
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
-                policyCategories: undefined,
                 policyRules: taxAndAmountRules,
                 category,
                 categoryName: 'Travel',
@@ -314,7 +323,6 @@ describe('getCategoryContextualRules', () => {
             // When the category details RHP builds its rules
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
-                policyCategories: undefined,
                 policyRules: sameActionRules,
                 category,
                 categoryName: 'Travel',
@@ -349,7 +357,6 @@ describe('getCategoryContextualRules', () => {
             // When the category details RHP builds its rules
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
-                policyCategories: undefined,
                 policyRules: categoryAndTagRules,
                 category,
                 categoryName: 'Travel',
@@ -382,7 +389,6 @@ describe('getCategoryContextualRules', () => {
             // When the category details RHP builds its rules
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
-                policyCategories: undefined,
                 policyRules: withMerchantRule,
                 category,
                 categoryName: 'Travel',
@@ -410,7 +416,6 @@ describe('getCategoryContextualRules', () => {
             };
             const params = {
                 policy: policyWithTaxRule,
-                policyCategories: undefined,
                 policyRules: deletingRules,
                 category,
                 categoryName: 'Travel',
@@ -445,7 +450,6 @@ describe('getCategoryContextualRules', () => {
             // When the category details RHP builds its rules
             const rules = getCategoryContextualRules({
                 policy: policyWithTaxRule,
-                policyCategories: undefined,
                 policyRules: twoOwnRules,
                 category,
                 categoryName: 'Travel',

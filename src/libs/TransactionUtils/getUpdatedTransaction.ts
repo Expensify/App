@@ -15,7 +15,7 @@ import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {Policy, Transaction} from '@src/types/onyx';
+import type {Policy, Rule, Transaction} from '@src/types/onyx';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {TransactionChanges} from '@src/types/onyx/Transaction';
 
@@ -31,6 +31,7 @@ import getDistanceInMeters from './getDistanceInMeters';
 // The functions imported here are pure helpers that aren't called at initialization time.
 // eslint-disable-next-line import/no-cycle
 import {
+    getCategoryTaxDetails,
     getCurrency,
     hasAppliedCommuterExclusion,
     hasLocallyKnownDistance,
@@ -136,6 +137,8 @@ function getUpdatedTransaction({
     isSplitTransaction = false,
     personalPolicyOutputCurrency,
     getCurrencySymbol,
+    getCurrencyDecimals,
+    rules,
 }: {
     transaction: Transaction;
     transactionChanges: TransactionChanges;
@@ -146,6 +149,12 @@ function getUpdatedTransaction({
     isSplitTransaction?: boolean;
     personalPolicyOutputCurrency: string | undefined;
     getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+
+    /** Only read when a split's category changes, which is the one case this resolves a tax rate for */
+    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'];
+
+    /** Expense default rules, which is where a category's tax rate lives */
+    rules?: OnyxCollection<Rule>;
 }): Transaction {
     const isUnReportedExpense = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
 
@@ -399,6 +408,18 @@ function getUpdatedTransaction({
 
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
+
+        // A split draft gets no server response, so it sends the tax it holds and nothing recomputes it on the way.
+        // Every other expense has its category tax resolved by the confirmation page, which writes to the money
+        // request draft rather than to the split draft.
+        if (isSplitTransaction && getCurrencyDecimals) {
+            const {categoryTaxCode, categoryTaxAmount, categoryTaxValue} = getCategoryTaxDetails(transactionChanges.category, transaction, policy, rules, getCurrencyDecimals);
+            if (categoryTaxCode && categoryTaxAmount !== undefined && categoryTaxValue) {
+                updatedTransaction.taxCode = categoryTaxCode;
+                updatedTransaction.taxAmount = categoryTaxAmount;
+                updatedTransaction.taxValue = categoryTaxValue;
+            }
+        }
     }
 
     if (Object.hasOwn(transactionChanges, 'tag') && typeof transactionChanges.tag === 'string') {
