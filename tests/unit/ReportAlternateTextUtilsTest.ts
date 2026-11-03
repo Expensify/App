@@ -526,8 +526,7 @@ describe('ReportAlternateTextUtils', () => {
                 reportID: REPORT_ID,
                 created: '2024-01-01 12:00:00.000',
                 message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
-                originalMessage: {whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]},
-            } as Partial<ReportAction>);
+            });
 
             // Given a non-archived report whose last action was closing it, and whose only action is a whisper aimed at one account
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
@@ -547,6 +546,7 @@ describe('ReportAlternateTextUtils', () => {
                     lastActorDetails: null,
                     isReportArchived: false,
                     currentUserLogin: CURRENT_USER_LOGIN,
+                    formatPhoneNumber,
                     rules: undefined,
                 });
 
