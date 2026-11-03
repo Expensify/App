@@ -77,25 +77,8 @@ function createInitEvent(): MultifactorAuthenticationInitEvent<typeof MFA_TEST_S
     };
 }
 
-/** Builds an INIT event for a scenario with `onCancel`, which the default BIOMETRICS_TEST fixture lacks. */
-function createInitEventWithOnCancel(): MultifactorAuthenticationInitEvent<typeof CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION> {
-    const scenarioName = CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION;
-    const scenario = getScenarioConfig(scenarioName);
-    const payload = {transactionID: 'mfa-test-transaction'};
-    return {
-        type: 'INIT',
-        accountID: MFA_TEST_ACCOUNT_ID,
-        scenarioName,
-        scenario,
-        payload,
-        runScenarioAction: createScenarioActionRunner(scenarioName, scenario.action, payload),
-        registrationStateAtStart: MFA_TEST_REGISTRATION_STATE_AT_START,
-    };
-}
-
 export default createInitEvent;
 export {
-    createInitEventWithOnCancel,
     MFA_TEST_ACCOUNT_ID,
     MFA_TEST_AUTH_METHOD,
     MFA_TEST_AUTHENTICATION_CHALLENGE,

@@ -12,7 +12,6 @@ import {matchesState} from 'xstate';
 import {getShortestPaths, TestModel} from 'xstate/graph';
 
 import createInitEvent, {
-    createInitEventWithOnCancel,
     MFA_TEST_AUTH_METHOD,
     MFA_TEST_AUTHORIZATION_ORDINARY_ERROR,
     MFA_TEST_CANCEL_ERROR,
@@ -230,10 +229,10 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
             },
         },
     },
-    // Without `onCancel`, a confirm during the scenario action drops its result, so a late response can't
-    // replace the cancel outcome.
+    // A confirm during the scenario action keeps the request running: the cancel has nothing to send, so
+    // the request's own result decides the outcome.
     {
-        description: 'the confirm journey during the scenario action drops the late result and lands on the cancel outcome',
+        description: 'the confirm journey during the scenario action waits for the request and lands on its outcome',
         events: [
             createInitEvent(),
             createActorDoneEvent('validateDevice', {success: true}),
@@ -241,11 +240,11 @@ const DRIVING_JOURNEYS: DrivingJourney[] = [
             createActorDoneEvent('authorize', {success: true, signedChallenge: MFA_TEST_SIGNED_CHALLENGE, authenticationMethod: MFA_TEST_AUTH_METHOD}),
             {type: 'REQUEST_CANCEL'},
             {type: 'CONFIRM_CANCEL'},
-            createActorDoneEvent('executeScenarioAction', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE}),
             createActorDoneEvent('cancelScenario', MFA_TEST_CANCEL_ERROR),
+            createActorDoneEvent('executeScenarioAction', {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE}),
             createActorDoneEvent('finalizeOutcome', MFA_TEST_FINALIZE_OUTCOME_SHOW_SCREEN),
         ],
-        endState: `${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.FAILURE}`,
+        endState: `${MFA_STATE.OPEN}.${MFA_STATE.FLOW}.${MFA_STATE.OUTCOME}.${MFA_STATE.SUCCESS}`,
     },
     {
         description: 'the outcome back journey closes the modal without asking',
@@ -418,17 +417,6 @@ function getMfaShortestPaths() {
     return getShortestPaths(mfaMachineWithLifecycleEvents, {events: getTraversalEvents});
 }
 
-/**
- * Returns the shortest paths from an INIT whose scenario defines `onCancel`. Only such a scenario reaches
- * `cancellingInFlight`, so machine reachability walks both; the UI walk stays on the default scenario.
- */
-function getMfaShortestPathsWithOnCancel() {
-    const initEvent = createInitEventWithOnCancel();
-    return getShortestPaths(mfaMachineWithLifecycleEvents, {
-        events: (snapshot) => getTraversalEvents(snapshot).map((event) => (event.type === 'INIT' ? initEvent : event)),
-    });
-}
-
 /** Returns each driving journey together with the paths the test model builds from its event sequence. */
 function getDrivingJourneyPaths() {
     return DRIVING_JOURNEYS.map((journey) => ({...journey, paths: mfaTestModel.getPathsFromEvents(journey.events)}));
@@ -449,13 +437,4 @@ function getWalkedPaths() {
 }
 
 export default getWalkedPaths;
-export {
-    actorDoneEventType,
-    actorErrorEventType,
-    createActorDoneEvent,
-    getDrivingJourneyPaths,
-    getMfaShortestPaths,
-    getMfaShortestPathsWithOnCancel,
-    isAutoDrivenEvent,
-    mfaMachineWithLifecycleEvents,
-};
+export {actorDoneEventType, actorErrorEventType, createActorDoneEvent, getDrivingJourneyPaths, getMfaShortestPaths, isAutoDrivenEvent, mfaMachineWithLifecycleEvents};

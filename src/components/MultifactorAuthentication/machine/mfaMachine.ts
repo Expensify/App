@@ -61,7 +61,8 @@ function createCancelTimeoutError() {
  * The outcome of a confirmed cancel that raced the scenario action, taken from the first result present in
  * this order: a successful scenario action, a successful cancel, a failed scenario action, a failed cancel.
  * Among the failures, one the server answered comes first: a request that got no response can't say what
- * the server did, while e.g. the cancel finding the transaction already approved can.
+ * the server did, while e.g. the cancel finding the transaction already approved can. Without `onCancel`
+ * the cancel fails at once with CANCELED, so the scenario action decides unless its result never comes.
  * A result is missing when the wait timed out, and with neither the flow fails as if the request got no response.
  */
 function getInFlightCancelOutcome({scenarioActionResult, cancelError}: MfaContext): Partial<Pick<MfaContext, 'error' | 'scenarioResponse'>> {
@@ -125,7 +126,6 @@ const MFAMachine = setup({
         // Back asks for confirmation until the outcome. From there it closes the modal right away. While the
         // cancel itself runs (`cancelling`, or `cancellingInFlight` next to the scenario action), there is nothing left to ask.
         shouldConfirmCancel: and([not(stateIn(OUTCOME_TARGET)), not(stateIn(CANCELLING_TARGET)), not(stateIn(CANCELLING_IN_FLIGHT_TARGET))]),
-        hasOnCancel: ({context}) => !!getOnCancel(context),
         // A successful scenario action decides on its own; anything else waits for both results.
         canResolveInFlightCancel: ({context: {scenarioActionResult, cancelError}}) => !!scenarioActionResult?.success || (scenarioActionResult !== undefined && cancelError !== undefined),
     },
@@ -224,7 +224,7 @@ const MFAMachine = setup({
                     initial: MFA_STATE.PREPARING,
                     on: {
                         // Declared once for every step. The dialog hides itself once the flow reaches `cancelling`.
-                        // `executingScenarioAction` overrides this for scenarios with `onCancel`.
+                        // `executingScenarioAction` overrides this while its request is in flight.
                         CONFIRM_CANCEL: {guard: stateIn(CANCEL_CONFIRM_VISIBLE_TARGET), target: `.${MFA_STATE.CANCELLING}`},
                     },
                     states: {
@@ -469,10 +469,9 @@ const MFAMachine = setup({
                                         [MFA_STATE.EXECUTING_SCENARIO_ACTION]: {
                                             initial: MFA_STATE.AWAITING_RESULT,
                                             on: {
-                                                // The request is already out, so a confirmed cancel runs `onCancel` next to it and waits
-                                                // for both results. Without `onCancel` the flow-level handler moves to `cancelling` and
-                                                // the result is dropped.
-                                                CONFIRM_CANCEL: {guard: and([stateIn(CANCEL_CONFIRM_VISIBLE_TARGET), 'hasOnCancel']), target: `.${MFA_STATE.CANCELLING_IN_FLIGHT}`},
+                                                // The request is already out and can't be taken back, so a confirmed cancel runs `onCancel`
+                                                // next to it and waits for both results rather than dropping the request's.
+                                                CONFIRM_CANCEL: {guard: stateIn(CANCEL_CONFIRM_VISIBLE_TARGET), target: `.${MFA_STATE.CANCELLING_IN_FLIGHT}`},
                                             },
                                             // Invoked here rather than in a substate, so moving to `cancellingInFlight` keeps the request running.
                                             invoke: {

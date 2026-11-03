@@ -805,39 +805,59 @@ describe('MFA cancel', () => {
         });
 
         describe('without a scenario onCancel', () => {
-            it('moves to cancelling and stops the request on confirm', async () => {
+            it('keeps the request running on confirm and waits for its result', async () => {
                 // Given a scenario without onCancel whose scenario action is in flight with the dialog up
-                const {actor, cancelInputs} = await startScenarioActionWithDialog({withOnCancel: false});
+                const {actor, cancel, cancelInputs} = await startScenarioActionWithDialog({withOnCancel: false});
 
-                // When the user confirms the cancel
+                // When the user confirms the cancel and the cancel itself ends at once, as it has nothing to send
                 actor.send({type: 'CONFIRM_CANCEL'});
+                await settle(cancel, MFA_TEST_CANCEL_ERROR);
 
-                // Then the request is stopped and the flow cancels, because with no deny to race its result is simply dropped
+                // Then the request keeps running and the flow waits for it, because a sent request can't be taken back and its result is the truth
                 const result = actor.getSnapshot();
-                expect(matchesState(openAt(MFA_STATE.CANCELLING), result.value)).toBe(true);
-                expect(result.children).not.toHaveProperty('executeScenarioAction');
-                expect(cancelInputs).toHaveLength(1);
+                expect(matchesState(openAt(CANCELLING_IN_FLIGHT), result.value)).toBe(true);
+                expect(result.children).toHaveProperty('executeScenarioAction');
+                expect(cancelInputs).toEqual([{onCancel: undefined, payload: undefined}]);
 
                 actor.stop();
             });
 
             it.each([
-                ['success', APPROVED],
-                ['failure', failedApprove(REASON.CLIENT_ERRORS.UNRECOGNIZED)],
-            ])('keeps the cancel outcome when the request settles afterwards with a %s', async (_, scenarioResult) => {
-                // Given a scenario without onCancel whose scenario action is in flight with the dialog up
+                ['a success', APPROVED, undefined],
+                ['a failure the server answered', failedApprove(REASON.CLIENT_ERRORS.UNRECOGNIZED), createMFAErrorFromApiResponse(400, REASON.CLIENT_ERRORS.UNRECOGNIZED, undefined)],
+                ['a lost request', {success: false, error: NETWORK_ERROR} as const, NETWORK_ERROR],
+            ])('ends with the request result once it settles with %s', async (_, scenarioResult, expectedError) => {
+                // Given a scenario without onCancel whose cancel was confirmed while the scenario action is in flight
                 const {actor, scenarioAction, cancel, getFinalizeRuns} = await startScenarioActionWithDialog({withOnCancel: false});
-
-                // When the user confirms and the request settles only after the cancel finished
                 actor.send({type: 'CONFIRM_CANCEL'});
                 await settle(cancel, MFA_TEST_CANCEL_ERROR);
+
+                // When the request settles
                 await settle(scenarioAction, scenarioResult);
 
-                // Then the cancel outcome stands and is finalized once, because the stopped request's late result must not change what the user sees
+                // Then its result decides the outcome, not the cancel, and the flow is finalized once
+                const result = actor.getSnapshot();
+                expect(matchesState(openAt(FINALIZING_OUTCOME), result.value)).toBe(true);
+                expect(result.context.error).toEqual(expectedError);
+                expect(result.context.scenarioResponse).toBe(scenarioResult.success ? MFA_TEST_SCENARIO_RESPONSE : undefined);
+                expect(getFinalizeRuns()).toBe(1);
+
+                actor.stop();
+            });
+
+            it('ends with the cancel error when the request does not return in time', async () => {
+                // Given a scenario without onCancel whose cancel was confirmed while the scenario action is in flight
+                const {actor, cancel, clock, getFinalizeRuns} = await startScenarioActionWithDialog({withOnCancel: false});
+                actor.send({type: 'CONFIRM_CANCEL'});
+                await settle(cancel, MFA_TEST_CANCEL_ERROR);
+
+                // When the request is still out at the timeout
+                clock.increment(CANCEL_TIMEOUT_MS);
+
+                // Then the flow ends as cancelled, so a hung request can't strand the user
                 const result = actor.getSnapshot();
                 expect(matchesState(openAt(FINALIZING_OUTCOME), result.value)).toBe(true);
                 expect(result.context.error).toBe(MFA_TEST_CANCEL_ERROR);
-                expect(result.context.scenarioResponse).toBeUndefined();
                 expect(getFinalizeRuns()).toBe(1);
 
                 actor.stop();
