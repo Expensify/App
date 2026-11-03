@@ -14545,6 +14545,10 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
     return lastSuccessfulExportCreated > lastResetCreated;
 }
 
+function isReportExportedOrPending(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
+    return !!report?.pendingFields?.export || isExported(reportActions, report);
+}
+
 /**
  * Whether an export this client started is still running.
  *
