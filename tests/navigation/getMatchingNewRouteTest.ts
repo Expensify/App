@@ -537,9 +537,6 @@ describe('getBestMatchingPath', () => {
     });
 
     it('does not rewrite pages opened on top of the work-email page', () => {
-        // Given a page like Contact methods opened on top of the company card or Expensify Card work-email page
-        // When the URL is restored on refresh
-        // Then it stays unchanged, so the trailing wildcard of the broad card-details redirects does not treat "work-email" as a card ID
         expect(getMatchingNewRoute('/workspaces/p123/company-cards/feed123/work-email/contact-methods')).toBe('/workspaces/p123/company-cards/feed123/work-email/contact-methods');
         expect(getMatchingNewRoute('/workspaces/p123/expensify-card/789/work-email/contact-methods')).toBe('/workspaces/p123/expensify-card/789/work-email/contact-methods');
     });
