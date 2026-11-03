@@ -42,11 +42,14 @@ export default function useChartLabelFormats({data, unit, unitPosition = 'left',
     const formatValue = (value: number) => withUnit(numberFormat(value));
     const formatCompactValue = (value: number) => withUnit(numberFormat(value, {notation: 'compact'}).replace('K', 'k'));
 
+    /** Formats the full amount with exactly the given number of decimals. */
+    const formatExactValue = (value: number, decimals?: number) => withUnit(numberFormat(value, {minimumFractionDigits: decimals, maximumFractionDigits: decimals}));
+
     /** Formats a total with decimals under 1m, without them under 10m, and in compact form from 10m up. */
     const formatTotalValue = (value: number, decimals?: number) => {
         const integerDigits = Math.trunc(Math.abs(value)).toString().length;
         if (integerDigits <= MAX_DIGITS_FOR_TOTAL_WITH_DECIMALS) {
-            return withUnit(numberFormat(value, {minimumFractionDigits: decimals, maximumFractionDigits: decimals}));
+            return formatExactValue(value, decimals);
         }
         if (integerDigits <= MAX_DIGITS_FOR_WHOLE_TOTAL) {
             return withUnit(numberFormat(value, {maximumFractionDigits: 0}));
@@ -70,6 +73,7 @@ export default function useChartLabelFormats({data, unit, unitPosition = 'left',
         formatLabel,
         formatValue,
         formatCompactValue,
+        formatExactValue,
         formatTotalValue,
     };
 }

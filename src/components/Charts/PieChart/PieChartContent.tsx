@@ -31,7 +31,7 @@ type PieChartProps = ChartProps & {
     /** Position of the unit symbol relative to the value. Defaults to 'left'. */
     valueUnitPosition?: UnitPosition;
 
-    /** Number of decimals the center total shows while it is under 1m */
+    /** Number of decimals the center total shows under 1m and in its tooltip */
     valueDecimals?: number;
 
     /** Whether to draw the slice legend below the donut */
@@ -93,7 +93,7 @@ function PieChartCanvas({
     const [{key: primarySeriesKey}] = series;
     const processedSlices = processDataIntoSlices(data, primarySeriesKey, pieGeometry);
 
-    const {formatValue, formatTotalValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
+    const {formatValue, formatExactValue, formatTotalValue} = useChartLabelFormats({data, unit: valueUnit, unitPosition: valueUnitPosition});
     const total = data.reduce((sum, point) => sum + getPrimaryValue(point, primarySeriesKey), 0);
 
     /** Data index of the slice at the given point, or -1 when the point is outside the slices */
@@ -274,7 +274,7 @@ function PieChartCanvas({
                         pointerEvents="box-none"
                         style={styles.pieChartCenterLabel}
                     >
-                        <Tooltip text={formatValue(total)}>
+                        <Tooltip text={formatExactValue(total, valueDecimals)}>
                             <View>
                                 <Text style={[styles.textLabelSupporting, styles.textAlignCenter]}>{translate('common.total')}</Text>
                                 <Text

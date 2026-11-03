@@ -117,6 +117,19 @@ describe('formatLabel', () => {
     });
 });
 
+describe('formatExactValue', () => {
+    it('keeps trailing zeros up to the given decimals', () => {
+        // Given a currency with two decimals
+        const {result} = renderHook(() => useChartLabelFormats({data: SAMPLE_DATA, unit: {value: '$', fallback: 'USD'}}));
+
+        // When formatting whole and half amounts, including one too large for the center total
+        const formatted = [3527, 3527.5, 12100000].map((total) => result.current.formatExactValue(total, 2));
+
+        // Then every amount shows both decimals, the way money is written
+        expect(formatted).toEqual(['$3,527.00', '$3,527.50', '$12,100,000.00']);
+    });
+});
+
 describe('formatTotalValue', () => {
     const DOLLAR = {value: '$', fallback: 'USD'};
 
