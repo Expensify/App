@@ -1055,6 +1055,13 @@ const CONST = {
             APPROVED: 'APPROVED',
             NOT_APPROVED: 'NOT_APPROVED',
         },
+        /** The steps UpdateWiseOnboardingAdditionalData accepts: our intake pages, and the EDD pages keyed by Wise's KYC requirement key. The server answers any other step with 400 Invalid step. */
+        ONBOARDING_STEP: {
+            BUSINESS: 'business',
+            REPRESENTATIVE: 'representative',
+            BUSINESS_SOURCE_OF_WEALTH_INFO: 'BUSINESS_SOURCE_OF_WEALTH_INFO',
+            BUSINESS_SOURCE_OF_WEALTH_PROOF: 'BUSINESS_SOURCE_OF_WEALTH_PROOF',
+        },
         /** Wise's state for one KYC requirement */
         KYC_REQUIREMENT_STATE: {
             NOT_PROVIDED: 'NOT_PROVIDED',
@@ -1463,7 +1470,6 @@ const CONST = {
         COMMUTER_EXCLUSIONS_ARRANGEMENTS: 'commuterExclusionsArrangements',
         MULTIPLE_APPROVERS: 'multipleApprovers',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
-        GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         WISE_REIMBURSEMENTS: 'wiseReimbursements',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         TRAVEL_CODING_SYNC: 'travelCodingSync',
@@ -1479,6 +1485,7 @@ const CONST = {
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
+        SCAN_FLASH_TORCH: 'scanFlashTorch',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -4258,6 +4265,7 @@ const CONST = {
         EXPORT_DATE: 'exportDate',
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonReimbursable',
+        REIMBURSEMENT_ACCOUNT_CODE: 'reimbursementAccountCode',
         DEFAULT_VENDORID: 'defaultVendorID',
         CREDIT_CARD_ACCOUNTCODE: 'creditCardAccountCode',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
@@ -4281,6 +4289,7 @@ const CONST = {
 
     RILLET_EXPORT_REIMBURSABLE: {
         VENDOR_BILL: 'VENDOR_BILL',
+        REIMBURSEMENT: 'REIMBURSEMENT',
     },
 
     RILLET_EXPORT_NON_REIMBURSABLE: {
@@ -4308,6 +4317,8 @@ const CONST = {
 
     RILLET_ACCOUNT_SUBTYPE: {
         CREDIT_CARD: 'Credit Card',
+        ACCOUNTS_PAYABLE: 'Accounts Payable',
+        OTHER_LONG_TERM_LIABILITY: 'Other Long Term Liability',
     },
 
     DUALENTRY_CONFIG: {
@@ -4880,6 +4891,10 @@ const CONST = {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
         MAX_RECENT_ATTENDEES: 40,
 
+        // Tells a payment failure apart from other errors on a report preview. Numeric so a real error, which is
+        // keyed on microseconds, still wins in getLatestErrorMessageField.
+        PAY_FAILURE_PREVIEW_ERROR_KEY: 0,
+
         // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
@@ -5065,13 +5080,10 @@ const CONST = {
         /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
         EXPENSE_DEFAULTS_SECTION: {
             CATEGORIES: 'categories',
+            TAGS: 'tags',
             MERCHANTS: 'merchants',
+            MULTIPLE_CONDITIONS: 'multipleConditions',
             MERCHANT_TYPES: 'merchantTypes',
-        },
-        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
-        EXPENSE_DEFAULT_RULE_TYPE: {
-            MERCHANT: 'merchant',
-            CATEGORY: 'category',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
@@ -5744,6 +5756,8 @@ const CONST = {
             SEK: 'SE',
             ZAR: 'ZA',
         },
+        // The country that publishes fuel-band rates, which replace its standard rate on workspaces tracking distance tax
+        GOVERNMENT_RATE_FUEL_BAND_COUNTRY: 'GB',
         // EUR is shared by several supported countries, so an EUR workspace picks the country itself
         GOVERNMENT_RATE_SUPPORTED_EUR_COUNTRIES: ['AT', 'BE', 'FI', 'DE', 'NL', 'PT', 'ES'] as const,
         // Unit each country publishes its rates in
@@ -8854,6 +8868,11 @@ const CONST = {
             PREVIOUS_PERIOD: 'previousPeriod',
             AVERAGE: 'average',
         },
+        /** What a chart plots for each group: the money it totals, or how many expenses it holds */
+        CHART_METRIC: {
+            AMOUNT: 'amount',
+            COUNT: 'count',
+        },
         SYNTAX_FILTER_KEYS: {
             TYPE: 'type',
             STATUS: 'status',
@@ -9643,6 +9662,7 @@ const CONST = {
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
+                AMOUNT: 'amount',
                 BILLABLE: 'billable',
                 CATEGORY: 'category',
                 COMMENT: 'comment',
@@ -9707,6 +9727,11 @@ const CONST = {
         REIMBURSABLE: 'reimbursable',
         BILLABLE: 'billable',
         VENDOR: 'vendor',
+
+        // The members import has these columns for every approver of a member's workflow, so their roles end with the approver's position, like `approverLimit2`
+        APPROVER: 'approver',
+        APPROVER_LIMIT: 'approverLimit',
+        APPROVER_OVER_LIMIT_APPROVER: 'approverOverLimitApprover',
     },
 
     IMPORT_SPREADSHEET: {
@@ -9719,6 +9744,9 @@ const CONST = {
         MULTI_LEVEL_TAGS_ARTICLE_LINK: 'https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags#import-multi-level-tags-from-a-spreadsheet',
         IMPORT_TRANSACTIONS_ARTICLE_LINK:
             'https://help.expensify.com/articles/new-expensify/connect-credit-cards/connect-and-manage-personal-cards/Import-Personal-Card-Transactions-From-a-Spreadsheet',
+
+        // How many approvers the members import reads for each member
+        MAX_APPROVERS: 10,
     },
 
     // The timeout duration (1 minute) (in milliseconds) before the window reloads due to an error.
@@ -9730,7 +9758,7 @@ const CONST = {
         HAS_POLICY_ERRORS: 'hasPolicyError',
         HAS_CUSTOM_UNITS_ERROR: 'hasCustomUnitsError',
         HAS_EMPLOYEE_LIST_ERROR: 'hasEmployeeListError',
-        HAS_QBO_EXPORT_ERROR: 'hasQBOExportError',
+        HAS_REIMBURSEMENT_EXPORT_ERROR: 'hasReimbursementExportError',
         HAS_SYNC_ERRORS: 'hasSyncError',
         HAS_SUBSCRIPTION_ERRORS: 'hasSubscriptionError',
         HAS_REIMBURSEMENT_ACCOUNT_ERRORS: 'hasReimbursementAccountErrors',
@@ -10224,6 +10252,12 @@ const CONST = {
             CTA: 'WiseGlobalReimbursementsWorkspaceBanner-CTA',
             DISMISS: 'WiseGlobalReimbursementsWorkspaceBanner-Dismiss',
         },
+        WISE_ACCEPT_TERMS: {
+            CONFIRM: 'WiseAcceptTerms-Confirm',
+        },
+        WISE_MORE_INFO_NEEDED: {
+            CONTINUE: 'WiseMoreInfoNeeded-Continue',
+        },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
             DISMISS: 'ProductMarketingWindow-Dismiss',
@@ -10405,6 +10439,7 @@ const CONST = {
         },
         INSIGHTS: {
             CONTROL_DATE: 'Insights-ControlDate',
+            CONTROL_EXPORT: 'Insights-ControlExport',
             CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
@@ -10584,6 +10619,7 @@ const CONST = {
         },
         PAYMENT_METHOD_LIST_ITEM: {
             CHASE_ACCOUNT_HELP: 'PaymentMethodListItem-ChaseAccountHelp',
+            GLOBAL_REIMBURSEMENTS_ENABLED: 'PaymentMethodListItem-GlobalReimbursementsEnabled',
         },
         EMOJI_PICKER: {
             BUTTON: 'EmojiPicker-Button',
@@ -10901,6 +10937,7 @@ const CONST = {
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
+                TAG_RULE_ITEM: 'WorkspaceRules-TagRuleItem',
                 REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
                 REQUIRE_FIELDS_RULE_DESCRIBE: 'WorkspaceRules-RequireFieldsRuleDescribe',

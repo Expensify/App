@@ -788,6 +788,7 @@ function getSuggestedSearchesVisibility(
         const isAdmin = policy.role === CONST.POLICY.ROLE.ADMIN;
         const isAuditor = policy.role === CONST.POLICY.ROLE.AUDITOR;
         const isPaymentsAdmin = policy.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
+        const isCardAdmin = policy.role === CONST.POLICY.ROLE.CARD_ADMIN;
         const isExporter = !!currentUserEmail && isPreferredExporter(policy, currentUserEmail);
 
         const isSubmittedTo =
@@ -807,8 +808,8 @@ function getSuggestedSearchesVisibility(
         const isEligibleForExportSuggestion = isExporter && !!getValidConnectedIntegration(policy);
         const isEligibleForStatementsSuggestion = isPaidPolicy && (hasCardFeed || !!defaultExpensifyCard);
         const isEligibleForUnapprovedCashSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isApprovalEnabled && isPaymentEnabled;
-        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
-        const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor) && isECardEnabled;
+        const isEligibleForUnapprovedCardSuggestion = isPaidPolicy && (isAdmin || isAuditor || isCardAdmin) && isApprovalEnabled && (hasCardFeed || !!defaultExpensifyCard);
+        const isEligibleForExpensifyCardSuggestion = isPaidPolicy && (isAdmin || isAuditor || isCardAdmin) && isECardEnabled;
         const isEligibleForReimbursementsSuggestion = isPaidPolicy && (isAdmin || isAuditor || isPaymentsAdmin) && isPaymentEnabled && hasVBBA && hasReimburser;
         const memberCount = Object.keys(policy.employeeList ?? {}).length;
         const isEligibleForTopSpendersSuggestion = isPolicyEligibleForTopSpenders(policy, currentUserEmail);
@@ -2005,7 +2006,7 @@ function getTransactionsSections({
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, rules, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
-            const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID);
+            const reportOwnerAccountIDAsAttendee = getReportOwnerAccountIDAsAttendee(transactionItem, currentAccountID, report?.ownerAccountID);
             const reportOwnerAsAttendee = reportOwnerAccountIDAsAttendee ? getReportOwnerAsAttendee(personalDetailsMap.get(reportOwnerAccountIDAsAttendee.toString())) : undefined;
             const transactionAttendees = getAttendees(transactionItem, reportOwnerAsAttendee);
             const isUnreported = transactionItem.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -7468,7 +7469,7 @@ function getSearchTableRowInsetWidth(columnCount: number): number {
  */
 function getSearchTableRowChromeWidths(columnCount: number): RowChromeWidths {
     return {
-        selectionColumnWidth: variables.searchTableRowCheckboxWidth + SEARCH_TABLE_ROW_ARROW_WIDTH,
+        selectionColumnWidth: variables.tableCheckboxColumnWidth + SEARCH_TABLE_ROW_ARROW_WIDTH,
         totalGapWidth: (columnCount + 1) * variables.searchTableColumnGap,
         rowMarginWidth: variables.searchTableRowChromeWidth,
         rowPaddingWidth: 0,
@@ -7498,7 +7499,7 @@ function getTableMinWidth(
     // table scrolls at all. Only a caller that also passes real column widths has the rest of the arithmetic right;
     // adding it on top of the estimates below, which already run several columns over, makes a table reserve room twice
     // and scroll while it still has space.
-    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : variables.searchTableRowCheckboxWidth;
+    let minWidth = shouldIncludeRowChrome ? getSearchTableRowInsetWidth(columns.length) : variables.tableCheckboxColumnWidth;
 
     for (const column of columns) {
         // A caller that knows a column's real minimum passes it in, so use that over the estimate below. The estimates

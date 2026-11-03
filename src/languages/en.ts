@@ -1409,6 +1409,13 @@ const translations = {
         singleFieldMultipleColumns: (fieldName: string) => `Oops! You've mapped a single field ("${fieldName}") to multiple columns. Please review and try again.`,
         emptyMappedField: (fieldName: string) => `Oops! The field ("${fieldName}") contains one or more empty values. Please review and try again.`,
         invalidApprovalLimit: 'Approval limits must be valid amounts for the workspace currency.',
+        approverColumn: (position: number) => `Approver ${position}`,
+        approverLimitColumn: (position: number) => `Approver ${position} limit`,
+        approverOverLimitApproverColumn: (position: number) => `Approver ${position} over limit approver`,
+        approversOutOfOrder: (rowNumber: number) => `Oops! Row ${rowNumber} is missing an approver. Please list approvers in order, starting with Approver 1, and try again.`,
+        approverRepeated: (rowNumber: number) => `Oops! Row ${rowNumber} lists the same approver more than once. Please review and try again.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `Oops! Row ${rowNumber} has an approval limit without an over limit approver, or an over limit approver without an approval limit. Please review and try again.`,
         fieldValueTooLong: (fieldName: string, limit: number) => `Oops! The field ("${fieldName}") contains one or more values longer than ${limit} characters. Please review and try again.`,
         importSuccessfulTitle: 'Import successful',
         importCategoriesNoneAddedOrUpdated: 'No categories have been added or updated.',
@@ -1673,10 +1680,10 @@ const translations = {
         yourCompanyWebsiteNote: "If you don't have a website, you can provide your company's LinkedIn or social media profile instead.",
         invalidDomainError: 'You have entered an invalid domain. To continue, please enter a valid domain.',
         publicDomainError: 'You have entered a public domain. To continue, please enter a private domain.',
-        expenseCount: () => {
+        expenseCount: ({formattedCount}: {count: number; formattedCount?: string}) => {
             return {
-                one: '1 expense',
-                other: (count: number) => `${count} expenses`,
+                one: (count: number) => `${formattedCount ?? count} expense`,
+                other: (count: number) => `${formattedCount ?? count} expenses`,
             };
         },
         deleteExpense: () => ({
@@ -1859,6 +1866,7 @@ const translations = {
             invalidSplitYourself: 'Please enter a non-zero amount for your split',
             noParticipantSelected: 'Please select a participant',
             other: 'Unexpected error. Please try again later.',
+            payFailedExpenseDeleted: 'The payment failed because the expense report was deleted.',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
             genericCreateInvoiceFailureMessage: 'Unexpected error sending this invoice. Please try again later.',
             genericHoldExpenseFailureMessage: 'Unexpected error holding this expense. Please try again later.',
@@ -3194,6 +3202,11 @@ const translations = {
                 wiseTermsAccessibilityLabel: 'I agree to the Wise terms and conditions and privacy policy.',
                 error: 'Please accept all of the terms to continue.',
             },
+            moreInfoNeeded: {
+                headerTitle: 'More info needed',
+                title: 'Verify additional info',
+                subtitle: 'Our payments partner needs more info directly. This should only take a couple of minutes.',
+            },
         },
         wiseGlobalReimbursementsIntro: {
             headerTitle: 'Global reimbursements',
@@ -3206,6 +3219,7 @@ const translations = {
             title: 'Pay people worldwide',
             subtitle: 'Enable global reimbursements on your USD account.',
         },
+        globalReimbursementsEnabled: 'Global reimbursements enabled',
         deleteCard: 'Delete card',
         deleteCardConfirmation:
             'All unsubmitted card transactions, including those on open reports, will be removed. Are you sure you want to delete this card? You cannot undo this action.',
@@ -4616,6 +4630,7 @@ const translations = {
     },
     dynamicForm: {
         exampleHint: ({example}: {example: string}) => `Example: ${example}`,
+        onFile: 'On file',
         fileCount: ({count}: {count: number}) => ({
             one: '1 file',
             other: `${count} files`,
@@ -6095,9 +6110,6 @@ const translations = {
                     ? `Set a default vendor that will apply to reimbursable expenses that don't have a matching vendor in Sage Intacct.`
                     : `Expenses that can't be matched to your Sage Intacct vendors will default to this vendor.`,
             exportDescription: 'Configure how Expensify data exports to Sage Intacct.',
-            exportPreferredExporterNote:
-                'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
-            exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             noAccountsFound: 'No accounts found',
             noAccountsFoundDescription: `Please add the account in Sage Intacct and sync the connection again`,
             autoSync: 'Auto-sync',
@@ -6645,14 +6657,23 @@ const translations = {
             exportDescription: 'Configure how Expensify data exports to Rillet.',
             exportReimbursable: {
                 label: 'Export reimbursable expenses as',
+                description: "We'll create an itemized vendor bill or reimbursement for each Expensify report. If the period is closed, we'll post to the next open period.",
                 values: {
-                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
-                        label: 'Vendor bills',
+                    VENDOR_BILL: {
+                        label: 'Itemized vendor bills',
+                    },
+                    REIMBURSEMENT: {
+                        label: 'Itemized reimbursements',
                     },
                 },
             },
+            reimbursementAccount: {
+                label: 'Reimbursement account',
+                description: 'Choose where to export reimbursable expenses.',
+                accountRequiredError: 'Please select a Rillet reimbursement account.',
+            },
             exportDate: {
-                label: 'Vendor bill date',
+                label: 'GL impact date',
                 description: 'Use this date when exporting reports to Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6728,10 +6749,10 @@ const translations = {
                 },
             },
             syncReimbursedReports: 'Sync reimbursed reports',
-            syncReimbursedReportsDescription: 'When a report is paid via ACH, a bill payment will be generated in this account.',
-            billPaymentAccount: {
-                label: 'Bill payment account',
-                description: "Choose where to pay bills from and we'll create the payment in Rillet.",
+            syncReimbursedReportsDescription: 'When a report is paid via ACH, a payment will be generated in this account.',
+            achPaymentAccount: {
+                label: 'ACH payment account',
+                description: "Choose where to pay reports from and we'll create the payment in Rillet.",
             },
             fxExpenseAccount: {
                 label: 'Rillet currency conversion fee account',
@@ -7518,6 +7539,7 @@ const translations = {
             updateFailureMessage: 'An error occurred while updating the category, please try again',
             createFailureMessage: 'An error occurred while creating the category, please try again',
             addCategory: 'Add category',
+            createCategoryFromSearch: (categoryName: string) => `Create “${categoryName}” category`,
             editCategory: 'Edit category',
             editCategories: 'Edit categories',
             findCategory: 'Find category',
@@ -8067,10 +8089,10 @@ const translations = {
             reimbursementAccount: 'reimbursement account',
             welcomeNote: 'Please start using my new workspace',
             delayedSubmission: 'delayed submission',
-            merchantRules: 'Merchant rules',
+            merchantRules: 'Expense defaults',
             merchantRulesCount: () => ({
-                one: '1 merchant rule',
-                other: (count: number) => `${count} merchant rules`,
+                one: '1 expense default',
+                other: (count: number) => `${count} expense defaults`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
@@ -8638,8 +8660,7 @@ const translations = {
                 },
             },
             preferredExporter: 'Preferred exporter',
-            exportPreferredExporterNote:
-                'The preferred exporter can be any workspace admin, but must also be a Domain Admin if you set different export accounts for individual company cards in Domain Settings.',
+            exportPreferredExporterNote: 'The preferred exporter can be any workspace admin.',
             exportPreferredExporterSubNote: 'Once set, the preferred exporter will see reports for export in their account.',
             exportAs: 'Export as',
             exportOutOfPocket: 'Export out-of-pocket expenses as',
@@ -9661,8 +9682,8 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
-                duplicateRuleTitle: 'Similar merchant rule already exists',
-                duplicateRulePrompt: (merchantName: string) => `Your existing rule for "${merchantName}" will take priority over this one. Save anyway?`,
+                duplicateRuleTitle: 'Similar rule already exists',
+                duplicateRulePrompt: (conditionName: string) => `Your existing rule for "${conditionName}" will take priority over this one. Save anyway?`,
                 saveAnyway: 'Save anyway',
                 applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
                 expenseDefaultsTitle: 'Expense defaults',
@@ -9670,24 +9691,8 @@ const translations = {
                 ifAnyExpenseMatches: 'If any expense matches:',
                 thenApplyFollowingDefaults: 'Then apply the following defaults:',
                 confirmErrorCategory: 'Please select a category',
-                confirmErrorCategoryTax: 'Please select a tax rate',
-                confirmErrorCategoryTaxMoveIsWorkspaceDefault: 'The selected tax rate is now your workspace default, so this rule is no longer valid. Choose a different tax rate.',
-                confirmErrorCondition: 'Please enter a merchant',
-                confirmErrorConditionAndDefault: 'Enter a merchant, and apply at least one default',
-                turnOnTaxesFirstTitle: 'Turn on taxes first',
-                turnOnTaxesFirstPrompt: 'Category rules set a default tax rate. Turn on taxes in your workspace settings to use them.',
-                addTaxRateFirstTitle: 'Add a tax rate first',
-                addTaxRateFirstPrompt: 'Category rules set a default tax rate. Add a tax rate other than your workspace default to use them.',
-                categoryRulesApplyGoingForwardTitle: 'Category rules apply going forward',
-                categoryRulesApplyGoingForwardPrompt: "A default tax rate applies to new expenses in this category. Expenses that already exist won't change.",
-            },
-            expenseDefaultType: {
-                title: 'Apply expense defaults',
-                subtitle: 'What should this rule match on?',
-                merchant: 'Merchant',
-                merchantDescription: 'Update fields on expenses from a specific merchant',
-                category: 'Category',
-                categoryDescription: 'Set a default tax rate for a specific category',
+                confirmErrorCondition: 'Please add at least one condition',
+                confirmErrorConditionAndDefault: 'Add at least one condition, and apply at least one default',
             },
             newRule: {
                 title: 'New rule',
@@ -9733,7 +9738,9 @@ const translations = {
                 rename: 'Rename',
                 update: 'Update',
                 categoryIs: (category: string) => `Category is "${category}"`,
-                merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
+                merchantContains: (merchant: string) => `Merchant contains "${merchant}"`,
+                merchantExactlyMatches: (merchant: string) => `Merchant exactly matches "${merchant}"`,
+                tagIs: (tag: string) => `Tag is "${tag}"`,
                 merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
             },
             merchantTypeRule: {
@@ -9960,7 +9967,9 @@ const translations = {
                 confirmErrorCardRequired: 'Card is a required field',
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
                 categories: 'Categories',
+                tags: 'Tags',
                 merchants: 'Merchants',
+                multipleConditions: 'Multiple conditions',
                 currencies: 'Currencies',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
@@ -12115,6 +12124,7 @@ const translations = {
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is required`,
         reportContainsExpensesWithViolations: 'Report contains expenses with violations.',
+        reportHasErrors: 'Report has errors.',
     },
     violationDismissal: {
         rter: {
@@ -12615,7 +12625,7 @@ const translations = {
             theresAReportWithErrors: "There's a report with errors",
             theresAWorkspaceWithCustomUnitsErrors: "There's a workspace with custom units errors",
             theresAProblemWithAWorkspaceMember: "There's a problem with a workspace member",
-            theresAProblemWithAWorkspaceQBOExport: 'There was a problem with a workspace connection export setting.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'There was a problem with a workspace connection export setting.',
             theresAProblemWithAContactMethod: "There's a problem with a contact method",
             aContactMethodRequiresVerification: 'A contact method requires verification',
             theresAProblemWithAPaymentMethod: "There's a problem with a payment method",

@@ -7523,7 +7523,7 @@ describe('ReportUtils', () => {
 
     describe('shouldDisplayThreadReplies', () => {
         it.each([
-            [CONST.REPORT.TYPE.SUPPORT_TICKET, false],
+            [CONST.REPORT.TYPE.SUPPORT_TICKET, true],
             [CONST.REPORT.TYPE.CHAT, true],
             [CONST.REPORT.TYPE.TASK, true],
         ] as const)('child report type %s shows the replies footer: %s', (childType, expected) => {
@@ -7539,7 +7539,7 @@ describe('ReportUtils', () => {
             // When the parent action is displayed in its original conversation
             const shouldShowReplies = shouldDisplayThreadReplies(reportAction, false);
 
-            // Then support-ticket previews omit the footer, while other threads keep it
+            // Then every thread with replies keeps the footer, support-ticket previews included
             expect(shouldShowReplies).toBe(expected);
         });
     });
@@ -11653,6 +11653,12 @@ describe('ReportUtils', () => {
     });
 
     describe('isUnread', () => {
+        beforeAll(async () => {
+            // Earlier tests switch the session to other accounts, and isUnread compares the last actor with the session account
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            await waitForBatchedUpdates();
+        });
+
         it('returns false when the newest visible action was sent by the current user in a one-transaction report', () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -11709,6 +11715,75 @@ describe('ReportUtils', () => {
             expect(isUnread(report, undefined, false, undefined)).toBe(true);
             expect(isUnread(report, undefined, false, undefined)).toBe(true);
         });
+
+        it('returns false when the current user sent the newest message and the report was not manually marked as unread', () => {
+            // Given a report whose newest message was sent by the current user, with lastReadTime behind it
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+            };
+
+            // When checking whether the report is unread
+            // Then it is read, because the user's own messages never make a report unread on their own
+            expect(isUnread(report, undefined, false, false)).toBe(false);
+        });
+
+        it('returns true when the current user manually marked their own message as unread', () => {
+            // Given a thread where only the current user has written, so markCommentAsUnread keeps them as the last actor,
+            // and the user marked their message as unread, which rolls lastReadTime back and sets the manual marker
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.999',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+                manuallyMarkedUnreadReportActionID: '100',
+            };
+
+            // When checking whether the report is unread
+            // Then it is unread, so the LHN row shows in bold
+            expect(isUnread(report, undefined, false, false)).toBe(true);
+        });
+
+        it('returns false after a manually marked report is read again, even if the marker is still set', () => {
+            // Given a report the user marked as unread and then read, which moves lastReadTime past the newest message
+            // while the manual marker stays until the user navigates back to the report
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:02.000',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID,
+                manuallyMarkedUnreadReportActionID: '100',
+            };
+
+            // When checking whether the report is unread
+            // Then it is read, because the marker only matters while lastReadTime is behind the newest message
+            expect(isUnread(report, undefined, false, false)).toBe(false);
+        });
+
+        it('returns true when a message from another user is marked as unread', () => {
+            // Given a report where another user wrote the newest message and the user marked it as unread
+            const report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1',
+                lastReadTime: '2024-03-01 12:00:00.999',
+                lastVisibleActionCreated: '2024-03-01 12:00:01.000',
+                lastMessageText: 'Hello',
+                lastActorAccountID: currentUserAccountID + 1,
+                manuallyMarkedUnreadReportActionID: '100',
+            };
+
+            // When checking whether the report is unread
+            // Then it is unread, as it was before this change
+            expect(isUnread(report, undefined, false, false)).toBe(true);
+        });
     });
 
     describe('isEmptyReport', () => {
@@ -11757,10 +11832,12 @@ describe('ReportUtils', () => {
                 parentReportActionID: '1',
             };
 
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
-            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`]: taskReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`]: policyExpenseChat,
+            };
 
-            expect(getPolicyExpenseChat(1, '1')?.reportID).toBe(policyExpenseChat.reportID);
+            expect(getPolicyExpenseChat(1, '1', reports)?.reportID).toBe(policyExpenseChat.reportID);
         });
     });
 
@@ -11858,6 +11935,9 @@ describe('ReportUtils', () => {
             const reportNameValuePairs = {
                 private_isArchived: DateUtils.getDBTime(),
             };
+
+            // Sign in as a participant of the fake reports so they aren't hidden for the current user
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: 1});
 
             // Add reports to Onyx
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`, archivedReport);
@@ -15078,7 +15158,7 @@ describe('ReportUtils', () => {
             expect(result).toBeFalsy();
         });
 
-        it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN])('should return false for a %s on a policy room they belong to', async (role) => {
+        it.each([CONST.POLICY.ROLE.AUDITOR, CONST.POLICY.ROLE.PAYMENTS_ADMIN, CONST.POLICY.ROLE.CARD_ADMIN])('should return false for a %s on a policy room they belong to', async (role) => {
             // Given a policy room the current user belongs to, in a workspace where they only have read access to all reports
             const report: Report = {
                 ...createRandomReport(40003, CONST.REPORT.CHAT_TYPE.POLICY_ROOM),
@@ -15099,6 +15179,7 @@ describe('ReportUtils', () => {
         it.each([
             [CONST.POLICY.ROLE.AUDITOR, false],
             [CONST.POLICY.ROLE.PAYMENTS_ADMIN, false],
+            [CONST.POLICY.ROLE.CARD_ADMIN, false],
             [CONST.POLICY.ROLE.ADMIN, true],
         ])('should handle an open invoice report for a %s', (role, expected) => {
             // Given an open invoice report in a workspace where the current user has the role
@@ -18114,6 +18195,82 @@ describe('ReportUtils', () => {
                     accountID: 'Error in accountID',
                 },
                 reportAction: reportActionWithError,
+            });
+        });
+        describe('a pay failure mirrored onto the chat report preview', () => {
+            const PAY_FAILURE_KEY = CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY;
+            const PAY_FAILURE_MESSAGE = 'The payment failed because the expense report was deleted.';
+            // A real error is keyed on microseconds. Named so the key stays a computed one, which the naming-convention rule requires.
+            const OTHER_ERROR_KEY = 1700000000000000;
+
+            function buildReportPreview(isDeleted: boolean, errors?: ReportAction['errors']): ReportAction {
+                return {
+                    ...createRandomReportAction(80001),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW,
+                    // An empty message array is how a deleted preview reaches the client, see hasDeletedMessage.
+                    message: isDeleted ? [] : [{type: 'COMMENT', html: 'Expense', text: 'Expense'}],
+                    originalMessage: {linkedReportID: '80002'},
+                    shouldShow: true,
+                    errors,
+                } as ReportAction;
+            }
+
+            it('surfaces the mirror once the preview is deleted, so the chat row gets a red dot', () => {
+                // Given the payer's expense report was deleted, leaving the mirrored failure on the chat's deleted preview
+                const deletedPreview = buildReportPreview(true, {[PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE});
+
+                // When the LHN aggregates the chat's errors
+                const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                    report,
+                    {...reportActions, [deletedPreview.reportActionID]: deletedPreview},
+                    allTransactions,
+                    currentUserAccountID,
+                );
+
+                // Then the deleted preview is counted, or nothing would point the payer at the only message explaining the failure
+                expect(errors).toEqual({[PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE});
+                expect(reportAction).toEqual(deletedPreview);
+            });
+
+            it('stays quiet while the preview is still live', () => {
+                // Given the expense report still exists, so its pay action already shows the failure inline
+                const livePreview = buildReportPreview(false, {[PAY_FAILURE_KEY]: PAY_FAILURE_MESSAGE});
+
+                // When the LHN aggregates the chat's errors
+                const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                    report,
+                    {...reportActions, [livePreview.reportActionID]: livePreview},
+                    allTransactions,
+                    currentUserAccountID,
+                );
+
+                // Then the chat row shows nothing, because the red dot belongs on the expense report the payer can still open
+                expect(errors).toEqual({});
+                expect(reportAction).toBeUndefined();
+            });
+
+            it('keeps ignoring other deleted actions that carry errors', () => {
+                // Given a deleted comment that still holds an error, which the aggregator has always skipped
+                const deletedComment: ReportAction = {
+                    ...createRandomReportAction(80003),
+                    reportID: report.reportID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                    message: [],
+                    errors: {[OTHER_ERROR_KEY]: 'Unexpected error. Please try again later.'},
+                };
+
+                // When the LHN aggregates the chat's errors
+                const {errors, reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(
+                    report,
+                    {...reportActions, [deletedComment.reportActionID]: deletedComment},
+                    allTransactions,
+                    currentUserAccountID,
+                );
+
+                // Then it is still skipped, so letting the deleted preview through did not widen the filter
+                expect(errors).toEqual({});
+                expect(reportAction).toBeUndefined();
             });
         });
         it('should return smart scan error for the top-most parent report with smart scan error', async () => {
@@ -30214,13 +30371,18 @@ describe('getReportForHeader', () => {
     });
 
     it('returns the parent invoice report when parentReport is invoice and report is a chat thread, even if a different report exists in Onyx for the same ID', async () => {
+        // Given cached parent data conflicts with the invoice parent passed explicitly
         const onyxParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.EXPENSE} as Report;
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}2`, onyxParentReport);
 
-        const passedParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE} as Report;
+        const passedParentReport: Report = {reportID: '2', type: CONST.REPORT.TYPE.INVOICE};
         const report = {reportID: '1', parentReportID: '2', parentReportActionID: 'action1', type: CONST.REPORT.TYPE.CHAT} as Report;
 
-        expect(getReportForHeader(report, passedParentReport)).toBe(passedParentReport);
+        // When resolving the header report for the invoice thread
+        const result = getReportForHeader(report, passedParentReport);
+
+        // Then the explicitly passed parent wins over cached data
+        expect(result).toBe(passedParentReport);
     });
 
     it('returns the report when parent is an invoice but report is not a thread', () => {

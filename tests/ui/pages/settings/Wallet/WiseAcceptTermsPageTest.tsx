@@ -18,9 +18,9 @@ const mockTranslate = TestHelper.translateLocal;
 
 // The real useFocusEffect throws outside a navigator
 jest.mock('@react-navigation/native', () => ({...jest.requireActual<Record<string, unknown>>('@react-navigation/native'), useFocusEffect: jest.fn()}));
-jest.mock('@navigation/Navigation', () => ({dismissModal: jest.fn(), goBack: jest.fn()}));
+jest.mock('@navigation/Navigation', () => ({navigate: jest.fn(), goBack: jest.fn()}));
 jest.mock('@userActions/DynamicForm', () => ({clearSensitiveAnswers: jest.fn()}));
-jest.mock('@hooks/useDynamicBackPath', () => () => 'settings/wallet/global-reimbursements/1/business-onboarding/confirm');
+jest.mock('@hooks/useDynamicBackPath', () => () => 'settings/wallet/global-reimbursements/1');
 jest.mock('@hooks/usePermissions', () => () => ({isBetaEnabledOrUnknown: () => true}));
 jest.mock('@hooks/useLocalize', () => () => ({translate: mockTranslate, preferredLocale: 'en'}));
 jest.mock('@hooks/useThemeStyles', () => () => new Proxy({}, {get: () => ({})}));
@@ -66,7 +66,7 @@ describe('WiseAcceptTermsPage', () => {
         jest.clearAllMocks();
     });
 
-    it('keeps the page open with an error until every box is ticked, then closes the flow', () => {
+    it('keeps the page open with an error until every box is ticked, then opens the more info needed page', () => {
         // Given the terms page with only two of the three boxes ticked
         render(<WiseAcceptTermsPage />);
         fireEvent.press(screen.getByLabelText(TERM_LABELS.at(0) ?? ''));
@@ -77,15 +77,15 @@ describe('WiseAcceptTermsPage', () => {
 
         // Then the page asks for every term and stays open, since the doc requires all of them
         expect(screen.getByText(ERROR)).toBeOnTheScreen();
-        expect(Navigation.dismissModal).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
 
         // When the last box is ticked and Confirm is pressed again
         fireEvent.press(screen.getByLabelText(TERM_LABELS.at(2) ?? ''));
         pressConfirm();
 
-        // Then the button still works after the error, the SSN kept in memory for this page is dropped, and the flow closes
+        // Then the button still works after the error, the SSN kept in memory for this page is dropped, and the more info needed page replaces the terms
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
-        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/more-info-needed', {forceReplace: true});
     });
 
     it('hides the error once the user changes a box', () => {
