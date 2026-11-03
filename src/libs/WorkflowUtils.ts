@@ -57,13 +57,13 @@ function getApprovalWorkflowSource(policy: OnyxEntry<Policy>, policyID: string |
     if (isAnyHRConnected(policy)) {
         return {
             providerName: getConnectedHRProvider(policy)?.displayName ?? '',
-            settingsRoute: ROUTES.WORKSPACE_HR.getRoute(policyID),
+            settingsRoute: ROUTES.WORKSPACE_CONNECTIONS_HR.getRoute(policyID),
         };
     }
     if (isAnyRecruitingReadOnlyWorkflowMode(policy)) {
         return {
             providerName: getConnectedATSProvider(policy)?.displayName ?? '',
-            settingsRoute: ROUTES.WORKSPACE_RECRUITING.getRoute(policyID),
+            settingsRoute: ROUTES.WORKSPACE_CONNECTIONS_RECRUITING.getRoute(policyID),
         };
     }
     return undefined;
@@ -2030,6 +2030,7 @@ function getNonMemberApproverError(approver: Approver | undefined, isDefaultWork
 export {
     addMembersToRule,
     applyApprovalWorkflowRulesDiff,
+    buildApproverChainFromRules,
     getApproverChainKey,
     buildApprovalWorkflowRules,
     buildApprovalWorkflowRulesForSave,

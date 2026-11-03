@@ -499,7 +499,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
             } else if ('login' in item) {
                 navigateToAndOpenReport({
-                    userLogins: item.login ? [item.login] : [],
+                    login: item.login ?? '',
+                    personalDetailsByLogin: getPersonalDetailsByLogin(),
                     personalDetails,
                     currentUserAccountID,
                     introSelected,
