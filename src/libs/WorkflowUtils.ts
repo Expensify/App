@@ -2030,6 +2030,7 @@ function getNonMemberApproverError(approver: Approver | undefined, isDefaultWork
 export {
     addMembersToRule,
     applyApprovalWorkflowRulesDiff,
+    buildApproverChainFromRules,
     getApproverChainKey,
     buildApprovalWorkflowRules,
     buildApprovalWorkflowRulesForSave,

@@ -207,6 +207,7 @@ import {
     isSettled,
     shouldReportShowSubscript,
 } from './ReportUtils';
+import {getAmountFilterDisplayValue} from './SearchAmountFilterUtils';
 import {isReportEntry, TODO_SEARCH_KEYS} from './SearchKeyUtils';
 import {
     buildSearchQueryJSON,
@@ -5758,7 +5759,6 @@ function getDatePresets(filterKey: SearchDateFilterKeys, hasFeed: boolean): Sear
         CONST.SEARCH.DATE_PRESETS.THIS_MONTH,
         CONST.SEARCH.DATE_PRESETS.THIS_QUARTER,
         CONST.SEARCH.DATE_PRESETS.THIS_YEAR,
-        CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE,
         CONST.SEARCH.DATE_PRESETS.LAST_WEEK,
         CONST.SEARCH.DATE_PRESETS.LAST_MONTH,
         CONST.SEARCH.DATE_PRESETS.LAST_QUARTER,
@@ -6215,7 +6215,7 @@ function getAmountDisplayValue(
     const greaterThan = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.GREATER_THAN}`];
     const equalTo = form[`${syntaxKey}${CONST.SEARCH.AMOUNT_MODIFIERS.EQUAL_TO}`];
 
-    const formatAmount = (val: string) => convertToDisplayStringWithoutCurrency(Number(val));
+    const formatAmount = (val: string) => getAmountFilterDisplayValue(val, convertToDisplayStringWithoutCurrency);
 
     if (equalTo) {
         return translate('search.filters.amount.equalTo', formatAmount(equalTo));

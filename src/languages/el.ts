@@ -337,6 +337,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pm: 'μ.μ.',
         tbd: 'Θα καθοριστεί',
         selectCurrency: 'Επιλέξτε νόμισμα',
+        any: 'Οποιοδήποτε',
+        anyCurrency: 'Οποιοδήποτε νόμισμα',
         selectSymbolOrCurrency: 'Επιλέξτε ένα σύμβολο ή νόμισμα',
         card: 'Κάρτα',
         mcc: 'MCC',
@@ -1307,6 +1309,14 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Ωχ! Έχετε αντιστοιχίσει ένα μόνο πεδίο («${fieldName}») σε πολλές στήλες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         emptyMappedField: (fieldName: string) => `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες κενές τιμές. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         invalidApprovalLimit: 'Τα όρια έγκρισης πρέπει να είναι έγκυρα ποσά στο νόμισμα του χώρου εργασίας.',
+        approverColumn: (position: number) => `Εγκριτής ${position}`,
+        approverLimitColumn: (position: number) => `Όριο εγκρίνοντα ${position}`,
+        approverOverLimitApproverColumn: (position: number) => `Εγκρίνων ${position} ανώτατος εγκρίνων ορίου`,
+        approversOutOfOrder: (rowNumber: number) =>
+            `Ωχ! Η γραμμή ${rowNumber} δεν έχει εγκρίνων. Παρακαλούμε καταχωρίστε τους εγκρίνοντες με τη σειρά, ξεκινώντας με Εγκρίνων 1, και δοκιμάστε ξανά.`,
+        approverRepeated: (rowNumber: number) => `Ουπς! Η γραμμή ${rowNumber} έχει τον ίδιο εγκρίνων πάνω από μία φορά. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `Ουπς! Η γραμμή ${rowNumber} έχει όριο έγκρισης χωρίς υπεύθυνο έγκρισης για υπέρβαση ορίου ή υπεύθυνο έγκρισης για υπέρβαση ορίου χωρίς όριο έγκρισης. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Ωχ! Το πεδίο («${fieldName}») περιέχει μία ή περισσότερες τιμές μεγαλύτερες από ${limit} χαρακτήρες. Παρακαλούμε ελέγξτε και δοκιμάστε ξανά.`,
         importSuccessfulTitle: 'Η εισαγωγή ήταν επιτυχής',
@@ -4487,6 +4497,7 @@ ${amount} για ${merchant} - ${date}`,
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} με κατάληξη ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'Οι ερωτήσεις σε αυτή τη σελίδα άλλαξαν',
+        onFile: 'Καταχωρισμένο',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'Το SWIFT/BIC πρέπει να έχει μήκος 8 ή 11 χαρακτήρες, με 6 γράμματα ακολουθούμενα από 2 ή 5 γράμματα ή αριθμούς.',
@@ -6155,8 +6166,22 @@ ${amount} για ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Λογαριασμός πιστωτικής κάρτας',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Θα χρησιμοποιήσουμε αυτόν τον λογαριασμό για κάρτες που δεν έχουν δικό τους λογαριασμό εξαγωγής.'
+                    : 'Επιλέξτε έναν προεπιλεγμένο λογαριασμό. Θα τον χρησιμοποιήσουμε για κάρτες που δεν έχουν δικό τους λογαριασμό εξαγωγής.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'Θα χρησιμοποιήσουμε αυτόν τον προμηθευτή για έξοδα χωρίς προμηθευτή.'
+                    : 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή. Θα τον χρησιμοποιήσουμε για έξοδα χωρίς προμηθευτή.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Χρεώσεις πιστωτικής κάρτας',
+                        nonReimbursableDescription: 'Τα έξοδα εταιρικής κάρτας θα εξαχθούν στο NetSuite ως μεμονωμένες χρεώσεις πιστωτικής κάρτας, με την ημερομηνία κάθε αγοράς.',
+                        legacyTaxHelper: 'Οι χρεώσεις πιστωτικής κάρτας δεν υποστηρίζουν το NetSuite legacy tax. Αν χρησιμοποιείτε legacy tax, επιλέξτε άλλον τύπο εξαγωγής.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Αναφορές εξόδων',
                         reimbursableDescription: 'Τα έξοδα από ίδιους πόρους θα εξαχθούν ως αναφορές εξόδων στο NetSuite.',
@@ -6545,13 +6570,14 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             exportReimbursable: {
                 label: 'Εξαγωγή αποζημιώσιμων εξόδων ως',
                 values: {
-                    [CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
-                        label: 'Τιμολόγια προμηθευτών',
-                    },
+                    REIMBURSEMENT: {label: 'Αναλυτικές αποζημιώσεις'},
+                    VENDOR_BILL: {label: 'Αναλυτικοί λογαριασμοί προμηθευτών'},
                 },
+                description:
+                    'Θα δημιουργούμε ένα αναλυτικό τιμολόγιο προμηθευτή ή μια αποζημίωση για κάθε αναφορά Expensify. Αν η περίοδος είναι κλειστή, θα καταχωρούμε στην επόμενη ανοιχτή περίοδο.',
             },
             exportDate: {
-                label: 'Ημερομηνία τιμολογίου προμηθευτή',
+                label: 'Ημερομηνία επίδρασης στο Γ/Λ',
                 description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6598,11 +6624,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 },
             },
             syncReimbursedReports: 'Συγχρονισμός αποζημιωμένων αναφορών',
-            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρώνεται μέσω ACH, θα δημιουργείται μια πληρωμή τιμολογίου σε αυτόν τον λογαριασμό.',
-            billPaymentAccount: {
-                label: 'Λογαριασμός πληρωμής λογαριασμών',
-                description: 'Επιλέξτε από πού θα πληρώνονται οι λογαριασμοί και θα δημιουργήσουμε την πληρωμή στο Rillet.',
-            },
+            syncReimbursedReportsDescription: 'Όταν μια αναφορά πληρωθεί μέσω ACH, θα δημιουργηθεί μια πληρωμή σε αυτόν τον λογαριασμό.',
             syncExpensifyCardSettlements: 'Συγχρονισμός διακανονισμών Κάρτας Expensify',
             settlementAccount: {
                 label: 'Λογαριασμός διακανονισμού κάρτας Expensify',
@@ -6647,6 +6669,12 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 description:
                     'Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος για μια πληρωμή στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο Rillet ως λογιστική εγγραφή.',
             },
+            reimbursementAccount: {
+                label: 'Λογαριασμός αποζημίωσης',
+                description: 'Επιλέξτε πού θα εξαχθούν οι επιστρεπτέες δαπάνες.',
+                accountRequiredError: 'Παρακαλούμε επιλέξτε έναν λογαριασμό αποζημίωσης Rillet.',
+            },
+            achPaymentAccount: {label: 'λογαριασμός πληρωμών ACH', description: 'Επιλέξτε από πού θα πληρώνονται οι αναφορές και θα δημιουργήσουμε την πληρωμή στο Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'Ρύθμιση DualEntry',
@@ -6911,6 +6939,18 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_DAY_OF_MONTH]: 'Τελευταία ημέρα του μήνα',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Τελευταία εργάσιμη ημέρα του μήνα',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Προσαρμοσμένη ημέρα μήνα',
+            },
+            reimbursable: {
+                title: 'Επιστρεπτέο',
+                description: 'Επιλέξτε πώς θα δημιουργούνται οι συναλλαγές κάρτας. Οι νέες συναλλαγές θα ακολουθούν αυτούς τους κανόνες.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Πάντα επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Επιστρέφεται πάντα στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Πάντα μη επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Δεν επιστρέφεται ποτέ στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Επιστρέφεται συνήθως στους υπαλλήλους',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Μη επιστρεπτέο',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Επιστρέφεται περιστασιακά στους υπαλλήλους',
             },
             assign: 'Ανάθεση',
             assignCard: 'Ανάθεση κάρτας',
@@ -10209,6 +10249,8 @@ ${reportName}`,
             `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} κατόχοι κάρτας να διαγράψουν συναλλαγές κάρτας για την τροφοδοσία κάρτας «${feedName}»`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `άλλαξε την ημέρα λήξης της περιόδου εκκαθάρισης της ροής κάρτας «${feedName}»${newValue ? `σε "${newValue}"` : ''}${previousValue ? `(προηγουμένως "${previousValue}")` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `άλλαξε τη ρύθμιση επιστρεπτέου του καναλιού κάρτας "${feedName}"${newValue ? ` σε "${newValue}"` : ''}${previousValue ? ` (προηγουμένως "${previousValue}")` : ''}`,
         agentRule: {
             added: ({title, prompt}: {title: string; prompt: string}) => (title ? `προσέθεσε τον κανόνα πράκτορα «${title}»: ${prompt}` : `προσέθεσε έναν κανόνα πράκτορα: ${prompt}`),
             updated: ({title, prompt}: {title: string; prompt: string}) =>
@@ -10936,7 +10978,7 @@ ${reportName}`,
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Ποτέ',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Τον προηγούμενο μήνα',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Αυτόν τον μήνα',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Έως σήμερα μέσα στο έτος',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Φέτος',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Τελευταίοι 12 μήνες',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Αυτή την εβδομάδα',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Την προηγούμενη εβδομάδα',
@@ -11901,6 +11943,7 @@ ${reportName}`,
         keepThisOne: 'Κρατήστε αυτόν',
         confirmDetails: `Επιβεβαιώστε τα στοιχεία που κρατάτε`,
         confirmDuplicatesInfo: `Τα διπλότυπα που δεν θα κρατήσετε θα παραμείνουν διαθέσιμα ώστε το άτομο που τα υπέβαλε να τα διαγράψει.`,
+        confirmDuplicatesRemovedInfo: `Τα διπλότυπα που δεν θα κρατήσετε θα αφαιρεθούν.`,
         hold: 'Αυτή η δαπάνη τέθηκε σε αναμονή',
         resolvedDuplicates: 'έλυσε το διπλότυπο',
         companyCardRequired: 'Απαιτούνται αγορές με εταιρική κάρτα',
@@ -11992,6 +12035,7 @@ ${reportName}`,
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `Απαιτείται το πεδίο ${fieldName}`,
         reportContainsExpensesWithViolations: 'Η αναφορά περιέχει δαπάνες με παραβιάσεις.',
+        reportHasErrors: 'Η αναφορά έχει σφάλματα.',
     },
     violationDismissal: {
         rter: {
@@ -12491,7 +12535,7 @@ ${reportName}`,
             theresAReportWithErrors: 'Υπάρχει μια αναφορά με σφάλματα',
             theresAWorkspaceWithCustomUnitsErrors: 'Υπάρχει ένας χώρος εργασίας με σφάλματα προσαρμοσμένων μονάδων',
             theresAProblemWithAWorkspaceMember: 'Υπάρχει πρόβλημα με ένα μέλος του χώρου εργασίας',
-            theresAProblemWithAWorkspaceQBOExport: 'Παρουσιάστηκε πρόβλημα με μια ρύθμιση εξαγωγής σύνδεσης χώρου εργασίας.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Παρουσιάστηκε πρόβλημα με μια ρύθμιση εξαγωγής σύνδεσης χώρου εργασίας.',
             theresAProblemWithAContactMethod: 'Υπάρχει πρόβλημα με μια μέθοδο επικοινωνίας',
             aContactMethodRequiresVerification: 'Απαιτείται επαλήθευση μιας μεθόδου επικοινωνίας',
             theresAProblemWithAPaymentMethod: 'Υπάρχει πρόβλημα με μία μέθοδο πληρωμής',
