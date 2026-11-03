@@ -1,4 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import FullScreenWebView from '@components/FullScreenWebView';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -15,7 +16,6 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ShouldStartLoadRequest} from 'react-native-webview/lib/WebViewTypes';
 
 import React from 'react';
-import {WebView} from 'react-native-webview';
 
 /** Reads how Wise's form ended from a navigation that leaves Wise's site for the redirect URL, or returns null for any other navigation */
 function getRedirectStatus(url: string, formURL: string): string | null {
@@ -56,13 +56,13 @@ function WiseKYCReviewPage() {
                 onBackButtonPress={goBack}
             >
                 {/* Wise's form has its own header with a close button, so it takes the whole screen */}
-                <WebView
+                <FullScreenWebView
                     source={{uri: kycReviewURL ?? ''}}
                     onShouldStartLoadWithRequest={closeFormOnRedirect}
                     // The form's ID document step films the user, so the camera preview has to play inline, and Wise's own host gets the camera without a second prompt
                     allowsInlineMediaPlayback
                     mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
-                    startInLoadingState
+                    onGoBack={goBack}
                 />
             </FullPageNotFoundView>
         </ScreenWrapper>
