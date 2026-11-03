@@ -112,6 +112,8 @@ function setAuthToken(newAuthToken: string | null, newEncryptedAuthToken?: strin
         lastAuthTokenDrop = {source: 'setAuthToken', droppedAt: Date.now(), stack};
         Log.info('[NetworkStore] authToken dropped', false, {source: 'setAuthToken', stack});
     }
+    // Preserve the encrypted token when the same plain token is set without a replacement.
+    // A changed plain token must not retain the previous token's encrypted counterpart.
     if (authToken !== newAuthToken || newEncryptedAuthToken !== undefined) {
         encryptedAuthToken = newEncryptedAuthToken ?? null;
     }
