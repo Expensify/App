@@ -1,9 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Header from '@components/Header';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
-import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import Log from '@libs/Log';
@@ -31,7 +29,6 @@ function getRedirectStatus(url: string, formURL: string): string | null {
 
 /** Shows Wise's hosted KYC form in a WebView, as Wise's mobile guides describe, and closes it when the form ends */
 function WiseKYCReviewPage() {
-    const {translate} = useLocalize();
     const [kycReviewURL] = useOnyx(ONYXKEYS.RAM_ONLY_WISE_KYC_REVIEW_EMBEDDED_LINK, {selector: (embeddedLink) => embeddedLink?.url});
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.WISE_KYC_REVIEW.path);
 
@@ -58,10 +55,7 @@ function WiseKYCReviewPage() {
                 shouldShow={!kycReviewURL}
                 onBackButtonPress={goBack}
             >
-                <Header>
-                    <Header.BackButton onPress={goBack} />
-                    <Header.Title title={translate('walletPage.wiseOnboarding.moreInfoNeeded.headerTitle')} />
-                </Header>
+                {/* Wise's form has its own header with a close button, so it takes the whole screen */}
                 <WebView
                     source={{uri: kycReviewURL ?? ''}}
                     onShouldStartLoadWithRequest={closeFormOnRedirect}
