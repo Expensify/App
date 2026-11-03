@@ -666,7 +666,8 @@ describe('ReportAlternateTextUtils', () => {
                 message: [{type: 'COMMENT', html: 'changed the amount', text: 'changed the amount', whisperedTo: [WHISPER_TARGET_ACCOUNT_ID]}],
             });
 
-            // Given a one-transaction report with an empty thread, whose only action is a whisper aimed at one account
+            // Given a one-transaction report with an empty thread, whose only action is a whisper aimed at the signed-in account
+            await Onyx.merge(ONYXKEYS.SESSION, {accountID: WHISPER_TARGET_ACCOUNT_ID});
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[whisper.reportActionID]: whisper});
             await waitForBatchedUpdates();
@@ -688,7 +689,7 @@ describe('ReportAlternateTextUtils', () => {
                 rules: undefined,
             });
 
-            // Then neither the report nor its thread has an action that account can see, so there is no last message
+            // Then the passed account cannot see the whisper, so there is no last message, even though the signed-in account could see it
             expect(lastMessage).toBe('');
         });
 
