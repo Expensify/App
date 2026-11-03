@@ -61,14 +61,16 @@ function AddTaxRateToMatchPage({route}: AddTaxRateToMatchPageProps) {
         toggleAll,
     } = useRuleConditionSelection(form?.taxRatesToMatch ?? []);
 
-    // Keyed by external ID, which is what the tax action already stores and what the rule tree carries.
+    // Keyed the way the tax default and the search filter both key a rate, which is the `id_{NAME}` key of
+    // `taxRates.taxes` rather than the rate's own code. A code is editable and is unset on a rate made in OldDot,
+    // so a rule keyed by one would name a rate nothing else can resolve.
     const taxRateItems: TaxRateListItem[] = Object.entries(policy?.taxRates?.taxes ?? {})
-        .filter(([, taxRate]) => !taxRate.isDisabled || selectedTaxRates.includes(taxRate.code ?? ''))
-        .map(([externalID, taxRate]) => ({
-            keyForList: taxRate.code ?? externalID,
-            text: getTaxRateDisplayName(policy, taxRate.code ?? externalID),
-            value: taxRate.code ?? externalID,
-            isSelected: selectedTaxRates.includes(taxRate.code ?? externalID),
+        .filter(([taxRateKey, taxRate]) => !taxRate.isDisabled || selectedTaxRates.includes(taxRateKey))
+        .map(([taxRateKey]) => ({
+            keyForList: taxRateKey,
+            text: getTaxRateDisplayName(policy, taxRateKey),
+            value: taxRateKey,
+            isSelected: selectedTaxRates.includes(taxRateKey),
         }));
 
     // A rule keeps matching on a rate the workspace has since removed. Listing it is the only way to see what the
