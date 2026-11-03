@@ -10252,6 +10252,13 @@ const CONST = {
         WISE_MORE_INFO_NEEDED: {
             CONTINUE: 'WiseMoreInfoNeeded-Continue',
         },
+        WISE_ONBOARDING_IN_REVIEW: {
+            CHAT_WITH_CONCIERGE: 'WiseOnboardingInReview-ChatWithConcierge',
+            DONE: 'WiseOnboardingInReview-Done',
+        },
+        WISE_ONBOARDING_APPROVED: {
+            DONE: 'WiseOnboardingApproved-Done',
+        },
         PRODUCT_MARKETING_WINDOW: {
             CTA: 'ProductMarketingWindow-CTA',
             DISMISS: 'ProductMarketingWindow-Dismiss',

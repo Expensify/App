@@ -250,17 +250,9 @@ const DYNAMIC_ROUTES = {
         path: 'accept-terms',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
     },
-    WISE_MORE_INFO_NEEDED: {
-        path: 'more-info-needed',
+    WISE_ONBOARDING_STATUS: {
+        path: 'status',
         entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_GLOBAL_REIMBURSEMENTS_INTRO],
-    },
-    WISE_ONBOARDING_IN_REVIEW: {
-        path: 'in-review',
-        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS],
-    },
-    WISE_ONBOARDING_APPROVED: {
-        path: 'approved',
-        entryScreens: [SCREENS.SETTINGS.WALLET.DYNAMIC_WISE_ACCEPT_TERMS],
     },
     BANK_ACCOUNT_LINK_PLAID: {
         path: ':bankAccountID/link-plaid',

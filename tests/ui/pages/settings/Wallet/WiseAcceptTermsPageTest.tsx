@@ -67,7 +67,7 @@ describe('WiseAcceptTermsPage', () => {
         jest.clearAllMocks();
     });
 
-    it('keeps the page open with an error until every box is ticked, then opens the more info needed page', () => {
+    it('keeps the page open with an error until every box is ticked, then opens the status page', () => {
         // Given the terms page with only two of the three boxes ticked
         render(<WiseAcceptTermsPage />);
         fireEvent.press(screen.getByLabelText(TERM_LABELS.at(0) ?? ''));
@@ -84,10 +84,10 @@ describe('WiseAcceptTermsPage', () => {
         fireEvent.press(screen.getByLabelText(TERM_LABELS.at(2) ?? ''));
         pressConfirm();
 
-        // Then the button still works after the error, the SSN kept in memory for this page is dropped, and the in-review page replaces the terms since Wise has not approved the account yet
+        // Then the button still works after the error, the SSN kept in memory for this page is dropped, and the account's status page replaces the terms, since that page shows whatever Wise decided
         expect(clearSensitiveAnswers).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/1/${DYNAMIC_ROUTES.WISE_ONBOARDING_IN_REVIEW.path}`, {forceReplace: true});
+        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/1/${DYNAMIC_ROUTES.WISE_ONBOARDING_STATUS.path}`, {forceReplace: true});
     });
 
     it('hides the error once the user changes a box', () => {
