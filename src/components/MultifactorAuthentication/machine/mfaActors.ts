@@ -158,6 +158,7 @@ const finalizeOutcomeActor = fromPromise<FinalizeOutcomeOutput, FinalizeOutcomeI
         httpStatusCode: input.scenarioResponse?.httpStatusCode,
         reason: input.scenarioResponse?.reason ?? input.error?.reason,
         body: input.scenarioResponse?.body,
+        isCancelConfirmed: input.isCancelConfirmed,
     };
 
     let callbackResponse: MultifactorAuthenticationCallbackResponse;

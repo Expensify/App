@@ -33,9 +33,9 @@ function getStableLeafStates(node: AnyStateNode): LeafState[] {
         .map(toLeafState);
 }
 
-// `denying` needs a scenario with `onCancel`, and the only one (AuthorizeTransaction) has copy the UI walk
+// `cancellingInFlight` needs a scenario with `onCancel`, and the only one (AuthorizeTransaction) has copy the UI walk
 // doesn't assert. `cancelTransition.test.ts` covers it by hand.
-const UNWALKED_LEAF_STATES = new Set<string>([CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.DENYING]);
+const UNWALKED_LEAF_STATES = new Set<string>([CONST.MULTIFACTOR_AUTHENTICATION.MFA_STATE.CANCELLING_IN_FLIGHT]);
 
 /**
  * Returns the stable leaf states that the UI walk can also stop on and assert. This is separate from

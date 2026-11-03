@@ -473,7 +473,7 @@ describe('MFA cancel', () => {
         const REASON = CONST.MULTIFACTOR_AUTHENTICATION.REASON;
         const AUTHORIZE_TRANSACTION = CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.AUTHORIZE_TRANSACTION;
         const AWAITING_RESULT = {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: {[MFA_STATE.EXECUTING_SCENARIO_ACTION]: MFA_STATE.AWAITING_RESULT}}};
-        const DENYING = {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: {[MFA_STATE.EXECUTING_SCENARIO_ACTION]: MFA_STATE.DENYING}}};
+        const CANCELLING_IN_FLIGHT = {[MFA_STATE.PROMPT]: {[MFA_STATE.AUTHORIZING]: {[MFA_STATE.EXECUTING_SCENARIO_ACTION]: MFA_STATE.CANCELLING_IN_FLIGHT}}};
         const APPROVED: ExecuteScenarioActionOutput = {success: true, scenarioResponse: MFA_TEST_SCENARIO_RESPONSE};
         const DENIED = createMFAErrorFromApiResponse(200, REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, undefined);
         const NETWORK_ERROR = createMFAErrorFromApiResponse(0, REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE, undefined);
@@ -559,7 +559,7 @@ describe('MFA cancel', () => {
 
                 // Then the deny is sent while the approve keeps running, because a sent request can't be taken back and both results decide the outcome
                 const result = actor.getSnapshot();
-                expect(matchesState(openAt(DENYING), result.value)).toBe(true);
+                expect(matchesState(openAt(CANCELLING_IN_FLIGHT), result.value)).toBe(true);
                 expect(snapshotToState(result).isCancelConfirmVisible).toBe(false);
                 expect(result.context.isCancelConfirmed).toBe(true);
                 expect(result.children).toHaveProperty('executeScenarioAction');
@@ -569,7 +569,7 @@ describe('MFA cancel', () => {
                 actor.stop();
             });
 
-            it('ignores REQUEST_CANCEL while denying, so the dialog stays hidden', async () => {
+            it('ignores REQUEST_CANCEL while the deny is in flight, so the dialog stays hidden', async () => {
                 // Given the deny is racing the approve
                 const {actor} = await startDenying();
 
@@ -577,7 +577,7 @@ describe('MFA cancel', () => {
                 actor.send({type: 'REQUEST_CANCEL'});
 
                 // Then nothing changes, because the cancel is already under way and a dialog would ask an answered question
-                expect(matchesState(openAt(DENYING), actor.getSnapshot().value)).toBe(true);
+                expect(matchesState(openAt(CANCELLING_IN_FLIGHT), actor.getSnapshot().value)).toBe(true);
 
                 actor.stop();
             });
@@ -590,7 +590,7 @@ describe('MFA cancel', () => {
                 actor.send({type: 'CONFIRM_CANCEL'});
 
                 // Then no second deny goes out, because the backend must get a single answer for the transaction
-                expect(matchesState(openAt(DENYING), actor.getSnapshot().value)).toBe(true);
+                expect(matchesState(openAt(CANCELLING_IN_FLIGHT), actor.getSnapshot().value)).toBe(true);
                 expect(cancelInputs).toHaveLength(1);
 
                 actor.stop();
@@ -631,6 +631,18 @@ describe('MFA cancel', () => {
                         NETWORK_ERROR,
                         createMFAErrorFromApiResponse(400, REASON.CLIENT_ERRORS.ALREADY_DENIED_APPROVE_ATTEMPTED, undefined),
                     ],
+                    [
+                        'the deny that found it approved over an approve network error',
+                        {success: false, error: NETWORK_ERROR} as const,
+                        createMFAErrorFromApiResponse(400, REASON.CLIENT_ERRORS.ALREADY_APPROVED_DENY_ATTEMPTED, undefined),
+                        createMFAErrorFromApiResponse(400, REASON.CLIENT_ERRORS.ALREADY_APPROVED_DENY_ATTEMPTED, undefined),
+                    ],
+                    [
+                        'an expired approve over the deny that found it reviewed, when the server answered both',
+                        failedApprove(REASON.CLIENT_ERRORS.TRANSACTION_EXPIRED),
+                        createMFAErrorFromApiResponse(400, REASON.CLIENT_ERRORS.ALREADY_REVIEWED, undefined),
+                        createMFAErrorFromApiResponse(400, REASON.CLIENT_ERRORS.TRANSACTION_EXPIRED, undefined),
+                    ],
                     ['a network error when neither request gets a response', {success: false, error: NETWORK_ERROR} as const, NETWORK_ERROR, NETWORK_ERROR],
                 ])('ends with %s', async (_, approveResult, denyResult, expectedError) => {
                     // Given the deny is racing the approve
@@ -645,7 +657,7 @@ describe('MFA cancel', () => {
                         await settle(scenarioAction, approveResult);
                     }
 
-                    // Then the outcome doesn't depend on the order and is finalized once
+                    // Then the outcome doesn't depend on the order, a server answer beats a lost request, and it is finalized once
                     const result = actor.getSnapshot();
                     expect(matchesState(openAt(FINALIZING_OUTCOME), result.value)).toBe(true);
                     expect(result.context.error).toEqual(expectedError);
@@ -730,7 +742,7 @@ describe('MFA cancel', () => {
                     clock.increment(CANCEL_TIMEOUT_MS - 1);
 
                     // Then the flow keeps waiting
-                    expect(matchesState(openAt(DENYING), actor.getSnapshot().value)).toBe(true);
+                    expect(matchesState(openAt(CANCELLING_IN_FLIGHT), actor.getSnapshot().value)).toBe(true);
 
                     actor.stop();
                 });

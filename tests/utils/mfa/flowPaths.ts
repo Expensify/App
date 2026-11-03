@@ -420,7 +420,7 @@ function getMfaShortestPaths() {
 
 /**
  * Returns the shortest paths from an INIT whose scenario defines `onCancel`. Only such a scenario reaches
- * `denying`, so machine reachability walks both; the UI walk stays on the default scenario.
+ * `cancellingInFlight`, so machine reachability walks both; the UI walk stays on the default scenario.
  */
 function getMfaShortestPathsWithOnCancel() {
     const initEvent = createInitEventWithOnCancel();

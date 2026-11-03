@@ -91,6 +91,11 @@ function isHttpSuccess(httpStatusCode: number | undefined): boolean {
     return httpStatusCode !== undefined && categorizeHttpStatus(httpStatusCode) === VALUES.HTTP_STATUS.SUCCESS;
 }
 
+/** Whether the server answered at all: a request that got no response parses to status 0, and a local error has none. */
+function isHttpResponse(httpStatusCode: number | undefined): boolean {
+    return httpStatusCode !== undefined && categorizeHttpStatus(httpStatusCode) !== undefined;
+}
+
 function isRegistrationChallenge(challenge: unknown): challenge is RegistrationChallenge {
     return typeof challenge === 'object' && challenge !== null && 'user' in challenge && 'rp' in challenge;
 }
@@ -99,4 +104,4 @@ function isAuthenticationChallenge(challenge: unknown): challenge is Authenticat
     return typeof challenge === 'object' && challenge !== null && 'allowCredentials' in challenge && Array.isArray(challenge.allowCredentials) && 'rpId' in challenge;
 }
 
-export {parseHttpResponse, isHttpSuccess, isRegistrationChallenge, isAuthenticationChallenge};
+export {parseHttpResponse, isHttpSuccess, isHttpResponse, isRegistrationChallenge, isAuthenticationChallenge};

@@ -9,7 +9,7 @@ import type {FinalizeOutcomeInput} from '@components/MultifactorAuthentication/m
 
 import {clearDraftValues} from '@libs/actions/FormActions';
 import type {MFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
-import {createLocalMFAError} from '@libs/MultifactorAuthentication/shared/MFAResult';
+import {createLocalMFAError, createMFAErrorFromApiResponse} from '@libs/MultifactorAuthentication/shared/MFAResult';
 import Navigation from '@libs/Navigation/Navigation';
 import {setRevealedPhysicalCardPin, setRevealedVirtualCardDetails} from '@libs/RevealedCardSecretsStore';
 
@@ -76,6 +76,7 @@ type RunScenarioOptions = {
     scenarioResponse?: MultifactorAuthenticationScenarioResponse;
     error?: MFAError;
     payload?: MultifactorAuthenticationScenarioAdditionalParams<MultifactorAuthenticationScenario>;
+    isCancelConfirmed?: boolean;
 };
 
 /**
@@ -83,7 +84,7 @@ type RunScenarioOptions = {
  * input carries the raw flow results the machine forwards from context; success and the callback input
  * are derived by the actor itself, which `machine/finalizeOutcomeActor.test.ts` pins.
  */
-async function runScenario(scenarioName: MultifactorAuthenticationScenario, {scenarioResponse, error, payload}: RunScenarioOptions) {
+async function runScenario(scenarioName: MultifactorAuthenticationScenario, {scenarioResponse, error, payload, isCancelConfirmed = false}: RunScenarioOptions) {
     const input: FinalizeOutcomeInput = {
         callback: getScenarioConfig(scenarioName).callback,
         payload,
@@ -95,6 +96,7 @@ async function runScenario(scenarioName: MultifactorAuthenticationScenario, {sce
         isRegistrationComplete: false,
         softPromptApproved: false,
         registrationStateAtStart: undefined,
+        isCancelConfirmed,
     };
     const {finalizeOutcome} = createActors();
     const actorRef = createActor(finalizeOutcome, {input});
@@ -247,27 +249,21 @@ describe('MFA scenario callbacks through the finalize-outcome actor', () => {
         });
 
         it('denies the transaction on failure so it cannot be approved elsewhere', async () => {
-            const output = await runScenario(SCENARIO.AUTHORIZE_TRANSACTION, {error: CANCELED_ERROR, payload});
+            const output = await runScenario(SCENARIO.AUTHORIZE_TRANSACTION, {error: createLocalMFAError(REASON.LOCAL_ERRORS.HSM.CANCELED, undefined), payload});
 
             expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
             expect(fireAndForgetDenyTransaction).toHaveBeenCalledWith({transactionID: TRANSACTION_ID});
         });
 
         it.each([
-            REASON.FLOW_OUTCOMES.TRANSACTION_DENIED,
-            REASON.CLIENT_ERRORS.ALREADY_APPROVED_APPROVE_ATTEMPTED,
-            REASON.CLIENT_ERRORS.ALREADY_APPROVED_DENY_ATTEMPTED,
-            REASON.CLIENT_ERRORS.ALREADY_DENIED_APPROVE_ATTEMPTED,
-            REASON.CLIENT_ERRORS.ALREADY_DENIED_DENY_ATTEMPTED,
-            REASON.CLIENT_ERRORS.ALREADY_REVIEWED,
-        ])('sends no deny and shows the outcome screen when the server already settled the transaction (%s)', async (reason) => {
-            // Given a failure whose reason says the server has already approved or denied the transaction
-            const error = createLocalMFAError(reason, undefined);
-
+            ['the deny went through', createMFAErrorFromApiResponse(200, REASON.FLOW_OUTCOMES.TRANSACTION_DENIED, undefined)],
+            ['the deny got no response', createMFAErrorFromApiResponse(0, REASON.LOCAL_ERRORS.UNHANDLED_API_RESPONSE, undefined)],
+        ])('sends no second deny after a confirmed cancel when %s', async (_, error) => {
+            // Given the user confirmed a cancel, so onCancel already sent the deny
             // When the callback runs
-            const output = await runScenario(SCENARIO.AUTHORIZE_TRANSACTION, {error, payload});
+            const output = await runScenario(SCENARIO.AUTHORIZE_TRANSACTION, {error, payload, isCancelConfirmed: true});
 
-            // Then no deny is sent, since the server could only reject it, and the outcome screen still shows
+            // Then no cleanup deny is sent on top of it, and the outcome screen still shows
             expect(output).toEqual({callbackResponse: CALLBACK_RESPONSE.SHOW_OUTCOME_SCREEN});
             expect(fireAndForgetDenyTransaction).not.toHaveBeenCalled();
         });

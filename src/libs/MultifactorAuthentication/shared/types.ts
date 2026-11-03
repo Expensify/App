@@ -73,6 +73,9 @@ type MultifactorAuthenticationCallbackInput = {
 
     /** Object containing the data that is relevant to the Scenario (e.g., {pin: number} for PIN scenarios) */
     body?: Record<string, unknown>;
+
+    /** Whether the user confirmed a cancel, in which case the scenario's `onCancel` already ran */
+    isCancelConfirmed: boolean;
 };
 
 /**

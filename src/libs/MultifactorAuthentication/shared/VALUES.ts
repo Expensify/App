@@ -258,7 +258,7 @@ const MFA_STATE = {
     SIGNING_CHALLENGE: 'signingChallenge',
     EXECUTING_SCENARIO_ACTION: 'executingScenarioAction',
     AWAITING_RESULT: 'awaitingResult',
-    DENYING: 'denying',
+    CANCELLING_IN_FLIGHT: 'cancellingInFlight',
     OUTCOME: 'outcome',
     FINALIZING_OUTCOME: 'finalizingOutcome',
     SUCCESS: 'success',

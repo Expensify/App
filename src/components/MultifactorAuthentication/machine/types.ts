@@ -86,10 +86,10 @@ type MfaContext = {
      */
     isCancelConfirmed: boolean;
 
-    /** The `onCancel` result while `denying`, held until `denying` decides the outcome. */
+    /** The `onCancel` result while `cancellingInFlight`, held until `cancellingInFlight` decides the outcome. */
     cancelError: MFAError | undefined;
 
-    /** The scenario action's result while `denying`, held until `denying` decides the outcome. */
+    /** The scenario action's result while `cancellingInFlight`, held until `cancellingInFlight` decides the outcome. */
     scenarioActionResult: ExecuteScenarioActionOutput | undefined;
 };
 
@@ -205,6 +205,7 @@ type FinalizeOutcomeInput = {
     isRegistrationComplete: boolean;
     softPromptApproved: boolean;
     registrationStateAtStart: MFARegistrationStateSnapshot | undefined;
+    isCancelConfirmed: boolean;
 };
 
 /**
