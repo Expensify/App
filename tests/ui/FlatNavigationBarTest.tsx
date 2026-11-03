@@ -1,6 +1,7 @@
 import {cleanup, fireEvent, render, screen, within} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import FlatNavigationBar from '@components/Navigation/FlatNavigationBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -51,10 +52,11 @@ jest.mock('@libs/actions/Session', () => ({
 }));
 
 const REVIEW_REQUIRED_SUFFIX = 'Your review is required';
+const ACCOUNT_ID = 1;
 
 function renderBar(selectedTab: ValueOf<typeof NAVIGATION_TABS>) {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
             <FlatNavigationBar selectedTab={selectedTab} />
         </ComposeProviders>,
     );
@@ -74,7 +76,7 @@ describe('FlatNavigationBar', () => {
         mockInboxIndicator = NO_INDICATOR;
         mockWorkspacesIndicator = NO_INDICATOR;
         await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.EN);
-        await Onyx.set(ONYXKEYS.SESSION, {accountID: 1, email: 'user@example.com'});
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: ACCOUNT_ID, email: 'user@example.com'});
     });
 
     afterEach(async () => {
@@ -142,6 +144,19 @@ describe('FlatNavigationBar', () => {
 
         // Then it does not navigate, because the user is already in settings
         expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it('labels the Account row with the user name', async () => {
+        // Given a user with a display name
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, displayName: 'John Doe'}});
+
+        // When the bar renders
+        renderBar(NAVIGATION_TABS.HOME);
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the row shows the name and its accessible name contains it, so voice control can activate it by the visible label
+        expect(getRow('John Doe, My settings')).toBeOnTheScreen();
+        expect(within(getRow('John Doe, My settings')).getByText('John Doe')).toBeOnTheScreen();
     });
 
     it('flags Inbox and Workspaces when they need the user', async () => {

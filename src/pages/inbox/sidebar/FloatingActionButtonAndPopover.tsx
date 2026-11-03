@@ -28,7 +28,7 @@ function FloatingActionButtonAndPopover() {
             <FABButtons
                 isActive={isCreateMenuActive}
                 fabRef={fabRef}
-                onPress={() => toggleCreateMenu()}
+                onPress={toggleCreateMenu}
             />
         </View>
     );

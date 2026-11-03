@@ -41,7 +41,6 @@ function useCreateMenuVisibility() {
     return {
         isCreateMenuActive,
         isCreateMenuVisible: isCreateMenuActive && (!shouldUseNarrowLayout || isFocused),
-        showCreateMenu,
         hideCreateMenu,
         toggleCreateMenu,
     };

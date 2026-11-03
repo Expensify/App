@@ -12,15 +12,12 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import Navigation from '@libs/Navigation/Navigation';
-
 import NavigationTabBarAvatar from '@pages/inbox/sidebar/NavigationTabBarAvatar';
 import NavigationTabBarFloatingActionButton from '@pages/inbox/sidebar/NavigationTabBarFloatingActionButton';
 import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButton';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
@@ -33,6 +30,7 @@ import NAVIGATION_TABS from './NAVIGATION_TABS';
 import SearchTabButton from './SearchTabButton';
 import TabBarItem from './TabBarItem';
 import useAccountTabNavigation from './useAccountTabNavigation';
+import useHomeTabNavigation from './useHomeTabNavigation';
 import WorkspacesTabButton from './WorkspacesTabButton';
 
 type NavigationTabBarProps = {
@@ -50,12 +48,7 @@ function NavigationTabBar({selectedTab, shouldShowFloatingButtons = true}: Navig
 
     const StyleUtils = useStyleUtils();
 
-    const navigateToNewDotHome = () => {
-        if (selectedTab === NAVIGATION_TABS.HOME) {
-            return;
-        }
-        Navigation.navigate(ROUTES.HOME);
-    };
+    const navigateToNewDotHome = useHomeTabNavigation(selectedTab === NAVIGATION_TABS.HOME);
 
     const navigateToSettings = useAccountTabNavigation(selectedTab === NAVIGATION_TABS.SETTINGS);
 

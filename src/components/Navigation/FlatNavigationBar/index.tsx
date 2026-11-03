@@ -3,6 +3,7 @@ import Hoverable from '@components/Hoverable';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import useAccountTabNavigation from '@components/Navigation/NavigationTabBar/useAccountTabNavigation';
+import useHomeTabNavigation from '@components/Navigation/NavigationTabBar/useHomeTabNavigation';
 import useInsightsTabNavigation from '@components/Navigation/NavigationTabBar/useInsightsTabNavigation';
 import useSearchTabNavigation from '@components/Navigation/NavigationTabBar/useSearchTabNavigation';
 import useWideInboxNavigation from '@components/Navigation/NavigationTabBar/useWideInboxNavigation';
@@ -19,13 +20,12 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspacesTabIndicatorStatus from '@hooks/useWorkspacesTabIndicatorStatus';
 
-import Navigation from '@libs/Navigation/Navigation';
-
 import SupportalSwitcherButton from '@pages/inbox/sidebar/SupportalSwitcherButton';
+
+import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
@@ -36,7 +36,6 @@ import FlatNavCreateMenuButtons from './FlatNavCreateMenuButtons';
 import FlatNavDivider from './FlatNavDivider';
 import FlatNavItem from './FlatNavItem';
 import FlatNavLogo from './FlatNavLogo';
-import useNavigationBarWidth from './useNavigationBarWidth';
 
 type FlatNavigationBarProps = {
     selectedTab: ValueOf<typeof NAVIGATION_TABS>;
@@ -46,7 +45,6 @@ type FlatNavigationBarProps = {
 function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const navigationBarWidth = useNavigationBarWidth();
     const {translate} = useLocalize();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.IS_DEBUG_MODE_ENABLED);
     const icons = useMemoizedLazyExpensifyIcons(['Home', 'Inbox', 'ReceiptMultiple', 'PieChart', 'Buildings']);
@@ -64,13 +62,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
     const navigateToInsights = useInsightsTabNavigation(selectedTab === NAVIGATION_TABS.INSIGHTS);
     const navigateToWorkspaces = useRestoreWorkspacesTabOnNavigate();
 
-    const navigateToHome = () => {
-        if (isHomeSelected) {
-            return;
-        }
-        Navigation.navigate(ROUTES.HOME);
-    };
-
+    const navigateToHome = useHomeTabNavigation(isHomeSelected);
     const navigateToAccount = useAccountTabNavigation(isAccountSelected);
 
     const accountLabel = currentUserPersonalDetails.displayName ? currentUserPersonalDetails.displayName : translate('initialSettingsPage.account');
@@ -83,7 +75,7 @@ function FlatNavigationBar({selectedTab}: FlatNavigationBarProps) {
             <Hoverable shouldUseNativeHoverEvents>
                 {(isBarHovered) => (
                     <View
-                        style={[styles.flatNavigationBarContainer, StyleUtils.getWidthStyle(navigationBarWidth)]}
+                        style={[styles.flatNavigationBarContainer, StyleUtils.getWidthStyle(variables.flatNavigationBarWidth)]}
                         testID="FlatNavigationBar"
                     >
                         <View style={styles.flatNavigationBarHeader}>

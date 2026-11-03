@@ -3,6 +3,7 @@ import getTabIconFill from '@components/Navigation/NavigationTabBar/getTabIconFi
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -34,21 +35,20 @@ type FlatNavItemProps = {
 
     sentryLabel: string;
 
-    testID?: string;
-
     onPress: () => void;
 };
 
 /** Full-width row of the flat navigation bar: an icon or avatar, then the destination's label. */
-function FlatNavItem({label, icon, leftElement, isSelected, statusIndicatorColor, accessibilityLabel, sentryLabel, testID, onPress}: FlatNavItemProps) {
+function FlatNavItem({label, icon, leftElement, isSelected, statusIndicatorColor, accessibilityLabel, sentryLabel, onPress}: FlatNavItemProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
+    const StyleUtils = useStyleUtils();
 
     const getStatusIndicatorBorderStyle = (isHovered: boolean): StyleProp<ViewStyle> => {
         if (isSelected) {
-            return {borderColor: theme.hoverComponentBG};
+            return StyleUtils.getBorderColorStyle(theme.hoverComponentBG);
         }
-        return isHovered ? {borderColor: theme.highlightBG} : undefined;
+        return isHovered ? StyleUtils.getBorderColorStyle(theme.highlightBG) : undefined;
     };
 
     return (
@@ -58,7 +58,6 @@ function FlatNavItem({label, icon, leftElement, isSelected, statusIndicatorColor
             accessibilityLabel={accessibilityLabel ?? label}
             accessibilityState={{selected: isSelected}}
             sentryLabel={sentryLabel}
-            testID={testID}
             style={({hovered}) => [styles.flatNavigationBarItem, isSelected && styles.flatNavigationBarItemSelected, hovered && !isSelected && styles.flatNavigationBarItemHovered]}
         >
             {({hovered}) => (
