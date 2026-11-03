@@ -31,7 +31,11 @@ Onyx.connectWithoutView({
 });
 
 function isSameSession(session: Session): boolean {
-    return currentActiveSession.authToken === session.authToken && currentActiveSession.encryptedAuthToken === session.encryptedAuthToken;
+    return (
+        currentActiveSession.authToken === session.authToken &&
+        currentActiveSession.encryptedAuthToken === session.encryptedAuthToken &&
+        currentActiveSession.creationDate === session.creationDate
+    );
 }
 
 function deactivate() {
