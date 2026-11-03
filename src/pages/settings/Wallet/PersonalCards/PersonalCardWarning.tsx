@@ -35,16 +35,15 @@ function PersonalCardWarning() {
     const adminPoliciesCountInCardFeeds = adminPolicyIdsInCardFeeds.length;
     const isAdmin = adminPoliciesCountInCardFeeds > 0;
     const nonAdminPolicyID = !isAdmin ? Object.keys(cardFeedsByPolicy).find((key) => !!key) : undefined;
-    const [policyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(accountID, nonAdminPolicyID, reports ?? {})});
+    const [expenseChatReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(accountID, nonAdminPolicyID, reports ?? {})?.reportID});
 
     const onPrimaryActionPress = () => {
         if (!isAdmin) {
             if (!nonAdminPolicyID) {
                 return;
             }
-            const expenseChatReportId = policyExpenseChat?.reportID;
-            if (expenseChatReportId) {
-                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(expenseChatReportId));
+            if (expenseChatReportID) {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(expenseChatReportID));
                 return;
             }
         }

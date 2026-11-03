@@ -282,10 +282,11 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
         });
     };
 
-    const [cardHolderPolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard, reports ?? {})});
+    const [cardHolderWorkspaceChatReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getPolicyExpenseChat(currentCard?.accountID, policyIDForCurrentCard, reports ?? {})?.reportID,
+    });
 
     const handleAskToUnfreezePress = () => {
-        const cardHolderWorkspaceChatReportID = cardHolderPolicyExpenseChat?.reportID;
         if (!cardHolderWorkspaceChatReportID) {
             return;
         }
