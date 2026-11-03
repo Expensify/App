@@ -1,7 +1,10 @@
-import type {RectProps} from 'react-native-svg';
+import type {ComponentProps} from 'react';
 
 import React from 'react';
 import {Rect} from 'react-native-svg';
+
+// react-native-svg only exports `RectProps` from its native entry, so on web the props come from the component itself.
+type RectProps = ComponentProps<typeof Rect>;
 
 const BORDER_RADIUS_SMALL = 2; // text bars (height <= 8)
 const BORDER_RADIUS_MEDIUM = 4; // content blocks (height > 8)
