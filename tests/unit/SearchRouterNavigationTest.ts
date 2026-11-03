@@ -198,6 +198,7 @@ const spendIcons = {
     CheckCircle: mockIcon,
     UserEye: mockIcon,
     Plane: mockIcon,
+    Paycheck: mockIcon,
 };
 const workspaceIcons = {
     Building: mockIcon,

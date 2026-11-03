@@ -12,11 +12,12 @@ const StyleUtils = createStyleUtils(defaultTheme, styles(defaultTheme));
 
 describe('Created date scoped labels (#98148)', () => {
     const DATE = CONST.SEARCH.TABLE_COLUMNS.DATE;
-    const {EXPENSE, EXPENSE_REPORT, TASK, TRIP, INVOICE} = CONST.SEARCH.DATA_TYPES;
+    const {EXPENSE, EXPENSE_REPORT, BILL, TASK, TRIP, INVOICE} = CONST.SEARCH.DATA_TYPES;
 
     describe('isCreatedDateType (shared predicate)', () => {
-        it('is true for expense reports and tasks (non-editable created timestamp)', () => {
+        it('is true for expense reports, bills and tasks (non-editable created timestamp)', () => {
             expect(isCreatedDateType(EXPENSE_REPORT)).toBe(true);
+            expect(isCreatedDateType(BILL)).toBe(true);
             expect(isCreatedDateType(TASK)).toBe(true);
         });
 
@@ -75,8 +76,9 @@ describe('Created date scoped labels (#98148)', () => {
         const CREATED_DATE_MIN_WIDTH = 24 + 80;
         const DATE_MIN_WIDTH = 24 + 62;
 
-        it('gives the DATE column the wider "Created" budget in expense-report and task search', () => {
+        it('gives the DATE column the wider "Created" budget in expense-report, bill and task search', () => {
             expect(getTableMinWidth([DATE], EXPENSE_REPORT)).toBe(CREATED_DATE_MIN_WIDTH);
+            expect(getTableMinWidth([DATE], BILL)).toBe(CREATED_DATE_MIN_WIDTH);
             expect(getTableMinWidth([DATE], TASK)).toBe(CREATED_DATE_MIN_WIDTH);
         });
 
