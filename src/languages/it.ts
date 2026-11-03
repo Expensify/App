@@ -1063,6 +1063,10 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: 'Non possiamo inviarti notifiche via email', subtitle: 'Account'},
             upgradeNetSuiteConnection: {title: 'Aggiorna la connessione a NetSuite'},
+            verifyWiseBankAccount: {
+                title: 'Verifica il conto bancario',
+                subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conto bancario che termina con ${bankAccountLastFour}`,
+            },
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -3130,6 +3134,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: 'I conti bancari dell’azienda e del dipendente utilizzano valute diverse.',
         },
         wiseGlobalReimbursementsBanner: {title: 'Paga persone in tutto il mondo', subtitle: 'Abilita i rimborsi globali sul tuo conto in USD.'},
+        wiseMoreInfoNeeded: 'Servono più informazioni per abilitare i rimborsi globali',
         globalReimbursementsEnabled: 'Rimborsi globali abilitati',
     },
     addCardToDigitalWallet: {

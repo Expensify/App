@@ -1025,6 +1025,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             emailDeliveryFailure: {title: '我们无法向你发送电子邮件通知', subtitle: '账户'},
             upgradeNetSuiteConnection: {title: '升级您的 NetSuite 连接'},
+            verifyWiseBankAccount: {title: '验证银行账户', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `尾号为 ${bankAccountLastFour} 的银行账户`},
         },
         forYouSection: {
             submit: ({count}: {count: number}) => ({
@@ -3029,6 +3030,7 @@ const translations: TranslationDeepObject<typeof en> = {
             payingReportSubtitle: '公司账户和员工账户使用的货币不同。',
         },
         wiseGlobalReimbursementsBanner: {title: '向全球付款', subtitle: '在您的美元账户中启用全球报销。'},
+        wiseMoreInfoNeeded: '启用全球报销所需的更多信息',
         globalReimbursementsEnabled: '已启用全球报销',
     },
     addCardToDigitalWallet: {
