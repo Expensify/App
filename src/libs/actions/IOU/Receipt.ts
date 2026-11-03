@@ -13,7 +13,7 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {buildOptimisticReceiptAddedAction, buildOptimisticReceiptRemovedAction, isInvoiceReport as isInvoiceReportReportUtils} from '@libs/ReportUtils';
 import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {logReceiptCaptured, mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
-import {hasReceiptSource, hasUploadedReceipt} from '@libs/TransactionUtils';
+import {hasReceiptSource, hasUploadedReceipt, isFailedScanAmountPlaceholder} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 
 import type {IOURequestType, IOUType} from '@src/CONST';
@@ -254,10 +254,11 @@ function replaceReceipt({
     logReceiptCaptured({file, captureSource: 'replace', receiptTraceId});
 
     const oldReceipt = transaction?.receipt ?? {};
+    const isFailedScanPlaceholder = !state && !isSameReceipt && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED && isFailedScanAmountPlaceholder(transaction);
     const receiptOptimistic = {
         source,
         localSource: null,
-        state: state ?? CONST.IOU.RECEIPT_STATE.OPEN,
+        state: state ?? (isFailedScanPlaceholder ? CONST.IOU.RECEIPT_STATE.SCAN_READY : CONST.IOU.RECEIPT_STATE.OPEN),
         filename: file.name,
         receiptTraceId,
         // Clear the old count while the replacement is pending.
