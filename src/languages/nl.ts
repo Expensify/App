@@ -11098,10 +11098,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 leftTheChat: 'heeft de chat verlaten',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `zakelijke bankrekening ${maskedBankAccountNumber} is automatisch vergrendeld vanwege een probleem met terugbetalingen of Expensify Kaart-afwikkeling. Los het probleem op in je <a href="${linkURL}">werkruimte-instellingen</a>.`,
-                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
-                    bankName
-                        ? `Wereldwijde terugbetalingen zijn ingeschakeld door ${adminName} op de ${bankName}-rekening eindigend op ${lastFour}. Exacte wisselkoersen en kosten kunnen niet vooraf worden bekeken wanneer grensoverschrijdende rapporten automatisch worden betaald. Bekijk je <a href="${autoPaySettingsURL}">instellingen voor automatisch betalen</a> voor meer informatie over koersen en kosten.`
-                        : `Wereldwijde terugbetalingen zijn ingeschakeld door ${adminName} op de rekening eindigend op ${lastFour}. Exacte wisselkoersen en kosten kunnen niet vooraf worden bekeken wanneer grensoverschrijdende rapporten automatisch worden betaald. Bekijk je <a href="${autoPaySettingsURL}">instellingen voor automatisch betalen</a> voor meer informatie over koersen en kosten.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}heeft de chat verlaten`,
                 actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');

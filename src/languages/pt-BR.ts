@@ -11100,10 +11100,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 leftTheChat: 'saiu do chat',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `a conta bancária empresarial ${maskedBankAccountNumber} foi bloqueada automaticamente devido a um problema com Reembolso ou liquidação do Cartão Expensify. Corrija o problema nas suas <a href="${linkURL}">configurações de workspace</a>.`,
-                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
-                    bankName
-                        ? `Os reembolsos globais foram ativados por ${adminName} na conta ${bankName} com final ${lastFour}. As taxas de câmbio e tarifas exatas não podem ser visualizadas antes do pagamento quando relatórios internacionais são pagos automaticamente. Revise suas <a href="${autoPaySettingsURL}">configurações de pagamento automático</a> para mais informações sobre taxas de câmbio e tarifas.`
-                        : `Os reembolsos globais foram ativados por ${adminName} na conta com final ${lastFour}. As taxas de câmbio e tarifas exatas não podem ser visualizadas antes do pagamento quando relatórios internacionais são pagos automaticamente. Revise suas <a href="${autoPaySettingsURL}">configurações de pagamento automático</a> para mais informações sobre taxas de câmbio e tarifas.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}saiu do chat`,
                 actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');

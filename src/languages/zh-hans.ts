@@ -10664,10 +10664,6 @@ ${reportName}`,
                 leftTheChat: '已离开聊天',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `由于报销或 Expensify 卡结算问题，企业银行账户 ${maskedBankAccountNumber} 已被自动锁定。请在<a href="${linkURL}">工作区设置</a>中解决该问题。`,
-                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
-                    bankName
-                        ? `${adminName} 已在尾号为 ${lastFour} 的 ${bankName} 账户上启用全球报销。跨境报销单自动付款时，无法在付款前预览确切的汇率和费用。请查看<a href="${autoPaySettingsURL}">自动付款设置</a>，了解有关汇率和费用的更多信息。`
-                        : `${adminName} 已在尾号为 ${lastFour} 的账户上启用全球报销。跨境报销单自动付款时，无法在付款前预览确切的汇率和费用。请查看<a href="${autoPaySettingsURL}">自动付款设置</a>，了解有关汇率和费用的更多信息。`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}离开了聊天`,
                 actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');

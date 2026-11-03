@@ -11175,10 +11175,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 leftTheChat: 'hat den Chat verlassen',
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `Das Geschäftskonto ${maskedBankAccountNumber} wurde aufgrund eines Problems mit entweder der Erstattung oder dem Ausgleich der Expensify Karte automatisch gesperrt. Bitte beheben Sie das Problem in Ihren <a href="${linkURL}">Workspace-Einstellungen</a>.`,
-                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
-                    bankName
-                        ? `Globale Rückerstattungen wurden von ${adminName} für das ${bankName}-Konto mit der Endung ${lastFour} aktiviert. Genaue Wechselkurse und Gebühren können vor der Zahlung nicht angezeigt werden, wenn grenzüberschreitende Berichte automatisch bezahlt werden. Weitere Informationen zu Kursen und Gebühren finden Sie in Ihren <a href="${autoPaySettingsURL}">Einstellungen für die automatische Zahlung</a>.`
-                        : `Globale Rückerstattungen wurden von ${adminName} für das Konto mit der Endung ${lastFour} aktiviert. Genaue Wechselkurse und Gebühren können vor der Zahlung nicht angezeigt werden, wenn grenzüberschreitende Berichte automatisch bezahlt werden. Weitere Informationen zu Kursen und Gebühren finden Sie in Ihren <a href="${autoPaySettingsURL}">Einstellungen für die automatische Zahlung</a>.`,
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''} hat den Chat verlassen`,
                 actionableCard3DSTransactionApproval: (amount: string, merchant: string | undefined) => {
                     const amountAndMerchantText = [amount, merchant].filter((s) => !!s?.length).join(' ');

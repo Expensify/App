@@ -10987,10 +10987,6 @@ ${reportName}`,
                 leftTheChatWithName: (nameOrEmail) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}salió del chat`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `La cuenta bancaria comercial ${maskedBankAccountNumber} ha sido bloqueada automáticamente debido a un problema con el reembolso o la liquidación de la Tarjeta Expensify. Por favor, soluciona el problema en la <a href='${linkURL}'>configuración del espacio de trabajo</a>.`,
-                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
-                    bankName
-                        ? `Los Reembolsos Globales fueron habilitados por ${adminName} en la cuenta de ${bankName} que termina en ${lastFour}. No es posible ver de antemano los tipos de cambio ni las comisiones exactas cuando los informes internacionales se pagan automáticamente. Revisa tu <a href="${autoPaySettingsURL}">configuración de pago automático</a> para obtener más información sobre tipos de cambio y comisiones.`
-                        : `Los Reembolsos Globales fueron habilitados por ${adminName} en la cuenta que termina en ${lastFour}. No es posible ver de antemano los tipos de cambio ni las comisiones exactas cuando los informes internacionales se pagan automáticamente. Revisa tu <a href="${autoPaySettingsURL}">configuración de pago automático</a> para obtener más información sobre tipos de cambio y comisiones.`,
             },
             error: {
                 invalidCredentials: 'Credenciales no válidas, por favor verifica la configuración de tu conexión.',
