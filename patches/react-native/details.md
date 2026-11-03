@@ -71,11 +71,11 @@
 ### [react-native+0.86.0+010+Add-onPaste-to-TextInput.patch](react-native+0.86.0+010+Add-onPaste-to-TextInput.patch)
 
 - Reasons:
-    - Adds `onPaste` callback to `TextInput` to support image pasting on native
-    - Fixes an issue where pasted image displays as binary text on some Android devices where rich clipboard data is stored in binary form
-    - Fixes an issue where pasting from WPS Office app crashes the app on Android where its content URI is not recognized by Android `ContentResolver`
-    - Fixes an issue where mentions copied from mWeb and pasted on Android are not displayed.
-- Upstream PR/issue: https://github.com/facebook/react-native/pull/45425
+    - Adds an `onPaste` callback to `TextInput` that receives pasted files of any type on native, such as images from Photos or documents from Files. Each file comes with its MIME type, size, and original file name when the source app provides one.
+    - Pasted files are copied to temporary files, so they stay readable after the clipboard changes. Content without a known type or file name is left out.
+    - Only text inputs with an `onPaste` callback handle files. Text is always pasted the usual way.
+    - On Android, the patch uses `OnReceiveContentListener`, so files also arrive from the keyboard's clipboard, such as Gboard. Text keeps React Native's plain text paste, which fixes pasted images showing as binary text, crashes when pasting from WPS Office, and mentions copied from mWeb not being pasted.
+- Upstream PR/issue: https://github.com/react/react-native/pull/45425
 - Upstream RFC: https://github.com/s77rt/discussions-and-proposals/blob/TextInput-onPaste/proposals/0000-textinput-onpaste.md
 - E/App issue:
     - https://github.com/Expensify/App/issues/41239

@@ -122,7 +122,7 @@ const mockUseAttachmentPicker = jest.mocked(useAttachmentPicker);
 
 // Helper function to simulate pasting an image from the clipboard
 const simulateImagePaste = (composer: ReturnType<typeof screen.getByTestId>) => {
-    fireEvent(composer, 'paste', {nativeEvent: {items: [{type: 'image/png', data: 'file:///image.png'}]}});
+    fireEvent(composer, 'paste', {nativeEvent: {files: [{uri: 'file:///image.png', type: 'image/png', name: 'image.png', size: 1024}]}});
 };
 
 describe('ReportActionCompose Integration Tests', () => {
