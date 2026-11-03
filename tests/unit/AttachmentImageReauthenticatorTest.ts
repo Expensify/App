@@ -62,6 +62,25 @@ describe('AttachmentImageReauthenticator', () => {
         expect(reauthenticate).not.toHaveBeenCalled();
     });
 
+    test('does not reauthenticate when the reconnect only brings back a new creation date', async () => {
+        // Given a receipt shown with an expired session that already reconnected
+        const expiredSession = {authToken: 'fifthToken', encryptedAuthToken: 'fifthEncryptedToken', creationDate: 1};
+        const sessionSet = Onyx.set(ONYXKEYS.SESSION, expiredSession);
+        await jest.advanceTimersByTimeAsync(0);
+        await sessionSet;
+        activateReauthenticator(expiredSession);
+        await jest.advanceTimersByTimeAsync(TIME_BEFORE_RECONNECT_MS);
+
+        // When the reconnect keeps the same token but starts a new creation date
+        const sessionMerge = Onyx.merge(ONYXKEYS.SESSION, {creationDate: 2});
+        await jest.advanceTimersByTimeAsync(0);
+        await sessionMerge;
+        await jest.advanceTimersByTimeAsync(TIME_BEFORE_REAUTHENTICATION_MS);
+
+        // Then the app does not sign in again, since the receipt can load with the refreshed session
+        expect(reauthenticate).not.toHaveBeenCalled();
+    });
+
     test('reauthenticates when the session is still the same after the reconnect', async () => {
         // Given a receipt shown with an expired session that already reconnected
         activateReauthenticator({authToken: 'thirdToken', encryptedAuthToken: 'thirdEncryptedToken'});
