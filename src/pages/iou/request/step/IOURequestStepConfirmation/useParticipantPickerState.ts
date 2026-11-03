@@ -67,7 +67,7 @@ function useParticipantPickerState({
 
     const sourceReportID = transaction?.reportID ?? reportID;
     const sourceReport = sourceReportID
-        ? getReportOrDraftReport(sourceReportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${sourceReportID}`] ?? {})
+        ? getReportOrDraftReport({reportID: sourceReportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${sourceReportID}`] ?? {}})
         : undefined;
     const {participants: resolvedDefaultParticipants, isLoading: isLoadingDefaultParticipants} = useDefaultParticipants({sourceReport, transaction, iouType});
     const hasSelectedParticipants = (transaction?.participants ?? []).some((participant) => participant?.selected);
@@ -141,7 +141,7 @@ function useParticipantPickerState({
         const selectedPolicyID =
             selectedParticipant?.policyID ??
             (selectedParticipant?.reportID
-                ? getReportOrDraftReport(selectedParticipant.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${selectedParticipant.reportID}`] ?? {})
+                ? getReportOrDraftReport({reportID: selectedParticipant.reportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${selectedParticipant.reportID}`] ?? {}})
                       ?.policyID
                 : undefined);
         if (blockDistanceRequestIfNeeded(selectedPolicyID)) {
