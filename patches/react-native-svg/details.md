@@ -12,7 +12,7 @@
 
 - Upstream PR/issue: https://github.com/software-mansion/react-native-svg/pull/3056 (merged, not released yet). Remove this patch when upgrading past 15.15.5.
 - E/App issue: https://github.com/Expensify/App/issues/99287
-- PR introducing patch: PR_LINK
+- PR introducing patch: https://github.com/Expensify/App/pull/105816
 
 ### [react-native-svg+15.15.5+002+web-style-prop.patch](react-native-svg+15.15.5+002+web-style-prop.patch)
 
@@ -26,4 +26,4 @@
 
 - Upstream PR/issue: 🛑, upstream PR to be opened.
 - E/App issue: https://github.com/Expensify/App/issues/99287
-- PR introducing patch: PR_LINK
+- PR introducing patch: https://github.com/Expensify/App/pull/105816

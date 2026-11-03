@@ -30,4 +30,4 @@
 
 - Upstream PR/issue: 🛑, upstream PR to be opened.
 - E/App issue: https://github.com/Expensify/App/issues/99287
-- PR introducing patch: PR_LINK
+- PR introducing patch: https://github.com/Expensify/App/pull/105816
