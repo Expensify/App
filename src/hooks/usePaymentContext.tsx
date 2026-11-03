@@ -22,7 +22,7 @@ import usePolicy from './usePolicy';
 type SearchActionInputs = {
     conciergeChat: OnyxEntry<Report>;
     introSelected: OnyxEntry<IntroSelected>;
-    isSelfTourViewed: boolean | undefined;
+    isSelfTourViewed: boolean;
     amountOwed: OnyxEntry<number>;
     bankAccountList: OnyxEntry<BankAccountList>;
 };
@@ -77,7 +77,7 @@ function usePaymentContextValues(): PaymentContextValue {
             ONYXKEYS.BANK_ACCOUNT_LIST,
         ]);
         const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-        return {conciergeChat, introSelected, isSelfTourViewed: hasSeenTourSelector(onboarding) ?? false, amountOwed, bankAccountList};
+        return {conciergeChat, introSelected, isSelfTourViewed: hasSeenTourSelector(onboarding), amountOwed, bankAccountList};
     };
 
     return {

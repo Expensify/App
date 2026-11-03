@@ -147,7 +147,7 @@ function PayPrimaryAction({reportID, chatReportID, isDisabled}: PayPrimaryAction
             ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END,
         ]);
         const conciergeChat = await Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-        const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
+        const isSelfTourViewed = hasSeenTourSelector(onboarding);
         const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
         if (isInvoiceReport) {

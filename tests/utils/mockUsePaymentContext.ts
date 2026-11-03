@@ -14,7 +14,7 @@ const defaultMockPaymentContextValue: PaymentContextValue = {
     defaultWorkspaceName: 'Test Workspace',
     delegateEmail: undefined,
     delegateAccountID: undefined,
-    readSearchActionInputs: () => Promise.resolve({conciergeChat: undefined, introSelected: undefined, isSelfTourViewed: undefined, amountOwed: undefined, bankAccountList: undefined}),
+    readSearchActionInputs: () => Promise.resolve({conciergeChat: undefined, introSelected: undefined, isSelfTourViewed: false, amountOwed: undefined, bankAccountList: undefined}),
 };
 
 function createMockUsePaymentContextModule(overrides: MockPaymentContextOverrides = {}) {

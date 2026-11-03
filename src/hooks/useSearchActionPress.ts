@@ -11,7 +11,7 @@ import usePaymentContext from './usePaymentContext';
 const EMPTY_SEARCH_ACTION_INPUTS: SearchActionInputs = {
     conciergeChat: undefined,
     introSelected: undefined,
-    isSelfTourViewed: undefined,
+    isSelfTourViewed: false,
     amountOwed: undefined,
     bankAccountList: undefined,
 };

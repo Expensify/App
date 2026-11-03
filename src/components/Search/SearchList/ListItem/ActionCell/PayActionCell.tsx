@@ -126,7 +126,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 amountOwed,
                 ownerBillingGracePeriodEnd,
                 isTrackIntentUser: isTrackIntentUserSelector(introSelected),
-                isSelfTourViewed: hasSeenTourSelector(onboarding) ?? false,
+                isSelfTourViewed: hasSeenTourSelector(onboarding),
             };
         };
 
