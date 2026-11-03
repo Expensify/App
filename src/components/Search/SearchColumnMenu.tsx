@@ -105,6 +105,7 @@ function SearchColumnMenu({getHideColumnHandler}: SearchColumnMenuProps) {
                             // The checkmark only shows the active order visually.
                             accessibilityState={{selected: isAscendingActive}}
                             onSelect={() => sorting.onSort(CONST.SEARCH.SORT_ORDER.ASC)}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_SORT_ASCENDING}
                         />
                         <PopoverMenu.Item
                             text={translate('search.columnMenu.sortDescending')}
@@ -114,6 +115,7 @@ function SearchColumnMenu({getHideColumnHandler}: SearchColumnMenuProps) {
                             iconFill={getSortIconFill}
                             accessibilityState={{selected: isDescendingActive}}
                             onSelect={() => sorting.onSort(CONST.SEARCH.SORT_ORDER.DESC)}
+                            sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_SORT_DESCENDING}
                         />
                         <PopoverMenu.Separator />
                     </>
@@ -123,12 +125,14 @@ function SearchColumnMenu({getHideColumnHandler}: SearchColumnMenuProps) {
                         text={translate('search.columnMenu.hideColumn')}
                         icon={icons.EyeDisabled}
                         onSelect={onHideColumn}
+                        sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_HIDE_COLUMN}
                     />
                 )}
                 <PopoverMenu.Item
                     text={translate('search.editColumns')}
                     icon={icons.Columns}
                     onSelect={() => Navigation.navigate(ROUTES.SEARCH_COLUMNS)}
+                    sentryLabel={CONST.SENTRY_LABEL.SEARCH.COLUMN_MENU_EDIT_COLUMNS}
                 />
             </PopoverMenu.Content>
         </PopoverMenu.Root>
