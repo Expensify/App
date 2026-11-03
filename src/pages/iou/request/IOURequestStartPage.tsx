@@ -315,8 +315,15 @@ function IOURequestStartPage({
         onConfirmWhenUnfocused: () => Navigation.closeRHPFlow(),
         onCancel: restoreLastFocusedInput,
         onVisibilityChange: setDiscardModalVisibility,
-        onConfirm: () => {
+        onConfirm: (action) => {
             clearDiscardFocus();
+            // A browser history selection is replayed as a RESET after this callback. Closing the RHP first
+            // removes the navigator state that RESET was captured from, so let the replayed action perform
+            // that navigation instead.
+            if (action?.type === 'RESET') {
+                cancelTracking();
+                return;
+            }
             cleanupPreInsertedDestination();
         },
     });

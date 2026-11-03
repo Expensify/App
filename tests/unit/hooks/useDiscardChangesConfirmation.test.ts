@@ -188,6 +188,24 @@ describe('useDiscardChangesConfirmation (web)', () => {
             expect(historyGoSpy).toHaveBeenCalledTimes(1);
         });
 
+        it('provides the blocked reset action to the confirmation callback before replaying it', async () => {
+            const onConfirm = jest.fn();
+            renderDiscardHook(() => true, {onConfirm});
+
+            invokeBeforeRemove('RESET');
+            dispatchPopstate();
+            dispatchPopstate();
+            await resolveModalWith('CONFIRM');
+
+            expect(onConfirm).toHaveBeenCalledWith({type: 'RESET'});
+            const onConfirmCallOrder = onConfirm.mock.invocationCallOrder.at(0);
+            const navigationDispatchCallOrder = mockNavigationDispatch.mock.invocationCallOrder.at(0);
+            if (onConfirmCallOrder === undefined || navigationDispatchCallOrder === undefined) {
+                throw new Error('Expected confirmation and navigation dispatch calls');
+            }
+            expect(onConfirmCallOrder).toBeLessThan(navigationDispatchCallOrder);
+        });
+
         it('lets the confirmed re-dispatch through without re-blocking it', async () => {
             renderDiscardHook(() => true);
 

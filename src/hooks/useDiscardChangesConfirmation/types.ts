@@ -11,7 +11,8 @@ type UseDiscardChangesConfirmationOptions = {
     shouldPromptForNavigationAction?: (action: NavigationAction) => boolean;
     /** Handles a confirmed discard while the guarded screen is underneath a child screen. */
     onConfirmWhenUnfocused?: () => void;
-    onConfirm?: () => void | Promise<void>;
+    /** Runs before the blocked navigation is replayed. The action is undefined when confirmNavigation() initiated the prompt. */
+    onConfirm?: (action?: NavigationAction) => void | Promise<void>;
     onTabSwitchDiscard?: () => void | Promise<void>;
 };
 
