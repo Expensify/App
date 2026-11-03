@@ -23,7 +23,7 @@ import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectio
 
 import CONST from '@src/CONST';
 
-import type {ForwardedRef} from 'react';
+import type {ComponentRef, ForwardedRef} from 'react';
 import type {KeyboardTypeOptions, NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -114,6 +114,9 @@ type NumberWithSymbolFormProps = {
 
     onCurrencyButtonPress?: () => void;
 
+    /** Ref to the currency selection button, e.g. so a picker it opens can return focus to it. `displayAsTextInput` mode only. */
+    currencyButtonRef?: ForwardedRef<ComponentRef<typeof View>>;
+
     /**
      * Label on the trailing dropdown button (e.g. currency code). When set, used instead of `currency` so the same control can show a unit or other suffix.
      */
@@ -201,6 +204,7 @@ function NumberWithSymbolForm({
     shouldShowCurrencyButton = false,
     leadingRightHandSideComponent,
     onCurrencyButtonPress,
+    currencyButtonRef,
     currencyButtonLabel,
     currencyButtonAccessibilityLabel,
     shouldUseBorderlessButtons = false,
@@ -518,6 +522,7 @@ function NumberWithSymbolForm({
             )}
             {shouldShowCurrencyButton && !!currencyOrUnitButtonText && (
                 <Button
+                    ref={currencyButtonRef}
                     size={CONST.BUTTON_SIZE.SMALL}
                     innerStyles={shouldUseBorderlessButtons ? styles.bgTransparent : undefined}
                     // `innerStyles` never reaches the hover style `Button` layers on top, so the pill the

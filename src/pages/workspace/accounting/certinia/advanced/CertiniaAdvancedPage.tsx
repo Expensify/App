@@ -1,5 +1,6 @@
 import ConnectionLayout from '@components/ConnectionLayout';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+import MenuItem from '@components/MenuItem';
+import MenuItemField from '@components/MenuItem/presets/MenuItemField';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useCanConfigureCurrencyConversionFees from '@hooks/useCanConfigureCurrencyConversionFees';
@@ -128,14 +129,15 @@ function CertiniaAdvancedPage({policy}: WithPolicyConnectionsProps) {
             )}
             {isCertiniaFFAConnection(config) && canConfigureCurrencyConversionFees && (
                 <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.pendingFields)}>
-                    <MenuItemWithTopDescription
-                        shouldShowRightIcon
-                        title={selectedFxExpenseAccountName}
-                        description={translate('workspace.certinia.fxExpenseAccount')}
-                        wrapperStyle={[styles.ph5, styles.pv3]}
+                    <MenuItemField
+                        name={translate('workspace.certinia.fxExpenseAccount')}
+                        value={selectedFxExpenseAccountName}
                         onPress={!policyID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.POLICY_ACCOUNTING_CERTINIA_FX_EXPENSE_ACCOUNT.path))}
-                        brickRoadIndicator={areSettingsInErrorFields([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                    />
+                    >
+                        {areSettingsInErrorFields([CONST.CERTINIA_CONFIG.FX_EXPENSE_ACCOUNT], config?.errorFields) && (
+                            <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />
+                        )}
+                    </MenuItemField>
                 </OfflineWithFeedback>
             )}
         </ConnectionLayout>
