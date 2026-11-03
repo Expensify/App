@@ -1,7 +1,7 @@
 /**
  * In files React Compiler already memoizes, lint shouldn't tell people to add useCallback or useMemo.
- * For ESLint, scripts/lint's ReactCompilerFilter drops those reports. oxlint has no processors and
- * can't filter its native rules, so here the JS plugin rule itself is wrapped and drops them.
+ * scripts/lint's ReactCompilerFilter drops those reports after the run, but a plain oxlint run skips it, and
+ * dropping them here moves the compile into the parallel JS-plugin shards, so the rule itself is wrapped.
  */
 import {isFileMemoized} from '../reactCompiler/checkWithOxc.mjs';
 

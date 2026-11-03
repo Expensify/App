@@ -16,7 +16,7 @@ import useReportTransactionsCollection from '@hooks/useReportTransactionsCollect
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {removeFailedReport} from '@libs/actions/Report';
+import {clearReportErrors, removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getAllNonDeletedTransactions, shouldDisplayReportTableView, shouldWaitForTransactions as shouldWaitForTransactionsUtil} from '@libs/MoneyRequestReportUtils';
@@ -138,12 +138,17 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
     const hasPendingDelete = transactions.some((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
     const visibleTransactions =
         isOffline || !hasPendingDelete ? transactions : transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-    const reportErrors = visibleTransactions.length === 1 && visibleTransactions.at(0)?.errors ? undefined : allReportErrors;
+    // Fall back to the report errors (e.g. a failed submit) so they can be shown and dismissed in the report
+    const reportErrors = visibleTransactions.length === 1 && visibleTransactions.at(0)?.errors ? undefined : (allReportErrors ?? report?.errors);
     const reportTransactionIDs = visibleTransactions.map((transaction) => transaction.transactionID);
     const transactionThreadReportID = getOneTransactionThreadReportID(report, chatReport, reportActions ?? [], isOffline, reportTransactionIDs);
 
     const isReportLoadPending = useIsReportLoadPending(reportID);
     const dismissReportCreationError = () => {
+        if (!allReportErrors) {
+            clearReportErrors(reportID);
+            return;
+        }
         goBackFromSearchMoneyRequest({afterTransition: () => removeFailedReport(reportID)});
     };
 

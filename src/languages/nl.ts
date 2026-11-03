@@ -51,6 +51,8 @@ const translations: TranslationDeepObject<typeof en> = {
         count: 'Aantal',
         cancel: 'Annuleren',
         dismiss: 'Sluiten',
+        resizeColumn: ({columnName}: {columnName: string}) => `Kolom ${columnName} vergroten of verkleinen`,
+        columnWidth: ({width}: {width: number}) => `${width} pixels`,
         proceed: 'Doorgaan',
         unshare: 'Delen stoppen',
         yes: 'Ja',
@@ -330,6 +332,8 @@ const translations: TranslationDeepObject<typeof en> = {
         pm: 'PM',
         tbd: 'Nader te bepalen',
         selectCurrency: 'Selecteer een valuta',
+        any: 'Alle',
+        anyCurrency: 'Elke valuta',
         selectSymbolOrCurrency: 'Selecteer een symbool of valuta',
         card: 'Kaart',
         mcc: 'MCC',
@@ -1260,6 +1264,13 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `Oeps! Je hebt één veld (‘${fieldName}’) aan meerdere kolommen gekoppeld. Controleer dit en probeer het opnieuw.`,
         emptyMappedField: (fieldName: string) => `Oeps! Het veld („${fieldName}”) bevat een of meer lege waarden. Controleer het en probeer het opnieuw.`,
         invalidApprovalLimit: 'Goedkeuringslimieten moeten geldige bedragen in de valuta van de werkruimte zijn.',
+        approverColumn: (position: number) => `Fiatteur ${position}`,
+        approverLimitColumn: (position: number) => `Limiet voor ${position} van goedkeurder`,
+        approverOverLimitApproverColumn: (position: number) => `Fiatteur ${position} bovenlimiet-fiatterer`,
+        approversOutOfOrder: (rowNumber: number) => `Oeps! Rij ${rowNumber} mist een fiatteur. Geef de fiatteurs op in volgorde, beginnend met Fiatteur 1, en probeer het opnieuw.`,
+        approverRepeated: (rowNumber: number) => `Oeps! Rij ${rowNumber} bevat dezelfde fiatteur meer dan één keer. Controleer het en probeer het opnieuw.`,
+        approvalLimitIncomplete: (rowNumber: number) =>
+            `Oeps! Rij ${rowNumber} heeft een goedkeuringslimiet zonder een goedkeurder voor boven de limiet, of een goedkeurder voor boven de limiet zonder een goedkeuringslimiet. Controleer dit en probeer het opnieuw.`,
         fieldValueTooLong: (fieldName: string, limit: number) =>
             `Oeps! Het veld („${fieldName}”) bevat een of meer waarden die langer zijn dan ${limit} tekens. Controleer het en probeer het opnieuw.`,
         importSuccessfulTitle: 'Import geslaagd',
@@ -3962,7 +3973,7 @@ ${amount} voor ${merchant} - ${date}`,
 
                         1. Klik op *Workspaces*.
                         2. Selecteer je workspace.
-                        3. Klik op *Accounting*.
+                        3. Klik op *Verbindingen*.
                         4. Zoek ${integrationName}.
                         5. Klik op *Connect*.
 
@@ -4418,6 +4429,7 @@ ${amount} voor ${merchant} - ${date}`,
         maskedValueLabel: ({label, ending}: {label: string; ending: string}) => `${label} eindigend op ${ending}`,
         numberedItem: ({item, number}: {item: string; number: number}) => `${item} ${number}`,
         questionsChanged: 'De vragen op deze pagina zijn gewijzigd',
+        onFile: 'In bestand',
     },
     addPersonalBankAccount: {
         swiftBicFormatError: 'SWIFT/BIC moet 8 of 11 tekens lang zijn, met 6 letters gevolgd door 2 of 5 letters of cijfers.',
@@ -5365,22 +5377,14 @@ ${amount} voor ${merchant} - ${date}`,
             description: 'Geweldig nieuws 🎉. Neem contact met ons op als ze hulp nodig hebben bij de configuratie.',
         },
         mcp: {
-            connectors: 'Connectoren',
-            connectorsSubtitle: 'Verbind een AI-assistent met je Expensify-account.',
-            connect: 'Verbinden',
-            helpPrompt: 'Hulp nodig bij het verbinden?',
-            helpLink: 'Lees onze handleiding.',
             claude: {
                 title: 'Claude',
-                subtitle: 'van Anthropic',
             },
             cursor: {
                 title: 'Cursor',
-                subtitle: 'van Anysphere',
             },
             chatgpt: {
                 title: 'ChatGPT',
-                subtitle: 'van OpenAI',
             },
         },
         connections: {
@@ -6041,8 +6045,20 @@ ${amount} voor ${merchant} - ${date}`,
                     },
                 },
             },
+            creditCardAccount: 'Creditcardrekening',
+            creditCardAccountHelperText: (isSet: boolean) =>
+                isSet
+                    ? 'We gebruiken deze rekening voor kaarten die geen eigen exportrekening hebben.'
+                    : 'Kies een standaardrekening. We gebruiken deze voor kaarten die geen eigen exportrekening hebben.',
+            creditCardChargeDefaultVendorHelperText: (isSet: boolean) =>
+                isSet ? 'We gebruiken deze leverancier voor uitgaven zonder leverancier.' : 'Kies een standaardleverancier. We gebruiken deze voor uitgaven zonder leverancier.',
             exportDestination: {
                 values: {
+                    [CONST.NETSUITE_EXPORT_DESTINATION.CREDIT_CARD_CHARGE]: {
+                        label: 'Creditcardkosten',
+                        nonReimbursableDescription: 'Uitgaven van bedrijfskaarten worden geëxporteerd naar NetSuite als afzonderlijke creditcardkosten, gedateerd met elke aankoop.',
+                        legacyTaxHelper: 'Creditcardkosten ondersteunen geen NetSuite legacy tax. Als je legacy tax gebruikt, kies dan een ander exporttype.',
+                    },
                     [CONST.NETSUITE_EXPORT_DESTINATION.EXPENSE_REPORT]: {
                         label: 'Onkostendeclaraties',
                         reimbursableDescription: 'Uit eigen zak betaalde onkosten worden als onkostendeclaraties geëxporteerd naar NetSuite.',
@@ -6426,9 +6442,17 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             noAccountsFound: 'Geen accounts gevonden',
             noAccountsFoundDescription: 'Voeg alsjeblieft rekeningen toe in Rillet en synchroniseer de verbinding opnieuw',
             exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar Rillet.',
-            exportReimbursable: {label: 'Vergoedbare uitgaven exporteren als', values: {[CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL]: {label: 'Leveranciersfacturen'}}},
+            exportReimbursable: {
+                label: 'Vergoedbare uitgaven exporteren als',
+                values: {
+                    REIMBURSEMENT: {label: 'Gespecificeerde vergoedingen'},
+                    VENDOR_BILL: {label: 'Gespecificeerde leveranciersfacturen'},
+                },
+                description:
+                    'We maken een gespecificeerde leveranciersfactuur of terugbetaling voor elk Expensify-rapport. Als de periode is afgesloten, boeken we naar de eerstvolgende open periode.',
+            },
             exportDate: {
-                label: 'Factuurdatum leverancier',
+                label: 'Boekdatum grootboek',
                 description: 'Gebruik deze datum bij het exporteren van rapporten naar Rillet.',
                 values: {
                     [CONST.RILLET_EXPORT_DATE.LAST_EXPENSE]: {
@@ -6464,8 +6488,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 },
             },
             syncReimbursedReports: 'Vergoede rapporten synchroniseren',
-            syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een rekeningbetaling in deze rekening aangemaakt.',
-            billPaymentAccount: {label: 'Rekening voor het betalen van rekeningen', description: 'Kies van waar je rekeningen wilt betalen en we maken de betaling aan in Rillet.'},
+            syncReimbursedReportsDescription: 'Wanneer een rapport via ACH wordt betaald, wordt er een betaling op deze rekening gegenereerd.',
             syncExpensifyCardSettlements: 'Expensify Kaartafrekeningen synchroniseren',
             settlementAccount: {label: 'Rekening voor verrekening van Expensify Kaart', description: 'Kies je vereffeningsrekening en we maken de betaling voor je aan in Rillet.'},
             syncTravelBillingSettlements: 'Geconsolideerde Travel Billing-afrekeningen synchroniseren',
@@ -6507,6 +6530,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 description:
                     'Wanneer je bedrijf de kosten voor valutaomrekening dekt voor een betaling in het buitenland, boeken we die kosten in Rillet op deze rekening als een journaalpost.',
             },
+            reimbursementAccount: {
+                label: 'Vergoedingsrekening',
+                description: 'Kies waar je terugbetaalbare uitgaven wilt exporteren.',
+                accountRequiredError: 'Selecteer een Rillet-vergoedingsrekening.',
+            },
+            achPaymentAccount: {label: 'ACH-betaalrekening', description: 'Kies vanwaar je rapporten wilt betalen en wij maken de betaling aan in Rillet.'},
         },
         dualEntry: {
             dualEntrySetup: 'DualEntry-configuratie',
@@ -6776,6 +6805,18 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.LAST_BUSINESS_DAY_OF_MONTH]: 'Laatste werkdag van de maand',
                 [CONST.COMPANY_CARDS.STATEMENT_CLOSE_DATE.CUSTOM_DAY_OF_MONTH]: 'Aangepaste dag van de maand',
             },
+            reimbursable: {
+                title: 'Vergoedbaar',
+                description: 'Kies hoe kaarttransacties moeten worden aangemaakt. Nieuwe transacties volgen deze regels.',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES]: 'Altijd vergoedbaar',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_YES}Description`]: 'Wordt altijd aan werknemers terugbetaald',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO]: 'Altijd niet-vergoedbaar',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.FORCE_NO}Description`]: 'Wordt nooit aan werknemers terugbetaald',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES]: 'Vergoedbaar',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_YES}Description`]: 'Wordt meestal aan werknemers terugbetaald',
+                [CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO]: 'Niet-vergoedbaar',
+                [`${CONST.COMPANY_CARDS.FEED_REIMBURSABLE.DEFAULT_NO}Description`]: 'Wordt af en toe aan werknemers terugbetaald',
+            },
             assign: 'Toewijzen',
             assignCard: 'Kaart toewijzen',
             findCompanyCard: 'Bedrijfskaart zoeken',
@@ -6988,10 +7029,6 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             organizeSection: {
                 title: 'Organiseren',
                 subtitle: 'Groepeer en analyseer uitgaven, leg elke betaalde belasting vast.',
-            },
-            integrateSection: {
-                title: 'Integreren',
-                subtitle: 'Koppel Expensify aan populaire financiële producten.',
             },
             distanceRates: {
                 title: 'Kilometertarieven',
@@ -7225,23 +7262,18 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             },
             mcp: {
                 title: 'MCP',
-                subtitle: 'Verbind een AI-assistent met je Expensify-account.',
             },
             receiptPartners: {
                 title: 'Bonpartners',
-                subtitle: 'Automatisch bonnetjes importeren.',
             },
             connectionsWarningModal: {
                 featureEnabledTitle: 'Niet zo snel...',
                 featureEnabledText: 'Om deze functie in of uit te schakelen, moet je je instellingen voor boekhoudkundige import wijzigen.',
-                disconnectText: 'Om de boekhouding uit te schakelen, moet je de boekhoudkoppeling van je werkruimte loskoppelen.',
                 manageSettings: 'Instellingen beheren',
             },
             receiptPartnersWarningModal: {
                 featureEnabledTitle: 'Verbinding met Uber verbreken',
-                disconnectText: 'Om deze functie uit te schakelen, verbreek eerst de koppeling met de Uber for Business-integratie.',
                 description: 'Weet je zeker dat je deze integratie wilt ontkoppelen?',
-                confirmText: 'Begrepen',
             },
             workflowWarningModal: {
                 featureEnabledTitle: 'Niet zo snel...',
@@ -7258,14 +7290,12 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 subtitle: 'Stel een factureerbaar uurtarief in voor tijdregistratie.',
                 defaultHourlyRate: 'Standaard uurtarief',
             },
-            hrWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om HR uit te schakelen, koppel eerst ${integration} los van deze workspace.`},
             vendors: {
                 title: 'Leveranciers',
                 subtitle: 'Koppel kaartuitgaven aan leveranciers die zijn geïmporteerd uit je boekhoudsoftware.',
                 disabledTitle: 'Niet zo snel...',
                 disabledMessage: 'Om deze functie in of uit te schakelen, moet je je boekhoudimportinstellingen wijzigen.',
             },
-            recruitingWarningModal: {disconnectText: ({integration}: {integration: string}) => `Om Werving uit te schakelen, koppel ${integration} eerst los van deze workspace.`},
         },
         reports: {
             reportsCustomTitleExamples: 'Voorbeelden:',
@@ -7762,7 +7792,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
         accounting: {
             settings: 'instellingen',
             title: 'Verbindingen',
-            subtitle: 'Verbind je boekhoudsoftware voor een automatische synchronisatie.',
             qbo: 'QuickBooks Online',
             intuitEnterpriseSuite: 'Intuit Enterprise Suite',
             qbd: 'QuickBooks Desktop',
@@ -7774,10 +7803,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             sap: 'SAP',
             oracle: 'Oracle',
             microsoftDynamics: 'Microsoft Dynamics',
-            talkYourOnboardingSpecialist: 'Chat met je accountmanager.',
-            talkYourAccountManager: 'Chat met je accountmanager.',
-            talkToConcierge: 'Chat met Concierge.',
-            needAnotherAccounting: 'Nog een boekhoudprogramma nodig?',
             connectionName: (connectionName: AllConnectionName) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
@@ -7826,7 +7851,6 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             disconnect: 'Verbinding verbreken',
             reinstall: 'Connector opnieuw installeren',
             disconnectTitle: (connectionName = 'integratie') => `Verbinding met ${connectionName} verbreken`,
-            connectTitle: (connectionName) => `Verbind ${connectionName}`,
             syncError: (connectionName) => `Kan geen verbinding maken met ${connectionName}`,
             accounts: 'Rekeningschema',
             taxes: 'Belastingen',
@@ -7843,12 +7867,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 [CONST.INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT]: 'Standaard NetSuite-medewerker',
             },
             disconnectPrompt: (connectionName = 'deze integratie') => `Weet je zeker dat je ${connectionName} wilt ontkoppelen?`,
-            connectPrompt: (connectionName) => `Weet je zeker dat je ${connectionName} wilt koppelen? Hierdoor worden alle bestaande boekhoudkundige koppelingen verwijderd.`,
             enterCredentials: 'Voer je inloggegevens in',
             reconnect: 'Opnieuw verbinden',
             updateCredentials: 'Inloggegevens bijwerken',
             claimOffer: {
-                badgeText: 'Aanbieding beschikbaar!',
                 xero: {
                     headline: 'Krijg Xero 6 maanden gratis!',
                     description: '<muted-text><centered-text>Nieuw bij Xero? Expensify-klanten krijgen 6 maanden gratis. Claim jouw aanbieding hieronder.</centered-text></muted-text>',
@@ -9339,10 +9361,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             subscriptions: 'Abonnementen',
         },
         hr: {
-            title: 'HR',
             connectionsSubtitle:
                 'Verbind met je HR-systeem om werknemersgegevens te synchroniseren, terugbetalingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
-            subtitle: 'Koppel HR-tools en houd goedkeuringen van medewerkers gesynchroniseerd.',
             alreadyConnectedTitle: 'Kan niet met meerdere HR-platformen verbinden',
             alreadyConnectedPrompt: 'Je moet je huidige HR-platform loskoppelen voordat je een ander kunt verbinden.',
             connectionDescription: (providerName: string) => `Verbind ${providerName} om goedkeuringen van werknemers gesynchroniseerd te houden met je werkruimte.`,
@@ -9405,7 +9425,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
         },
         recruiting: {
-            title: 'Werving',
             connectionsSubtitle:
                 'Koppel je recruitmentsysteem om kandidaatgegevens te synchroniseren, vergoedingen automatisch aan de juiste personen te koppelen en de uitgaven van je team nauwkeurig te houden zonder handmatig werk.',
             alreadyConnectedTitle: 'Kan niet met meerdere ATS-platformen verbinden',
@@ -9413,7 +9432,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             syncing: 'Kandidaten synchroniseren',
             setupIncomplete: (setupLink: string | undefined) =>
                 `<muted-text-label>Verbonden. ${setupLink ? `<a href="${setupLink}">Installatie voltooien</a>` : 'Voltooi installatie'} om kandidaten te importeren.</muted-text-label>`,
-            dontSeeYourATS: `<muted-text-label>Zie je je ATS hier niet? <a href="#">Vraag het aan Concierge</a> en we kunnen het toevoegen.</muted-text-label>`,
             importSettings: 'Importinstellingen',
             defaultApprover: 'Standaardgoedkeurder',
             approverFields: {recruiter: 'Recruiter', recruitingCoordinator: 'Coördinator werving', hiringManager: 'Wervingsmanager'},
@@ -9439,7 +9457,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 },
                 enableJobStagesOrTags: 'Selecteer minstens één functiestap of tag om door te gaan',
             },
-            subtitle: 'Koppel wervingstools en houd kandidaategoedkeuringen gesynchroniseerd.',
             syncResults: {
                 importedCount: () => ({
                     one: '1 kandidaat',
@@ -9463,9 +9480,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             },
         },
         merge: {
-            connections: 'Verbindingen',
-            connect: 'Verbinden',
-            findIntegration: 'Integratie zoeken',
             syncNow: 'Nu synchroniseren',
             disconnect: 'Ontkoppelen',
             disconnectTitle: (providerName: string) => `${providerName} ontkoppelen`,
@@ -9607,6 +9621,27 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             enableNewAccountsTitle: 'Nieuw geïmporteerde rekeningen inschakelen',
             enableNewAccountsDescription: 'Nieuwe Zoho Books-accounts zullen beschikbaar zijn als categorieën.',
             reportingTagsImport: 'Alle Zoho Books-rapportagetags worden geïmporteerd als tags',
+            exportDescription: 'Stel in hoe Expensify-gegevens worden geëxporteerd naar Zoho Books.',
+            exportReimbursable: {label: 'Vergoedbare uitgaven exporteren als', values: {VENDOR_BILL: {label: 'Leveranciersfacturen'}}},
+            exportDate: {
+                label: 'Factuurdatum leverancier',
+                description: 'Gebruik deze datum bij het exporteren van rapporten naar Zoho Books.',
+                values: {
+                    LAST_EXPENSE: {label: 'Datum van laatste uitgave', description: 'Datum van de meest recente uitgave in het rapport.'},
+                    REPORT_EXPORTED: {label: 'Exportdatum', description: 'Datum waarop het rapport is geëxporteerd naar Zoho Books.'},
+                    REPORT_SUBMITTED: {label: 'Indiendatum', description: 'Datum waarop het rapport ter goedkeuring is ingediend.'},
+                },
+            },
+            exportNonReimbursable: {label: 'Bedrijfspaskosten exporteren als', values: {EXPENSE: {label: 'Uitgaven'}}},
+            defaultCompanyCardVendor: {
+                label: 'Standaardleverancier voor alle bedrijfskaarten',
+                description: 'Kies een standaard Zoho Books-leverancier voor uitgaven die niet automatisch worden gekoppeld.',
+            },
+            companyCardAccount: {label: 'Bedrijfskaartrekening', description: 'Kies waar je transacties van bedrijfskaarten naartoe wilt exporteren.'},
+            noVendorsFound: 'Geen leveranciers gevonden',
+            noVendorsFoundDescription: 'Voeg leveranciers toe in Zoho Books en synchroniseer de verbinding opnieuw',
+            noAccountsFound: 'Geen accounts gevonden',
+            noAccountsFoundDescription: 'Voeg accounts toe in Zoho Books en synchroniseer de verbinding opnieuw',
         },
         businessCentral: {
             businessCentralSetup: 'Dynamics 365 Business Central-configuratie',
@@ -10301,6 +10336,8 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             `${enabled ? 'ingeschakeld' : 'uitgeschakeld'} kaarthouders om kaarttransacties te verwijderen voor kaartfeed "${feedName}"`,
         updatedCardFeedStatementPeriod: (feedName: string, newValue?: string, previousValue?: string) =>
             `heeft de einddag van de afrekenperiode van kaartfeed "${feedName}" gewijzigd${newValue ? ` naar "${newValue}"` : ''}${previousValue ? ` (voorheen "${previousValue}")` : ''}`,
+        updatedCardFeedReimbursable: (feedName: string, newValue?: string, previousValue?: string) =>
+            `heeft de instelling voor vergoedbaar van kaartfeed "${feedName}"${newValue ? ` naar "${newValue}"` : ''}${previousValue ? ` (eerder "${previousValue}")` : ''}`,
         addedReportField: (fieldType: string, fieldName?: string, defaultValue?: string) =>
             `heeft ${fieldType}-rapportveld "${fieldName}" toegevoegd${defaultValue ? ` met standaardwaarde "${defaultValue}"` : ''}`,
         updatedMccGroupCategory: ({mccGroupName, oldCategory, newCategory}: {mccGroupName: string; oldCategory: string; newCategory: string}) =>
@@ -10669,7 +10706,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                     [CONST.SEARCH.DATE_PRESETS.NEVER]: 'Nooit',
                     [CONST.SEARCH.DATE_PRESETS.LAST_MONTH]: 'Vorige maand',
                     [CONST.SEARCH.DATE_PRESETS.THIS_MONTH]: 'Deze maand',
-                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Jaar tot nu toe',
+                    [CONST.SEARCH.DATE_PRESETS.YEAR_TO_DATE]: 'Dit jaar',
                     [CONST.SEARCH.DATE_PRESETS.LAST_12_MONTHS]: 'Laatste 12 maanden',
                     [CONST.SEARCH.DATE_PRESETS.THIS_WEEK]: 'Deze week',
                     [CONST.SEARCH.DATE_PRESETS.LAST_WEEK]: 'Vorige week',
@@ -10895,6 +10932,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         mergeReports: {
             title: 'Rapporten samenvoegen',
             description: 'Selecteer het rapport dat je wilt behouden. Alle uitgaven worden daarheen verplaatst en de andere rapporten worden verwijderd.',
+            exportedWarning:
+                'Een of meer geselecteerde rapporten zijn al geëxporteerd naar een boekhoudintegratie. Deze samenvoegen kan dubbele gegevens veroorzaken als ze opnieuw worden geëxporteerd.',
+            reportFieldsMismatch:
+                '<strong>Deze rapporten hebben verschillende waarden voor rapportvelden.</strong> Om ze te combineren, zorg je er eerst voor dat de rapportvelden in elk rapport overeenkomen.',
             listPage: {noEligibleReportsFound: 'Geen in aanmerking komende rapporten gevonden', noEligibleReportsFoundSubtitle: 'Je hebt geen rapporten die kunnen worden samengevoegd.'},
         },
         periodSoFar: ({period}: {period: string}) => `${period} tot nu toe`,
@@ -11623,6 +11664,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         keepThisOne: 'Deze behouden',
         confirmDetails: `Bevestig de details die je bewaart`,
         confirmDuplicatesInfo: `De duplicaten die je niet bewaart, worden vastgehouden zodat de indiener ze kan verwijderen.`,
+        confirmDuplicatesRemovedInfo: `De duplicaten die je niet bewaart, worden verwijderd.`,
         hold: 'Deze uitgave is gepauzeerd',
         resolvedDuplicates: 'dubbeling opgelost',
         companyCardRequired: 'Bedrijfspaskaarten vereist',
@@ -11717,6 +11759,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
     reportViolations: {
         [CONST.REPORT_VIOLATIONS.FIELD_REQUIRED]: (fieldName: string) => `${fieldName} is verplicht`,
         reportContainsExpensesWithViolations: 'Rapport bevat onkosten met overtredingen.',
+        reportHasErrors: 'Rapport bevat fouten.',
     },
     violationDismissal: {
         rter: {
@@ -12208,7 +12251,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             theresAReportWithErrors: 'Er is een rapport met fouten',
             theresAWorkspaceWithCustomUnitsErrors: 'Er is een werkruimte met fouten in aangepaste eenheden',
             theresAProblemWithAWorkspaceMember: 'Er is een probleem met een werkruimtelid',
-            theresAProblemWithAWorkspaceQBOExport: 'Er was een probleem met een exportinstelling voor een workspace-verbinding.',
+            theresAProblemWithAWorkspaceReimbursementExport: 'Er is een probleem opgetreden met een exportinstelling voor een werkruimteverbinding.',
             theresAProblemWithAContactMethod: 'Er is een probleem met een contactmethode',
             aContactMethodRequiresVerification: 'Een contactmethode vereist verificatie',
             theresAProblemWithAPaymentMethod: 'Er is een probleem met een betaalmethode',
@@ -12252,8 +12295,14 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
     },
     productMarketingWindow: {
-        heading: 'Verbind Expensify met Claude',
-        body: 'Zoek, analyseer en vat uitgavengegevens direct samen in Claude.',
+        member: {
+            heading: 'Kilometers op de automatische piloot',
+            body: 'Ga direct naar je veelgebruikte ritten en corrigeer de locatie van een stop zonder opnieuw te beginnen.',
+        },
+        admin: {
+            heading: 'Kilometers automatisch geregeld',
+            body: 'Kilometertarieven die zichzelf actueel houden, plus volledige controle over hoe ritten worden vastgelegd.',
+        },
     },
     productTrainingTooltip: {
         conciergeLHNGBR: '<tooltip>Begin <strong>hier!</strong></tooltip>',
