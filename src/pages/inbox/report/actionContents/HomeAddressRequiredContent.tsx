@@ -48,6 +48,7 @@ function HomeAddressRequiredContent({action}: HomeAddressRequiredContentProps) {
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={openHomeAddressPage}
+                        sentryLabel={CONST.SENTRY_LABEL.REPORT.REPORT_ACTION_ITEM_ADD_HOME_ADDRESS}
                     >
                         <Button.Text>{translate('homePage.timeSensitiveSection.addHomeAddress.cta')}</Button.Text>
                     </Button>
