@@ -124,7 +124,6 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     const [accountHelpContacts] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => ({
             guideEmail: account?.guideDetails?.email,
-            accountManagerAccountID: account?.accountManagerAccountID,
             accountManagerReportID: account?.accountManagerReportID,
         }),
     });
@@ -187,7 +186,7 @@ function WorkspaceConnectionsPage({policy}: WithPolicyConnectionsProps) {
     let accountingHelpLink = {text: translate('workspace.accounting.talkToConcierge'), reportID: conciergeReportID};
     if (policy?.chatReportIDAdmins) {
         accountingHelpLink = {text: translate('workspace.accounting.talkYourOnboardingSpecialist'), reportID: policy.chatReportIDAdmins.toString()};
-    } else if (accountHelpContacts?.accountManagerAccountID) {
+    } else if (accountHelpContacts?.accountManagerReportID) {
         accountingHelpLink = {text: translate('workspace.accounting.talkYourAccountManager'), reportID: accountHelpContacts.accountManagerReportID};
     }
 
