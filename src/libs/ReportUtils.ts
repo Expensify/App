@@ -5283,6 +5283,14 @@ function getReasonAndReportActionThatRequiresAttention({
         };
     }
 
+    // An invoice linked to a bill has no parent chat, so its own green dot tells the vendor to act, like adding a bank
+    // account so the bill's payment can finish.
+    if (isInvoiceReport(optionOrReport) && optionOrReport.isAwaitingActionFromCurrentUser && optionOrReport.ownerAccountID === currentUserAccountID) {
+        return {
+            reason: CONST.REQUIRES_ATTENTION_REASONS.IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION,
+        };
+    }
+
     // Bills have no parent chat to show a report preview badge, so the approver's green dot goes on the bill itself.
     if (canApproveBill(optionOrReport, currentUserAccountID)) {
         return {
