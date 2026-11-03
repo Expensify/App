@@ -26,7 +26,7 @@ const RULE_BY_CATEGORY = {
 // A `Config` diagnostic means the compiler options are wrong; ignoring it would silence every rule.
 const CONFIG_CATEGORY = 'Config';
 
-// ESLint does not enable the rules behind these categories.
+// eslint-plugin-react-hooks does not enable the rules behind these categories.
 const IGNORED_CATEGORIES = new Set([
     'CapitalizedCalls',
     'EffectDependencies',
@@ -108,7 +108,7 @@ function buildOffsetToPoint(source) {
     const lineBytes = [0];
     const lineUnits = [0];
     let byte = 0;
-    for (let unit = 0; unit < source.length; ) {
+    for (let unit = 0; unit < source.length;) {
         const code = source.codePointAt(unit);
         byte += utf8Length(code);
         unit += code > 0xffff ? 2 : 1;

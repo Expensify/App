@@ -204,9 +204,7 @@ const workspaceIcons = {
     Users: mockIcon,
     Hashtag: mockIcon,
     Document: mockIcon,
-    Sync: mockIcon,
     Connect: mockIcon,
-    Receipt: mockIcon,
     Briefcase: mockIcon,
     Folder: mockIcon,
     Tag: mockIcon,
@@ -223,7 +221,6 @@ const workspaceIcons = {
     Gear: mockIcon,
     Bolt: mockIcon,
     Bot: mockIcon,
-    UserPlus: mockIcon,
 };
 
 function createWorkspacePolicy(id: string, name: string, overrides: Partial<Policy> = {}): Policy {
@@ -670,7 +667,7 @@ describe('Workspace Search Router navigation source', () => {
         jest.clearAllMocks();
     });
 
-    const buildItems = (policies: Policy[], isOffline = false, isUnifiedConnectionsBetaEnabled = false) =>
+    const buildItems = (policies: Policy[], isOffline = false) =>
         buildWorkspaceNavigationItems({
             policies: Object.fromEntries(policies.map((policy) => [`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy])),
             policyCategories: undefined,
@@ -679,8 +676,6 @@ describe('Workspace Search Router navigation source', () => {
             icons: workspaceIcons,
             isOffline,
             isVendorMatchingBetaEnabled: false,
-            isRecruitingBetaEnabled: false,
-            isUnifiedConnectionsBetaEnabled,
             shouldUseNarrowLayout: false,
             convertToDisplayString: () => '$0.00',
             getItemText: (item) => {
@@ -721,14 +716,14 @@ describe('Workspace Search Router navigation source', () => {
         const items = buildItems([createWorkspacePolicy('1', 'Beta Workspace', {isHREnabled: true}), createWorkspacePolicy('2', 'Alpha Workspace', {isHREnabled: true})]);
 
         expect(buildNavigationSuggestions('hr', [items], localeCompare).map((item) => item.keyForList)).toEqual([
-            `workspace_2_${SCREENS.WORKSPACE.HR}`,
-            `workspace_1_${SCREENS.WORKSPACE.HR}`,
+            `workspace_2_${SCREENS.WORKSPACE.CONNECTIONS}`,
+            `workspace_1_${SCREENS.WORKSPACE.CONNECTIONS}`,
         ]);
     });
 
-    it('matches the Connections row by the name of a page it replaced when the unified Connections beta is on', () => {
-        // Given a workspace with the HR feature on, viewed with the beta on so HR has no row of its own
-        const items = buildItems([createWorkspacePolicy('1', 'Alpha Workspace', {isHREnabled: true})], false, true);
+    it('matches the Connections row by the name of a page it replaced', () => {
+        // Given a workspace with the HR feature on, which has no row of its own
+        const items = buildItems([createWorkspacePolicy('1', 'Alpha Workspace', {isHREnabled: true})]);
 
         // When searching for the old HR page by its short name
         const suggestions = buildNavigationSuggestions('hr', [items], localeCompare);
@@ -811,11 +806,9 @@ describe('Workspace Search Router navigation source', () => {
             expect.objectContaining({
                 policy: activePolicy,
                 isVendorMatchingBetaEnabled: true,
-                isRecruitingBetaEnabled: true,
             }),
         );
         expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.VENDOR_MATCHING);
-        expect(mockIsBetaEnabled).toHaveBeenCalledWith(CONST.BETAS.MERGE_ATS);
     });
 });
 

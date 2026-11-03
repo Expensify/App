@@ -12,7 +12,7 @@ import useTravelBillingFundID from '@hooks/useTravelBillingFundID';
 
 import {getCardSettings} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {areSettingsInErrorFields, settingsPendingAction, shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction, shouldShowReimbursableExportDestinationAccountError} from '@libs/PolicyUtils';
 import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey} from '@libs/TravelBillingUtils';
 
 import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
@@ -134,7 +134,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
                         {!!(
                             areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ||
                             (menuItem.subscribedSettings?.some((setting) => setting === CONST.QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_EXPORT_DESTINATION) &&
-                                shouldShowQBOReimbursableExportDestinationAccountError(policy))
+                                shouldShowReimbursableExportDestinationAccountError(policy, [CONST.POLICY.CONNECTIONS.NAME.QBO]))
                         ) && <MenuItem.BrickRoadIndicator status={CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR} />}
                     </MenuItemField>
                 </OfflineWithFeedback>

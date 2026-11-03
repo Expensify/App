@@ -56,7 +56,7 @@ import Onyx from 'react-native-onyx';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import type {OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 
-import {getBankName, isCardPendingActivate} from './CardUtils';
+import {getBankName, getEffectiveFeedReimbursable, isCardPendingActivate} from './CardUtils';
 import {getDecodedCategoryName} from './CategoryUtils';
 import {convertAmountToDisplayString, convertToBackendAmount, convertToShortDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -730,7 +730,7 @@ function getSystemMessageDisplayState(
         displayReportActions.push(reportAction);
     };
 
-    for (let index = 0; index < chronologicalActions.length; ) {
+    for (let index = 0; index < chronologicalActions.length;) {
         const reportAction = chronologicalActions.at(index);
         if (!reportAction) {
             index++;
@@ -1825,7 +1825,7 @@ function isReportActionVisible(
         return false;
     }
 
-    const isSupportTicketReport = getReportOrDraftReport(reportID)?.type === CONST.REPORT.TYPE.SUPPORT_TICKET;
+    const isSupportTicketReport = getReportOrDraftReport({reportID})?.type === CONST.REPORT.TYPE.SUPPORT_TICKET;
 
     // Actions with pendingAction are optimistic or in-flight, so their visibility may differ
     // from what's cached in visibleReportActions (which reflects persisted Onyx data).
@@ -3158,7 +3158,7 @@ function hasRequestFromCurrentAccount(report: OnyxEntry<Report>, currentAccountI
     const reportActions = Object.values(getAllReportActions(reportID));
     if (reportActions.length === 0) {
         // In case the reportActions of the report have not been loaded, we will check based on the transactions.
-        const resolvedReport = getReportOrDraftReport(reportID, undefined, undefined, undefined, report);
+        const resolvedReport = getReportOrDraftReport({reportID, report});
         return doesReportContainRequestsFromMultipleUsers(resolvedReport, true);
     }
 
@@ -3559,6 +3559,7 @@ function getExportIntegrationActionFragments(
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
                 case CONST.EXPORT_LABELS.CAMPFIRE:
+                case CONST.EXPORT_LABELS.ZOHO_BOOKS:
                     url = nonReimbursableUrls.at(0)?.substring(0, nonReimbursableUrls.at(0)?.lastIndexOf('/')) ?? '';
                     break;
                 default:
@@ -5070,6 +5071,32 @@ function getUpdatedCardFeedStatementPeriodMessage(translate: LocalizedTranslate,
     return getReportActionText(reportAction);
 }
 
+function formatFeedReimbursable(translate: LocalizedTranslate, value?: string): string | undefined {
+    if (!value) {
+        return undefined;
+    }
+    const effectiveValue = getEffectiveFeedReimbursable(value);
+    return effectiveValue ? translate(`workspace.companyCards.reimbursable.${effectiveValue}`) : undefined;
+}
+
+function getUpdatedCardFeedReimbursableMessage(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction>): string {
+    if (!isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CARD_FEED_REIMBURSABLE)) {
+        return '';
+    }
+    const originalMessage = getOriginalMessage(reportAction);
+    const feedName = originalMessage?.feedName;
+    const newValue = formatFeedReimbursable(translate, originalMessage?.forceReimbursable);
+    const rawPreviousValue = originalMessage?.previousForceReimbursable;
+    const previousValue = formatFeedReimbursable(translate, rawPreviousValue);
+
+    // Keep server text when the available data cannot produce accurate localized labels.
+    // A missing previous setting does not prevent localizing the new setting.
+    if (feedName && newValue && (!rawPreviousValue || previousValue)) {
+        return translate('workspaceActions.updatedCardFeedReimbursable', feedName, newValue, previousValue);
+    }
+    return getReportActionText(reportAction);
+}
+
 function getRenamedAction(translate: LocalizedTranslate, reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, isExpenseReport: boolean, actorName?: string) {
     const originalMessage = getOriginalMessage(reportAction);
     return translate('newRoomPage.renamedRoomAction', originalMessage?.oldName ?? '', originalMessage?.newName ?? '', isExpenseReport, actorName);
@@ -5936,7 +5963,9 @@ function getIntegrationSyncFailedMessage(translate: LocalizedTranslate, action: 
     };
 
     const param = encodeURIComponent(`{"policyID": "${policyID}"}`);
-    const workspaceAccountingLink = shouldShowOldDotLink ? `${oldDotEnvironmentURL}/policy?param=${param}#connections` : `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`;
+    const workspaceAccountingLink = shouldShowOldDotLink
+        ? `${oldDotEnvironmentURL}/policy?param=${param}#connections`
+        : `${environmentURL}/${ROUTES.WORKSPACE_CONNECTIONS.getRoute(policyID, undefined, undefined, undefined, undefined, CONST.TAB.CONNECTIONS.ACCOUNTING)}`;
     let message = translate('report.actions.type.integrationSyncFailed', label, errorMessage, workspaceAccountingLink);
     if (recurrenceCount && recurrenceCount > 1) {
         message += ` ${translate('report.actions.type.integrationSyncFailedRecurrence', {count: recurrenceCount})}`;
@@ -6307,6 +6336,7 @@ export {
     getUnassignedCompanyCardMessage,
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
+    getUpdatedCardFeedReimbursableMessage,
     getWorkspaceCustomUnitRateUpdatedMessage,
     getTagListNameUpdatedMessage,
     getTagListUpdatedMessage,

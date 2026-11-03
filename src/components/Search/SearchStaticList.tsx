@@ -359,9 +359,11 @@ function SearchStaticList({
             onLayout={onLayout}
         >
             {!shouldUseNarrowLayout && columns.length > 0 && (
-                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, pageGutterMargin]}>
+                // The headings span the row's full height, so the checkbox carries the vertical padding instead.
+                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeaderCompact, styles.searchListHeaderTableStyle, styles.pv0, styles.pb0, pageGutterMargin]}>
                     {canSelectMultiple && (
                         <View
+                            style={styles.pv2}
                             accessibilityElementsHidden
                             importantForAccessibility="no-hide-descendants"
                         >
@@ -374,7 +376,7 @@ function SearchStaticList({
                             />
                         </View>
                     )}
-                    <View style={[styles.pr9, styles.flex1]}>
+                    <View style={[styles.pr9, styles.flex1, styles.alignSelfStretch]}>
                         <SearchTableHeader
                             canSelectMultiple={canSelectMultiple}
                             columns={columns}
