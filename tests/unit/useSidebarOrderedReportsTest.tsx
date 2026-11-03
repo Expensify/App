@@ -572,7 +572,7 @@ describe('useSidebarOrderedReports', () => {
                     type: CONST.REPORT.TYPE.EXPENSE,
                     lastVisibleActionCreated: '2024-01-01 10:00:00',
                     lastReadTime: '2024-01-01 10:00:00',
-                } as Report);
+                });
                 await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {
                     reportID: threadReportID,
                     type: CONST.REPORT.TYPE.CHAT,
@@ -580,7 +580,7 @@ describe('useSidebarOrderedReports', () => {
                     parentReportActionID: '100',
                     lastVisibleActionCreated: '2024-01-01 10:00:00',
                     lastReadTime: '2024-01-01 10:00:00',
-                } as Report);
+                });
                 await Onyx.set(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {reports: {[expenseReportID]: createExpenseReportAttributes(oneTransactionThreadReportID)}, locale: 'en'});
             });
 

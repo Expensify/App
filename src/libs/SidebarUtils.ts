@@ -475,8 +475,7 @@ function updateReportsToDisplayInLHN({
                     existingEntry !== report ||
                     existingEntry?.requiresAttention !== requiresAttention ||
                     existingEntry?.hasErrorsOtherThanFailedReceipt !== hasErrorsOtherThanFailedReceipt ||
-                    existingEntry?.isUnreadReport !== isUnreadReport ||
-                    existingEntry?.lastVisibleActionCreatedForInboxTab !== lastVisibleActionCreatedForInboxTab
+                    existingEntry?.isUnreadReport !== isUnreadReport
                 ) {
                     getMutableCopy()[reportID] = {...report, requiresAttention, hasErrorsOtherThanFailedReceipt, isUnreadReport, lastVisibleActionCreatedForInboxTab};
                 }
