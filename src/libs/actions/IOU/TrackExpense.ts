@@ -3085,8 +3085,8 @@ function getNavigationUrlAfterTrackExpenseDelete(
             chatIOUReport,
             isChatReportArchived,
             getCurrencyDecimals,
-            isSingleTransactionView,
             currentUserAccountID,
+            isSingleTransactionView,
         );
     }
 

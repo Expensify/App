@@ -2738,7 +2738,7 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
             const getLastVisibleActionSpy = jest.spyOn(require('@libs/ReportActionsUtils'), 'getLastVisibleAction');
 
             // When the navigation URL is calculated for the current user
-            getNavigationUrlOnMoneyRequestDelete(DELETED_TRANSACTION_ID, deletedIOUAction, undefined, iouReport, chatReport, false, getCurrencyDecimalsLocal, false, CURRENT_USER_ACCOUNT_ID);
+            getNavigationUrlOnMoneyRequestDelete(DELETED_TRANSACTION_ID, deletedIOUAction, undefined, iouReport, chatReport, false, getCurrencyDecimalsLocal, CURRENT_USER_ACCOUNT_ID, false);
 
             // Then the last visible action is resolved with that user's whisper visibility instead of the session fallback
             expect(getLastVisibleActionSpy).toHaveBeenCalledWith(IOU_REPORT_ID, expect.anything(), expect.anything(), undefined, undefined, CURRENT_USER_ACCOUNT_ID);
