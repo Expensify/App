@@ -5,6 +5,7 @@ import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
 import {addAttachmentWithComment, addComment} from '@userActions/Report';
 import {createTaskFromMarkdown} from '@userActions/Task';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
@@ -159,6 +160,21 @@ describe('useAskConcierge', () => {
                     conciergeReportID: CONCIERGE_REPORT_ID,
                 }),
             );
+        });
+
+        it('sends the side panel context with the comment, so Concierge answers about the data on screen', async () => {
+            // Given a loaded Concierge report and the Insights filters the user is looking at
+            await seedReports();
+            const {result} = renderAskConcierge({forceConcierge: true});
+            const sidePanelContext = {
+                insightsScope: {searchKey: CONST.INSIGHTS.SEARCH_KEY.SPEND, policyIDs: ['ABC123'], date: {from: '2026-01-01', to: '2026-03-31'}, groupCurrency: CONST.CURRENCY.USD},
+            };
+
+            // When the user asks Concierge to explain an insight
+            result.current.askConcierge('Explain the data in Spend over time', sidePanelContext);
+
+            // Then the filters reach addComment alongside the message
+            expect(mockAddComment).toHaveBeenCalledWith(expect.objectContaining({text: 'Explain the data in Spend over time', sidePanelContext}));
         });
 
         it('creates a task instead of a comment when the message uses the `[] task` shorthand', async () => {
