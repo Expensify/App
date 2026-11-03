@@ -67,7 +67,9 @@ function IOURequestStepHours({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const {accountID} = useCurrentUserPersonalDetails();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [policyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => getPolicyExpenseChat(accountID, policyID, reports ?? {})});
+    const [policyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (reports) => getPolicyExpenseChat(accountID, isEmbeddedInStartPage ? explicitPolicyID : undefined, reports ?? {}),
+    });
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const defaultPolicyRate = getDefaultTimeTrackingRate(policy);
     const rate = transaction?.comment?.units?.rate ?? defaultPolicyRate;
