@@ -317,7 +317,9 @@ function deleteWorkspacePerDiemRates(policyID: string, customUnit: CustomUnit | 
                 value: {
                     customUnits: {
                         [customUnit.customUnitID]: {
-                            rates: shouldDeleteAllRates ? null : optimisticRates,
+                            // Match the server's empty array while keeping the dictionary type used for populated rates.
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Empty API dictionaries use arrays, but no rate entries are read from this value.
+                            rates: shouldDeleteAllRates ? ([] as unknown as CustomUnit['rates']) : optimisticRates,
                         },
                     },
                 },
