@@ -7,6 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksDesktopShouldAutoCreateVendor} from '@libs/actions/connections/QuickbooksDesktop';
@@ -26,11 +27,14 @@ import {clearQBDErrorField} from '@userActions/Policy/Policy';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useMemo} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
 
 function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -40,10 +44,8 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
     const nonReimbursable = qbdConfig?.export?.nonReimbursable;
     const nonReimbursableAccount = qbdConfig?.export?.nonReimbursableAccount;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT.path);
-    const accountName = useMemo(() => {
-        const qbdReimbursableAccounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
-        return qbdReimbursableAccounts.find(({id}) => nonReimbursableAccount === id)?.name;
-    }, [policy?.connections?.quickbooksDesktop, nonReimbursable, nonReimbursableAccount]);
+    const qbdReimbursableAccounts = getQBDReimbursableAccounts(policy?.connections?.quickbooksDesktop, nonReimbursable);
+    const accountName = qbdReimbursableAccounts.find(({id}) => nonReimbursableAccount === id)?.name;
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!qbdConfig?.shouldAutoCreateVendor);
 
@@ -83,7 +85,7 @@ function DynamicQuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPol
                     key={section.keyForList}
                     pendingAction={settingsPendingAction(section.subscribedSettings, qbdConfig?.pendingFields)}
                 >
-                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress)}>
+                    <MenuItem.Root onPress={callFunctionIfActionIsAllowed(section.onPress, false, session)}>
                         <MenuItemField.Row
                             name={section.description}
                             value={section.title}

@@ -1,5 +1,6 @@
 import {BarChart, LineChart, PieChart} from '@components/Charts';
-import type {ChartDataPoint} from '@components/Charts';
+import type {ChartDataPoint, ChartValueFormatter} from '@components/Charts/types';
+import formatExpenseCount from '@components/Charts/utils/formatExpenseCount';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
@@ -21,13 +22,24 @@ import React from 'react';
 import {View} from 'react-native';
 
 import type {ChartComparison, SearchChartModel} from './buildChartSeries';
-import type {ChartView, GroupedItem, SearchGroupBy, SearchQueryJSON} from './types';
+import type {ChartView, GroupedItem, SearchChartMetric, SearchGroupBy, SearchQueryJSON} from './types';
 
-import {buildChartSeries} from './buildChartSeries';
+import {buildChartSeries, isChartAverage} from './buildChartSeries';
 import {buildChartDrillDownQuery} from './chartDrillDown';
 import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 import getInProgressBucketLabel from './getInProgressBucketLabel';
+import isPeriodAfterToday, {isEmptyPeriodAfterToday} from './isPeriodAfterToday';
+import applyRunningTotal from './runningTotal';
 import {useSearchQueryContext} from './SearchContext';
+
+/** What the chart hands to the details drawn below it, so they read the values the chart plotted */
+type SearchChartDetails = SearchChartModel & {
+    /** The metric the chart plotted */
+    metric: SearchChartMetric;
+
+    /** Formats a plotted value the way the chart labels it, left out while the chart labels amounts in each group's own currency */
+    formatValue?: ChartValueFormatter;
+};
 
 type SearchChartViewProps = {
     queryJSON: Readonly<SearchQueryJSON> | undefined;
@@ -40,6 +52,9 @@ type SearchChartViewProps = {
 
     /** Grouped transaction data from search results */
     data: GroupedItem[];
+
+    /** What the chart plots for each group: the money it totals, or how many expenses it holds. Defaults to the amount. */
+    metric?: SearchChartMetric;
 
     isLoading?: boolean;
 
@@ -55,11 +70,14 @@ type SearchChartViewProps = {
     /** Whether a line chart with a single point is drawn as a bar */
     shouldShowSinglePointAsBar?: boolean;
 
-    /** Rows the chart is compared against, drawn as a second series */
+    /** What the chart is compared against, drawn as a second series */
     comparison?: ChartComparison;
 
+    /** Plots each point as the spend accumulated from the start of the range, instead of each period's own total. Applies to time-grouped line charts. */
+    shouldShowRunningTotal?: boolean;
+
     /** Renders the details of the plotted groups below the chart */
-    renderDetails?: (model: SearchChartModel) => React.ReactNode;
+    renderDetails?: (details: SearchChartDetails) => React.ReactNode;
 
     /** Style of the view around the chart, which the details below it don't share */
     chartContainerStyle?: StyleProp<ViewStyle>;
@@ -74,44 +92,59 @@ function SearchChartView({
     view,
     groupBy,
     data,
+    metric = CONST.SEARCH.CHART_METRIC.AMOUNT,
     isLoading,
     shouldShowGroupLabels = true,
     shouldUseResponsiveLabels = false,
     shouldDrillDownOnPress = true,
     shouldShowSinglePointAsBar = false,
     comparison,
+    shouldShowRunningTotal = false,
     renderDetails,
     chartContainerStyle,
 }: SearchChartViewProps) {
     const theme = useTheme();
-    const {preferredLocale, translate, dateFnsLocale} = useLocalize();
+    const {preferredLocale, translate, dateFnsLocale, numberFormat} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencySymbol, getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {currentSearchKey} = useSearchQueryContext();
 
     const {getLabel, getShortLabel, getLineChartLabel, getFilterQuery, getDateRange, axisLabelSteps} = CHART_GROUP_BY_CONFIG[groupBy];
 
     const today = format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
     const dateFilterRange = queryJSON ? getDateFilterRange(queryJSON) : {};
+    const isCountMetric = metric === CONST.SEARCH.CHART_METRIC.COUNT;
+
+    // A count names what it counts, since nothing else in a tooltip or a donut's centre says the number is expenses rather than money.
+    // Axis ticks take the bare number instead, to stay short, and `shouldUseWholeNumberTicks` keeps them off fractions of an expense.
+    const formatCount: ChartValueFormatter = (value, options) =>
+        options?.shouldUseCompactNotation ? numberFormat(value, {notation: 'compact'}).replace('K', 'k') : formatExpenseCount(value, translate, numberFormat);
+    const formatValue = isCountMetric ? formatCount : undefined;
+
+    // A count says nothing about the money behind it, so a count chart names each group's spend alongside it, in that group's own currency.
+    const formatTotal = isCountMetric ? convertToDisplayString : undefined;
+
+    const emptyLaterKeys = new Set(data.filter((item) => isEmptyPeriodAfterToday(item, groupBy, today, dateFilterRange.start)).map((item) => item.keyForList));
+    const comparedKeysWithExpenses = new Set(comparison && !isChartAverage(comparison) ? comparison.data.filter((item) => !!item.count).map((item) => item.keyForList) : []);
+    const {data: chartData, comparison: chartComparison} = shouldShowRunningTotal ? applyRunningTotal({data, comparison, groupBy}) : {data, comparison};
+
     const {series, rows} = buildChartSeries({
-        data,
-        comparison,
+        data: chartData,
+        comparison: chartComparison,
         groupBy,
         view,
+        metric,
         getLabel,
         getShortLabel: view === CONST.SEARCH.VIEW.LINE ? (getLineChartLabel ?? getShortLabel) : getShortLabel,
         getCurrencyDecimals,
+        formatTotal,
         getInProgressLabel: (item) => getInProgressBucketLabel({groupBy, item, today, dateFnsLocale, dateFilterRange, translate}),
         isLaterPeriod: (item) => {
             const range = getDateRange?.(item);
-            if (!range) {
-                return false;
-            }
-
-            // A date filter that starts partway through a group starts the group there too, e.g. Oct 10 for a range from Oct 10 to Dec 31
-            const start = dateFilterRange.start && dateFilterRange.start > range.start ? dateFilterRange.start : range.start;
-            return start > today;
+            return !!range && isPeriodAfterToday(range.start, today, dateFilterRange.start);
         },
+        isEmptyLaterPeriod: (item) => emptyLaterKeys.has(item.keyForList),
+        hasComparedExpenses: (item) => comparedKeysWithExpenses.has(item.keyForList),
         translate,
         dateFnsLocale,
         colorScheme: theme.colorScheme,
@@ -143,7 +176,7 @@ function SearchChartView({
     const currencyIndex = parts.findIndex((p) => p.type === 'currency');
     const integerIndex = parts.findIndex((p) => p.type === 'integer');
     const intlSymbol = parts.find((p) => p.type === 'currency')?.value;
-    const unit = {value: getCurrencySymbol(currency) ?? intlSymbol ?? currency, fallback: intlSymbol ?? currency};
+    const unit = isCountMetric ? undefined : {value: getCurrencySymbol(currency) ?? intlSymbol ?? currency, fallback: intlSymbol ?? currency};
     const unitPosition = currencyIndex < integerIndex ? 'left' : 'right';
 
     const CHART_VIEW_TO_CHART: Record<ChartView, React.ReactNode> = {
@@ -155,6 +188,8 @@ function SearchChartView({
                 onBarPress={onItemPress}
                 yAxisUnit={unit}
                 yAxisUnitPosition={unitPosition}
+                formatValue={formatValue}
+                shouldUseWholeNumberTicks={isCountMetric}
                 shouldShowLabels={shouldShowGroupLabels}
                 shouldWrapLabels={shouldUseResponsiveLabels}
             />
@@ -168,6 +203,8 @@ function SearchChartView({
                     onBarPress={onItemPress}
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
+                    formatValue={formatValue}
+                    shouldUseWholeNumberTicks={isCountMetric}
                 />
             ) : (
                 <LineChart
@@ -176,8 +213,11 @@ function SearchChartView({
                     isLoading={isLoading}
                     onPointPress={onItemPress}
                     labelSteps={labelSteps}
+                    shouldShowTooltipChange={!shouldShowRunningTotal || !isChartAverage(comparison)}
                     yAxisUnit={unit}
                     yAxisUnitPosition={unitPosition}
+                    formatValue={formatValue}
+                    shouldUseWholeNumberTicks={isCountMetric}
                 />
             ),
         [CONST.SEARCH.VIEW.PIE]: (
@@ -186,8 +226,9 @@ function SearchChartView({
                 series={series}
                 isLoading={isLoading}
                 onSlicePress={onItemPress}
-                valueUnit={unit.value}
+                valueUnit={unit?.value}
                 valueUnitPosition={unitPosition}
+                formatValue={formatValue}
                 shouldShowLegend={shouldShowGroupLabels}
                 shouldUseResponsiveLegend={shouldUseResponsiveLabels}
             />
@@ -197,7 +238,7 @@ function SearchChartView({
     return (
         <>
             <View style={chartContainerStyle}>{CHART_VIEW_TO_CHART[view]}</View>
-            {renderDetails?.({series, rows})}
+            {renderDetails?.({series, rows, metric, formatValue})}
         </>
     );
 }
