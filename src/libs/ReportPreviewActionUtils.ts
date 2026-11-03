@@ -40,7 +40,14 @@ import {
     isReportApproved,
     isSettled,
 } from './ReportUtils';
-import {getVisibleTransactionViolations, hasOnlyPendingCardTransactions, hasSmartScanFailedWithMissingFields, hasSubmissionBlockingViolations, isPending, isScanning} from './TransactionUtils';
+import {
+    getVisibleTransactionViolations,
+    hasOnlyPendingCardTransactions,
+    hasSmartScanFailedWithMissingFields,
+    hasSubmissionBlockingViolations,
+    isPending,
+    isScanning,
+} from './TransactionUtils';
 
 function canSubmit(
     report: Report,
