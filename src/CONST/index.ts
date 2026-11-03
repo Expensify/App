@@ -10489,6 +10489,18 @@ const CONST = {
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
+            EMPTY_STATE: {
+                ADD_EXPENSE: 'Report-EmptyStateAddExpense',
+                CREATE_EXPENSE: 'Report-EmptyStateAddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'Report-EmptyStateAddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'Report-EmptyStateAddExpenseMenu-AddExistingExpense',
+            },
+            LIST_FOOTER: {
+                ADD_EXPENSE: 'Report-ListFooterAddExpense',
+                CREATE_EXPENSE: 'Report-ListFooterAddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'Report-ListFooterAddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'Report-ListFooterAddExpenseMenu-AddExistingExpense',
+            },
         },
         SIDEBAR: {
             SIGN_IN_BUTTON: 'Sidebar-SignInButton',
@@ -10579,6 +10591,11 @@ const CONST = {
             EXPORT_BUTTON: 'ReportPreview-ExportButton',
             VIEW_BUTTON: 'ReportPreview-ViewButton',
             ADD_EXPENSE_BUTTON: 'ReportPreview-AddExpenseButton',
+            ADD_EXPENSE_MENU: {
+                CREATE_EXPENSE: 'ReportPreview-AddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'ReportPreview-AddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'ReportPreview-AddExpenseMenu-AddExistingExpense',
+            },
         },
         REQUEST_CONFIRMATION_LIST: {
             RESET_SPLIT_SHARES: 'RequestConfirmationList-ResetSplitShares',

@@ -26611,11 +26611,17 @@ describe('ReportUtils', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
         const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()});
         const mockIouReportID = '12345';
+        const mockSentryLabels = {
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+        };
 
         it('should return exactly 3 dropdown options', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26631,6 +26637,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26648,6 +26655,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26665,6 +26673,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26685,6 +26694,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
                 userBillingGracePeriodEnds: undefined,
@@ -26706,6 +26716,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
                 userBillingGracePeriodEnds: undefined,
@@ -26726,6 +26737,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: undefined,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26746,6 +26758,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26766,6 +26779,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26782,6 +26796,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -26807,6 +26822,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
                 userBillingGracePeriodEnds: undefined,
@@ -26838,6 +26854,7 @@ describe('ReportUtils', () => {
             const result = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID: mockIouReportID,
                 policy: mockPolicy,
                 userBillingGracePeriodEnds: undefined,
@@ -27260,6 +27277,11 @@ describe('ReportUtils', () => {
     describe('getAddExpenseDropdownOptions', () => {
         const mockTranslate: LocaleContextProps['translate'] = (path, ...params) => translate(CONST.LOCALES.EN, path, ...params);
         const mockIcons = createMock<Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>>({Location: jest.fn(), ReceiptPlus: jest.fn(), Plus: jest.fn()});
+        const mockSentryLabels = {
+            createExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
+            trackDistance: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
+            addExistingExpense: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_EXISTING,
+        };
         const policyID = '5001';
         const iouReportID = 'reportABC';
         const ownerAccountID = 999;
@@ -27274,6 +27296,7 @@ describe('ReportUtils', () => {
             const options = getAddExpenseDropdownOptions({
                 translate: mockTranslate,
                 icons: mockIcons,
+                sentryLabels: mockSentryLabels,
                 iouReportID,
                 policy: undefined,
                 userBillingGracePeriodEnds: undefined,
@@ -27294,6 +27317,7 @@ describe('ReportUtils', () => {
                 const options = getAddExpenseDropdownOptions({
                     translate: mockTranslate,
                     icons: mockIcons,
+                    sentryLabels: mockSentryLabels,
                     iouReportID: undefined,
                     policy: undefined,
                     userBillingGracePeriodEnds: undefined,
@@ -27326,6 +27350,7 @@ describe('ReportUtils', () => {
                 const options = getAddExpenseDropdownOptions({
                     translate: mockTranslate,
                     icons: mockIcons,
+                    sentryLabels: mockSentryLabels,
                     iouReportID,
                     policy: testPolicy,
                     userBillingGracePeriodEnds: pastDueCollection,
@@ -27359,6 +27384,7 @@ describe('ReportUtils', () => {
                 const options = getAddExpenseDropdownOptions({
                     translate: mockTranslate,
                     icons: mockIcons,
+                    sentryLabels: mockSentryLabels,
                     iouReportID,
                     policy: testPolicy,
                     userBillingGracePeriodEnds: pastDueCollection,
@@ -27386,6 +27412,7 @@ describe('ReportUtils', () => {
                 const options = getAddExpenseDropdownOptions({
                     translate: mockTranslate,
                     icons: mockIcons,
+                    sentryLabels: mockSentryLabels,
                     iouReportID,
                     policy: testPolicy,
                     userBillingGracePeriodEnds: undefined,
