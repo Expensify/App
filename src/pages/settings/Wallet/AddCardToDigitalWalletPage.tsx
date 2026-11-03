@@ -22,6 +22,7 @@ import {approveDigitalWalletCardAddition, clearCardListErrors, getExpensifyCardP
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {getWalletProviderNameKey, isCardPendingDigitalWalletApproval} from '@libs/CardUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -30,7 +31,7 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -69,7 +70,7 @@ function AddCardToDigitalWalletPage({
     const hasError = !isEmptyObject(latestError);
 
     // A deep link and this card's own details page both send no `backTo`, so fall back to that card's details page.
-    const goBackToEntryPoint = () => Navigation.goBack(backTo ?? ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(cardID), {compareParams: false});
+    const goBackToEntryPoint = () => Navigation.goBack(backTo ?? createDynamicRoute(DYNAMIC_ROUTES.WALLET_DOMAIN_CARD.getRoute(cardID), ROUTES.SETTINGS_WALLET), {compareParams: false});
 
     const pendingApproval = card?.nameValuePairs?.pendingDigitalWalletApproval;
 

@@ -3,6 +3,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WideRHPOverlayWrapper from '@components/WideRHPOverlayWrapper';
 
+import useConciergeAskState from '@hooks/useConciergeAskState';
 import {useCurrentReportIDState} from '@hooks/useCurrentReportID';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -31,7 +32,6 @@ import {ActionListContextProvider} from './ActionListContext';
 import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import {ConciergeDraftProvider} from './ConciergeDraftContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
-import useDeferNonEssentials from './hooks/useDeferNonEssentials';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import OneTransactionThreadRedirectHandler from './OneTransactionThreadRedirectHandler';
 import ReactionListWrapper from './ReactionListWrapper';
@@ -45,6 +45,7 @@ import ReportFetchHandler from './ReportFetchHandler';
 import ReportHeader from './ReportHeader';
 import ReportLifecycleHandler from './ReportLifecycleHandler';
 import ReportNavigateAwayHandler from './ReportNavigateAwayHandler';
+import ReportNonEssentialsDeferredMount from './ReportNonEssentialsDeferredMount';
 import ReportNotFoundGuard from './ReportNotFoundGuard';
 import ReportRouteParamHandler from './ReportRouteParamHandler';
 import WideRHPReceiptPanel from './WideRHPReceiptPanel';
@@ -75,13 +76,12 @@ function ReportScreenEditMessageProvider({reportID, children}: ReportScreenEditM
 function ReportScreen({route, navigation, shouldDeferReportActions = false}: ReportScreenProps) {
     const styles = useThemeStyles();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+    const {shouldCenterWelcomeWithComposer} = useConciergeAskState(reportIDFromRoute);
     const {isInNarrowPaneModal} = useResponsiveLayout();
     const {currentReportID: currentReportIDValue} = useCurrentReportIDState();
     const viewportOffsetTop = useViewportOffsetTop();
     const isTopMostReportId = currentReportIDValue === reportIDFromRoute;
     const screenWrapperStyle: ViewStyle[] = [styles.appContent, styles.flex1, {marginTop: viewportOffsetTop}];
-
-    const shouldDeferNonEssentials = useDeferNonEssentials(reportIDFromRoute);
 
     useSubmitToDestinationVisible(
         [CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY],
@@ -116,19 +116,19 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                             shouldEnableKeyboardAvoidingView={isTopMostReportId || isInNarrowPaneModal}
                             testID={`report-screen-${reportIDFromRoute}`}
                         >
-                            {!shouldDeferNonEssentials && (
-                                <>
-                                    <DeleteTransactionNavigateBackHandler />
-                                    <ReportRouteParamHandler />
-                                    <OneTransactionThreadRedirectHandler />
-                                    <ReportFetchHandler />
-                                    <ReportNavigateAwayHandler />
-                                </>
-                            )}
+                            <ReportNonEssentialsDeferredMount reportID={reportIDFromRoute}>
+                                <DeleteTransactionNavigateBackHandler />
+                                <ReportRouteParamHandler />
+                                <OneTransactionThreadRedirectHandler />
+                                <ReportFetchHandler />
+                                <ReportNavigateAwayHandler />
+                            </ReportNonEssentialsDeferredMount>
                             <ReportNotFoundGuard>
                                 <LinkedActionNotFoundGuard>
                                     <ReportDragAndDropProvider>
-                                        {!shouldDeferNonEssentials && <ReportLifecycleHandler reportID={reportIDFromRoute} />}
+                                        <ReportNonEssentialsDeferredMount reportID={reportIDFromRoute}>
+                                            <ReportLifecycleHandler reportID={reportIDFromRoute} />
+                                        </ReportNonEssentialsDeferredMount>
                                         <CollapsibleHeaderOnKeyboard>
                                             <ReportHeader />
                                         </CollapsibleHeaderOnKeyboard>
@@ -142,18 +142,29 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
                                             errorRowStyles={[styles.ph5, styles.mv2]}
                                         >
                                             <View style={[styles.flex1, styles.flexRow]}>
-                                                {!shouldDeferNonEssentials && <WideRHPReceiptPanel />}
+                                                <ReportNonEssentialsDeferredMount reportID={reportIDFromRoute}>
+                                                    <WideRHPReceiptPanel />
+                                                </ReportNonEssentialsDeferredMount>
                                                 <AgentZeroStatusProvider reportID={reportIDFromRoute}>
                                                     <ConciergeDraftProvider reportID={reportIDFromRoute}>
                                                         <View
-                                                            style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
+                                                            style={[
+                                                                styles.flex1,
+                                                                shouldCenterWelcomeWithComposer ? styles.justifyContentCenter : styles.justifyContentEnd,
+                                                                styles.overflowHidden,
+                                                            ]}
                                                             testID="report-actions-view-wrapper"
                                                         >
                                                             <ReportActionsWithInboxTabDeferredMount
                                                                 reportID={reportIDFromRoute}
                                                                 shouldDefer={shouldDeferReportActions}
                                                             />
-                                                            {shouldDeferNonEssentials ? <ReportActionCompose.Placeholder /> : <ReportFooter />}
+                                                            <ReportNonEssentialsDeferredMount
+                                                                reportID={reportIDFromRoute}
+                                                                placeholder={<ReportActionCompose.Placeholder />}
+                                                            >
+                                                                <ReportFooter />
+                                                            </ReportNonEssentialsDeferredMount>
                                                         </View>
                                                     </ConciergeDraftProvider>
                                                 </AgentZeroStatusProvider>

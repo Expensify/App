@@ -32,6 +32,7 @@ import {
 import {
     buildOptimisticAddCommentReportAction,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    getChatByParticipants,
     getParsedComment,
     getPolicyExpenseChat,
     getReimbursableTotal,
@@ -334,12 +335,10 @@ function updateSplitTransactions({
     rules,
     isVendorMatchingBetaEnabled,
 }: UpdateSplitTransactionsParams) {
-    const parentTransactionReport = getReportOrDraftReport(
-        transactionReport?.parentReportID,
-        undefined,
-        undefined,
-        reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${transactionReport?.parentReportID}`] ?? {},
-    );
+    const parentTransactionReport = getReportOrDraftReport({
+        reportID: transactionReport?.parentReportID,
+        reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${transactionReport?.parentReportID}`] ?? {},
+    });
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
     // transaction lives in a selfDM chat whose parent isn't an expense report), so it ends up `undefined`
     let expenseReport: OnyxEntry<OnyxTypes.Report> = expenseReportFromParams;
@@ -375,12 +374,10 @@ function updateSplitTransactions({
         originalSelfDMReportID = chatReport?.reportID;
     }
 
-    const expenseReportParentChat = getReportOrDraftReport(
-        chatReport?.parentReportID,
-        undefined,
-        undefined,
-        reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReport?.parentReportID}`] ?? {},
-    );
+    const expenseReportParentChat = getReportOrDraftReport({
+        reportID: chatReport?.parentReportID,
+        reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${chatReport?.parentReportID}`] ?? {},
+    });
     const originalTransactionID = transactionData?.originalTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
     const originalTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const originalTransactionDetails = getTransactionDetails(originalTransaction);
@@ -774,7 +771,7 @@ function updateSplitTransactions({
         // (see initSplitExpense), so we must not rely on it to detect workspace splits.
         const existingTransactionReport =
             splitTransaction?.reportID && splitTransaction.reportID !== CONST.REPORT.UNREPORTED_REPORT_ID
-                ? getReportOrDraftReport(splitTransaction.reportID, undefined, undefined, reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitTransaction.reportID}`] ?? {})
+                ? getReportOrDraftReport({reportID: splitTransaction.reportID, reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitTransaction.reportID}`] ?? {}})
                 : undefined;
         const isConfirmedWorkspaceTransaction = !!existingTransactionReport && !isSelfDM(existingTransactionReport);
         if (isConfirmedWorkspaceTransaction) {
@@ -786,24 +783,18 @@ function updateSplitTransactions({
         // check the report hierarchy. Skip this check for confirmed workspace transactions
         // because splitExpense.reportID may point to selfDM for navigation reasons only.
         if (!isSelfDMSplit && !isConfirmedWorkspaceTransaction) {
-            const splitExpenseReport = getReportOrDraftReport(
-                splitExpense.reportID,
-                undefined,
-                undefined,
-                reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitExpense.reportID}`] ?? {},
-            );
-            const splitExpenseParentReport = getReportOrDraftReport(
-                splitExpenseReport?.parentReportID,
-                undefined,
-                undefined,
-                reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitExpenseReport?.parentReportID}`] ?? {},
-            );
-            const splitExpenseChatReport = getReportOrDraftReport(
-                splitExpenseReport?.chatReportID,
-                undefined,
-                undefined,
-                reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitExpenseReport?.chatReportID}`] ?? {},
-            );
+            const splitExpenseReport = getReportOrDraftReport({
+                reportID: splitExpense.reportID,
+                reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitExpense.reportID}`] ?? {},
+            });
+            const splitExpenseParentReport = getReportOrDraftReport({
+                reportID: splitExpenseReport?.parentReportID,
+                reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitExpenseReport?.parentReportID}`] ?? {},
+            });
+            const splitExpenseChatReport = getReportOrDraftReport({
+                reportID: splitExpenseReport?.chatReportID,
+                reportDraft: reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${splitExpenseReport?.chatReportID}`] ?? {},
+            });
 
             if (isSelfDM(splitExpenseReport)) {
                 isSelfDMSplit = true;
@@ -894,7 +885,7 @@ function updateSplitTransactions({
                 selfDMReportID,
             },
             // For selfDM, use the selfDM report as the parent chat report so report actions are stored there
-            parentChatReport: isSelfDMSplit && selfDMReportID ? getReportOrDraftReport(selfDMReportID, undefined, undefined, {}) : fallbackPolicyParentChatReport,
+            parentChatReport: isSelfDMSplit && selfDMReportID ? getReportOrDraftReport({reportID: selfDMReportID, reportDraft: {}}) : fallbackPolicyParentChatReport,
             existingTransaction: originalTransaction,
             isASAPSubmitBetaEnabled,
             currentUserAccountIDParam: currentUserPersonalDetails?.accountID,
@@ -1002,6 +993,13 @@ function updateSplitTransactions({
             moneyRequestReportIDForSplit = splitExpense?.reportID;
         }
 
+        // getMoneyRequestInformation resolves the chat report on its own, so it gets the actions of both candidates:
+        // the parent chat report and the participant's existing chat.
+        const {participant} = participantParams;
+        const participantChatReportID = participant.isPolicyExpenseChat
+            ? participant.reportID
+            : getChatByParticipants([Number(participant.accountID), currentUserPersonalDetails.accountID], allReportsList)?.reportID;
+
         // getMoneyRequestInformation sets lastVisibleActionCreated on the selfDM report object in place, so copy the
         // pre-split selfDM before the first call that can touch it
         const selfDMReportBeforeSplit = isSelfDMSplit && selfDMReportID ? allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${selfDMReportID}`] : undefined;
@@ -1029,6 +1027,8 @@ function updateSplitTransactions({
             // per-transaction arithmetic. It now honours a real `0`, which the old truthiness check dropped.
             newReportTotal: reportTotals.get(splitExpense?.reportID ?? String(CONST.DEFAULT_NUMBER_ID)),
             newNonReimbursableTotal: (transactionReport?.nonReimbursableTotal ?? 0) - changesInReportTotal,
+            // New splits inherit the source expense's hold, so a held expense's change in total is all held spend
+            isReportTotalChangeOnHold: isCreationOfSplits && isTransactionOnHold,
             isSplitExpense: true,
             isReverseSplitOperation,
             currentReportActionID: !isReverseSplitOperation ? currentReportAction?.reportActionID : undefined,
@@ -1045,6 +1045,8 @@ function updateSplitTransactions({
             formatPhoneNumber,
             getCurrencyDecimals,
             rules,
+            parentChatReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentChatReport?.reportID}`],
+            participantChatReportActions: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${participantChatReportID}`],
         });
 
         let updateMoneyRequestParamsOnyxData: OnyxData<UpdateMoneyRequestDataKeys> = {};

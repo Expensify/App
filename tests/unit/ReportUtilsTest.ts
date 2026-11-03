@@ -23,7 +23,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
-import {getOriginalMessage, getReportAction, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
+import {getOriginalMessage, getReportAction, getSortedReportActions, getSystemMessageDisplayState, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
 // Testing only so it's okay to import computeReportName
 // eslint-disable-next-line no-restricted-imports
 import {buildReportNameFromParticipantNames, computeReportName as computeReportNameOriginal, getGroupChatName, getPolicyExpenseChatName, getReportName} from '@libs/ReportNameUtils';
@@ -88,6 +88,7 @@ import {
     canSeeDefaultRoom,
     canUserPerformWriteAction,
     doesReportBelongToWorkspace,
+    doReportsHaveMatchingReportFieldValues,
     excludeParticipantsForDisplay,
     findLastAccessedReport,
     getActionErrorsByTransaction,
@@ -105,6 +106,7 @@ import {
     getDefaultGroupAvatar,
     getDefaultWorkspaceAvatar,
     getDeletedTransactionMessage,
+    getDisplayedReportID,
     getDisplayNameForParticipant,
     getDisplayNamesWithTooltips,
     getEffectiveReportErrors,
@@ -203,6 +205,7 @@ import {
     isPayer,
     isPayOptional,
     isPolicyRelatedReport,
+    isReportExportedOrPending,
     isReportManager,
     isReportOutstanding,
     isReportPendingDelete,
@@ -212,7 +215,7 @@ import {
     isSortableColumnName,
     isThreadMemberProtectedByParentReport,
     isUnread,
-    isUploadingAttachmentRemovedFromDraft,
+    getUploadingAttachmentIDsRemovedFromDraft,
     isWorkspaceMemberLeavingWorkspaceRoom,
     parseMovedTransactionReportIDs,
     parseReportRouteParams,
@@ -224,6 +227,7 @@ import {
     restoreAttachmentAnchorAttributes,
     restoreAttachmentAnchorLabels,
     requiresAttentionFromCurrentUser,
+    shouldBlockSubmitDueToDeletedWorkspace,
     shouldBlockSubmitDueToPreventSelfApproval,
     shouldBlockSubmitDueToStrictPolicyRules,
     shouldDisableRename,
@@ -265,6 +269,7 @@ import type {
     PolicyEmployeeList,
     PolicyTag,
     PolicyTagLists,
+    PolicyVendors,
     Report,
     ReportAction,
     ReportActions,
@@ -382,6 +387,7 @@ jest.mock('@libs/PolicyUtils', () => {
         // This factory runs while PolicyUtils is still loading inside an import cycle, so the barrel's `export *` helpers
         // aren't on it yet. Spread them from their own modules, which load fully.
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/customUnits'),
+        ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/features'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/tax'),
         ...jest.requireActual<Record<string, unknown>>('@libs/PolicyUtils/members'),
         isPolicyAdmin: jest.fn().mockImplementation((policy?: Policy) => policy?.role === 'admin'),
@@ -4009,13 +4015,13 @@ describe('ReportUtils', () => {
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined, true);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined, true);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
 
         it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined, false);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
@@ -4034,7 +4040,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
@@ -4062,14 +4068,14 @@ describe('ReportUtils', () => {
             };
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}200`, parentInvoiceRoom).then(() => {
-                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
+                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
                 const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
                 expect(normalizedActual.reportName).toContain('Invoice Policy');
             });
         });
 
         it('should fall back to allPolicies when policy parameter is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             // Should still resolve via Onyx-connected allPolicies or report.policyName
             expect(normalizedActual.reportName).toContain('A workspace');
@@ -4082,7 +4088,7 @@ describe('ReportUtils', () => {
                 reportName: 'Chat Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual).toEqual({});
         });
 
@@ -4109,13 +4115,13 @@ describe('ReportUtils', () => {
             })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal, formatPhoneNumber, 'Concierge');
+                    const actual = getParentNavigationSubtitle(childReport, undefined, undefined, conciergeReportID, translateLocal, formatPhoneNumber, 'Concierge');
                     expect(actual.reportName).toBe('Concierge');
                 });
         });
 
         it('should return reportName and workspaceName when parent report exists and conciergeReportID is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual).toHaveProperty('reportName');
         });
 
@@ -4127,8 +4133,80 @@ describe('ReportUtils', () => {
             const expenseReport = {reportID: '780051', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: hiddenOwnerAccountID};
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
-            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, translateWithHiddenMarker, formatPhoneNumber, undefined);
+            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, undefined, translateWithHiddenMarker, formatPhoneNumber, undefined);
             expect(actual.reportName).toContain('HiddenMarker');
+        });
+
+        /**
+         * The invoice receiver's policy must come from the caller rather than the module-level `allPolicies`
+         * Onyx cache that ReportUtils used to read. For a business receiver the payer name is just that
+         * policy's name, so these tests pin the payer to whatever the caller hands in and prove the cache
+         * is never consulted, whatever it happens to hold.
+         * See https://github.com/Expensify/App/issues/66415.
+         */
+        describe('reads the invoice receiver policy from the caller, not the Onyx cache', () => {
+            const RECEIVER_POLICY_ID = 'invoice-receiver-policy';
+            const invoiceRoomID = '990001';
+            const invoiceReportID = '990002';
+
+            const invoiceRoom: Report = {
+                reportID: invoiceRoomID,
+                reportName: 'Invoice Room',
+                policyName: 'Sender Workspace',
+                invoiceReceiver: {type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, policyID: RECEIVER_POLICY_ID},
+            };
+
+            const invoiceReport: Report = {
+                reportID: invoiceReportID,
+                parentReportID: invoiceRoomID,
+                parentReportActionID: '1',
+                reportName: 'Invoice',
+                type: CONST.REPORT.TYPE.INVOICE,
+            };
+
+            beforeEach(async () => {
+                // The cached policy carries a name that must never reach the subtitle.
+                await Promise.all([
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, invoiceRoom),
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, invoiceReport),
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${RECEIVER_POLICY_ID}`, createMock<Policy>({id: RECEIVER_POLICY_ID, name: 'Cached Receiver Name'})),
+                ]);
+                return waitForBatchedUpdates();
+            });
+
+            afterEach(async () => {
+                await Promise.all([
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceRoomID}`, null),
+                    Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, null),
+                    Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${RECEIVER_POLICY_ID}`, null),
+                ]);
+                return waitForBatchedUpdates();
+            });
+
+            it('renders the payer name from the passed receiver policy, not the cached one', () => {
+                // Given an invoice whose business receiver resolves to a policy that is also sitting in the Onyx cache
+                const passedReceiverPolicy = createMock<Policy>({id: RECEIVER_POLICY_ID, name: 'Passed Receiver Name'});
+
+                // When the caller passes the receiver policy it actually holds
+                const actual = getParentNavigationSubtitle(invoiceReport, undefined, passedReceiverPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
+
+                // Then the subtitle names the passed workspace, proving the payer is read off the argument and
+                // not off the policy that `RECEIVER_POLICY_ID` resolves to in Onyx
+                expect(actual.reportName?.replaceAll('\u00A0', ' ')).toBe('Sender Workspace & Passed Receiver Name');
+            });
+
+            it('never falls back to the cached policy when the caller has no receiver policy', () => {
+                // Given the same invoice, but a caller that has not loaded the receiver policy yet
+                // When the subtitle is built with no receiver policy
+                const actual = getParentNavigationSubtitle(invoiceReport, undefined, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
+
+                // Then the cached name never reaches the subtitle. Without a receiver policy `getInvoicePayerName`
+                // falls back to the invoice room's own `policyName`, exactly as it did before this refactor, so the
+                // assertion states that intent rather than pinning the full string and breaking if the fallback improves.
+                const reportName = actual.reportName?.replaceAll('\u00A0', ' ');
+                expect(reportName).not.toContain('Cached Receiver Name');
+                expect(reportName).toContain('Sender Workspace');
+            });
         });
     });
 
@@ -6225,6 +6303,7 @@ describe('ReportUtils', () => {
                 initialReportID: transactionThreadReport.reportID,
                 initialReport: transactionThreadReport,
                 transactionReport: expenseReport,
+                transactionReportActions: undefined,
                 isOffline: false,
                 currentUserLogin: currentUserEmail,
                 currentUserAccountID,
@@ -6854,6 +6933,35 @@ describe('ReportUtils', () => {
                 // Then passing a member who submits elsewhere flips the answer, which proves the login is carried
                 // through rather than resolved from the personal details store inside the call
                 expect(canDeleteMoneyRequestReport(report, [transaction], [iouAction], currentUserAccountID, undefined, THREADING_OTHER_MEMBER_EMAIL, undefined, undefined)).toBe(false);
+            });
+
+            it('should decide from the passed report actions whether the report was forwarded since its last submit', async () => {
+                // Given a submitted report whose owner submits to the approver holding it, and a history that so far holds one submit
+                await setUpApprovalChain();
+                const report = buildSubmittedReport();
+                const transaction = {...createRandomTransaction(911), reportID: report.reportID, managedCard: false};
+                const iouAction = buildIOUActionForTransaction(report.reportID, transaction.transactionID, currentUserAccountID);
+                const submittedAction: ReportAction = {...createRandomReportAction(912), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'};
+                const forwardedAction: ReportAction = {...createRandomReportAction(913), actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-04-21 17:10:00'};
+
+                // When the passed actions hold only that submit, the submitter can still delete because the report awaits its first level
+                expect(canDeleteMoneyRequestReport(report, [transaction], [iouAction, submittedAction], currentUserAccountID, undefined, THREADING_OWNER_EMAIL, undefined, undefined)).toBe(
+                    true,
+                );
+
+                // Then a forward after that submit, read from the same passed actions, blocks the delete
+                expect(
+                    canDeleteMoneyRequestReport(
+                        report,
+                        [transaction],
+                        [iouAction, submittedAction, forwardedAction],
+                        currentUserAccountID,
+                        undefined,
+                        THREADING_OWNER_EMAIL,
+                        undefined,
+                        undefined,
+                    ),
+                ).toBe(false);
             });
 
             it('should resolve the report owner from the personalDetails canDeleteReportAction is given', async () => {
@@ -7936,7 +8044,7 @@ describe('ReportUtils', () => {
     describe('replaceLocalAttachmentReferences', () => {
         const reportActionID = '6076606438659303644';
         const syncedImageHtml = `Hello<br /><br /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg" alt="photo.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/abc.jpg" />`;
-        const uploadingImageHtml = `Hello<br /><br /><img src="blob:https://dev.new.expensify.com:8082/uuid-1" alt="photo.jpg" data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1" data-expensify-source="blob:https://dev.new.expensify.com:8082/uuid-1" data-name="photo.jpg" />`;
+        const uploadingImageHtml = `Hello<br /><br /><img src="blob:https://dev.new.expensify.com:8082/uuid-1" alt="photo.jpg" data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1" data-expensify-source="blob:https://dev.new.expensify.com:8082/uuid-1" data-name="photo.jpg" data-attachment-id="1" />`;
 
         it('drops the local reference while the upload is still pending, since the queued send re-attaches the file', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
@@ -7984,6 +8092,82 @@ describe('ReportUtils', () => {
             );
         });
 
+        describe('several synced attachments', () => {
+            const firstSource = 'blob:https://dev.new.expensify.com:8082/uuid-1';
+            const secondSource = 'blob:https://dev.new.expensify.com:8082/uuid-2';
+            const syncedTwoImagesHtml = `Hello<br /><br /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg" alt="photo.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/abc.jpg" data-attachment-id="11" /><img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg" alt="receipt.jpg" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/def.jpg" data-attachment-id="12" />`;
+            const attachmentIDByLocalSource = {[firstSource]: '11', [secondSource]: '12'};
+
+            it('keeps every attachment the draft kept', () => {
+                // Given a message with two images that synced after the user started editing
+                const draft = `Hello edited\n\n!(${firstSource})\n\n!(${secondSource})`;
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedTwoImagesHtml, reportActionID, attachmentIDByLocalSource);
+
+                // Then both images stay in the message
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![photo.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`,
+                );
+            });
+
+            it('matches by position when the synced attachments have no attachment ID', () => {
+                // Given synced images without an attachment ID
+                const syncedHtmlWithoutIDs = syncedTwoImagesHtml.replaceAll(/ data-attachment-id="\d+"/g, '');
+                const draft = `Hello edited\n\n!(${firstSource})\n\n!(${secondSource})`;
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedHtmlWithoutIDs, reportActionID, attachmentIDByLocalSource);
+
+                // Then both images stay in the message
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![photo.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_abc.jpg)\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`,
+                );
+            });
+
+            it('keeps the image the user kept when they deleted the other one', () => {
+                // Given the user deleted the first image while both were uploading
+                const draft = `Hello edited\n\n!(${secondSource})`;
+
+                // When the edit is saved after the upload synced
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedTwoImagesHtml, reportActionID, attachmentIDByLocalSource);
+
+                // Then the second image stays, not the first
+                expect(savedDraft).toBe(`Hello edited\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`);
+            });
+
+            it('keeps the image the user kept by its file name after the app restarted', () => {
+                // Given the user deleted the first image, and the app restarted so it no longer knows which upload is which
+                const syncedHtmlWithoutIDs = syncedTwoImagesHtml.replaceAll(/ data-attachment-id="\d+"/g, '');
+                const draft = 'Hello edited\n\n!(file:///var/mobile/Documents/receipt.jpg)';
+
+                // When the edit is saved after the upload synced
+                const savedDraft = replaceLocalAttachmentReferences(draft, syncedHtmlWithoutIDs, reportActionID, {});
+
+                // Then the second image stays, matched by its file name
+                expect(savedDraft).toBe(`Hello edited\n\n![receipt.jpg](https://www.expensify.com/chat-attachments/${reportActionID}/w_def.jpg)`);
+            });
+
+            it('matches same-named images to different synced attachments', () => {
+                // Given three synced images with the same file name, and a draft that kept two of them after the app restarted
+                const syncedSameNameHtml = ['a', 'b', 'c']
+                    .map(
+                        (name) =>
+                            `<img src="https://www.expensify.com/chat-attachments/${reportActionID}/w_${name}.png" alt="image.png" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/${name}.png" />`,
+                    )
+                    .join('');
+                const draft = 'Hello edited\n\n![image.png](file:///var/mobile/Documents/image.png)\n\n![image.png](file:///var/mobile/Documents/image.png)';
+
+                // When the edit is saved
+                const savedDraft = replaceLocalAttachmentReferences(draft, `Hello<br /><br />${syncedSameNameHtml}`, reportActionID, {});
+
+                // Then each kept image gets its own synced attachment instead of both getting the first one
+                expect(savedDraft).toBe(
+                    `Hello edited\n\n![image.png](https://www.expensify.com/chat-attachments/${reportActionID}/w_a.png)\n\n![image.png](https://www.expensify.com/chat-attachments/${reportActionID}/w_b.png)`,
+                );
+            });
+        });
+
         it('swaps a document reference for the synced attachment link', () => {
             const syncedDocHtml = `Hello<br /><br /><a href="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc" data-expensify-source="https://www.expensify.com/chat-attachments/${reportActionID}/file.doc">file.doc</a>`;
             const draft = 'Hello edited\n\n[file.doc](blob:https://dev.new.expensify.com:8082/uuid-1)';
@@ -8018,17 +8202,17 @@ describe('ReportUtils', () => {
         });
 
         it('reports the uploading attachment as removed once the draft drops its local reference', () => {
-            expect(isUploadingAttachmentRemovedFromDraft('Hello edited', uploadingImageHtml)).toBe(true);
+            expect(getUploadingAttachmentIDsRemovedFromDraft('Hello edited', uploadingImageHtml)).toEqual(['1']);
         });
 
         it('does not report a removal while the draft still references the uploading attachment', () => {
             const draft = 'Hello edited\n\n!(blob:https://dev.new.expensify.com:8082/uuid-1)';
 
-            expect(isUploadingAttachmentRemovedFromDraft(draft, uploadingImageHtml)).toBe(false);
+            expect(getUploadingAttachmentIDsRemovedFromDraft(draft, uploadingImageHtml)).toEqual([]);
         });
 
         it('does not report a removal when the attachment already synced', () => {
-            expect(isUploadingAttachmentRemovedFromDraft('Hello edited', syncedImageHtml)).toBe(false);
+            expect(getUploadingAttachmentIDsRemovedFromDraft('Hello edited', syncedImageHtml)).toEqual([]);
         });
 
         it('returns the uploading attachment tag so the optimistic message can keep showing it', () => {
@@ -8036,6 +8220,45 @@ describe('ReportUtils', () => {
 
             expect(tag).toContain('data-optimistic-src="blob:https://dev.new.expensify.com:8082/uuid-1"');
             expect(tag?.startsWith('<img')).toBe(true);
+        });
+
+        describe('several uploading attachments', () => {
+            const firstSource = 'blob:https://dev.new.expensify.com:8082/uuid-1';
+            const secondSource = 'blob:https://dev.new.expensify.com:8082/uuid-2';
+            const uploadingImagesHtml = `Hello<br /><br /><img src="${firstSource}" data-optimistic-src="${firstSource}" data-attachment-id="11" /><br /><img src="${secondSource}" data-optimistic-src="${secondSource}" data-attachment-id="12" />`;
+
+            it('reports only the attachments the draft dropped', () => {
+                // Given a draft that keeps the second image but not the first
+                const draft = `Hello edited\n\n!(${secondSource})`;
+
+                // When the removed uploads are looked up
+                const removedAttachmentIDs = getUploadingAttachmentIDsRemovedFromDraft(draft, uploadingImagesHtml);
+
+                // Then only the first image counts as removed
+                expect(removedAttachmentIDs).toEqual(['11']);
+            });
+
+            it('keeps showing every attachment the edit kept', () => {
+                // Given a message with two uploading images
+
+                // When the first image is removed
+                const html = getUploadingAttachmentHtmlFromComment(uploadingImagesHtml, ['11']);
+
+                // Then only the second image is re-appended to the edited message
+                expect(html).toContain(secondSource);
+                expect(html).not.toContain(firstSource);
+            });
+
+            it('re-appends all the attachments when none were removed', () => {
+                // Given a message with two uploading images
+
+                // When the edit keeps both images
+                const html = getUploadingAttachmentHtmlFromComment(uploadingImagesHtml);
+
+                // Then both images are re-appended to the edited message
+                expect(html).toContain(firstSource);
+                expect(html).toContain(secondSource);
+            });
         });
 
         it('returns nothing to re-append once the attachment has synced', () => {
@@ -8085,7 +8308,7 @@ describe('ReportUtils', () => {
                 const secondEditDraft = Parser.htmlToMarkdown(storedAfterFirstEdit).trim();
 
                 expect(secondEditDraft).toContain(videoSource);
-                expect(isUploadingAttachmentRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toBe(false);
+                expect(getUploadingAttachmentIDsRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toEqual([]);
             });
         });
 
@@ -9275,7 +9498,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails, null, '', -1, undefined, undefined, false, ['4']);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails, pendingDeleteMemberAccountIDs: ['4']});
 
             expect(icons.at(0)?.name).toEqual('One, Three, Two');
         });
@@ -9289,7 +9512,7 @@ describe('ReportUtils', () => {
             });
 
             // When the caller builds the icons without passing the pending delete members
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails});
 
             // Then the pending member is still listed: getGroupChatName no longer falls back to reading Onyx itself
             expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
@@ -9299,10 +9522,111 @@ describe('ReportUtils', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${groupChatReport.reportID}`, groupChatReport);
             await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
 
-            const icons = getIcons(groupChatReport, formatPhoneNumber, translateLocal, fakePersonalDetails, null, '', -1, undefined, undefined, false, []);
+            const icons = getIcons({report: groupChatReport, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails, pendingDeleteMemberAccountIDs: []});
 
             expect(icons.at(0)?.source).toEqual(getDefaultGroupAvatar(groupChatReport.reportID));
             expect(icons.at(0)?.name).toEqual('Four, One, Three, Two');
+        });
+    });
+
+    describe('getIcons for a thread', () => {
+        afterEach(() => Onyx.clear());
+
+        const parentReportID = '9301';
+        const parentReportActionID = '9302';
+        const passedActorAccountID = 3;
+        const onyxActorAccountID = 4;
+
+        const buildIOUAction = (actorAccountID: number): ReportAction => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            reportActionID: parentReportActionID,
+            actorAccountID,
+            created: '2025-01-20 12:30:03.784',
+            message: [{type: 'COMMENT', html: 'expense', text: 'expense'}],
+            originalMessage: {
+                IOUReportID: parentReportID,
+                IOUTransactionID: '9303',
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 1000,
+                currency: 'USD',
+            },
+        });
+
+        const buildCommentAction = (actorAccountID: number): ReportAction => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+            reportActionID: parentReportActionID,
+            actorAccountID,
+            created: '2025-01-20 12:30:03.784',
+            message: [{type: 'COMMENT', html: '<p>hi</p>', text: 'hi'}],
+        });
+
+        const expenseRequest: Report = {
+            reportID: '9304',
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID,
+            parentReportActionID,
+        };
+
+        const chatThread: Report = {
+            reportID: '9305',
+            type: CONST.REPORT.TYPE.CHAT,
+            parentReportID,
+            parentReportActionID,
+        };
+
+        it('should build the expense request member avatar from the parent report action passed by the caller', async () => {
+            // Given an expense request whose parent action in Onyx (still read by the expense request check) was posted by one user,
+            // while the caller resolved that same action as posted by another user
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.EXPENSE});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: buildIOUAction(onyxActorAccountID)});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            // When the icons are built with the caller's parent report action
+            const icons = getIcons({
+                report: expenseRequest,
+                formatPhoneNumber,
+                translate: translateLocal,
+                personalDetails: fakePersonalDetails,
+                parentReportAction: buildIOUAction(passedActorAccountID),
+            });
+
+            // Then the member avatar belongs to the actor of the passed action, so the module-level cache was not read for it
+            expect(icons.at(0)?.id).toBe(passedActorAccountID);
+            expect(icons.at(0)?.name).toBe('Email Three');
+        });
+
+        it('should build the chat thread avatar from the parent report action passed by the caller', async () => {
+            // Given a chat thread whose parent chat is in Onyx but whose parent actions are not loaded there
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            // When the icons are built with the caller's parent report action
+            const icons = getIcons({
+                report: chatThread,
+                formatPhoneNumber,
+                translate: translateLocal,
+                personalDetails: fakePersonalDetails,
+                parentReportAction: buildCommentAction(passedActorAccountID),
+            });
+
+            // Then the avatar belongs to the actor of the passed action
+            expect(icons).toHaveLength(1);
+            expect(icons.at(0)?.id).toBe(passedActorAccountID);
+            expect(icons.at(0)?.name).toBe('Email Three');
+        });
+
+        it('should fall back to the parent report action in Onyx when the caller does not pass one', async () => {
+            // Given a chat thread whose parent action is only available in Onyx
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, {reportID: parentReportID, type: CONST.REPORT.TYPE.CHAT});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`, {[parentReportActionID]: buildCommentAction(onyxActorAccountID)});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, fakePersonalDetails);
+
+            // When the icons are built without a parent report action
+            const icons = getIcons({report: chatThread, formatPhoneNumber, translate: translateLocal, personalDetails: fakePersonalDetails});
+
+            // Then the avatar still resolves from Onyx until every caller passes the action
+            expect(icons.at(0)?.id).toBe(onyxActorAccountID);
+            expect(icons.at(0)?.name).toBe('Email Four');
         });
     });
 
@@ -12715,6 +13039,58 @@ describe('ReportUtils', () => {
             // employee, which would fall through to the policy default approver and wrongly report false
             expect(result).toBe(true);
         });
+
+        describe('reportActions', () => {
+            const submittedAction: ReportAction = {...createRandomReportAction(901), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, created: '2026-04-21 17:00:00'};
+            const forwardedAction: ReportAction = {...createRandomReportAction(902), actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED, created: '2026-04-21 17:10:00'};
+            const forwardedActions = {[submittedAction.reportActionID]: submittedAction, [forwardedAction.reportActionID]: forwardedAction};
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${buildProcessingReport().reportID}` as const;
+
+            afterEach(async () => {
+                await Onyx.merge(reportActionsKey, null);
+                await waitForBatchedUpdates();
+            });
+
+            it('should not be awaiting first level approval when the passed reportActions show a forward after the last submit', async () => {
+                // Given a report that the approval chain alone would place with its first approver
+                await setUpApprovalChain();
+                const report = buildProcessingReport();
+
+                // When the caller passes actions showing the report was forwarded after its last submit
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, forwardedActions);
+
+                // Then the report is past its first level
+                expect(result).toBe(false);
+            });
+
+            it('should read the passed reportActions rather than the report actions stored in Onyx', async () => {
+                // Given Onyx says the report was forwarded after its last submit
+                await setUpApprovalChain();
+                const report = buildProcessingReport();
+                await Onyx.merge(reportActionsKey, forwardedActions);
+                await waitForBatchedUpdates();
+
+                // When the caller passes only the submit, as an array
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL, [submittedAction]);
+
+                // Then the passed actions win, so the report is still awaiting its first level
+                expect(result).toBe(true);
+            });
+
+            it('should fall back to the report actions stored in Onyx when reportActions is not passed', async () => {
+                // Given Onyx says the report was forwarded after its last submit
+                await setUpApprovalChain();
+                const report = buildProcessingReport();
+                await Onyx.merge(reportActionsKey, forwardedActions);
+                await waitForBatchedUpdates();
+
+                // When a caller that has not been migrated yet omits reportActions
+                const result = isAwaitingFirstLevelApproval(report, undefined, REPORT_OWNER_EMAIL);
+
+                // Then the transitional fallback still sees the forward
+                expect(result).toBe(false);
+            });
+        });
     });
 
     describe('isReportOutstanding', () => {
@@ -15631,6 +16007,165 @@ describe('ReportUtils', () => {
                     value: expect.not.arrayContaining([expect.objectContaining({name: CONST.VIOLATIONS.MISSING_TAG})]),
                 }),
             );
+        });
+
+        it('pushes inactiveVendor error when a vendor is disabled', () => {
+            const fakePolicyID = '0';
+            const fakeVendorID = 'vendor1';
+            const fakePolicy: Policy = createMock<Policy>({
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {
+                            vendors: [{id: fakeVendorID, name: 'Vendor 1', currency: 'USD'}],
+                        },
+                    },
+                },
+            });
+
+            const openIOUReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+            };
+
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                comment: {
+                    vendor: {
+                        externalID: fakeVendorID,
+                        wasManuallySet: true,
+                    },
+                },
+            };
+
+            const initialPolicyVendors: PolicyVendors = {
+                [fakeVendorID]: {
+                    externalID: fakeVendorID,
+                    name: 'Vendor 1',
+                    enabled: true,
+                },
+            };
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                categories: {},
+                tags: {},
+                vendors: initialPolicyVendors,
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [mockTransaction.transactionID]: transaction,
+                        },
+                        violations: {},
+                    },
+                },
+            };
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, policyData, true, {}, {}, {}, undefined, {[fakeVendorID]: {enabled: false}});
+
+            expect(onyxData.optimisticData).toContainEqual({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                value: [
+                    {
+                        name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+            });
+        });
+
+        it('clears inactiveVendor error when a disabled vendor is re-enabled', () => {
+            const fakePolicyID = '0';
+            const fakeVendorID = 'vendor1';
+            const fakePolicy: Policy = createMock<Policy>({
+                ...createRandomPolicy(0),
+                id: fakePolicyID,
+                connections: {
+                    [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                        config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                        data: {
+                            vendors: [{id: fakeVendorID, name: 'Vendor 1', currency: 'USD'}],
+                        },
+                    },
+                },
+            });
+
+            const openIOUReport: Report = {
+                ...mockIOUReport,
+                policyID: fakePolicyID,
+            };
+
+            const transaction: Transaction = {
+                ...mockTransaction,
+                reportID: openIOUReport.reportID,
+                comment: {
+                    vendor: {
+                        externalID: fakeVendorID,
+                        wasManuallySet: true,
+                    },
+                },
+            };
+
+            const initialPolicyVendors: PolicyVendors = {
+                [fakeVendorID]: {
+                    externalID: fakeVendorID,
+                    name: 'Vendor 1',
+                    enabled: false,
+                },
+            };
+
+            const policyData: PolicyData = {
+                policy: fakePolicy,
+                categories: {},
+                tags: {},
+                vendors: initialPolicyVendors,
+                reports: [openIOUReport],
+                transactionsAndViolations: {
+                    [openIOUReport.reportID]: {
+                        transactions: {
+                            [mockTransaction.transactionID]: transaction,
+                        },
+                        violations: {
+                            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`]: [
+                                {
+                                    name: CONST.VIOLATIONS.INACTIVE_VENDOR,
+                                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                                    showInReview: true,
+                                },
+                                {
+                                    name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+                                    type: CONST.VIOLATION_TYPES.VIOLATION,
+                                    showInReview: true,
+                                },
+                            ],
+                        },
+                    },
+                },
+            };
+
+            const onyxData = {optimisticData: [], failureData: []};
+
+            pushTransactionViolationsOnyxData(onyxData, policyData, true, {}, {}, {}, undefined, {[fakeVendorID]: {enabled: true}});
+
+            expect(onyxData.optimisticData).toContainEqual({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`,
+                value: [
+                    {
+                        name: CONST.VIOLATIONS.CATEGORY_OUT_OF_POLICY,
+                        type: CONST.VIOLATION_TYPES.VIOLATION,
+                        showInReview: true,
+                    },
+                ],
+            });
         });
     });
 
@@ -18635,6 +19170,56 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('shouldBlockSubmitDueToDeletedWorkspace', () => {
+        it('should return true when the workspace chat was archived because its workspace was deleted', () => {
+            // Given a workspace chat archived with the POLICY_DELETED reason, which deleting a workspace leaves behind
+            // without setting archivedDate on the policy
+            const isChatReportArchived = true;
+            const chatArchiveReason = CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED;
+
+            // When checking whether Submit is blocked
+            const result = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+
+            // Then Submit is blocked, because the backend rejects submissions to a deleted workspace
+            expect(result).toBe(true);
+        });
+
+        it('should return false when the workspace chat was archived because the submitter was removed from the workspace', () => {
+            // Given a workspace chat archived because the submitter was removed, while the workspace itself still exists
+            const isChatReportArchived = true;
+            const chatArchiveReason = CONST.REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY;
+
+            // When checking whether Submit is blocked
+            const result = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+
+            // Then Submit stays available, so a removed member's outstanding reports can still move through the workflow
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the workspace chat is not archived', () => {
+            // Given an active workspace chat, even with a stale POLICY_DELETED close reason (e.g. a restored workspace)
+            const isChatReportArchived = false;
+            const chatArchiveReason = CONST.REPORT.ARCHIVE_REASON.POLICY_DELETED;
+
+            // When checking whether Submit is blocked
+            const result = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, chatArchiveReason);
+
+            // Then Submit stays available, because only a chat that is currently archived signals a deleted workspace
+            expect(result).toBe(false);
+        });
+
+        it('should return false when the archive reason is unknown', () => {
+            // Given an archived workspace chat whose close action isn't loaded, so its reason can't be read
+            const isChatReportArchived = true;
+
+            // When checking whether Submit is blocked
+            const result = shouldBlockSubmitDueToDeletedWorkspace(isChatReportArchived, undefined);
+
+            // Then Submit stays available, because archived chats are only blocked when the workspace was deleted
+            expect(result).toBe(false);
+        });
+    });
+
     describe('shouldBlockSubmitDueToPreventSelfApproval', () => {
         const policyID = '1';
 
@@ -18914,56 +19499,56 @@ describe('ReportUtils', () => {
 
         test('returns search report when found in searchReports array', () => {
             const searchReports = [mockSearchReport];
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports});
             expect(result).toEqual(mockSearchReport);
         });
 
         test('returns onyx report when search report is not found but onyx report exists', async () => {
             const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports});
             expect(result).toEqual(mockOnyxReport);
         });
 
         test('returns draft report when neither search nor onyx report exists but draft exists', () => {
             const searchReports: Report[] = [];
-            const result = getReportOrDraftReport(mockReportID, searchReports, undefined, mockDraftReport);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports, reportDraft: mockDraftReport});
             expect(result).toEqual(mockDraftReport);
         });
 
         test('returns fallback report when no other reports exist', () => {
             const searchReports: Report[] = [];
-            const result = getReportOrDraftReport('unknownReportID', searchReports, mockFallbackReport);
+            const result = getReportOrDraftReport({reportID: 'unknownReportID', searchReports, fallbackReport: mockFallbackReport});
             expect(result).toEqual(mockFallbackReport);
         });
 
         test('returns undefined when no reports exist and no fallback provided', () => {
             const searchReports: Report[] = [];
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports});
             expect(result).toBeUndefined();
         });
 
         test('returns undefined when reportID is undefined', () => {
             const searchReports = [mockSearchReport];
-            const result = getReportOrDraftReport(undefined, searchReports);
+            const result = getReportOrDraftReport({reportID: undefined, searchReports});
             expect(result).toBeUndefined();
         });
 
         test('returns undefined when only reportID is provided and it is not found', () => {
-            const result = getReportOrDraftReport('unknownReportID');
+            const result = getReportOrDraftReport({reportID: 'unknownReportID'});
             expect(result).toBeUndefined();
         });
 
         test('returns fallback report when reportID is undefined', () => {
             const searchReports = [mockSearchReport];
-            const result = getReportOrDraftReport(undefined, searchReports, mockFallbackReport);
+            const result = getReportOrDraftReport({reportID: undefined, searchReports, fallbackReport: mockFallbackReport});
             expect(result).toEqual(mockFallbackReport);
         });
 
         test('prioritizes search report over onyx report when both exist', async () => {
             const searchReports = [mockSearchReport];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, searchReports);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports});
             expect(result).toEqual(mockSearchReport);
             expect(result).not.toEqual(mockOnyxReport);
         });
@@ -18971,21 +19556,21 @@ describe('ReportUtils', () => {
         test('prioritizes onyx report over draft report when both exist', async () => {
             const searchReports: Report[] = [];
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, searchReports, undefined, mockDraftReport);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports, reportDraft: mockDraftReport});
             expect(result).toEqual(mockOnyxReport);
             expect(result).not.toEqual(mockDraftReport);
         });
 
         test('prioritizes draft report over fallback when both exist', () => {
             const searchReports: Report[] = [];
-            const result = getReportOrDraftReport(mockReportID, searchReports, mockFallbackReport, mockDraftReport);
+            const result = getReportOrDraftReport({reportID: mockReportID, searchReports, fallbackReport: mockFallbackReport, reportDraft: mockDraftReport});
             expect(result).toEqual(mockDraftReport);
             expect(result).not.toEqual(mockFallbackReport);
         });
 
         test('handles empty searchReports array gracefully', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID);
+            const result = getReportOrDraftReport({reportID: mockReportID});
             expect(result).toEqual(mockOnyxReport);
         });
 
@@ -18996,19 +19581,19 @@ describe('ReportUtils', () => {
                 type: CONST.REPORT.TYPE.CHAT,
             };
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, explicitReport);
+            const result = getReportOrDraftReport({reportID: mockReportID, report: explicitReport});
             expect(result).toEqual(explicitReport);
             expect(result).not.toEqual(mockOnyxReport);
         });
 
         test('falls back to Onyx state when 5th param is undefined', async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${mockReportID}`, mockOnyxReport);
-            const result = getReportOrDraftReport(mockReportID, undefined, undefined, undefined, undefined);
+            const result = getReportOrDraftReport({reportID: mockReportID});
             expect(result).toEqual(mockOnyxReport);
         });
 
         test('still finds draft report when 5th param is undefined', () => {
-            const result = getReportOrDraftReport(mockReportID, undefined, undefined, mockDraftReport, undefined);
+            const result = getReportOrDraftReport({reportID: mockReportID, reportDraft: mockDraftReport});
             expect(result).toEqual(mockDraftReport);
         });
     });
@@ -20296,7 +20881,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(regularChat, {});
+            const result = getViolatingReportIDForRBRInLHN(regularChat, {}, undefined);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -20315,7 +20900,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, {});
+            const result = getViolatingReportIDForRBRInLHN(chatReport, {}, undefined);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -20333,7 +20918,7 @@ describe('ReportUtils', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, {});
+            const result = getViolatingReportIDForRBRInLHN(chatReport, {}, undefined);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -20420,7 +21005,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBe(expenseReportID);
 
             await Onyx.clear();
@@ -20509,14 +21094,14 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBeNull();
 
             // Positive control: the same violating transaction lights the RBR when it isn't pending deletion.
             // This proves the null above comes from the DELETE filter and not from some unrelated gate.
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {pendingAction: null});
             await waitForBatchedUpdates();
-            expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+            expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
             await Onyx.clear();
         });
@@ -20625,7 +21210,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBe(expenseReportID);
 
             await Onyx.clear();
@@ -20713,7 +21298,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -20799,7 +21384,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -20886,7 +21471,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBe(expenseReportID);
 
             await Onyx.clear();
@@ -20991,7 +21576,7 @@ describe('ReportUtils', () => {
             ]);
             await waitForBatchedUpdates();
 
-            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+            const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData);
             expect(result).toBeNull();
 
             await Onyx.clear();
@@ -21086,7 +21671,7 @@ describe('ReportUtils', () => {
                     await Onyx.clear();
 
                     // Given a submitted instant-submit report with only companyCardRequired
-                    const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                    const {chatReport, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                         `only-${violationType}`,
                         [{name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: violationType, showInReview: true}],
                         false,
@@ -21096,7 +21681,7 @@ describe('ReportUtils', () => {
 
                     // When the Inbox checks for the red dot
                     // Then the dot stays off, because the submitter cannot fix this after submit
-                    expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
+                    expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBeNull();
 
                     await Onyx.clear();
                 },
@@ -21105,13 +21690,13 @@ describe('ReportUtils', () => {
             it('should still surface RBR on an open expense report whose only violation is companyCardRequired', async () => {
                 await Onyx.clear();
 
-                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, expenseReportID, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'open',
                     [{name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                     true,
                 );
 
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21120,7 +21705,7 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
 
                 // Given a submitted instant-submit report with companyCardRequired and a violation the submitter can fix
-                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, expenseReportID, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'alongside-resolvable',
                     [
                         {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
@@ -21133,7 +21718,7 @@ describe('ReportUtils', () => {
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays on, because the fixable violation is still there
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21144,7 +21729,7 @@ describe('ReportUtils', () => {
                 // Given a submitted instant-submit report where the category violation is still hidden while it is being analyzed
                 const pendingAutoCategorizationTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
 
-                const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'alongside-hidden',
                     [
                         {name: CONST.VIOLATIONS.COMPANY_CARD_REQUIRED, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
@@ -21157,7 +21742,7 @@ describe('ReportUtils', () => {
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays off, because nothing left is something the submitter can fix
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBeNull();
 
                 await Onyx.clear();
             });
@@ -21166,7 +21751,7 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
 
                 // Given a submitted instant-submit report with only a modifiedAmount violation
-                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, expenseReportID, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'modified-amount-violation',
                     [{name: CONST.VIOLATIONS.MODIFIED_AMOUNT, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                     false,
@@ -21176,7 +21761,7 @@ describe('ReportUtils', () => {
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays on, because this modifiedAmount can still be fixed
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21185,13 +21770,13 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
 
                 // Given a submitted report that is not instant submit, with a violation the submitter can fix
-                const {chatReport, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario('submitted-non-instant', [
+                const {chatReport, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario('submitted-non-instant', [
                     {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
                 ]);
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays off, because only instant submit keeps Fix after submit
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBeNull();
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBeNull();
 
                 await Onyx.clear();
             });
@@ -21200,7 +21785,7 @@ describe('ReportUtils', () => {
                 await Onyx.clear();
 
                 // Given a draft report with a violation the submitter can fix
-                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
+                const {chatReport, expenseReportID, policyData, transactionViolationsCollection} = await setUpCompanyCardRequiredScenario(
                     'draft-non-instant',
                     [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                     true,
@@ -21208,7 +21793,7 @@ describe('ReportUtils', () => {
 
                 // When the Inbox checks for the red dot
                 // Then the dot stays on, because a draft can still be fixed
-                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection)).toBe(expenseReportID);
+                expect(getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policyData)).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21225,6 +21810,126 @@ describe('ReportUtils', () => {
                 expect(ViolationsUtils.hasVisibleViolationsForUser(expenseReport, transactionViolationsCollection, currentUserEmail, currentUserAccountID, policyData, [transaction])).toBe(
                     true,
                 );
+
+                await Onyx.clear();
+            });
+        });
+
+        /**
+         * The policy must come from the caller rather than the module-level `allPolicies` Onyx cache that
+         * ReportUtils used to read. Auto-categorization is the discriminator: with `autoCategorizeNewExpenses`
+         * off, `isCategoryBeingAnalyzed` bails out early and the `missingCategory` violation drives the RBR;
+         * with it on, the expense is still inside the grace period so the violation stays hidden. A stale
+         * cached policy would therefore flip the RBR either way. See https://github.com/Expensify/App/issues/66415.
+         */
+        describe('reads the policy from the caller, not the Onyx cache', () => {
+            function buildAutoCategorizePolicy(autoCategorizeNewExpenses: boolean): Policy {
+                return {
+                    id: 'placeholder',
+                    name: 'Auto Categorize Workspace',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    outputCurrency: CONST.CURRENCY.USD,
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                    employeeList: {[currentUserEmail]: {role: CONST.POLICY.ROLE.ADMIN}},
+                    owner: currentUserEmail,
+                    autoCategorizeNewExpenses,
+                };
+            }
+
+            /**
+             * Builds an open expense report owned by the current user whose single uncategorized transaction sits
+             * inside the auto-categorization grace period and carries a `missingCategory` violation, and seeds
+             * `cachedPolicy` into Onyx as that workspace's policy.
+             */
+            async function setUpAutoCategorizeScenario(scenarioKey: string, cachedPolicy: Policy) {
+                const policyID = `policy-rbr-auto-categorize-${scenarioKey}`;
+                const chatReportID = `chat-rbr-auto-categorize-${scenarioKey}`;
+                const expenseReportID = `expense-rbr-auto-categorize-${scenarioKey}`;
+                const transactionID = `transaction-rbr-auto-categorize-${scenarioKey}`;
+
+                const chatReport: Report = {
+                    ...createPolicyExpenseChat(820),
+                    reportID: chatReportID,
+                    ownerAccountID: currentUserAccountID,
+                    policyID,
+                    iouReportID: expenseReportID,
+                    hasOutstandingChildRequest: true,
+                };
+
+                const expenseReport: Report = {
+                    ...createExpenseReport(821),
+                    reportID: expenseReportID,
+                    chatReportID,
+                    ownerAccountID: currentUserAccountID,
+                    managerID: 42,
+                    policyID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    currency: CONST.CURRENCY.USD,
+                    total: 5000,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                };
+
+                // Inside the 60-second auto-categorization grace period, so the category counts as still being analyzed.
+                const pendingAutoCategorizationTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
+                const transaction: Transaction = {
+                    ...createRandomTransaction(820),
+                    transactionID,
+                    reportID: expenseReportID,
+                    amount: 5000,
+                    currency: CONST.CURRENCY.USD,
+                    status: CONST.TRANSACTION.STATUS.POSTED,
+                    reimbursable: true,
+                    category: '',
+                    comment: {pendingAutoCategorizationTime},
+                };
+
+                const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}` as OnyxKey;
+                const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
+                    [transactionViolationsKey]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                };
+
+                await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID, email: currentUserEmail});
+                await waitForBatchedUpdates();
+
+                await Promise.all([
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {...cachedPolicy, id: policyID}),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, chatReport),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport),
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction),
+                    Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
+                ]);
+                await waitForBatchedUpdates();
+
+                return {chatReport, expenseReportID, transactionViolationsCollection};
+            }
+
+            it('hides the RBR when the passed policy auto-categorizes even though the cached policy does not', async () => {
+                // Given a workspace whose cached policy has auto-categorization off, which would surface the violation
+                await Onyx.clear();
+                const {chatReport, transactionViolationsCollection} = await setUpAutoCategorizeScenario('cached-off', buildAutoCategorizePolicy(false));
+
+                // When the caller passes the policy it actually holds, on which auto-categorization is on
+                const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, buildAutoCategorizePolicy(true));
+
+                // Then no RBR is reported, because the caller's policy decides and the stale cache is never consulted
+                expect(result).toBeNull();
+
+                await Onyx.clear();
+            });
+
+            it('shows the RBR when the passed policy does not auto-categorize even though the cached policy does', async () => {
+                // Given a workspace whose cached policy has auto-categorization on, which would hide the violation
+                await Onyx.clear();
+                const {chatReport, expenseReportID, transactionViolationsCollection} = await setUpAutoCategorizeScenario('cached-on', buildAutoCategorizePolicy(true));
+
+                // When the caller passes the policy it actually holds, on which auto-categorization is off
+                const result = getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, buildAutoCategorizePolicy(false));
+
+                // Then the violating report surfaces, so a stale cache can never suppress a real RBR
+                expect(result).toBe(expenseReportID);
 
                 await Onyx.clear();
             });
@@ -21358,7 +22063,7 @@ describe('ReportUtils', () => {
         ]);
         await waitForBatchedUpdates();
 
-        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policy1);
         expect(shouldShowRBR).toBe(false);
 
         const reason = reasonForReportToBeInOptionList({
@@ -21477,7 +22182,7 @@ describe('ReportUtils', () => {
         ]);
         await waitForBatchedUpdates();
 
-        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection);
+        const shouldShowRBR = !!getViolatingReportIDForRBRInLHN(chatReport, transactionViolationsCollection, policy1);
         expect(shouldShowRBR).toBe(false);
         await Onyx.clear();
     });
@@ -21995,11 +22700,52 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewMessage passing the policy explicitly
-            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy});
+            const result = getReportPreviewMessage(translateLocal, convertToDisplayString, {reportOrID: expenseReport, policy: groupPolicy}, formatPhoneNumber);
 
             // Then the group-policy "approved" branch is taken based on the passed policy alone
             expect(result).toContain('approved');
             expect(result).toContain(groupPolicy.name);
+        });
+        it('should use the passed linkedTransaction (not module-level allTransactions) for the merchant', async () => {
+            // Given an IOU report whose latest expense has a stale copy in Onyx
+            const transactionID = 'linkedTransaction1';
+            const iouReport: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                type: CONST.REPORT.TYPE.IOU,
+                currency: CONST.CURRENCY.USD,
+            };
+            const iouAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+                reportActionID: 'linkedTransactionAction1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                originalMessage: {IOUTransactionID: transactionID, amount: 1000, currency: CONST.CURRENCY.USD, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE},
+            });
+            const staleTransaction = {...createRandomTransaction(1), transactionID, merchant: 'Stale merchant', modifiedMerchant: '', amount: 1000, currency: CONST.CURRENCY.USD};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, staleTransaction);
+            await waitForBatchedUpdates();
+            const params = {reportOrID: iouReport, iouReportAction: iouAction, shouldConsiderScanningReceiptOrPendingRoute: true, policy: undefined};
+
+            // When we pass a fresher transaction for the action
+            const result = getReportPreviewMessage(
+                translateLocal,
+                convertToDisplayString,
+                {...params, linkedTransaction: {...staleTransaction, merchant: 'Fresh merchant'}},
+                formatPhoneNumber,
+            );
+
+            // Then the preview uses the passed transaction
+            expect(result).toContain('Fresh merchant');
+
+            // When the passed transaction belongs to another action, the module-level copy is still used
+            const mismatchedResult = getReportPreviewMessage(
+                translateLocal,
+                convertToDisplayString,
+                {...params, linkedTransaction: {...staleTransaction, transactionID: 'otherTransaction', merchant: 'Other merchant'}},
+                formatPhoneNumber,
+            );
+            expect(mismatchedResult).toContain('Stale merchant');
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, null);
         });
         it('getReportPreviewMessageForCopy should return the expense report name', async () => {
             const report = LHNTestUtils.getFakeReport();
@@ -22105,12 +22851,17 @@ describe('ReportUtils', () => {
                 };
 
                 // When the localized preview is built, since it is the only variant that receives IOU actions
-                const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                    reportOrID: settledReport,
-                    iouReportAction: actionWithAccountNumber,
-                    originalReportAction: actionWithAccountNumber,
-                    policy: settledPolicy,
-                });
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {
+                        reportOrID: settledReport,
+                        iouReportAction: actionWithAccountNumber,
+                        originalReportAction: actionWithAccountNumber,
+                        policy: settledPolicy,
+                    },
+                    formatPhoneNumber,
+                );
 
                 // Then the preview shows the last 4 digits of that account, not the policy default
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '4321'));
@@ -22121,12 +22872,17 @@ describe('ReportUtils', () => {
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
                 // When the localized preview is built
-                const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                    reportOrID: settledReport,
-                    iouReportAction: payReportAction,
-                    originalReportAction: payReportAction,
-                    policy: settledPolicy,
-                });
+                const result = getReportPreviewMessage(
+                    englishTranslate,
+                    convertToDisplayString,
+                    {
+                        reportOrID: settledReport,
+                        iouReportAction: payReportAction,
+                        originalReportAction: payReportAction,
+                        policy: settledPolicy,
+                    },
+                    formatPhoneNumber,
+                );
 
                 // Then the policy default account is used
                 expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '0000'));
@@ -22148,12 +22904,17 @@ describe('ReportUtils', () => {
                     // Then it uses workspace payment wording and the selected account’s digits.
                     const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
 
-                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                        reportOrID: settledReport,
-                        iouReportAction: actionNamingAccount,
-                        originalReportAction: actionNamingAccount,
-                        policy: settledPolicy,
-                    });
+                    const result = getReportPreviewMessage(
+                        englishTranslate,
+                        convertToDisplayString,
+                        {
+                            reportOrID: settledReport,
+                            iouReportAction: actionNamingAccount,
+                            originalReportAction: actionNamingAccount,
+                            policy: settledPolicy,
+                        },
+                        formatPhoneNumber,
+                    );
 
                     expect(result).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '6281'));
                 });
@@ -22166,7 +22927,9 @@ describe('ReportUtils', () => {
                     const params = {reportOrID: settledReport, iouReportAction: actionNamingAccountID, originalReportAction: actionNamingAccountID, policy: settledPolicy, bankAccountList};
 
                     // Then the preview names that account, matching PaymentContent, rather than the workspace default
-                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'));
+                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber)).toBe(
+                        translate(CONST.LOCALES.EN, 'iou.businessBankAccount', '', '5678'),
+                    );
                 });
             });
 
@@ -22186,7 +22949,7 @@ describe('ReportUtils', () => {
 
                 // Then the hardcoded English copy must not drift from the localized function
                 expect(storedMessage).toContain('paid with wallet');
-                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber));
             });
 
             it('falls back to the marked as paid wording for a report preview action without a payment hint', () => {
@@ -22205,7 +22968,7 @@ describe('ReportUtils', () => {
 
                 // Then the stored message is the plain "marked as paid" wording and matches the localized variant
                 expect(storedMessage).toContain('marked as paid');
-                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(storedMessage).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber));
             });
 
             describe('cross-border payment', () => {
@@ -22218,7 +22981,7 @@ describe('ReportUtils', () => {
 
                 it('names the credited amount, falling back to the policy default for the debited account', () => {
                     // Given a converted payment that recorded the employee's account but not the account it was paid from
-                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams);
+                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams, formatPhoneNumber);
 
                     // Then the debited account comes from the policy default, the same fallback the non-converted wording uses
                     expect(result).toBe(
@@ -22233,16 +22996,21 @@ describe('ReportUtils', () => {
                 it('still names the report total in the parent chat preview', () => {
                     // Given the parent chat preview, which summarizes the report rather than describing the payment
                     const params = {...crossBorderParams, isPreviewMessageForParentChatReport: true};
-                    const paymentWithoutConversion = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
-                        reportOrID: settledReport,
-                        iouReportAction: payReportAction,
-                        originalReportAction: payReportAction,
-                        policy: settledPolicy,
-                        isPreviewMessageForParentChatReport: true,
-                    });
+                    const paymentWithoutConversion = getReportPreviewMessage(
+                        englishTranslate,
+                        convertToDisplayString,
+                        {
+                            reportOrID: settledReport,
+                            iouReportAction: payReportAction,
+                            originalReportAction: payReportAction,
+                            policy: settledPolicy,
+                            isPreviewMessageForParentChatReport: true,
+                        },
+                        formatPhoneNumber,
+                    );
 
                     // Then the credited amount does not replace the report total, which is what the report is denominated in
-                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(paymentWithoutConversion);
+                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber)).toBe(paymentWithoutConversion);
                 });
             });
         });
@@ -22269,9 +23037,13 @@ describe('ReportUtils', () => {
                 await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
 
                 // The localized preview differs between English and Spanish...
-                expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params)).not.toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params, formatPhoneNumber)).not.toBe(
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
+                );
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(
+                    getReportPreviewMessage(englishTranslate, convertToDisplayString, params, formatPhoneNumber),
+                );
             });
 
             it('routes the participant display name through the injected translate function', async () => {
@@ -22295,7 +23067,7 @@ describe('ReportUtils', () => {
                 const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                     path === 'common.hidden' ? 'HiddenParticipantMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
 
-                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport, policy: undefined});
+                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport, policy: undefined}, formatPhoneNumber);
 
                 // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
                 expect(result).toContain('HiddenParticipantMarker');
@@ -22318,7 +23090,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}, formatPhoneNumber));
                 expect(result).toContain('owes');
             });
 
@@ -22368,7 +23140,7 @@ describe('ReportUtils', () => {
                 const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report, policy: undefined}, formatPhoneNumber));
                 expect(result).toContain('spent');
             });
         });
@@ -25341,6 +26113,152 @@ describe('ReportUtils', () => {
 
             // Then there is no IOU action to match the thread against
             expect(result).toBe(false);
+        });
+    });
+
+    describe('getDisplayedReportID', () => {
+        const parentReport = createMock<Report>({reportID: 'displayed-parent', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: 'displayed-chat'});
+        const threadReport = createMock<Report>({reportID: 'displayed-thread', parentReportID: parentReport.reportID, parentReportActionID: '1'});
+        const reportWithoutParent = createMock<Report>({reportID: 'displayed-no-parent', type: CONST.REPORT.TYPE.CHAT});
+        const iouAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: threadReport.reportID,
+            message: [{type: 'COMMENT', html: 'USD 1.00 expense', text: 'USD 1.00 expense'}],
+            originalMessage: {IOUTransactionID: 'displayed-txn-1', IOUReportID: parentReport.reportID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: CONST.CURRENCY.USD},
+        });
+        const secondIOUAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '2',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: 'displayed-other-thread',
+            message: [{type: 'COMMENT', html: 'USD 2.00 expense', text: 'USD 2.00 expense'}],
+            originalMessage: {IOUTransactionID: 'displayed-txn-2', IOUReportID: parentReport.reportID, type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 200, currency: CONST.CURRENCY.USD},
+        });
+        // Same ID as the thread's parentReportActionID, but a send-money action, which getDisplayedReportID must never treat as a one-transaction thread
+        const sentMoneyAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            childReportID: threadReport.reportID,
+            message: [{type: 'COMMENT', html: 'sent USD 1.00', text: 'sent USD 1.00'}],
+            originalMessage: {
+                IOUTransactionID: 'displayed-txn-1',
+                IOUReportID: parentReport.reportID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                amount: 100,
+                currency: CONST.CURRENCY.USD,
+                IOUDetails: {amount: 100, currency: CONST.CURRENCY.USD, comment: ''},
+            },
+        });
+        const parentReportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport.reportID}` as const;
+
+        beforeEach(async () => {
+            // getDisplayedReportID reads the thread and its parent from the reports stored in Onyx
+            await Onyx.multiSet(toCollectionDataSet(ONYXKEYS.COLLECTION.REPORT, [parentReport, threadReport, reportWithoutParent], (report) => report.reportID));
+            await waitForBatchedUpdates();
+        });
+
+        afterEach(async () => {
+            await Onyx.merge(parentReportActionsKey, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReport.reportID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, null);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportWithoutParent.reportID}`, null);
+            await waitForBatchedUpdates();
+        });
+
+        it('should return the report ID when the report has no parent', () => {
+            // Given a report that is not a thread, even though a matching IOU action is passed
+            const parentReportActions = {[iouAction.reportActionID]: iouAction};
+
+            // When resolving the displayed report
+            const result = getDisplayedReportID(reportWithoutParent.reportID, false, parentReportActions);
+
+            // Then the report itself is displayed because there is no parent to switch to
+            expect(result).toBe(reportWithoutParent.reportID);
+        });
+
+        it('should return the parent report ID when the passed parent report actions hold a single IOU action pointing to the thread', () => {
+            // Given the parent's actions contain exactly one IOU action whose child is the thread
+            const parentReportActions = {[iouAction.reportActionID]: iouAction};
+
+            // When resolving the displayed report with those actions passed as an object and as an array
+            const resultForObject = getDisplayedReportID(threadReport.reportID, false, parentReportActions);
+            const resultForArray = getDisplayedReportID(threadReport.reportID, false, [iouAction]);
+
+            // Then the one-transaction parent is displayed instead of the thread
+            expect(resultForObject).toBe(parentReport.reportID);
+            expect(resultForArray).toBe(parentReport.reportID);
+        });
+
+        it('should return the thread ID when the passed parent report actions hold more than one IOU action', () => {
+            // Given the parent holds two expenses
+            const parentReportActions = {[iouAction.reportActionID]: iouAction, [secondIOUAction.reportActionID]: secondIOUAction};
+
+            // When resolving the displayed report for one of their threads
+            const result = getDisplayedReportID(threadReport.reportID, false, parentReportActions);
+
+            // Then the thread stays displayed because the parent is not a one-transaction report
+            expect(result).toBe(threadReport.reportID);
+        });
+
+        it('should read the passed parent report actions rather than the actions stored in Onyx', async () => {
+            // Given Onyx says the parent holds two expenses
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction, [secondIOUAction.reportActionID]: secondIOUAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes only the single IOU action
+            const result = getDisplayedReportID(threadReport.reportID, false, {[iouAction.reportActionID]: iouAction});
+
+            // Then the passed actions win and the parent is displayed
+            expect(result).toBe(parentReport.reportID);
+        });
+
+        it('should fall back to the actions stored in Onyx when parentReportActions is not passed', async () => {
+            // Given Onyx holds a single IOU action for the parent
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction});
+            await waitForBatchedUpdates();
+
+            // When a caller that has not been migrated yet omits parentReportActions
+            const result = getDisplayedReportID(threadReport.reportID, false);
+
+            // Then the transitional fallback still resolves the parent from Onyx
+            expect(result).toBe(parentReport.reportID);
+        });
+
+        it('should return the thread ID when parentReportActions is not passed and Onyx has no actions for the parent', () => {
+            // Given nothing is stored for the parent and the caller passes no actions
+            // When resolving the displayed report
+            const result = getDisplayedReportID(threadReport.reportID, false);
+
+            // Then there is no IOU action to match, so the thread stays displayed
+            expect(result).toBe(threadReport.reportID);
+        });
+
+        it('should resolve the thread parent action from the passed parent report actions rather than from Onyx', async () => {
+            // Given Onyx stores a send-money action under the thread's parentReportActionID, which would keep the thread displayed
+            await Onyx.merge(parentReportActionsKey, {[sentMoneyAction.reportActionID]: sentMoneyAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes a plain expense action under that same ID, as an object and as an array
+            const resultForObject = getDisplayedReportID(threadReport.reportID, false, {[iouAction.reportActionID]: iouAction});
+            const resultForArray = getDisplayedReportID(threadReport.reportID, false, [iouAction]);
+
+            // Then the passed action is the one checked, so the parent is displayed
+            expect(resultForObject).toBe(parentReport.reportID);
+            expect(resultForArray).toBe(parentReport.reportID);
+        });
+
+        it('should keep the thread displayed when the passed parent report actions hold a send-money action for the thread', async () => {
+            // Given Onyx stores a plain expense action under the thread's parentReportActionID, which would switch to the parent
+            await Onyx.merge(parentReportActionsKey, {[iouAction.reportActionID]: iouAction});
+            await waitForBatchedUpdates();
+
+            // When the caller passes a send-money action under that same ID, as an object and as an array
+            const resultForObject = getDisplayedReportID(threadReport.reportID, false, {[sentMoneyAction.reportActionID]: sentMoneyAction});
+            const resultForArray = getDisplayedReportID(threadReport.reportID, false, [sentMoneyAction]);
+
+            // Then the passed send-money action is the one checked, so the thread stays displayed
+            expect(resultForObject).toBe(threadReport.reportID);
+            expect(resultForArray).toBe(threadReport.reportID);
         });
     });
 
@@ -28396,6 +29314,40 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('isReportExportedOrPending', () => {
+        it('returns true for a historical export action when the report flag is unavailable', () => {
+            // Given a report from the legacy data shape where export status only exists in report actions.
+            const report = createMock<Report>({reportID: 'exported-report'});
+            const exportAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION>>({
+                actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                reportActionID: 'export-action',
+                created: '2026-01-01 00:00:00.000',
+                originalMessage: {markedManually: true},
+            });
+
+            // When merge-warning export state is resolved.
+            const result = isReportExportedOrPending({[exportAction.reportActionID]: exportAction}, report);
+
+            // Then the historical export action is treated as exported.
+            expect(result).toBe(true);
+        });
+
+        it('returns true while an export is pending even when the persisted exported flag is false', () => {
+            // Given an optimistic export that has not yet flipped isExportedToIntegration.
+            const report = createMock<Report>({
+                reportID: 'pending-export-report',
+                isExportedToIntegration: false,
+                pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            });
+
+            // When merge-warning export state is resolved.
+            const result = isReportExportedOrPending([], report);
+
+            // Then the pending export still triggers the warning.
+            expect(result).toBe(true);
+        });
+    });
+
     describe('canMergeReports', () => {
         const OWNER_ID = 10;
         const ownerEmail = 'owner@example.com';
@@ -28435,11 +29387,45 @@ describe('ReportUtils', () => {
             });
         }
 
+        /** Minimal valid expense report in the Approved state. */
+        function makeApprovedReport(overrides?: Partial<Report>) {
+            return createMock<Report>({
+                reportID: String(reportCounter++),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: OWNER_ID,
+                policyID: POLICY_ID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: MANAGER_ID,
+                isWaitingOnBankAccount: false,
+                ...overrides,
+            });
+        }
+
+        function makeReportField(fieldID: string, value: string, type: PolicyReportField['type'] = CONST.REPORT_FIELD_TYPES.TEXT) {
+            return createMock<PolicyReportField>({
+                fieldID,
+                name: fieldID,
+                type,
+                value,
+                defaultValue: '',
+                deletable: true,
+                target: CONST.REPORT_FIELD_TARGETS.EXPENSE,
+                values: type === CONST.REPORT_FIELD_TYPES.LIST ? ['Acme', 'Globex'] : [],
+                keys: [],
+                externalIDs: [],
+                disabledOptions: [],
+                orderWeight: 1,
+                isTax: false,
+            });
+        }
+
         /** The workspace policy is passed in explicitly, so these fixtures never touch Onyx. */
         const adminPolicy = createMock<Policy>({
             ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
             id: POLICY_ID,
             role: CONST.POLICY.ROLE.ADMIN,
+            areReportFieldsEnabled: true,
         });
 
         const memberPolicy = createMock<Policy>({
@@ -28552,6 +29538,272 @@ describe('ReportUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             } as Report;
             expect(canMergeReports([makeOpenReport(), approved], USER_ID, undefined, undefined, undefined, adminPolicy)).toBe(false);
+        });
+
+        it('returns true when all reports are approved and the current user is an admin', () => {
+            const approved = makeApprovedReport();
+            const approved2 = makeApprovedReport();
+            expect(canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, adminPolicy)).toBe(true);
+        });
+
+        it('returns true when editable report field values match', () => {
+            // Given two otherwise mergeable reports with the same editable report field value.
+            const firstField = makeReportField('client', 'Acme');
+            const secondField = makeReportField('client', 'Acme');
+            const approved = makeApprovedReport({fieldList: {expensify_client: firstField}});
+            const approved2 = makeApprovedReport({fieldList: {expensify_client: secondField}});
+
+            // When merge eligibility is checked.
+            const result = doReportsHaveMatchingReportFieldValues([approved, approved2], adminPolicy);
+
+            // Then matching field values keep the reports mergeable.
+            expect(result).toBe(true);
+        });
+
+        it.each([
+            ['Open', makeOpenReport],
+            ['Processing', makeProcessingReport],
+            ['Approved', makeApprovedReport],
+        ] as const)('ignores leading and trailing spaces in text fields on %s reports', (_state, makeReport) => {
+            // Given two reports with text values that only differ by whitespace, which the editor does not let users change on its own.
+            const first = makeReport({fieldList: {expensify_client: makeReportField('client', ' Project X ')}});
+            const second = makeReport({fieldList: {expensify_client: makeReportField('client', 'Project X')}});
+
+            // When their editable fields are compared for merging.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then insignificant whitespace cannot block a merge that the user has no way to fix directly.
+            expect(result).toBe(true);
+        });
+
+        it('returns false when an editable report field value differs', () => {
+            // Given two otherwise mergeable reports with different values for the same editable report field.
+            const firstField = makeReportField('client', 'Acme');
+            const secondField = makeReportField('client', 'Globex');
+            const approved = makeApprovedReport({fieldList: {expensify_client: firstField}});
+            const approved2 = makeApprovedReport({fieldList: {expensify_client: secondField}});
+
+            // When merge eligibility is checked.
+            const result = doReportsHaveMatchingReportFieldValues([approved, approved2], adminPolicy);
+
+            // Then the merge is blocked so the source report field value cannot be lost.
+            expect(result).toBe(false);
+            // Eligibility stays independent so the bulk menu can open the RHP and show the mismatch.
+            expect(canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, adminPolicy)).toBe(true);
+        });
+
+        it.each([
+            ['Open', makeOpenReport],
+            ['Processing', makeProcessingReport],
+            ['Approved', makeApprovedReport],
+        ] as const)('ignores differing report fields on %s reports when report fields are disabled', (_state, makeReport) => {
+            // Given otherwise mergeable reports with different saved values for a disabled workspace feature.
+            const first = makeReport({fieldList: {expensify_client: makeReportField('client', 'Acme')}});
+            const second = makeReport({fieldList: {expensify_client: makeReportField('client', 'Globex')}});
+            const policyWithFieldsDisabled = {...adminPolicy, areReportFieldsEnabled: false};
+
+            // When checking merge eligibility before and after turning off report fields.
+            const withFieldsEnabled = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+            const withFieldsDisabled = doReportsHaveMatchingReportFieldValues([first, second], policyWithFieldsDisabled);
+
+            // Then the mismatch blocks merging only while the workspace's report fields are editable.
+            expect(withFieldsEnabled).toBe(false);
+            expect(withFieldsDisabled).toBe(true);
+        });
+
+        it('ignores list report fields without enabled options', () => {
+            // Given reports with different saved selections whose list field has no selectable options anymore.
+            const field = {...makeReportField('client', 'A', CONST.REPORT_FIELD_TYPES.LIST), values: ['A', 'B'], disabledOptions: [false, false]};
+            const first = makeApprovedReport({fieldList: {expensify_client: field}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, value: 'B'}}});
+            const policyWithHiddenList = {
+                ...adminPolicy,
+                fieldList: {expensify_client: {...field, disabledOptions: [true, true]}},
+            };
+
+            // When checking merge eligibility using the current policy options rather than stale report options.
+            const withEnabledOptions = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+            const withoutEnabledOptions = doReportsHaveMatchingReportFieldValues([first, second], policyWithHiddenList);
+
+            // Then hidden values do not block the merge, but visible mismatched selections still do.
+            expect(withEnabledOptions).toBe(false);
+            expect(withoutEnabledOptions).toBe(true);
+        });
+
+        it('still compares visible fields when another field is hidden', () => {
+            // Given a hidden list field and a visible text field with mismatching values on the same reports.
+            const hiddenField = {...makeReportField('hidden', 'A', CONST.REPORT_FIELD_TYPES.LIST), values: ['A', 'B'], disabledOptions: [true, true]};
+            const first = makeApprovedReport({fieldList: {expensify_hidden: hiddenField, expensify_client: makeReportField('client', 'Acme')}});
+            const second = makeApprovedReport({fieldList: {expensify_hidden: {...hiddenField, value: 'B'}, expensify_client: makeReportField('client', 'Globex')}});
+
+            // When the hidden field is excluded from validation.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then the visible client field mismatch still prevents merging.
+            expect(result).toBe(false);
+        });
+
+        it.each(['externalID', 'defaultExternalID'] as const)('returns false when dropdown %s values differ despite matching labels', (idKey) => {
+            // Given duplicate dropdown labels identifying different accounting options.
+            const field = {
+                ...makeReportField('client', 'Acme', CONST.REPORT_FIELD_TYPES.LIST),
+                ...(idKey === 'defaultExternalID' ? {value: undefined, defaultValue: 'Acme'} : {}),
+            };
+            const first = makeApprovedReport({fieldList: {expensify_client: {...field, [idKey]: 'client-1'}}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, [idKey]: 'client-2'}}});
+
+            // When merge eligibility is checked.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then differing option identities block merging even though their labels match.
+            expect(result).toBe(false);
+        });
+
+        it('ignores historical default IDs for an explicit dropdown value', () => {
+            // Given matching explicit selections whose reports retain different historical defaults.
+            const field = makeReportField('client', 'Globex', CONST.REPORT_FIELD_TYPES.LIST);
+            const first = makeApprovedReport({fieldList: {expensify_client: {...field, defaultValue: 'Acme', defaultExternalID: 'acme-id'}}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, defaultValue: 'Other', defaultExternalID: 'other-id'}}});
+
+            // When merge eligibility is checked without an explicit option ID.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then inactive default IDs do not block matching explicit values.
+            expect(result).toBe(true);
+        });
+
+        it.each([{externalID: ''}, {value: undefined, defaultValue: 'Acme', defaultExternalID: ''}, {values: ['Acme'], externalIDs: ['']}])(
+            'treats empty dropdown IDs as missing: %j',
+            (overrides) => {
+                // Given matching dropdown values with an empty selected, default, or option ID on one report.
+                const field = makeReportField('client', 'Acme', CONST.REPORT_FIELD_TYPES.LIST);
+                const first = makeApprovedReport({fieldList: {expensify_client: {...field, ...overrides}}});
+                const second = makeApprovedReport({fieldList: {expensify_client: field}});
+
+                // When merge eligibility compares empty IDs with absent IDs.
+                const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+                // Then equivalent missing identities do not block merging.
+                expect(result).toBe(true);
+            },
+        );
+
+        it('returns true when a dropdown selection matches another report’s default option', () => {
+            // Given an explicit selection and a default selection identifying the same accounting option.
+            const field = makeReportField('client', 'Acme', CONST.REPORT_FIELD_TYPES.LIST);
+            const first = makeApprovedReport({fieldList: {expensify_client: {...field, externalID: 'client-1', defaultExternalID: 'client-2'}}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, value: undefined, defaultValue: 'Acme', defaultExternalID: 'client-1'}}});
+
+            // When merge eligibility is checked.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then the explicit option takes precedence and matches the default option.
+            expect(result).toBe(true);
+        });
+
+        it.each([false, true])('resolves a unique dropdown option ID with policy options available: %s', (hasPolicyOptions) => {
+            // Given an offline selection without an ID and another report using the same default option.
+            const field = {
+                ...makeReportField('client', 'Acme', CONST.REPORT_FIELD_TYPES.LIST),
+                values: ['Acme', 'Globex'],
+                externalIDs: ['acme-id', 'globex-id'],
+            };
+            const first = makeApprovedReport({fieldList: {expensify_client: {...field, defaultValue: 'Globex', defaultExternalID: 'globex-id'}}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, value: undefined, defaultValue: 'Acme', defaultExternalID: 'acme-id'}}});
+            const comparisonPolicy = hasPolicyOptions
+                ? {...adminPolicy, fieldList: {expensify_client: {...field, values: ['Globex', 'Acme'], externalIDs: ['globex-id', 'acme-id']}}}
+                : adminPolicy;
+
+            // When field validation resolves the explicit selection from the matching option list.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], comparisonPolicy);
+
+            // Then matching option identities allow merging despite the absent explicit ID.
+            expect(result).toBe(true);
+        });
+
+        it('does not infer a dropdown option ID from duplicate labels', () => {
+            // Given duplicate labels whose distinct accounting IDs cannot be resolved from the label alone.
+            const field = {
+                ...makeReportField('client', 'Acme', CONST.REPORT_FIELD_TYPES.LIST),
+                values: ['Acme', 'Acme'],
+                externalIDs: ['client-1', 'client-2'],
+            };
+            const first = makeApprovedReport({fieldList: {expensify_client: field}});
+            const second = makeApprovedReport({fieldList: {expensify_client: {...field, externalID: 'client-1'}}});
+
+            // When merging would require guessing which duplicate option was selected.
+            const result = doReportsHaveMatchingReportFieldValues([first, second], adminPolicy);
+
+            // Then the unknown identity remains distinct from the explicit option ID.
+            expect(result).toBe(false);
+        });
+
+        it('returns true when only formula report field values differ', () => {
+            // Given two otherwise mergeable reports whose only differing field is a non-editable formula field.
+            const firstField = makeReportField('calculatedTotal', '100', CONST.REPORT_FIELD_TYPES.FORMULA);
+            const secondField = makeReportField('calculatedTotal', '200', CONST.REPORT_FIELD_TYPES.FORMULA);
+            const approved = makeApprovedReport({fieldList: {expensify_calculatedTotal: firstField}});
+            const approved2 = makeApprovedReport({fieldList: {expensify_calculatedTotal: secondField}});
+
+            // When merge eligibility is checked.
+            const result = doReportsHaveMatchingReportFieldValues([approved, approved2], adminPolicy);
+
+            // Then the formula mismatch is ignored because users cannot edit it.
+            expect(result).toBe(true);
+        });
+
+        it('returns false when approved reports have different managerIDs', () => {
+            // Given two approved reports in the same workspace and state but with different approval chains.
+            const approved = makeApprovedReport({managerID: MANAGER_ID});
+            const approved2 = makeApprovedReport({managerID: MANAGER_ID + 1});
+
+            // When an admin checks whether they can merge the reports.
+            const result = canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, adminPolicy);
+
+            // Then the reports are rejected because the v1 same-manager rule must still apply.
+            expect(result).toBe(false);
+        });
+
+        it.each(['isWaitingOnBankAccount', 'isWaitingForCancelledReimbursement'] as const)('rejects approved reports with %s', (flag) => {
+            // Given approved reports with a reimbursement still processing on one report.
+            const approved = makeApprovedReport();
+            const waitingReport = makeApprovedReport({[flag]: true});
+
+            // When an admin checks both a mixed selection and two reports waiting for payment.
+            const mixedResult = canMergeReports([approved, waitingReport], USER_ID, undefined, undefined, undefined, adminPolicy);
+            const allWaitingResult = canMergeReports([waitingReport, makeApprovedReport({[flag]: true})], USER_ID, undefined, undefined, undefined, adminPolicy);
+
+            // Then neither selection can delete reports tied to an active reimbursement.
+            expect(mixedResult).toBe(false);
+            expect(allWaitingResult).toBe(false);
+        });
+
+        it('rejects two reimbursed reports for an admin', () => {
+            // Given reports that match each other but have already been paid.
+            const paid = {
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            };
+            const reports = [makeApprovedReport(paid), makeApprovedReport(paid)];
+
+            // When eligibility reaches the paid-state check rather than failing the same-state rule.
+            const result = canMergeReports(reports, USER_ID, undefined, undefined, undefined, adminPolicy);
+
+            // Then paid reports stay outside the merge scope.
+            expect(result).toBe(false);
+        });
+
+        it('returns false when all reports are approved and the current user is not an admin', async () => {
+            await waitForBatchedUpdates();
+            const approved = makeApprovedReport();
+            const approved2 = makeApprovedReport();
+            expect(canMergeReports([approved, approved2], USER_ID, undefined, undefined, undefined, memberPolicy)).toBe(false);
+        });
+
+        it('returns false when approved and processing reports are mixed', () => {
+            const approved = makeApprovedReport();
+            const processing = makeProcessingReport();
+            expect(canMergeReports([approved, processing], USER_ID, undefined, undefined, undefined, adminPolicy)).toBe(false);
         });
 
         it('returns false when a report is closed', () => {
@@ -29082,6 +30334,91 @@ describe('buildOptimisticModifiedExpenseReportAction sets delegateAccountID', ()
 
         // Then the builder leaves the action unattributed instead of reading the signed-in copilot
         expect(reportAction.delegateAccountID).toBeUndefined();
+    });
+});
+
+describe.each([false, true])('buildOptimisticModifiedExpenseReportAction clock skew, newest first: %s', (isNewestFirst) => {
+    afterEach(async () => {
+        jest.useRealTimers();
+        await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew: 0});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}clock-stale-report-test`, null);
+        await waitForBatchedUpdates();
+    });
+
+    it.each([
+        ['known', 4000, '2026-10-13T11:44:27.127Z', '2026-10-13 11:44:31.127'],
+        ['underestimated', 4050, '2026-10-13T11:44:23.077Z', '2026-10-13 11:44:27.304'],
+        ['unknown', 0, '2026-10-13T11:44:27.127Z', '2026-10-13 11:44:27.304'],
+    ] as const)('keeps a confirmed group collapsed with %s skew while the edit is pending', async (_skewCase, timeSkew, deviceTime, expectedCreated) => {
+        // Given two confirmed edits and a device clock whose skew is known, underestimated, or not yet measured
+        await Onyx.merge(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew});
+        await waitForBatchedUpdates();
+        jest.useFakeTimers({now: new Date(deviceTime)});
+        const pending = buildOptimisticModifiedExpenseReportAction({reportID: 'clock-test', lastVisibleActionCreated: '2026-10-13 11:44:27.303'}, undefined, {}, false, undefined, undefined);
+        const confirmed = [
+            {...pending, reportActionID: 'first', created: '2026-10-13 11:44:23.393', pendingAction: null},
+            {...pending, reportActionID: 'second', created: '2026-10-13 11:44:27.303', pendingAction: null},
+        ];
+
+        // When the real builder creates the pending edit and the list constructs its display state
+        const pendingDisplay = getSystemMessageDisplayState(getSortedReportActions([...confirmed, pending], isNewestFirst), new Set());
+
+        // Then the existing pair stays collapsed and the pending edit remains visible on its own
+        expect(pending.created).toBe(expectedCreated);
+        expect(pending.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+        expect(pendingDisplay.displayReportActions).toHaveLength(2);
+        expect(pendingDisplay.displayReportActions).toContain(pending);
+        expect([...pendingDisplay.runsByAnchorReportActionID.values()].map((run) => run.reportActionIDs)).toEqual([['first', 'second']]);
+
+        // When the server confirms the edit, the group grows without losing an explicit expansion
+        const acknowledged = {...pending, pendingAction: null};
+        const sorted = getSortedReportActions([...confirmed, acknowledged], isNewestFirst);
+        expect(getSystemMessageDisplayState(sorted, new Set()).displayReportActions).toHaveLength(1);
+        expect(getSystemMessageDisplayState(sorted, new Set(['first'])).displayReportActions).toHaveLength(3);
+    });
+
+    it.each([0, 1250])('uses the loaded expense edits when the report timestamp is stale and measured skew is %sms', async (timeSkew) => {
+        // Given a stale report timestamp and two newer confirmed edits while the device clock falls between those edits
+        const thread = {
+            reportID: 'clock-stale-report-test',
+            lastVisibleActionCreated: '2026-10-14 12:23:42.090',
+        };
+        await Onyx.merge(ONYXKEYS.SESSION, {
+            email: currentUserEmail,
+            accountID: currentUserAccountID,
+        });
+        await Onyx.merge(ONYXKEYS.NETWORK, {timeSkew});
+        await waitForBatchedUpdates();
+        const action = buildOptimisticModifiedExpenseReportAction(thread, undefined, {}, false, undefined, undefined);
+        const confirmed = [
+            {
+                ...action,
+                reportActionID: 'first',
+                created: '2026-10-14 12:24:01.635',
+                pendingAction: null,
+            },
+            {
+                ...action,
+                reportActionID: 'second',
+                created: '2026-10-14 12:24:07.130',
+                pendingAction: null,
+            },
+        ];
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`, Object.fromEntries(confirmed.map((reportAction) => [reportAction.reportActionID, reportAction])));
+        await waitForBatchedUpdates();
+        jest.useFakeTimers({now: new Date('2026-10-14T12:24:03.421Z')});
+
+        // When a real optimistic edit is built from the same stale report metadata
+        const pending = buildOptimisticModifiedExpenseReportAction(thread, undefined, {}, false, undefined, undefined);
+        const pendingDisplay = getSystemMessageDisplayState(getSortedReportActions([...confirmed, pending], isNewestFirst), new Set());
+
+        // Then the edit sorts after the confirmed pair, which stays collapsed until the server confirms the new row
+        expect(pending.created).toBe('2026-10-14 12:24:07.131');
+        expect(pendingDisplay.displayReportActions).toHaveLength(2);
+        expect(pendingDisplay.displayReportActions).toContain(pending);
+        expect([...pendingDisplay.runsByAnchorReportActionID.values()].map((run) => run.reportActionIDs)).toEqual([['first', 'second']]);
+        expect(getSystemMessageDisplayState(getSortedReportActions([...confirmed, {...pending, pendingAction: null}], isNewestFirst), new Set()).displayReportActions).toHaveLength(1);
     });
 });
 

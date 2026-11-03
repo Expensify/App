@@ -2,7 +2,6 @@
  * Builds the accounting listings for the Connections page and starts the accounting connect flows from them.
  * Must be rendered inside an AccountingContextProvider.
  */
-import useIsUnifiedConnectionsBetaEnabled from '@hooks/useIsUnifiedConnectionsBetaEnabled';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -37,7 +36,6 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
     const styles = useThemeStyles();
     const {translate, datetimeToRelative, getLocalDateFromDatetime} = useLocalize();
     const {isBetaEnabled} = usePermissions();
-    const isUnifiedConnectionsBetaEnabled = useIsUnifiedConnectionsBetaEnabled();
     const {startIntegrationFlow} = useAccountingActions();
     const {activeIntegration, popoverAnchorRefs} = useAccountingState();
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
@@ -63,12 +61,16 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
 
     const canUseBusinessCentralIntegration = isBetaEnabled(CONST.BETAS.BUSINESS_CENTRAL) || !!policy?.connections?.businessCentral;
     const canUseZohoBooksIntegration = isBetaEnabled(CONST.BETAS.ZOHO_BOOKS) || !!policy?.connections?.zohoBooks;
+    const canUseDigitsIntegration = isBetaEnabled(CONST.BETAS.DIGITS) || !!policy?.connections?.digits;
     const accountingIntegrations = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES.filter((name) => {
         if (name === CONST.POLICY.CONNECTIONS.NAME.BUSINESS_CENTRAL) {
             return canUseBusinessCentralIntegration;
         }
         if (name === CONST.POLICY.CONNECTIONS.NAME.ZOHO_BOOKS) {
             return canUseZohoBooksIntegration;
+        }
+        if (name === CONST.POLICY.CONNECTIONS.NAME.DIGITS) {
+            return canUseDigitsIntegration;
         }
         return true;
     });
@@ -129,7 +131,6 @@ function useAccountingConnectionListings(policy: OnyxEntry<Policy>): ConnectionL
         const integrationData = getAccountingIntegrationData(name, policyID, translate, NO_REUSABLE_CONNECTIONS, {
             expensifyIcons: accountingIcons,
             isIntuitEnterpriseSuiteOverride: isIntuitEnterpriseSuite,
-            isUnifiedConnectionsBetaEnabled,
         });
         if (!integrationData) {
             return [];

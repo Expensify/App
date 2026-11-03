@@ -86,6 +86,7 @@ type ApproveMoneyRequestFunctionParams = {
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    personalDetailsByLogins: PersonalDetailsByLogin;
 };
 
 type SubmitReportFunctionParams = {
@@ -156,6 +157,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
         getCurrencyDecimals,
+        personalDetailsByLogins,
     } = params;
     if (!expenseReport) {
         return;
@@ -194,7 +196,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
     const isDEWPolicy = hasDynamicExternalWorkflow(expenseReportPolicy);
     const shouldAddOptimisticApproveAction = !isDEWPolicy || getIsOffline();
 
-    const nextApproverAccountID = getNextApproverAccountID(expenseReport, rules);
+    const nextApproverAccountID = getNextApproverAccountID(expenseReport, rules, undefined, undefined, personalDetailsByLogins);
     const predictedNextStatus = !nextApproverAccountID ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
     const predictedNextState = !nextApproverAccountID ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
     const managerID = !nextApproverAccountID ? expenseReport.managerID : nextApproverAccountID;
@@ -212,7 +214,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
               predictedNextStatus,
               isTrackIntentUser,
           });
-    const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
+    const chatReport = getReportOrDraftReport({reportID: expenseReport.chatReportID});
 
     const optimisticData: Array<
         OnyxUpdate<
@@ -1025,7 +1027,7 @@ function submitReport({
 
     const isSubmitAndClosePolicy = isSubmitAndClose(policy);
     const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountIDParam : undefined;
-    const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
+    const parentReport = getReportOrDraftReport({reportID: expenseReport.parentReportID});
     const trimmedManagerEmail = managerEmail?.trim();
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList, personalDetailsByLogins) : undefined;
     const resolvedManagerAccountIDFromEmail = managerAccountIDFromPopover ?? managerAccountIDFromEmail;
@@ -1312,7 +1314,7 @@ function submitReport({
 
     // Submit via PDF: on a Submit workspace where the submitter submits to themselves, the backend generates the
     // report PDF and writes its filename into nvp_expensify_report_PDFFilename_{reportID}. Prime that NVP the same way
-    // exportReportToPDF does so the ReportPDFDownloadModal shows progress and auto-downloads once the filename arrives.
+    // exportReportToPDF does so the report PDF download modal shows progress and auto-downloads once the filename arrives.
     if (shouldExportToPDF) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,

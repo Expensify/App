@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import AccountSwitcher from '@components/AccountSwitcher';
+import AccountSwitcherButton from '@components/AccountSwitcherButton';
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
@@ -65,7 +66,7 @@ jest.mock('@components/SearchBar', () => {
     return MockSearchBar;
 });
 
-TestHelper.setupGlobalFetchMock();
+const mockFetch = TestHelper.setupGlobalFetchMock();
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'test@user.com';
@@ -81,6 +82,17 @@ function renderAccountSwitcher() {
         <ComposeProviders components={[OnyxListItemProvider, PersonalDetailsByLoginProvider, LocaleContextProvider, CurrentReportIDContextProvider, CurrentUserPersonalDetailsProvider]}>
             <PortalProvider>
                 <AccountSwitcher isScreenFocused />
+            </PortalProvider>
+        </ComposeProviders>,
+    );
+}
+
+// Wide layouts render the button on its own in the settings top bar rather than inside AccountSwitcher.
+function renderAccountSwitcherButton() {
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, PersonalDetailsByLoginProvider, LocaleContextProvider, CurrentReportIDContextProvider, CurrentUserPersonalDetailsProvider]}>
+            <PortalProvider>
+                <AccountSwitcherButton isScreenFocused />
             </PortalProvider>
         </ComposeProviders>,
     );
@@ -163,38 +175,97 @@ describe('AccountSwitcher', () => {
         expect(screen.getByTestId(`PopoverMenuItem-${DELEGATOR_DISPLAY_NAME}`)).toBeOnTheScreen();
     });
 
-    it('reserves the Switch button row while an account switch reloads the account data', async () => {
+    it.each([
+        ['next to the account details', renderAccountSwitcher],
+        ['in the top bar', renderAccountSwitcherButton],
+    ])('keeps the Switch button visible %s while an account switch reloads the account data', async (_placement, renderSwitcher) => {
+        // Given a user who can switch accounts
         await addDelegators();
 
-        renderAccountSwitcher();
+        renderSwitcher();
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeOnTheScreen();
-        expect(screen.queryByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeNull();
 
-        // Drive the real transition rather than imitating it: it resets ONYXKEYS.ACCOUNT to its default object
-        // (Onyx.clear does not remove keys that have one) and seeds IS_LOADING_APP, so the button goes away for
-        // the length of the reload while the name and email stay on screen.
+        // When they switch accounts. Drive the real transition rather than imitating it: it resets ONYXKEYS.ACCOUNT
+        // to its default object (Onyx.clear does not remove keys that have one) and seeds IS_LOADING_APP.
         await act(async () => {
             await clearOnyxForDelegateTransition();
         });
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(SWITCH_BUTTON_TEXT)).toBeNull();
-        expect(screen.getByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeOnTheScreen();
+        // Then the button stays on screen for the length of the reload, but doesn't open a menu that would only list
+        // the current user because the delegator list hasn't been reloaded yet
+        expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeOnTheScreen();
+        fireEvent.press(screen.getByText(SWITCH_BUTTON_TEXT));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(POPOVER_HEADER_TEXT)).toBeNull();
 
-        // Once OpenApp answers, the row is handed back to the real button.
+        // When OpenApp answers with the new account's data
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: DELEGATOR_EMAIL}});
             await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
         });
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeOnTheScreen();
-        expect(screen.queryByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeNull();
+        // Then the button opens the menu again
+        fireEvent.press(screen.getByText(SWITCH_BUTTON_TEXT));
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(POPOVER_HEADER_TEXT)).toBeOnTheScreen();
     });
 
-    it('releases the reserved Switch button row when a delegator revokes access', async () => {
+    it('disables the Switch button as soon as an account is selected, before the account data starts reloading', async () => {
+        // Given a user who can switch accounts, and a server that hasn't answered the switch request yet
+        await addDelegators();
+        mockFetch.pause();
+
+        renderAccountSwitcherButton();
+        await waitForBatchedUpdatesWithAct();
+
+        // When they pick an account to switch to
+        fireEvent.press(screen.getByText(SWITCH_BUTTON_TEXT));
+        await waitForBatchedUpdatesWithAct();
+        // MenuItem ignores presses that carry no event
+        fireEvent.press(screen.getByTestId(`PopoverMenuItem-${DELEGATOR_DISPLAY_NAME}`), {nativeEvent: {}});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the button stays on screen but is disabled while the request is pending
+        expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeOnTheScreen();
+        expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeDisabled();
+
+        // When the request settles without switching accounts
+        await act(async () => {
+            await mockFetch.resume();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the button is enabled again
+        expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeEnabled();
+    });
+
+    it('hides the Switch button when the reloaded account data has no account to switch to', async () => {
+        // Given a user who can switch accounts
+        await addDelegators();
+
+        renderAccountSwitcherButton();
+        await waitForBatchedUpdatesWithAct();
+
+        // When they switch accounts and OpenApp answers without any delegated access
+        await act(async () => {
+            await clearOnyxForDelegateTransition();
+        });
+        await waitForBatchedUpdatesWithAct();
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, false);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the button goes away, since the account they landed on can't switch
+        expect(screen.queryByText(SWITCH_BUTTON_TEXT)).toBeNull();
+    });
+
+    it('hides the Switch button when a delegator revokes access', async () => {
+        // Given a user who can switch accounts
         await addDelegators();
 
         renderAccountSwitcher();
@@ -202,23 +273,30 @@ describe('AccountSwitcher', () => {
 
         expect(screen.getByText(SWITCH_BUTTON_TEXT)).toBeOnTheScreen();
 
-        // Revoking access leaves ONYXKEYS.ACCOUNT in place and only empties the delegators, so this is a real
-        // loss of the button rather than the momentary gap an account switch creates.
+        // When a delegator revokes access. This leaves ONYXKEYS.ACCOUNT in place and only empties the delegators, so
+        // it is a real loss of the button rather than the momentary gap an account switch creates.
         await act(async () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegators: []}});
         });
         await waitForBatchedUpdatesWithAct();
 
+        // Then the button goes away
         expect(screen.queryByText(SWITCH_BUTTON_TEXT)).toBeNull();
-        expect(screen.queryByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeNull();
     });
 
-    it('does not reserve the Switch button row for a user who has never been able to switch accounts', async () => {
-        renderAccountSwitcher();
+    it('does not show the Switch button during a reload for a user who has never been able to switch accounts', async () => {
+        // Given a user who can't switch accounts
+        renderAccountSwitcherButton();
         await waitForBatchedUpdatesWithAct();
 
+        // When the app reloads the account data
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then no button appears
         expect(screen.queryByText(SWITCH_BUTTON_TEXT)).toBeNull();
-        expect(screen.queryByTestId(CONST.ACCOUNT_SWITCHER_BUTTON_PLACEHOLDER_TEST_ID)).toBeNull();
     });
 
     it('does not open the account switcher popover when the name or email is pressed', async () => {

@@ -92,6 +92,7 @@ type DeleteMoneyRequestFunctionParams = {
     transactionThreadReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
 type PrepareToCleanUpMoneyRequestParams = {
@@ -107,6 +108,7 @@ type PrepareToCleanUpMoneyRequestParams = {
     transactionIDsPendingDeletion?: string[];
     selectedTransactionIDs?: string[];
     policy?: OnyxEntry<OnyxTypes.Policy>;
+    chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
 /** Builds the Onyx surface a delete needs to touch: updated report + preview action, thread/report deletion flags, sticky-total marker. */
@@ -123,6 +125,7 @@ function prepareToCleanUpMoneyRequest({
     transactionIDsPendingDeletion,
     selectedTransactionIDs,
     policy,
+    chatReportActions,
 }: PrepareToCleanUpMoneyRequestParams): PrepareToCleanUpMoneyRequestResult {
     const allTransactions = getAllTransactions();
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -132,7 +135,7 @@ function prepareToCleanUpMoneyRequest({
 
     // STEP 1: Get all collections we're updating
     const iouReportID = iouReport?.reportID;
-    const reportPreviewAction = getReportPreviewReportAction(iouReport?.chatReportID, iouReport?.reportID);
+    const reportPreviewAction = getReportPreviewReportAction(iouReport?.chatReportID, iouReport?.reportID, chatReportActions);
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const isTransactionOnHold = isOnHold(transaction);
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
@@ -357,6 +360,7 @@ function getNavigationUrlOnMoneyRequestDelete(
     isChatReportArchived: boolean | undefined,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     isSingleTransactionView = false,
+    chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>,
 ): Route | undefined {
     if (!transactionID) {
         return undefined;
@@ -369,6 +373,7 @@ function getNavigationUrlOnMoneyRequestDelete(
         chatReport,
         isChatReportArchived,
         getCurrencyDecimals,
+        chatReportActions,
     });
 
     // Determine which report to navigate back to
@@ -414,6 +419,7 @@ type CleanUpMoneyRequestParams = {
     isSingleTransactionView?: boolean;
     policy?: OnyxEntry<OnyxTypes.Policy>;
     reports: OnyxCollection<ReportHierarchyInfo>;
+    chatReportActions?: OnyxEntry<OnyxTypes.ReportActions>;
 };
 
 function cleanUpMoneyRequest({
@@ -432,6 +438,7 @@ function cleanUpMoneyRequest({
     isSingleTransactionView = false,
     policy,
     reports,
+    chatReportActions,
 }: CleanUpMoneyRequestParams) {
     const {shouldDeleteTransactionThread, shouldDeleteIOUReport, updatedReportAction, updatedIOUReport, updatedReportPreviewAction, transactionThreadID, reportPreviewAction} =
         prepareToCleanUpMoneyRequest({
@@ -445,6 +452,7 @@ function cleanUpMoneyRequest({
             getCurrencyDecimals,
             shouldRemoveIOUTransactionID: false,
             policy,
+            chatReportActions,
         });
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
@@ -456,6 +464,7 @@ function cleanUpMoneyRequest({
         isChatIOUReportArchived,
         getCurrencyDecimals,
         isSingleTransactionView,
+        chatReportActions,
     );
     // build Onyx data
 
@@ -834,6 +843,7 @@ function deleteMoneyRequest({
     transactionThreadReportActions,
     policy,
     getCurrencyDecimals,
+    chatReportActions,
 }: DeleteMoneyRequestFunctionParams) {
     if (!transactionID) {
         return;
@@ -865,6 +875,7 @@ function deleteMoneyRequest({
         transactionIDsPendingDeletion,
         selectedTransactionIDs,
         policy,
+        chatReportActions,
     });
 
     const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(
@@ -876,6 +887,7 @@ function deleteMoneyRequest({
         isChatIOUReportArchived,
         getCurrencyDecimals,
         isSingleTransactionView,
+        chatReportActions,
     );
 
     // STEP 2: Build Onyx data

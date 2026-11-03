@@ -40,7 +40,7 @@ import type {Rate, RateAttributes} from '@src/types/onyx/Policy';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type PolicyDistanceRateDetailsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATE_DETAILS>;
@@ -53,42 +53,36 @@ function PolicyDistanceRateDetailsPage({route}: PolicyDistanceRateDetailsPagePro
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${route.params.policyID}`);
     const {canWrite: canWriteDistanceRates, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.DISTANCE_RATES);
     const rateID = route.params.rateID;
-    const customUnit = useMemo(() => getDistanceRateCustomUnit(policy), [policy]);
+    const customUnit = getDistanceRateCustomUnit(policy);
     const rate = customUnit?.rates[rateID];
 
-    const policyReportsSelector = useCallback(
-        (reports: OnyxCollection<Report>) => {
-            const reportIDs: Record<string, true> = {};
-            for (const report of Object.values(reports ?? {})) {
-                if (report?.policyID === policyID) {
-                    reportIDs[report.reportID] = true;
-                }
+    const policyReportsSelector = (reports: OnyxCollection<Report>) => {
+        const reportIDs: Record<string, true> = {};
+        for (const report of Object.values(reports ?? {})) {
+            if (report?.policyID === policyID) {
+                reportIDs[report.reportID] = true;
             }
-            return reportIDs;
-        },
-        [policyID],
-    );
+        }
+        return reportIDs;
+    };
 
     const [policyReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: policyReportsSelector,
     });
 
-    const transactionsSelector = useCallback(
-        (transactions: OnyxCollection<Transaction>) => {
-            return Object.values(transactions ?? {}).reduce<string[]>((transactionIDs, transaction) => {
-                if (
-                    transaction?.reportID &&
-                    policyReports?.[transaction.reportID] &&
-                    transaction?.comment?.customUnit?.customUnitRateID &&
-                    transaction?.comment?.customUnit?.customUnitRateID === rateID
-                ) {
-                    transactionIDs.push(transaction?.transactionID);
-                }
-                return transactionIDs;
-            }, []);
-        },
-        [rateID, policyReports],
-    );
+    const transactionsSelector = (transactions: OnyxCollection<Transaction>) => {
+        return Object.values(transactions ?? {}).reduce<string[]>((transactionIDs, transaction) => {
+            if (
+                transaction?.reportID &&
+                policyReports?.[transaction.reportID] &&
+                transaction?.comment?.customUnit?.customUnitRateID &&
+                transaction?.comment?.customUnit?.customUnitRateID === rateID
+            ) {
+                transactionIDs.push(transaction?.transactionID);
+            }
+            return transactionIDs;
+        }, []);
+    };
 
     const [eligibleTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: transactionsSelector,

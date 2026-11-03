@@ -26,7 +26,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceTaxNameForm';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type NamePageProps = WithPolicyAndFullscreenLoadingProps & PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAX_NAME>;
@@ -44,7 +44,7 @@ function NamePage({
 
     const [name, setName] = useState(currentTaxRate?.name ?? '');
 
-    const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxID)), [policyID, taxID]);
+    const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID, taxID));
 
     const submit = () => {
         const taxName = name.trim();
@@ -55,18 +55,15 @@ function NamePage({
         goBack();
     };
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM>) => {
-            if (!policy) {
-                return {};
-            }
-            if (values[INPUT_IDS.NAME] === currentTaxRate?.name) {
-                return {};
-            }
-            return validateTaxName(policy, values, translate);
-        },
-        [currentTaxRate?.name, policy, translate],
-    );
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WORKSPACE_TAX_NAME_FORM>) => {
+        if (!policy) {
+            return {};
+        }
+        if (values[INPUT_IDS.NAME] === currentTaxRate?.name) {
+            return {};
+        }
+        return validateTaxName(policy, values, translate);
+    };
 
     if (!currentTaxRate) {
         return <NotFoundPage />;

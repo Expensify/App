@@ -7,7 +7,7 @@ import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useAccountTabIndicatorStatus from '@hooks/useAccountTabIndicatorStatus';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,6 +17,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 
@@ -28,10 +29,9 @@ import React from 'react';
  * the Account tab is not part of the navigation tab bar.
  */
 function AccountAvatarButton() {
-    const {isBetaEnabled} = usePermissions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    if (!shouldUseNarrowLayout || !isBetaEnabled(CONST.BETAS.INSIGHTS_PAGE)) {
+    if (!shouldUseNarrowLayout) {
         return null;
     }
 
@@ -39,6 +39,7 @@ function AccountAvatarButton() {
 }
 
 function AccountAvatarButtonContent() {
+    const [session] = useOnyx(ONYXKEYS.SESSION);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {status} = useAccountTabIndicatorStatus();
@@ -58,7 +59,7 @@ function AccountAvatarButtonContent() {
         }
         interceptAnonymousUser(() => {
             Navigation.navigate(ROUTES.SETTINGS);
-        });
+        }, session);
     };
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
