@@ -27,6 +27,8 @@ import {canAddTransaction, getIconsForExpenseReport, isIOUReport, isOpenReport, 
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {isPerDiemRequest as isPerDiemRequestUtil} from '@libs/TransactionUtils';
 
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -37,6 +39,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {authTokenTypeSelector} from '@selectors/Session';
 import React, {useEffect, useRef} from 'react';
 
 import navigateAwayFromReportPicker from './IOURequestStepReport/navigateAwayFromReportPicker';
@@ -135,6 +138,7 @@ function IOURequestEditReportCommon({
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     let resolvedReportOwnerAccountID;
@@ -397,23 +401,28 @@ function IOURequestEditReportCommon({
     let autoReportOption;
     if (!autoReport || !hasMultipleSubmitters) {
         autoReportOption = undefined;
-    } else // A card this user cannot resolve, because it is missing or on a feed they do not administer, fails the
-    // whole move.
-    if (!areAllManagedCardsResolvable) {
+    } else if (!areAllManagedCardsResolvable) {
+        // A card this user cannot resolve, because it is missing or on a feed they do not administer, fails the
+        // whole move.
         autoReportOption = undefined;
-    } else // These expenses are only valid on some workspaces, and the guards that decide which — per diem rates, the
-    // map/GPS rules on manual and odometer distance — need a destination the backend has not picked yet. Callers
-    // are expected to withhold the whole flow for such a selection; this keeps the row honest if one does not.
-    if (isPerDiemRequest || isManualDistanceRequest || isOdometerDistanceRequest) {
+    } else if (isPerDiemRequest || isManualDistanceRequest || isOdometerDistanceRequest) {
+        // These expenses are only valid on some workspaces, and the guards that decide which — per diem rates, the
+        // map/GPS rules on manual and odometer distance — need a destination the backend has not picked yet. Callers
+        // are expected to withhold the whole flow for such a selection; this keeps the row honest if one does not.
         autoReportOption = undefined;
     } else {
         autoReportOption = (
-            <MenuItem
-                onPress={handleAutoReport}
-                title={translate('iou.autoReport')}
-                description={translate('iou.autoReportDescription')}
-                icon={icons.DocumentMagicWand}
-            />
+            <MenuItem.Root onPress={callFunctionIfActionIsAllowed(handleAutoReport, false, session)}>
+                <MenuItem.Row>
+                    <MenuItem.Leading>
+                        <MenuItem.Icon src={icons.DocumentMagicWand} />
+                    </MenuItem.Leading>
+                    <MenuItem.Content>
+                        <MenuItem.Title>{translate('iou.autoReport')}</MenuItem.Title>
+                        <MenuItem.Description>{translate('iou.autoReportDescription')}</MenuItem.Description>
+                    </MenuItem.Content>
+                </MenuItem.Row>
+            </MenuItem.Root>
         );
     }
 
