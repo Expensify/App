@@ -15,6 +15,7 @@ type InsightsExplainButtonProps = {
     /** Message sent to Concierge on press */
     explainPrompt: string;
 
+    /** Dashboard and filters sent with the prompt so Concierge explains the data the user sees */
     insightsScope: InsightsScope;
 
     /** Tints the glyph and label with the link color instead of the muted one */

@@ -17,7 +17,7 @@ const BUTTON_HEIGHT = variables.componentSizeSmall;
 const BUTTON_BAR_WIDTH = 48;
 const BUTTON_BAR_HEIGHT = 8;
 
-/** Stands in for an AI card's narration and Explain button while the dashboard loads. */
+/** Stands in for an AI card's narration while the dashboard loads. */
 function InsightsAICardSkeleton() {
     const styles = useThemeStyles();
     const theme = useTheme();
