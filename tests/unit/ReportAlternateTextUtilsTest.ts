@@ -453,7 +453,6 @@ describe('ReportAlternateTextUtils', () => {
             actorAccountID: 1,
             created,
             message: [{type: 'COMMENT', html: reportActionID, text: reportActionID}],
-            originalMessage: {html: reportActionID, lastModified: created},
             person: [{type: 'TEXT', style: 'strong', text: 'User'}],
             shouldShow: true,
         });
@@ -465,7 +464,6 @@ describe('ReportAlternateTextUtils', () => {
             childReportID: transactionThreadReportID,
             created: '2024-01-01 09:00:00.000',
             message: [{type: 'COMMENT', html: '$1.00', text: '$1.00'}],
-            originalMessage: {IOUTransactionID: 'txn9101', type: CONST.IOU.REPORT_ACTION_TYPE.CREATE, amount: 100, currency: CONST.CURRENCY.USD},
             shouldShow: true,
         } as ReportAction;
         const threadComment = makeCommentAction('9200', '2024-01-02 10:00:00.000');
