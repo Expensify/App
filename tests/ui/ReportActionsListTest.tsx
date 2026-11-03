@@ -275,12 +275,7 @@ const mockReportActions: OnyxTypes.ReportAction[] = [
 
 const renderReportActionsList = (props: {reportID?: string} = {}) => {
     const reportID = props.reportID ?? mockReport.reportID;
-    return render(
-        <ReportActionsList
-            reportID={reportID}
-            conciergeChat={undefined}
-        />,
-    );
+    return render(<ReportActionsList reportID={reportID} />);
 };
 
 // useReportActionsListModel derives app-load state from the request queue via useIsAppLoadPending,
@@ -879,10 +874,7 @@ describe('ReportActionsList (body)', () => {
             // When the list reconciles against all saved actions
             const {rerender} = render(
                 <TestDraftContext.Provider value={revealingDraftState}>
-                    <ReportActionsList
-                        reportID={mockReport.reportID}
-                        conciergeChat={undefined}
-                    />
+                    <ReportActionsList reportID={mockReport.reportID} />
                 </TestDraftContext.Provider>,
             );
 
@@ -896,10 +888,7 @@ describe('ReportActionsList (body)', () => {
             // When the reveal completes without changing the visible pagination window
             rerender(
                 <TestDraftContext.Provider value={{draftReportAction: persistedReportAction, hasActiveDraft: true, isDraftPendingCompletion: false}}>
-                    <ReportActionsList
-                        reportID={mockReport.reportID}
-                        conciergeChat={undefined}
-                    />
+                    <ReportActionsList reportID={mockReport.reportID} />
                 </TestDraftContext.Provider>,
             );
 
