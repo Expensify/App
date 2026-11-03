@@ -132,6 +132,7 @@ const defaultParams: Params = {
     getReportByID: () => undefined,
     draftComments: {},
     isDefaultRoomsBetaEnabled: false,
+    isTravelApprovalBetaEnabled: false,
     countryCode: 1,
     loginList: {},
     policies: {},

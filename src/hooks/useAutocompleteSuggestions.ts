@@ -62,7 +62,7 @@ type UseAutocompleteSuggestionsParams = {
     draftComments: OnyxCollection<string>;
     isDefaultRoomsBetaEnabled: boolean;
     /** Trip searches return trip rooms with the TravelApproval beta, which have their own statuses and no group-by */
-    isTravelApprovalBetaEnabled?: boolean;
+    isTravelApprovalBetaEnabled: boolean;
     countryCode: OnyxEntry<number>;
     loginList: OnyxEntry<Record<string, unknown>>;
     policies: NonNullable<OnyxCollection<Policy>>;
@@ -117,7 +117,7 @@ function useAutocompleteSuggestions({
     getReportByID,
     draftComments,
     isDefaultRoomsBetaEnabled,
-    isTravelApprovalBetaEnabled = false,
+    isTravelApprovalBetaEnabled,
     countryCode,
     loginList,
     policies,
