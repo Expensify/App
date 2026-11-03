@@ -2286,7 +2286,8 @@ const staticStyles = (theme: ThemeColors) =>
         // Sits flush against the right edge of a report field whose input has `noRightBorderRadius`, so the input's
         // right border reads as a divider and the two look like one segmented field.
         reportFieldDeleteButton: {
-            width: variables.componentSizeLarge,
+            // As wide as a text input's icon with its padding, so the trash icon sits where the input icons do
+            width: 44,
             // Matches the input beside it, whose height follows the device font scale
             height: variables.inputHeight,
             alignItems: 'center',
@@ -3654,10 +3655,9 @@ const staticStyles = (theme: ThemeColors) =>
         // the device font size.
         moneyRequestFieldRow: {
             minHeight: variables.inputHeight,
-            paddingLeft: 8,
             // With the caret's 4px margin this lines the caret up with a text input's icon nudged by
             // `moneyRequestFieldInputIcon`, so every field's right icon sits the same distance from the border
-            paddingRight: 7,
+            paddingHorizontal: 8,
             paddingVertical: 6,
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusNormal,

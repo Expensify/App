@@ -73,12 +73,17 @@ function SelectionListPopoverHeader({title, onBackButtonPress, backButtonSentryL
                         </PressableWithFeedback>
                     </Tooltip>
                 )}
-                <Text
-                    style={[styles.textLabelSupporting, styles.flex1]}
-                    numberOfLines={1}
-                >
-                    {title}
-                </Text>
+                {/* Anchored to its field on a wide layout, the list needs no title to say what it is for */}
+                {isSmallScreenWidth ? (
+                    <Text
+                        style={[styles.textLabelSupporting, styles.flex1]}
+                        numberOfLines={1}
+                    >
+                        {title}
+                    </Text>
+                ) : (
+                    <View style={styles.flex1} />
+                )}
             </View>
             {children}
         </View>
