@@ -64,7 +64,6 @@ import {
     canMergeReports,
     getAllPolicyExpenseChatReportActions,
     getIntegrationIcon,
-    getPolicyExpenseChat,
     getReportOrDraftReport,
     hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
@@ -139,6 +138,7 @@ import type {ValueOf} from 'type-fest';
 
 /* eslint-disable react-hooks/refs -- Refs in this hook are used inside callbacks that capture stable references; the lint rule flags false positives for these patterns */
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {useCallback, useEffect, useMemo, useRef} from 'react';
 
 import type {RejectModalAction} from './useHoldRejectEducationalModal';
@@ -173,6 +173,7 @@ import useReportPDFDownloadModal from './useReportPDFDownloadModal';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
+import useShouldReturnTripRooms from './useShouldReturnTripRooms';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
 import useThemeStyles from './useThemeStyles';
@@ -465,6 +466,7 @@ function getAllMatchingReportQuery(queryJSON: SearchQueryJSON, excludedTransacti
  */
 const TEMPLATE_EXPORTABLE_GROUP_BYS = new Set<SearchGroupBy>([
     CONST.SEARCH.GROUP_BY.FROM,
+    CONST.SEARCH.GROUP_BY.APPROVER,
     CONST.SEARCH.GROUP_BY.CARD,
     CONST.SEARCH.GROUP_BY.WITHDRAWAL_ID,
     CONST.SEARCH.GROUP_BY.CATEGORY,
@@ -564,7 +566,7 @@ function shouldShowBulkDuplicateOption({
         }
 
         const reportID = selectedTransactions[id]?.reportID;
-        const submitterReport = reportID ? getReportOrDraftReport(reportID, searchReports, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]) : undefined;
+        const submitterReport = reportID ? getReportOrDraftReport({reportID, searchReports, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]}) : undefined;
         if (submitterReport && !isCurrentUserSubmitter(submitterReport)) {
             return false;
         }
@@ -613,7 +615,7 @@ function getChatReportForBulkPay(
         return undefined;
     }
 
-    return getReportFromSearchSnapshot(resolvedChatReportID, searchData, allReports) ?? getReportOrDraftReport(resolvedChatReportID);
+    return getReportFromSearchSnapshot(resolvedChatReportID, searchData, allReports) ?? getReportOrDraftReport({reportID: resolvedChatReportID});
 }
 
 /**
@@ -633,6 +635,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
+    const shouldReturnTripRooms = useShouldReturnTripRooms(currentSearchQueryJSON?.type);
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
@@ -1431,6 +1434,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 !!expenseReport.policyID && shouldRestrictUserBillableActions(reportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
 
             approveMoneyRequest({
+                personalDetailsByLogins: getPersonalDetailsByLogin(),
                 getCurrencyDecimals,
                 expenseReport,
                 expenseReportPolicy: reportPolicy,
@@ -1487,6 +1491,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         currentSearchKey,
         isTrackIntentUser,
         personalDetails,
+        getPersonalDetailsByLogin,
         delegateAccountID,
         getCurrencyDecimals,
         rules,
@@ -2018,7 +2023,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         return (
             selectedTransactionReportIDs.length > 0 &&
             selectedTransactionReportIDs.every((id) => {
-                return isCurrentUserSubmitter(getReportOrDraftReport(id, reports, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]));
+                return isCurrentUserSubmitter(getReportOrDraftReport({reportID: id, searchReports: reports, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]}));
             })
         );
     }, [selectedTransactionReportIDs, currentUserPersonalDetails?.accountID, currentSearchResults?.data, allReports]);
@@ -2029,7 +2034,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         return (
             selectedTransactionReportIDs.length > 0 &&
             selectedTransactionReportIDs.every((id) => {
-                const iouReport = getReportOrDraftReport(id, reports, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]);
+                const iouReport = getReportOrDraftReport({reportID: id, searchReports: reports, report: allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${id}`]});
                 if (!iouReport?.chatReportID) {
                     return false;
                 }
@@ -2047,10 +2052,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         duplicateHandlerRef.current();
     }, []);
 
-    const activePolicyExpenseChat = useMemo(
-        () => getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id),
+    const activePolicyExpenseChatSelector = useMemo(
+        () => policyExpenseChatSelector(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id),
         [currentUserPersonalDetails.accountID, defaultExpensePolicy?.id],
     );
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: activePolicyExpenseChatSelector});
 
     const allTransactionsForDuplicate = useMemo(
         () =>
@@ -2968,11 +2974,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                     // A blocked report skips the submit-to popover and falls through to the modal below.
                     if (!areAllSelectedReportsBlocked && policyForSubmit && isSubmitPolicy(policyForSubmit) && reportIDForSubmit && hash) {
-                        const snapshotReport = getReportOrDraftReport(
-                            reportIDForSubmit,
-                            undefined,
-                            searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`] ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`],
-                        );
+                        const snapshotReport = getReportOrDraftReport({
+                            reportID: reportIDForSubmit,
+                            fallbackReport: searchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`] ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportIDForSubmit}`],
+                        });
 
                         if (snapshotReport) {
                             const summaryForSubmit = buildReportSubmitViolationSummary(snapshotReport, reportIDForSubmit, policyForSubmit);
@@ -3000,6 +3005,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                             shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
                                             isOffline,
                                             isLoading: !!currentSearchResults?.search?.isLoading,
+                                            shouldReturnTripRooms,
                                         });
                                         clearSelectedTransactions();
                                     },
@@ -3081,6 +3087,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
                             isOffline,
                             isLoading: !!currentSearchResults?.search?.isLoading,
+                            shouldReturnTripRooms,
                         });
                         clearSelectedTransactions();
                     };
@@ -3298,7 +3305,17 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const firstTransactionKey = selectedTransactionsKeys.at(0);
         const firstTransactionMeta = firstTransactionKey ? selectedTransactions[firstTransactionKey] : undefined;
-        const canShowDeleteAction = shouldShowDeleteOption(selectedTransactions, currentSearchResults?.data, accountID, rules, personalDetails, cardList, selectedReports, queryJSON?.type);
+        const canShowDeleteAction = shouldShowDeleteOption(
+            selectedTransactions,
+            currentSearchResults?.data,
+            accountID,
+            rules,
+            personalDetails,
+            cardList,
+            allReportActions,
+            selectedReports,
+            queryJSON?.type,
+        );
 
         const isSplittable = !!firstTransactionMeta?.canSplit;
         const isAlreadySplit = !!firstTransactionMeta?.hasBeenSplit;
@@ -3497,6 +3514,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         hasUnloadedMatchingExpenses,
         isUnreportedOnlyQuery,
         currentSearchQueryJSON,
+        shouldReturnTripRooms,
         currentSearchResults?.search?.isLoading,
         shouldCalculateTotalsOnRefresh,
         rules,

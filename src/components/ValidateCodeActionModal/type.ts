@@ -28,6 +28,9 @@ type ValidateCodeActionContentProps = {
     /** Function to clear error of the form */
     clearError: () => void;
 
+    /** Whether closing clears the flow's error. A flow whose previous page shows the error can keep it. */
+    shouldClearErrorOnClose?: boolean;
+
     /** Function is called when validate code modal is mounted and on validateCode resend */
     sendValidateCode: () => void;
 

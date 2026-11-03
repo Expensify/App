@@ -4868,12 +4868,6 @@ describe('hasVisibleViolationsForUser', () => {
 });
 
 describe('getIsViolationFixed', () => {
-    const mockCurrentUserPersonalDetails = {
-        accountID: 1,
-        login: 'user@example.com',
-        email: 'user@example.com',
-    };
-
     const defaultParams = {
         category: '',
         tag: '',
@@ -4882,7 +4876,7 @@ describe('getIsViolationFixed', () => {
         policyTagLists: undefined,
         policyTaxRates: undefined,
         iouAttendees: undefined,
-        currentUserPersonalDetails: mockCurrentUserPersonalDetails,
+        ownerLogin: 'user@example.com',
         isAttendeeTrackingEnabled: false,
     };
 

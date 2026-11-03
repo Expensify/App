@@ -98,7 +98,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {useRoute} from '@react-navigation/native';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import {transactionThreadReportIDSelector} from '@selectors/ReportAction';
 import {Str} from 'expensify-common';
 import mapValues from 'lodash/mapValues';
@@ -164,7 +164,9 @@ function MoneyRequestReceiptView({
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReportID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
+    const isSelfTourViewed = guidedSetupAndTourStatus?.isSelfTourViewed;
+    const hasCompletedGuidedSetupFlow = guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow;
     const [conciergePersonalDetail] = usePersonalDetail(CONST.ACCOUNT_ID.CONCIERGE);
     const [reportOwnerPersonalDetail] = usePersonalDetail(report?.ownerAccountID);
     const [chatReportOwnerPersonalDetail] = usePersonalDetail(chatReport?.ownerAccountID);
@@ -177,6 +179,7 @@ function MoneyRequestReceiptView({
     const originalReportID = useOriginalReportID(report?.reportID, parentReportAction);
     const reportsParentHierarchy = useReportsParentHierarchy(report?.reportID);
     const {iouReport, chatReport: chatIOUReport, isChatIOUReportArchived} = useGetIOUReportFromReportAction(parentReportAction);
+    const [chatIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReport?.chatReportID)}`);
     const iouReportTransactionsCollection = useReportTransactionsCollection(iouReport?.reportID);
     const iouReportTransactions = Object.values(iouReportTransactionsCollection);
     const isTrackExpense = !mergeTransactionID && isTrackExpenseReportNew(report, parentReport, parentReportAction);
@@ -521,6 +524,7 @@ function MoneyRequestReceiptView({
                     currentUserAccountID,
                     introSelected,
                     isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow,
                     chatReportOwnerPersonalDetail,
                     currentUserPersonalDetail,
                     conciergePersonalDetail,
@@ -547,6 +551,7 @@ function MoneyRequestReceiptView({
                     isOffline,
                     isSingleTransactionView: true,
                     policy,
+                    chatReportActions: chatIOUReportActions,
                 });
                 return;
             }
@@ -577,6 +582,7 @@ function MoneyRequestReceiptView({
                 currentUserAccountID,
                 introSelected,
                 isSelfTourViewed,
+                hasCompletedGuidedSetupFlow,
                 reportOwnerPersonalDetail,
                 currentUserPersonalDetail,
                 conciergePersonalDetail,
