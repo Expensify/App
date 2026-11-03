@@ -19,7 +19,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
 
-import React, {useMemo} from 'react';
+import React from 'react';
 
 import type {DistanceRateTableItemData} from './WorkspaceDistanceRatesTableRow';
 
@@ -154,15 +154,12 @@ function WorkspaceDistanceRatesTable({
           ]
         : undefined;
 
-    const statusLabels = useMemo(
-        () => ({
-            [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE]: translate('workspace.distanceRates.statusFuture'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED]: translate('workspace.distanceRates.statusExpired'),
-            [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: translate('workspace.distanceRates.statusInactive'),
-        }),
-        [translate],
-    );
+    const statusLabels = {
+        [CONST.CUSTOM_UNITS.RATE_STATUS.ACTIVE]: translate('workspace.distanceRates.statusActive'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.FUTURE]: translate('workspace.distanceRates.statusFuture'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.EXPIRED]: translate('workspace.distanceRates.statusExpired'),
+        [CONST.CUSTOM_UNITS.RATE_STATUS.INACTIVE]: translate('workspace.distanceRates.statusInactive'),
+    };
 
     const renderItem = ({item, index}: ListRenderItemInfo<DistanceRateTableItemData>) => (
         <WorkspaceDistanceRatesTableRow

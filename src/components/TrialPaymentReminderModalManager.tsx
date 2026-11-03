@@ -10,7 +10,7 @@ import navigateToSubscriptionPayment from '@pages/home/common/navigateToSubscrip
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 
 import TrialPaymentReminderModal from './TrialPaymentReminderModal';
 
@@ -37,17 +37,17 @@ function TrialPaymentReminderModalManager() {
         setIsModalOpen(false);
     }
 
-    const handleClose = useCallback(() => {
+    const handleClose = () => {
         setIsModalOpen(false);
         dismiss();
-    }, [dismiss]);
+    };
 
-    const handleAddPaymentCard = useCallback(() => {
+    const handleAddPaymentCard = () => {
         setIsModalOpen(false);
         dismiss();
         // Adding a payment card is web-only; on native this routes to the subscription page instead.
         navigateToSubscriptionPayment();
-    }, [dismiss]);
+    };
 
     if (!currentVariation) {
         return null;

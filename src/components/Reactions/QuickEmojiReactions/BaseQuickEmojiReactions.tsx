@@ -18,7 +18,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActionReactions} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useCallback} from 'react';
+import {authTokenTypeSelector} from '@selectors/Session';
+import React from 'react';
 import {View} from 'react-native';
 
 import type {BaseQuickEmojiReactionsProps} from './types';
@@ -31,18 +32,16 @@ function BaseQuickEmojiReactions({
     onWillShowPicker = () => {},
     setIsEmojiPickerActive,
 }: BaseQuickEmojiReactionsProps) {
+    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: authTokenTypeSelector});
     const styles = useThemeStyles();
     const {preferredLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [preferredSkinTone = CONST.EMOJI_DEFAULT_SKIN_TONE] = useOnyx(ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE);
     const [emojiReactions = getEmptyObject<ReportActionReactions>()] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`);
 
-    const selectEmojiWithReaction = useCallback(
-        (emoji: Emoji, skinTone: number) => {
-            onEmojiSelected(emoji, emojiReactions, skinTone);
-        },
-        [onEmojiSelected, emojiReactions],
-    );
+    const selectEmojiWithReaction = (emoji: Emoji, skinTone: number) => {
+        onEmojiSelected(emoji, emojiReactions, skinTone);
+    };
 
     return (
         <View style={[styles.quickReactionsContainer, !shouldUseNarrowLayout && styles.compactQuickReactionsContainer]}>
@@ -55,7 +54,7 @@ function BaseQuickEmojiReactions({
                         <EmojiReactionBubble
                             emojiCodes={[getPreferredEmojiCode(emoji, preferredSkinTone)]}
                             isContextMenu
-                            onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone))}
+                            onPress={callFunctionIfActionIsAllowed(() => onEmojiSelected(emoji, emojiReactions, preferredSkinTone), false, session)}
                         />
                     </View>
                 </Tooltip>

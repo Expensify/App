@@ -69,17 +69,34 @@ function buildTabState(inboxKey: string): TabNavigationState<ParamListBase> {
     };
 }
 
+// Account focused with no item in the native bar, as with the Insights beta
+function buildHiddenAccountTabState(): TabNavigationState<ParamListBase> {
+    return {
+        type: 'tab',
+        key: 'tab',
+        index: 1,
+        stale: false,
+        routeNames: ['Inbox', 'Account'],
+        routes: [
+            {name: 'Inbox', key: 'Inbox-key'},
+            {name: 'Account', key: 'Account-key'},
+        ],
+        history: [{type: 'route', key: 'Account-key'}],
+        preloadedRouteKeys: [],
+    };
+}
+
 function buildNavigation() {
     return {dispatch: jest.fn(), emit: jest.fn(), getState: jest.fn()};
 }
 
-function buildDescriptors(state: TabNavigationState<ParamListBase>): NativeBottomTabViewProps['descriptors'] {
+function buildDescriptors(state: TabNavigationState<ParamListBase>, hiddenRouteNames: string[]): NativeBottomTabViewProps['descriptors'] {
     const descriptors = Object.fromEntries(
         state.routes.map((route) => [
             route.key,
             {
                 route,
-                options: {},
+                options: {tabBarItemHidden: hiddenRouteNames.includes(route.name)},
                 navigation: {},
                 render: () => <TabContent routeKey={route.key} />,
             },
@@ -90,7 +107,7 @@ function buildDescriptors(state: TabNavigationState<ParamListBase>): NativeBotto
     return descriptors as unknown as NativeBottomTabViewProps['descriptors'];
 }
 
-function renderTabView(state: TabNavigationState<ParamListBase>, navigation: ReturnType<typeof buildNavigation>) {
+function renderTabView(state: TabNavigationState<ParamListBase>, navigation: ReturnType<typeof buildNavigation>, hiddenRouteNames: string[] = []) {
     return (
         <ThemeProvider value={DefaultTheme}>
             <NativeTabView
@@ -98,7 +115,7 @@ function renderTabView(state: TabNavigationState<ParamListBase>, navigation: Ret
                 // The view calls only the navigation methods the mock provides.
                 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
                 navigation={navigation as unknown as NativeBottomTabViewProps['navigation']}
-                descriptors={buildDescriptors(state)}
+                descriptors={buildDescriptors(state, hiddenRouteNames)}
             />
         </ThemeProvider>
     );
@@ -140,5 +157,19 @@ describe('NativeBottomTabView', () => {
         // Then JS presses and navigates to that route, so JS follows native instead of dropping the selection
         expect(navigation.emit).toHaveBeenCalledWith({type: 'tabPress', target: 'Spend-key'});
         expect(navigation.dispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'NAVIGATE', payload: expect.objectContaining({name: 'Spend'}), target: 'tab'}));
+    });
+
+    it('leaves a focused hidden route when the user taps the tab it is drawn in', () => {
+        // Given Account focused, drawn in the natively selected Inbox tab
+        const navigation = buildNavigation();
+        render(renderTabView(buildHiddenAccountTabState(), navigation, ['Account']));
+
+        // When the user taps Inbox, which native reports as a repeated selection of the selected tab
+        act(() => {
+            mockLatestHostProps?.onTabSelected({nativeEvent: {selectedScreenKey: 'Inbox', provenance: 1, actionOrigin: 'user'}});
+        });
+
+        // Then JS navigates to Inbox, since no item is drawn as selected and the tap is the user leaving Account
+        expect(navigation.dispatch).toHaveBeenCalledWith(expect.objectContaining({type: 'NAVIGATE', payload: expect.objectContaining({name: 'Inbox'}), target: 'tab'}));
     });
 });

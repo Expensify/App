@@ -2,6 +2,7 @@ import type {ReportHierarchyInfo} from '@libs/actions/ClearReportActionErrors';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
 import {
     canShowReportRecipientLocalTime,
+    getPolicyExpenseChat,
     getPolicyIDsWithEmptyReportsForAccount,
     isArchivedReport,
     isChatRoom,
@@ -334,6 +335,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         created: report.created,
         submitted: report.submitted,
         approved: report.approved,
+        paid: report.paid,
         submitterUserID: report.submitterUserID,
         submitterPayrollID: report.submitterPayrollID,
         orderDealNumbers: report.orderDealNumbers,
@@ -427,6 +429,9 @@ function reportParentChainSelector(reportID: string | undefined) {
     };
 }
 
+const policyExpenseChatSelector = (ownerAccountID: number | undefined, policyID: string | undefined) => (reports: OnyxCollection<Report>) =>
+    getPolicyExpenseChat(ownerAccountID, policyID, reports ?? {});
+
 /**
  * Creates a selector returning only the reports for the given IDs, so a consumer that knows the exact
  * reports it needs doesn't re-render when any other report in the account changes.
@@ -465,6 +470,7 @@ export {
     getStableReportSelector,
     isDraftReportSelector,
     reportParentChainSelector,
+    policyExpenseChatSelector,
     reportsByIDsSelector,
 };
 

@@ -2,7 +2,7 @@ import Log from '@libs/Log';
 
 import SCREENS from '@src/SCREENS';
 
-import React, {useContext, useMemo} from 'react';
+import React, {useContext} from 'react';
 
 import type {AttachmentModalScreenProps, AttachmentModalScreenType} from './types';
 
@@ -26,14 +26,19 @@ type NavigationType<Screen extends AttachmentModalScreenType> = AttachmentModalS
  */
 function AttachmentModalScreen<Screen extends AttachmentModalScreenType>({route, navigation}: AttachmentModalScreenProps<Screen>) {
     const attachmentsContext = useContext(AttachmentModalContext);
-    const routeWithContext = useMemo(() => {
-        const currentAttachment = attachmentsContext.getCurrentAttachment<Screen>();
-
-        if (currentAttachment) {
-            return {...route, params: {...route.params, ...currentAttachment}};
-        }
-        return route;
-    }, [attachmentsContext, route]);
+    let routeWithContext;
+    const currentAttachment = attachmentsContext.getCurrentAttachment<Screen>();
+    if (currentAttachment) {
+        routeWithContext = {
+            ...route,
+            params: {
+                ...route.params,
+                ...currentAttachment,
+            },
+        };
+    } else {
+        routeWithContext = route;
+    }
 
     if (route.name === SCREENS.REPORT_ATTACHMENTS) {
         return (
