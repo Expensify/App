@@ -14534,7 +14534,7 @@ describe('SearchUIUtils', () => {
         });
 
         test("Should not treat the unreported report ID on the IOU action as the owner's self DM", async () => {
-            // Given the current user's self DM in Onyx and their own unreported expense whose IOU action carries the unreported sentinel as its reportID
+            // Given the current user's self DM in Onyx and their own unreported expense whose IOU action carries the unreported placeholder as its reportID
             jest.mocked(createTransactionThreadReport).mockReturnValue(threadReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}fallback-self-dm`, {reportID: 'fallback-self-dm', type: CONST.REPORT.TYPE.CHAT, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM});
             await waitForBatchedUpdates();
