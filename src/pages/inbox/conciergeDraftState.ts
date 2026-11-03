@@ -5,6 +5,8 @@ import {getParsedComment} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
 
+import {Str} from 'expensify-common';
+
 type ConciergeDraft = {
     /** Currently rendered markdown. Pusher pacing may intentionally lag this behind the latest server snapshot. */
     bodyMarkdown?: string;
@@ -594,9 +596,18 @@ function buildConciergeDraftReportAction({
     reportID,
     isGroupPolicyReport,
 }: BuildConciergeDraftReportActionParams): ReportAction | null {
-    // ExpensiMark escapes entities that the server renders as literal text. Keep the
-    // canonical Markdown for pacing, but wait for final HTML from the first ampersand.
-    const ampersandIndex = bodyMarkdown?.indexOf('&') ?? -1;
+    // ExpensiMark escapes entities that the server renders as literal text, so recognized entities wait for final HTML.
+    // Match named/numeric candidates with an optional semicolon, or a bare trailing '&'.
+    // Hold unfinished candidates at the snapshot boundary; the decoder lets completed literals such as '&D;' stream.
+    let ampersandIndex = -1;
+    for (const match of bodyMarkdown?.matchAll(/&(?:[A-Za-z#][A-Za-z0-9#]*;?|$)/g) ?? []) {
+        const candidate = match[0];
+        const isUnfinishedCandidate = !candidate.endsWith(';') && match.index + candidate.length === bodyMarkdown?.length;
+        if (isUnfinishedCandidate || Str.htmlDecode(candidate) !== candidate) {
+            ampersandIndex = match.index;
+            break;
+        }
+    }
     const visibleBodyMarkdown = ampersandIndex === -1 ? bodyMarkdown : bodyMarkdown?.slice(0, ampersandIndex);
     const html = finalRenderedHTML ?? (visibleBodyMarkdown ? getParsedComment(stripIncompleteMarkdown(visibleBodyMarkdown), {reportID}, undefined, undefined, isGroupPolicyReport) : '');
 
