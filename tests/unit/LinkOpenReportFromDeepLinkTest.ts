@@ -6,6 +6,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {runSessionCleanupCallbacks} from '@libs/SessionCleanup';
 
+import CONST from '@src/CONST';
 import {openReportFromDeepLink} from '@src/libs/actions/Link';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -148,6 +149,101 @@ describe('openReportFromDeepLink before onboarding', () => {
         // Then it is handed to the post-onboarding navigation rather than opened now, which would flash the "Not here" page
         expect(mockedSetDeepLinkToOpenAfterOnboarding).toHaveBeenCalledTimes(1);
         expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+    });
+
+    it.each([
+        ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: '123'}),
+        ROUTES.SEARCH_REPORT.getRoute({reportID: '123'}),
+        ROUTES.SEARCH_REPORT.getRoute({reportID: '123', reportActionID: '456', backTo: 'search?q=type:invoice'}),
+    ])('replays %s when an invitation arrives for a user without a workspace', async (route) => {
+        // Given invitation status is not yet available when the signed-out link is captured.
+        focusOn(NAVIGATORS.TAB_NAVIGATOR);
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, false);
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        openReportFromDeepLink(`${APP_URL}/${route}`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+        await waitForBatchedUpdates();
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+
+        // When OpenApp supplies the invitation without changing onboarding or workspace membership.
+        await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE});
+        await waitForBatchedUpdates();
+
+        // Then the invitation alone releases the complete target, without parking it for onboarding.
+        expect(mockedNavigation.navigate).toHaveBeenCalledTimes(1);
+        expect(mockedNavigation.navigate).toHaveBeenCalledWith(route, expect.objectContaining({waitForTransition: true}));
+        expect(mockedSetDeepLinkToOpenAfterOnboarding).not.toHaveBeenCalled();
+    });
+
+    it('replays an invitation-only link when invitation data arrives before onboarding', async () => {
+        // Given onboarding is not loaded yet, so invitation data alone cannot decide whether to replay.
+        focusOn(NAVIGATORS.TAB_NAVIGATOR);
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, false);
+        await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {inviteType: CONST.ONBOARDING_INVITE_TYPES.CHAT});
+        openReportFromDeepLink(`${APP_URL}/search/view/123/456`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+        await waitForBatchedUpdates();
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+
+        // When the incomplete onboarding flag arrives after the invitation.
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        await waitForBatchedUpdates();
+
+        // Then the replay uses both values regardless of their arrival order.
+        expect(mockedNavigation.navigate).toHaveBeenCalledTimes(1);
+        expect(mockedNavigation.navigate).toHaveBeenCalledWith('search/view/123/456', expect.objectContaining({waitForTransition: true}));
+        expect(mockedSetDeepLinkToOpenAfterOnboarding).not.toHaveBeenCalled();
+    });
+
+    it('does not bypass an open onboarding flow for an invited user', async () => {
+        // Given an invitation must not interrupt an onboarding flow that is already on screen.
+        focusOn(SCREENS.ONBOARDING.PURPOSE);
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, false);
+        await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE});
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+
+        // When the link is handled while that flow remains incomplete.
+        openReportFromDeepLink(`${APP_URL}/search/view/123/456`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+        await waitForBatchedUpdates();
+
+        // Then the flow keeps control, and its completion still parks the link for the normal handoff.
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+        expect(mockedSetDeepLinkToOpenAfterOnboarding).not.toHaveBeenCalled();
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+        await waitForBatchedUpdates();
+        expect(mockedSetDeepLinkToOpenAfterOnboarding).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not treat intro data without an invite type as an onboarding exemption', async () => {
+        // Given an organic account can have intro data without having been invited.
+        focusOn(NAVIGATORS.TAB_NAVIGATOR);
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, false);
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        openReportFromDeepLink(`${APP_URL}/search/view/123/456`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+
+        // When intro data arrives without the inviteType field used by the onboarding selector.
+        await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {});
+        await waitForBatchedUpdates();
+
+        // Then the link still waits for actual onboarding rather than bypassing it.
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+        expect(mockedSetDeepLinkToOpenAfterOnboarding).not.toHaveBeenCalled();
+    });
+
+    it('ignores invitation data that arrives after session cleanup', async () => {
+        // Given a pending link belongs to an account whose invitation has not arrived yet.
+        focusOn(NAVIGATORS.TAB_NAVIGATOR);
+        await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, false);
+        await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
+        openReportFromDeepLink(`${APP_URL}/search/view/123/456`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
+        await waitForBatchedUpdates();
+
+        // When that session ends before invitation data for another session arrives.
+        runSessionCleanupCallbacks();
+        await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE});
+        await waitForBatchedUpdates();
+
+        // Then invitation changes cannot resurrect the previous account's link.
+        expect(mockedNavigation.navigate).not.toHaveBeenCalled();
+        expect(mockedSetDeepLinkToOpenAfterOnboarding).not.toHaveBeenCalled();
     });
 
     it('keeps an open onboarding flow in charge even after the user joins a workspace', async () => {

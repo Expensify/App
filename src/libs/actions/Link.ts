@@ -34,7 +34,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
+import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@src/selectors/Onboarding';
 import type {IntroSelected, PersonalDetailsList, Report, ReportNameValuePairs, Session} from '@src/types/onyx';
 
 import type {Connection, OnyxCollection, OnyxEntry, OnyxValue} from 'react-native-onyx';
@@ -546,6 +546,7 @@ function openReportFromDeepLink(
         let initialHasCompletedGuidedSetupFlow: boolean | undefined;
         let latestOnboarding: OnyxValue<typeof ONYXKEYS.NVP_ONBOARDING>;
         let hasNonPersonalPolicy = false;
+        let wasInvitedToNewDot = false;
         let isPending = true;
         let isActive = true;
         const connections: Connection[] = [];
@@ -598,8 +599,8 @@ function openReportFromDeepLink(
                     const state = navigationRef.getRootState();
                     const currentFocusedRoute = findFocusedRoute(state);
                     const isOnboardingOpen = state.routes.some((stateRoute) => stateRoute.name === NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR) || isOnboardingFlowName(currentFocusedRoute?.name);
-                    // Workspace members skip onboarding, but joining a workspace during an open flow must not interrupt it.
-                    const shouldSkipOnboarding = hasNonPersonalPolicy && !isOnboardingOpen;
+                    // Invited users and workspace members skip onboarding, but an open flow must keep control until it finishes.
+                    const shouldSkipOnboarding = (hasNonPersonalPolicy || wasInvitedToNewDot) && !isOnboardingOpen;
 
                     const handleDeeplinkNavigation = () => {
                         // Stop re-evaluating onboarding, but keep later loading and report waiters cancellable until navigation finishes.
@@ -766,6 +767,16 @@ function openReportFromDeepLink(
                 key: ONYXKEYS.HAS_NON_PERSONAL_POLICY,
                 callback: (value) => {
                     hasNonPersonalPolicy = !!value;
+                    onboardingSubscription.callback(latestOnboarding);
+                },
+            }),
+        );
+        // Invitation status can arrive after sign-in; this action must react to it even when workspace membership stays false.
+        connections.push(
+            Onyx.connectWithoutView({
+                key: ONYXKEYS.NVP_INTRO_SELECTED,
+                callback: (value) => {
+                    wasInvitedToNewDot = wasInvitedToNewDotSelector(value) ?? false;
                     onboardingSubscription.callback(latestOnboarding);
                 },
             }),

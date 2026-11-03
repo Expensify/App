@@ -129,7 +129,10 @@ function SignInNavigation() {
     );
 }
 
-describe('Search report navigation through sign-in', () => {
+describe.each([
+    {accountType: 'a workspace member', exemptionKey: ONYXKEYS.HAS_NON_PERSONAL_POLICY, exemptionValue: true},
+    {accountType: 'an invited user without a workspace', exemptionKey: ONYXKEYS.NVP_INTRO_SELECTED, exemptionValue: {inviteType: CONST.ONBOARDING_INVITE_TYPES.INVOICE}},
+] as const)('Search report navigation through sign-in for $accountType', ({exemptionKey, exemptionValue}) => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -144,18 +147,18 @@ describe('Search report navigation through sign-in', () => {
         [ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: '123'}), '123/'],
         [ROUTES.SEARCH_REPORT.getRoute({reportID: '123'}), '123/'],
         [ROUTES.SEARCH_REPORT.getRoute({reportID: '123', reportActionID: '456'}), '123/456'],
-    ])('renders the requested report for %s when onboarding is skipped for a workspace member', async (route, destination) => {
+    ])('renders the requested report for %s when onboarding is skipped', async (route, destination) => {
         // Given a real public navigator, with leaf pages simplified so navigation rather than report fetching is under test.
         render(<SignInNavigation />);
         await screen.findByText('Sign in');
         openReportFromDeepLink(`https://new.expensify.com/${route}`, {}, false, undefined, undefined, undefined, undefined, 0, {}, undefined);
         expect(screen.queryByTestId('report-destination')).toBeNull();
 
-        // When sign-in mounts the protected navigator and OpenApp supplies a member exempt from onboarding.
+        // When sign-in mounts the protected navigator and OpenApp supplies the account's onboarding exemption.
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {authToken: 'test-token', accountID: 1});
             await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
-            await Onyx.set(ONYXKEYS.HAS_NON_PERSONAL_POLICY, true);
+            await Onyx.set(exemptionKey, exemptionValue);
             await waitForBatchedUpdates();
         });
 
