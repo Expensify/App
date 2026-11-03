@@ -802,7 +802,6 @@ const translations = {
             tryAgain: 'Try again',
             giveItAnotherTry: 'Give it another try',
             thankYouForConfirming: 'Thank you for confirming the transaction was yours. Please try again at the merchant.',
-            freezeCard: 'Freeze card',
             ifYouCloseWeWillFreezeCard: "If you close this screen, we'll have to freeze your card. You'll need to unfreeze it to use it again.",
         },
         unsupportedDevice: {

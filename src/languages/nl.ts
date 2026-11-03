@@ -781,7 +781,6 @@ const translations: TranslationDeepObject<typeof en> = {
             tryAgain: 'Opnieuw proberen',
             giveItAnotherTry: 'Probeer het opnieuw',
             thankYouForConfirming: 'Bedankt voor je bevestiging dat de transactie van jou was. Probeer het opnieuw bij de verkoper.',
-            freezeCard: 'Kaart bevriezen',
             ifYouCloseWeWillFreezeCard: 'Als je dit scherm sluit, moeten we je kaart bevriezen. Je moet hem ontdooien om hem weer te gebruiken.',
         },
         unsupportedDevice: {

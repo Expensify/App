@@ -701,7 +701,6 @@ const translations: TranslationDeepObject<typeof en> = {
             tryAgain: 'Intentar de nuevo',
             giveItAnotherTry: 'Vuelve a intentarlo',
             thankYouForConfirming: 'Gracias por confirmar que la transacción era tuya. Vuelve a intentarlo en el comercio.',
-            freezeCard: 'Congelar tarjeta',
             ifYouCloseWeWillFreezeCard: 'Si cierras esta pantalla, tendremos que congelar tu tarjeta. Tendrás que descongelarla para volver a usarla.',
         },
         unsupportedDevice: {

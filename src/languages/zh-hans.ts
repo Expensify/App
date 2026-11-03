@@ -763,7 +763,6 @@ const translations: TranslationDeepObject<typeof en> = {
             tryAgain: '重试',
             giveItAnotherTry: '请再试一次',
             thankYouForConfirming: '感谢您确认这笔交易是您本人发起的。请在商户处重试。',
-            freezeCard: '冻结卡片',
             ifYouCloseWeWillFreezeCard: '如果您关闭此页面，我们将不得不冻结您的卡片。您需要解冻后才能再次使用。',
         },
         unsupportedDevice: {

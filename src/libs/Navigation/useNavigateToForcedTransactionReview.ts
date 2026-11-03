@@ -208,7 +208,11 @@ function useNavigateToForcedTransactionReview() {
         }
 
         if (isCurrentlyActingOnReview) {
-            Log.info('[useNavigateToForcedTransactionReview] Ignoring navigation - user is still acting on a challenge');
+            for (const {kind, transactionID} of reviewsToShow) {
+                const config = FORCED_REVIEW_CONFIG[kind];
+                Log.info(`${config.logPrefix} Ignoring navigation - user is still acting on a challenge`, undefined, {transactionID});
+                addBreadcrumb(config, 'Skipped - user in MFA flow', {transactionID});
+            }
             return;
         }
 

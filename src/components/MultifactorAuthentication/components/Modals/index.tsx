@@ -15,9 +15,9 @@ const AuthorizeTransactionCancelConfirmModal = createCancelConfirmModal('Authori
 });
 
 const FreezeCardCancelConfirmModal = createCancelConfirmModal('FreezeCardCancelConfirmModal', {
-    title: 'multifactorAuthentication.fraudReview.freezeCard',
+    title: 'cardPage.freezeCard',
     description: 'multifactorAuthentication.fraudReview.ifYouCloseWeWillFreezeCard',
-    confirmButtonText: 'multifactorAuthentication.fraudReview.freezeCard',
+    confirmButtonText: 'cardPage.freezeCard',
     cancelButtonText: 'common.cancel',
 });
 

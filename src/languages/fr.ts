@@ -782,7 +782,6 @@ const translations: TranslationDeepObject<typeof en> = {
             tryAgain: 'Réessayer',
             giveItAnotherTry: 'Réessayez',
             thankYouForConfirming: "Merci d'avoir confirmé que cette transaction venait de vous. Veuillez réessayer auprès du commerçant.",
-            freezeCard: 'Geler la carte',
             ifYouCloseWeWillFreezeCard: "Si vous fermez cet écran, nous devrons geler votre carte. Vous devrez la dégeler pour l'utiliser à nouveau.",
         },
         unsupportedDevice: {

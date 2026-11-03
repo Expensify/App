@@ -716,7 +716,6 @@ const translations: TranslationDeepObject<typeof en> = {
             tryAgain: 'Δοκιμάστε ξανά',
             giveItAnotherTry: 'Δοκιμάστε ξανά',
             thankYouForConfirming: 'Ευχαριστούμε που επιβεβαιώσατε ότι η συναλλαγή ήταν δική σας. Δοκιμάστε ξανά στον έμπορο.',
-            freezeCard: 'Πάγωμα κάρτας',
             ifYouCloseWeWillFreezeCard: 'Αν κλείσετε αυτή την οθόνη, θα πρέπει να παγώσουμε την κάρτα σας. Θα χρειαστεί να την ξεπαγώσετε για να τη χρησιμοποιήσετε ξανά.',
         },
         unsupportedDevice: {
