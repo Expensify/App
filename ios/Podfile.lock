@@ -4271,7 +4271,7 @@ PODS:
     - SocketRocket
     - Turf
     - Yoga
-  - RNNitroSQLite (9.8.3):
+  - RNNitroSQLite (10.2.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -4547,7 +4547,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - RNSentry (8.27.0):
+  - RNSentry (8.32.0):
     - boost
     - DoubleConversion
     - fast_float
@@ -5530,12 +5530,12 @@ SPEC CHECKSUMS:
   RNLiveMarkdown: 2dc8318ddfa63ef434421f9bf13ba8a114897797
   RNLocalize: 84929fccb683a26d82ecb0009e6b809beac68328
   rnmapbox-maps: 17be3b1751d07dc487a3a576696e25c7dc49ff22
-  RNNitroSQLite: fb93c438fc0e511c4c90a0e9f26f21de659cb1ae
+  RNNitroSQLite: 91142352bd5e6742427066a51a6fbaa8fb598b4d
   RNPermissions: 519b33720ef8eb5bd3dbd3a30c7ba0ef081566c6
   RNReactNativeHapticFeedback: 7aa9439efe741132bdaec9309572e7974a34632c
   RNReanimated: 2842718b677e9535537cd8ef2acc5b6b3d332c5d
   RNScreens: a4e05326b5a6084e87bedb6734c6daacc84da966
-  RNSentry: c4d9419f1884bc88220a612a09d9466417f4ebb0
+  RNSentry: f17cbfd648627b21e4df51033c8a854423b62bb6
   RNShare: 2d321ef9d66310c77503ab18de1c145c7411e040
   RNSVG: 48e30fa003636db61f03a0fd91922757d7f9f7c8
   RNWorklets: efcee735370b17c283c26771dde752a08815fb1a
