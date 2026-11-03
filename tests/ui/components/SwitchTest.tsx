@@ -14,7 +14,7 @@ jest.mock('@hooks/useLocalize', () =>
 
 const LABEL = 'Auto-pay approved reports';
 const LOCKED_LABEL = `${LABEL}, Locked`;
-const SENTRY_LABEL = CONST.SENTRY_LABEL.WORKSPACE.TOGGLE_SETTINGS_ROW_SWITCH;
+const SENTRY_LABEL = CONST.SENTRY_LABEL.WORKSPACE.RULES.AUTO_PAY_APPROVED_REPORTS_SWITCH;
 
 function renderSwitch(props: Partial<React.ComponentProps<typeof Switch>> = {}) {
     return render(

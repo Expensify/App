@@ -311,6 +311,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                         title={translate('distance.error.mapOrGpsDistanceRequired.title')}
                         subtitle={translate('workspace.distanceRates.requireMapOrGPSDescription')}
                         switchAccessibilityLabel={translate('distance.error.mapOrGpsDistanceRequired.title')}
+                        switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.REQUIRE_MAP_OR_GPS_SWITCH}
                         shouldPlaceSubtitleBelowSwitch
                         shouldUseCompactSubtitleSpacing
                         wrapperStyle={[styles.mt2, styles.mh5]}

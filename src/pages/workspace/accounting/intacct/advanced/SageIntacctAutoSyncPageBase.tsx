@@ -63,6 +63,7 @@ function SageIntacctAutoSyncPageBase({policy, navigateBackTo}: SageIntacctAutoSy
                 title={translate('workspace.sageIntacct.autoSync')}
                 subtitle={translate('workspace.sageIntacct.autoSyncDescription')}
                 switchAccessibilityLabel={translate('workspace.sageIntacct.autoSyncDescription')}
+                switchSentryLabel={CONST.SENTRY_LABEL.WORKSPACE.ACCOUNTING.SAGE_INTACCT.AUTO_SYNC_SWITCH}
                 isActive={!!autoSync?.enabled}
                 wrapperStyle={[styles.pv2, styles.mh5]}
                 shouldPlaceSubtitleBelowSwitch
