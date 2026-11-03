@@ -57,7 +57,7 @@ type InlineNumberEditCellProps = {
     isEqual?: (newValue: string, originalValue: string) => boolean;
 
     /** Rendered right after the display text (like an icon), so it stays next to the value instead of at the cell's edge. Hidden while editing. */
-    displayAccessory?: ReactNode;
+    children?: ReactNode;
 } & EditableProps<string>;
 
 const areNumericValuesEqual = (newValue: string, originalValue: string) => Number(newValue) === Number(originalValue);
@@ -71,7 +71,7 @@ function InlineNumberEditCell({
     allowNegativeInput = false,
     textAlign = 'right',
     isEqual = areNumericValuesEqual,
-    displayAccessory,
+    children,
     canEdit,
     onSave,
 }: InlineNumberEditCellProps) {
@@ -146,10 +146,10 @@ function InlineNumberEditCell({
                 />
             }
         >
-            {displayAccessory ? (
+            {children ? (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap2, isRightAligned && styles.justifyContentEnd]}>
                     {displayTextElement}
-                    {displayAccessory}
+                    {children}
                 </View>
             ) : (
                 displayTextElement
