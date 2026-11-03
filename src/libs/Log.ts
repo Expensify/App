@@ -7,10 +7,11 @@ import {Logger} from 'expensify-common';
 import AppLogs from 'react-native-app-logs';
 
 import pkg from '../../package.json';
+import {getLogTab} from './ActiveClientManager';
 import {getCurrentUserEmail} from './CurrentUserStore';
 import getPlatform from './getPlatform';
-import {addLogContext} from './LogContext';
 import MainQueueStore from './Network/MainQueueStore';
+import {isRecord} from './ObjectUtils';
 import requireParameters from './requireParameters';
 import forwardLogsToSentry from './telemetry/forwardLogsToSentry';
 
@@ -108,14 +109,32 @@ function serverLoggingCallback(logger: Logger, params: ServerLoggingCallbackOpti
     });
 }
 
-// Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
-// callback methods are passed in here so we can decouple the logging library from the logging methods.
+type LogParameters = Parameters<Logger['add']>[1];
+
+function addTabToParameters(parameters: LogParameters): LogParameters {
+    const tab = getLogTab();
+    if (!tab) {
+        return parameters;
+    }
+    const wasCalledWithoutParameters = parameters === '';
+    if (wasCalledWithoutParameters) {
+        return {tab};
+    }
+    const canSpreadWithoutLosingFields = isRecord(parameters) && !(parameters instanceof Error);
+    if (canSpreadWithoutLosingFields) {
+        return {...parameters, tab};
+    }
+    return parameters;
+}
+
 class ContextualLogger extends Logger {
-    add(...[message, ...rest]: Parameters<Logger['add']>) {
-        super.add(addLogContext(message), ...rest);
+    add(...[message, parameters, ...rest]: Parameters<Logger['add']>) {
+        super.add(message, addTabToParameters(parameters), ...rest);
     }
 }
 
+// Note: We are importing Logger from expensify-common because it is used by other platforms. The server and client logging
+// callback methods are passed in here so we can decouple the logging library from the logging methods.
 const Log = new ContextualLogger({
     serverLoggingCallback,
     clientLoggingCallback: (message, extraData) => {
@@ -125,7 +144,6 @@ const Log = new ContextualLogger({
     isDebug: true,
     getContextEmail: getCurrentUserEmail,
 });
-
 timeout = setTimeout(() => Log.info('Flushing logs older than 10 minutes', true, {}, true), 10 * 60 * 1000);
 
 // eslint-disable-next-line no-restricted-properties

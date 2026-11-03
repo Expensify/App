@@ -1,3 +1,4 @@
+import * as ActiveClientManager from '@libs/ActiveClientManager';
 import {isRecord} from '@libs/ObjectUtils';
 
 import HttpUtils from '@src/libs/HttpUtils';
@@ -116,7 +117,33 @@ describe('LogTest', () => {
     afterEach(() => {
         NetworkStore.resetHasReadRequiredDataFromStorage();
         jest.clearAllMocks();
+        jest.restoreAllMocks();
         jest.clearAllTimers();
+    });
+
+    test('web logs carry the tab that wrote them in their parameters, not in the message', async () => {
+        // Given a signed-in user in a web tab that leads, because only web reports a tab and several web tabs share one queue
+        await TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_EMAIL);
+        await waitForBatchedUpdates();
+        const tab = {clientID: 'tabA', isLeader: true};
+        jest.spyOn(ActiveClientManager, 'getLogTab').mockReturnValue(tab);
+        const capturedRequests = mockHttpUtilsXhr();
+
+        // When the tab logs one line with parameters and one without
+        Log.info('Line with parameters', false, {command: 'OpenReport'});
+        Log.info('Line without parameters', true);
+        await waitForBatchedUpdates();
+        await processNetworkQueue();
+
+        // Then both lines name the tab, so a lost write can be traced to the tab and role that wrote it
+        const lines = capturedRequests.flatMap((req) => parseLogPacket(req.logPacket));
+        const lineWithParameters = lines.find((line) => line.message.includes('Line with parameters'));
+        const lineWithoutParameters = lines.find((line) => line.message.includes('Line without parameters'));
+        expect(lineWithParameters?.parameters).toEqual({command: 'OpenReport', tab});
+        expect(lineWithoutParameters?.parameters).toEqual({tab});
+
+        // And the message stays as written, so exact-match log searches and Sentry forwarding still see the same text
+        expect(lineWithParameters?.message).toBe('[info] Line with parameters');
     });
 
     test('logs include user email when sent while user is signed in', async () => {

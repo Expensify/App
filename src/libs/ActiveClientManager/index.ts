@@ -1,6 +1,4 @@
 import {setModalVisibility} from '@libs/actions/Modal';
-import Log from '@libs/Log';
-import {setActiveTab} from '@libs/LogContext';
 
 import {setActiveClients} from '@userActions/ActiveClients';
 
@@ -16,7 +14,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
-import type {Init, IsClientTheLeader, IsReady, OnBecomeLeader} from './types';
+import type {GetLogTab, Init, IsClientTheLeader, IsReady, OnBecomeLeader} from './types';
 
 const LEADER_LOCK_NAME = 'activeClientLeader';
 
@@ -86,7 +84,6 @@ const onBecomeLeader: OnBecomeLeader = (callback) => {
 
 const notifyIfBecameLeader = () => {
     const isLeader = isClientTheLeader();
-    setActiveTab({clientID, isLeader});
     const didBecomeLeader = isLeader && !wasLeader;
     wasLeader = isLeader;
     if (!didBecomeLeader) {
@@ -120,7 +117,6 @@ Onyx.connectWithoutView({
         }
 
         notifyIfBecameLeader();
-        logActiveClientsChange();
     },
 });
 
@@ -162,14 +158,6 @@ const requestLeaderLock = (shouldSteal: boolean) => {
             requestLeaderLock(false);
         });
 };
-
-function logActiveClientsChange() {
-    Log.info('[ActiveClientManager] Active clients changed', false, {
-        activeClientCount: activeClients.length,
-        leaderClientID: activeClients.at(-1) ?? 'null',
-        isThisClientLeader: isClientTheLeader(),
-    });
-}
 
 const cleanUpClientId = () => {
     isPromotingNewLeader = isClientTheLeader();
@@ -217,4 +205,6 @@ const init: Init = () => {
     });
 };
 
-export {init, isClientTheLeader, isReady, onBecomeLeader};
+const getLogTab: GetLogTab = () => ({clientID, isLeader: isClientTheLeader()});
+
+export {getLogTab, init, isClientTheLeader, isReady, onBecomeLeader};

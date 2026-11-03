@@ -122,7 +122,7 @@ Onyx.connectWithoutView({
                         removedCount: previousLength - persistedRequests.length,
                         remainingCount: persistedRequests.length,
                         removedCommands: getCommands(removedRequests),
-                        removedRequestIDs: removedRequests.map((r) => getClientRequestIndex(r) ?? null),
+                        removedRequestIDs: removedRequests.map((r) => getClientRequestIndex(r)),
                     });
                 }
             }
