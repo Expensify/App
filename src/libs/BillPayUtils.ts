@@ -1,4 +1,4 @@
-/** Shared eligibility rules for Bills, Inbox, and report actions. */
+/** Shared eligibility rules for Bills, Home, Inbox, and report actions. */
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Domain, Policy, Report} from '@src/types/onyx';
@@ -90,7 +90,7 @@ function canPayBill(report: OnyxEntry<Report>, policy: OnyxEntry<Policy> | null,
     return report.ownerAccountID === accountID || (!!reimburser && reimburser === email) || policy?.role === CONST.POLICY.ROLE.ADMIN || policy?.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
 }
 
-/** Counts the bills that Spend > Bills shows, from the same reports the Inbox uses. */
+/** Counts the bills that Spend > Bills and Home show, from the same reports the Inbox uses. */
 function getBillPayCounts(reports: OnyxCollection<Report>, policies: OnyxCollection<Policy>, accountID: number, email: string): BillPayCounts {
     const counts: BillPayCounts = {hasBills: false, billsApprove: 0, billsPay: 0};
     for (const report of Object.values(reports ?? {})) {

@@ -41,6 +41,8 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsPaid: 'Σήμανση ως πληρωμένο',
         paymentFailed: 'Δεν μπορέσαμε να πληρώσουμε αυτόν τον λογαριασμό. Δοκιμάστε ξανά.',
         createFailed: 'Δεν μπορέσαμε να δημιουργήσουμε αυτόν τον λογαριασμό. Δοκιμάστε ξανά.',
+        payBills: ({count}) => ({one: 'Πληρωμή 1 λογαριασμού', other: `Πληρωμή ${count} λογαριασμών`}),
+        approveBills: ({count}) => ({one: 'Έγκριση 1 λογαριασμού', other: `Έγκριση ${count} λογαριασμών`}),
         primaryContactHint: (domain) =>
             `Η κύρια επαφή είναι το βασικό σημείο επικοινωνίας για το ${domain} και θα λαμβάνει λογαριασμούς που αποστέλλονται στη διεύθυνση πληρωμών του τομέα ${domain}@expensify.cash.`,
     },

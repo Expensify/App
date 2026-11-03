@@ -1,3 +1,4 @@
+import {getBillPayCounts} from '@libs/BillPayUtils';
 import createTodosReportsAndTransactions from '@libs/TodosUtils';
 
 import CONST from '@src/CONST';
@@ -15,6 +16,8 @@ type TodoCounts = {
     [CONST.SEARCH.SEARCH_KEYS.APPROVE]: number;
     [CONST.SEARCH.SEARCH_KEYS.PAY]: number;
     [CONST.SEARCH.SEARCH_KEYS.EXPORT]: number;
+    [CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]?: number;
+    [CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]?: number;
 };
 
 type TodoSingleReportIDs = {
@@ -71,12 +74,15 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
         areTransactionsLoaded: transactionsMetadata.status === 'loaded',
         rules,
     });
+    const {billsApprove, billsPay} = getBillPayCounts(allReports, allPolicies, userAccountID, login);
 
     const counts: TodoCounts = {
         [CONST.SEARCH.SEARCH_KEYS.SUBMIT]: reportsToSubmit.length,
         [CONST.SEARCH.SEARCH_KEYS.APPROVE]: reportsToApprove.length,
         [CONST.SEARCH.SEARCH_KEYS.PAY]: reportsToPay.length,
         [CONST.SEARCH.SEARCH_KEYS.EXPORT]: reportsToExport.length,
+        [CONST.SEARCH.SEARCH_KEYS.BILLS_APPROVE]: billsApprove,
+        [CONST.SEARCH.SEARCH_KEYS.BILLS_PAY]: billsPay,
     };
 
     const singleReportIDs: TodoSingleReportIDs = {
@@ -90,7 +96,11 @@ function useTodoCounts(enabled = true): {counts: TodoCounts; singleReportIDs: To
 
     // Capture the latest result so it can be returned verbatim once the consumer freezes. Only re-store when a
     // count or single-report ID actually changes, so the setState-during-render can't loop.
-    const hasChanged = !frozen || TODO_KEYS.some((key) => frozen.counts[key] !== counts[key] || frozen.singleReportIDs[key] !== singleReportIDs[key]);
+    const hasChanged =
+        !frozen ||
+        frozen.counts.billsApprove !== billsApprove ||
+        frozen.counts.billsPay !== billsPay ||
+        TODO_KEYS.some((key) => frozen.counts[key] !== counts[key] || frozen.singleReportIDs[key] !== singleReportIDs[key]);
     if (hasChanged) {
         setFrozen(value);
         return value;

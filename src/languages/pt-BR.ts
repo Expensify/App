@@ -44,6 +44,8 @@ const translations: TranslationDeepObject<typeof en> = {
         markAsPaid: 'Marcar como paga',
         paymentFailed: 'Não foi possível pagar esta conta. Tente novamente.',
         createFailed: 'Não foi possível criar esta conta. Tente novamente.',
+        payBills: ({count}) => ({one: 'Pagar 1 conta', other: `Pagar ${count} contas`}),
+        approveBills: ({count}) => ({one: 'Aprovar 1 conta', other: `Aprovar ${count} contas`}),
         primaryContactHint: (domain) =>
             `O contato principal é o ponto de contato de ${domain} e receberá as contas enviadas ao endereço de pagamento de contas deste domínio ${domain}@expensify.cash.`,
     },

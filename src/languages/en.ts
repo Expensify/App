@@ -52,6 +52,8 @@ const translations = {
         markAsPaid: 'Mark as paid',
         paymentFailed: 'We couldn’t pay this bill. Please try again.',
         createFailed: 'We couldn’t create this bill. Please try again.',
+        payBills: ({count}: {count: number}) => ({one: 'Pay 1 bill', other: `Pay ${count} bills`}),
+        approveBills: ({count}: {count: number}) => ({one: 'Approve 1 bill', other: `Approve ${count} bills`}),
         primaryContactHint: (domain: string) =>
             `The primary contact is the main point of contact for ${domain} and will receive bills sent to this domain's bill pay address ${domain}@expensify.cash.`,
     },
