@@ -111,22 +111,30 @@ function submitWiseBusinessOnboarding(params: SubmitWiseBusinessOnboardingParams
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {isSubmittingWiseBusinessOnboarding: true, isSuccess: null, errors: null},
+                value: {isSubmittingWiseBusinessOnboarding: true, isWiseBusinessOnboardingSubmitSuccessful: null, errors: null},
             },
         ],
         successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {isSubmittingWiseBusinessOnboarding: false, isSuccess: true},
+                value: {isWiseBusinessOnboardingSubmitSuccessful: true},
             },
         ],
-        // The generic error is stamped when the request is made, so a message Auth sends with its response is newer and is the one shown
+        // Key 0 so a message Auth sends with its response always sorts newer than this fallback, even with device clock skew
         failureData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
-                value: {isSubmittingWiseBusinessOnboarding: false, isSuccess: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
+                value: {isWiseBusinessOnboardingSubmitSuccessful: false, errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage', 0)},
+            },
+        ],
+        // A 460 answer applies neither the success nor the failure data, so the loading ends here
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {isSubmittingWiseBusinessOnboarding: false},
             },
         ],
     };
@@ -134,7 +142,7 @@ function submitWiseBusinessOnboarding(params: SubmitWiseBusinessOnboardingParams
 }
 
 function clearWiseBusinessOnboardingSubmission() {
-    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSubmittingWiseBusinessOnboarding: null, isSuccess: null});
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSubmittingWiseBusinessOnboarding: null, isWiseBusinessOnboardingSubmitSuccessful: null});
 }
 
 export default saveWiseOnboardingPage;

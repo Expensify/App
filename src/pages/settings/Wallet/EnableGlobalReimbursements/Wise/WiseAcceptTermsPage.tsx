@@ -33,7 +33,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {WiseBusinessOnboardingForm} from '@src/types/form';
-import type {ReimbursementAccount} from '@src/types/onyx';
+import type {BankAccountList, ReimbursementAccount} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -81,7 +81,7 @@ const TERM_LABELS: Record<TermKey, () => React.JSX.Element> = {
 
 const submissionSelector = (reimbursementAccount: OnyxEntry<ReimbursementAccount>) => ({
     isSubmitting: !!reimbursementAccount?.isSubmittingWiseBusinessOnboarding,
-    isSuccess: !!reimbursementAccount?.isSuccess,
+    isSuccess: !!reimbursementAccount?.isWiseBusinessOnboardingSubmitSuccessful,
     error: getLatestErrorMessage(reimbursementAccount),
 });
 
@@ -97,7 +97,8 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
     const [shouldShowError, setShouldShowError] = useState(false);
     const [submission] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {selector: submissionSelector});
     const [serverErrorFields] = useOnyx(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM, {selector: serverErrorFieldsSelector});
-    const [wiseStatus] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (bankAccountList) => bankAccountList?.[bankAccountID]?.accountData?.additionalData?.wise?.status});
+    const wiseStatusSelector = (bankAccountList: OnyxEntry<BankAccountList>) => bankAccountList?.[bankAccountID]?.accountData?.additionalData?.wise?.status;
+    const [wiseStatus] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: wiseStatusSelector});
     const {isBetaEnabledOrUnknown} = usePermissions();
     const isWiseReimbursementsBetaEnabled = isBetaEnabledOrUnknown(CONST.BETAS.WISE_REIMBURSEMENTS);
 
@@ -207,28 +208,27 @@ function WiseAcceptTermsPage({route}: WiseAcceptTermsPageProps) {
                     />
                 ))}
                 <View style={styles.flexGrow1} />
-                <FormAlertWithSubmitButton
-                    buttonText={translate('common.confirm')}
-                    onSubmit={confirm}
-                    isAlertVisible={shouldShowError || !!submitError}
-                    message={shouldShowError ? translate('walletPage.wiseOnboarding.terms.error') : submitError}
-                    isLoading={isSubmitting}
-                    footerContent={
-                        isAlreadySubmitted ? (
-                            <FormHelpMessage
-                                style={styles.mb3}
-                                isError={false}
-                                isInfo
-                                message={translate('walletPage.wiseOnboarding.terms.alreadySubmitted')}
-                            />
-                        ) : undefined
-                    }
-                    shouldRenderFooterAboveSubmit
-                    containerStyles={[styles.mh0, styles.mt5]}
-                    enabledWhenOffline={false}
-                    shouldShowLoadingImmediatelyOnPress={false}
-                    sentryLabel={CONST.SENTRY_LABEL.WISE_ACCEPT_TERMS.CONFIRM}
-                />
+                <View style={styles.mt5}>
+                    {isAlreadySubmitted && (
+                        <FormHelpMessage
+                            style={styles.mb3}
+                            isError={false}
+                            isInfo
+                            message={translate('walletPage.wiseOnboarding.terms.alreadySubmitted')}
+                        />
+                    )}
+                    <FormAlertWithSubmitButton
+                        buttonText={translate('common.confirm')}
+                        onSubmit={confirm}
+                        isAlertVisible={shouldShowError || !!submitError}
+                        message={shouldShowError ? translate('walletPage.wiseOnboarding.terms.error') : submitError}
+                        isLoading={isSubmitting}
+                        containerStyles={styles.mh0}
+                        enabledWhenOffline={false}
+                        shouldShowLoadingImmediatelyOnPress={false}
+                        sentryLabel={CONST.SENTRY_LABEL.WISE_ACCEPT_TERMS.CONFIRM}
+                    />
+                </View>
             </ScrollView>
         </ScreenWrapper>
     );

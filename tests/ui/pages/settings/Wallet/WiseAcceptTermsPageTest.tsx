@@ -171,7 +171,7 @@ describe('WiseAcceptTermsPage', () => {
         pressConfirm();
 
         // When the request succeeds
-        answerSubmission(rerender, {isSuccess: true});
+        answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: true});
 
         // Then the draft, the SSN in memory and the unsaved pages go, since the server holds the business now, and the more info needed page replaces the terms
         expect(clearDraftValues).toHaveBeenCalledWith(ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM);
@@ -187,7 +187,7 @@ describe('WiseAcceptTermsPage', () => {
         pressConfirm();
 
         // When the request fails with an error no page can fix
-        answerSubmission(rerender, {isSuccess: false, errors: {[ERROR_TIMESTAMP]: 'Something went wrong'}});
+        answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: false, errors: {[ERROR_TIMESTAMP]: 'Something went wrong'}});
 
         // Then the error shows above Confirm and the user can try again from here
         expect(screen.getByText('Something went wrong')).toBeOnTheScreen();
@@ -202,7 +202,7 @@ describe('WiseAcceptTermsPage', () => {
 
         // When Wise rejects the business description, which the business page collects
         mockOnyxValues[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM] = {errorFields: {description: {[ERROR_TIMESTAMP]: 'Too vague'}}};
-        answerSubmission(rerender, {isSuccess: false, errors: {[ERROR_TIMESTAMP]: 'Validation failed'}});
+        answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: false, errors: {[ERROR_TIMESTAMP]: 'Validation failed'}});
 
         // Then the flow goes back to the business page, where the error shows under the field
         expect(Navigation.navigate).toHaveBeenCalledWith('settings/wallet/global-reimbursements/1/business-onboarding/business', {forceReplace: true});
@@ -216,7 +216,7 @@ describe('WiseAcceptTermsPage', () => {
 
         // When Wise rejects the legal business name, which comes from the bank account
         mockOnyxValues[ONYXKEYS.FORMS.WISE_BUSINESS_ONBOARDING_FORM] = {errorFields: {companyName: {[ERROR_TIMESTAMP]: 'Name mismatch'}}};
-        answerSubmission(rerender, {isSuccess: false, errors: {[ERROR_TIMESTAMP]: 'Validation failed'}});
+        answerSubmission(rerender, {isWiseBusinessOnboardingSubmitSuccessful: false, errors: {[ERROR_TIMESTAMP]: 'Validation failed'}});
 
         // Then the user stays here with the error above Confirm
         expect(Navigation.navigate).not.toHaveBeenCalled();
