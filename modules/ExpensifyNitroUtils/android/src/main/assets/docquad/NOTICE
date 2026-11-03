@@ -1,0 +1,12 @@
+DocQuadNet-256 (document corner model, trained weights)
+
+File: docquadnet256_trained_opset17.ort
+SHA-256: f0f2f52d7d79ff02d346c8f9d0c9e903407366aeea1747cdcff160c401e3e72a
+Copyright (C) 2026 Christian Kierdorf
+License: Apache License, Version 2.0 (see LICENSE in this directory)
+Source: Make a Copy (MakeACopy), https://github.com/egdels/makeacopy
+        app/src/main/assets/docquad/docquadnet256_trained_opset17.ort
+
+The file is included unmodified, as published in the Make a Copy repository. Its NOTICE file lists the datasets the
+model was trained on (UVDoc, SmartDoc, Describable Textures Dataset, CORD); none of their images or labels are part of
+the model or of this repository.

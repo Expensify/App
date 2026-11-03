@@ -94,6 +94,8 @@ type CameraViewportProps = {
 
     setFlash: (updater: (prev: boolean) => boolean) => void;
 
+    overlay?: ReactNode;
+
     /** Extra content rendered below the viewfinder, inside the camera view */
     children?: ReactNode;
 };
@@ -120,6 +122,7 @@ function CameraViewport({
     flash,
     hasFlash,
     setFlash,
+    overlay,
     children,
 }: CameraViewportProps) {
     const theme = useTheme();
@@ -185,6 +188,7 @@ function CameraViewport({
                         orientationSource="interface"
                         implementationMode="compatible"
                     />
+                    {!shouldHidePreview && overlay}
                     <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                     <Animated.View
                         pointerEvents="none"

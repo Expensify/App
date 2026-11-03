@@ -1403,6 +1403,8 @@ const translations: TranslationDeepObject<typeof en> = {
         flash: 'błysk',
         flipCamera: 'obróć kamerę',
         multiScan: 'wielokrotne skanowanie',
+        receiptEnhancements: 'Ulepszenia paragonów',
+        receiptEnhancementsEnabled: 'Ulepszenia paragonów włączone',
         shutter: 'migawka',
         gallery: 'galeria',
         deleteReceipt: 'Usuń paragon',

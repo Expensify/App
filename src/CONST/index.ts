@@ -1472,6 +1472,7 @@ const CONST = {
         COLLECT_DEPOSIT_ACCOUNTS: 'collectDepositAccounts',
         RESIZABLE_RHP: 'resizableRHP',
         TRAVEL_APPROVAL: 'travelApproval',
+        RECEIPT_ENHANCEMENT: 'receiptEnhancement',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -10688,6 +10689,7 @@ const CONST = {
             SCAN: {
                 MULTI_SCAN: 'Scan-MultiScan',
                 FLASH: 'Scan-Flash',
+                RECEIPT_ENHANCEMENT: 'Scan-ReceiptEnhancement',
                 CHOOSE_FILE: 'Scan-ChooseFile',
                 CHOOSE_FILES: 'Scan-ChooseFiles',
                 SHUTTER: 'Scan-Shutter',
