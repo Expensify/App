@@ -544,11 +544,11 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
 
             // Given a spy on the error-clearing function and the report hierarchy data a component caller would pass
             const spy = jest.spyOn(ClearReportActionErrorsActions, 'clearAllRelatedReportActionErrors');
-            const reports = {
+            const parentHierarchicalReports = {
                 [`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`]: {parentReportID: iouReport?.parentReportID, parentReportActionID: iouReport?.parentReportActionID},
             };
 
-            // When cleaning up the expense with the reports parameter supplied
+            // When cleaning up the expense with the parentHierarchicalReports parameter supplied
             if (transaction && createIOUAction && iouReport?.reportID) {
                 cleanUpMoneyRequest({
                     transactionID: transaction.transactionID,
@@ -564,13 +564,13 @@ describe('actions/IOU/DeleteMoneyRequest', () => {
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     isOffline: false,
                     isSingleTransactionView: true,
-                    reports,
+                    parentHierarchicalReports,
                 });
             }
             await waitForBatchedUpdates();
 
-            // Then the reports parameter should be forwarded so the ancestor walk reads the caller's data
-            expect(spy).toHaveBeenCalledWith(expect.objectContaining({reportID: iouReport?.reportID, isOffline: false, reports}));
+            // Then the parentHierarchicalReports parameter should be forwarded so the ancestor walk reads the caller's data
+            expect(spy).toHaveBeenCalledWith(expect.objectContaining({reportID: iouReport?.reportID, isOffline: false, reports: parentHierarchicalReports}));
             spy.mockRestore();
         });
 
