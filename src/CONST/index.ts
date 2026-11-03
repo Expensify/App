@@ -11159,6 +11159,8 @@ const CONST = {
             TRANSFER_BALANCE: 'SettingsWallet-TransferBalance',
             ENABLE_WALLET: 'SettingsWallet-EnableWallet',
             WISE_MORE_INFO_NEEDED_REVIEW: 'SettingsWallet-WiseMoreInfoNeeded-Review',
+            DIGITAL_WALLET_APPROVAL_REVIEW: 'SettingsWallet-DigitalWalletApproval-Review',
+            MISSING_PERSONAL_DETAILS_ADD: 'SettingsWallet-MissingPersonalDetails-Add',
         },
         SETTINGS_RULES: {
             NEW_RULE: 'SettingsRules-NewRule',

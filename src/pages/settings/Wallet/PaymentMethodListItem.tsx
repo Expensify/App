@@ -1,5 +1,4 @@
 import Badge from '@components/Badge';
-import Button from '@components/Button';
 import ConnectionStatusBadge from '@components/ConnectionStatusBadge';
 import ConnectionStatusMessage from '@components/ConnectionStatusMessage';
 import Hoverable from '@components/Hoverable';
@@ -46,6 +45,7 @@ import {View} from 'react-native';
 
 import GlobalReimbursementsEnabledIcon from './GlobalReimbursementsEnabledIcon';
 import PendingDigitalWalletApprovalRow from './PendingDigitalWalletApprovalRow';
+import WalletPromptRow from './WalletPromptRow';
 import WiseMoreInfoNeededRow from './WiseMoreInfoNeededRow';
 
 type ConnectionStatusDetails = {
@@ -339,23 +339,14 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                 menuItem
             )}
             {!!item.shouldShowMissingPersonalDetailsAction && !!item.cardID && (
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.pv3, cardPaddingHorizontal]}>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1, styles.mr2]}>
-                        <Icon
-                            src={icons.DotIndicator}
-                            fill={theme.success}
-                            additionalStyles={[styles.mr2]}
-                        />
-                        <Text style={[styles.mutedNormalTextLabel, styles.label, styles.flexShrink1]}>{translate('walletPage.addVirtualCardPersonalDetails.subtitle')}</Text>
-                    </View>
-                    <Button
-                        size={CONST.BUTTON_SIZE.SMALL}
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(item.cardID))))}
-                    >
-                        <Button.Text>{translate('walletPage.addVirtualCardPersonalDetails.cta')}</Button.Text>
-                    </Button>
-                </View>
+                <WalletPromptRow
+                    message={translate('walletPage.addVirtualCardPersonalDetails.subtitle')}
+                    shouldShowSuccessMessage={false}
+                    buttonText={translate('walletPage.addVirtualCardPersonalDetails.cta')}
+                    onButtonPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MISSING_PERSONAL_DETAILS.getRoute(String(item.cardID))))}
+                    buttonSentryLabel={CONST.SENTRY_LABEL.SETTINGS_WALLET.MISSING_PERSONAL_DETAILS_ADD}
+                    style={[styles.pv3, cardPaddingHorizontal]}
+                />
             )}
             {!!digitalWalletApprovalCardID && (
                 <PendingDigitalWalletApprovalRow
