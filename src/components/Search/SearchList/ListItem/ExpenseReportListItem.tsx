@@ -46,6 +46,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import {isActionLoadingSelector} from '@src/selectors/ReportMetaData';
 import type {Policy, Report} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
@@ -356,9 +357,23 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         : !!reportItem.hasVisibleViolations;
     const hasVisibleReportViolations = hasLiveTransactions ? liveHasVisibleViolations : fallbackHasVisibleViolations;
     const hasAnyVisibleViolations = hasVisibleReportViolations || hasSyncedMissingAttendeesViolation;
+    const shouldShowViolationsMessage = hasAnyVisibleViolations && shouldShowViolationDescription;
+
+    // Prefer live Onyx errors so the message goes away once the error is dismissed in the report
+    const hasReportErrors = !isEmptyObject(parentReport ? parentReport.errors : item.errors);
+
+    const descriptionMessages: string[] = [];
+    if (reportItem?.isRejectedReport) {
+        descriptionMessages.push(translate('iou.rejectReport.rejectedReportMessage'));
+    } else if (shouldShowViolationsMessage) {
+        descriptionMessages.push(translate('reportViolations.reportContainsExpensesWithViolations'));
+    }
+    if (hasReportErrors) {
+        descriptionMessages.push(translate('reportViolations.reportHasErrors'));
+    }
 
     let getDescription;
-    if (reportItem?.isRejectedReport) {
+    if (descriptionMessages.length > 0) {
         getDescription = (
             <View
                 style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
@@ -381,47 +396,22 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                         },
                     ]}
                 >
-                    {translate('iou.rejectReport.rejectedReportMessage')}
+                    {descriptionMessages.join(' ')}
                 </Text>
             </View>
         );
-    } else {
-        getDescription =
-            !hasAnyVisibleViolations || !shouldShowViolationDescription ? undefined : (
-                <View
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.mt2, styles.userSelectNone]}
-                    dataSet={{
-                        [CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true,
-                    }}
-                >
-                    <Icon
-                        src={expensifyIcons.DotIndicator}
-                        fill={theme.danger}
-                        additionalStyles={[styles.mr1]}
-                        width={12}
-                        height={12}
-                    />
-                    <Text
-                        style={[
-                            isLargeScreenWidth ? styles.textMicro : styles.mutedNormalTextLabel,
-                            {
-                                color: theme.textError,
-                            },
-                        ]}
-                    >
-                        {translate('reportViolations.reportContainsExpensesWithViolations')}
-                    </Text>
-                </View>
-            );
     }
 
     // Full label for the button (its whole announcement); just a row identifier for the group, whose cells are reachable.
     const rowAccessibilityLabel = canSelectMultiple ? liveReportItem.reportName : getExpenseReportRowAccessibilityLabel(liveReportItem, {translate, dateFnsLocale, convertToDisplayString});
 
+    // Report errors are summarized in the description above, so don't let the list item show them as a separate row
+    const itemWithoutErrors = {...item, errors: undefined};
+
     // Keep nested controls reachable: a group on web, and accessible={false} on iOS (which otherwise collapses children).
     return (
         <ListItemComposed
-            item={item}
+            item={itemWithoutErrors}
             isSelected={isSelected}
             accessible={canSelectMultiple && shouldBreakAccessibilityGrouping() ? false : undefined}
             accessibilityRole={canSelectMultiple ? CONST.ROLE.GROUP : undefined}
