@@ -1627,6 +1627,7 @@ describe('Transaction', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
 
+            // When the caller passes details that differ from PERSONAL_DETAILS_LIST, the snapshot should use the passed ones
             const passedCurrentUserPersonalDetails: CurrentUserPersonalDetails = {...currentUserPersonalDetails, displayName: 'Passed User'};
 
             changeTransactionsReport({
