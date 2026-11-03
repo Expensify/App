@@ -85,10 +85,25 @@ describe('DiscardStaleSearchSnapshot middleware', () => {
         expect(releaseStaleSnapshotGuard(JSON_QUERY)).toBe(true);
     });
 
+    it('keeps a follower search snapshot when older writes are still pending in the leader tab', async () => {
+        // Given a follower whose wait for writes resolves while the leader still has earlier writes pending
+        jest.mocked(getQueuedRequestsCount).mockReturnValue(3);
+        jest.mocked(getPersistedRequestsLength).mockReturnValue(1);
+        guardSearchAgainstStaleSnapshot(JSON_QUERY, 3);
+
+        // When the response arrives without any write queued since the search was sent
+        const response = await discardStaleSearchSnapshot(Promise.resolve(buildResponse()), buildRequest(), false);
+
+        // Then the pending writes alone do not drop the snapshot or schedule another search in the follower
+        expect(response?.onyxData?.map((update) => update.key)).toEqual([OTHER_KEY, SNAPSHOT_KEY]);
+        expect(releaseStaleSnapshotGuard(JSON_QUERY)).toBe(false);
+    });
+
     it('drops the snapshot of a guarded search when a write was queued while it was in flight', async () => {
         // Given a guarded search, and a write (e.g. a quick second inline edit) queued while it was in flight
         guardSearchAgainstStaleSnapshot(JSON_QUERY, 0);
         jest.mocked(getPersistedRequestsLength).mockReturnValue(1);
+        jest.mocked(getQueuedRequestsCount).mockReturnValue(1);
 
         // When its response comes back
         const response = await discardStaleSearchSnapshot(Promise.resolve(buildResponse()), buildRequest(), false);
@@ -141,6 +156,7 @@ describe('DiscardStaleSearchSnapshot middleware', () => {
         guardSearchAgainstStaleSnapshot(JSON_QUERY, 0);
         guardSearchAgainstStaleSnapshot(NEXT_PAGE_JSON_QUERY, 0);
         jest.mocked(getPersistedRequestsLength).mockReturnValue(1);
+        jest.mocked(getQueuedRequestsCount).mockReturnValue(1);
 
         // When the first one finishes and is released before the other's response comes back
         releaseStaleSnapshotGuard(NEXT_PAGE_JSON_QUERY);

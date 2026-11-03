@@ -50,16 +50,20 @@ const discardStaleSearchSnapshot: Middleware = (requestResponse, request) =>
             return response;
         }
 
-        // The write can finish and leave the queue before this response arrives, so pending writes alone would miss it.
+        // Followers can send searches while the leader's writes remain pending. Only writes queued since this search
+        // was sent make it stale; counting older pending writes would discard every response and keep running it again.
         const writesQueuedSinceSent = getQueuedRequestsCount() - queuedRequestsCountWhenSent;
-        const pendingWrites = getPersistedRequestsLength();
-        if (writesQueuedSinceSent <= 0 && pendingWrites === 0) {
+        if (writesQueuedSinceSent <= 0) {
             return response;
         }
 
         const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`;
         discardedSearchQueries.add(jsonQuery);
-        Log.info('[DiscardStaleSearchSnapshot] Dropping the snapshot of a search that writes were queued behind', false, {hash, writesQueuedSinceSent, pendingWrites});
+        Log.info('[DiscardStaleSearchSnapshot] Dropping the snapshot of a search that writes were queued behind', false, {
+            hash,
+            writesQueuedSinceSent,
+            pendingWrites: getPersistedRequestsLength(),
+        });
         return {...response, onyxData: response.onyxData.filter((update) => update.key !== snapshotKey)};
     });
 

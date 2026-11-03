@@ -1,12 +1,14 @@
-import {getQueuedRequestsCount} from '@libs/actions/PersistedRequests';
+import {getLength as getPersistedRequestsLength, getQueuedRequestsCount} from '@libs/actions/PersistedRequests';
 import {search} from '@libs/actions/Search';
 import {makeRequestWithSideEffects, waitForWrites} from '@libs/API';
 import {READ_COMMANDS} from '@libs/API/types';
+import type * as StaleSnapshotMiddleware from '@libs/Middleware/DiscardStaleSearchSnapshot';
 import {guardSearchAgainstStaleSnapshot, releaseStaleSnapshotGuard} from '@libs/Middleware/DiscardStaleSearchSnapshot';
 import {getIsOffline, subscribe as subscribeNetworkState} from '@libs/NetworkState';
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type Response from '@src/types/onyx/Response';
 
 import type {OnyxKey} from 'react-native-onyx';
@@ -22,6 +24,7 @@ jest.mock('@libs/API', () => ({
 
 jest.mock('@libs/actions/PersistedRequests', () => ({
     ...jest.requireActual<Record<string, unknown>>('@libs/actions/PersistedRequests'),
+    getLength: jest.fn(() => 0),
     getQueuedRequestsCount: jest.fn(() => 0),
 }));
 
@@ -57,10 +60,13 @@ function getQueryJSON() {
 describe('search stale snapshot re-fire', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockedGuard.mockReset();
+        mockedRelease.mockReset();
         mockedWaitForWrites.mockResolvedValue(undefined);
         mockedMakeRequestWithSideEffects.mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
         mockedRelease.mockReturnValue(false);
         mockedGetQueuedRequestsCount.mockReturnValue(0);
+        jest.mocked(getPersistedRequestsLength).mockReturnValue(0);
         mockedGetIsOffline.mockReturnValue(false);
     });
 
@@ -128,6 +134,42 @@ describe('search stale snapshot re-fire', () => {
 
         // Then it reaches the backend once
         expect(mockedMakeRequestWithSideEffects).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([false, true])('does not loop in a follower tab with older pending writes (new in-flight write: %s)', async (hasNewWrite) => {
+        // Given a follower whose write barrier resolves despite older writes still pending in the leader tab
+        const queryJSON = getQueryJSON();
+        const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const;
+        const snapshotResults: boolean[] = [];
+        const realMiddleware = jest.requireActual<typeof StaleSnapshotMiddleware>('@libs/Middleware/DiscardStaleSearchSnapshot');
+        mockedGuard.mockImplementation(realMiddleware.guardSearchAgainstStaleSnapshot);
+        mockedRelease.mockImplementation(realMiddleware.releaseStaleSnapshotGuard);
+        mockedGetQueuedRequestsCount.mockReturnValue(3);
+        jest.mocked(getPersistedRequestsLength).mockReturnValue(1);
+        mockedMakeRequestWithSideEffects.mockImplementation(async (command, data) => {
+            // Limit requests so the regression fails instead of hanging if unchanged pending writes trigger a loop
+            if (mockedMakeRequestWithSideEffects.mock.calls.length > 2) {
+                throw new Error('Search repeated without a new write');
+            }
+            if (hasNewWrite) {
+                mockedGetQueuedRequestsCount.mockReturnValue(4);
+            }
+            const response = await realMiddleware.default(
+                Promise.resolve({jsonCode: CONST.JSON_CODE.SUCCESS, onyxData: [{onyxMethod: 'merge', key: snapshotKey, value: {data: {}}}]}),
+                {command, data: data ?? undefined},
+                false,
+            );
+            snapshotResults.push(response?.onyxData?.some((update) => update.key === snapshotKey) ?? false);
+            return response;
+        });
+
+        // When the guarded search and any necessary rerun pass through the real discard middleware
+        await search({queryJSON, searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES, offset: 0, isLoading: false, shouldDiscardStaleSnapshot: true});
+
+        // Then an in-flight write still drops the first snapshot, but unchanged pending writes cannot trigger more reruns
+        expect(mockedMakeRequestWithSideEffects).toHaveBeenCalledTimes(hasNewWrite ? 2 : 1);
+        expect(snapshotResults).toEqual(hasNewWrite ? [false, true] : [true]);
+        expect(getPersistedRequestsLength()).toBe(1);
     });
 
     it('does not guard a search that did not ask for it', async () => {
