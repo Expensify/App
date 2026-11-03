@@ -33,6 +33,7 @@ import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 
 class MainApplication : MultiDexApplication(), ReactApplication {
     private var plaidLinkActivity: WeakReference<Activity>? = null
+    private var plaidRequestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
 
     override val reactHost: ReactHost by lazy {
         getDefaultReactHost(
@@ -69,6 +70,8 @@ class MainApplication : MultiDexApplication(), ReactApplication {
                 }
                 if (activity.javaClass.name == "com.plaid.internal.link.LinkActivity") {
                     plaidLinkActivity = WeakReference(activity)
+                    // Plaid sets its own orientation before super.onCreate(), so this is Plaid's value.
+                    plaidRequestedOrientation = activity.requestedOrientation
                     applyPlaidOrientation(activity, activity.resources.configuration)
                 }
             }
@@ -131,14 +134,8 @@ class MainApplication : MultiDexApplication(), ReactApplication {
     }
 
     private fun applyPlaidOrientation(activity: Activity, config: Configuration) {
-        if (config.smallestScreenWidthDp >= 600) {
-            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
-            return
-        }
-        // Android 8.0 throws when a translucent activity requests a fixed orientation; Plaid skips it there too.
-        if (Build.VERSION.SDK_INT != Build.VERSION_CODES.O) {
-            activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }
+        activity.requestedOrientation =
+            if (config.smallestScreenWidthDp >= 600) ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED else plaidRequestedOrientation
     }
 
     private fun isOnfidoProcess(): Boolean {
