@@ -182,6 +182,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                 wrapperStyle={styles.mv0}
                 shouldDeferShowUntilPositioned
                 shouldHideClearButton
+                iconContainerStyle={styles.moneyRequestFieldInputIcon}
                 // The Month/Year pickers are right-docked, and a right-docked modal opened from the RHP drops its
                 // backdrop by default, so the report behind them would not be dimmed.
                 shouldEnableMonthYearBackdropInNarrowPane={isInNarrowPaneModal}
@@ -264,7 +265,7 @@ function ReportFieldInlineInput({reportField, fieldKey, value, isDisabled, error
                                 icon={icons.DownArrow}
                                 // `pr0` makes the icon container's padding asymmetric, so it has to flip in place.
                                 // `flipUpsideDown` would rotate that padding too and shift the caret left when open.
-                                iconContainerStyle={[styles.pr0, isExpanded && styles.flipUpsideDownInPlace]}
+                                iconContainerStyle={[styles.pr0, styles.moneyRequestFieldInputIcon, isExpanded && styles.flipUpsideDownInPlace]}
                                 onPress={openOptions}
                                 onSubmitEditing={onPress}
                                 disableKeyboard

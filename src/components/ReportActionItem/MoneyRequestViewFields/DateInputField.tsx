@@ -127,6 +127,7 @@ function DateInputField({transaction, transactionThreadReport, isTrackExpense, l
                 errorText={errorText}
                 shouldDeferShowUntilPositioned
                 shouldHideClearButton
+                iconContainerStyle={styles.moneyRequestFieldInputIcon}
             />
         </View>
     );

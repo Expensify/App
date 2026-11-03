@@ -150,6 +150,7 @@ function DateField({shouldDisplayFieldError, didConfirm, isReadOnly, formError, 
                     // The calendar icon and the hint share the right-hand side, so the field shows one or the other.
                     // The icon comes back once the user opens the picker, the same way the amount field's buttons do.
                     shouldHideCalendarIcon={shouldShowAutomaticHint}
+                    iconContainerStyle={styles.moneyRequestFieldInputIcon}
                     onPickerVisibilityChange={setIsDatePickerOpen}
                 />
             </View>

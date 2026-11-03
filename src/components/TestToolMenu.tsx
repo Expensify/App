@@ -94,15 +94,13 @@ function TestToolMenu({serverPageRoute}: TestToolMenuProps) {
             {isAuthenticated && (
                 <>
                     {/* Temporary review aid for the inline expense fields: shows read-only fields with a border. */}
-                    {!isProduction && (
-                        <TestToolRow title="Read-only field borders">
-                            <Switch
-                                accessibilityLabel="Read-only field borders"
-                                isOn={isReadOnlyFieldBorderShown}
-                                onToggle={toggleReadOnlyFieldBorder}
-                            />
-                        </TestToolRow>
-                    )}
+                    <TestToolRow title="Read-only field borders">
+                        <Switch
+                            accessibilityLabel="Read-only field borders"
+                            isOn={isReadOnlyFieldBorderShown}
+                            onToggle={toggleReadOnlyFieldBorder}
+                        />
+                    </TestToolRow>
 
                     {/* When toggled the app will be put into debug mode. */}
                     <TestToolRow

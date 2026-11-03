@@ -3655,9 +3655,9 @@ const staticStyles = (theme: ThemeColors) =>
         moneyRequestFieldRow: {
             minHeight: variables.inputHeight,
             paddingLeft: 8,
-            // With the caret's 4px margin this puts it 19px in from the border, where a text input's icon sits
-            // (8px of container padding plus 11px around the icon), so the fields' right icons line up
-            paddingRight: 15,
+            // With the caret's 4px margin this lines the caret up with a text input's icon nudged by
+            // `moneyRequestFieldInputIcon`, so every field's right icon sits the same distance from the border
+            paddingRight: 7,
             paddingVertical: 6,
             borderWidth: 1,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -3673,7 +3673,12 @@ const staticStyles = (theme: ThemeColors) =>
             borderColor: theme.highlightBG,
         },
 
-        // Review aid toggled with "b", see `useReadOnlyFieldBorderToggle`
+        // Moves a text input's right icon 8px toward the border, so it lines up with the caret of a bordered field row
+        moneyRequestFieldInputIcon: {
+            marginRight: -8,
+        },
+
+        // Review aid switched from the testing preferences, see `useReadOnlyFieldBorderToggle`
         moneyRequestFieldRowDisabledBordered: {
             borderColor: theme.bordersBold,
         },
