@@ -24,7 +24,7 @@ type ExportDateListItem = ListItem & {
     value: RilletExportDate;
 };
 
-function RilletVendorBillDatePage({policy}: WithPolicyConnectionsProps) {
+function RilletGLImpactDatePage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policyID = policy?.id;
@@ -58,7 +58,7 @@ function RilletVendorBillDatePage({policy}: WithPolicyConnectionsProps) {
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.CONTROL]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
-            displayName="RilletVendorBillDatePage"
+            displayName="RilletGLImpactDatePage"
             title="workspace.rillet.exportDate.label"
             data={data}
             headerContent={headerContent}
@@ -75,4 +75,4 @@ function RilletVendorBillDatePage({policy}: WithPolicyConnectionsProps) {
     );
 }
 
-export default withPolicyConnections(RilletVendorBillDatePage);
+export default withPolicyConnections(RilletGLImpactDatePage);
