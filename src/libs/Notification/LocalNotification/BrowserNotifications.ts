@@ -172,7 +172,7 @@ export default {
         }
         if (!plainTextMessage) {
             if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED)) {
-                const originalMessage = getOriginalMessage(reportAction) as {message?: string} | undefined;
+                const originalMessage = getOriginalMessage(reportAction);
                 plainTextMessage = translate(IntlStore.getCurrentLocale(), 'iou.paidElsewhere', undefined, originalMessage?.message?.trim());
             } else {
                 const rawMessage = reportAction.message;
