@@ -722,7 +722,7 @@ describe('SearchPageNarrow', () => {
         // Given the idle preload built the tab in the background from cached results, while the device was offline
         mockSearchQueryParam.mockReturnValue(EXPENSE_QUERY);
         mockIsFocused.mockReturnValue(false);
-        mockUseNetwork.mockReturnValue({isOffline: true} as ReturnType<typeof useNetwork>);
+        mockUseNetwork.mockReturnValue({isOffline: true});
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, getExpenseSnapshot(false));
         });
@@ -732,7 +732,7 @@ describe('SearchPageNarrow', () => {
         });
 
         // When the app comes back online with an error on the snapshot, which normally forces a refresh
-        mockUseNetwork.mockReturnValue({isOffline: false} as ReturnType<typeof useNetwork>);
+        mockUseNetwork.mockReturnValue({isOffline: false});
         await act(async () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.SNAPSHOT}${expenseQueryJSON?.hash}`, {errors: {error: 'error'}});
         });
