@@ -8,7 +8,7 @@ import type {CustomUnit, Rate} from '@src/types/onyx/Policy';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, startOfDay} from 'date-fns';
+import {addDays, differenceInDays, differenceInMinutes, format, isSameDay, isValid, startOfDay} from 'date-fns';
 import lodashSortBy from 'lodash/sortBy';
 
 import type {OptionTree} from './OptionsListUtils';
@@ -218,15 +218,17 @@ function getSubratesForDisplay(subrate: Subrate | undefined, qtyText: string) {
 }
 
 /**
- * param {string} dateTimeString
- * returns {string} example: 2023-05-16 11:10 PM
+ * Formats a per-diem start or end time for display, e.g. 11:10 PM, May 16, 2023. Returns '' when the date can't be read.
  */
 function formatDateTimeTo12Hour(dateTimeString: string, dateFnsLocale: DateFnsLocale | undefined): string {
     if (!dateTimeString) {
         return '';
     }
     const date = new Date(dateTimeString);
-    return format(date, `${CONST.DATE.LOCAL_TIME_FORMAT}, ${CONST.DATE.FNS_FORMAT_STRING}`, {locale: dateFnsLocale});
+    if (!isValid(date)) {
+        return '';
+    }
+    return `${format(date, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}, ${format(date, CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT, {locale: dateFnsLocale})}`;
 }
 
 function getTimeForDisplay(transaction: OnyxEntry<Transaction>, dateFnsLocale: DateFnsLocale | undefined) {
