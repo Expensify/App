@@ -9,7 +9,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyKey, getUserFriendlyValue, VIOLATION_FILTER_VALUES} from './SearchQueryUtils';
+import {getUserFriendlyKey, getUserFriendlyValue} from './SearchQueryUtils';
 
 const CONTINUATION_DETECTION_SEARCH_FILTER_KEYS: SearchFilterKey[] = [
     CONST.SEARCH.SYNTAX_FILTER_KEYS.TO,
@@ -219,6 +219,7 @@ function filterOutRangesWithCorrectValue(range: AutocompleteParserRange, substit
     const actionList = Object.values(CONST.SEARCH.ACTION_FILTERS) as string[];
     const datePresetList = Object.values(CONST.SEARCH.DATE_PRESETS) as string[];
     const hasList = Object.values(CONST.SEARCH.HAS_VALUES) as string[];
+    const violationNameList = Object.values(CONST.VIOLATIONS) as string[];
     const isList = Object.values(CONST.SEARCH.IS_VALUES) as string[];
     const footerCountList = Object.values(CONST.SEARCH.FOOTER_COUNT) as string[];
     const footerTotalList = Object.values(CONST.SEARCH.FOOTER_TOTAL) as string[];
@@ -266,7 +267,7 @@ function filterOutRangesWithCorrectValue(range: AutocompleteParserRange, substit
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.RECEIPT_TYPE:
             return receiptTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION:
-            return substitutionMap[`${range.key}:${range.value}`] !== undefined || (VIOLATION_FILTER_VALUES as string[]).includes(range.value);
+            return substitutionMap[`${range.key}:${range.value}`] !== undefined || violationNameList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TRANSACTION_STATUS:
             return transactionStatusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_TYPE:

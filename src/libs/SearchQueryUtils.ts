@@ -186,16 +186,13 @@ function buildMerchantFilterQuery(
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
 const VALID_EXPENSE_TYPES = new Set(Object.values(CONST.SEARCH.TRANSACTION_TYPE));
 const VALID_RECEIPT_TYPES = new Set<string>(Object.values(CONST.SEARCH.RECEIPT_TYPE));
-// Shared by the filter picker, autocomplete and query validation so all three accept the same violation names
-const VIOLATION_FILTER_VALUES: OnyxTypes.ViolationName[] = Object.values(CONST.VIOLATIONS);
-const VALID_VIOLATION_NAMES = new Set<string>(VIOLATION_FILTER_VALUES);
+const VALID_VIOLATION_NAMES = new Set<string>(Object.values(CONST.VIOLATIONS));
+// cashExpenseWithNoReceipt shares the "Receipt required" label with receiptRequired, so offering both would show two identical options.
+// It is still accepted when typed in a query.
+const VIOLATION_FILTER_VALUES: OnyxTypes.ViolationName[] = Object.values(CONST.VIOLATIONS).filter((name) => name !== CONST.VIOLATIONS.CASH_EXPENSE_WITH_NO_RECEIPT);
 
-type SubmittedTransactionViolationShortName = Exclude<OnyxTypes.ViolationName, typeof CONST.VIOLATIONS.RULE_VIOLATION>;
-
-const SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET = new Set<string>(VIOLATION_FILTER_VALUES.filter((name) => name !== CONST.VIOLATIONS.RULE_VIOLATION));
-
-function isSubmittedTransactionViolationShortName(name: string): name is SubmittedTransactionViolationShortName {
-    return SUBMITTED_TRANSACTION_VIOLATION_SHORT_NAME_SET.has(name);
+function isViolationName(name: string): name is OnyxTypes.ViolationName {
+    return VALID_VIOLATION_NAMES.has(name);
 }
 
 /**
@@ -203,10 +200,7 @@ function isSubmittedTransactionViolationShortName(name: string): name is Submitt
  * Falls back to the raw identifier when no short-name translation exists.
  */
 function getViolationDisplayName(violationName: string, translate: LocalizedTranslate): string {
-    if (violationName === CONST.VIOLATIONS.RULE_VIOLATION) {
-        return translate('violations.shortName.customRules');
-    }
-    return isSubmittedTransactionViolationShortName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
+    return isViolationName(violationName) ? translate(`violations.shortName.${violationName}`) : violationName;
 }
 const VALID_TRANSACTION_STATUSES = new Set<string>(Object.values(CONST.SEARCH.TRANSACTION_STATUS));
 const VALID_HAS_TYPES = new Set(Object.values(CONST.SEARCH.HAS_VALUES));
@@ -1985,7 +1979,7 @@ function buildFilterFormValuesFromQuery(
             }
         }
         if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.VIOLATION) {
-            const violationNames = filterValues.filter((violationName): violationName is OnyxTypes.ViolationName => VALID_VIOLATION_NAMES.has(violationName));
+            const violationNames = filterValues.filter(isViolationName);
             if (isNegated) {
                 filtersForm[FILTER_KEYS.VIOLATION_NOT] = violationNames;
             } else {
