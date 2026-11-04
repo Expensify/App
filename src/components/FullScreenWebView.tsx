@@ -1,8 +1,6 @@
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import openExternalLink from '@libs/openExternalLink';
-
 import type {WebViewProps} from 'react-native-webview';
 
 import React, {useRef} from 'react';
@@ -12,7 +10,7 @@ import {WebView} from 'react-native-webview';
 import FullPageErrorView from './BlockingViews/FullPageErrorView';
 import FullScreenLoadingIndicator from './FullscreenLoadingIndicator';
 
-type FullScreenWebViewProps = Omit<WebViewProps, 'startInLoadingState' | 'renderLoading' | 'renderError' | 'onOpenWindow'> & {
+type FullScreenWebViewProps = Omit<WebViewProps, 'startInLoadingState' | 'renderLoading' | 'renderError'> & {
     /** Leaves the screen from the loading and error views */
     onGoBack: () => void;
 };
@@ -31,8 +29,6 @@ function FullScreenWebView({onGoBack, ...webViewProps}: FullScreenWebViewProps) 
             {...webViewProps}
             ref={webViewRef}
             startInLoadingState
-            // A second page would have no way out, so new windows open in the browser
-            onOpenWindow={({nativeEvent}) => openExternalLink(nativeEvent.targetUrl)}
             renderLoading={() => (
                 <FullScreenLoadingIndicator
                     shouldUseGoBackButton
