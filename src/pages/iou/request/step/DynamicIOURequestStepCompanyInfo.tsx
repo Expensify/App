@@ -35,7 +35,7 @@ import INPUT_IDS from '@src/types/form/MoneyRequestCompanyInfoForm';
 
 import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React from 'react';
 
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
@@ -59,7 +59,7 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
     const delegateAccountID = useDelegateAccountID();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
+    const defaultWebsiteExample = getDefaultCompanyWebsite(session, account);
 
     const policyID = getIOURequestPolicyID(transaction, report);
     const policy = usePolicy(policyID);
@@ -72,28 +72,25 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
 
     const formattedAmount = convertToDisplayString(Math.abs(transaction?.amount ?? 0), transaction?.currency);
 
-    const validate = useCallback(
-        (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM> => {
-            const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME, INPUT_IDS.COMPANY_WEBSITE], translate);
-            if (values.companyWebsite) {
-                const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
-                if (!isValidWebsite(companyWebsite)) {
-                    errors.companyWebsite = translate('bankAccount.error.website');
-                } else {
-                    const domain = extractUrlDomain(companyWebsite);
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM> => {
+        const errors = getFieldRequiredErrors(values, [INPUT_IDS.COMPANY_NAME, INPUT_IDS.COMPANY_WEBSITE], translate);
+        if (values.companyWebsite) {
+            const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);
+            if (!isValidWebsite(companyWebsite)) {
+                errors.companyWebsite = translate('bankAccount.error.website');
+            } else {
+                const domain = extractUrlDomain(companyWebsite);
 
-                    if (!domain || !Str.isValidDomainName(domain)) {
-                        errors.companyWebsite = translate('iou.invalidDomainError');
-                    } else if (isPublicDomain(domain)) {
-                        errors.companyWebsite = translate('iou.publicDomainError');
-                    }
+                if (!domain || !Str.isValidDomainName(domain)) {
+                    errors.companyWebsite = translate('iou.invalidDomainError');
+                } else if (isPublicDomain(domain)) {
+                    errors.companyWebsite = translate('iou.publicDomainError');
                 }
             }
+        }
 
-            return errors;
-        },
-        [translate],
-    );
+        return errors;
+    };
 
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_COMPANY_INFO_FORM>) => {
         const companyWebsite = Str.sanitizeURL(values.companyWebsite, CONST.COMPANY_WEBSITE_DEFAULT_SCHEME);

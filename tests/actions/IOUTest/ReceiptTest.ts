@@ -268,6 +268,61 @@ describe('actions/IOU/Receipt', () => {
             });
         });
 
+        it('should clear the previous reservation dates when a new receipt replaces the old one', async () => {
+            // Given an expense whose SmartScanned hotel receipt has reservation dates
+            const transaction = await setupTransactionWithSnapshot(transactionID, {
+                receipt: {...OLD_RECEIPT, hotelReservationStartDate: '2026-10-01', hotelReservationEndDate: '2026-10-04'},
+            });
+
+            // When the user replaces it with a different receipt
+            replaceReceipt({
+                transaction,
+                file: createFile(),
+                source,
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the old dates are gone, so the per-night limit check and hint don't use them for the new receipt
+            const updatedTransaction = await getUpdatedTransaction(transactionID);
+            expect(updatedTransaction?.receipt?.hotelReservationStartDate).toBeUndefined();
+            expect(updatedTransaction?.receipt?.hotelReservationEndDate).toBeUndefined();
+        });
+
+        it('should keep the reservation dates when the same receipt is cropped or rotated', async () => {
+            // Given an expense whose SmartScanned hotel receipt has reservation dates
+            const transaction = await setupTransactionWithSnapshot(transactionID, {
+                receipt: {...OLD_RECEIPT, hotelReservationStartDate: '2026-10-01', hotelReservationEndDate: '2026-10-04'},
+            });
+
+            // When the user crops or rotates that receipt
+            replaceReceipt({
+                transaction,
+                file: createFile(),
+                source,
+                isSameReceipt: true,
+                transactionPolicy: undefined,
+                transactionPolicyTagList: undefined,
+                transactionReport: undefined,
+                isVendorMatchingBetaEnabled: false,
+                delegateAccountID: undefined,
+                currentUserPersonalDetails: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                transactionThreadReport: undefined,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the dates stay, because the receipt is still the same stay
+            const updatedTransaction = await getUpdatedTransaction(transactionID);
+            expect(updatedTransaction?.receipt?.hotelReservationStartDate).toBe('2026-10-01');
+            expect(updatedTransaction?.receipt?.hotelReservationEndDate).toBe('2026-10-04');
+        });
+
         it('should optimistically set pending field for receipt', async () => {
             // Given a transaction with an existing receipt
             const writeSpy = mockApiWrite();

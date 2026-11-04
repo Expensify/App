@@ -1,6 +1,6 @@
 import type {ReactNode} from 'react';
 
-import React, {useMemo, useReducer} from 'react';
+import React, {useReducer} from 'react';
 
 import MultifactorAuthenticationActionsContext from './MultifactorAuthenticationActionsContext';
 import {MultifactorAuthenticationContextProvider} from './MultifactorAuthenticationMainContext';
@@ -13,7 +13,7 @@ type MultifactorAuthenticationProviderProps = {
 
 function MultifactorAuthenticationStateProvider({children}: MultifactorAuthenticationProviderProps) {
     const [state, dispatch] = useReducer(stateReducer, DEFAULT_STATE);
-    const actions = useMemo(() => ({dispatch}), [dispatch]);
+    const actions = {dispatch};
 
     return (
         <MultifactorAuthenticationStateContext.Provider value={state}>

@@ -13,7 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {formatMaskedCardName} from '@libs/CardUtils';
+import {formatMaskedCardName, getCompanyCardFeed} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -21,7 +21,7 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Card, CompanyCardFeed, CompanyCardFeedWithDomainID} from '@src/types/onyx';
+import type {Card, CompanyCardFeedWithDomainID} from '@src/types/onyx';
 import type {CardAssignmentData} from '@src/types/onyx/Card';
 
 import {Str} from 'expensify-common';
@@ -151,7 +151,7 @@ function WorkspaceCompanyCardTableRow({
                         {isAssigned ? (
                             <AccountAvatarWithCardFeed
                                 accountID={cardholder?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                                cardFeed={assignedCard?.bank as CompanyCardFeed}
+                                cardFeed={getCompanyCardFeed(assignedCard?.bank)}
                                 cardFeedIconSize={subscriptCardFeedIconSize}
                                 borderColor={hovered ? theme.hoverComponentBG : theme.highlightBG}
                                 containerStyle={styles.mr0}

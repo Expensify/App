@@ -40,9 +40,11 @@ import {
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionOfType,
+    isApprovalFlowAction,
     isCardBrokenConnectionAction,
     isCardIssuedAction,
     isCreatedTaskReportAction,
+    isDeletedReportPreviewWithError,
     isCreatedSupportTicketReportAction,
     isIOURequestReportAction,
     isMemberChangeAction,
@@ -50,6 +52,7 @@ import {
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isSimpleMessageAction,
     isTaskAction,
     isTripPreview,
 } from '@libs/ReportActionsUtils';
@@ -68,7 +71,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {Str} from 'expensify-common';
 import React from 'react';
 
-import ApprovalFlowContent, {isApprovalFlowAction} from './ApprovalFlowContent';
+import ApprovalFlowContent from './ApprovalFlowContent';
+import AutoPayFeeDisclosureContent from './AutoPayFeeDisclosureContent';
 import CardBrokenConnectionContent from './CardBrokenConnectionContent';
 import ChatMessageContent from './ChatMessageContent';
 import ChatTransactionPreview from './ChatTransactionPreview';
@@ -91,7 +95,7 @@ import ReimbursementQueuedContent from './ReimbursementQueuedContent';
 import RemovedFromApprovalChainContent from './RemovedFromApprovalChainContent';
 import ReportActionMessageContent from './ReportActionMessageContent';
 import ReportMentionWhisperContent from './ReportMentionWhisperContent';
-import SimpleMessageContent, {isSimpleMessageAction} from './SimpleMessageContent';
+import SimpleMessageContent from './SimpleMessageContent';
 
 type ActionContentRouterProps = {
     action: OnyxTypes.ReportAction;
@@ -136,7 +140,7 @@ type ActionContentRouterProps = {
     /** Whether the search-page UI is active */
     isOnSearch: boolean;
 
-    /** Whether this is the newest Concierge comment eligible for the inline feedback prompt */
+    /** Whether this is the newest comment of Concierge or of a custom agent that is eligible for the inline feedback prompt */
     isLatestConciergeFeedbackAction: boolean;
 
     setIsPaymentMethodPopoverActive: (value: boolean) => void;
@@ -212,13 +216,14 @@ function ActionContentRouter({
             />
         );
     }
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
+    // No report left to open, so show the placeholder rather than a link to nothing.
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && (isClosedExpenseReportWithNoExpenses || isDeletedReportPreviewWithError(action))) {
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
     }
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
         return (
             <MoneyRequestReportPreview
-                // FlashList recycles cells, so this instance can be handed another report's props. Key forces a remount,
+                // Lists recycle cells, so this instance can be handed another report's props. Key forces a remount,
                 // or `useNewTransactions` would consider the new report's transactions as newly added on top of the old report's.
                 key={action.reportActionID}
                 iouReportID={getIOUReportIDFromReportActionPreview(action)}
@@ -326,6 +331,7 @@ function ActionContentRouter({
             <ReimbursedContent
                 action={action}
                 reportOwnerAccountID={reportOwnerAccountID}
+                originalReport={originalReport}
             />
         );
     }
@@ -586,6 +592,9 @@ function ActionContentRouter({
                 <RenderHTML html={`<comment><muted-text>${getSettlementAccountLockedMessage(translate, action)}</muted-text></comment>`} />
             </ReportActionItemBasicMessage>
         );
+    }
+    if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE)) {
+        return <AutoPayFeeDisclosureContent action={action} />;
     }
 
     return (

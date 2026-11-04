@@ -3,6 +3,33 @@ import {act, renderHook} from '@testing-library/react-native';
 import useInlineEditState from '@components/EditableCell/useInlineEditState';
 import usePopoverEditState from '@components/EditableCell/usePopoverEditState';
 
+import CONST from '@src/CONST';
+
+import type {View} from 'react-native';
+
+import createMock from '../../utils/createMock';
+
+let mockWindowHeight = 900;
+
+jest.mock('@hooks/useWindowDimensions', () => () => ({windowHeight: mockWindowHeight}));
+
+// The hook opens the popover inside a requestAnimationFrame callback, so run it synchronously to keep the tests simple.
+jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameRequestCallback) => {
+    callback(0);
+    return 0;
+});
+
+const PADDING = CONST.MODAL.POPOVER_MENU_PADDING;
+const PREFERRED_HEIGHT = CONST.POPOVER_DROPDOWN_MAX_HEIGHT;
+const MIN_HEIGHT = CONST.POPOVER_DROPDOWN_MIN_USABLE_HEIGHT;
+
+type MeasureInWindow = (callback: (x: number, y: number, width: number, height: number) => void) => void;
+
+/** Measurements of the anchor cell, as `measureInWindow` would report them */
+type AnchorRect = {x: number; y: number; width: number; height: number};
+
+const CELL: AnchorRect = {x: 50, y: 0, width: 120, height: 32};
+
 type InlineHookParameters = Parameters<typeof useInlineEditState<string>>;
 
 type InlineSetupOptions = {
@@ -43,6 +70,17 @@ const setupPopover = <T>(options: PopoverSetupOptions<T> = {}) => renderHook(() 
 
 const handlePopoverSave = <T>(result: PopoverHookResult<T>, value: T) => {
     act(() => result.current.handleSave(value));
+};
+
+/** Renders the hook with its anchor measurement stubbed out to `anchor`, then opens the popover */
+const openPopoverForAnchor = (anchor: AnchorRect, options: PopoverSetupOptions<string> = {}) => {
+    const measureInWindow: MeasureInWindow = (callback) => callback(anchor.x, anchor.y, anchor.width, anchor.height);
+    const {result} = setupPopover<string>({value: 'hello', ...options});
+
+    result.current.anchorRef.current = createMock<View>({measureInWindow});
+    act(() => result.current.startEditing());
+
+    return result;
 };
 
 describe('useInlineEditState', () => {
@@ -426,6 +464,10 @@ describe('useInlineEditState', () => {
 });
 
 describe('usePopoverEditState', () => {
+    beforeEach(() => {
+        mockWindowHeight = 900;
+    });
+
     it('starts with isEditing=false and isPopoverVisible=false', () => {
         const {result} = setupPopover({value: 'hello'});
 
@@ -453,5 +495,126 @@ describe('usePopoverEditState', () => {
 
         expect(onSave).toHaveBeenCalledWith('world');
         expect(result.current.isPopoverVisible).toBe(false);
+    });
+
+    describe('positioning', () => {
+        it('opens below the cell at full height when there is enough room below', () => {
+            // Given a cell near the top of a tall window, which leaves room for the full-height popover below it
+            mockWindowHeight = 900;
+            const anchor = {...CELL, y: 100};
+
+            // When the user starts editing the cell
+            const result = openPopoverForAnchor(anchor);
+
+            // Then the popover opens below the cell at its preferred height, because below is the default side
+            expect(result.current.shouldOpenAbove).toBe(false);
+            expect(result.current.anchorAlignment.vertical).toBe(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP);
+            expect(result.current.popoverPosition).toEqual({horizontal: anchor.x, vertical: anchor.y + anchor.height + PADDING});
+            expect(result.current.popoverHeight).toBe(PREFERRED_HEIGHT);
+            expect(result.current.isPopoverVisible).toBe(true);
+        });
+
+        it('flips fully above the cell, bottom-edge aligned, when it does not fit below but fits above', () => {
+            // Given a cell low in the window, with too little room below for the popover but enough above it
+            mockWindowHeight = 900;
+            const anchor = {...CELL, y: 600};
+
+            // When the user starts editing the cell
+            const result = openPopoverForAnchor(anchor);
+
+            // Then the popover opens above the cell at full height, so it doesn't cover the cell being edited
+            expect(result.current.shouldOpenAbove).toBe(true);
+            expect(result.current.anchorAlignment.vertical).toBe(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM);
+            expect(result.current.popoverPosition.vertical).toBe(anchor.y - PADDING);
+            expect(result.current.popoverHeight).toBe(PREFERRED_HEIGHT);
+        });
+
+        it('shrinks to the space above when neither side fits and above has more room', () => {
+            // Given a short window where the popover fits on neither side of the cell, and above has more room
+            mockWindowHeight = 500;
+            const anchor = {...CELL, y: 300};
+
+            // When the user starts editing the cell
+            const result = openPopoverForAnchor(anchor);
+
+            // Then the popover opens above and shrinks to that space, because the roomier side shows the most options
+            const spaceAbove = anchor.y - PADDING - PADDING;
+            expect(result.current.shouldOpenAbove).toBe(true);
+            expect(result.current.anchorAlignment.vertical).toBe(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM);
+            expect(result.current.popoverHeight).toBe(spaceAbove);
+            expect(result.current.popoverHeight).toBeLessThan(PREFERRED_HEIGHT);
+            expect(result.current.popoverPosition.vertical).toBe(anchor.y - PADDING);
+            expect(result.current.popoverPosition.vertical - result.current.popoverHeight).toBeGreaterThanOrEqual(0);
+        });
+
+        it('shrinks to fit below rather than flipping when below has more room than above', () => {
+            // Given a short window where the popover fits on neither side of the cell, and below has more room
+            mockWindowHeight = 500;
+            const anchor = {...CELL, y: 100};
+
+            // When the user starts editing the cell
+            const result = openPopoverForAnchor(anchor);
+
+            // Then the popover stays below and shrinks to that space, because flipping would leave even less room
+            const spaceBelow = mockWindowHeight - (anchor.y + anchor.height + PADDING) - PADDING;
+            expect(result.current.shouldOpenAbove).toBe(false);
+            expect(result.current.anchorAlignment.vertical).toBe(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP);
+            expect(result.current.popoverHeight).toBe(spaceBelow);
+            expect(result.current.popoverPosition.vertical).toBe(anchor.y + anchor.height + PADDING);
+        });
+
+        it('stops shrinking at the minimum usable height on an extremely short window', () => {
+            // Given a window so short that the space on either side of the cell is below the minimum usable height
+            mockWindowHeight = 300;
+            const anchor = {...CELL, y: 150};
+
+            // When the user starts editing the cell
+            const result = openPopoverForAnchor(anchor);
+
+            // Then the popover keeps the minimum usable height, because a smaller list would be too cramped to use
+            const spaceAbove = anchor.y - PADDING - PADDING;
+            expect(spaceAbove).toBeLessThan(MIN_HEIGHT);
+            expect(result.current.popoverHeight).toBe(MIN_HEIGHT);
+        });
+
+        it('uses the caller-provided preferred height to pick the side to open on', () => {
+            // Given a cell with 380px free below it, which is too little for the 416px dropdown but enough for the 366px calendar
+            mockWindowHeight = 928;
+            const anchor = {...CELL, y: 500};
+
+            // When the calendar opens and passes its own height
+            const result = openPopoverForAnchor(anchor, {popoverHeight: CONST.POPOVER_DATE_MAX_HEIGHT});
+
+            // Then it opens below at its own height, because the side is picked from the real popover height
+            expect(result.current.shouldOpenAbove).toBe(false);
+            expect(result.current.anchorAlignment.vertical).toBe(CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP);
+            expect(result.current.popoverHeight).toBe(CONST.POPOVER_DATE_MAX_HEIGHT);
+        });
+
+        it('keeps a preferred height below the minimum usable height instead of growing it', () => {
+            // Given a short picker, like the two-role member picker, whose content is shorter than the minimum usable height
+            const shortListHeight = MIN_HEIGHT - 40;
+            mockWindowHeight = 300;
+            const anchor = {...CELL, y: 150};
+
+            // When it opens on a window too short to fit even the minimum usable height
+            const result = openPopoverForAnchor(anchor, {popoverHeight: shortListHeight});
+
+            // Then it keeps its own height, because the minimum only limits how far a taller picker shrinks
+            expect(result.current.popoverHeight).toBe(shortListHeight);
+        });
+
+        it('anchors to the right edge of the cell when anchorEdge is RIGHT', () => {
+            // Given a cell in a right-aligned column, where the popover should line up with the cell's right edge
+            mockWindowHeight = 900;
+            const anchor = {...CELL, y: 100};
+
+            // When the user starts editing the cell with a RIGHT anchor edge
+            const result = openPopoverForAnchor(anchor, {anchorEdge: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT});
+
+            // Then the popover is anchored to the right edge of the cell instead of the left
+            expect(result.current.anchorAlignment.horizontal).toBe(CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT);
+            expect(result.current.popoverPosition.horizontal).toBe(anchor.x + anchor.width);
+        });
     });
 });

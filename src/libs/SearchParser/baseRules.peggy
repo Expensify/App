@@ -29,6 +29,7 @@ groupCurrency
   / "group-currency"i { return "groupCurrency"; }
 tag = "tag"i { return "tag"; }
 category = "category"i { return "category"; }
+vendor = "vendor"i { return "vendor"; }
 to = "to"i { return "to"; }
 exporter = "exporter"i { return "exporter"; }
 payer = "payer"i { return "payer"; }
@@ -68,6 +69,8 @@ withdrawalID
   = "withdrawalID"i
   / "withdrawal-id"i { return "withdrawalID"; }
 billable = "billable"i { return "billable"; }
+declined = "declined"i { return "declined"; }
+held = "held"i { return "held"; }
 reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
 status = "status"i { return "status"; }
@@ -82,6 +85,9 @@ policyID
   / "workspace"i { return "policyID"; }
 submitted = "submitted"i { return "submitted"; }
 approved = "approved"i { return "approved"; }
+anyApproval
+  = "anyApproval"i { return "anyApproval"; }
+  / "any-approval"i { return "anyApproval"; }
 paid = "paid"i { return "paid"; }
 exported = "exported"i { return "exported"; }
 posted = "posted"i { return "posted"; }
@@ -93,6 +99,7 @@ title = "title"i { return "title"; }
 submitterUserID = "submitterUserID"i / "submitter-user-id"i { return "submitterUserID"; }
 submitterPayrollID = "submitterPayrollID"i / "submitter-payroll-id"i { return "submitterPayrollID"; }
 orderDealNumbers = "orderDealNumbers"i / "order-deal-numbers"i { return "orderDealNumbers"; }
+approver = "approver"i { return "approver"; }
 assignee = "assignee"i { return "assignee"; }
 createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 action = "action"i { return "action"; }
@@ -149,6 +156,7 @@ columnsValues
   / groupWeek
   / groupYear
   / groupQuarter
+  / groupApprover
 
 perDiem                 = "per-diem"i &wordBoundary                 { return "perDiem"; }
 draft                  = ("drafts"i / "draft"i) &wordBoundary       { return "drafts"; }
@@ -188,6 +196,7 @@ groupMonth              = "group-month"i &wordBoundary              { return "gr
 groupWeek               = "group-week"i &wordBoundary               { return "groupweek"; }
 groupYear               = "group-year"i &wordBoundary               { return "groupyear"; }
 groupQuarter            = "group-quarter"i &wordBoundary            { return "groupquarter"; }
+groupApprover           = "group-approver"i &wordBoundary           { return "groupApprover"; }
 
 
 operator "operator"

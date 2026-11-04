@@ -293,11 +293,11 @@ type Receipt = {
     /** Correlation id created at capture, used to follow this receipt from capture to upload in the logs. */
     receiptTraceId?: string;
 
-    /** Check-in date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
-    hotelReservationStartDate?: string;
+    /** Check-in date of a SmartScanned multi-day reservation, in YYYY-MM-DD. Null while a replacement receipt is pending. */
+    hotelReservationStartDate?: string | null;
 
-    /** Check-out date of a SmartScanned multi-day reservation, in YYYY-MM-DD */
-    hotelReservationEndDate?: string;
+    /** Check-out date of a SmartScanned multi-day reservation, in YYYY-MM-DD. Null while a replacement receipt is pending. */
+    hotelReservationEndDate?: string | null;
 };
 
 /** Model of route */

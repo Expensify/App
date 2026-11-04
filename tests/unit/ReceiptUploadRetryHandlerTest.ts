@@ -95,10 +95,13 @@ function buildReplaceReceiptContext(retryParamsOverrides: Partial<ReplaceReceipt
     return buildContext(transaction, {action: CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams: JSON.stringify(retryParams), ...receiptErrorOverrides});
 }
 
-function buildTrackExpenseContext(iouReport: Report = {reportID: SELF_DM_REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM} as Report): ReceiptRetryContext {
+function buildTrackExpenseContext(
+    iouReport: Report = {reportID: SELF_DM_REPORT_ID, chatType: CONST.REPORT.CHAT_TYPE.SELF_DM} as Report,
+    receiptErrorOverrides: Partial<ReceiptError> = {},
+): ReceiptRetryContext {
     // A tracked expense in the self-DM is unreported, and its amount is stored negated.
     const transaction = buildFailedTransaction({reportID: CONST.REPORT.UNREPORTED_REPORT_ID, amount: -1200});
-    return {...buildContext(transaction, {action: CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE}), iouReport};
+    return {...buildContext(transaction, {action: CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE, ...receiptErrorOverrides}), iouReport};
 }
 
 describe('buildRetryPayload', () => {
@@ -416,6 +419,30 @@ describe('buildRetryPayload', () => {
             expect(payload?.existingTransactionThreadCreatedReportActionID).toBe(threadCreatedActionID);
             expect(payload?.report?.reportID).toBe(SELF_DM_REPORT_ID);
             expect(payload?.transactionParams.amount).toBe(1200);
+        });
+
+        it('reuses the whisper ID saved with the receipt error, so the retry does not add a second whisper', () => {
+            // Given a failed track whose receipt error saved the ID of the whisper the failure deleted
+            const whisperReportActionID = '1100000000000001';
+            const context = buildTrackExpenseContext(undefined, {retryParams: JSON.stringify({actionableWhisperReportActionID: whisperReportActionID})});
+
+            // When the retry payload is rebuilt
+            const payload = buildTrackExpenseRetryPayload(context, receiptFile);
+
+            // Then the whisper is rebuilt under that ID, matching the copy the server may already have
+            expect(payload?.existingActionableWhisperReportActionID).toBe(whisperReportActionID);
+        });
+
+        it('still offers a retry for a receipt error saved before the whisper ID was stored, and creates a new whisper', () => {
+            // Given a failed track whose receipt error has no retry params, as errors saved before this change do
+            const context = buildTrackExpenseContext();
+
+            // When the retry payload is rebuilt
+            const payload = buildTrackExpenseRetryPayload(context, receiptFile);
+
+            // Then the retry still works and falls back to a new whisper ID
+            expect(payload).toBeDefined();
+            expect(payload?.existingActionableWhisperReportActionID).toBeUndefined();
         });
 
         it('dispatches trackExpense as a retry and clears the error after it', async () => {

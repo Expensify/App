@@ -10,11 +10,6 @@ import mockUseSingleExecution from '../tests/utils/mockUseSingleExecution';
 
 jest.useRealTimers();
 
-jest.mock('@hooks/useAIFeaturesPromoModal', () => ({
-    __esModule: true,
-    default: jest.fn(),
-}));
-
 // The real hook relies on real navigation transitions to settle `isExecuting` (see
 // `runAfterPredictedTransition`/`TransitionTracker`), which don't happen in unit tests and would
 // otherwise leave buttons stuck disabled. Mocked globally so no test needs to import the navigation

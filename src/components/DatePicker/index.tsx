@@ -40,6 +40,7 @@ function DatePicker({
     onInputChange,
     onTouched = () => {},
     placeholder,
+    hint,
     value,
     shouldSaveDraft = false,
     formID,
@@ -49,10 +50,14 @@ function DatePicker({
     forwardedFSClass,
     shouldDeferShowUntilPositioned = false,
     shouldDismissKeyboardBeforeShow = false,
+    wrapperStyle,
     rightHandSideComponent,
     onPickerVisibilityChange,
     shouldHideCalendarIcon = false,
     icon,
+    shouldEnableMonthYearBackdropInNarrowPane = false,
+    textInputContainerStyles,
+    shouldShowLabelTooltipWhenTruncated,
 }: DateInputWithPickerProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Calendar']);
     const styles = useThemeStyles();
@@ -225,13 +230,15 @@ function DatePicker({
         <>
             <View
                 ref={anchorRef}
-                style={styles.mv2}
+                style={[styles.mv2, wrapperStyle]}
             >
                 <TextInput
                     ref={combinedTextInputRef}
                     inputID={inputID}
                     forceActiveLabel
-                    icon={selectedDate || shouldHideCalendarIcon ? null : (icon ?? icons.Calendar)}
+                    // The icon, the clear button and any `rightHandSideComponent` share the right-hand slot. The icon
+                    // gives way when the caller asks for the slot outright, or to a clear button that will actually render.
+                    icon={shouldHideCalendarIcon || (selectedDate && !shouldHideClearButton) ? null : (icon ?? icons.Calendar)}
                     iconContainerStyle={styles.pr0}
                     label={label}
                     accessibilityLabel={label}
@@ -239,6 +246,7 @@ function DatePicker({
                     accessibilityState={{expanded: isModalVisible}}
                     value={selectedDate}
                     placeholder={placeholder ?? translate('common.dateFormat')}
+                    hint={hint}
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}
                     disabled={disabled}
@@ -246,7 +254,7 @@ function DatePicker({
                     onPress={shouldDismissKeyboardBeforeShow ? handlePress : () => showDatePickerModal()}
                     onSubmitEditing={() => showDatePickerModal()}
                     onKeyPress={handleInputKeyPress}
-                    textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
+                    textInputContainerStyles={[textInputContainerStyles, isModalVisible && styles.borderColorFocus]}
                     shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                     clearButtonStyle={[styles.mh0, {paddingHorizontal: iconPaddingHorizontal}]}
@@ -254,6 +262,7 @@ function DatePicker({
                     autoComplete={autoComplete}
                     disableKeyboard
                     rightHandSideComponent={rightHandSideComponent}
+                    shouldShowLabelTooltipWhenTruncated={shouldShowLabelTooltipWhenTruncated}
                 />
             </View>
 
@@ -270,6 +279,7 @@ function DatePicker({
                 shouldPositionFromTop={!isInverted}
                 forwardedFSClass={forwardedFSClass}
                 shouldCloseWhenBrowserNavigationChanged
+                shouldEnableMonthYearBackdropInNarrowPane={shouldEnableMonthYearBackdropInNarrowPane}
             />
         </>
     );

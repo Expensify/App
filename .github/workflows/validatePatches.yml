@@ -3,18 +3,22 @@ name: Validate Patches
 on:
   pull_request:
     types: [opened, synchronize]
-    branches: [main]
+    branches: [main, staging]
     paths: ['patches/**']
 
 jobs:
   validate-patches:
+    if: github.actor != 'os-botify[bot]'
     runs-on: blacksmith-4vcpu-ubuntu-2404
+    env:
+      # The PR's target branch, so a PR into staging is not compared with main.
+      BASE_REF: ${{ github.base_ref || 'main' }}
     steps:
       - name: Checkout
         uses: useblacksmith/checkout@0647fdbab2614a5eb86d2971070e325060d91056 # v1.7.0
 
-      - name: Fetch main branch
-        run: git fetch origin --depth=1 main
+      - name: Fetch base branch
+        run: git fetch origin "$BASE_REF" --no-tags --depth=1
 
       - name: Run patch validator
         run: ./scripts/validatePatches.sh

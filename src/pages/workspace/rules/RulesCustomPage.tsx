@@ -23,7 +23,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/RulesCustomForm';
 
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type RulesCustomPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_CUSTOM>;
@@ -41,9 +41,9 @@ function RulesCustomPage({
 
     const [customRulesValue, setCustomRulesValue] = useState(() => Parser.htmlToMarkdown(policy?.customRules ?? ''));
 
-    const onChangeCustomRules = useCallback((newValue: string) => {
+    const onChangeCustomRules = (newValue: string) => {
         setCustomRulesValue(newValue);
-    }, []);
+    };
 
     return (
         <AccessOrNotFoundWrapper

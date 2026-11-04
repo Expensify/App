@@ -8,6 +8,7 @@ import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTags
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useReportTransactions from '@hooks/useReportTransactions';
 
 import {rand64} from '@libs/NumberUtils';
 import {generateReportID, isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
@@ -157,6 +158,7 @@ function useOdometerNavigation({
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
+    const moneyRequestReportTransactions = useReportTransactions(report?.reportID);
     const {formatPhoneNumber, dateFnsLocale} = useLocalize();
     const policyTagList = useMoneyRequestPolicyTagsForReport({report, currentUserAccountID});
 
@@ -186,6 +188,7 @@ function useOdometerNavigation({
             iouType,
             action,
             report,
+            moneyRequestReportTransactions,
             isDraftChatReport: !!reportDraft,
             policy,
             transaction,

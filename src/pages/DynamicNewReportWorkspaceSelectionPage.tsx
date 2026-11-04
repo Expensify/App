@@ -19,6 +19,7 @@ import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import useOpenRecipientPicker from '@hooks/useOpenRecipientPicker';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -85,7 +86,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [userBillingGracePeriods] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [policies, fetchStatus] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [selfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
@@ -200,6 +201,8 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
         },
     });
 
+    useOpenRecipientPicker();
+
     // Open the confirmation modal after pendingPolicySelection is committed so the hook has the correct policyName
     useEffect(() => {
         if (!pendingPolicySelection) {
@@ -294,7 +297,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                                 ListItem={UserListItem}
                                 onSelectRow={selectPolicy}
                                 textInputOptions={textInputOptions}
-                                shouldShowLoadingPlaceholder={fetchStatus.status === 'loading' || !didScreenTransitionEnd}
+                                shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
                             />
                         </>
                     )}

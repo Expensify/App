@@ -17,6 +17,16 @@ const SENSITIVE_KEYS = new Set([
     'clientSecret',
     'cardNumber',
     'cardCVV',
+    'signedChallenge',
+    'nonce',
+    'nonceSignature',
+    'certificates',
+    'encryptedPassData',
+    'activationData',
+    'ephemeralPublicKey',
+    'opaquePaymentCard',
+    'ssn',
+    'inputs',
 ]);
 
 const REDACTED = '<redacted>';

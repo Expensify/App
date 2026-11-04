@@ -64,6 +64,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import {useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
 import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
+import {fullPolicySnapshotLastModifiedSelector} from '@selectors/Policy';
 import {deepEqual} from 'fast-equals';
 import {useEffect, useEffectEvent, useRef} from 'react';
 
@@ -124,6 +125,9 @@ function ReportFetchHandler() {
     const hiddenPreMountFetchedRouteRef = useRef<Pick<ReportScreenRoute, 'key' | 'params'> | undefined>(undefined);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [fullPolicySnapshotLastModified] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_FULL_POLICY_SNAPSHOT}${getNonEmptyStringOnyxID(reportOnyx?.policyID)}`, {
+        selector: fullPolicySnapshotLastModifiedSelector,
+    });
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [reportDraftOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDFromRoute}`);
     const [isPreMountedDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNTED_DRAFT}${reportIDFromRoute}`);
@@ -260,6 +264,7 @@ function ReportFetchHandler() {
             currentUserAccountID,
             isSelfTourViewed,
             hasCompletedGuidedSetupFlow,
+            fullPolicySnapshot: reportOnyx?.policyID && fullPolicySnapshotLastModified ? {policyID: reportOnyx.policyID, lastModified: fullPolicySnapshotLastModified} : undefined,
         });
     });
 
@@ -280,6 +285,7 @@ function ReportFetchHandler() {
             iouReportAction: iouAction,
             transaction: currentReportTransactions.at(0),
             personalDetails,
+            fullPolicySnapshotLastModified,
         });
     });
 
@@ -357,11 +363,12 @@ function ReportFetchHandler() {
     }, [report?.reportID, prevReportID, reportIDFromRoute, isInPreloadedTab]);
 
     useEffect(() => {
-        if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction)) {
+        // `reportActions` is the same list `transactionThreadReportID` above is derived from, so both checks agree on which actions the report has
+        if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(childReport, report, linkedAction, undefined, reportActions)) {
             return;
         }
         navigation.setParams({reportActionID: ''});
-    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport]);
+    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport, reportActions]);
 
     // When an approver opens a Submit-via-PDF secure access link (/r/:reportID?secureKey=...), validate it once they're
     // signed in. On success the backend shares the report and sets them as manager; on failure the ReportNotFoundGuard
@@ -705,8 +712,10 @@ function ReportFetchHandler() {
             iouReport: report,
             transaction,
             personalDetails,
+            fullPolicySnapshotLastModified,
         });
     }, [
+        fullPolicySnapshotLastModified,
         introSelected,
         isSelfTourViewed,
         hasCompletedGuidedSetupFlow,

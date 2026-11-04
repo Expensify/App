@@ -2,6 +2,7 @@ import {TOOLTIP_BAR_GAP} from '@components/Charts/hooks';
 import {pinChartTooltip, unpinChartTooltip} from '@components/Charts/utils/pinnedChartTooltip';
 import Text from '@components/Text';
 
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
@@ -9,11 +10,12 @@ import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUti
 
 import variables from '@styles/variables';
 
+import type {ReactNode} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import type {DerivedValue, SharedValue} from 'react-native-reanimated';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useEffectEvent, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
@@ -25,14 +27,8 @@ type ChartTooltipProps = {
     /** Label text (e.g., "Airfare", "Amazon") */
     label: string;
 
-    /** Formatted amount (e.g., "$1,820.00") */
-    amount: string;
-
-    /** Optional percentage to display (e.g., "12%") */
-    percentage?: string;
-
-    /** Optional translated expense count (e.g., "841 expenses") */
-    expenseCount?: string;
+    /** Shown under the label, like ChartTooltipSummary */
+    children: ReactNode;
 
     /** The width of the chart container as displayed in the window */
     chartWidth: number;
@@ -48,8 +44,8 @@ type ChartTooltipProps = {
     /** Updates the hovered point after the chart is moved in the window (e.g. via scroll) by the given offset */
     onChartMoved?: (deltaX: number, deltaY: number) => void;
 
-    /** Hides a tooltip pinned by a touch tap, passed only while it is pinned */
-    onDismiss?: () => void;
+    /** Hides the tooltip */
+    onDismiss: () => void;
 
     /** Identifies the item the content belongs to, so the content is mounted again and laid out on each change of the item */
     contentKey?: number;
@@ -58,30 +54,10 @@ type ChartTooltipProps = {
     onContentLayout?: () => void;
 };
 
-function getAmountContent(amount: string, percentage?: string): string {
-    if (!amount || !percentage) {
-        return amount;
-    }
-
-    return `${amount} (${percentage})`;
-}
-
-function ChartTooltip({
-    label,
-    amount,
-    percentage,
-    expenseCount,
-    chartWidth,
-    initialTooltipPosition,
-    isVisible,
-    isContentCurrent,
-    onChartMoved,
-    onDismiss,
-    contentKey,
-    onContentLayout,
-}: ChartTooltipProps) {
+function ChartTooltip({label, children, chartWidth, initialTooltipPosition, isVisible, isContentCurrent, onChartMoved, onDismiss, contentKey, onContentLayout}: ChartTooltipProps) {
     const styles = useThemeStyles();
     const {windowWidth, windowHeight} = useWindowDimensions();
+    const {top: safeAreaTop, bottom: safeAreaBottom} = useSafeAreaInsets();
 
     /** Shared value to store the measured width of the tooltip container */
     const tooltipMeasuredWidth = useSharedValue(0);
@@ -97,8 +73,6 @@ function ChartTooltip({
 
     /** JS mirror of isVisible, which turns the anchor's position tracking on and off */
     const [isShown, setIsShown] = useState(false);
-
-    const amountContent = getAmountContent(amount, percentage);
 
     // The size is set before the content is reported as laid out, so the tooltip is never revealed with the previous content's size
     const handleContentLayout = (event: LayoutChangeEvent) => {
@@ -126,9 +100,9 @@ function ChartTooltip({
 
     const isFocused = useIsFocused();
 
-    // A pinned tooltip is registered for the screen's touch start to hide it
+    // The tooltip is hidden when the screen loses focus or when the screen is touched
     useEffect(() => {
-        if (!isShown || !onDismiss) {
+        if (!isShown) {
             return;
         }
 
@@ -139,6 +113,18 @@ function ChartTooltip({
         pinChartTooltip(onDismiss);
         return () => unpinChartTooltip(onDismiss);
     }, [isShown, isFocused, onDismiss]);
+
+    const dismissOnWindowResize = useEffectEvent(() => {
+        if (!isShown) {
+            return;
+        }
+        onDismiss();
+    });
+
+    // The tooltip is hidden when the window is resized (e.g. on rotation)
+    useEffect(() => {
+        dismissOnWindowResize();
+    }, [windowWidth, windowHeight]);
 
     const handleOriginChange = (x: number, y: number) => {
         const previousOrigin = origin.get();
@@ -162,7 +148,7 @@ function ChartTooltip({
         return Math.max(halfWidth, Math.min(chartWidth - halfWidth, x));
     }, [initialTooltipPosition, tooltipMeasuredWidth, chartWidth]);
 
-    /** Animated window position of the tooltip, placed above the point and kept within the chart horizontally and within the window */
+    /** Animated window position of the tooltip, placed above the point and kept within the chart horizontally and within the window's safe area, since the portal also spans the status bar */
     const tooltipStyle = useAnimatedStyle(() => {
         const {y} = initialTooltipPosition.get();
         const {x: originX, y: originY} = origin.get();
@@ -170,17 +156,19 @@ function ChartTooltip({
         const height = tooltipMeasuredHeight.get();
 
         const left = originX + clampedCenter.get() - width / 2;
+        const minTop = safeAreaTop;
+        const maxBottom = windowHeight - safeAreaBottom;
         const topAbove = originY + y - height;
         const shiftedLeft = left + PopoverWithMeasuredContentUtils.computeHorizontalShift(left, width, windowWidth);
-        const shiftedTop = topAbove + PopoverWithMeasuredContentUtils.computeVerticalShift(topAbove, height, windowHeight, 2 * TOOLTIP_BAR_GAP, true);
+        const shiftedTop = topAbove + PopoverWithMeasuredContentUtils.computeVerticalShift(topAbove - minTop, height, maxBottom - minTop, 2 * TOOLTIP_BAR_GAP, true);
         const isTooltipShown = (isVisible?.get() ?? true) && (isContentCurrent?.get() ?? true) && isOriginMeasured.get() && width > 0;
 
         return {
             left: Math.max(0, Math.min(windowWidth - width, shiftedLeft)),
-            top: Math.max(0, Math.min(windowHeight - height, shiftedTop)),
+            top: Math.max(minTop, Math.min(maxBottom - height, shiftedTop)),
             opacity: isTooltipShown ? 1 : 0,
         };
-    }, [initialTooltipPosition, windowWidth, windowHeight]);
+    }, [initialTooltipPosition, windowWidth, windowHeight, safeAreaTop, safeAreaBottom]);
 
     return (
         <>
@@ -188,22 +176,23 @@ function ChartTooltip({
                 isShown={isShown}
                 onOriginChange={handleOriginChange}
             />
-            <ChartTooltipPortal>
-                <Animated.View
-                    style={[styles.chartTooltipLayer, tooltipStyle]}
-                    pointerEvents="none"
-                >
-                    <View
-                        key={contentKey}
-                        style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}
-                        onLayout={handleContentLayout}
+            {isFocused && (
+                <ChartTooltipPortal>
+                    <Animated.View
+                        style={[styles.chartTooltipLayer, tooltipStyle]}
+                        pointerEvents="none"
                     >
-                        <Text style={styles.chartTooltipTitle}>{label}</Text>
-                        {!!amountContent && <Text style={styles.chartTooltipText}>{amountContent}</Text>}
-                        {!!expenseCount && <Text style={styles.chartTooltipText}>{expenseCount}</Text>}
-                    </View>
-                </Animated.View>
-            </ChartTooltipPortal>
+                        <View
+                            key={contentKey}
+                            style={[styles.chartTooltipBox, {minWidth: Math.min(variables.chartTooltipMinWidth, chartWidth), maxWidth: chartWidth}]}
+                            onLayout={handleContentLayout}
+                        >
+                            <Text style={styles.chartTooltipTitle}>{label}</Text>
+                            {children}
+                        </View>
+                    </Animated.View>
+                </ChartTooltipPortal>
+            )}
         </>
     );
 }

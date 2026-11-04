@@ -11,7 +11,7 @@ import type {ComponentRef, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText, StyleProp, TextStyle} from 'react-native';
 
-import React, {useCallback} from 'react';
+import React from 'react';
 
 type DisplayNamesTooltipItemProps = ForwardedFSClassProps & {
     index?: number;
@@ -53,7 +53,7 @@ function DisplayNamesTooltipItem({
     isSelectable = false,
 }: DisplayNamesTooltipItemProps) {
     const styles = useThemeStyles();
-    const tooltipIndexBridge = useCallback(() => getTooltipShiftX(index), [getTooltipShiftX, index]);
+    const tooltipIndexBridge = () => getTooltipShiftX(index);
 
     return (
         <UserDetailsTooltip

@@ -5,6 +5,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import * as API from '@libs/API';
 import type {MarkReportPaymentReceivedParams, PayInvoiceParams, PayMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {shouldSetUpGlobalReimbursementsBeforePaying} from '@libs/BankAccountUtils';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
@@ -82,6 +83,7 @@ type PayInvoiceArgs = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
@@ -118,6 +120,7 @@ type PayMoneyRequestFunctionParams = {
     amountOwed: OnyxEntry<number>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
     methodID?: number;
+    isWiseReimbursementsBetaEnabled: boolean;
     onPaid?: () => void;
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
@@ -126,6 +129,7 @@ type PayMoneyRequestFunctionParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     isFallbackChatReport?: boolean;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
 };
 
@@ -139,6 +143,7 @@ function getPayMoneyRequestParams({
     reportPolicy,
     payAsBusiness,
     bankAccountID,
+    bankAccountList,
     currentUserAccountIDParam,
     currentUserEmailParam,
     introSelected,
@@ -184,6 +189,7 @@ function getPayMoneyRequestParams({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     isFallbackChatReport?: boolean;
+    bankAccountList: OnyxEntry<OnyxTypes.BankAccountList>;
     rules: OnyxCollection<OnyxTypes.Rule>;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -265,6 +271,13 @@ function getPayMoneyRequestParams({
 
     const shouldMoveScanFailedTransactions = !!full && isExpenseReport(iouReport) && shouldSplitScanFailedTransactions(iouReportTransactions, iouReport);
 
+    // Store the masked account actually paid with on the action itself, so every viewer resolves the same account.
+    // The paying admin may not be the workspace payer, so the account can be their own (looked up in `bankAccountList`)
+    // rather than the policy's ACH account. We fall back to the policy account when it is the one being used.
+    const paidWithBankAccount = bankAccountID ? bankAccountList?.[bankAccountID] : undefined;
+    const paidAccountNumber =
+        paidWithBankAccount?.accountData?.accountNumber ?? (bankAccountID === reportPolicy?.achAccount?.bankAccountID ? reportPolicy?.achAccount?.accountNumber : undefined);
+
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount: isExpenseReport(iouReport) ? -total : total,
@@ -277,6 +290,7 @@ function getPayMoneyRequestParams({
         isSettlingUp: true,
         payAsBusiness,
         bankAccountID,
+        accountNumber: paidAccountNumber,
         delegateAccountIDParam: delegateAccountID,
         getCurrencyDecimals,
     });
@@ -406,7 +420,8 @@ function getPayMoneyRequestParams({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', 0),
+                    // Same key as the preview copy below, so dismissing this one clears that one too.
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY),
                 },
             },
         },
@@ -421,11 +436,19 @@ function getPayMoneyRequestParams({
 
     // In case the report preview action is loaded locally, let's update it.
     if (optimisticReportPreviewAction) {
+        // Mirror the error onto the chat's preview, which the payer can still reach once the paid report is gone.
+        // An IOU report only ever hangs off a one-on-one chat, so workspace expense reports are untouched.
+        const shouldMirrorPayFailure = isIOUReport(iouReport);
+        // Clear our own previous failure so a retry does not keep showing a stale RBR. Only when one is there, or
+        // the merge would leave an empty errors object behind, which reads as truthy to other consumers.
+        const hasStalePayFailure = shouldMirrorPayFailure && CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY in (optimisticReportPreviewAction.errors ?? {});
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+                [optimisticReportPreviewAction.reportActionID]: hasStalePayFailure
+                    ? {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}}
+                    : optimisticReportPreviewAction,
             },
         });
         onyxData.failureData?.push({
@@ -434,6 +457,8 @@ function getPayMoneyRequestParams({
             value: {
                 [optimisticReportPreviewAction.reportActionID]: {
                     created: optimisticReportPreviewAction.created,
+                    // Only shown once the preview is deleted, see getVisibleReportActionErrors.
+                    ...(shouldMirrorPayFailure ? {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.payFailedExpenseDeleted', CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY)} : {}),
                 },
             },
         });
@@ -864,6 +889,22 @@ function completePaymentOnboarding(
     });
 }
 
+/**
+ * Returns the paying bank account when the payment must wait for global reimbursements onboarding, so payMoneyRequest opens the onboarding instead of paying.
+ */
+function getBankAccountToSetUpBeforePaying({
+    paymentType,
+    methodID,
+    bankAccountList,
+    isWiseReimbursementsBetaEnabled,
+}: Pick<PayMoneyRequestFunctionParams, 'paymentType' | 'methodID' | 'bankAccountList' | 'isWiseReimbursementsBetaEnabled'>): OnyxTypes.BankAccount | undefined {
+    if (!isWiseReimbursementsBetaEnabled || paymentType !== CONST.IOU.PAYMENT_TYPE.VBBA || !methodID) {
+        return undefined;
+    }
+    const bankAccount = bankAccountList?.[methodID];
+    return shouldSetUpGlobalReimbursementsBeforePaying(bankAccount) ? bankAccount : undefined;
+}
+
 function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     const {
         paymentType,
@@ -885,6 +926,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         amountOwed,
         ownerBillingGracePeriodEnd,
         methodID,
+        isWiseReimbursementsBetaEnabled,
         onPaid,
         additionalOnyxData,
         shouldPlaySuccessSound = true,
@@ -894,6 +936,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         getCurrencyDecimals,
         isFallbackChatReport,
         rules,
+        bankAccountList,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -902,6 +945,17 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         shouldRestrictUserBillableActions(policyForBillingRestriction, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
     ) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
+        return;
+    }
+
+    // The backend rejects this payment until the account is set up for global reimbursements, so open the onboarding right away instead of showing an optimistic payment
+    const bankAccountToSetUp = getBankAccountToSetUpBeforePaying({paymentType, methodID, bankAccountList, isWiseReimbursementsBetaEnabled});
+    if (methodID && bankAccountToSetUp) {
+        Onyx.set(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL, {
+            bankAccountID: methodID,
+            bankCountry: bankAccountToSetUp.bankCountry,
+            bankCurrency: bankAccountToSetUp.bankCurrency,
+        });
         return;
     }
 
@@ -927,6 +981,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         isASAPSubmitBetaEnabled,
         isSelfTourViewed,
         bankAccountID: paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
+        bankAccountList,
         delegateAccountID,
         chatReportActions,
         isTrackIntentUser,
@@ -1039,7 +1094,11 @@ function markReportPaymentReceived(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
-                [optimisticReportPreviewAction.reportActionID]: optimisticReportPreviewAction,
+                // Clear any mirrored failure, or it resurfaces as a phantom error once the report is deleted.
+                [optimisticReportPreviewAction.reportActionID]:
+                    CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY in (optimisticReportPreviewAction.errors ?? {})
+                        ? {...optimisticReportPreviewAction, errors: {[CONST.IOU.PAY_FAILURE_PREVIEW_ERROR_KEY]: null}}
+                        : optimisticReportPreviewAction,
             },
         });
     }
@@ -1140,6 +1199,7 @@ function payInvoice({
     isTrackIntentUser,
     getCurrencyDecimals,
     rules,
+    bankAccountList,
 }: PayInvoiceArgs) {
     const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
     const {
@@ -1165,6 +1225,7 @@ function payInvoice({
         full: true,
         payAsBusiness,
         bankAccountID: methodID,
+        bankAccountList,
         existingB2BInvoiceReport,
         activePolicy,
         conciergeChat,
@@ -1243,4 +1304,4 @@ function savePreferredPaymentMethod(
     });
 }
 
-export {cancelPayment, completePaymentOnboarding, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
+export {cancelPayment, completePaymentOnboarding, getBankAccountToSetUpBeforePaying, markReportPaymentReceived, payInvoice, payMoneyRequest, savePreferredPaymentMethod};
