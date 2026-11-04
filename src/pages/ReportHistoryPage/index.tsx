@@ -29,8 +29,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import {isLoadingReportStatusSelector} from '@selectors/ReportMetaData';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {isLoadingReportStatusSelector} from '@selectors/ReportMetaData';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
