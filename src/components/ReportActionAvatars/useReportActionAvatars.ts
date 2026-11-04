@@ -147,10 +147,10 @@ function useReportActionAvatars({
         selector: getBillProcessorAccountIDSelector,
     });
 
-    // Bill intake uses the vendor's or receiver's token, but both history actions must credit the bill's creator or Concierge.
-    const actorAccountID = isBillPayHistory
-        ? billProcessorAccountID || CONST.ACCOUNT_ID.CONCIERGE
-        : getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor);
+    const actorAccountID = getReportActionActorAccountID(action, iouReport, chatReport, delegatePersonalDetails, shouldUseRealActor, {
+        isInvoiceLinkedToBill,
+        processorAccountID: billProcessorAccountID,
+    });
     const humanAgentAccountID = getHumanAgentAccountIDFromReportAction(action);
 
     const isAInvoiceReport = isInvoiceReport(iouReport ?? null);

@@ -6681,6 +6681,35 @@ describe('ReportActionsUtils', () => {
             const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, report, undefined, true);
             expect(actorAccountID).toBe(9999);
         });
+
+        it.each([
+            [CONST.REPORT.UNSUPPORTED_TYPE.BILL, false, CONST.REPORT.ACTIONS.TYPE.CREATED, 456, 456],
+            [CONST.REPORT.UNSUPPORTED_TYPE.BILL, false, CONST.REPORT.ACTIONS.TYPE.SUBMITTED, undefined, CONST.ACCOUNT_ID.CONCIERGE],
+            [CONST.REPORT.TYPE.INVOICE, true, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED, 456, 456],
+            [CONST.REPORT.TYPE.INVOICE, true, CONST.REPORT.ACTIONS.TYPE.CREATED, undefined, CONST.ACCOUNT_ID.CONCIERGE],
+        ] as const)('credits the bill creator for %s %s action %s with processor %s', (type, isInvoiceLinkedToBill, actionName, processorAccountID, expectedAccountID) => {
+            // Given bill intake saved the action with the receiver's or vendor's token.
+            const reportAction: ReportAction = {...createRandomReportAction(0), actionName, actorAccountID: 9999};
+            const iouReport: Report = {...createRandomReport(0, undefined), type};
+
+            // When the history resolves the actor with the creation processor, which is missing for emailed invoices.
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, undefined, undefined, false, {isInvoiceLinkedToBill, processorAccountID});
+
+            // Then it names the person who created the bill, or Concierge, instead of the token's owner.
+            expect(actorAccountID).toBe(expectedAccountID);
+        });
+
+        it('keeps the stored actor on an invoice that is not linked to a bill', () => {
+            // Given an ordinary invoice submission, which bill intake did not create.
+            const reportAction: ReportAction = {...createRandomReportAction(0), actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED, actorAccountID: 9999};
+            const iouReport: Report = {...createRandomReport(0, undefined), type: CONST.REPORT.TYPE.INVOICE};
+
+            // When the history resolves the actor without a linked bill.
+            const actorAccountID = getReportActionActorAccountID(reportAction, iouReport, undefined, undefined, false, {isInvoiceLinkedToBill: false, processorAccountID: 456});
+
+            // Then the vendor who submitted it stays the actor.
+            expect(actorAccountID).toBe(9999);
+        });
     });
 
     describe('getInvoiceCompanyNameUpdateMessage', () => {

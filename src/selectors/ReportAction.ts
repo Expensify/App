@@ -71,6 +71,8 @@ function getBillProcessorAccountIDSelector(reportActions: OnyxEntry<ReportAction
 function getBillPayHistoryParticipantSelector(reportActions: OnyxEntry<ReportActions>, reportActionID: string) {
     const action = reportActions?.[reportActionID];
     const isCreatedAction = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.CREATED);
+
+    // The creation action has no participant emails, so the creation row reads the sender from the submission action.
     const submission = isCreatedAction
         ? Object.values(reportActions ?? {}).find(
               (reportAction) =>

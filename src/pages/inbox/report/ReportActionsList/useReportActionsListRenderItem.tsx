@@ -3,7 +3,7 @@ import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import {isBillPayHistoryAction} from '@libs/BillPayReportActionUtils';
+import {shouldKeepBillPayActorHeader} from '@libs/BillPayReportActionUtils';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -137,10 +137,6 @@ function useReportActionsListRenderItem({
         const isAfterCollapsedRun = !!previousRun && !previousRun.isExpanded;
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
-        // Bill Pay history replaces the stored creation and submission actors.
-        // Keep separate actor headers for these actions and the actions immediately before and after them.
-        const shouldKeepBillPayActorHeaders =
-            isBillPayHistoryAction(reportAction, reportStable, isInvoiceLinkedToBill) || isBillPayHistoryAction(previousReportAction, reportStable, isInvoiceLinkedToBill);
         const collapsedSystemMessageRun = systemMessageRun && !systemMessageRun.isExpanded ? systemMessageRun : undefined;
 
         return (
@@ -168,7 +164,7 @@ function useReportActionsListRenderItem({
                 linkedReportActionID={linkedReportActionID}
                 displayAsGroup={
                     !isAfterCollapsedRun &&
-                    !shouldKeepBillPayActorHeaders &&
+                    !shouldKeepBillPayActorHeader(reportAction, previousReportAction, reportStable, isInvoiceLinkedToBill) &&
                     !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                     isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, canonicalIndex, isOffline)
                 }
