@@ -216,6 +216,7 @@ function InsightsChartWidget({
                                               rows={rows}
                                               formatValue={formatValue}
                                               isLoading={isLoading}
+                                              onRowPress={openDetails}
                                           />
                                       )
                                     : undefined

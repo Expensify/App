@@ -10467,6 +10467,7 @@ const CONST = {
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
             DASHBOARD_TAB: 'Insights-DashboardTab',
+            TABLE_ROW: 'Insights-TableRow',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
