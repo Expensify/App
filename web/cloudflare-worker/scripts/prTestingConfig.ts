@@ -9,12 +9,23 @@ type WorkerRuntime = {compatibility_date: string; compatibility_flags: string[]}
 type ExtractAssets = (archive: string, destination: string) => void | Promise<void>;
 
 const STATUS_PATH = '/__expensify_preview';
+const WORKER_NAME = 'pr-testing-expensify';
 
 function getTarget(prNumber: unknown): PreviewTarget {
     if ((typeof prNumber !== 'string' && typeof prNumber !== 'number') || !/^[1-9]\d*$/.test(String(prNumber)) || !Number.isSafeInteger(Number(prNumber))) {
         throw new Error('A positive numeric PR number is required');
     }
-    return {name: `pr-testing-expensify-${prNumber}`, hostname: `${prNumber}.pr-testing.expensify.com`, environment: `pr-testing-${prNumber}`};
+    return {name: String(prNumber), hostname: `${prNumber}.pr-testing.expensify.com`, environment: `pr-testing-${prNumber}`};
+}
+
+function getPreviewCommand(prNumber: unknown, configPath: string, environment: Record<string, string | undefined>) {
+    // A CI environment override must not redirect publication to another parent Worker.
+    const env = {...environment};
+    delete env.WRANGLER_CI_OVERRIDE_NAME;
+    return {
+        args: ['preview', '--worker-name', WORKER_NAME, '--name', getTarget(prNumber).name, '--ignore-base-config', '--config', configPath],
+        env,
+    };
 }
 
 function getIdentity(sha: unknown, runID: unknown, runAttempt: unknown): BuildIdentity {
@@ -41,16 +52,13 @@ function isWorkerRuntime(runtime: unknown): runtime is WorkerRuntime {
     );
 }
 
-function createConfig(target: PreviewTarget, runtime: unknown, zoneID: unknown) {
+function createConfig(runtime: unknown) {
     // Only runtime settings are accepted from the build artifact, never names, routes, hooks, vars or bindings.
     if (!isWorkerRuntime(runtime)) {
         throw new Error('Invalid Worker runtime settings');
     }
-    if (typeof zoneID !== 'string' || !/^[a-f0-9]{32}$/.test(zoneID)) {
-        throw new Error('CLOUDFLARE_PR_TESTING_ZONE_ID is required');
-    }
     return {
-        name: target.name,
+        name: WORKER_NAME,
         main: 'worker/__preview_entry.mjs',
         base_dir: 'worker',
         compatibility_date: runtime.compatibility_date,
@@ -61,10 +69,7 @@ function createConfig(target: PreviewTarget, runtime: unknown, zoneID: unknown) 
             {type: 'ESModule', globs: ['**/*.js', '**/*.mjs'], fallthrough: true},
             {type: 'CompiledWasm', globs: ['**/*.wasm'], fallthrough: true},
         ],
-        workers_dev: false,
-        preview_urls: false,
-        routes: [{pattern: `${target.hostname}/*`, zone_id: zoneID}],
-        vars: {ENVIRONMENT: 'staging'},
+        previews: {vars: {ENVIRONMENT: 'staging'}},
         assets: {directory: 'dist', binding: 'ASSETS', not_found_handling: 'single-page-application', html_handling: 'none', run_worker_first: true},
     };
 }
@@ -119,5 +124,5 @@ async function prepareDirectory(bundleDirectory: string, assetsArchive: string, 
     return root;
 }
 
-export {createConfig, createWrapper, getIdentity, getTarget, isNewerRequest, prepareDirectory, STATUS_PATH};
+export {createConfig, createWrapper, getIdentity, getPreviewCommand, getTarget, isNewerRequest, prepareDirectory, STATUS_PATH};
 export type {BuildIdentity, PreviewTarget};

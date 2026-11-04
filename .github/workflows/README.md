@@ -97,7 +97,7 @@ The GitHub workflows require a large list of secrets to deploy, notify and test 
 1. `APPLE_TEAM_ID` - Required for notarizing desktop code in `desktop/notarize.js`
 1. `APPLE_ID_PASSWORD` - Required for notarizing desktop code in `desktop/notarize.js`
 1. `CLOUDFLARE_TOKEN` - Required for deploying the help site
-1. `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` - Deploys the staging, production and PR-testing web Workers
+1. `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` - Deploys the staging/production Workers and named PR Previews under `pr-testing-expensify`
 1. `CLOUDFLARE_ACCOUNT_ID` - Cloudflare account used for web deployments and R2 asset storage
 1. `CLOUDFLARE_R2_WEB_ASSETS_ACCESS_KEY_ID` and `CLOUDFLARE_R2_WEB_ASSETS_SECRET_ACCESS_KEY` - Store previous web builds in R2 for stale-tab asset recovery
 1. `OP_SERVICE_ACCOUNT_TOKEN` - Reads CI credentials from the 1Password vault configured by `OP_VAULT`
@@ -112,7 +112,7 @@ We use 1Password for many secrets and in general use two different actions from 
 1. `1password/install-cli-action` - This action is used to install 1Password cli `op` and is used to grab **files** using the `op read` command.
 1. `1password/load-secrets-action` - This action is used to fetch **strings** from 1Password.
 
-PR previews use the existing `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` repository secret. Their account and zone IDs are nonsecret deployment identifiers in `buildAdHoc.yml`.
+PR Previews use the existing `CLOUDFLARE_WORKERS_DEPLOY_TOKEN` repository secret. Their account ID is nonsecret configuration in `buildAdHoc.yml`; ad-hoc jobs do not create Workers or zone routes per PR.
 
 ### Important note about Secrets
 Secrets are available by default in most workflows. The exception to the rule is callable workflows. If a workflow is triggered by the `workflow_call` event, it will only have access to repo secrets if the workflow that called it passed in the secrets explicitly (for example, using `secrets: inherit`).

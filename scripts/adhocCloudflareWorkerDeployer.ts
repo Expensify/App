@@ -11,7 +11,7 @@ import GithubUtils from '@github/libs/GithubUtils';
 
 import type {BuildIdentity} from '@expensify/new-expensify-cloudflare-worker/pr-testing-config';
 
-import {createConfig, getIdentity, getTarget, isNewerRequest, prepareDirectory, STATUS_PATH} from '@expensify/new-expensify-cloudflare-worker/pr-testing-config';
+import {createConfig, getIdentity, getPreviewCommand, getTarget, isNewerRequest, prepareDirectory, STATUS_PATH} from '@expensify/new-expensify-cloudflare-worker/pr-testing-config';
 import CLI from 'expensify-common/CLI';
 import {appendFile, lstat} from 'node:fs/promises';
 import path from 'node:path';
@@ -235,12 +235,13 @@ async function main(): Promise<void> {
             throw new Error('Worker runtime settings must be a regular JSON file');
         }
         const runtime: unknown = await Bun.file(runtimePath).json();
-        const config = createConfig(getTarget(prNumber), runtime, process.env.CLOUDFLARE_PR_TESTING_ZONE_ID);
+        const config = createConfig(runtime);
         const root = await prepareDirectory(path.join(artifactDirectory, 'worker'), path.join(artifactDirectory, 'assets/webBuild.tar.gz'), config, identity, extractPRTestingAssets);
         // Resolve from the workspace so both hoisted and package-local tool installs work.
         const wranglerPackage = Bun.resolveSync('wrangler/package.json', path.resolve('web/cloudflare-worker'));
         const wrangler = path.join(path.dirname(wranglerPackage), 'bin/wrangler.js');
-        const result = Bun.spawn(['node', wrangler, 'deploy', '--config', path.join(root, 'wrangler.json')], {cwd: root, stdin: 'inherit', stdout: 'inherit', stderr: 'inherit'});
+        const command = getPreviewCommand(prNumber, path.join(root, 'wrangler.json'), process.env);
+        const result = Bun.spawn(['node', wrangler, ...command.args], {cwd: root, env: command.env, stdin: 'inherit', stdout: 'inherit', stderr: 'inherit'});
         if ((await result.exited) !== 0) {
             throw new Error('Cloudflare preview deployment failed');
         }

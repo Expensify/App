@@ -140,7 +140,7 @@ jobs:
     secrets: inherit
 
   deployWebAdHoc:
-    name: Deploy the branch Worker and web assets for this PR
+    name: Deploy the PR Worker Preview and web assets
     needs: [prepareWeb, buildWeb]
     if: ${{ needs.prepareWeb.outputs.DEPLOYMENT_ID != '' }}
     runs-on: blacksmith-2vcpu-ubuntu-2404
@@ -168,7 +168,7 @@ jobs:
           name: pr-testing-worker-artifact
           path: ${{ runner.temp }}/pr-testing-artifacts/worker
 
-      - name: Deploy and verify the PR Worker and assets together
+      - name: Deploy and verify the PR Preview and assets together
         run: |
           bun scripts/adhocCloudflareWorkerDeployer.ts deploy \
             --pr-number ${{ needs.prepareWeb.outputs.PR_NUMBER }} --sha ${{ needs.prepareWeb.outputs.SHA }} \
@@ -178,7 +178,6 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_WORKERS_DEPLOY_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 3eb3df6f8c190fa13c3fc0a53c30af1a
-          CLOUDFLARE_PR_TESTING_ZONE_ID: 9ee042e6cfc7fd45e74aa7d2f78d617b
 
   postGithubComment:
     runs-on: blacksmith-4vcpu-ubuntu-2404

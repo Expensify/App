@@ -1,7 +1,7 @@
 /** Preview deployment behavior and artifact security, using a stateful fake service rather than SDK call-order assertions. */
 import {afterEach, describe, expect, test} from 'bun:test';
 
-import {createConfig, getIdentity, getTarget, prepareDirectory} from '@expensify/new-expensify-cloudflare-worker/pr-testing-config';
+import {createConfig, getIdentity, getPreviewCommand, getTarget, prepareDirectory} from '@expensify/new-expensify-cloudflare-worker/pr-testing-config';
 import {spawnSync} from 'node:child_process';
 import {existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -16,7 +16,6 @@ describe('PR-testing Worker deployment', () => {
     const OTHER_SHA = 'b'.repeat(40);
     const IDENTITY = getIdentity(SHA, '100', '1');
     const RUNTIME = {compatibility_date: '2026-09-26', compatibility_flags: []};
-    const ZONE = 'c'.repeat(32);
     const ROOT = path.resolve(import.meta.dirname, '../..');
     const temporaryDirectories = [];
 
@@ -97,7 +96,7 @@ describe('PR-testing Worker deployment', () => {
     }
 
     describe('preview deployment behavior', () => {
-        test('pins the requested revision and publishes a verified preview even after the PR closes', async () => {
+        test('pins the requested revision and allows an authorized rebuild after the PR closes', async () => {
             // Given a closed PR whose branch can move while a requested build is running
             const {controller, state, publish} = previewService('closed');
             const request = await controller.register(123, 'feature/worker', '100', '1');
@@ -245,15 +244,22 @@ describe('PR-testing Worker deployment', () => {
                 vars: {SECRET: 'bad'},
                 r2_buckets: [{binding: 'PREVIOUS_BUILDS'}],
                 services: [{binding: 'PRODUCTION'}],
+                previews: {vars: {ENVIRONMENT: 'production'}, r2_buckets: [{binding: 'PRODUCTION'}]},
             };
             // When the trusted deployment package is produced
-            const packaged = await prepareDirectory(bundle, archive, createConfig(getTarget(123), unsafe, ZONE), IDENTITY, extractPRTestingAssets);
+            const packaged = await prepareDirectory(bundle, archive, createConfig(unsafe), IDENTITY, extractPRTestingAssets);
             temporaryDirectories.push(packaged);
             const config = await Bun.file(path.join(packaged, 'wrangler.json')).json();
             // Then branch-selected hooks and privileged bindings cannot enter the deployment, and source maps stay private
-            expect(config.name).toBe('pr-testing-expensify-123');
-            expect(config.routes).toEqual([{pattern: '123.pr-testing.expensify.com/*', zone_id: ZONE}]);
-            expect(config.vars).toEqual({ENVIRONMENT: 'staging'});
+            expect(config.name).toBe('pr-testing-expensify');
+            expect(config.previews).toEqual({vars: {ENVIRONMENT: 'staging'}});
+            expect([config.routes, config.vars]).toEqual([undefined, undefined]);
+            const environment = {WRANGLER_CI_OVERRIDE_NAME: 'production', CLOUDFLARE_API_TOKEN: 'fixture-token'};
+            const command = getPreviewCommand(123, 'preview.json', environment);
+            expect(command.args).toEqual(['preview', '--worker-name', 'pr-testing-expensify', '--name', '123', '--ignore-base-config', '--config', 'preview.json']);
+            expect(command.env).toEqual({CLOUDFLARE_API_TOKEN: 'fixture-token'});
+            expect(environment.WRANGLER_CI_OVERRIDE_NAME).toBe('production');
+            expect(getTarget(456).name).toBe('456');
             expect(config.assets.binding).toBe('ASSETS');
             expect([config.build, config.r2_buckets, config.services]).toEqual([undefined, undefined, undefined]);
             expect(await Bun.file(path.join(packaged, 'dist/app.js.br')).bytes()).toEqual(new Uint8Array([1, 2, 3]));
@@ -298,7 +304,7 @@ describe('PR-testing Worker deployment', () => {
                 }
                 // When a deployable package is requested
                 // Then it refuses the bundle instead of accepting untrusted deployment behavior
-                await expect(prepareDirectory(bundle, archive, createConfig(getTarget(123), RUNTIME, ZONE), IDENTITY, extractPRTestingAssets)).rejects.toThrow();
+                await expect(prepareDirectory(bundle, archive, createConfig(RUNTIME), IDENTITY, extractPRTestingAssets)).rejects.toThrow();
             }
         });
     });
