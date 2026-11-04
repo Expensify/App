@@ -109,12 +109,10 @@ function arePaymentsEnabled(policy: OnyxInputOrEntry<Policy>): boolean {
 }
 
 /**
- * Whether turning off Payments needs a warning first, because the workspace has business bank account countries
- * selected or a business bank account connected.
+ * Deselected countries can remain in Onyx with falsy values, so only truthy entries count as selected.
  */
-function shouldWarnBeforeDisablingPayments(policy: OnyxInputOrEntry<Policy>): boolean {
-    const hasSelectedCountry = Object.values(policy?.reimbursement?.countries ?? {}).some((value) => !!value);
-    return hasSelectedCountry || !!policy?.achAccount?.bankAccountID;
+function hasReimbursementCountries(policy: OnyxInputOrEntry<Policy>): boolean {
+    return Object.values(policy?.reimbursement?.countries ?? {}).some((value) => !!value);
 }
 
 /** Whether the workspace has everything auto-pay approved reports needs: workflows, direct reimbursements, and a business bank account. */
@@ -137,7 +135,7 @@ export {
     canAdminPayReport,
     getReimbursementChoice,
     arePaymentsEnabled,
-    shouldWarnBeforeDisablingPayments,
+    hasReimbursementCountries,
     isAutoPayApprovedReportsAvailable,
     getReimburserAccountID,
 };

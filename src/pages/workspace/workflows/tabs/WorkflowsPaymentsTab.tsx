@@ -39,7 +39,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getReimbursementChoice, isPolicyAdmin, isSubmitPolicy, shouldWarnBeforeDisablingPayments} from '@libs/PolicyUtils';
+import {getReimbursementChoice, hasReimbursementCountries, isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
@@ -338,7 +338,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.alias, workflowsBackTo));
                     return;
                 }
-                if (!isEnabled && shouldWarnBeforeDisablingPayments(policy)) {
+                if (!isEnabled && (!!bankAccountID || hasReimbursementCountries(policy))) {
                     showConfirmModal({
                         title: translate('workflowsPage.disablePaymentsTitle'),
                         prompt: translate('workflowsPage.disablePaymentsPrompt'),

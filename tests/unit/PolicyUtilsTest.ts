@@ -76,7 +76,7 @@ import {
     getSageIntacctVendors,
     arePaymentsEnabled,
     getReimbursementChoice,
-    shouldWarnBeforeDisablingPayments,
+    hasReimbursementCountries,
     isPolicyPayer,
     getReimburserEmail,
     getRuleApprovers,
@@ -4392,70 +4392,70 @@ describe('PolicyUtils', () => {
             });
         });
 
-        describe('shouldWarnBeforeDisablingPayments', () => {
-            it('should not warn when there is no policy', () => {
+        describe('hasReimbursementCountries', () => {
+            it('returns false when there is no policy', () => {
                 // Given no policy, which happens while a workspace is still loading
 
-                // When we check whether turning off Payments needs a warning
-                const shouldWarn = shouldWarnBeforeDisablingPayments(undefined);
+                // When we check for selected countries before policy data has loaded
+                const hasCountries = hasReimbursementCountries(undefined);
 
-                // Then no warning is needed, because there is nothing to lose
-                expect(shouldWarn).toBe(false);
+                // Then missing policy data does not imply any selected countries
+                expect(hasCountries).toBe(false);
             });
 
-            it('should not warn when no countries are selected and no bank account is connected', () => {
+            it('returns false when no countries are selected', () => {
                 // Given a workspace with an empty countries list and no business bank account
                 const policy = createMock<Policy>({id: '1', reimbursement: {countries: {}}});
 
-                // When we check whether turning off Payments needs a warning
-                const shouldWarn = shouldWarnBeforeDisablingPayments(policy);
+                // When we check for selected countries on an unconfigured workspace
+                const hasCountries = hasReimbursementCountries(policy);
 
-                // Then no warning is needed, so Payments turns off right away like before
-                expect(shouldWarn).toBe(false);
+                // Then an empty list does not count as a country selection
+                expect(hasCountries).toBe(false);
             });
 
-            it('should not warn when every country has a falsy value', () => {
+            it('returns false when every country has a falsy value', () => {
                 // Given a workspace whose countries are all deselected
                 const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: null}}});
 
-                // When we check whether turning off Payments needs a warning
-                const shouldWarn = shouldWarnBeforeDisablingPayments(policy);
+                // When we check countries that retain deselected entries in Onyx
+                const hasCountries = hasReimbursementCountries(policy);
 
-                // Then no warning is needed, because a deselected country is not a selected one
-                expect(shouldWarn).toBe(false);
+                // Then deselected entries do not count as selected countries
+                expect(hasCountries).toBe(false);
             });
 
-            it('should warn when a country has a truthy value', () => {
+            it('returns true when a country has a truthy value', () => {
                 // Given a workspace with a selected business bank account country
                 const policy = createMock<Policy>({id: '1', reimbursement: {countries: {US: false, GB: []}}});
 
-                // When we check whether turning off Payments needs a warning
-                const shouldWarn = shouldWarnBeforeDisablingPayments(policy);
+                // When we check a mixture of selected and deselected countries
+                const hasCountries = hasReimbursementCountries(policy);
 
-                // Then the admin is warned, so they don't lose the country setup by accident
-                expect(shouldWarn).toBe(true);
+                // Then the truthy entry counts even when its array is empty
+                expect(hasCountries).toBe(true);
             });
 
-            it('should warn when a business bank account is connected', () => {
+            it('returns false when only a business bank account is connected', () => {
                 // Given a workspace with a connected business bank account and no countries
                 const policy = createMock<Policy>({id: '1', achAccount: {bankAccountID: 123}});
 
-                // When we check whether turning off Payments needs a warning
-                const shouldWarn = shouldWarnBeforeDisablingPayments(policy);
+                // When we check country selection independently of connected accounts
+                const hasCountries = hasReimbursementCountries(policy);
 
-                // Then the admin is warned, because turning off Payments affects the connected account
-                expect(shouldWarn).toBe(true);
+                // Then a bank account alone does not count as a selected country
+                expect(hasCountries).toBe(false);
             });
 
-            it('should not warn when the bank account ID is 0', () => {
+            it('returns false when the bank account ID is 0 and countries are missing', () => {
                 // Given a workspace whose achAccount has no real bank account ID
                 const policy = createMock<Policy>({id: '1', achAccount: {bankAccountID: 0}});
 
-                // When we check whether turning off Payments needs a warning
-                const shouldWarn = shouldWarnBeforeDisablingPayments(policy);
+                // When we check a workspace without reimbursement country data
+                const hasCountries = hasReimbursementCountries(policy);
 
-                // Then no warning is needed, because 0 means no bank account is connected
-                expect(shouldWarn).toBe(false);
+                // Then missing countries do not count regardless of the bank account ID
+                expect(hasCountries).toBe(false);
             });
         });
 
