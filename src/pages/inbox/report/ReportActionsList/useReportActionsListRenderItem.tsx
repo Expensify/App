@@ -3,6 +3,7 @@ import {usePersonalDetailsByIDs} from '@hooks/usePersonalDetails';
 import useReportsParentHierarchy from '@hooks/useReportsParentHierarchy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
+import {shouldKeepBillPayActorHeader} from '@libs/BillPayReportActionUtils';
 import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
@@ -30,6 +31,7 @@ import {useReportActionsListState} from '@pages/inbox/report/ReportActionsListCo
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {getStableReportSelector} from '@src/selectors/Report';
+import {isLinkedToBillSelector} from '@src/selectors/ReportNameValuePairs';
 import type * as OnyxTypes from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -83,6 +85,7 @@ function useReportActionsListRenderItem({
     const [chatReportStable] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportStable?.chatReportID)}`, {selector: getStableReportSelector});
     const reportsParentHierarchy = useReportsParentHierarchy(reportID);
     const isHarvestCreatedExpenseReportAction = isHarvestCreatedExpenseReport(reportNameValuePairs?.origin, reportNameValuePairs?.originalID);
+    const isInvoiceLinkedToBill = isLinkedToBillSelector(reportNameValuePairs);
 
     const firstVisibleReportActionID = getFirstVisibleReportActionID(sortedReportActions, isOffline);
 
@@ -161,6 +164,7 @@ function useReportActionsListRenderItem({
                 linkedReportActionID={linkedReportActionID}
                 displayAsGroup={
                     !isAfterCollapsedRun &&
+                    !shouldKeepBillPayActorHeader(reportAction, previousReportAction, reportStable, isInvoiceLinkedToBill) &&
                     !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, canonicalIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                     isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, canonicalIndex, isOffline)
                 }
