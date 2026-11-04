@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type {WriteReadyBarrier} from '@libs/API';
+import {isBillReport} from '@libs/BillPayUtils';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
@@ -1281,6 +1282,11 @@ function maybeUpdateReportNameForFormulaTitle(
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     optimisticTransactions: Record<string, OnyxTypes.Transaction> = {},
 ): OnyxTypes.Report {
+    // A bill keeps its stored name, which Auth sets from the vendor's invoice and the user can rename.
+    if (isBillReport(iouReport)) {
+        return iouReport;
+    }
+
     const allReportNameValuePairs = getAllReportNameValuePairs();
     const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport.reportID}`];
     const titleField = reportNameValuePairs?.expensify_text_title;
