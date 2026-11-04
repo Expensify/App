@@ -48,7 +48,7 @@ const tripPreviewAction = createMock<ReportAction>({
     reportActionID: '9001',
     actionName: CONST.REPORT.ACTIONS.TYPE.TRIP_PREVIEW,
     created: '2026-11-01 09:00:00.000',
-    originalMessage: {linkedReportID: TRIP_ROOM_ID},
+    message: {linkedReportID: TRIP_ROOM_ID},
 });
 
 const outstandingBooking: BookingApproval = {
