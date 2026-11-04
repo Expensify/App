@@ -1869,6 +1869,7 @@ const translations = {
             invalidSplitYourself: 'Please enter a non-zero amount for your split',
             noParticipantSelected: 'Please select a participant',
             other: 'Unexpected error. Please try again later.',
+            payFailedExpenseDeleted: 'The payment failed because the expense report was deleted.',
             genericCreateFailureMessage: 'Unexpected error submitting this expense. Please try again later.',
             genericCreateInvoiceFailureMessage: 'Unexpected error sending this invoice. Please try again later.',
             genericHoldExpenseFailureMessage: 'Unexpected error holding this expense. Please try again later.',
@@ -3203,6 +3204,12 @@ const translations = {
                 wiseTerms: `I agree to the Wise <a href="${CONST.WISE.TERMS_URL}">terms and conditions</a> and <a href="${CONST.WISE.PRIVACY_URL}">privacy policy</a>.`,
                 wiseTermsAccessibilityLabel: 'I agree to the Wise terms and conditions and privacy policy.',
                 error: 'Please accept all of the terms to continue.',
+                alreadySubmitted: 'This business is already submitted to Wise for review.',
+            },
+            moreInfoNeeded: {
+                headerTitle: 'More info needed',
+                title: 'Verify additional info',
+                subtitle: 'Our payments partner needs more info directly. This should only take a couple of minutes.',
             },
         },
         wiseGlobalReimbursementsIntro: {
@@ -3216,6 +3223,7 @@ const translations = {
             title: 'Pay people worldwide',
             subtitle: 'Enable global reimbursements on your USD account.',
         },
+        globalReimbursementsEnabled: 'Global reimbursements enabled',
         deleteCard: 'Delete card',
         deleteCardConfirmation:
             'All unsubmitted card transactions, including those on open reports, will be removed. Are you sure you want to delete this card? You cannot undo this action.',
@@ -8085,10 +8093,10 @@ const translations = {
             reimbursementAccount: 'reimbursement account',
             welcomeNote: 'Please start using my new workspace',
             delayedSubmission: 'delayed submission',
-            merchantRules: 'Expense defaults',
+            merchantRules: 'Merchant rules',
             merchantRulesCount: () => ({
-                one: '1 expense default',
-                other: (count: number) => `${count} expense defaults`,
+                one: '1 merchant rule',
+                other: (count: number) => `${count} merchant rules`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}: {newWorkspaceName?: string; totalMembers?: number}) =>
                 `You’re about to create and share ${newWorkspaceName ?? ''} with ${totalMembers ?? 0} members from the original workspace.`,
@@ -9678,8 +9686,8 @@ const translations = {
                 matchType: 'Match type',
                 matchTypeContains: 'Contains',
                 matchTypeExact: 'Exactly matches',
-                duplicateRuleTitle: 'Similar rule already exists',
-                duplicateRulePrompt: (conditionName: string) => `Your existing rule for "${conditionName}" will take priority over this one. Save anyway?`,
+                duplicateRuleTitle: 'Similar merchant rule already exists',
+                duplicateRulePrompt: (merchantName: string) => `Your existing rule for "${merchantName}" will take priority over this one. Save anyway?`,
                 saveAnyway: 'Save anyway',
                 applyToExistingUnsubmittedExpenses: 'Apply to existing unsubmitted expenses',
                 expenseDefaultsTitle: 'Expense defaults',
@@ -9687,8 +9695,24 @@ const translations = {
                 ifAnyExpenseMatches: 'If any expense matches:',
                 thenApplyFollowingDefaults: 'Then apply the following defaults:',
                 confirmErrorCategory: 'Please select a category',
-                confirmErrorCondition: 'Please add at least one condition',
-                confirmErrorConditionAndDefault: 'Add at least one condition, and apply at least one default',
+                confirmErrorCategoryTax: 'Please select a tax rate',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault: 'The selected tax rate is now your workspace default, so this rule is no longer valid. Choose a different tax rate.',
+                confirmErrorCondition: 'Please enter a merchant',
+                confirmErrorConditionAndDefault: 'Enter a merchant, and apply at least one default',
+                turnOnTaxesFirstTitle: 'Turn on taxes first',
+                turnOnTaxesFirstPrompt: 'Category rules set a default tax rate. Turn on taxes in your workspace settings to use them.',
+                addTaxRateFirstTitle: 'Add a tax rate first',
+                addTaxRateFirstPrompt: 'Category rules set a default tax rate. Add a tax rate other than your workspace default to use them.',
+                categoryRulesApplyGoingForwardTitle: 'Category rules apply going forward',
+                categoryRulesApplyGoingForwardPrompt: "A default tax rate applies to new expenses in this category. Expenses that already exist won't change.",
+            },
+            expenseDefaultType: {
+                title: 'Apply expense defaults',
+                subtitle: 'What should this rule match on?',
+                merchant: 'Merchant',
+                merchantDescription: 'Update fields on expenses from a specific merchant',
+                category: 'Category',
+                categoryDescription: 'Set a default tax rate for a specific category',
             },
             newRule: {
                 title: 'New rule',
@@ -9734,9 +9758,7 @@ const translations = {
                 rename: 'Rename',
                 update: 'Update',
                 categoryIs: (category: string) => `Category is "${category}"`,
-                merchantContains: (merchant: string) => `Merchant contains "${merchant}"`,
-                merchantExactlyMatches: (merchant: string) => `Merchant exactly matches "${merchant}"`,
-                tagIs: (tag: string) => `Tag is "${tag}"`,
+                merchantIs: (merchant: string) => `Merchant is "${merchant}"`,
                 merchantTypeIs: (merchantType: string) => `Merchant type is "${merchantType}"`,
             },
             merchantTypeRule: {
@@ -9963,9 +9985,7 @@ const translations = {
                 confirmErrorCardRequired: 'Card is a required field',
                 confirmErrorApplyAtLeastOneSpendRule: 'Apply at least one spend rule',
                 categories: 'Categories',
-                tags: 'Tags',
                 merchants: 'Merchants',
-                multipleConditions: 'Multiple conditions',
                 currencies: 'Currencies',
                 noAvailableCards: 'All cards already have a rule',
                 noAvailableCardsSubtitle: 'Edit an existing card rule to make changes',
@@ -10026,9 +10046,8 @@ const translations = {
                 describeRuleForConcierge: 'Describe your rule and Concierge will build it',
                 disclaimer: 'AI agents can make mistakes.',
                 createRule: 'Create rule',
-                fallbackBanner:
-                    "This isn't a standard rule, so we drafted it as an agent rule. Agent rules act after an expense or report changes, for example by holding the expense or rejecting the report.",
-                fallbackBannerWithExplanation: (explanation: string) => `This isn't a standard rule, so we drafted it as an agent rule. ${explanation}`,
+                fallbackBanner: "This isn't a standard rule, so we drafted an agent rule.",
+                fallbackBannerWithExplanation: (explanation: string) => `This isn't a standard rule, so we drafted an agent rule. ${explanation}`,
                 agentCreatedTitle: 'RuleBot has been added to your workspace!',
                 agentCreatedDescription: (agentsRoute: string) =>
                     `<muted-text>To enforce your agent rules, we’ve created an agent for you and added it as an admin to your workspace.<br><br>Edit your agent’s details in <a href="${agentsRoute}">Account &gt; Agents</a>.</muted-text>`,
@@ -10395,6 +10414,12 @@ const translations = {
                 return `set the monthly report submission date to "${newValue}"`;
             }
             return `updated the monthly report submission date to "${newValue}" (previously "${oldValue}")`;
+        },
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `set the workspace timezone to "${newValue}"`;
+            }
+            return `updated the workspace timezone to "${newValue}" (previously "${oldValue}")`;
         },
         updateDefaultBillable: (oldValue: string, newValue: string) => `updated "Re-bill expenses to clients" to "${newValue}" (previously "${oldValue}")`,
         updateDefaultReimbursable: (oldValue: string, newValue: string) => `updated "Cash expense default" to "${newValue}" (previously "${oldValue}")`,
@@ -11450,6 +11475,8 @@ const translations = {
                 leftTheChatWithName: (nameOrEmail: string) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}left the chat`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `business bank account ${maskedBankAccountNumber} has been automatically locked due to an issue with either Reimbursement or Expensify Card settlement. Please fix the issue in your <a href="${linkURL}">workspace settings</a>.`,
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Global Reimbursements was enabled by ${adminName} on the ${bankName ? `${bankName} ` : ''}account ending in ${lastFour}. Exact exchange rates and fees cannot be previewed prior to payment when cross-border reports are auto-paid. Review your <a href="${autoPaySettingsURL}">auto-pay settings</a> for more information on rates and fees.`,
             },
             error: {
                 invalidCredentials: 'Invalid credentials, please check the configuration of your connection.',

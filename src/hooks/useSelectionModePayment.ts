@@ -138,7 +138,7 @@ function useSelectionModePayment({
     const kycWallRef = useContext(KYCWallContext);
 
     // Store the pending payment and resume it after the user validates, instead of dropping it on the way to the magic-code screen.
-    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry) => retry?.());
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((retry?: () => void) => retry?.());
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Cash', 'ArrowRight', 'Building'] as const);
 
