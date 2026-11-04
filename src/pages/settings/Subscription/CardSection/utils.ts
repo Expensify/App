@@ -15,7 +15,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
+import {addMonths, fromUnixTime, startOfMonth} from 'date-fns';
 
 type BillingStatusResult = {
     title: string;
@@ -215,7 +215,7 @@ function getNextBillingDate(dateFnsLocale: DateFnsLocale | undefined): string {
 
     const nextBillingDate = startOfMonth(addMonths(today, 1));
 
-    return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT, {locale: dateFnsLocale});
+    return DateUtils.formatToLongDate(nextBillingDate, dateFnsLocale);
 }
 
 export default {getBillingStatus, getNextBillingDate};
