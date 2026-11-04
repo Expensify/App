@@ -3037,7 +3037,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             inReview: {
                 title: 'En revisión',
-                heading: 'Tenemos lo que necesitamos. ¡Sabrás de nosotros!',
+                heading: 'Tenemos lo que necesitamos.\n¡Sabrás de nosotros!',
                 description: 'La mayoría de las revisiones tardan de uno a dos días. Te enviaremos un mensaje con una actualización.',
                 chatWithConcierge: 'Chatea con Concierge',
             },

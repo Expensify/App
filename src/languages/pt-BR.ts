@@ -3126,7 +3126,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             inReview: {
                 title: 'Em revisão',
-                heading: 'Temos o que precisamos. Você vai receber notícias nossas!',
+                heading: 'Temos o que precisamos.\nVocê vai receber notícias nossas!',
                 description: 'A maioria das análises leva de um a dois dias. Vamos enviar uma mensagem para você com uma atualização.',
                 chatWithConcierge: 'Conversar com Concierge',
             },

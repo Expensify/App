@@ -3135,7 +3135,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             inReview: {
                 title: 'In Prüfung',
-                heading: 'Wir haben alles, was wir brauchen. Sie hören von uns!',
+                heading: 'Wir haben alles, was wir brauchen.\nSie hören von uns!',
                 description: 'Die meisten Prüfungen dauern ein bis zwei Tage. Wir senden Ihnen eine Nachricht mit einem Update.',
                 chatWithConcierge: 'Mit Concierge chatten',
             },

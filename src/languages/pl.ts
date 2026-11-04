@@ -3163,7 +3163,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             inReview: {
                 title: 'W trakcie przeglądu',
-                heading: 'Mamy wszystko, czego potrzebujemy. Wkrótce się odezwiemy!',
+                heading: 'Mamy wszystko, czego potrzebujemy.\nWkrótce się odezwiemy!',
                 description: 'Większość weryfikacji zajmuje od jednego do dwóch dni. Damy ci znać, gdy będziemy mieć aktualizację.',
                 chatWithConcierge: 'Czat z Concierge',
             },

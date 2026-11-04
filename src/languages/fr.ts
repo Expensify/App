@@ -3140,7 +3140,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             inReview: {
                 title: "En cours d'examen",
-                heading: 'Nous avons tout ce dont nous avons besoin. Vous aurez de nos nouvelles !',
+                heading: 'Nous avons tout ce dont nous avons besoin.\nVous aurez de nos nouvelles !',
                 description: 'La plupart des examens prennent un à deux jours. Nous vous enverrons un message avec une mise à jour.',
                 chatWithConcierge: 'Discuter avec Concierge',
             },

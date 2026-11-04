@@ -3022,7 +3022,7 @@ const translations: TranslationDeepObject<typeof en> = {
             moreInfoNeeded: {headerTitle: '需要更多信息', title: '验证其他信息', subtitle: '我们的支付合作伙伴需要直接向你获取更多信息。这只需要几分钟时间。'},
             inReview: {
                 title: '审核中',
-                heading: '我们已经获得所需信息。我们会再联系你！',
+                heading: '我们已经获得所需信息。\n我们会再联系你！',
                 description: '大多数审核需要一到两天。我们会发送消息告知最新进展。',
                 chatWithConcierge: '与 Concierge 聊天',
             },

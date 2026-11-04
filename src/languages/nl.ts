@@ -3126,7 +3126,7 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             inReview: {
                 title: 'In behandeling',
-                heading: 'We hebben wat we nodig hebben. Je hoort van ons!',
+                heading: 'We hebben wat we nodig hebben.\nJe hoort van ons!',
                 description: 'De meeste controles duren één tot twee dagen. We sturen je een bericht met een update.',
                 chatWithConcierge: 'Chatten met Concierge',
             },
