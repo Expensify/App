@@ -608,15 +608,15 @@ describe('DateUtils', () => {
 
         it('formats every branch with the given locale clock', () => {
             // `translate` stays English so the assertion isolates what `dateFnsLocale` controls: German uses a
-            // 24-hour clock, so each branch loses its meridiem while the surrounding copy is untouched.
+            // 24-hour clock, so each branch loses its meridiem, and it writes a numeric date day first with periods.
             const sameDay = tzFormat(toZonedTime(new Date('2025-10-19T22:34:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
             expect(DateUtils.getStatusUntilDate(translateLocal, de, sameDay, currentTimeZone, currentTimeZone)).toBe('Until 15:34');
 
             const sameYear = tzFormat(toZonedTime(new Date('2025-12-02T20:15:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
-            expect(DateUtils.getStatusUntilDate(translateLocal, de, sameYear, currentTimeZone, currentTimeZone)).toBe('Until 12-02 12:15');
+            expect(DateUtils.getStatusUntilDate(translateLocal, de, sameYear, currentTimeZone, currentTimeZone)).toBe('Until 02.12. 12:15');
 
             const otherYear = tzFormat(toZonedTime(new Date('2026-03-02T20:15:00Z'), currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
-            expect(DateUtils.getStatusUntilDate(translateLocal, de, otherYear, currentTimeZone, currentTimeZone)).toBe('Until 2026-03-02 12:15');
+            expect(DateUtils.getStatusUntilDate(translateLocal, de, otherYear, currentTimeZone, currentTimeZone)).toBe('Until 02.03.2026 12:15');
         });
 
         it('returns empty string when input date is empty', () => {
@@ -659,7 +659,7 @@ describe('DateUtils', () => {
             expect(result).toBe(`Until ${expectedLabel}`);
         });
 
-        it('returns "Until MM-dd h:mm a" for future date within the same year in a different timezone', () => {
+        it('returns "Until MM/dd h:mm a" for future date within the same year in a different timezone', () => {
             const twoDaysLaterLA = addDays(set(toZonedTime(new Date(), currentTimeZone), {hours: 15, minutes: 0, seconds: 0, milliseconds: 0}), 2);
             const inputDateStrParis = tzFormat(twoDaysLaterLA, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneParis});
 
@@ -667,12 +667,14 @@ describe('DateUtils', () => {
 
             const date = fromZonedTime(inputDateStrParis, inputTimeZoneParis);
             const converted = toZonedTime(date, currentTimeZone);
-            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+            // With no locale the date falls back to en-US, which writes a short numeric date as MM/dd.
+            // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- mirrors the undefined locale passed to getStatusUntilDate above, so the expectation matches what it produces.
+            const expectedLabel = tzFormat(converted, `MM/dd ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
 
-        it('returns "Until MM-dd h:mm a" when "until today" crosses into next day in current timezone', () => {
+        it('returns "Until MM/dd h:mm a" when "until today" crosses into next day in current timezone', () => {
             const endOfTodayTokyo = endOfDay(toZonedTime(new Date(), inputTimeZoneTokyo));
             const inputDateStrTokyo = tzFormat(endOfTodayTokyo, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
 
@@ -681,12 +683,14 @@ describe('DateUtils', () => {
             const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
             const converted = toZonedTime(date, currentTimeZone);
 
-            const expectedLabel = tzFormat(converted, `${CONST.DATE.SHORT_DATE_FORMAT} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+            // With no locale the date falls back to en-US, which writes a short numeric date as MM/dd.
+            // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- mirrors the undefined locale passed to getStatusUntilDate above, so the expectation matches what it produces.
+            const expectedLabel = tzFormat(converted, `MM/dd ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
 
-        it('returns "Until yyyy-MM-dd h:mm a" for a date in a different year across timezones', () => {
+        it('returns "Until MM/dd/yyyy h:mm a" for a date in a different year across timezones', () => {
             const laFutureDateStr = '2026-01-02 09:15:00';
             const inputDateStrTokyo = tzFormat(fromZonedTime(laFutureDateStr, currentTimeZone), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: inputTimeZoneTokyo});
 
@@ -694,7 +698,9 @@ describe('DateUtils', () => {
 
             const date = fromZonedTime(inputDateStrTokyo, inputTimeZoneTokyo);
             const converted = toZonedTime(date, currentTimeZone);
-            const expectedLabel = tzFormat(converted, `${CONST.DATE.FNS_FORMAT_STRING} ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
+            // With no locale the date falls back to en-US, which writes a numeric date with a year as MM/dd/yyyy.
+            // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- mirrors the undefined locale passed to getStatusUntilDate above, so the expectation matches what it produces.
+            const expectedLabel = tzFormat(converted, `MM/dd/yyyy ${CONST.DATE.LOCAL_TIME_FORMAT}`, {timeZone: currentTimeZone});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
