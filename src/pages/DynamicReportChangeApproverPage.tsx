@@ -64,7 +64,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const [rules] = useOnyx(ONYXKEYS.COLLECTION.RULE);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_CHANGE_APPROVER.path);
 
-    const canMemberReassignApprover = areStrictPolicyRulesEnabled && currentUserDetails.accountID === report?.managerID;
+    const canMemberReassignApprover = !areStrictPolicyRulesEnabled && currentUserDetails.accountID === report?.managerID;
 
     const goBack = () => {
         Navigation.goBack(backPath);
