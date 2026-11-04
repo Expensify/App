@@ -19,5 +19,6 @@ export * from './payments';
 export * from './policy';
 export * from './navigation';
 export * from './members';
+export * from './expensifyTeam';
 export * from './domains';
 export * from './travel';
