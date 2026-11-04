@@ -2097,6 +2097,7 @@ const CONST = {
                 // Hidden action that only carries the violations snapshot of an expense added to a report that was already awaiting its first approval
                 ADD_EXPENSE_ON_SUBMITTED: 'ADDEXPENSEONSUBMITTED',
                 APPROVED: 'APPROVED',
+                AUTO_PAY_FEE_DISCLOSURE: 'AUTOPAYFEEDISCLOSURE',
                 CARD_MISSING_ADDRESS: 'CARDMISSINGADDRESS',
                 CARD_ISSUED: 'CARDISSUED',
                 CARD_ISSUED_VIRTUAL: 'CARDISSUEDVIRTUAL',
@@ -4891,6 +4892,10 @@ const CONST = {
         MAX_RECENT_REPORTS_TO_SHOW: 5,
         MAX_RECENT_ATTENDEES: 40,
 
+        // Tells a payment failure apart from other errors on a report preview. Numeric so a real error, which is
+        // keyed on microseconds, still wins in getLatestErrorMessageField.
+        PAY_FAILURE_PREVIEW_ERROR_KEY: 0,
+
         // This will guranatee that the quantity input will not exceed 9,007,199,254,740,991 (Number.MAX_SAFE_INTEGER).
         QUANTITY_MAX_LENGTH: 12,
         // This is the transactionID used when going through the create expense flow so that it mimics a real transaction (like the edit flow)
@@ -5076,10 +5081,13 @@ const CONST = {
         /** Subsections of the Rules > Expense defaults table, listed in the order they render. */
         EXPENSE_DEFAULTS_SECTION: {
             CATEGORIES: 'categories',
-            TAGS: 'tags',
             MERCHANTS: 'merchants',
-            MULTIPLE_CONDITIONS: 'multipleConditions',
             MERCHANT_TYPES: 'merchantTypes',
+        },
+        /** What an expense default rule matches on, chosen before the editor opens and kept in its draft. */
+        EXPENSE_DEFAULT_RULE_TYPE: {
+            MERCHANT: 'merchant',
+            CATEGORY: 'category',
         },
         DEFAULT_REPORT_NAME_PATTERN: '{report:type} {report:startdate}',
         DEFAULT_FIELD_LIST_TYPE: 'formula',
@@ -9658,7 +9666,6 @@ const CONST = {
         EXPENSE_DEFAULT: {
             /** Expense fields a `Set` action can write to */
             FIELD: {
-                AMOUNT: 'amount',
                 BILLABLE: 'billable',
                 CATEGORY: 'category',
                 COMMENT: 'comment',
@@ -9811,7 +9818,6 @@ const CONST = {
         IS_UNREAD_WITH_MENTION: 'isUnreadWithMention',
         IS_WAITING_FOR_ASSIGNEE_TO_COMPLETE_ACTION: 'isWaitingForAssigneeToCompleteAction',
         HAS_CHILD_REPORT_AWAITING_ACTION: 'hasChildReportAwaitingAction',
-        HAS_MISSING_INVOICE_BANK_ACCOUNT: 'hasMissingInvoiceBankAccount',
         HAS_UNRESOLVED_CARD_FRAUD_ALERT: 'hasUnresolvedCardFraudAlert',
         HAS_DEW_APPROVE_FAILED: 'hasDEWApproveFailed',
     },
@@ -10424,8 +10430,26 @@ const CONST = {
             RESET_FILTERS_BUTTON: 'Search-ResetFiltersButton',
             SAVE_FILTERS_BUTTON: 'Search-SaveFiltersButton',
             ACTION_CELL_VIEW: 'Search-ActionCellView',
-            ACTION_CELL_PAY: 'Search-ActionCellPay',
-            ACTION_CELL_ACTION: 'Search-ActionCellAction',
+            ACTION_CELL_ACTION: {
+                SUBMIT: 'Search-ActionCellAction-Submit',
+                APPROVE: 'Search-ActionCellAction-Approve',
+                PAY: 'Search-ActionCellAction-Pay',
+                CHANGE_APPROVER: 'Search-ActionCellAction-ChangeApprover',
+                EXPORT_TO_ACCOUNTING: 'Search-ActionCellAction-ExportToAccounting',
+                UNDELETE: 'Search-ActionCellAction-Undelete',
+            },
+            CREATE_BUTTON: 'Search-CreateButton',
+            CREATE_MENU: {
+                CREATE_EXPENSE: 'Search-CreateMenu-CreateExpense',
+                TRACK_DISTANCE: 'Search-CreateMenu-TrackDistance',
+                CREATE_REPORT: 'Search-CreateMenu-CreateReport',
+            },
+            EMPTY_STATE: {
+                TAKE_TEST_DRIVE: 'Search-EmptyState-TakeTestDrive',
+                CREATE_EXPENSE: 'Search-EmptyState-CreateExpense',
+                CREATE_REPORT: 'Search-EmptyState-CreateReport',
+                SEND_INVOICE: 'Search-EmptyState-SendInvoice',
+            },
             EXPENSE_REPORT_CHECKBOX: 'Search-ExpenseReportCheckbox',
             GROUP_EXPAND_TOGGLE: 'Search-GroupExpandToggle',
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
@@ -10435,10 +10459,12 @@ const CONST = {
         },
         INSIGHTS: {
             CONTROL_DATE: 'Insights-ControlDate',
+            CONTROL_EXPORT: 'Insights-ControlExport',
             CONTROL_WORKSPACE: 'Insights-ControlWorkspace',
             CONTROL_GROUP_CURRENCY: 'Insights-ControlGroupCurrency',
             CONTROL_GROUP_BY: 'Insights-ControlGroupBy',
             CONTROL_COMPARE: 'Insights-ControlCompare',
+            AI_EXPLAIN: 'Insights-AIExplain',
             DASHBOARD_TAB: 'Insights-DashboardTab',
         },
         EXPENSE_RULES: {
@@ -10465,6 +10491,7 @@ const CONST = {
             ATTACHMENT_PICKER_MENU_ADD_ATTACHMENT: 'Report-AttachmentPickerMenuAddAttachment',
             REPORT_ACTION_ITEM_CREATED: 'Report-ReportActionItemCreated',
             REPORT_ACTION_ITEM_MESSAGE_ENTER_SIGNER_INFO: 'Report-ReportActionItemMessageEnterSignerInfo',
+            REPORT_ACTION_ITEM_ADD_HOME_ADDRESS: 'Report-ReportActionItemAddHomeAddress',
             REPORT_ACTION_ITEM_MESSAGE_EDIT_CANCEL_BUTTON: 'Report-ReportActionItemMessageEditCancelButton',
             REPORT_ACTION_ITEM_MESSAGE_EDIT_SAVE_BUTTON: 'Report-ReportActionItemMessageEditSaveButton',
             REPORT_ACTION_ITEM_SINGLE_AVATAR_BUTTON: 'Report-ReportActionItemSingleAvatarButton',
@@ -10481,6 +10508,18 @@ const CONST = {
             REPORT_ACTION_AVATAR: 'Report-ReportActionAvatar',
             PARTICIPANTS_ROW: 'Report-ParticipantsRow',
             ROOM_MEMBERS_ROW: 'Report-RoomMembersRow',
+            EMPTY_STATE: {
+                ADD_EXPENSE: 'Report-EmptyStateAddExpense',
+                CREATE_EXPENSE: 'Report-EmptyStateAddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'Report-EmptyStateAddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'Report-EmptyStateAddExpenseMenu-AddExistingExpense',
+            },
+            LIST_FOOTER: {
+                ADD_EXPENSE: 'Report-ListFooterAddExpense',
+                CREATE_EXPENSE: 'Report-ListFooterAddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'Report-ListFooterAddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'Report-ListFooterAddExpenseMenu-AddExistingExpense',
+            },
         },
         SIDEBAR: {
             SIGN_IN_BUTTON: 'Sidebar-SignInButton',
@@ -10571,6 +10610,11 @@ const CONST = {
             EXPORT_BUTTON: 'ReportPreview-ExportButton',
             VIEW_BUTTON: 'ReportPreview-ViewButton',
             ADD_EXPENSE_BUTTON: 'ReportPreview-AddExpenseButton',
+            ADD_EXPENSE_MENU: {
+                CREATE_EXPENSE: 'ReportPreview-AddExpenseMenu-CreateExpense',
+                TRACK_DISTANCE: 'ReportPreview-AddExpenseMenu-TrackDistance',
+                ADD_EXISTING_EXPENSE: 'ReportPreview-AddExpenseMenu-AddExistingExpense',
+            },
         },
         REQUEST_CONFIRMATION_LIST: {
             RESET_SPLIT_SHARES: 'RequestConfirmationList-ResetSplitShares',
@@ -10663,6 +10707,17 @@ const CONST = {
             WIDGET_ITEM: 'HomePage-WidgetItem',
             GETTING_STARTED_ROW: 'HomePage-GettingStartedRow',
             GETTING_STARTED_FOOTER_HELP: 'HomePage-GettingStartedFooterHelp',
+            QUICK_CREATE: {
+                EXPENSE: 'HomePage-QuickCreate-Expense',
+                REPORT: 'HomePage-QuickCreate-Report',
+                DISTANCE: 'HomePage-QuickCreate-Distance',
+                BOOK_TRAVEL: 'HomePage-QuickCreate-BookTravel',
+            },
+        },
+        CONCIERGE_PROMPT_BOX: {
+            ADD_ATTACHMENT: 'ConciergePromptBox-AddAttachment',
+            INPUT: 'ConciergePromptBox-Input',
+            SEND: 'ConciergePromptBox-Send',
         },
         CATEGORY_PICKER_MODAL: {
             BACK_BUTTON: 'CategoryPickerModal-BackButton',
@@ -10932,7 +10987,6 @@ const CONST = {
                 INDIVIDUAL_EXPENSES_MENU_ITEM: 'WorkspaceRules-IndividualExpensesMenuItem',
                 SPEND_RULE_ITEM: 'WorkspaceRules-SpendRuleItem',
                 MERCHANT_RULE_ITEM: 'WorkspaceRules-MerchantRuleItem',
-                TAG_RULE_ITEM: 'WorkspaceRules-TagRuleItem',
                 REQUIRE_FIELDS_RULE_ITEM: 'WorkspaceRules-RequireFieldsRuleItem',
                 REQUIRE_FIELDS_RULE_SAVE: 'WorkspaceRules-RequireFieldsRuleSave',
                 REQUIRE_FIELDS_RULE_DESCRIBE: 'WorkspaceRules-RequireFieldsRuleDescribe',
@@ -11136,6 +11190,7 @@ const CONST = {
             LANGUAGE: 'SettingsPreferences-Language',
             PAYMENT_CURRENCY: 'SettingsPreferences-PaymentCurrency',
             THEME: 'SettingsPreferences-Theme',
+            HOME_ADDRESS: 'SettingsPreferences-HomeAddress',
         },
         SETTINGS_SECURITY: {
             TWO_FACTOR_AUTH: 'SettingsSecurity-TwoFactorAuth',

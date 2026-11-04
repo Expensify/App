@@ -6,6 +6,7 @@
   - Always includes `data-sentry-label` in the list of checked attributes for each DOM element
   - Searches up to 15 levels up the DOM tree to find a `data-sentry-label` attribute
   - Prefixes the CSS selector with the found `data-sentry-label` value (e.g., `[data-sentry-label="MyLabel"] div.css-146c3p1.r-1udh08x.r-1udbk01.r-1iln25a > svg`)
+  - Returns only `[data-sentry-label="MyLabel"]` when the labeled element is the nearest pressable (`data-tag="pressable"`) or has `data-sentry-label-exact="true"`. The exact flag is for non-pressable wrappers, such as the one around a composer, whose clicks would otherwise get a different selector depending on the inner element hit.
 
   This allows us to identify UI elements by meaningful labels rather than just CSS selectors, making Sentry spans more actionable.
 

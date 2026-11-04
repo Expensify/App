@@ -54,6 +54,7 @@ import {
     getAssignedCompanyCardMessage,
     getAutoCategorizeNewExpensesMessage,
     getAutoPayApprovedReportsEnabledMessage,
+    getAutoPayFeeDisclosureMessage,
     getAutoReimbursementMessage,
     getCardConnectionBrokenMessage,
     getCardIssuedMessage,
@@ -1705,6 +1706,8 @@ function getReportAlternateText({
             );
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED)) {
             alternateText = Parser.htmlToText(getSettlementAccountLockedMessage(translate, lastAction));
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.AUTO_PAY_FEE_DISCLOSURE)) {
+            alternateText = Parser.htmlToText(getAutoPayFeeDisclosureMessage(translate, lastAction, getPersonalDetailsByID(getOriginalMessage(lastAction)?.accountID, personalDetails)));
         } else if (lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDisplayName && lastMessageTextFromReport) {
             alternateText = formatReportLastMessageText(`${getLastActorDisplayNamePrefix()}: ${lastMessageText}`);
         } else {

@@ -21,6 +21,12 @@ import type {CompanyCardBalanceParams} from './params';
 import type {AllConnectionName, PolicyConnectionSyncStage} from './TranslationTypes';
 import type {TranslationDeepObject} from './types';
 const translations: TranslationDeepObject<typeof en> = {
+    billPay: {
+        billCreated: ({sender}) => `creó esta factura en nombre de ${sender}`,
+        billSubmitted: ({receiver}) => `envió esta factura a ${receiver}`,
+        invoiceCreated: ({sender}) => `creó esta factura en nombre de ${sender}`,
+        invoiceSubmitted: ({receiver}) => `envió esta factura a ${receiver}`,
+    },
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 día`,
@@ -1225,6 +1231,8 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         compliance: 'Cumplimiento',
         runningTotal: 'Total acumulado',
+        explain: 'Explicar',
+        explainChartPrompt: (chartTitle: string) => `Explica los datos en ${chartTitle}.`,
     },
     allSettingsScreen: {
         subscription: 'Suscripcion',
@@ -1718,6 +1726,7 @@ const translations: TranslationDeepObject<typeof en> = {
             other: 'Error inesperado. Por favor, inténtalo más tarde.',
             genericHoldExpenseFailureMessage: 'Error inesperado al retener el gasto. Por favor, inténtalo de nuevo más tarde.',
             genericUnholdExpenseFailureMessage: 'Error inesperado al desbloquear el gasto. Por favor, inténtalo de nuevo más tarde.',
+            payFailedExpenseDeleted: 'El pago falló porque el informe de gastos fue eliminado.',
             genericCreateFailureMessage: 'Error inesperado al enviar este gasto. Por favor, inténtalo más tarde.',
             genericCreateInvoiceFailureMessage: 'Error inesperado al enviar la factura. Por favor, inténtalo de nuevo más tarde.',
             receiptDeleteFailureError: 'Error inesperado al borrar este recibo. Por favor, vuelve a intentarlo más tarde.',
@@ -3029,6 +3038,7 @@ const translations: TranslationDeepObject<typeof en> = {
                 wiseTerms: `Acepto los <a href="${CONST.WISE.TERMS_URL}">términos y condiciones</a> y la <a href="${CONST.WISE.PRIVACY_URL}">política de privacidad</a> de Wise.`,
                 wiseTermsAccessibilityLabel: 'Acepto los términos y condiciones y la política de privacidad de Wise.',
                 error: 'Acepta todos los términos para continuar.',
+                alreadySubmitted: 'Esta empresa ya se envió a Wise para su revisión.',
             },
             moreInfoNeeded: {
                 headerTitle: 'Se necesita más información',
@@ -3553,6 +3563,7 @@ ${amount} para ${merchant} - ${date}`,
         appSection: {
             title: 'Preferencias de la aplicación',
         },
+        distanceSection: {title: 'Preferencias de distancia'},
         testSection: {
             title: 'Preferencias para tests',
             subtitle: 'Ajustes para ayudar a depurar y probar la aplicación en “staging”.',
@@ -7452,10 +7463,10 @@ ${amount} para ${merchant} - ${date}`,
             reimbursementAccount: 'cuenta de reembolso',
             delayedSubmission: 'presentación retrasada',
             welcomeNote: 'Por favor, comience a utilizar mi nuevo espacio de trabajo.',
-            merchantRules: 'Valores predeterminados de gastos',
+            merchantRules: 'Reglas de comerciante',
             merchantRulesCount: () => ({
-                one: '1 gasto predeterminado',
-                other: (count: number) => `${count} valores predeterminados de gastos`,
+                one: '1 regla de comerciante',
+                other: (count: number) => `${count} reglas de comerciante`,
             }),
             confirmTitle: ({newWorkspaceName, totalMembers}) =>
                 `Estás a punto de crear y compartir ${newWorkspaceName ?? ''} con ${totalMembers ?? 0} miembros del espacio de trabajo original.`,
@@ -9008,8 +9019,8 @@ ${reportName}`,
                 matchType: 'Tipo de coincidencia',
                 matchTypeContains: 'Contiene',
                 matchTypeExact: 'Coincide exactamente',
-                duplicateRuleTitle: 'Ya existe una regla similar',
-                duplicateRulePrompt: (conditionName: string) => `Tu regla existente para «${conditionName}» tendrá prioridad sobre esta. ¿Quieres guardar de todas formas?`,
+                duplicateRuleTitle: 'Ya existe una regla de comerciante similar',
+                duplicateRulePrompt: (merchantName: string) => `La regla existente para "${merchantName}" tendrá prioridad sobre esta. ¿Desea guardarla de todos modos?`,
                 saveAnyway: 'Guardar de todos modos',
                 applyToExistingUnsubmittedExpenses: 'Aplicar a gastos existentes no enviados',
                 expenseDefaultsTitle: 'Valores predeterminados de gastos',
@@ -9017,8 +9028,19 @@ ${reportName}`,
                 ifAnyExpenseMatches: 'Si algún gasto coincide con:',
                 thenApplyFollowingDefaults: 'Luego aplica las siguientes opciones predeterminadas:',
                 confirmErrorCategory: 'Selecciona una categoría',
-                confirmErrorCondition: 'Por favor, añade al menos una condición',
-                confirmErrorConditionAndDefault: 'Añade al menos una condición y aplica al menos un valor predeterminado',
+                confirmErrorCategoryTax: 'Selecciona una tasa de impuesto',
+                confirmErrorCondition: 'Por favor, introduce un comercio',
+                confirmErrorConditionAndDefault: 'Introduce un comercio y aplica al menos un valor predeterminado',
+                turnOnTaxesFirstTitle: 'Activa primero los impuestos',
+                turnOnTaxesFirstPrompt:
+                    'Las reglas de categoría establecen una tasa de impuesto predeterminada. Activa los impuestos en la configuración de tu espacio de trabajo para usarlos.',
+                categoryRulesApplyGoingForwardTitle: 'Las reglas de categoría se aplican de ahora en adelante',
+                categoryRulesApplyGoingForwardPrompt: 'Se aplica una tasa de impuesto predeterminada a los nuevos gastos de esta categoría. Los gastos que ya existen no cambiarán.',
+                confirmErrorCategoryTaxMoveIsWorkspaceDefault:
+                    'El tipo impositivo seleccionado es ahora el predeterminado de tu espacio de trabajo, por lo que esta regla ya no es válida. Elige un tipo impositivo diferente.',
+                addTaxRateFirstTitle: 'Añade primero una tasa de impuesto',
+                addTaxRateFirstPrompt:
+                    'Las reglas de categoría establecen una tasa de impuestos predeterminada. Añade una tasa de impuestos distinta de la predeterminada de tu espacio de trabajo para poder usarlas.',
                 createRuleFromExpenseAction: 'Crear una norma',
                 createRuleFromExpensePrompt: 'para aplicar tus cambios a todos los gastos que coincidan con tus criterios.',
             },
@@ -9177,8 +9199,6 @@ ${reportName}`,
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Permitido ${shownCount > 1 ? 'divisas' : 'moneda'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} más` : ''}`,
                 defaultRulesCannotBeDeleted: 'Las reglas predeterminadas no se pueden eliminar',
-                tags: 'Etiquetas',
-                multipleConditions: 'Varias condiciones',
             },
             agentRules: {
                 title: 'Reglas del agente',
@@ -9219,9 +9239,8 @@ ${reportName}`,
                 describeRuleForConcierge: 'Describe tu regla y Concierge la creará',
                 gotIt: 'Entendido',
                 createRule: 'Crear regla',
-                fallbackBanner:
-                    'Esta no es una regla estándar, así que la redactamos como una regla de agente. Las reglas de agente actúan después de que un gasto o informe cambia, por ejemplo reteniendo el gasto o rechazando el informe.',
-                fallbackBannerWithExplanation: (explanation: string) => `Esta no es una regla estándar, así que la redactamos como una regla de agente. ${explanation}`,
+                fallbackBanner: 'Esta no es una regla estándar, así que redactamos una regla de agente.',
+                fallbackBannerWithExplanation: (explanation: string) => `Esta no es una regla estándar, así que redactamos una regla de agente. ${explanation}`,
             },
             tabs: {
                 general: 'General',
@@ -9324,11 +9343,9 @@ ${reportName}`,
                 findRule: 'Buscar regla',
                 rename: 'Cambiar nombre',
                 update: 'Actualizar',
+                merchantIs: (merchant: string) => `El comercio es «${merchant}»`,
                 merchantTypeIs: (merchantType: string) => `El tipo de comercio es "${merchantType}"`,
                 categoryIs: (category: string) => `La categoría es «${category}»`,
-                tagIs: (tag: string) => `La etiqueta es «${tag}»`,
-                merchantContains: (merchant: string) => `El comercio contiene «${merchant}»`,
-                merchantExactlyMatches: (merchant: string) => `El comercio coincide exactamente con «${merchant}»`,
             },
             merchantTypeRule: {merchantType: 'Tipo de comercio', saveRule: 'Guardar regla', confirmErrorCategory: 'Por favor, selecciona una categoría.'},
             requireFieldsTable: {
@@ -9398,6 +9415,14 @@ ${reportName}`,
                 cta: 'Añadir regla de IA',
             },
             categoriesDisabledEmptyState: {title: 'Las categorías no están habilitadas', subtitle: 'Habilita las categorías para tener más control sobre tus gastos.'},
+            expenseDefaultType: {
+                title: 'Aplicar valores predeterminados de gastos',
+                subtitle: '¿Con qué debería coincidir esta regla?',
+                merchant: 'Comercio',
+                merchantDescription: 'Actualizar campos en gastos de un comerciante específico',
+                category: 'Categoría',
+                categoryDescription: 'Establece una tasa de impuesto predeterminada para una categoría específica',
+            },
             taxesDisabledEmptyState: {
                 title: 'Los impuestos no están habilitados',
                 subtitle: 'Habilita los impuestos para documentar y recuperar los impuestos que sean deducibles.',
@@ -10394,6 +10419,12 @@ ${reportName}`,
         preventPayoutNonReimbursableReports: (oldValue: string, newValue: string) =>
             `actualizó "Impedir marcar los informes no reembolsables como pagados" a "${newValue === 'true' ? 'Habilitado' : 'Deshabilitado'}" (previamente "${oldValue === 'true' ? 'Habilitado' : 'Deshabilitado'}")`,
         addedExpensifyCardFeed: (feedName: string) => `añadió el feed de Tarjeta Expensify "${feedName}"`,
+        updateWorkspaceTimezone: (oldValue: string, newValue: string) => {
+            if (!oldValue) {
+                return `establece la zona horaria del espacio de trabajo en «${newValue}»`;
+            }
+            return `actualizó la zona horaria del espacio de trabajo a «${newValue}» (previamente «${oldValue}»)`;
+        },
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
@@ -10987,6 +11018,8 @@ ${reportName}`,
                 leftTheChatWithName: (nameOrEmail) => `${nameOrEmail ? `${nameOrEmail}: ` : ''}salió del chat`,
                 settlementAccountLocked: ({maskedBankAccountNumber}: OriginalMessageSettlementAccountLocked, linkURL: string) =>
                     `La cuenta bancaria comercial ${maskedBankAccountNumber} ha sido bloqueada automáticamente debido a un problema con el reembolso o la liquidación de la Tarjeta Expensify. Por favor, soluciona el problema en la <a href='${linkURL}'>configuración del espacio de trabajo</a>.`,
+                autoPayFeeDisclosure: (adminName: string, bankName: string, lastFour: string, autoPaySettingsURL: string) =>
+                    `Los reembolsos globales fueron habilitados por ${adminName} en la cuenta ${bankName ? `de ${bankName} ` : ''}que termina en ${lastFour}. Las tasas de cambio exactas y las comisiones no se pueden previsualizar antes del pago cuando los informes transfronterizos se pagan automáticamente. Revisa tu <a href="${autoPaySettingsURL}">configuración de pago automático</a> para obtener más información sobre tasas y comisiones.`,
             },
             error: {
                 invalidCredentials: 'Credenciales no válidas, por favor verifica la configuración de tu conexión.',
@@ -12492,7 +12525,6 @@ ${reportName}`,
             isUnreadWithMention: 'No leído con mención',
             isWaitingForAssigneeToCompleteAction: 'Esperando a que el asignado complete la acción',
             hasChildReportAwaitingAction: 'Informe secundario pendiente de acción',
-            hasMissingInvoiceBankAccount: 'Falta la cuenta bancaria de la factura',
             hasUnresolvedCardFraudAlert: 'Tiene una alerta de fraude de tarjeta sin resolver',
             hasDEWApproveFailed: 'La aprobación DEW ha fallado',
         },
