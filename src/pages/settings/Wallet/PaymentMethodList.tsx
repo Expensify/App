@@ -48,7 +48,7 @@ import {
     maskCardNumber,
 } from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
-import {getWiseOnboardingPageToContinue} from '@libs/Navigation/helpers/navigateToWiseGlobalReimbursements';
+import getWiseOnboardingPageToContinue from '@libs/Navigation/helpers/getWiseOnboardingPageToContinue';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
@@ -178,8 +178,8 @@ function getWiseSetupInProgress(paymentMethod: PaymentMethod): PaymentMethodItem
     }
     const bankAccount = paymentMethod as BankAccount;
     const bankAccountID = bankAccount.accountData?.bankAccountID;
-    const pageToContinue = getWiseOnboardingPageToContinue(bankAccount);
-    return bankAccountID && (pageToContinue || isWiseOnboardingAwaitingDecision(bankAccount)) ? {bankAccountID, pageToContinue} : undefined;
+    const canContinue = !!getWiseOnboardingPageToContinue(bankAccount);
+    return bankAccountID && (canContinue || isWiseOnboardingAwaitingDecision(bankAccount)) ? {bankAccountID, canContinue} : undefined;
 }
 
 function keyExtractor(item: PaymentMethod | string) {

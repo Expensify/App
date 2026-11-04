@@ -78,27 +78,17 @@ describe('EnableGlobalReimbursementsPayModal', () => {
     });
 
     it.each([
-        ['continues the onboarding the admin left before Submit', CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, undefined, 'business-onboarding'],
-        ['opens the more info page when Wise needs more info', CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}, 'more-info-needed'],
-        ['opens the intro for an account that has not started', undefined, undefined, undefined],
-        [
-            'opens the intro while Wise reviews the business, which leaves nothing to continue',
-            CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE,
-            {status: CONST.WISE.ONBOARDING_STATUS.IN_REVIEW},
-            undefined,
-        ],
-    ])('%s when Pay is blocked', async (_label, globalReimbursementProvider, wise, pageToContinue) => {
+        ['an account that has not started', undefined, undefined],
+        ['an onboarding the admin left before Submit', CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, undefined],
+        ['an onboarding Wise needs more info for', CONST.GLOBAL_REIMBURSEMENT_PROVIDER.WISE, {status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED}],
+    ])('opens the intro over the report for %s when Pay is blocked', async (_label, globalReimbursementProvider, wise) => {
         // Given an admin on the Wise beta with a USD business account that is not set up for global reimbursements
         // When paying a report from that account is blocked
         await blockPay({bankAccount: createBusinessBankAccount(globalReimbursementProvider, wise)});
 
-        // Then the intro opens over the report, or the page that picks up the onboarding with the intro beneath it when the admin has something to do
+        // Then the intro opens over the report whatever the onboarding's progress, since the intro is where the admin starts or continues it
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
-        if (pageToContinue) {
-            expect(Navigation.navigate).toHaveBeenCalledWith(`${INTRO_ROUTE}/${pageToContinue}`, expect.objectContaining({skipMatchingFullScreenRoute: true, dynamicRouteBase: INTRO_ROUTE}));
-        } else {
-            expect(Navigation.navigate).toHaveBeenCalledWith(INTRO_ROUTE, expect.objectContaining({skipMatchingFullScreenRoute: true}));
-        }
+        expect(Navigation.navigate).toHaveBeenCalledWith(INTRO_ROUTE, {skipMatchingFullScreenRoute: true});
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 

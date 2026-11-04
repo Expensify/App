@@ -220,14 +220,12 @@ describe('PaymentMethodList', () => {
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
 
-        // Then the row shows the setup is in progress, and Continue opens the onboarding with the intro beneath it, which the onboarding takes the bank account from
+        // Then the row shows the setup is in progress, and Continue opens the intro, which picks the onboarding up where the admin left it
         expect(screen.getByText('Global reimbursements setup in progress.', {exact: false})).toBeOnTheScreen();
-        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/business-onboarding`, {
-            dynamicRouteBase: `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`,
-        });
+        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`);
     });
 
-    it("sends the admin to Wise's form when Wise needs more info", async () => {
+    it('offers Continue when Wise needs more info', async () => {
         // Given a business bank account whose submitted Wise onboarding Wise sent back for more info
         await act(async () => {
             await Onyx.set(ONYXKEYS.BANK_ACCOUNT_LIST, {[WISE_BANK_ACCOUNT_ID]: createWiseBusinessBankAccount({status: CONST.WISE.ONBOARDING_STATUS.ACTION_REQUIRED})});
@@ -238,10 +236,8 @@ describe('PaymentMethodList', () => {
         await waitForBatchedUpdatesWithAct();
         fireEvent.press(screen.getByText('Continue.'), {preventDefault: jest.fn()});
 
-        // Then Continue opens the more info page with the intro beneath it, since Wise waits on the admin rather than the other way around
-        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}/more-info-needed`, {
-            dynamicRouteBase: `settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`,
-        });
+        // Then the row offers Continue to the intro, since Wise waits on the admin rather than the other way around
+        expect(Navigation.navigate).toHaveBeenCalledWith(`settings/wallet/global-reimbursements/${WISE_BANK_ACCOUNT_ID}`);
     });
 
     it('shows a submitted Wise onboarding as in progress without Continue', async () => {

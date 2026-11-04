@@ -4,7 +4,6 @@ import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
 import {getEnableGlobalReimbursementsBusinessNavigationRoute, getWiseGlobalReimbursementsIntroNavigationRoute} from '@libs/Navigation/helpers/enableGlobalReimbursementsNavigationUtils';
-import navigateToWiseGlobalReimbursements, {getWiseOnboardingPageToContinue} from '@libs/Navigation/helpers/navigateToWiseGlobalReimbursements';
 import Navigation from '@libs/Navigation/Navigation';
 
 import {clearEnableGlobalReimbursementsModal} from '@userActions/App';
@@ -21,8 +20,6 @@ import {ModalActions} from './Modal/Global/ModalContext';
 function EnableGlobalReimbursementsPayModal() {
     const {translate} = useLocalize();
     const [enableGlobalReimbursementsModal] = useOnyx(ONYXKEYS.RAM_ONLY_ENABLE_GLOBAL_REIMBURSEMENTS_MODAL);
-    const modalBankAccountID = enableGlobalReimbursementsModal?.bankAccountID;
-    const [modalBankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (bankAccountList) => (modalBankAccountID ? bankAccountList?.[modalBankAccountID] : undefined)});
     const {showConfirmModal} = useConfirmModal();
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
@@ -40,11 +37,7 @@ function EnableGlobalReimbursementsPayModal() {
             if (isAccountLocked) {
                 showLockedAccountModal();
             } else {
-                navigateToWiseGlobalReimbursements(
-                    getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal),
-                    getWiseOnboardingPageToContinue(modalBankAccount),
-                    {skipMatchingFullScreenRoute: true},
-                );
+                Navigation.navigate(getWiseGlobalReimbursementsIntroNavigationRoute(modalData.bankAccountID, navigationPathAtSignal), {skipMatchingFullScreenRoute: true});
             }
             clearEnableGlobalReimbursementsModal();
             return;
