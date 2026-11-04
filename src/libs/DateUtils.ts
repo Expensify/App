@@ -69,6 +69,21 @@ function isDate(arg: unknown): arg is Date {
 }
 
 /**
+ * Copies a date's wall-clock fields in the device's timezone onto the same fields in UTC.
+ *
+ * An `Intl.DateTimeFormat` created without a `timeZone` keeps the device's timezone from when it was created, so a
+ * cached one would keep showing the old day after the device moves to another timezone. Cached formatters are created
+ * with `timeZone: 'UTC'` instead and given the result of this function, which reads the device's timezone on every call.
+ */
+function toUTCWallClockDate(date: Date): Date {
+    const utcDate = new Date(0);
+    // `setUTCFullYear` rather than `Date.UTC`, which treats the years 0 to 99 as 1900 to 1999
+    utcDate.setUTCFullYear(date.getFullYear(), date.getMonth(), date.getDate());
+    utcDate.setUTCHours(date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds());
+    return utcDate;
+}
+
+/**
  * Get the day of the week that the week starts on
  */
 function getWeekStartsOn(): WeekDay {
@@ -963,10 +978,11 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
 /**
  * Building an `Intl.DateTimeFormat` costs far more than formatting with one, so instances are cached per language and
  * whether the year is shown.
+ * They format in UTC, so pass dates through `toUTCWallClockDate` to show them in the device's current timezone.
  */
 const memoizedCreateCancellationDateFormatter = memoize(
     (localeCode: string, shouldIncludeYear: boolean) =>
-        new Intl.DateTimeFormat(localeCode, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric'}),
+        new Intl.DateTimeFormat(localeCode, {weekday: 'long', year: shouldIncludeYear ? 'numeric' : undefined, month: 'short', day: 'numeric', timeZone: 'UTC'}),
 );
 
 /**
@@ -990,7 +1006,7 @@ function getFormattedCancellationDate(isoDateString: string, dateFnsLocale: Date
     // every engine accepts a raw offset like `+07:00` as an `Intl` timeZone, so the venue's wall-clock fields are moved
     // into a local Date first and formatted without one.
     // date-fns falls back to en-US when given no locale, so this matches the date-fns formatters elsewhere in this file.
-    const datePart = memoizedCreateCancellationDateFormatter(dateFnsLocale?.code ?? 'en-US', !isThisYear(date)).format(toZonedTime(date, venueTimezone));
+    const datePart = memoizedCreateCancellationDateFormatter(dateFnsLocale?.code ?? 'en-US', !isThisYear(date)).format(toUTCWallClockDate(toZonedTime(date, venueTimezone)));
     const formattedDate = `${datePart} ${formatInTimeZone(date, venueTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})}`;
     if (isWallClockTime) {
         return localTimeLabel ? `${formattedDate}, ${localTimeLabel}` : formattedDate;
