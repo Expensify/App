@@ -133,7 +133,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                         */}
                         {domainMenuItems.map((item) => {
                             const isItemFocused = !!(item.screenName && activeRoute?.startsWith(item.screenName));
-                            const {shouldShowBasicTitle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isItemFocused);
+                            const {shouldShowBasicTitle, titleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isItemFocused);
                             return (
                                 <HighlightableMenuItem
                                     key={item.translationKey}
@@ -145,6 +145,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                     wrapperStyle={[styles.sectionMenuItem(shouldUseNarrowLayout), selectedStyle]}
                                     hoveredStyle={hoveredStyle}
                                     shouldShowBasicTitle={shouldShowBasicTitle}
+                                    titleStyle={titleStyle}
                                     focused={isItemFocused}
                                     shouldIconUseAutoWidthStyle
                                     shouldGreyOutWhenDisabled={false}

@@ -46,19 +46,19 @@ jest.mock('@hooks/useStyleUtils', () => ({
 describe('useOptionRowChrome', () => {
     describe('avatarBackgroundColor precedence', () => {
         it('returns the default sidebar color when neither focused nor hovered', () => {
-            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: false, viewMode: CONST.OPTION_MODE.DEFAULT}));
+            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: false, viewMode: CONST.OPTION_MODE.DEFAULT, shouldUseFlatNavigationBar: false}));
 
             expect(result.current.avatarBackgroundColor).toBe(DEFAULT_SIDEBAR);
         });
 
         it('returns the focused color when isOptionFocused is true', () => {
-            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: true, viewMode: CONST.OPTION_MODE.DEFAULT}));
+            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: true, viewMode: CONST.OPTION_MODE.DEFAULT, shouldUseFlatNavigationBar: false}));
 
             expect(result.current.avatarBackgroundColor).toBe(FOCUSED_COLOR);
         });
 
         it('returns the hovered color when hovered and not focused', () => {
-            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: false, viewMode: CONST.OPTION_MODE.DEFAULT}));
+            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: false, viewMode: CONST.OPTION_MODE.DEFAULT, shouldUseFlatNavigationBar: false}));
 
             act(() => {
                 result.current.setHovered(true);
@@ -68,7 +68,7 @@ describe('useOptionRowChrome', () => {
         });
 
         it('focused beats hovered when both are true', () => {
-            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: true, viewMode: CONST.OPTION_MODE.DEFAULT}));
+            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: true, viewMode: CONST.OPTION_MODE.DEFAULT, shouldUseFlatNavigationBar: false}));
 
             act(() => {
                 result.current.setHovered(true);
@@ -80,27 +80,27 @@ describe('useOptionRowChrome', () => {
 
     describe('layout styles by viewMode', () => {
         it('default viewMode uses optionRow in sidebarInnerRowStyle', () => {
-            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: false, viewMode: CONST.OPTION_MODE.DEFAULT}));
+            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: false, viewMode: CONST.OPTION_MODE.DEFAULT, shouldUseFlatNavigationBar: false}));
 
             expect(result.current.sidebarInnerRowStyle).toMatchObject({optionRow: true});
             expect(result.current.sidebarInnerRowStyle).not.toMatchObject({optionRowCompact: true});
         });
 
         it('compact viewMode uses optionRowCompact in sidebarInnerRowStyle', () => {
-            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: false, viewMode: CONST.OPTION_MODE.COMPACT}));
+            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: false, viewMode: CONST.OPTION_MODE.COMPACT, shouldUseFlatNavigationBar: false}));
 
             expect(result.current.sidebarInnerRowStyle).toMatchObject({optionRowCompact: true});
             expect(result.current.sidebarInnerRowStyle).not.toMatchObject({optionRow: true});
         });
 
         it('default viewMode returns flex1 contentContainerStyles', () => {
-            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: false, viewMode: CONST.OPTION_MODE.DEFAULT}));
+            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: false, viewMode: CONST.OPTION_MODE.DEFAULT, shouldUseFlatNavigationBar: false}));
 
             expect(result.current.contentContainerStyles).toEqual([MOCK_STYLES.flex1]);
         });
 
         it('compact viewMode returns the compact content container set', () => {
-            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: false, viewMode: CONST.OPTION_MODE.COMPACT}));
+            const {result} = renderHook(() => useOptionRowChrome({isOptionFocused: false, viewMode: CONST.OPTION_MODE.COMPACT, shouldUseFlatNavigationBar: false}));
 
             expect(result.current.contentContainerStyles).toEqual([MOCK_STYLES.flex1, MOCK_STYLES.flexRow, MOCK_STYLES.overflowHidden, MOCK_STYLE_UTILS.getCompactContentContainerStyles()]);
         });

@@ -1,5 +1,5 @@
 import type {OptionRowLHNProps} from '@components/LHNOptionsList/types';
-import useFlatNavSidebarRowProps from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
+import {getFlatNavSidebarRowProps} from '@components/Navigation/FlatNavigationBar/useFlatNavSidebarRowProps';
 
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -18,6 +18,8 @@ type UseOptionRowChromeParams = {
 
     /** Display density mode. `COMPACT` switches to the compact layout styles. */
     viewMode: NonNullable<OptionRowLHNProps['viewMode']>;
+
+    shouldUseFlatNavigationBar: boolean;
 };
 
 /**
@@ -30,11 +32,11 @@ type UseOptionRowChromeParams = {
  * Per-leaf derivations (`isInFocusMode`, `singleAvatarContainerStyle`, `displayNameStyle`)
  * live inside their consuming leaf component (`Avatar`, `Title`) and are not returned here.
  */
-function useOptionRowChrome({isOptionFocused, viewMode}: UseOptionRowChromeParams) {
+function useOptionRowChrome({isOptionFocused, viewMode, shouldUseFlatNavigationBar}: UseOptionRowChromeParams) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {selectedStyle, hoveredStyle} = useFlatNavSidebarRowProps()(isOptionFocused);
+    const {selectedStyle, hoveredStyle} = getFlatNavSidebarRowProps(isOptionFocused, shouldUseFlatNavigationBar, styles);
     const [hovered, setHovered] = useState(false);
 
     const isInFocusMode = viewMode === CONST.OPTION_MODE.COMPACT;

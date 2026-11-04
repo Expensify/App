@@ -1,12 +1,17 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {ViewStyle} from 'react-native';
+import type {ThemeStyles} from '@styles/index';
+
+import type {TextStyle, ViewStyle} from 'react-native';
 
 import useShouldUseFlatNavigationBar from './useShouldUseFlatNavigationBar';
 
 type FlatNavSidebarRowProps = {
     /** Regular weight for rows that are not selected, matching the flat navigation bar's labels */
     shouldShowBasicTitle?: boolean;
+
+    /** Supporting text color for rows that are not selected, matching the flat navigation bar's labels */
+    titleStyle?: TextStyle;
 
     /** Background of the selected row, the one the flat navigation bar's selected row uses */
     selectedStyle?: ViewStyle;
@@ -16,24 +21,29 @@ type FlatNavSidebarRowProps = {
 };
 
 /**
- * Gives the rows of a tab's sidebar (Inbox, Spend, Workspaces, Domains, Account) the look of the flat navigation bar's
- * rows when the bar is shown, and no overrides otherwise. The returned function takes whether the row is selected.
+ * Gives a row of a tab's sidebar (Inbox, Spend, Workspaces, Domains, Account) the look of the flat navigation bar's
+ * rows when the bar is shown, and no overrides otherwise, so the sidebars stay as they are for users outside the beta.
  */
+function getFlatNavSidebarRowProps(isSelected: boolean, shouldUseFlatNavigationBar: boolean, styles: ThemeStyles): FlatNavSidebarRowProps {
+    if (!shouldUseFlatNavigationBar) {
+        return {};
+    }
+    return {
+        shouldShowBasicTitle: !isSelected,
+        titleStyle: isSelected ? undefined : styles.textSupporting,
+        selectedStyle: isSelected ? styles.flatNavigationBarItemSelected : undefined,
+        hoveredStyle: styles.flatNavigationBarItemHovered,
+    };
+}
+
+/** Reads whether the flat navigation bar is shown once and returns getFlatNavSidebarRowProps for a row's selected state. */
 function useFlatNavSidebarRowProps() {
     const styles = useThemeStyles();
     const shouldUseFlatNavigationBar = useShouldUseFlatNavigationBar();
 
-    return (isSelected: boolean): FlatNavSidebarRowProps => {
-        if (!shouldUseFlatNavigationBar) {
-            return {};
-        }
-        return {
-            shouldShowBasicTitle: !isSelected,
-            selectedStyle: isSelected ? styles.flatNavigationBarItemSelected : undefined,
-            hoveredStyle: styles.flatNavigationBarItemHovered,
-        };
-    };
+    return (isSelected: boolean) => getFlatNavSidebarRowProps(isSelected, shouldUseFlatNavigationBar, styles);
 }
 
 export default useFlatNavSidebarRowProps;
+export {getFlatNavSidebarRowProps};
 export type {FlatNavSidebarRowProps};

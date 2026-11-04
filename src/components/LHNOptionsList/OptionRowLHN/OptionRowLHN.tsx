@@ -17,11 +17,13 @@ function OptionRowLHN({
     hasDraftComment,
     testID,
     shouldShowMarkAsDoneCopy,
+    shouldUseFlatNavigationBar = false,
 }: OptionRowLHNProps) {
     const styles = useThemeStyles();
     const {setHovered, sidebarInnerRowStyle, contentContainerStyles, avatarBackgroundColor, selectedStyle, hoveredStyle} = useOptionRowChrome({
         isOptionFocused,
         viewMode,
+        shouldUseFlatNavigationBar,
     });
 
     const brickRoadIndicator = optionItem.brickRoadIndicator;

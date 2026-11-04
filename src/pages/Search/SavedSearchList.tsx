@@ -73,7 +73,7 @@ function buildSavedSearchMenuItem({
     const savedSearchKey = savedSearchIDToSearchKey(key);
     const isItemFocused = savedSearchKey === currentSearchKey;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
-    const {shouldShowBasicTitle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isItemFocused);
+    const {shouldShowBasicTitle, titleStyle, selectedStyle, hoveredStyle} = getFlatNavRowProps(isItemFocused);
 
     return {
         ...baseMenuItem,
@@ -95,6 +95,7 @@ function buildSavedSearchMenuItem({
         wrapperStyle: [wrapperStyle, selectedStyle],
         hoveredStyle,
         shouldShowBasicTitle,
+        titleStyle,
     };
 }
 
